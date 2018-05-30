@@ -27,7 +27,7 @@ cd ../zksnark_element && ../build/src/main
 ```
 
 **Note:**
-In order to compile the project on macOS, run:
+In order to compile the project on macOS (see: https://github.com/scipr-lab/libsnark/issues/99), run:
 ```bash
 brew install pkg-config
 
