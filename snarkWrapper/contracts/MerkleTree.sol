@@ -1,6 +1,6 @@
 // https://github.com/zcash-hackworks/babyzoe
 
-contract MerkelTree {
+contract MerkleTree {
     mapping (bytes32 => bool) public serials;
     mapping (bytes32 => bool) public roots;
 
@@ -12,7 +12,7 @@ contract MerkelTree {
     Mtree public MT;
     bytes public vk;
 
-    function MerkelTree() {
+    function MerkleTree() {
         for (uint i = 0; i < 16; i++)
             MT.leaves[i] = 0x0;
 

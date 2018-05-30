@@ -1,9 +1,9 @@
 pragma solidity ^0.4.19;
 
-import "MerkelTree.sol";
+import "MerkleTree.sol";
 import "Verifier.sol";
 
-contract Miximus is MerkelTree {
+contract Miximus is MerkleTree {
     mapping (bytes32 => bool) roots;
     mapping (bytes32 => bool) nullifiers;
     event Withdraw (address); 
@@ -50,9 +50,8 @@ contract Miximus is MerkelTree {
         return(address(y[0]));
     }
 
-
     // hack to side step a libshark only allows 253 bit chunks in its output
-    // to overcome this we only validate the first 252 bits of the merkel root
+    // to overcome this we only validate the first 252 bits of the merkle root
     // and the nullifier. We set the last byte to zero.
     function padZero(bytes32 x) returns(bytes32) {
                  //0x1111111111111111111111113fdc3192693e28ff6aee95320075e4c26be03308
@@ -65,7 +64,8 @@ contract Miximus is MerkelTree {
         return (( c >> ((a & 0xF)*8)) & 0xF0)   +  
                (( c >> (((a >> 4)&0xF)*8) + 4) & 0xF);
     }
-    //flip endinaness
+
+    // Flip endinaness
     function reverse(bytes32 a) public pure returns(bytes32) {
         uint r;
         uint i;
@@ -77,5 +77,4 @@ contract Miximus is MerkelTree {
         }
         return bytes32(r);
     }
-
 }
