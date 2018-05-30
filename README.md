@@ -28,7 +28,7 @@ cd ../zksnark_element && ../build/src/main
 
 ### Deploy and run the tests
 
-1. Ddeploy the contract and perform a single mixing transaction from address `0xffcf8fdee72ac11b5c542428b35eef5769c409f0` to `0x3fdc3192693e28ff6aee95320075e4c26be03308`:
+Deploy the contract and perform a single mixing transaction from address `0xffcf8fdee72ac11b5c542428b35eef5769c409f0` to `0x3fdc3192693e28ff6aee95320075e4c26be03308`:
 ```bash
 cd snarkWrapper
 npm install
