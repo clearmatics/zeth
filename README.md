@@ -26,6 +26,25 @@ cmake .. && make
 cd ../zksnark_element && ../build/src/main
 ```
 
+**Note:**
+In order to compile the project on macOS, run:
+```bash
+brew install pkg-config
+
+mkdir build && cd build
+
+LD_LIBRARY_PATH=/usr/local/opt/openssl/lib:"${LD_LIBRARY_PATH}"
+CPATH=/usr/local/opt/openssl/include:"${CPATH}"
+PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig:"${PKG_CONFIG_PATH}"
+export LD_LIBRARY_PATH CPATH PKG_CONFIG_PATH
+
+CPPFLAGS=-I/usr/local/opt/openssl/include LDFLAGS=-L/usr/local/opt/openssl/lib PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig cmake -DWITH_PROCPS=OFF -DWITH_SUPERCOP=OFF ..
+
+make
+
+cd ../zksnark_element && ../build/src/main
+```
+
 ### Deploy and run the tests
 
 Deploy the contract and perform a single mixing transaction from address `0xffcf8fdee72ac11b5c542428b35eef5769c409f0` to `0x3fdc3192693e28ff6aee95320075e4c26be03308`:
