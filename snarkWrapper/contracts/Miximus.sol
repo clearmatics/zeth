@@ -43,6 +43,12 @@ contract Miximus is MerkleTree {
     function nullifierToAddress(bytes32 source) returns(address) {
         bytes20[2] memory y = [bytes20(0), 0];
         assembly {
+            // mstore(p, v) signifies --> mem[p..(p+32)) := v
+            // where, mem[a...b) signifies the bytes of memory starting 
+            // at position a up to (excluding) position b
+            // Thus, here: mstore(y, source) means that we set the first 32bytes
+            // of y (which is 40 bytes in total), to the value stored in source
+            // The remaining 8bytes of the last element of y (y[1]) remain 0
             mstore(y, source)
             mstore(add(y, 20), source)
         }
@@ -50,22 +56,15 @@ contract Miximus is MerkleTree {
         return(address(y[0]));
     }
 
-    // hack to side step a libshark only allows 253 bit chunks in its output
+    // Hack to side step a libshark only allows 253 bit chunks in its output
     // to overcome this we only validate the first 252 bits of the merkle root
     // and the nullifier. We set the last byte to zero.
     function padZero(bytes32 x) returns(bytes32) {
-                 //0x1111111111111111111111113fdc3192693e28ff6aee95320075e4c26be03308
+        //0x1111111111111111111111113fdc3192693e28ff6aee95320075e4c26be03308
         return(x & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0);
     }
 
-    function reverseByte(uint a) public pure returns (uint) {
-        uint c = 0xf070b030d0509010e060a020c0408000;
-
-        return (( c >> ((a & 0xF)*8)) & 0xF0)   +  
-               (( c >> (((a >> 4)&0xF)*8) + 4) & 0xF);
-    }
-
-    // Flip endinaness
+    // Functions used to flip endianness
     function reverse(bytes32 a) public pure returns(bytes32) {
         uint r;
         uint i;
@@ -76,5 +75,12 @@ contract Miximus is MerkleTree {
             r += b << (i*8);
         }
         return bytes32(r);
+    }
+    
+    function reverseByte(uint a) public pure returns (uint) {
+        uint c = 0xf070b030d0509010e060a020c0408000;
+
+        return (( c >> ((a & 0xF)*8)) & 0xF0)   +  
+               (( c >> (((a >> 4)&0xF)*8) + 4) & 0xF);
     }
 }
