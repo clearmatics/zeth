@@ -12,12 +12,18 @@ contract Miximus is MerkleTree {
         zksnark_verify = Verifier(_zksnark_verify);
     }
 
-    function deposit (bytes32 leaf) payable  {
+    // Deposit takes a commitment as a parameter
+    // The commitment in inserted in the Merkle Tree of commitment
+    function deposit (bytes32 leaf) payable {
+        // Make sure the user paid the good denomination to append a commitment in the tree
+        // (Need to pay 1ether to participate in the mixing)
         require(msg.value == 1 ether);
         insert(leaf);
         roots[padZero(getTree()[1])] = true;
     }
 
+    // The withdraw function enables a user to redeem 1 ether by providing 
+    // a valid proof of knowledge of the secret
     function withdraw (
             uint[2] a,
             uint[2] a_p,
