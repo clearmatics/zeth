@@ -51,7 +51,7 @@ Deploy the contract and perform a single mixing transaction from address `0xffcf
 ```bash
 cd snarkWrapper
 npm install
-testrpc -d
+ganache-cli --gasLimit 0xFFFFFFF &
 node deploy.js
 ```
 

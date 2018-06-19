@@ -7,10 +7,12 @@
     "left-pad": "^1.2.0",
     "sjcl": "^1.0.7",
     "solc": "^0.4.19",
-    "web3": "^0.20.6"
+    "web3": "^0.20.6",
+    "ganache-cli": "^6.0.0"
   },
   "devDependencies": {},
   "scripts": {
+    "testrpc": "ganache-cli --gasLimit 0xFFFFFFF",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
