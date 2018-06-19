@@ -16,6 +16,9 @@
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp>
 
+// We do this to avoid using namespace prefixes libsnark:: and libff::
+// everytime we want to invoke something implemented in libsnark or libff
+// respectively
 using namespace libsnark;
 using namespace libff;
 
@@ -91,6 +94,21 @@ public:
 
     const size_t digest_len = HashT::get_digest_len();
     const size_t tree_depth = 4;
+
+    /**
+     *
+     * See https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib2/examples/tutorial.cpp
+     * for more details about the protoboard. It says that:
+     * - The protoboard is the 'memory manager' which holds all constraints 
+     * - (when creating the verifying circuit) and variable assignments (when creating the proof witness). 
+     * - We specify the type as R1P, this can be augmented in the future to allow for BOOLEAN 
+     * - or GF2_EXTENSION fields in the future.
+     *
+     * The line "protoboard<FieldT>" takes origin here: https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/gadgetlib1/protoboard.hpp#L30-L31
+     * And makes use of the Cpp templates. Then, here we build a protoboard (we call the constructor)
+     * by giving a type FieldT in the template.
+     *
+     */
     protoboard<FieldT> pb;
 
     std::shared_ptr<multipacking_gadget<FieldT>> unpacker;
@@ -117,9 +135,12 @@ public:
 
     pb_variable<FieldT> ZERO;
 
+    // I think there are 2 variable arrays because we want to prove 2 things
+    // 1) Bob knows the sk
+    // 2) The leaf associated with the sk is in the tree
+    // TODO: Verify if I'm right or not
     pb_variable_array<FieldT> packed_inputs;
     pb_variable_array<FieldT> unpacked_inputs;
-
 
     pb_variable_array<FieldT> packed_inputs1;
     pb_variable_array<FieldT> unpacked_inputs1;
