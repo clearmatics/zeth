@@ -1,9 +1,6 @@
 // https://github.com/zcash-hackworks/babyzoe
 
 contract MerkleTree {
-    mapping (bytes32 => bool) public serials;
-    mapping (bytes32 => bool) public roots;
-
     struct Mtree {
         uint currentNode; // Index of the current node where to insert the next incoming commitment
         bytes32[16] leaves; // Array containing the 16 leaves of the merkle tree of commitments
@@ -13,6 +10,8 @@ contract MerkleTree {
     
     // Constructor
     function MerkleTree() {
+        // This initialization should not be required in theory:
+        // TODO: To remove
         for (uint i = 0; i < 16; i++) {
             MT.leaves[i] = 0x0; // Initialization of all the leaves to the zero value 0x0
         }
