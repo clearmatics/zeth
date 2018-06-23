@@ -6,11 +6,17 @@ import "Verifier.sol";
 contract Miximus is MerkleTree {
     mapping(bytes32 => bool) roots;
     mapping(bytes32 => bool) nullifiers;
-    event Withdraw(address); 
     Verifier public zksnark_verify;
+
+    event Withdraw(address); 
 
     // Constructor
     function Miximus (address _zksnark_verify) {
+        zksnark_verify = Verifier(_zksnark_verify);
+    }
+    
+    // Function used for a development purpose to change the contract verifying the proof
+    function setVerifier (address _zksnark_verify) {
         zksnark_verify = Verifier(_zksnark_verify);
     }
 
