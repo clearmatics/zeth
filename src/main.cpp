@@ -91,7 +91,7 @@ class Miximus {
         // value V as the A-th leaf in a Merkle tree with root R.
         std::shared_ptr<merkle_tree_check_read_gadget<FieldT, HashT>> check_membership;
 
-        pb_variable_array<FieldT> address_bits_va;
+        pb_variable_array<FieldT> address_bits_va; // Equivalent to positions var here: https://github.com/zcash/zcash/blob/master/src/zcash/circuit/merkle.tcc#L6
         std::shared_ptr <block_variable<FieldT>> input_variable;
         pb_variable<FieldT> ZERO;
 
@@ -129,10 +129,39 @@ class Miximus {
 
             input_variable.reset(new block_variable<FieldT>(pb, *cm, *sk, "input_variable")); 
 
-            cm_hash.reset(new sha256_ethereum(pb, SHA256_block_size, *input_variable, *leaf_digest, "cm_hash"));
-            path_variable.reset(new  merkle_authentication_path_variable<FieldT, HashT> (pb, tree_depth, "path_variable" ));
+            cm_hash.reset(new sha256_ethereum(
+                    pb, 
+                    SHA256_block_size, 
+                    *input_variable, 
+                    *leaf_digest, 
+                    "cm_hash"
+                )
+            );
+            path_variable.reset(new  merkle_authentication_path_variable<FieldT, HashT> (
+                    pb, 
+                    tree_depth, 
+                    "path_variable"
+                )
+            );
             // merkle_authentication_path_variable<FieldT, HashT> path_variable(pb, tree_depth, "path_variable");
-            check_membership.reset(new merkle_tree_check_read_gadget<FieldT, HashT>(pb, tree_depth, address_bits_va, *leaf_digest, *root_digest, *path_variable, ONE, "check_membership"));
+
+            // See definition of ONE (#define ONE pb_variable<FieldT>(0)) here:
+            // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/pb_variable.hpp#L74
+            // Looking at https://github.com/zcash/zcash/blob/75546c697a964e77c14aa71b45403a0768c1f563/src/zcash/circuit/note.tcc#L161
+            // And https://github.com/zcash/zcash/blob/75546c697a964e77c14aa71b45403a0768c1f563/src/zcash/circuit/note.tcc#L104-L108
+            // And https://github.com/zcash/zcash/blob/75546c697a964e77c14aa71b45403a0768c1f563/src/zcash/circuit/note.tcc#L85-L91
+            // The enforce value is used to know whether the value of a coin can be 0 or whether it should be strictly positive
+            check_membership.reset(new merkle_tree_check_read_gadget<FieldT, HashT>(
+                    pb, 
+                    tree_depth, 
+                    address_bits_va, 
+                    *leaf_digest, 
+                    *root_digest, 
+                    *path_variable, 
+                    ONE, 
+                    "check_membership"
+                )
+            );
 
             // Generate constraints
             // root_digest.generate_r1cs_constraints();
