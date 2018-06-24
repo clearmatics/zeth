@@ -1,6 +1,6 @@
 // Hash
 #include "sha256/sha256_ethereum.cpp"
-#include <export.cpp>
+#include <trusted_setup.cpp>
 
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
@@ -242,7 +242,7 @@ class Miximus {
 
             // const size_t num_constraints = pb.num_constraints();
             // const size_t expected_constraints = merkle_tree_check_read_gadget<FieldT, HashT>::expected_constraints(tree_depth);
-            dump_key(pb, "out.txt");
+            run_setup_and_generate_proof(pb, "out.txt");
             // assert(num_constraints == expected_constraints);
         }
 };
