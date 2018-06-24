@@ -1,11 +1,6 @@
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-
 // Hash
-#include <sha256/sha256_ethereum.cpp>
+#include "sha256/sha256_ethereum.cpp"
 #include <export.cpp>
-
-// Key generation
-#include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp" // Hold key
 
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
@@ -19,6 +14,16 @@
 // respectively
 using namespace libsnark;
 using namespace libff;
+
+/** 
+ *  ------- Notes on Libsnark --------
+ *  1) Gadgets are used in two modes: generating constraints via generate_r1cs_constraints (instance reduction) 
+ *     and generating the witness via generate_r1cs_witness (witness reduction). 
+ *     In the latter case, we don't need to generate constraints, we just assign values to variables and these 
+ *     values hopefully satisfy the hypothetical constraints.
+ *  2) https://en.cppreference.com/w/cpp/container/vector/emplace_back: Appends a new element to the end of the container
+ *  3) http://www.cplusplus.com/reference/memory/shared_ptr/reset 
+ **/
 
 // These global variables are taken from the deploy.js script. TODO: Support user input rather than hardcoded values
 // The node variables represent the values of the nodes of the merkle tree, which is a bytes32[32], and which contains 16 leaves
@@ -74,6 +79,9 @@ class Miximus {
          */
         protoboard<FieldT> pb;
 
+        // Def of multipacking_gadget here:
+        // https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/gadgetlib1/gadgets/basic_gadgets.hpp#L47
+        // This type of gadget contains a vector of packing gadgets as internal variable
         std::shared_ptr<multipacking_gadget<FieldT>> unpacker;
         std::shared_ptr<multipacking_gadget<FieldT>> unpacker1;
 
@@ -101,12 +109,13 @@ class Miximus {
         // TODO: Verify if I'm right or not
         pb_variable_array<FieldT> packed_inputs;
         pb_variable_array<FieldT> unpacked_inputs;
-
+        
         pb_variable_array<FieldT> packed_inputs1;
         pb_variable_array<FieldT> unpacked_inputs1;
 
         // Constructor of the class "Miximus"
         Miximus() {
+            // See: https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/gadgetlib1/pb_variable.hpp#L60
             packed_inputs.allocate(pb, 1 + 1, "packed");
             packed_inputs1.allocate(pb, 1 + 1, "packed");
 
@@ -119,9 +128,18 @@ class Miximus {
             sk.reset(new digest_variable<FieldT>(pb, 256, "sk"));
             leaf_digest.reset(new digest_variable<FieldT>(pb, 256, "leaf_digest"));
 
+            /**
+             * multipacking_gadget(protoboard<FieldT> &pb,
+             *        const pb_linear_combination_array<FieldT> &bits,
+             *        const pb_linear_combination_array<FieldT> &packed_vars,
+             *        const size_t chunk_size,
+             *        const std::string &annotation_prefix="");
+             **/
+            // root_digest->bits.begin() and root_digest->bits.end() return iterators
+            // See: http://www.cplusplus.com/reference/vector/vector/end/
             unpacked_inputs.insert(unpacked_inputs.end(), root_digest->bits.begin(), root_digest->bits.end());
             unpacker.reset(new multipacking_gadget<FieldT>(pb, unpacked_inputs, packed_inputs, FieldT::capacity(), "unpacker"));
-
+            
             unpacked_inputs1.insert(unpacked_inputs1.end(), cm->bits.begin(), cm->bits.end());
             unpacker1.reset(new multipacking_gadget<FieldT>(pb, unpacked_inputs1, packed_inputs1, FieldT::capacity(), "unpacker"));
 
@@ -165,8 +183,10 @@ class Miximus {
 
             // Generate constraints
             // root_digest.generate_r1cs_constraints();
-            unpacker->generate_r1cs_constraints(true);
-            unpacker1->generate_r1cs_constraints(false);
+            unpacker->generate_r1cs_constraints(true); // enforce_bitness set to true
+            unpacker1->generate_r1cs_constraints(false); // enforce_bitness set to false
+            // See: https://github.com/zcash/zcash/issues/822
+            // For more details about bitness/boolean enforcement
 
             generate_r1cs_equals_const_constraint<FieldT>(pb, ZERO, FieldT::zero(), "ZERO");
             cm_hash->generate_r1cs_constraints(true);
@@ -177,11 +197,14 @@ class Miximus {
 
         // The purpose of this cpp program is to generate the proof that is going to be verified
         // on the solidity contract deployed on the blockchain
+        // TODO: add arguments for the commitment (here node16), and the merkle path for this commitment (here path = {node3,node5,node9,node17};)
+        // and also the address (here 0), and the address_bits (here: address_bits = {0,0,0,0};)
         void prove() { 
             // generate witness
             // unpacker->generate_r1cs_constraints(false);
             std::vector<merkle_authentication_node> path(tree_depth);
 
+            // TODO: These variables should be moved as argument of the proving function
             libff::bit_vector leaf = node16; // The proof is given for the node16 (containing the inserted commitment). It is the left-most leaf of the tree
             libff::bit_vector address_bits;
             size_t address = 0; // Address of the node/commitment/leaf in the tree for which we generate the proof. Here it is the left-most leaf => Index 0
@@ -192,6 +215,7 @@ class Miximus {
             path = {node3,node5,node9,node17}; // path is declared as a vector of length tree_depth (= 4, here), of merkle tree nodes
             // The path contains all the nodes needed to recompute the hash of the root of the tree, given the leaf for which we generate the proof
             // This is like the merkle proof.
+            // End TODO for variables as arguments
 
             cm->generate_r1cs_witness(nullifier);
             root_digest->generate_r1cs_witness(node_root);
