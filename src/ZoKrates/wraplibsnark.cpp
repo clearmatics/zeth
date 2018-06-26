@@ -11,10 +11,11 @@
 #include <cassert>
 #include <iomanip>
 
-// contains definition of alt_bn128 ec public parameters
-//#include "libsnark/libsnark/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
+// Contains definition of alt_bn128 ec public parameters
+// #include "libsnark/libsnark/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
-// contains required interfaces and types (keypair, proof, generator, prover, verifier)
+
+// Contains required interfaces and types (keypair, proof, generator, prover, verifier)
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
 typedef long integer_coeff_t;

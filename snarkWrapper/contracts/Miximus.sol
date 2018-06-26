@@ -4,11 +4,19 @@ import "MerkleTree.sol";
 import "Verifier.sol";
 
 contract Miximus is MerkleTree {
-    mapping (bytes32 => bool) roots;
-    mapping (bytes32 => bool) nullifiers;
-    event Withdraw (address); 
+    mapping(bytes32 => bool) roots;
+    mapping(bytes32 => bool) nullifiers;
     Verifier public zksnark_verify;
+
+    event Withdraw(address); 
+
+    // Constructor
     function Miximus (address _zksnark_verify) {
+        zksnark_verify = Verifier(_zksnark_verify);
+    }
+    
+    // Function used for a development purpose to change the contract verifying the proof
+    function setVerifier (address _zksnark_verify) {
         zksnark_verify = Verifier(_zksnark_verify);
     }
 
@@ -19,6 +27,8 @@ contract Miximus is MerkleTree {
         // (Need to pay 1ether to participate in the mixing)
         require(msg.value == 1 ether);
         insert(leaf);
+        // We need to padZero the tree root because when we generate the proof
+        // The last byte get stripped
         roots[padZero(getTree()[1])] = true;
     }
 
@@ -35,10 +45,12 @@ contract Miximus is MerkleTree {
             uint[2] k,
             uint[] input
         ) returns (address) {
-        address recipient  = nullifierToAddress(reverse(bytes32(input[2])));      
+        address recipient  = nullifierToAddress(reverse(bytes32(input[2])));
+        // If we didn't padZero the root in the deposit function
+        // This require would fail all the time
         require(roots[reverse(bytes32(input[0]))]);
 
-        require(!nullifiers[reverse(bytes32(input[2]))]);
+        require(!nullifiers[padZero(reverse(bytes32(input[2])))]);
         require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input));
         recipient.transfer(1 ether);
         nullifiers[padZero(reverse(bytes32(input[2])))] = true;
@@ -71,6 +83,9 @@ contract Miximus is MerkleTree {
     }
 
     // Functions used to flip endianness
+    // Example:
+    // Input: 1011...01100
+    // Output: 00110...1101
     function reverse(bytes32 a) public pure returns(bytes32) {
         uint r;
         uint i;
@@ -83,6 +98,9 @@ contract Miximus is MerkleTree {
         return bytes32(r);
     }
     
+    // Example:
+    // Input: 8 (decimal) -> 0000 1000 (binary)
+    // Output: 0001 0000 (binary) -> 16 (decimal) 
     function reverseByte(uint a) public pure returns (uint) {
         uint c = 0xf070b030d0509010e060a020c0408000;
 
