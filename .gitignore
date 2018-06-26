@@ -1,0 +1,4 @@
+zksnark_element/*
+snarkWrapper/scripts/*
+snarkWrapper/node_modules/*
+snarkWrapper/package-lock.json
