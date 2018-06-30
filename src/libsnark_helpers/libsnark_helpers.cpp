@@ -1,11 +1,13 @@
 /**
+ * File modified from:
+ *
  * @file wraplibsnark.cpp
  * @author Jacob Eberhardt <jacob.eberhardt@tu-berlin.de
  * @author Dennis Kuhnert <dennis.kuhnert@campus.tu-berlin.de>
  * @date 2017
  */
 
-#include "wraplibsnark.hpp"
+#include "libsnark_helpers.hpp"
 
 typedef long integer_coeff_t;
 
@@ -68,36 +70,6 @@ r1cs_ppzksnark_keypair<libff::alt_bn128_pp> generateKeypair(const r1cs_ppzksnark
   return r1cs_ppzksnark_generator<libff::alt_bn128_pp>(cs);
 }
 
-template<typename T>
-void writeToFile(std::string path, T& obj) {
-    std::stringstream ss;
-    ss << obj;
-    std::ofstream fh;
-
-    fh.open(path, std::ios::binary);
-    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
-}
-
-template<typename T>
-T loadFromFile(std::string path) {
-    std::stringstream ss;
-    std::ifstream fh(path, std::ios::binary);
-
-    assert(fh.is_open());
-
-    ss << fh.rdbuf();
-    fh.close();
-    ss.rdbuf()->pubseekpos(0, std::ios_base::in);
-
-    T obj;
-    ss >> obj;
-
-    return obj;
-}
-
 void serializeProvingKeyToFile(r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> pk, const char* pk_path){
     writeToFile(pk_path, pk);
 }
@@ -144,4 +116,43 @@ void printProof(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof){
     cout << "proof.C_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.h)<<");" << endl;
     cout << "proof.H = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_H)<<");"<< endl;
     cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< endl;
+}
+
+void verificationKey_to_json(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair, std::string path ) {
+    std::stringstream ss;
+    std::ofstream fh;
+    fh.open(path, std::ios::binary);
+    unsigned icLength = keypair.vk.encoded_IC_query.rest.indices.size() + 1;
+    
+    ss << "{\n";
+    ss << " \"a\" :[" << outputPointG2AffineAsHex(keypair.vk.alphaA_g2) << "],\n";
+    ss << " \"b\"  :[" << outputPointG1AffineAsHex(keypair.vk.alphaB_g1) << "],\n";
+    ss << " \"c\" :[" << outputPointG2AffineAsHex(keypair.vk.alphaC_g2) << "],\n";
+    ss << " \"g\" :[" << outputPointG2AffineAsHex(keypair.vk.gamma_g2)<< "],\n";
+    ss << " \"gb1\" :[" << outputPointG1AffineAsHex(keypair.vk.gamma_beta_g1)<< "],\n";
+    ss << " \"gb2\" :[" << outputPointG2AffineAsHex(keypair.vk.gamma_beta_g2)<< "],\n";
+    ss << " \"z\" :[" << outputPointG2AffineAsHex(keypair.vk.rC_Z_g2)<< "],\n";
+
+    ss <<  "\"IC\" :[[" << outputPointG1AffineAsHex(keypair.vk.encoded_IC_query.first) << "]";
+    
+    for (size_t i = 1; i < icLength; ++i) {
+        auto vkICi = outputPointG1AffineAsHex(keypair.vk.encoded_IC_query.rest.values[i - 1]);
+        ss << ",[" <<  vkICi << "]";
+    } 
+
+    ss << "]";
+    ss << "}";
+    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
+    fh << ss.rdbuf();
+    fh.flush();
+    fh.close();
+}
+
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos) {
+        return false;
+    }
+    str.replace(start_pos, from.length(), to);
+    return true;
 }
