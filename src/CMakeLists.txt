@@ -8,7 +8,7 @@ include_directories(.)
 #    libsnark_helpers/*.cpp
 #)
 
-add_executable(main main.cpp computation/trusted_setup.hpp libsnark_helpers/libsnark_helpers.cpp)
+add_executable(main main.cpp prover/computation.tcc prover/prover.tcc libsnark_helpers/libsnark_helpers.cpp sha256/sha256_ethereum.cpp)
 #${SOURCES}
 
 target_link_libraries(
