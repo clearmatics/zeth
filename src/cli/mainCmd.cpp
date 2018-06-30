@@ -14,3 +14,8 @@ command_code getCommandCode(std::string command) {
     if (command == "prove") return PROVE;
     return UNKNOWN;
 }
+
+void unknownCommand(std::string program) {
+    std::cerr << "Unknown command" << std::endl;
+    printUsage(program);
+}

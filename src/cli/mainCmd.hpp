@@ -11,5 +11,6 @@ enum command_code {
 
 void printUsage(std::string program);
 command_code getCommandCode(std::string command);
+void unknownCommand(std::string program);
 
 #endif
