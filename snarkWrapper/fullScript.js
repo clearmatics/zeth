@@ -41,8 +41,9 @@ if (typeof web3 !== 'undefined') {
     web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 }
 
-var sender = web3.eth.accounts[0];
-var recipient = web3.eth.accounts[1];
+var sender_account = web3.eth.accounts[0];
+var recipient_account = web3.eth.accounts[3];
+var deployer_account = web3.eth.accounts[2];
 
 var verifier = web3.eth.contract(verifier_abi);
 miximus = web3.eth.contract(miximus_abi);
@@ -61,7 +62,7 @@ verifier.new(
     vk.z[1],
     vk.IC,  
     {
-        from: web3.eth.accounts[1], 
+        from: deployer_account,
         data: verifier_bytecode, 
         gas: '5000000'
     }, function (e, contract){
@@ -72,7 +73,7 @@ verifier.new(
             console.log(verifier_deployed.address);
             console.log("len:: ", verifier_deployed.getICLen.call());
             miximus.new(verifier_deployed.address, {
-                from:web3.eth.accounts[1],
+                from: deployer_account,
                 data: miximus_bytecode,
                 gas: '6000000'
             }, function(e, contract) {
@@ -84,7 +85,8 @@ verifier.new(
                     //FFFF...FFFF is the salt 3fdc....03309 is the address that will recive the funds.
                     // nullifier created for the address 0x3fdc3192693e28ff6aee95320075e4c26be03309, with salt
                     // FFFF...FFFF --> We can see that the nullifier is THE CONCATENATION of the address and the salt
-                    nullifier = "0xe16a783804a6d2d764d1f597cefd1cfe2ae55603FFFFFFFFFFFFFFFFFFFFFFFA";
+                    //nullifier = "0x00ec379776641a6200a4f930cd031948f9aeab6cFFFFFFFFFFFFFFFFFFFFFFFA";
+                    nullifier = recipient_account + "FFFFFFFFFFFFFFFFFFFFFFFA";
                     // The conversion of this nullifier in binary gives:
                     // See conversion of: 3fdc3192693e28ff6aee95320075e4c26be03309FFFFFFFFFFFFFFFFFFFFFFFA on https://www.mathsisfun.com/binary-decimal-hexadecimal-converter.html
                     // 00111111110111000011000110010010011010010011111000101000111111110110101011101110100101010011001
@@ -98,12 +100,12 @@ verifier.new(
                     miximus_deployed.getSha256(nullifier, sk, function (e, leaf) { 
                         // The result of the getSha256(nullifier, sk) is a leaf that is being appended to the tree right below
                         //console.log("leaf: ", leaf, "\n", nullifier, sk);
-                        console.log("DEBUG: Balance of sender BEFORE deposit: ", web3.eth.getBalance(sender));
-                        console.log("DEBUG: Balance of recipient BEFORE deposit: ", web3.eth.getBalance(recipient));
-                        miximus_deployed.deposit(leaf, {from: sender, gas: 6000000, value:web3.toWei(1,"ether")}, function(err, success) {
+                        console.log("DEBUG: Balance of sender BEFORE deposit: ", web3.eth.getBalance(sender_account));
+                        console.log("DEBUG: Balance of recipient BEFORE deposit: ", web3.eth.getBalance(recipient_account));
+                        miximus_deployed.deposit(leaf, {from: sender_account, gas: 6000000, value: web3.toWei(1,"ether")}, function(err, success) {
                             console.log(miximus_deployed.getTree());
-                            console.log("DEBUG: Balance of sender AFTER deposit: ", web3.eth.getBalance(sender));
-                            console.log("DEBUG: Balance of recipient AFTER deposit: ", web3.eth.getBalance(recipient));
+                            console.log("DEBUG: Balance of sender AFTER deposit: ", web3.eth.getBalance(sender_account));
+                            console.log("DEBUG: Balance of recipient AFTER deposit: ", web3.eth.getBalance(recipient_account));
                             console.log("DEBUG: Balance of contract AFTER deposit: ", web3.eth.getBalance(miximus_deployed.address));
                             console.log("inputs size: ", proof.input.length, vk.IC.length);
                             miximus_deployed.withdraw(
@@ -116,14 +118,14 @@ verifier.new(
                                 proof.h,
                                 proof.k,
                                 proof.input,
-                                {from: recipient, gas:6000000}, function ( err, res) {
+                                {from: recipient_account, gas:6000000}, function ( err, res) {
                                     console.log("verified: ", res, err);
-                                    console.log("DEBUG: Balance of sender AFTER withdraw: ", web3.eth.getBalance(sender));
-                                    console.log("DEBUG: Balance of recipient AFTER withdraw: ", web3.eth.getBalance(recipient));
+                                    console.log("DEBUG: Balance of sender AFTER withdraw: ", web3.eth.getBalance(sender_account));
+                                    console.log("DEBUG: Balance of recipient AFTER withdraw: ", web3.eth.getBalance(recipient_account));
                                     console.log("DEBUG: Balance of contract AFTER withdraw: ", web3.eth.getBalance(miximus_deployed.address));
                                     // You will notice here that 0x3fdc...03308!= 3fdc....03309 from above
                                     // This is a small bug in libsnark that I have raised with them. 
-                                    console.log(web3.eth.getBalance(web3.eth.accounts[1]));
+                                    console.log(web3.eth.getBalance(recipient_account));
                                     miximus_deployed.getTree( function (err, tree) { 
                                         // We use the .padStart(256, "0") function to make sure leading 0's
                                         // are not stripped of the binary strings
