@@ -1,10 +1,16 @@
+# See: http://www.elpauer.org/stuff/learning_cmake.pdf
+# For a tutorial of CMake
 cmake_minimum_required(VERSION 2.8)
 
-project(libsnark-tutorial)
+# Name of the project
+project(snark-mixer)
 
+# The set instruction sets environment variables
+# Note: If this environment variable already exist in the cache, it is shadowed by the set value here
+# We use the value CACHE in order to keep the value cached (and avoid shadowing)
 set(
-  CURVE
-  "ALT_BN128"
+  CURVE # Variable name
+  "ALT_BN128" # Variable value
   CACHE
   STRING
   "Default curve: one of ALT_BN128, BN128, EDWARDS, MNT4, MNT6"
@@ -58,6 +64,7 @@ option(
 
 if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # Common compilation flags and warning configuration
+  # The CMAKE_CXX_FLAGS variable allows to change the compiler settings
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wfatal-errors -pthread")
 
   if("${MULTICORE}")
@@ -70,6 +77,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   endif()
 endif()
 
+# add_definitions() and remove_definitions() allow to modify the preprocessor settings
 add_definitions(-DCURVE_${CURVE})
 
 if(${CURVE} STREQUAL "BN128")
@@ -84,9 +92,7 @@ if("${MULTICORE}")
   add_definitions(-DMULTICORE=1)
 endif()
 
-
 add_definitions(-DDEBUG=1)
-
 
 if("${CPPDEBUG}")
   add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
@@ -101,7 +107,9 @@ else()
   add_definitions(-DNO_PROCPS)
 endif()
 
+# Add the given directories to those the compiler uses to search for include files
 include_directories(.)
 
+# Add sub-directories for the build
 add_subdirectory(depends)
 add_subdirectory(src)
