@@ -11,6 +11,7 @@ contract Miximus is MerkleTree {
     event Withdraw(address); 
 
     // Constructor
+    // TODO: Add the denomination to the mixer constructor to customize the denomination of the mixer as we deploy it
     function Miximus (address _zksnark_verify) {
         zksnark_verify = Verifier(_zksnark_verify);
     }
@@ -48,10 +49,12 @@ contract Miximus is MerkleTree {
         address recipient  = nullifierToAddress(reverse(bytes32(input[2])));
         // If we didn't padZero the root in the deposit function
         // This require would fail all the time
-        require(roots[reverse(bytes32(input[0]))], "Invalid root");
+        require(roots[reverse(bytes32(input[0]))], "[DEBUG REQUIRE] Invalid root");
 
-        require(!nullifiers[padZero(reverse(bytes32(input[2])))], "Invalid nullifier");
-        require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input), "Invalid proof");
+        require(!nullifiers[padZero(reverse(bytes32(input[2])))], "[DEBUG REQUIRE] Invalid nullifier");
+        require(zksnark_verify.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input), "[DEBUG REQUIRE] Invalid proof");
+
+        // TODO: Use the denomination set in the Mixer constructor rather than 1 ether
         recipient.transfer(1 ether);
         nullifiers[padZero(reverse(bytes32(input[2])))] = true;
         Withdraw(recipient);
@@ -70,15 +73,13 @@ contract Miximus is MerkleTree {
             mstore(y, source)
             mstore(add(y, 20), source)
         }
-        //trace(source, y[0], y[1]);
         return(address(y[0]));
     }
 
-    // Hack to side step a libshark only allows 253 bit chunks in its output
+    // Hack to side step the fact that libsnark only allows 253 bit chunks in its output
     // to overcome this we only validate the first 252 bits of the merkle root
     // and the nullifier. We set the last byte to zero.
     function padZero(bytes32 x) returns(bytes32) {
-        //0x1111111111111111111111113fdc3192693e28ff6aee95320075e4c26be03308
         return(x & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0);
     }
 
