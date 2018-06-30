@@ -36,16 +36,16 @@ contract Miximus is MerkleTree {
     // The withdraw function enables a user to redeem 1 ether by providing 
     // a valid proof of knowledge of the secret
     function withdraw (
-            uint[2] a,
-            uint[2] a_p,
-            uint[2][2] b,
-            uint[2] b_p,
-            uint[2] c,
-            uint[2] c_p,
-            uint[2] h,
-            uint[2] k,
-            uint[] input
-        ) returns (address) {
+        uint[2] a,
+        uint[2] a_p,
+        uint[2][2] b,
+        uint[2] b_p,
+        uint[2] c,
+        uint[2] c_p,
+        uint[2] h,
+        uint[2] k,
+        uint[] input
+    ) returns (address) {
         address recipient  = nullifierToAddress(reverse(bytes32(input[2])));
         // If we didn't padZero the root in the deposit function
         // This require would fail all the time
@@ -58,6 +58,41 @@ contract Miximus is MerkleTree {
         recipient.transfer(1 ether);
         nullifiers[padZero(reverse(bytes32(input[2])))] = true;
         Withdraw(recipient);
+        return(recipient);
+    }
+    
+    // The forward function enables a user who has been the recipient
+    // of a "private payment" in the past 
+    // (thus possessing the secret associated with a non-spent nullifier, and a commitment in the tree)
+    // to use it to pay someone else 
+    // (ie: "spend" his nullifier and creating a new commitment in the tree to pay someone else)
+    function forward (
+        bytes32 leaf,
+        uint[2] a,
+        uint[2] a_p,
+        uint[2][2] b,
+        uint[2] b_p,
+        uint[2] c,
+        uint[2] c_p,
+        uint[2] h,
+        uint[2] k,
+        uint[] input
+    ) returns (address) {
+        address recipient  = nullifierToAddress(reverse(bytes32(input[2])));
+        require(msg.sender == recipient);
+
+        require(roots[reverse(bytes32(input[0]))], "[DEBUG REQUIRE] Invalid root");
+        require(!nullifiers[padZero(reverse(bytes32(input[2])))], "[DEBUG REQUIRE] Invalid nullifier");
+        require(zksnark_verify.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input), "[DEBUG REQUIRE] Invalid proof");
+
+        // We insert the new commitment in the tree once:
+        // 1. We checked that the forward request was triggered by the recipient of a past payment who has an "unspent nullifier"
+        // 2. The proof given is valid
+        insert(leaf);
+        roots[padZero(getTree()[1])] = true;
+        // The caller of the "forward" function now has "spent" his nullifier to pay someone else 
+        // This allow for people to use the payments they receive as a way to pay others
+        nullifiers[padZero(reverse(bytes32(input[2])))] = true;
         return(recipient);
     }
 
