@@ -1,4 +1,6 @@
-// https://github.com/zcash-hackworks/babyzoe
+pragma solidity ^0.4.22;
+
+// Adapted from: https://github.com/zcash-hackworks/babyzoe
 
 contract MerkleTree {
     struct Mtree {

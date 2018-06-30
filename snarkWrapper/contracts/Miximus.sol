@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.22;
 
 import "MerkleTree.sol";
 import "Verifier.sol";
@@ -48,10 +48,10 @@ contract Miximus is MerkleTree {
         address recipient  = nullifierToAddress(reverse(bytes32(input[2])));
         // If we didn't padZero the root in the deposit function
         // This require would fail all the time
-        require(roots[reverse(bytes32(input[0]))]);
+        require(roots[reverse(bytes32(input[0]))], "Invalid root");
 
-        require(!nullifiers[padZero(reverse(bytes32(input[2])))]);
-        require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input));
+        require(!nullifiers[padZero(reverse(bytes32(input[2])))], "Invalid nullifier");
+        require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input), "Invalid proof");
         recipient.transfer(1 ether);
         nullifiers[padZero(reverse(bytes32(input[2])))] = true;
         Withdraw(recipient);
