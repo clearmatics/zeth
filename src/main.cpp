@@ -5,18 +5,9 @@
 #include <prover/computation.hpp>
 #include <sha256/sha256_ethereum.hpp>
 
-enum command_code {
-    SETUP,
-    PROVE,
-    UNKNOWN
-};
-
-void printUsage(std::string program);
-command_code getCommandCode(std::string command);
-void setupCommand(Miximus<FieldT, sha256_ethereum> prover);
-void proveCommand();
-void printUsageSetupCmd();
-void printUsageProveCmd();
+#include <cli/mainCmd.hpp>
+#include <cli/setupCmd.hpp>
+#include <cli/proveCmd.hpp>
 
 int main(int argc, char* argv[]) {
     // The first argument is the executable itself, and the second is the command
@@ -75,46 +66,4 @@ int main(int argc, char* argv[]) {
     //}
 
     //std::cout << "Proof generated successfully" << std::endl;
-}
-
-
-void printUsage(std::string program) {
-    std::cerr << std::endl;
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << "\t" << program << " command [arguments]" << std::endl;
-    std::cerr << "The commands are:" << std::endl;
-    std::cerr << "\t setup \t Run the trusted setup (generate proving and verifying keys)" << std::endl;
-    std::cerr << "\t prove \t Generate a proof using the primary input (public), the auxiliary input (private), and the proving key" << std::endl;
-}
-
-command_code getCommandCode(std::string command) {
-    if (command == "setup") return SETUP;
-    if (command == "prove") return PROVE;
-    return UNKNOWN;
-}
-
-void setupCommand(Miximus<FieldT, sha256_ethereum> prover) {
-    std::cout << "Running the trusted setup..." << std::endl;
-    prover.generate_trusted_setup();
-    std::cout << "Trusted setup successfully generated" << std::endl;
-}
-
-void printUsageSetupCmd() {
-    std::cerr << "Invalid number of arguments" << std::endl;
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << "\t" << "sneth setup [nodes of merkle path] [secret]" << std::endl;
-}
-
-void printUsageProveCmd() {
-    std::cerr << "Invalid number of arguments" << std::endl;
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << "\t" << "sneth prove [nodes of merkle path] [secret]" << std::endl;
-}
-
-void proveCommand(/*Miximus<FieldT, sha256_ethereum> prover, char* argv[]*/) {
-    // 1. Check we have the valid number of arguments for the proof generation
-    // 2. Verify the types of the args and the validity of the user data
-    // 3. Format the inputs to use it with the prover (put binary strings in libff::bit_vectors and so on)
-    // 4. Call the prover.prove function
-    std::cout << "In the proveCommand function" << std::endl;
 }
