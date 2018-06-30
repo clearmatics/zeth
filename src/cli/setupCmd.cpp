@@ -1,9 +1,10 @@
 #include "setupCmd.hpp"
 
-void setupCommand(Miximus<FieldT, sha256_ethereum> prover) {
+int setupCommand(Miximus<FieldT, sha256_ethereum> prover) {
     std::cout << "Running the trusted setup..." << std::endl;
     prover.generate_trusted_setup();
     std::cout << "Trusted setup successfully generated" << std::endl;
+    return 0;
 }
 
 void printUsageSetupCmd() {
