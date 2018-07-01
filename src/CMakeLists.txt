@@ -1,15 +1,21 @@
 include_directories(.)
 
-#file(GLOB_RECURSE SOURCES
-#    computation/*.hpp
-#    computation/*.cpp
-#    libsnark_helpers/*.hpp
-#    libsnark_helpers/*.tcc
-#    libsnark_helpers/*.cpp
-#)
+file(GLOB_RECURSE SOURCES
+    prover/computation.tcc
+    prover/prover.tcc
+    libsnark_helpers/libsnark_helpers.cpp
+    sha256/sha256_ethereum.cpp
+    cli/setupCmd.cpp
+    cli/proveCmd.cpp
+    cli/mainCmd.cpp
+)
 
-add_executable(main main.cpp prover/computation.tcc prover/prover.tcc libsnark_helpers/libsnark_helpers.cpp sha256/sha256_ethereum.cpp cli/setupCmd.cpp cli/proveCmd.cpp cli/mainCmd.cpp)
-#${SOURCES}
+add_executable(
+    main 
+
+    main.cpp
+    ${SOURCES}
+)
 
 target_link_libraries(
   main

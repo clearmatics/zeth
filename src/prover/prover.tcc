@@ -41,7 +41,7 @@ Miximus<FieldT, HashT>::Miximus() {
         )
     );
 
-    pb.set_input_sizes(18 + 1); // The size of the inputs is: 16 (leaves) + root + sk + cm (TODO: To verify)
+    pb.set_input_sizes(18 + 1);
     input_variable.reset(new block_variable<FieldT>(pb, *cm, *sk, "input_variable")); 
 
     cm_hash.reset(new sha256_ethereum(
@@ -113,7 +113,7 @@ bool Miximus<FieldT, HashT>::prove(
     // make sure that read checker didn't accidentally overwrite anything 
     address_bits_va.fill_with_bits(pb, address_bits);
     unpacker->generate_r1cs_witness_from_bits();
-    leaf_digest->generate_r1cs_witness(leaf); // TODO: See if I can delete this line (and thus delete the leaf arg of the function)
+    leaf_digest->generate_r1cs_witness(leaf);
     root_digest->generate_r1cs_witness(node_root);
 
     bool is_valid_witness = pb.is_satisfied();
