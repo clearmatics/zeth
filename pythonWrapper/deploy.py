@@ -115,33 +115,29 @@ def redeemPrivatePayment(miximus, withdrawAddress, unspentCommitment, position):
     withdraw(miximus, "../zksnark_element/proof.json", withdrawAddress)
 
 # Generates the proof needed to spend the given commitment
-def generateProof(tree, tree_depth, address, sk, nullifier, commitment):
-    merkle_path = computeMerklePath(address, tree_depth, tree)
+def generateProof(tree, tree_depth, addressLeaf, sk, nullifier, commitment):
+    merkle_path = computeMerklePath(addressLeaf, tree_depth, tree)
     root = tree[1]
     proveCmdArgs = [
         '../build/src/main',
         'prove', 
         str(tree_depth),
-        str(address),
+        str(addressLeaf),
         sk,
         nullifier[2:],
         commitment[2:],
         root.hex()
     ]
     for node in merkle_path:
-        print("In generate proof node merkle path", node.hex())
         proveCmdArgs.append(node.hex())
-    command = " ".join(map(str, proveCmdArgs))
-    print("Command:", command)
+    proveCmd = " ".join(map(str, proveCmdArgs))
+    print("Running command:", proveCmd)
+    # We run the C++ CLI command prove to generate the proof
+    run_command(proveCmd)
 
-    run_command(command)
-    #provingProcess = subprocess.Popen(proveCmdArgs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    #output, error = provingProcess.communicate()
-    #subprocess.log_subprocess_output(output)
-    #subprocess.check_output(proveCmdArgs)
-
+# Taken from: https://www.endpoint.com/blog/2015/01/28/getting-realtime-output-using-python
 def run_command(command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, shell = True, encoding='utf8')
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True, encoding='utf8')
     while True:
         output = process.stdout.readline()
         if output == '' and process.poll() is not None:
@@ -174,64 +170,6 @@ def bytesToBinary(hexString):
     return((c.c_bool*256)(*out))
     pk = "asdf"
 
-def generateWitness(miximus, nullifier, sk, address, tree_depth, pk_dir):
-    path = []
-    address_bits = []
-    root = miximus.getRoot()
-
-    path1, address_bits1 = miximus.getMerkleProof(address, call={"gas":500000})
-    '''
-    for i in range (0 , tree_depth):
-        address_bits.append(address%2)
-        if ( address %2 == 0) :
-            print (w3.toHex(tree[address + 1]))
-            path.append(tree[address + 1])
-            print (path1[i] == tree[address + 1])
-        else:
-            print (w3.toHex(tree[address - 1]))
-            path.append(tree[address - 1])
-            print (path1[i] == tree[address - 1])
-        address = int(address/2) 
-    '''
-    print (address_bits1)
-    y = [w3.toHex(x) for x in path1]
-    print (y)
-    path = [bytesToBinary(x) for x in path1]
-       
-    address_bits = address_bits1[::-1]
-
-    path = path[::-1]
-
-    path.append(bytesToBinary(w3.toBytes(hexstr=nullifier)))
-    path.append(bytesToBinary(w3.toBytes(hexstr=sk)))
-    path.append(bytesToBinary(root))
-
-    print ("address bits ",  address_bits)
-
-    path  = ((c.c_bool*256)*(tree_depth + 3))(*path)
-    address = 2#int("".join([str(int(x=="True")) for x in address_bits]), 2)
-    address_bits = (c.c_bool*tree_depth)(*address_bits)
-
-    print(address)
-    print( w3.toHex(root))
-
-    pk = prove(path, address, address_bits, tree_depth, c.c_int(fee),  c.c_char_p(pk_dir.encode()))
-
-
-
-    pk = json.loads(pk.decode("utf-8"))
-    pk["a"] = hex2int(pk["a"])
-    pk["a_p"] = hex2int(pk["a_p"])
-    pk["b"] = [hex2int(pk["b"][0]), hex2int(pk["b"][1])]
-    pk["b_p"] = hex2int(pk["b_p"])
-    pk["c"] = hex2int(pk["c"])
-    pk["c_p"] = hex2int(pk["c_p"])
-    pk["h"] = hex2int(pk["h"])
-    pk["k"] = hex2int(pk["k"])
-    pk["input"] = hex2int(pk["input"])   
-
-    return(pk)
-
 def generateSalt(i):
     salt = [random.choice("0123456789abcdef0123456789ABCDEF") for x in range(0,i)]
     out = "".join(salt)
@@ -253,11 +191,23 @@ def computeCommitment(nullifier, secret):
     m.update(bytearray.fromhex(secret))
     return m.hexdigest()
 
+# We differentiate between leaf address (which is the position of a leaf in the leaf array)
+# And the address of a node which is the address of a node in the tree
+# For example, in a tree of depth 4, there are 2^4 leaves, and there are 2^5 - 1 nodes
+# Thus the leafAddress of the first leaf is: 0 (first element of the leaf array)
+# and its nodeAddress is 16 (because the same leaf appears in the 16th position in the array of nodes of the tree)
+def convertLeafAddressToNodeAddress(addressLeaf, tree_depth):
+    address = addressLeaf + 2 ** tree_depth
+    if(address > 2 ** (tree_depth+1) - 1): # Total number of nodes in the tree, so if address > to this, the address given is invalid
+        return -1 # return empty merkle_path
+    return address
+
+
 def computeMerklePath(addressCommitment, tree_depth, tree):
     merkle_path = []
     address_bits = []
-    address = addressCommitment + 2 ** tree_depth # Because we give the address of the leaf in the leaf array, but here we consider the address in the entire tree
-    if(address > 2 ** (tree_depth+1) - 1): # Total number of nodes in the tree, so if address > to this, the address given is invalid
+    address = convertLeafAddressToNodeAddress(addressCommitment, tree_depth)
+    if(address == -1):
         return merkle_path # return empty merkle_path
     for i in range (0 , tree_depth):
         address_bits.append(address % 2)
@@ -267,7 +217,6 @@ def computeMerklePath(addressCommitment, tree_depth, tree):
             merkle_path.append(tree[address - 1])
         address = int(address/2) 
     return merkle_path[::-1]
-
 
 
 ## MAIN
