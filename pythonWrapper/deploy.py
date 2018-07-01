@@ -102,9 +102,20 @@ def deposit(miximus, senderAddress, recipientAddress):
 
 def withdraw(miximus, path_to_proof, withdrawAddress):
     with open(path_to_proof) as json_data:
-        pk = json.load(json_data)
-    print(w3.eth.getBalance(miximus.address))
-    tx_hash = miximus.withdraw(pk["a"] , pk["a_p"], pk["b"], pk["b_p"] , pk["c"], pk["c_p"] , pk["h"] , pk["k"], pk["input"] , transact={'from': withdrawAddress, 'gas': 4000000})
+        proof = json.load(json_data)
+
+    tx_hash = miximus.withdraw(
+        hex2int(proof["a"]),
+        hex2int(proof["a_p"]), 
+        [hex2int(proof["b"][0]), hex2int(proof["b"][1])],
+        hex2int(proof["b_p"]),
+        hex2int(proof["c"]),
+        hex2int(proof["c_p"]),
+        hex2int(proof["h"]),
+        hex2int(proof["k"]),
+        hex2int(proof["input"]),
+        transact={'from': withdrawAddress, 'gas': 4000000}
+    )
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
     print(w3.eth.getBalance(miximus.address))
 
@@ -171,7 +182,7 @@ def bytesToBinary(hexString):
     pk = "asdf"
 
 def generateSalt(i):
-    salt = [random.choice("0123456789abcdef0123456789ABCDEF") for x in range(0,i)]
+    salt = [random.choice("123456789abcdef") for x in range(0,i)]
     out = "".join(salt)
     return(out)
 
@@ -240,7 +251,12 @@ def main():
     #    print("\n")
     unspentCommitment = '0x' + computeCommitment(nullifier, secret)
     generateProof(tree, 4, 0, secret, nullifier, unspentCommitment) # Call the C++ cli prove command
-    #withdraw(miximus_instance, "../zksnark_element/proof.json", recipientAddress)
+
+    print("Miximus balance before withdraw --> ", w3.eth.getBalance(miximus_instance.address))
+    print("Recipient balance before withdraw --> ", w3.eth.getBalance(recipientAddress))
+    withdraw(miximus_instance, "./proof.json", recipientAddress)
+    print("Recipient balance after withdraw --> ", w3.eth.getBalance(recipientAddress))
+    print("Miximus balance after withdraw --> ", w3.eth.getBalance(miximus_instance.address))
 
 if __name__== "__main__":
-  main()
+     main()
