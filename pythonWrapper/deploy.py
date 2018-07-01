@@ -1,6 +1,9 @@
 import json
 import web3
 import hashlib
+import subprocess
+import shlex
+import logging
 
 from web3 import Web3, HTTPProvider, TestRPCProvider
 from solc import compile_source, compile_standard
@@ -90,12 +93,12 @@ def deposit_call(miximus, nullifier, sk, depositAddress):
     tx_hash = miximus.deposit(commitment, transact={'from': depositAddress, 'gas': 4000000, "value": w3.toWei(1, "ether")})
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
     return tx_receipt
-    #return(int(tx_receipt["logs"][0]["data"], 16))
 
 def deposit(miximus, senderAddress, recipientAddress):
     nullifier = generateNullifier(recipientAddress)
     secret = generateSecret()
-    return deposit_call(miximus, nullifier, secret, senderAddress)
+    resDeposit = deposit_call(miximus, nullifier, secret, senderAddress)
+    return(resDeposit, nullifier, secret)
 
 def withdraw(miximus, path_to_proof, withdrawAddress):
     with open(path_to_proof) as json_data:
@@ -106,9 +109,47 @@ def withdraw(miximus, path_to_proof, withdrawAddress):
     print(w3.eth.getBalance(miximus.address))
 
 # TODO: Wrapper around withdraw function
-#def redeemPrivatePayment(miximus, withdrawAddress):
-#    generateProof() # Call the C++ cli prove command
-#    withdraw(miximus, path_to_proof, withdrawAddress)
+def redeemPrivatePayment(miximus, withdrawAddress, unspentCommitment, position):
+    tree = miximus.getTree()
+    generateProof(tree, 4, 16, secret, nullifier, unspentCommitment) # Call the C++ cli prove command
+    withdraw(miximus, "../zksnark_element/proof.json", withdrawAddress)
+
+# Generates the proof needed to spend the given commitment
+def generateProof(tree, tree_depth, address, sk, nullifier, commitment):
+    merkle_path = computeMerklePath(address, tree_depth, tree)
+    root = tree[1]
+    proveCmdArgs = [
+        '../build/src/main',
+        'prove', 
+        str(tree_depth),
+        str(address),
+        sk,
+        nullifier[2:],
+        commitment[2:],
+        root.hex()
+    ]
+    for node in merkle_path:
+        print("In generate proof node merkle path", node.hex())
+        proveCmdArgs.append(node.hex())
+    command = " ".join(map(str, proveCmdArgs))
+    print("Command:", command)
+
+    run_command(command)
+    #provingProcess = subprocess.Popen(proveCmdArgs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    #output, error = provingProcess.communicate()
+    #subprocess.log_subprocess_output(output)
+    #subprocess.check_output(proveCmdArgs)
+
+def run_command(command):
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, shell = True, encoding='utf8')
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(output.strip())
+    rc = process.poll()
+    return rc
 
 # TODO: Implement the foward function
 #def forward(miximus, path_to_proof, commitment, withdrawAddress):
@@ -215,32 +256,42 @@ def computeCommitment(nullifier, secret):
 def computeMerklePath(addressCommitment, tree_depth, tree):
     merkle_path = []
     address_bits = []
+    address = addressCommitment + 2 ** tree_depth # Because we give the address of the leaf in the leaf array, but here we consider the address in the entire tree
+    if(address > 2 ** (tree_depth+1) - 1): # Total number of nodes in the tree, so if address > to this, the address given is invalid
+        return merkle_path # return empty merkle_path
     for i in range (0 , tree_depth):
-        address_bits.append(addressCommitment % 2)
-        if (addressCommitment %2 == 0) :
-            merkle_path.append(tree[addressCommitment + 1])
+        address_bits.append(address % 2)
+        if (address %2 == 0) :
+            merkle_path.append(tree[address + 1])
         else:
-            merkle_path.append(tree[addressCommitment - 1])
-        addressCommitment = int(addressCommitment/2) 
-    return merkle_path
+            merkle_path.append(tree[address - 1])
+        address = int(address/2) 
+    return merkle_path[::-1]
 
 
 
 ## MAIN
 def main():
+    senderAddress = w3.eth.accounts[0]
+    recipientAddress = w3.eth.accounts[3]
+
     print("Start contracts deployment")
     path_to_vk = "../zksnark_element/vk.json"
     miximus_instance = deploy(path_to_vk)
 
-
     print("Miximus balance before deposit --> ", w3.eth.getBalance(miximus_instance.address))
     print("Call deposit")
-    senderAddress = w3.eth.accounts[0]
-    recipientAddress = w3.eth.accounts[3]
-    receipt = deposit(miximus_instance, senderAddress, recipientAddress)
-    print("Deposit receipt: ", receipt)
+    resDeposit, nullifier, secret = deposit(miximus_instance, senderAddress, recipientAddress)
     print("Miximus balance after deposit --> ", w3.eth.getBalance(miximus_instance.address))
 
+    tree = miximus_instance.getTree()
+    #print("TREE")
+    #for node in tree:
+    #    print("NODE: ", node.hex())
+    #    print("\n")
+    unspentCommitment = '0x' + computeCommitment(nullifier, secret)
+    generateProof(tree, 4, 0, secret, nullifier, unspentCommitment) # Call the C++ cli prove command
+    #withdraw(miximus_instance, "../zksnark_element/proof.json", recipientAddress)
 
 if __name__== "__main__":
   main()
