@@ -82,6 +82,14 @@ python __main__.py
 **Note:** The Python wrapper is WIP, and tries to simulate the flow of transactions: Alice -> Bob (Alice deposit for Bob to withdraw), Bob -> Charlie (Bob decides to use the commitment he "controls" to deposit a new one for Charlie), Charlies withdraws.
 I have a bunch of errors with the `forward` function, that I need to fix: See: https://github.com/AntoineRondelet/snark-mixer/issues/2
 
+### Launch the Javascript wrapper
+
+```
+cd jsWrapper
+npm install
+node deployDepositWithdraw.js
+```
+
 ## References
 
 - **BabyZoe:** https://github.com/zcash-hackworks/babyzoe
