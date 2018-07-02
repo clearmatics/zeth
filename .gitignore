@@ -1,6 +1,5 @@
 zksnark_element/*
-snarkWrapper/scripts/*
-snarkWrapper/node_modules/*
-snarkWrapper/package-lock.json
+jsWrapper/node_modules/*
+jsWrapper/package-lock.json
 build/
 private-eth-net/
