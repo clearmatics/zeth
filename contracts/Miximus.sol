@@ -1,7 +1,7 @@
 pragma solidity ^0.4.22;
 
-import "../contracts/MerkleTree.sol"; // To make py-solc happy during compilation
-import "../contracts/Verifier.sol";
+import "./MerkleTree.sol";
+import "./Verifier.sol";
 
 contract Miximus is MerkleTree {
     mapping(bytes32 => bool) roots;

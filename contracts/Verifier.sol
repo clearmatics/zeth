@@ -1,6 +1,6 @@
 pragma solidity ^0.4.22;
 
-import "../contracts/Pairing.sol";
+import "./Pairing.sol";
 
 contract Verifier {
     using Pairing for *;
