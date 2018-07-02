@@ -3,3 +3,4 @@ snarkWrapper/scripts/*
 snarkWrapper/node_modules/*
 snarkWrapper/package-lock.json
 build/
+private-eth-net/
