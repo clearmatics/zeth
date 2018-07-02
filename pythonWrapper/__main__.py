@@ -4,8 +4,7 @@ import web3
 from web3 import Web3, HTTPProvider, TestRPCProvider
 from web3.contract import ConciseContract
 
-from solc import compile_source, compile_standard
-from solc import compile_source, compile_files, link_code
+from solc import compile_files, link_code
 
 from sender import deposit
 from recipient import withdraw, generateProof, forward
@@ -19,7 +18,7 @@ def compile():
     Pairing =  "../contracts/Pairing.sol"
     Verifier = "../contracts/Verifier.sol"
 
-    compiled_sol =  compile_files([Pairing, MerkleTree, Pairing, Verifier, Miximus], allow_paths="./contracts")
+    compiled_sol =  compile_files([Pairing, MerkleTree, Pairing, Verifier, Miximus], allow_paths="../contracts")
     miximus_interface = compiled_sol[Miximus + ':Miximus']
     verifier_interface = compiled_sol[Verifier + ':Verifier']
     return(miximus_interface, verifier_interface)
