@@ -15,7 +15,7 @@ idna==2.7
 lru-dict==1.1.6
 parsimonious==0.8.0
 py-solc==3.1.0
-pycryptodome==3.6.3
+pycryptodome==3.6.6
 requests==2.19.1
 rlp==1.0.1
 semantic-version==2.6.0
