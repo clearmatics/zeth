@@ -1,5 +1,5 @@
-#ifndef __ZKSNARK_PROVER_HPP__
-#define __ZKSNARK_PROVER_HPP__
+#ifndef __ZETH_PROVER_HPP__
+#define __ZETH_PROVER_HPP__
 
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
@@ -41,22 +41,22 @@ class Miximus {
 
         pb_variable_array<FieldT> packed_inputs;
         pb_variable_array<FieldT> unpacked_inputs;
-        
+
         pb_variable_array<FieldT> packed_inputs1;
         pb_variable_array<FieldT> unpacked_inputs1;
 
         Miximus();
         void generate_trusted_setup();
         bool prove(
-            std::vector<merkle_authentication_node> merkle_path, 
-            libff::bit_vector secret, 
-            libff::bit_vector nullifier, 
+            std::vector<merkle_authentication_node> merkle_path,
+            libff::bit_vector secret,
+            libff::bit_vector nullifier,
             libff::bit_vector leaf,
-            libff::bit_vector node_root, 
-            libff::bit_vector address_bits, 
-            size_t address, 
+            libff::bit_vector node_root,
+            libff::bit_vector address_bits,
+            size_t address,
             size_t tree_depth
-        ); 
+        );
 };
 
 #include "prover.tcc"

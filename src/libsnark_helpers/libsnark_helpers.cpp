@@ -59,9 +59,20 @@ std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p) {
     return
         "[\"0x" +
         HexStringFromLibsnarkBigint(aff.X.c1.as_bigint()) + "\", \"0x" +
-        HexStringFromLibsnarkBigint(aff.X.c0.as_bigint()) + "\"],\n [\"0x" + 
+        HexStringFromLibsnarkBigint(aff.X.c0.as_bigint()) + "\"],\n [\"0x" +
         HexStringFromLibsnarkBigint(aff.Y.c1.as_bigint()) + "\", \"0x" +
         HexStringFromLibsnarkBigint(aff.Y.c0.as_bigint()) + "\"]";
+}
+
+boost::filesystem::path getPathToSetupDir() {
+    char* pathToSetupFolder;
+    pathToSetupFolder = std::getenv("ZETH_TRUSTED_SETUP_DIR");
+    if (pathToSetupFolder == NULL) {
+        // Fallback destination if the SNARK_TRUSTED_SETUP_DIR env var is not set
+        pathToSetupFolder = "../zksnark_trusted_setup";
+    }
+    boost::filesystem::path setup_dir(pathToSetupFolder);
+    return setup_dir;
 }
 
 // Generate keypair (proving key, verif key) from constraints
@@ -123,7 +134,7 @@ void verificationKey_to_json(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair
     std::ofstream fh;
     fh.open(path, std::ios::binary);
     unsigned icLength = keypair.vk.encoded_IC_query.rest.indices.size() + 1;
-    
+
     ss << "{\n";
     ss << " \"a\" :[" << outputPointG2AffineAsHex(keypair.vk.alphaA_g2) << "],\n";
     ss << " \"b\"  :[" << outputPointG1AffineAsHex(keypair.vk.alphaB_g1) << "],\n";
@@ -134,11 +145,11 @@ void verificationKey_to_json(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair
     ss << " \"z\" :[" << outputPointG2AffineAsHex(keypair.vk.rC_Z_g2)<< "],\n";
 
     ss <<  "\"IC\" :[[" << outputPointG1AffineAsHex(keypair.vk.encoded_IC_query.first) << "]";
-    
+
     for (size_t i = 1; i < icLength; ++i) {
         auto vkICi = outputPointG1AffineAsHex(keypair.vk.encoded_IC_query.rest.values[i - 1]);
         ss << ",[" <<  vkICi << "]";
-    } 
+    }
 
     ss << "]";
     ss << "}";

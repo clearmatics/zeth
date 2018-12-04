@@ -17,6 +17,8 @@
 #include <cassert>
 #include <iomanip>
 
+#include <boost/filesystem.hpp>
+
 // Contains definition of alt_bn128 ec public parameters
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
@@ -35,6 +37,9 @@ libsnark::r1cs_ppzksnark_keypair<libff::alt_bn128_pp> generateKeypair(const libs
 // Write to and load from files
 template<typename T> void writeToFile(std::string path, T& obj);
 template<typename T> T loadFromFile(std::string path);
+
+// Return the path to the setup directory from environment variable
+boost::filesystem::path getPathToSetupDir();
 
 // Serialization/Deserialization of keys in raw format (write to/load from specified files)
 void serializeProvingKeyToFile(libsnark::r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> pk, const char* pk_path);
