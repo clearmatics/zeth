@@ -8,13 +8,13 @@
 void printUsageProveCmd() {
     std::cerr << "Invalid number of arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
-    std::cerr << "\t" << "sneth prove [tree_depth] [commitment_address] [secret] [nullifier] [commitment] [root] [merkle path (from top to bottom)...]" << std::endl;
+    std::cerr << "\t" << "zeth prove [tree_depth] [commitment_address] [secret] [nullifier] [commitment] [root] [merkle path (from top to bottom)...]" << std::endl;
 }
 
 int proveCommand(int argc, char* argv[]) {
-    // The minus 2 comes from the fact that argv[0] is the executable itself, 
+    // The minus 2 comes from the fact that argv[0] is the executable itself,
     // and argv[1] is the command, so now we check the number of args for the given command
-    if (argc - 2 <= 0) { 
+    if (argc - 2 <= 0) {
         std::cerr << "[ERROR] Invalid number of arguments to generate the proof" << std::endl;
         printUsageProveCmd();
         return 1;
@@ -22,7 +22,7 @@ int proveCommand(int argc, char* argv[]) {
 
     char* args[argc - 2];
     for (int i = 0; i < argc - 2; i++) {
-        // We extract the arguments of the command from argv 
+        // We extract the arguments of the command from argv
         // to get rid of the executable and the command
         args[i] = argv[2+i];
     }
@@ -97,7 +97,7 @@ int proveCommand(int argc, char* argv[]) {
 int checkNbArgs(int nbArgs, char* args[]) {
     int tree_depth = atoi(args[0]); // See the expected ordering of the arguments in the printUsageProveCmd() function
 
-    // By knowing the tree_depth, we can now compute the length of the 
+    // By knowing the tree_depth, we can now compute the length of the
     // merkle path and then know the expected number of arguments
     int nbArgsExpected = 1+1+1+1+1+1+tree_depth; // See nb of args in output of printUsageProveCmd()
 
@@ -111,7 +111,7 @@ int checkNbArgs(int nbArgs, char* args[]) {
 libff::bit_vector addressBitsFromAddress(int address, int tree_depth, int *error) {
     std::vector<bool> binary = convertIntToBinary(address);
     std::vector<bool> result(tree_depth, 0);
-    
+
     if(binary.size() > tree_depth) {
         *error = 1; // We have an address that goes beyond the limit of the tree
         return libff::bit_vector(result);
@@ -199,6 +199,6 @@ libff::bit_vector hexadecimalToBinaryVector(char* str, int* error) {
         }
         result.insert(std::end(result), std::begin(tmp), std::end(tmp));
     }
-    
+
     return libff::bit_vector(result);
 }
