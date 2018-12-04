@@ -35,6 +35,20 @@ Same applies for "spent commitment", which refers to a commitment in the Merkle 
 . ./setup_env.sh
 ```
 
+### Create an address pair
+
+```bash
+cd src/py-utils/address_generator
+python3 main.py
+```
+
+### Create a coin
+
+```bash
+cd src/py-utils/coin_generator
+python3 main.py
+```
+
 ### Build libsnark gadget to generate verificaction key and proving key
 
 1. Get dependencies:
