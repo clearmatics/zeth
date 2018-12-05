@@ -25,16 +25,29 @@ Miximus<FieldT, HashT>::Miximus() {
     // into field elements as part of the proof and make it verifiable by the verifier
     // That way the verifier can verify that bits were packed correctly, and that
     // the prover didn't try to fool him.
-
+    // And more importantly, the verification key is shorter (than if everything was kept in the binary format)
+    // and the verification time is shorter
+    //
     // Here we allocate 1+1 (=2) variables on the protoboard
     // Because we pack 256 bits.
     // However, we work in a field, where elements are encoded on 253 bits
     // Thus, it is impossible to pack 256 bits into a single field element
     // We need to pack the first 253 bits into 1 field elements
     // and the last 3 bits into another field element
-    packed_root_digest.allocate(pb, 1 + 1, "packed");
-    packed_nullifier.allocate(pb, 1 + 1, "packed");
+    //
+    // The sha256 gadget works on the bit level.
+    // That is why it has so many contraints everything needs to be decomposed to bits.
+    // If we try to make each public input bits the verification key gets huge.
+    // Because each bit has its own variable and we need to have a new element in the verification key for each variable.
+    // This makes the gas of verifcation get huge.
+    // So we use the packer to succinctly pass the variables from the contract to the snark.
+    // We use 1+1 because the hash is 256 bits but the max variable availible in the snark is 253 bits.
+    // So we need to have an extra variable to back these last 3 bits into.
+    packed_root_digest.allocate(pb, 1 + 1, "packed_root_digest");
+    packed_nullifier.allocate(pb, 1 + 1, "packed_nullifier");
 
+    // TODO: I'm almost sure we can just delete this dummy variable,
+    // as each field has its own "zero" element
     ZERO.allocate(pb, "ZERO");
     pb.val(ZERO) = 0;
     address_bits_va.allocate(pb, tree_depth, "address_bits");
@@ -70,7 +83,7 @@ Miximus<FieldT, HashT>::Miximus() {
                 unpacked_root_digest,
                 packed_root_digest,
                 FieldT::capacity(),
-                "multipacking_gadget_1"
+                "multipacking_gadget_1_root"
                 )
             );
 
@@ -80,7 +93,7 @@ Miximus<FieldT, HashT>::Miximus() {
                 unpacked_nullifier,
                 packed_nullifier,
                 FieldT::capacity(),
-                "multipacking_gadget_2"
+                "multipacking_gadget_2_nullifier"
                 )
             );
 
