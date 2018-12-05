@@ -8,6 +8,11 @@ presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-eth
 ### Configure your environment
 
 ```bash
+# Install dependencies
+sudo apt-get install libboost-all-dev
+sudo apt-get install libgmp3-dev
+
+# Setup your environment
 . ./setup_env.sh
 ```
 
@@ -27,16 +32,19 @@ python3 main.py
 
 ### Build libsnark gadget to generate verificaction key and proving key
 
-1. Get dependencies:
+#### Get dependencies
+
 ```bash
 git submodule update --init --recursive
 ```
-2. Create the build repo and build the project:
+
+#### Create the build repo and build the project
+
 ```bash
 mkdir build
 cd build
 cmake .. && make
-cd ../zksnark_element && ../build/src/main
+cd .. && ./build/src/main
 ```
 
 **Note:**
@@ -59,13 +67,11 @@ make
 ### Use the CLI
 
 ```bash
-cd ../zksnark_element
-
 # Generate the trusted setup (proving and verification keys)
-../build/src/main setup
+../build/src/zeth setup
 
 # Generate a proof for a given commitment in the tree
-../build/src/main prove [Args] # See Usage of the command
+../build/src/zeth prove [Args] # See Usage of the command
 ```
 
 ### Launch the Python wrapper

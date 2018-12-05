@@ -81,19 +81,19 @@ r1cs_ppzksnark_keypair<libff::alt_bn128_pp> generateKeypair(const r1cs_ppzksnark
   return r1cs_ppzksnark_generator<libff::alt_bn128_pp>(cs);
 }
 
-void serializeProvingKeyToFile(r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> pk, const char* pk_path){
+void serializeProvingKeyToFile(r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> pk, boost::filesystem::path pk_path){
     writeToFile(pk_path, pk);
 }
 
-r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> deserializeProvingKeyFromFile(const char* pk_path){
+r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> deserializeProvingKeyFromFile(boost::filesystem::path pk_path){
     return loadFromFile<r1cs_ppzksnark_proving_key<libff::alt_bn128_pp>>(pk_path);
 }
 
-void serializeVerificationKeyToFile(r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> vk, const char* vk_path){
+void serializeVerificationKeyToFile(r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> vk, boost::filesystem::path vk_path){
     writeToFile(vk_path, vk);
 }
 
-r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> deserializeVerificationKeyFromFile(const char* vk_path){
+r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path){
     return loadFromFile<r1cs_ppzksnark_verification_key<libff::alt_bn128_pp>>(vk_path);
 }
 
@@ -129,10 +129,13 @@ void printProof(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof){
     cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< endl;
 }
 
-void verificationKey_to_json(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair, std::string path ) {
+void verificationKey_to_json(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair, boost::filesystem::path path) {
+    // Convert boost path to char*
+    const char* str_path = path.string().c_str();
+
     std::stringstream ss;
     std::ofstream fh;
-    fh.open(path, std::ios::binary);
+    fh.open(str_path, std::ios::binary);
     unsigned icLength = keypair.vk.encoded_IC_query.rest.indices.size() + 1;
 
     ss << "{\n";

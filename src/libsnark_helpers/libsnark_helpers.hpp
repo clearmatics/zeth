@@ -35,24 +35,24 @@ std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p);
 libsnark::r1cs_ppzksnark_keypair<libff::alt_bn128_pp> generateKeypair(const libsnark::r1cs_ppzksnark_constraint_system<libff::alt_bn128_pp> &cs);
 
 // Write to and load from files
-template<typename T> void writeToFile(std::string path, T& obj);
-template<typename T> T loadFromFile(std::string path);
+template<typename T> void writeToFile(boost::filesystem::path path, T& obj);
+template<typename T> T loadFromFile(boost::filesystem::path path);
 
 // Return the path to the setup directory from environment variable
 boost::filesystem::path getPathToSetupDir();
 
 // Serialization/Deserialization of keys in raw format (write to/load from specified files)
-void serializeProvingKeyToFile(libsnark::r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> pk, const char* pk_path);
-libsnark::r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> deserializeProvingKeyFromFile(const char* pk_path);
-void serializeVerificationKeyToFile(libsnark::r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> vk, const char* vk_path);
-libsnark::r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> deserializeVerificationKeyFromFile(const char* vk_path);
+void serializeProvingKeyToFile(libsnark::r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> pk, boost::filesystem::path pk_path);
+libsnark::r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> deserializeProvingKeyFromFile(boost::filesystem::path pk_path);
+void serializeVerificationKeyToFile(libsnark::r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> vk, boost::filesystem::path vk_path);
+libsnark::r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path);
 
 void exportVerificationKey(libsnark::r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair);
 template<typename FieldT> void exportInput(libsnark::r1cs_primary_input<FieldT> input);
 void printProof(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof);
 
 // Export to json format
-void verificationKey_to_json(libsnark::r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair, std::string path);
+void verificationKey_to_json(libsnark::r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair, boost::filesystem::path path);
 template<typename FieldT> void proof_to_json(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, libsnark::r1cs_primary_input<FieldT> input);
 template<typename FieldT> void r1cs_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, std::string path);
 template<typename FieldT> void array_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, std::string path);

@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Name of the project
-project(snark-mixer)
+project(zeroEth)
 
 # The set instruction sets environment variables
 # Note: If this environment variable already exist in the cache, it is shadowed by the set value here
@@ -41,7 +41,7 @@ option(
 option(
   WITH_PROCPS
   "Use procps for memory profiling"
-  ON
+  OFF
 )
 
 option(
