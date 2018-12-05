@@ -10,23 +10,30 @@ file(GLOB_RECURSE SOURCES
     cli/mainCmd.cpp
 )
 
+# Enable Boost for program_options
+FIND_PACKAGE( Boost REQUIRED COMPONENTS system filesystem )
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
+
 add_executable(
-    main 
+    zeth
 
     main.cpp
     ${SOURCES}
 )
 
 target_link_libraries(
-  main
+    zeth
 
-  snark
+    LINK_PUBLIC # See: https://stackoverflow.com/questions/21125362/cmake-link-private-and-its-inheritance
+    snark # Libsnark library
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
 )
 
 target_include_directories(
-  main
+    zeth
 
-  PUBLIC
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
