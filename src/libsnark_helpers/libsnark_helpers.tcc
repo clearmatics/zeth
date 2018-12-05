@@ -35,10 +35,13 @@ T loadFromFile(boost::filesystem::path path) {
 }
 
 template<typename FieldT>
-void constraint_to_json(libsnark::linear_combination<FieldT> constraints, std::string path) {
+void constraint_to_json(libsnark::linear_combination<FieldT> constraints, boost::filesystem::path path) {
+    // Convert the boost path into char*
+    const char* str_path = path.string().c_str();
+
     std::stringstream ss;
     std::ofstream fh;
-    fh.open(path, std::ios::binary);
+    fh.open(str_path, std::ios::binary);
 
     ss << "{";
     uint count = 0;
@@ -63,10 +66,13 @@ void constraint_to_json(libsnark::linear_combination<FieldT> constraints, std::s
 }
 
 template <typename FieldT>
-void array_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, std::string path) {
+void array_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, boost::filesystem::path path) {
+    // Convert the boost path into char*
+    const char* str_path = path.string().c_str();
+
     std::stringstream ss;
     std::ofstream fh;
-    fh.open(path, std::ios::binary);
+    fh.open(str_path, std::ios::binary);
 
     libsnark::r1cs_variable_assignment<FieldT> values = pb.full_variable_assignment();
     ss << "\n{\"TestVariables\":[";
@@ -85,13 +91,16 @@ void array_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, std::s
 }
 
 template<typename FieldT>
-void r1cs_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, std::string path) {
+void r1cs_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, boost::filesystem::path path) {
+    // Convert the boost path into char*
+    const char* str_path = path.string().c_str();
+
     // output inputs, right now need to compile with debug flag so that the `variable_annotations`
     // exists. Having trouble setting that up so will leave for now.
     libsnark::r1cs_constraint_system<FieldT> constraints = pb.get_constraint_system();
     std::stringstream ss;
     std::ofstream fh;
-    fh.open(path, std::ios::binary);
+    fh.open(str_path, std::ios::binary);
 
     ss << "\n{\"variables\":[";
 
@@ -125,7 +134,10 @@ void r1cs_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, std::st
 }
 
 template<typename FieldT>
-void proof_to_json(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, libsnark::r1cs_primary_input<FieldT> input) {
+void proof_to_json(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, libsnark::r1cs_primary_input<FieldT> input, boost::filesystem::path path) {
+    // Convert the boost path into char*
+    const char* str_path = path.string().c_str();
+
     std::cout << "proof.A = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.g)<< ");" << std::endl;
     std::cout << "proof.A_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.h)<< ");" << std::endl;
     std::cout << "proof.B = Pairing.G2Point(" << outputPointG2AffineAsHex(proof.g_B.g)<< ");" << std::endl;
@@ -135,10 +147,9 @@ void proof_to_json(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, li
     std::cout << "proof.H = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_H)<<");"<< std::endl;
     std::cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< std::endl;
 
-    std::string path = "proof.json";
     std::stringstream ss;
     std::ofstream fh;
-    fh.open(path, std::ios::binary);
+    fh.open(str_path, std::ios::binary);
 
     ss << "{\n";
     ss << " \"a\" :[" << outputPointG1AffineAsHex(proof.g_A.g) << "],\n";

@@ -30,16 +30,16 @@ std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> 
     uint8_t x[32];
     for (unsigned i = 0; i < 4; i++)
         for (unsigned j = 0; j < 8; j++)
-                        x[i * 8 + j] = uint8_t(uint64_t(_x.data[3 - i]) >> (8 * (7 - j)));
+            x[i * 8 + j] = uint8_t(uint64_t(_x.data[3 - i]) >> (8 * (7 - j)));
 
-        std::stringstream ss;
-        ss << std::setfill('0');
-        for (unsigned i = 0; i<32; i++) {
-                ss << std::hex << std::setw(2) << (int)x[i];
-        }
+    std::stringstream ss;
+    ss << std::setfill('0');
+    for (unsigned i = 0; i<32; i++) {
+        ss << std::hex << std::setw(2) << (int)x[i];
+    }
 
-                std:string str = ss.str();
-                return str.erase(0, min(str.find_first_not_of('0'), str.size()-1));
+std:string str = ss.str();
+    return str.erase(0, min(str.find_first_not_of('0'), str.size()-1));
 }
 
 std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p) {
@@ -68,17 +68,28 @@ boost::filesystem::path getPathToSetupDir() {
     char* pathToSetupFolder;
     pathToSetupFolder = std::getenv("ZETH_TRUSTED_SETUP_DIR");
     if (pathToSetupFolder == NULL) {
-        // Fallback destination if the SNARK_TRUSTED_SETUP_DIR env var is not set
-        pathToSetupFolder = "../zksnark_trusted_setup";
+        // Fallback destination if the ZETH_TRUSTED_SETUP_DIR env var is not set
+        pathToSetupFolder = "../trusted_setup";
     }
     boost::filesystem::path setup_dir(pathToSetupFolder);
     return setup_dir;
 }
 
+boost::filesystem::path getPathToDebugDir() {
+    char* pathToDebugFolder;
+    pathToDebugFolder = std::getenv("ZETH_DEBUG_DIR");
+    if (pathToSetupFolder == NULL) {
+        // Fallback destination if the ZETH_DEBUG_DIR env var is not set
+        pathToSetupFolder = "../debug";
+    }
+    boost::filesystem::path setup_dir(pathToDebugFolder);
+    return setup_dir;
+}
+
 // Generate keypair (proving key, verif key) from constraints
 r1cs_ppzksnark_keypair<libff::alt_bn128_pp> generateKeypair(const r1cs_ppzksnark_constraint_system<libff::alt_bn128_pp> &cs){
-  // From r1cs_ppzksnark.hpp
-  return r1cs_ppzksnark_generator<libff::alt_bn128_pp>(cs);
+    // From r1cs_ppzksnark.hpp
+    return r1cs_ppzksnark_generator<libff::alt_bn128_pp>(cs);
 }
 
 void serializeProvingKeyToFile(r1cs_ppzksnark_proving_key<libff::alt_bn128_pp> pk, boost::filesystem::path pk_path){
