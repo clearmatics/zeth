@@ -78,9 +78,9 @@ boost::filesystem::path getPathToSetupDir() {
 boost::filesystem::path getPathToDebugDir() {
     char* pathToDebugFolder;
     pathToDebugFolder = std::getenv("ZETH_DEBUG_DIR");
-    if (pathToSetupFolder == NULL) {
+    if (pathToDebugFolder == NULL) {
         // Fallback destination if the ZETH_DEBUG_DIR env var is not set
-        pathToSetupFolder = "../debug";
+        pathToDebugFolder = "../debug";
     }
     boost::filesystem::path setup_dir(pathToDebugFolder);
     return setup_dir;
