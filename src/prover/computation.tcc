@@ -19,8 +19,11 @@ void generate_proof(libsnark::protoboard<FieldT> pb) {
     // Generate proof from public input, auxiliary input (private/secret data), and proving key
     libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = libsnark::r1cs_ppzksnark_prover<libff::alt_bn128_pp>(proving_key, primary_input, auxiliary_input);
 
-    // Write proof to json file
-    proof_to_json(proof, primary_input);
+    // Write proof to json file (written in the debug folder)
+    boost::filesystem::path debug_dir = getPathToDebugDir();
+    boost::filesystem::path proof_json("proof.json");
+    boost::filesystem::path full_path_proof_json = debug_dir / proof_json;
+    proof_to_json(proof, primary_input, full_path_proof_json);
 }
 
 template<typename FieldT>
