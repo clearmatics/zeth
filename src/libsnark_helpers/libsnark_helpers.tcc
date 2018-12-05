@@ -1,10 +1,13 @@
 template<typename T>
-void writeToFile(std::string path, T& obj) {
+void writeToFile(boost::filesystem::path path, T& obj) {
+    // Convert the boost path into char*
+    const char* str_path = path.string().c_str();
+
     std::stringstream ss;
     ss << obj;
     std::ofstream fh;
 
-    fh.open(path, std::ios::binary);
+    fh.open(str_path, std::ios::binary);
     ss.rdbuf()->pubseekpos(0, std::ios_base::out);
     fh << ss.rdbuf();
     fh.flush();
@@ -12,9 +15,12 @@ void writeToFile(std::string path, T& obj) {
 }
 
 template<typename T>
-T loadFromFile(std::string path) {
+T loadFromFile(boost::filesystem::path path) {
+    // Convert the boost path into char*
+    const char* str_path = path.string().c_str();
+
     std::stringstream ss;
-    std::ifstream fh(path, std::ios::binary);
+    std::ifstream fh(str_path, std::ios::binary);
 
     assert(fh.is_open());
 
@@ -88,7 +94,7 @@ void r1cs_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, std::st
     fh.open(path, std::ios::binary);
 
     ss << "\n{\"variables\":[";
-    
+
     for (size_t i = 0; i < input_variables + 1; ++i) {
         ss << '"' << constraints.variable_annotations[i].c_str() << '"';
         if (i < input_variables ) {
@@ -97,7 +103,7 @@ void r1cs_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, std::st
     }
     ss << "],\n";
     ss << "\"constraints\":[";
-     
+
     for (size_t c = 0; c < constraints.num_constraints(); ++c) {
         ss << "[";// << "\"A\"=";
         constraint_to_json(constraints.constraints[c].a, ss);
@@ -127,13 +133,13 @@ void proof_to_json(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, li
     std::cout << "proof.C = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.g)<< ");" << std::endl;
     std::cout << "proof.C_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.h)<<");" << std::endl;
     std::cout << "proof.H = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_H)<<");"<< std::endl;
-    std::cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< std::endl; 
+    std::cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< std::endl;
 
     std::string path = "proof.json";
     std::stringstream ss;
     std::ofstream fh;
     fh.open(path, std::ios::binary);
-    
+
     ss << "{\n";
     ss << " \"a\" :[" << outputPointG1AffineAsHex(proof.g_A.g) << "],\n";
     ss << " \"a_p\"  :[" << outputPointG1AffineAsHex(proof.g_A.h)<< "],\n";
@@ -145,9 +151,9 @@ void proof_to_json(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, li
     ss << " \"k\" :[" << outputPointG1AffineAsHex(proof.g_K)<< "],\n";
     ss << " \"input\" :" << "["; // 1 should always be the first variable passed
 
-    for (size_t i = 0; i < input.size(); ++i) {   
-        ss << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\""; 
-        if ( i < input.size() - 1 ) { 
+    for (size_t i = 0; i < input.size(); ++i) {
+        ss << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\"";
+        if ( i < input.size() - 1 ) {
             ss<< ", ";
         }
     }

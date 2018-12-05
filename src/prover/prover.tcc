@@ -1,5 +1,5 @@
-#ifndef __ZKSNARK_PROVER_TCC__
-#define __ZKSNARK_PROVER_TCC__
+#ifndef __ZETH_PROVER_TCC__
+#define __ZETH_PROVER_TCC__
 
 #include <libsnark_helpers/libsnark_helpers.hpp>
 #include "computation.hpp"
@@ -23,51 +23,51 @@ Miximus<FieldT, HashT>::Miximus() {
 
     unpacked_inputs.insert(unpacked_inputs.end(), root_digest->bits.begin(), root_digest->bits.end());
     unpacker.reset(new multipacking_gadget<FieldT>(
-            pb, 
-            unpacked_inputs, 
-            packed_inputs, 
-            FieldT::capacity(), 
+            pb,
+            unpacked_inputs,
+            packed_inputs,
+            FieldT::capacity(),
             "unpacker"
         )
     );
-    
+
     unpacked_inputs1.insert(unpacked_inputs1.end(), cm->bits.begin(), cm->bits.end());
     unpacker1.reset(new multipacking_gadget<FieldT>(
-            pb, 
-            unpacked_inputs1, 
-            packed_inputs1, 
-            FieldT::capacity(), 
+            pb,
+            unpacked_inputs1,
+            packed_inputs1,
+            FieldT::capacity(),
             "unpacker"
         )
     );
 
     pb.set_input_sizes(18 + 1);
-    input_variable.reset(new block_variable<FieldT>(pb, *cm, *sk, "input_variable")); 
+    input_variable.reset(new block_variable<FieldT>(pb, *cm, *sk, "input_variable"));
 
     cm_hash.reset(new sha256_ethereum(
-            pb, 
-            SHA256_block_size, 
-            *input_variable, 
-            *leaf_digest, 
+            pb,
+            SHA256_block_size,
+            *input_variable,
+            *leaf_digest,
             "cm_hash"
         )
     );
 
     path_variable.reset(new  merkle_authentication_path_variable<FieldT, HashT> (
-            pb, 
-            tree_depth, 
+            pb,
+            tree_depth,
             "path_variable"
         )
     );
 
     check_membership.reset(new merkle_tree_check_read_gadget<FieldT, HashT>(
-            pb, 
-            tree_depth, 
-            address_bits_va, 
-            *leaf_digest, 
-            *root_digest, 
-            *path_variable, 
-            ONE, 
+            pb,
+            tree_depth,
+            address_bits_va,
+            *leaf_digest,
+            *root_digest,
+            *path_variable,
+            ONE,
             "check_membership"
         )
     );
@@ -97,11 +97,11 @@ bool Miximus<FieldT, HashT>::prove(
     libff::bit_vector address_bits,
     size_t address,
     size_t tree_depth
-) { 
+) {
     cm->generate_r1cs_witness(nullifier);
     root_digest->generate_r1cs_witness(node_root);
     sk->generate_r1cs_witness(secret);
-    cm_hash->generate_r1cs_witness();  
+    cm_hash->generate_r1cs_witness();
     path_variable->generate_r1cs_witness(address, merkle_path);
     check_membership->generate_r1cs_witness();
     unpacker->generate_r1cs_witness_from_bits();
@@ -110,7 +110,7 @@ bool Miximus<FieldT, HashT>::prove(
     address_bits_va.fill_with_bits(pb, address_bits);
     assert(address_bits_va.get_field_element_from_bits(pb).as_ulong() == address);
 
-    // make sure that read checker didn't accidentally overwrite anything 
+    // make sure that read checker didn't accidentally overwrite anything
     address_bits_va.fill_with_bits(pb, address_bits);
     unpacker->generate_r1cs_witness_from_bits();
     leaf_digest->generate_r1cs_witness(leaf);

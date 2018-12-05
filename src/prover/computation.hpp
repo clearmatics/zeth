@@ -1,5 +1,5 @@
-#ifndef __ZKSNARK_COMPUTATION_HPP__
-#define __ZKSNARK_COMPUTATION_HPP__
+#ifndef __ZETH_COMPUTATION_HPP__
+#define __ZETH_COMPUTATION_HPP__
 
 #include <fstream>
 #include <iostream>
