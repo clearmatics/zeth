@@ -1,5 +1,16 @@
-zksnark_element/*
 jsWrapper/node_modules/*
 jsWrapper/package-lock.json
+
+# Ignore the build repo
 build/
-private-eth-net/
+
+# Ignore the coins we created
+coinstore/*.json
+
+# Ignore the content of the keystore
+keystore/*.pem
+keystore/*.json
+
+# Ignore the output of the trusted setup (ie: Proving and Verifying key)
+trusted_setup/*.raw
+trusted_setup/*.json
