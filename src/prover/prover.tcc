@@ -49,6 +49,7 @@ Miximus<FieldT, HashT>::Miximus() {
     // TODO: I'm almost sure we can just delete this dummy variable,
     // as each field has its own "zero" element
     ZERO.allocate(pb, "ZERO");
+    // See: https://github.com/scipr-lab/libsnark/blob/f7c87b88744ecfd008126d415494d9b34c4c1b20/libsnark/zk_proof_systems/pcd/r1cs_pcd/r1cs_mp_ppzkpcd/mp_pcd_circuits.tcc#L402
     pb.val(ZERO) = 0;
     address_bits_va.allocate(pb, tree_depth, "address_bits");
 
