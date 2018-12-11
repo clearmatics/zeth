@@ -5,7 +5,42 @@ presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-eth
 
 ## Building the project:
 
-### Configure your environment
+### Using docker
+
+```
+# Clone this repository:
+git clone git@gitlab.clearmatics.net:ar/zeth.git
+cd zeth
+
+git submodule update --init --recursive
+docker build -t zeth-dev .
+docker run -ti zeth-dev
+
+# Configure your environment
+. ./setup_env.sh
+
+# Generate an address and a "dummy" coin
+python src/py-utils/address_generator/main.py
+python src/py-utils/coin_generator/main.py
+
+# Compile the circuit
+mkdir build
+cd build
+cmake .. && make
+
+# Test the zeth command line (see the usage)
+./src/zeth
+
+# Run the trusted setup
+./src/zeth setup
+
+# Generate a proof
+./src/zeth prove [args] 
+```
+
+### Without docker
+
+#### Configure your environment
 
 ```bash
 # Install dependencies
@@ -14,31 +49,31 @@ sudo apt-get install libgmp3-dev
 
 # Setup your environment
 . ./setup_env.sh
+
+# Make sure you have python 3 installed
 ```
 
-### Create an address pair
+#### Create an address pair
 
 ```bash
-cd src/py-utils/address_generator
-python3 main.py
+python src/py-utils/address_generator/main.py
 ```
 
-### Create a coin
+#### Create a coin
 
 ```bash
-cd src/py-utils/coin_generator
-python3 main.py
+python src/py-utils/coin_generator/main.py
 ```
 
-### Build libsnark gadget to generate verificaction key and proving key
+#### Build libsnark gadget to generate verification key and proving key
 
-#### Get dependencies
+##### Get dependencies
 
 ```bash
 git submodule update --init --recursive
 ```
 
-#### Create the build repo and build the project
+##### Create the build repo and build the project
 
 ```bash
 mkdir build
@@ -66,12 +101,14 @@ make
 
 ### Use the CLI
 
+These commands are ran in the `zeth` repo.
+
 ```bash
 # Generate the trusted setup (proving and verification keys)
-../build/src/zeth setup
+./build/src/zeth setup
 
 # Generate a proof for a given commitment in the tree
-../build/src/zeth prove [Args] # See Usage of the command
+./build/src/zeth prove [Args] # See Usage of the command
 ```
 
 ### Launch the Python wrapper
