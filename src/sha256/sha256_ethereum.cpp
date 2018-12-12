@@ -1,4 +1,4 @@
-// Taken from:
+// Adapted from:
 // https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
 
 #include "sha256_ethereum.hpp"
@@ -28,100 +28,103 @@
 // Where we see that, the function that interests us is "func (d *digest) checkSum() [Size]byte"
 
 sha256_ethereum::sha256_ethereum(
-    libsnark::protoboard<FieldT> &pb,
-    const size_t block_length,
-    const libsnark::block_variable<FieldT> &input_block,
-    const libsnark::digest_variable<FieldT> &output,
-    const std::string &annotation_prefix) : libsnark::gadget<FieldT>(pb, "sha256_ethereum")
+        libsnark::protoboard<FieldT> &pb,
+        const size_t block_length,
+        const libsnark::block_variable<FieldT> &input_block,
+        const libsnark::digest_variable<FieldT> &output,
+        const std::string &annotation_prefix) : libsnark::gadget<FieldT>(pb, "sha256_ethereum")
 {
     intermediate_hash.reset(new libsnark::digest_variable<FieldT>(pb, 256, "intermediate"));
-    libsnark::pb_variable<FieldT> ZERO;
 
+    // Set the zero variable to the zero of our field, to later transform
+    // boolean vectors into vectors of ONE and ZERO in our field FieldT
+    libsnark::pb_variable<FieldT> ZERO;
     ZERO.allocate(pb, "ZERO");
-    pb.val(ZERO) = 0; // Here we want pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = FieldT::zero(); // Here we want pb.val(ZERO) = 0;
 
     // Padding
-    // Equivalent if the lines
+    // Equivalent to the lines
     // -- Padding. Add a 1 bit and 0 bits until 56 bytes mod 64.
     // -- var tmp [64]byte
-	// -- tmp[0] = 0x80
-    // in the checkSum function of the crypto/sha256 go package 
+    // -- tmp[0] = 0x80
+    // written in the checkSum function of the crypto/sha256 go package
     libsnark::pb_variable_array<FieldT> length_padding =
         from_bits({
-            // Total size of this vector = 512bits
-            // First part: 448bits <-> 56bytes
-            1,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
+                // Total size of this vector = 512bits
+                // First part: 448bits <-> 56bytes
+                1,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
 
-            // Last part: 64bits <-> 8bytes
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,1,0,
-            0,0,0,0,0,0,0,0
+                // Last part: 64bits <-> 8bytes
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,1,0,
+                0,0,0,0,0,0,0,0
         },
         ZERO
     );
 
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc#L35
-    // Note: The IV defined in libsnark is made of: "0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19"
+    // Note: The IV defined in libsnark is made of:
+    // "0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19"
     // See: https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc#L31
     //
     // This IV, is the same as the one used in the crypto/sha256 (and thus in ethereum), as we can see here:
@@ -152,27 +155,27 @@ sha256_ethereum::sha256_ethereum(
     // We see that d.checkSum() calls d.Write() again, but this time, with the padding!
     // Thus, this corresponds to the second round of hashing we do here with the hasher2.
     hasher1.reset(new libsnark::sha256_compression_function_gadget<FieldT>(
-            pb, // protoboard
-            IV, // previous output - Here the IV
-            input_block.bits, // new block
-            *intermediate_hash, // output
-            "hasher1" // annotation
-        )
-    );
+                pb, // protoboard
+                IV, // previous output - Here the IV
+                input_block.bits, // new block
+                *intermediate_hash, // output
+                "hasher1" // annotation
+                )
+            );
 
-    // The intermediate hash obtained as a result of the first hashing round is then used 
+    // The intermediate hash obtained as a result of the first hashing round is then used
     // as IV for the second hashing round
     libsnark::pb_linear_combination_array<FieldT> IV2(intermediate_hash->bits);
 
     // We hash the intermediate hash wiht the padding.
     hasher2.reset(new libsnark::sha256_compression_function_gadget<FieldT>(
-            pb,
-            IV2,
-            length_padding,
-            output,
-            "hasher2"
-        )
-    );
+                pb,
+                IV2,
+                length_padding,
+                output,
+                "hasher2"
+                )
+            );
 }
 
 void sha256_ethereum::generate_r1cs_constraints(const bool ensure_output_bitness) {
@@ -195,10 +198,10 @@ libff::bit_vector sha256_ethereum::get_hash(const libff::bit_vector &input) {
 
     libsnark::block_variable<FieldT> input_variable(pb, libsnark::SHA256_block_size, "input");
     libsnark::digest_variable<FieldT> output_variable(pb, libsnark::SHA256_digest_size, "output");
-    sha256_ethereum f(pb, libsnark::SHA256_block_size, input_variable, output_variable, "f");
+    sha256_ethereum eth_hasher_gadget(pb, libsnark::SHA256_block_size, input_variable, output_variable, "eth_hasher_gadget");
 
     input_variable.generate_r1cs_witness(input);
-    f.generate_r1cs_witness();
+    eth_hasher_gadget.generate_r1cs_witness();
 
     return output_variable.get_digest();
 }
@@ -210,7 +213,7 @@ size_t sha256_ethereum::expected_constraints(const bool ensure_output_bitness) {
 
 std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const size_t wordsize) {
     std::vector<unsigned long> res;
-	size_t iterations = bit_list.size()/wordsize+1;
+    size_t iterations = bit_list.size()/wordsize+1;
     for (size_t i = 0; i < iterations; ++i) {
         unsigned long current = 0;
         for (size_t j = 0; j < wordsize; ++j) {
@@ -227,10 +230,10 @@ std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const si
 // bool(1) <-> ONE (Multiplicative identity in FieldT)
 libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::pb_variable<FieldT>& ZERO) {
     libsnark::pb_variable_array<FieldT> acc;
-	for (size_t i = 0; i < bits.size(); i++) {
-		bool bit = bits[i];
-		acc.emplace_back(bit ? ONE : ZERO);
-	}
+    for (size_t i = 0; i < bits.size(); i++) {
+        bool bit = bits[i];
+        acc.emplace_back(bit ? ONE : ZERO);
+    }
 
     return acc;
 }
