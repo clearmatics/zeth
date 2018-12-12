@@ -46,11 +46,9 @@ Miximus<FieldT, HashT>::Miximus() {
     packed_root_digest.allocate(pb, 1 + 1, "packed_root_digest");
     packed_nullifier.allocate(pb, 1 + 1, "packed_nullifier");
 
-    // TODO: I'm almost sure we can just delete this dummy variable,
-    // as each field has its own "zero" element
     ZERO.allocate(pb, "ZERO");
     // See: https://github.com/scipr-lab/libsnark/blob/f7c87b88744ecfd008126d415494d9b34c4c1b20/libsnark/zk_proof_systems/pcd/r1cs_pcd/r1cs_mp_ppzkpcd/mp_pcd_circuits.tcc#L402
-    pb.val(ZERO) = 0;
+    pb.val(ZERO) = FieldT::zero();
     address_bits_va.allocate(pb, tree_depth, "address_bits");
 
     // Instantiate the nullifier, as a digest variables of size 256 bits
