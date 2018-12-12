@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Two commands supported
-    // One to compute the trusted setup, the other one to compute proofs
+    // One to compute the trusted setup, the other one to compute proofs (verification happens on chain)
     std::string command(argv[1]);
     if (command != "setup" && command != "prove") {
         std::cerr << "Unknown command" << std::endl;
@@ -32,6 +32,13 @@ int main(int argc, char* argv[]) {
     typedef libff::Fr<libff::alt_bn128_pp> FieldT;
 
     // Instantiate the prover
+    // The hash function we use everywhere here is sha256 as defined in the ethereum code base
+    // This is the function used for: the commitments and also to compute the merkle tree (the inner nodes of the tree)
+    //
+    // ** WARNING: Security note **
+    // Because our commitment scheme is based on sha256, our scheme is secure only in the Random Oracle model
+    // See the comment https://github.com/zcash/zcash/issues/2234#issuecomment-292419085
+    // for more details on the security analysis of the switch from sha256 to Pedersen commitments in Zcash
     Miximus<FieldT, sha256_ethereum> prover;
 
     int error = 0;
