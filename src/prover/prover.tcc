@@ -96,7 +96,7 @@ Miximus<FieldT, HashT>::Miximus() {
                 )
             );
 
-    // TODO: See to the right number, and remember that the ONE variable in the R1CS
+    // TODO: Set to the right number, and remember that the ONE variable in the R1CS
     // is hardcoded in the protoboard
     // Here we have only 4 input that, in reality, correspond only to 2 hashes, that are packed
     // in 4 fields elements (due to the field being smaller that the co-domain of SHA256)
@@ -125,6 +125,9 @@ Miximus<FieldT, HashT>::Miximus() {
     // hash_gagdet is the hash gadget to compute sha256(nullifier || commitment_secret)
     // Thus, hash_gagdet->generate_r1cs_witness()
     // assigns `commitment` to the value: `sha256(nullifier || commitment_secret)`
+    //
+    // Here the commitment scheme is sha256 as defined in ethereum (see the sha256 precompiled)
+    // We also use this hasher to constitute our merkle tree
     hash_gagdet.reset(new sha256_ethereum(
                 pb,
                 SHA256_block_size,
@@ -176,13 +179,13 @@ Miximus<FieldT, HashT>::Miximus() {
     multipacking_gadget_1->generate_r1cs_constraints(true); // enforce_bitness set to true
     multipacking_gadget_2->generate_r1cs_constraints(true); // enforce_bitness set to true
 
-    generate_r1cs_equals_const_constraint<FieldT>(pb, ZERO, FieldT::zero(), "ZERO");
-    hash_gagdet->generate_r1cs_constraints(true);
+    // generate_r1cs_equals_const_constraint<FieldT>(pb, ZERO, FieldT::zero(), "ZERO"); // useless, it just suffices to set ZERO to FieldT::zero() directly
+    hash_gagdet->generate_r1cs_constraints(true); // ensure_output_bitness set to true
     path_variable->generate_r1cs_constraints();
     check_membership->generate_r1cs_constraints();
     commitment->generate_r1cs_constraints();
 
-    std::cout << " ////--------- Constraints profiling ---------//// " << std::endl;
+    std::cout << " // --------- Constraints profiling --------- // " << std::endl;
     PRINT_CONSTRAINT_PROFILING();
 }
 
@@ -194,39 +197,31 @@ void Miximus<FieldT, HashT>::generate_trusted_setup() {
 template<typename FieldT, typename HashT>
 bool Miximus<FieldT, HashT>::prove(
         std::vector<merkle_authentication_node> merkle_path,
-        libff::bit_vector secret,
+        libff::bit_vector secret_bits,
         libff::bit_vector nullifier_bits,
-        libff::bit_vector leaf,
-        libff::bit_vector node_root,
+        libff::bit_vector commitment_bits, // The leaf we want to prove for in the merkle tree
+        libff::bit_vector root_bits,
         libff::bit_vector address_bits,
         size_t address,
         size_t tree_depth
         ) {
+
     nullifier->generate_r1cs_witness(nullifier_bits);
-    root_digest->generate_r1cs_witness(node_root);
-    commitment_secret->generate_r1cs_witness(secret);
+    commitment_secret->generate_r1cs_witness(secret_bits);
+    root_digest->generate_r1cs_witness(root_bits);
     hash_gagdet->generate_r1cs_witness();
     path_variable->generate_r1cs_witness(address, merkle_path);
     check_membership->generate_r1cs_witness();
     multipacking_gadget_1->generate_r1cs_witness_from_bits();
     multipacking_gadget_2->generate_r1cs_witness_from_bits();
-
     address_bits_va.fill_with_bits(pb, address_bits);
+    commitment->generate_r1cs_witness(commitment_bits);
 
-    // TODO: Remove this assert
-    assert(address_bits_va.get_field_element_from_bits(pb).as_ulong() == address);
-
-    // TODO: Make sure I can delete this securely, and then delete it
-    // as it is redundant (is already done above)
-    // make sure that read checker didn't accidentally overwrite anything
-    address_bits_va.fill_with_bits(pb, address_bits);
-    multipacking_gadget_1->generate_r1cs_witness_from_bits();
-    commitment->generate_r1cs_witness(leaf);
-    root_digest->generate_r1cs_witness(node_root);
-
+    // Debug purpose
+    // TODO: Remove
     bool is_valid_witness = pb.is_satisfied();
     assert(is_valid_witness);
-    std::cout << "[DEBUG] Satisfiability result: " << is_valid_witness << "\n";
+    std::cout << "*** [DEBUG] Satisfiability result: " << is_valid_witness << " ***\n";
 
     // Build a proof using the witness built above and the proving key generated during the trusted setup
     generate_proof(pb);
