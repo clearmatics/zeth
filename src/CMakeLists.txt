@@ -49,19 +49,21 @@ target_include_directories(
 # Tests
 ## Test for the prover
 add_executable(
-    prover_test
+    test_prover
     EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
 
     test/prover_test.cpp
     ${SOURCES}
 )
 target_link_libraries(
-    prover_test
+    test_prover
 
     snark
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
 )
 target_include_directories(
-    prover_test
+    test_prover
 
     PUBLIC
     ${DEPENDS_DIR}/libsnark
@@ -69,9 +71,9 @@ target_include_directories(
 )
 include(CTest)
 add_test(
-    NAME prover_test
-    COMMAND prover_test
+    NAME test_prover
+    COMMAND test_prover
 )
 
 # We add the test of the prover as part of the testzeth
-add_dependencies(testzeth prover_test)
+add_dependencies(testzeth test_prover)
