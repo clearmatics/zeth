@@ -10,6 +10,9 @@
 // Header to use the sha256_ethereum gadget
 #include "sha256/sha256_ethereum.hpp"
 
+// Header to use the Miximus (prover) gadget
+#include "prover/prover.hpp"
+
 using namespace libsnark;
 
 typedef libff::Fr<libff::default_ec_pp> FieldT; // Should be alt_bn128 in the CMakeLists.txt
@@ -37,7 +40,7 @@ void dump_bit_vector(std::ostream &out, const libff::bit_vector &v)
     out << v[v.size() - 1] << "}\n";
 }
 
-//template<typename ppT>
+template<typename ppT>
 bool test_proof_verification()
 {
     libff::print_header("=== Init parameters ===");
@@ -84,47 +87,61 @@ bool test_proof_verification()
     std::cout << "=== Inputs bit representation: " << std::endl;
     dump_bit_vector(stream, inputs);
 
-    //libff::bit_vector commitment = get_hash(&input);
-
-    //std::cout << "DISPLAY CONTENT OF COMMITMENT";
-    //libff::serialize_bit_vector(stream, &commitment)
+    libff::bit_vector commitment = HashT::get_hash(inputs);
+    std::cout << "=== Commitment bit representation: ";
+    dump_bit_vector(stream, commitment);
 
     // get the root of the merkle tree before the addition of the leaf
-    //auto root_value = test_merkle_tree->get_root();
+    auto root_value = test_merkle_tree->get_root();
+    std::cout << "=== Root before insertion bit representation: ";
+    dump_bit_vector(stream, root_value);
 
     // Add a commitment in the address 0 (left most leaf)
-    //test_merkle_tree->set_value(0, &commitment);
+    test_merkle_tree->set_value(0, commitment);
 
     // get the root of the merkle tree after the addition of the leaf
-    //auto root_value_after = test_merkle_tree->get_root();
+    auto root_value_after = test_merkle_tree->get_root();
+    std::cout << "=== Root after insertion bit representation: ";
+    dump_bit_vector(stream, root_value_after);
 
-    return true;
+    // TODO: Checkpoint all of the above works
+    libff::print_header("=== Generate a **valid** proof ===");
+    // 1. Generate a proof
+    //
+    // We declare an instance of the prover here to generate a proof to
+    // be verified as part of the test
+    Miximus<FieldT, HashT> prover;
+    // Get the merkle path to the commitment we just added
+    const libff::bit_vector address_bits = {0,0,0}; // len is 3 (ie: the depth of the tree)
+    std::vector<merkle_authentication_node> path = test_merkle_tree->get_path(0);
+    bool proof_gen_res = prover.prove(
+            path,
+            commitment_secret,
+            nullifier,
+            commitment,
+            root_value_after,
+            address_bits
+            )
+    // Note: proof_gen_res should be true --> To verify
 
-   // libff::print_header("=== Generate a **valid** proof ===");
-   // // 1. Generate a proof
-   // //
-   // // We declare an instance of the prover here to generate a proof to
-   // // be verified as part of the test
-   // Miximus<FieldT, sha256_ethereum> prover;
+    libff::print_header("=== Verify the proof ===");
+    // 2. Verify the proof
+    //
+    // Load the verification key
+    char* setup_dir;
+    setup_dir = std::getenv("ZETH_TRUSTED_SETUP_DIR");
+    boost::filesystem::path verif_key_raw("vk.raw");
+    boost::filesystem::path full_path_verif_key_raw = setup_dir / verif_key_raw;
+    auto vk = deserializeVerificationKeyFromFile(full_path_verif_key_raw);
 
-   // libff::print_header("=== Verify the proof ===");
-   // // 2. Verify the proof
-   // //
-   // // Load the verification key
-   // char* setup_dir;
-   // setup_dir = std::getenv("ZETH_TRUSTED_SETUP_DIR");
-   // boost::filesystem::path verif_key_raw("vk.raw");
-   // boost::filesystem::path full_path_verif_key_raw = setup_dir / verif_key_raw;
-   // auto vk = deserializeVerificationKeyFromFile(full_path_verif_key_raw);
+    libff::print_header("R1CS GG-ppzkSNARK Verifier");
+    const bool res = r1cs_gg_ppzksnark_verifier_strong_IC<ppT>(vk, primary_input, proof);
+    printf("\n"); libff::print_indent(); libff::print_mem("after verifier");
+    printf("* The verification result is: %s\n", (res ? "PASS" : "FAIL"));
 
-   // libff::print_header("R1CS GG-ppzkSNARK Verifier");
-   // const bool res = r1cs_gg_ppzksnark_verifier_strong_IC<ppT>(vk, primary_input, proof);
-   // printf("\n"); libff::print_indent(); libff::print_mem("after verifier");
-   // printf("* The verification result is: %s\n", (res ? "PASS" : "FAIL"));
+    libff::print_header("=== Generate an **invalid** proof ===");
 
-   // libff::print_header("=== Generate an **invalid** proof ===");
-
-   // return res;
+    return 0;
 }
 
 int main () {
