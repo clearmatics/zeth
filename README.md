@@ -50,6 +50,7 @@ zeth prove [args]
 # Install dependencies
 sudo apt-get install libboost-all-dev
 sudo apt-get install libgmp3-dev
+sudo apt-get install libprocps-dev
 
 # Setup your environment
 . ./setup_env.sh
