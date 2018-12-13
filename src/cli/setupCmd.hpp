@@ -5,7 +5,9 @@
 #include <prover/computation.hpp>
 #include <sha256/sha256_ethereum.hpp>
 
-int setupCommand(Miximus<FieldT, sha256_ethereum> prover);
 void printUsageSetupCmd();
+template<typename FieldT, typename HashT> int setupCommand(Miximus<FieldT, HashT> prover);
+
+#include "setupCmd.tcc"
 
 #endif
