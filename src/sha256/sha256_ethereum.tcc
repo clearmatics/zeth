@@ -218,7 +218,7 @@ size_t sha256_ethereum<FieldT>::expected_constraints(const bool ensure_output_bi
 }
 
 template<typename FieldT>
-libff::bit_vector get_hash(const libff::bit_vector &input)
+libff::bit_vector sha256_ethereum<FieldT>::get_hash(const libff::bit_vector &input)
 {
     libsnark::protoboard<FieldT> pb;
 
