@@ -128,7 +128,7 @@ Miximus<FieldT, HashT>::Miximus() {
     //
     // Here the commitment scheme is sha256 as defined in ethereum (see the sha256 precompiled)
     // We also use this hasher to constitute our merkle tree
-    hash_gagdet.reset(new sha256_ethereum(
+    hash_gagdet.reset(new sha256_ethereum<FieldT>(
                 pb,
                 SHA256_block_size,
                 *inputs,
