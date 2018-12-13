@@ -14,6 +14,8 @@
 using namespace libsnark;
 using namespace libff;
 
+// TODO: Refactor the prover to define a standard interface, and define a ProverT template
+// to be able to us the CLI to generate proofs for different computations (ie: Different circuits)
 template<typename FieldT, typename HashT>
 class Miximus {
 	public:
@@ -41,7 +43,7 @@ class Miximus {
 
 		// hash gadget to generate the commitment from the nullifier and the commitment_secret
 		// such that: commitment = sha256_ethereum(nullifier, commitment_secret)
-		std::shared_ptr<sha256_ethereum> hash_gagdet;
+		std::shared_ptr<sha256_ethereum<FieldT>> hash_gagdet;
 
 		// merkle_authentication_path_variable is a list of length = merkle_tree_depth
 		// whose elements are couples in the form: (left_digest, right_digest)
