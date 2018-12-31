@@ -1,3 +1,6 @@
+#ifndef __ZETH_LIBSNARK_HELPERS_TCC__
+#define __ZETH_LIBSNARK_HELPERS_TCC__
+
 template<typename T>
 void writeToFile(boost::filesystem::path path, T& obj) {
     // Convert the boost path into char*
@@ -229,3 +232,5 @@ void display_primary_input(libsnark::r1cs_ppzksnark_primary_input<ppT> input) {
     }
     std::cout << "];\n";
 }
+
+#endif
