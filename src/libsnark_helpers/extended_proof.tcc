@@ -6,7 +6,7 @@ extended_proof<ppT>::extended_proof(libsnark::r1cs_ppzksnark_proof<ppT> &in_proo
                                     libsnark::r1cs_ppzksnark_primary_input<ppT> &in_primary_input)
 {
     this->proof = std::make_shared<libsnark::r1cs_ppzksnark_proof<ppT>>(in_proof);
-    this->primary_input = std::make_shared<libsnark::r1cs_ppzksnark_primary_input<ppT>>(in_primary_input);
+    this->primary_inputs = std::make_shared<libsnark::r1cs_ppzksnark_primary_input<ppT>>(in_primary_input);
 }
 
 template<typename ppT>
