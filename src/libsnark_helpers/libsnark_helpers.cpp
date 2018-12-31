@@ -48,7 +48,7 @@ std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> 
     }
 
     std::string str = ss.str();
-    return str.erase(0, min(str.find_first_not_of('0'), str.size()-1));
+    return str.erase(0, std::min(str.find_first_not_of('0'), str.size()-1));
 }
 
 std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p)
@@ -108,7 +108,7 @@ void serializeProvingKeyToFile(libsnark::r1cs_ppzksnark_proving_key<ppT> pk, boo
     writeToFile(pk_path, pk);
 }
 
-r1cs_ppzksnark_proving_key<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path)
+libsnark::r1cs_ppzksnark_proving_key<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path)
 {
     return loadFromFile<libsnark::r1cs_ppzksnark_proving_key<ppT>>(pk_path);
 }
@@ -120,7 +120,7 @@ void serializeVerificationKeyToFile(libsnark::r1cs_ppzksnark_verification_key<pp
 
 libsnark::r1cs_ppzksnark_verification_key<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path)
 {
-    return loadFromFile<r1cs_ppzksnark_verification_key<ppT>>(vk_path);
+    return loadFromFile<libsnark::r1cs_ppzksnark_verification_key<ppT>>(vk_path);
 }
 
 void exportVerificationKey(libsnark::r1cs_ppzksnark_keypair<ppT> keypair)
@@ -161,7 +161,7 @@ void display_proof(libsnark::r1cs_ppzksnark_proof<ppT> proof)
 
 void verificationKey_to_json(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path path)
 {
-    if path.empty()
+    if (path.empty())
     {
         boost::filesystem::path tmp_path = getPathToSetupDir();
         boost::filesystem::path vkey_json("vk.json");
@@ -201,7 +201,7 @@ void verificationKey_to_json(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boos
 }
 
 void proof_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path) {
-	if path.empty()
+	if (path.empty())
     {
 		boost::filesystem::path tmp_path = getPathToDebugDir();
 		boost::filesystem::path proof_json("proof.json");
@@ -233,7 +233,7 @@ void proof_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem:
 
 void write_setup(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path setup_dir)
 {
-	if path_prefix.empty()
+	if (setup_dir.empty())
     {
 		boost::filesystem::path setup_dir = getPathToSetupDir();
 	}
