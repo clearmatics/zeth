@@ -15,7 +15,8 @@
 
 using namespace libsnark;
 
-typedef libff::Fr<libff::default_ec_pp> FieldT; // Should be alt_bn128 in the CMakeLists.txt
+typedef libff::default_ec_pp ppT;
+typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
 
 libff::bit_vector generate_digests(int digest_len)
@@ -110,32 +111,45 @@ bool test_proof_verification()
     //
     // We declare an instance of the prover here to generate a proof to
     // be verified as part of the test
-    Miximus<FieldT, HashT> prover;
+    Miximus<ppT, HashT> prover;
     // Get the merkle path to the commitment we just added
     const libff::bit_vector address_bits = {0,0,0}; // len is 3 (ie: the depth of the tree)
+    size_t address = 0;
     std::vector<merkle_authentication_node> path = test_merkle_tree->get_path(0);
-    bool proof_gen_res = prover.prove(
-            path,
-            commitment_secret,
-            nullifier,
-            commitment,
-            root_value_after,
-            address_bits
-            )
-    // Note: proof_gen_res should be true --> To verify
+
+    // Get the proving key - Need to run the trusted setup
+    // Run the trusted setup
+    prover.generate_trusted_setup();
+    boost::filesystem::path setup_dir = getPathToSetupDir();
+    boost::filesystem::path prov_key_raw("pk.raw");
+    boost::filesystem::path path_prov_key_raw = setup_dir / prov_key_raw;
+    // Get the proving key - Necessary to generate a proof
+    libsnark::r1cs_ppzksnark_proving_key<ppT> pk = deserializeProvingKeyFromFile(path_prov_key_raw);
+
+    // Generate the proof
+    extended_proof<ppT> ext_proof = prover.prove(
+        path,
+        commitment_secret,
+        nullifier,
+        commitment,
+        root_value_after,
+        address_bits,
+        address,
+        test_tree_depth,
+        pk
+    );
+    std::cout << "=== End of proof generation ===" << std::endl;
 
     libff::print_header("=== Verify the proof ===");
     // 2. Verify the proof
     //
     // Load the verification key
-    char* setup_dir;
-    setup_dir = std::getenv("ZETH_TRUSTED_SETUP_DIR");
     boost::filesystem::path verif_key_raw("vk.raw");
     boost::filesystem::path full_path_verif_key_raw = setup_dir / verif_key_raw;
     auto vk = deserializeVerificationKeyFromFile(full_path_verif_key_raw);
 
     libff::print_header("R1CS GG-ppzkSNARK Verifier");
-    const bool res = r1cs_gg_ppzksnark_verifier_strong_IC<ppT>(vk, primary_input, proof);
+    const bool res = r1cs_ppzksnark_verifier_strong_IC<ppT>(vk, ext_proof.get_primary_input(), ext_proof.get_proof());
     printf("\n"); libff::print_indent(); libff::print_mem("after verifier");
     printf("* The verification result is: %s\n", (res ? "PASS" : "FAIL"));
 
@@ -145,13 +159,12 @@ bool test_proof_verification()
 }
 
 int main () {
-    //test_proof_verification();
     libff::bit_vector vect = generate_digests(256);
     std::ofstream output_file("./testDebug.txt");
     std::ostream_iterator<bool> output_iterator(output_file, ",");
     std::copy(vect.begin(), vect.end(), output_iterator);
 
-    bool res = test_proof_verification();
+    bool res = test_proof_verification<ppT>();
     assert(res == false);
 
     std::cout << " =========================== Res value: " << res << std::endl;
