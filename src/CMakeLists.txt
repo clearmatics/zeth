@@ -4,6 +4,8 @@ file(GLOB_RECURSE SOURCES
     prover/computation.tcc
     prover/prover.tcc
     libsnark_helpers/libsnark_helpers.cpp
+    libsnark_helpers/libsnark_helpers.tcc
+    libsnark_helpers/extended_proof.tcc
     sha256/sha256_ethereum.cpp
     sha256/sha256_ethereum.tcc
     cli/setupCmd.cpp
