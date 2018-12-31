@@ -34,8 +34,15 @@ T loadFromFile(boost::filesystem::path path) {
     return obj;
 }
 
-template<typename FieldT>
-void constraint_to_json(libsnark::linear_combination<FieldT> constraints, boost::filesystem::path path) {
+template<typename ppT>
+void constraint_to_json(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path)
+{
+	//if (path.empty())
+    //{
+		boost::filesystem::path tmp_path = getPathToDebugDir();
+		boost::filesystem::path constraints_json("constraints.json");
+		path = tmp_path / constraints_json;
+	//}
     // Convert the boost path into char*
     const char* str_path = path.string().c_str();
 
@@ -45,7 +52,7 @@ void constraint_to_json(libsnark::linear_combination<FieldT> constraints, boost:
 
     ss << "{";
     uint count = 0;
-    for (const libsnark::linear_term<FieldT>& lt : constraints.terms) {
+    for (const libsnark::linear_term<libff::Fr<ppT> >& lt : constraints.terms) {
         if (count != 0) {
             ss << ",";
         }
@@ -65,8 +72,13 @@ void constraint_to_json(libsnark::linear_combination<FieldT> constraints, boost:
     fh.close();
 }
 
-template <typename FieldT>
-void array_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, boost::filesystem::path path) {
+template <typename ppT>
+void array_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path) {
+	if (path.empty()) {
+		boost::filesystem::path tmp_path = getPathToDebugDir();
+		boost::filesystem::path array_json("array.json");
+		path = tmp_path / array_json;
+	}
     // Convert the boost path into char*
     const char* str_path = path.string().c_str();
 
@@ -74,7 +86,7 @@ void array_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, boost:
     std::ofstream fh;
     fh.open(str_path, std::ios::binary);
 
-    libsnark::r1cs_variable_assignment<FieldT> values = pb.full_variable_assignment();
+    libsnark::r1cs_variable_assignment<libff::Fr<ppT> > values = pb.full_variable_assignment();
     ss << "\n{\"TestVariables\":[";
 
     for (size_t i = 0; i < values.size(); ++i) {
@@ -90,14 +102,19 @@ void array_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, boost:
     fh.close();
 }
 
-template<typename FieldT>
-void r1cs_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, boost::filesystem::path path) {
+template<typename ppT>
+void r1cs_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path) {
+	if (path.empty()) {
+		boost::filesystem::path tmp_path = getPathToDebugDir();
+		boost::filesystem::path r1cs_json("r1cs.json");
+		path = tmp_path / r1cs_json;
+	}
     // Convert the boost path into char*
     const char* str_path = path.string().c_str();
 
     // output inputs, right now need to compile with debug flag so that the `variable_annotations`
     // exists. Having trouble setting that up so will leave for now.
-    libsnark::r1cs_constraint_system<FieldT> constraints = pb.get_constraint_system();
+    libsnark::r1cs_ppzksnark_constraint_system<ppT> constraints = pb.get_constraint_system();
     std::stringstream ss;
     std::ofstream fh;
     fh.open(str_path, std::ios::binary);
@@ -133,19 +150,15 @@ void r1cs_to_json(libsnark::protoboard<FieldT> pb, uint input_variables, boost::
     fh.close();
 }
 
-template<typename FieldT>
-void proof_to_json(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, libsnark::r1cs_primary_input<FieldT> input, boost::filesystem::path path) {
+template<typename ppT>
+void proof_and_input_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
+	if (path.empty()) {
+		boost::filesystem::path tmp_path = getPathToDebugDir();
+		boost::filesystem::path proof_and_input_json("proof_and_input.json");
+		path = tmp_path / proof_and_input_json;
+	}
     // Convert the boost path into char*
     const char* str_path = path.string().c_str();
-
-    std::cout << "proof.A = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.g)<< ");" << std::endl;
-    std::cout << "proof.A_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.h)<< ");" << std::endl;
-    std::cout << "proof.B = Pairing.G2Point(" << outputPointG2AffineAsHex(proof.g_B.g)<< ");" << std::endl;
-    std::cout << "proof.B_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_B.h)<<");" << std::endl;
-    std::cout << "proof.C = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.g)<< ");" << std::endl;
-    std::cout << "proof.C_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.h)<<");" << std::endl;
-    std::cout << "proof.H = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_H)<<");"<< std::endl;
-    std::cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< std::endl;
 
     std::stringstream ss;
     std::ofstream fh;
@@ -177,8 +190,39 @@ void proof_to_json(libsnark::r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, li
     fh.close();
 }
 
-template<typename FieldT>
-void exportInput(libsnark::r1cs_primary_input<FieldT> input) {
+template<typename ppT>
+void primary_input_to_json(libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
+	if (path.empty()) {
+		boost::filesystem::path tmp_path = getPathToDebugDir();
+		boost::filesystem::path primary_input_json("primary_input.json");
+		path = tmp_path / primary_input_json;
+	}
+    // Convert the boost path into char*
+    const char* str_path = path.string().c_str();
+
+    std::stringstream ss;
+    std::ofstream fh;
+    fh.open(str_path, std::ios::binary);
+
+    ss << "{\n";
+    ss << " \"inputs\" :" << "["; // 1 should always be the first variable passed
+    for (size_t i = 0; i < input.size(); ++i) {
+        ss << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\"";
+        if ( i < input.size() - 1 ) {
+            ss<< ", ";
+        }
+    }
+    ss << "]\n";
+    ss << "}";
+
+    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
+    fh << ss.rdbuf();
+    fh.flush();
+    fh.close();
+}
+
+template<typename ppT>
+void display_primary_input(libsnark::r1cs_ppzksnark_primary_input<ppT> input) {
     std::cout << "\ninput = [";
     for (size_t i = 1; i < input.size(); ++i) {
         std::cout << input[i] << " , ";
