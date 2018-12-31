@@ -18,8 +18,8 @@ using namespace libff;
 // A commitment is bound to the corresponding commitment by adding the nullifier
 // as part of the hash pre-image
 
-template<typename FieldT, typename HashT>
-Miximus<FieldT, HashT>::Miximus() {
+template<typename ppT, typename HashT>
+Miximus<ppT, HashT>::Miximus() {
     // Note on packer gagdets
     // Using packer gadgets enables to add the fact that bits are packed
     // into field elements as part of the proof and make it verifiable by the verifier
@@ -189,21 +189,29 @@ Miximus<FieldT, HashT>::Miximus() {
     PRINT_CONSTRAINT_PROFILING();
 }
 
-template<typename FieldT, typename HashT>
-void Miximus<FieldT, HashT>::generate_trusted_setup() {
-    run_trusted_setup(pb);
+template<typename ppT, typename HashT>
+libsnark::r1cs_ppzksnark_keypair<ppT> Miximus<ppT, HashT>::generate_trusted_setup() {
+    // Generate a verification and proving key (trusted setup)
+    libsnark::r1cs_ppzksnark_keypair<ppT> keypair = gen_trusted_setup<ppT>(pb);
+
+    // Write the keys in a file
+    write_setup(keypair); // Take the default path
+
+    return keypair;
+
 }
 
-template<typename FieldT, typename HashT>
-bool Miximus<FieldT, HashT>::prove(
-        std::vector<merkle_authentication_node> merkle_path,
-        libff::bit_vector secret_bits,
+template<typename ppT, typename HashT>
+extended_proof<ppT> Miximus<ppT, HashT>::prove(
+        std::vector<merkle_authentication_node> merkle_path, // Secret input
+        libff::bit_vector secret_bits, // Secret input
         libff::bit_vector nullifier_bits,
-        libff::bit_vector commitment_bits, // The leaf we want to prove for in the merkle tree
+        libff::bit_vector commitment_bits, // The leaf we want to prove for in the merkle tree: Secret input
         libff::bit_vector root_bits,
-        libff::bit_vector address_bits,
+        libff::bit_vector address_bits, // Secret input
         size_t address,
-        size_t tree_depth
+        size_t tree_depth, // TODO: Remove as this information is accessible directly inside the function (tree_depth is an attrbute of the Miximus class)
+        libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key // We pass all the inputs and the proving key to generate a proof
         ) {
 
     nullifier->generate_r1cs_witness(nullifier_bits);
@@ -217,16 +225,15 @@ bool Miximus<FieldT, HashT>::prove(
     address_bits_va.fill_with_bits(pb, address_bits);
     commitment->generate_r1cs_witness(commitment_bits);
 
-    // Debug purpose
-    // TODO: Remove
     bool is_valid_witness = pb.is_satisfied();
-    assert(is_valid_witness);
     std::cout << "*** [DEBUG] Satisfiability result: " << is_valid_witness << " ***\n";
 
     // Build a proof using the witness built above and the proving key generated during the trusted setup
-    generate_proof(pb);
+    extended_proof<ppT> ext_proof = gen_proof<ppT>(pb, proving_key);
+    // Write the extended proof in a file
+    ext_proof.write_extended_proof(); // Take the default path
 
-    return is_valid_witness;
+    return ext_proof;
 }
 
 #endif
