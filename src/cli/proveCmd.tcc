@@ -18,6 +18,8 @@ int proveCommand(Miximus<ppT, HashT> prover, int argc, char* argv[]) {
     // argc - 2 being the number of args for the command prove
     // We check the number of args for this given command
     int tree_depth = atoi(args[0]); // See the expected ordering of the arguments in the printUsageProveCmd() function
+
+    // zeth prove [tree_depth] [commitment_address] [secret] [nullifier] [commitment-digest] [root-digest] [merkle path (from top to bottom)]
     int expectedNbArgs = 1+1+1+1+1+1+tree_depth; // See nb of args in output of printUsageProveCmd()
     int error = checkNbArgs(argc - 2, expectedNbArgs, args);
     if (error) {
@@ -70,17 +72,29 @@ int proveCommand(Miximus<ppT, HashT> prover, int argc, char* argv[]) {
         return error;
     }
 
-    // Useless, should be done only once
-    //libff::alt_bn128_pp::init_public_params();
-    //typedef libff::Fr<libff::alt_bn128_pp> FieldT;
-    //Miximus<FieldT, sha256_ethereum> prover; // Given as argument
-
-    std::cout << "[DEBUG] Generating the proof" << std::endl;
-    bool valid_proof = prover.prove(merkle_path, secret, nullifier, commitment, node_root, address_bits, size_t(address), size_t(tree_depth));
-    if (!valid_proof) {
-        std::cerr << "[ERROR] Invalid proof" << std::endl;
+    std::cout << "[DEBUG] Reading and loading the proof from default file location" << std::endl;
+    boost::filesystem::path setup_dir = getPathToSetupDir();
+    boost::filesystem::path prov_key_raw("pk.raw");
+    boost::filesystem::path path_prov_key_raw = setup_dir / prov_key_raw;
+    libsnark::r1cs_ppzksnark_proving_key<ppT> pk;
+    // TODO: Refactor this try/catch block by handling errors correctly in backend functions (adding a int& error arg to critical functions)
+    try {
+        pk = deserializeProvingKeyFromFile(path_prov_key_raw);
+    } catch (const std::exception& e) {
+        std::cerr << "[FATAL] Error while loading the proving key: Verify that your environment is correctly configured "
+            << "(" << e.what() << ")" << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "[FATAL] Unhandled error" << std::endl;
         return 1;
     }
+
+    std::cout << "[DEBUG] Generating the proof" << std::endl;
+    extended_proof<ppT> proof = prover.prove(merkle_path, secret, nullifier, commitment, node_root, address_bits, size_t(address), size_t(tree_depth), pk);
+
+    std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+    proof.dump_proof();
+    proof.dump_primary_inputs();
 
     return 0;
 }
