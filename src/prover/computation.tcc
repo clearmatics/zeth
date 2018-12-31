@@ -1,6 +1,8 @@
 #ifndef __ZETH_COMPUTATION_TCC__
 #define __ZETH_COMPUTATION_TCC__
 
+#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
+
 // Generate the proof and returns a struct {proof, primary_input}
 template<typename ppT>
 extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key)
@@ -26,7 +28,7 @@ libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(libsnark::protoboard<lib
 	// This function, basically reduces the R1CS into a QAP, and then encodes the QAP, along with a secret s and its
 	// set of powers, plus the alpha, beta, gamma, and the rest of the entries, in order to form the CRS
 	// (crs_f, shortcrs_f, as denoted in [GGPR12])
-    return r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
+    return libsnark::r1cs_ppzksnark_generator<ppT>(&pb.get_constraint_system());
 }
 
 #endif
