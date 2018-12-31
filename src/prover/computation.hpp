@@ -6,8 +6,6 @@
 #include <cassert>
 #include <iomanip>
 
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "libsnark_helpers/extended_proof.hpp"
 
