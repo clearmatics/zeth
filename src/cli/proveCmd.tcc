@@ -90,7 +90,7 @@ int proveCommand(Miximus<ppT, HashT> &prover, int argc, char* argv[]) {
     }
 
     std::cout << "[DEBUG] Generating the proof" << std::endl;
-    extended_proof<ppT> proof = prover.prove(merkle_path, secret, nullifier, commitment, node_root, address_bits, size_t(address), size_t(tree_depth), pk);
+    extended_proof<ppT> proof = prover.prove(merkle_path, secret, nullifier, commitment, node_root, address_bits, size_t(address), pk);
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
     proof.dump_proof();
