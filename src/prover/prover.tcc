@@ -213,6 +213,10 @@ extended_proof<ppT> Miximus<ppT, HashT>::prove(
         size_t tree_depth, // TODO: Remove as this information is accessible directly inside the function (tree_depth is an attrbute of the Miximus class)
         libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key // We pass all the inputs and the proving key to generate a proof
         ) {
+	////address_bits_lc_arr.fill_with_bits(pb, address_bits);
+	// We need to set the value of the address before we generate the witnesses because
+	// the merkle tree gadgets use the value of the address !! (Carefu with the order of instructions here!)
+	address_bits_va.fill_with_bits(pb, address_bits); //// TO SEE
 
     nullifier->generate_r1cs_witness(nullifier_bits);
     commitment_secret->generate_r1cs_witness(secret_bits);
