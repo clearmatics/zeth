@@ -135,11 +135,11 @@ int main ()
             HashT::get_digest_len()
         )
     );
+    std::ostream &stream = std::cout;
     libff::leave_block("[END] General setup for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at 0 address -- //
     libff::enter_block("[START] TEST1: Should be a valid proof", true);
-    std::ostream &stream = std::cout;
     const libff::bit_vector nullifier = generate_digests(HashT::get_digest_len());
     std::cout << "=== Nullifier bit representation: " << std::endl;
     dump_bit_vector(stream, nullifier);
@@ -148,8 +148,19 @@ int main ()
     std::cout << "=== Commitment bit representation: " << std::endl;
     dump_bit_vector(stream, commitment_secret);
 
-    libff::bit_vector address_bits = {0, 0, 0};
-    const size_t address = 0;
+    /*
+     * Careful with bit ordering!
+     * See comment below takne from the merkle_tree_check_read_gadget.tcc file:
+         The tricky part here is ordering. For Merkle tree
+         authentication paths, path[0] corresponds to one layer below
+         the root (and path[tree_depth-1] corresponds to the layer
+         containing the leaf), while address_bits has the reverse order:
+         address_bits[0] is LSB, and corresponds to layer containing the
+         leaf, and address_bits[tree_depth-1] is MSB, and corresponds to
+         the subtree directly under the root.
+     **/
+    libff::bit_vector address_bits = {1, 0, 0}; // This binary string needs to be in little endian!
+    const size_t address = 1;
     bool res = test_proof_verification<ppT>(
         stream,
         prover,
@@ -160,6 +171,7 @@ int main ()
         address_bits,
         true // Set the debug flag to get the result of every step
     );
+
 
     if (!res) {
         libff::enter_block("[END] TEST1: Should be a valid proof --> Result: FAIL", true);
