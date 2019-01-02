@@ -1,5 +1,5 @@
 template<typename ppT, typename HashT>
-int proveCommand(Miximus<ppT, HashT> prover, int argc, char* argv[]) {
+int proveCommand(Miximus<ppT, HashT> &prover, int argc, char* argv[]) {
     // The minus 2 comes from the fact that argv[0] is the executable itself,
     // and argv[1] is the command, so now we check the number of args for the given command
     if (argc - 2 <= 0) {

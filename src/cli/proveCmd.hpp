@@ -13,7 +13,7 @@
 #include "cli_utils.hpp"
 
 void printUsageProveCmd();
-template<typename ppT, typename HashT> int proveCommand(Miximus<ppT, HashT> prover, int argc, char* argv[]);
+template<typename ppT, typename HashT> int proveCommand(Miximus<ppT, HashT> &prover, int argc, char* argv[]);
 
 #include "proveCmd.tcc"
 
