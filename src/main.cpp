@@ -65,7 +65,8 @@ int main(int argc, char* argv[]) {
     // Because our commitment scheme is based on sha256, our scheme is secure only in the Random Oracle model
     // See the comment https://github.com/zcash/zcash/issues/2234#issuecomment-292419085
     // for more details on the security analysis of the switch from sha256 to Pedersen commitments in Zcash
-    Miximus<ppT, HashT> prover;
+    const size_t tree_depth = 4; // We set the tree depth we want. TODO: Move to config file
+    Miximus<ppT, HashT> prover(tree_depth);
 
     int error = 0;
     switch (getCommandCode(command)) {

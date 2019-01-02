@@ -19,7 +19,8 @@ using namespace libff;
 // as part of the hash pre-image
 
 template<typename ppT, typename HashT>
-Miximus<ppT, HashT>::Miximus() {
+Miximus<ppT, HashT>::Miximus(const size_t merkle_tree_depth): tree_depth(merkle_tree_depth)
+{
     // Note on packer gagdets
     // Using packer gadgets enables to add the fact that bits are packed
     // into field elements as part of the proof and make it verifiable by the verifier
@@ -96,8 +97,7 @@ Miximus<ppT, HashT>::Miximus() {
                 )
             );
 
-    // TODO: Set to the right number, and remember that the ONE variable in the R1CS
-    // is hardcoded in the protoboard
+    // Remember that the ONE variable in the R1CS is hardcoded in the protoboard
     // Here we have only 4 input that, in reality, correspond only to 2 hashes, that are packed
     // in 4 fields elements (due to the field being smaller that the co-domain of SHA256)
     pb.set_input_sizes(4);
@@ -160,8 +160,6 @@ Miximus<ppT, HashT>::Miximus() {
     //       const pb_linear_combination<FieldT> &read_successful,
     //       const std::string &annotation_prefix);
     // See: merkle_tree_check_read_gadget.hpp file
-    // TODO: understand perfectly how the merkle_tree_check_read_gadget is implemented
-    // and make sure I get all the information about how bit information is represented (LSB, MSB)
     check_membership.reset(new merkle_tree_check_read_gadget<FieldT, HashT>(
                 pb,
                 tree_depth,
@@ -179,18 +177,15 @@ Miximus<ppT, HashT>::Miximus() {
     multipacking_gadget_1->generate_r1cs_constraints(true); // enforce_bitness set to true
     multipacking_gadget_2->generate_r1cs_constraints(true); // enforce_bitness set to true
 
-    // generate_r1cs_equals_const_constraint<FieldT>(pb, ZERO, FieldT::zero(), "ZERO"); // useless, it just suffices to set ZERO to FieldT::zero() directly
     hash_gagdet->generate_r1cs_constraints(true); // ensure_output_bitness set to true
     path_variable->generate_r1cs_constraints();
     check_membership->generate_r1cs_constraints();
     commitment->generate_r1cs_constraints();
-
-    std::cout << " // --------- Constraints profiling --------- // " << std::endl;
-    PRINT_CONSTRAINT_PROFILING();
 }
 
 template<typename ppT, typename HashT>
-libsnark::r1cs_ppzksnark_keypair<ppT> Miximus<ppT, HashT>::generate_trusted_setup() {
+libsnark::r1cs_ppzksnark_keypair<ppT> Miximus<ppT, HashT>::generate_trusted_setup()
+{
     // Generate a verification and proving key (trusted setup)
     libsnark::r1cs_ppzksnark_keypair<ppT> keypair = gen_trusted_setup<ppT>(pb);
 
@@ -198,7 +193,6 @@ libsnark::r1cs_ppzksnark_keypair<ppT> Miximus<ppT, HashT>::generate_trusted_setu
     write_setup(keypair); // Take the default path
 
     return keypair;
-
 }
 
 template<typename ppT, typename HashT>
@@ -209,13 +203,13 @@ extended_proof<ppT> Miximus<ppT, HashT>::prove(
         libff::bit_vector commitment_bits, // The leaf we want to prove for in the merkle tree: Secret input
         libff::bit_vector root_bits,
         libff::bit_vector address_bits, // Secret input
-        size_t address,
-        size_t tree_depth, // TODO: Remove as this information is accessible directly inside the function (tree_depth is an attrbute of the Miximus class)
+        size_t address, // TODO: Remove the need for the address bits and create the bit_vector from the size_t value (in little endian)
         libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key // We pass all the inputs and the proving key to generate a proof
-        ) {
+    )
+{
 	// We need to set the value of the address before we generate the witnesses because
 	// the merkle tree gadgets use the value of the address !! (Carefu with the order of instructions here!)
-	address_bits_va.fill_with_bits(pb, address_bits); //// TO SEE
+	address_bits_va.fill_with_bits(pb, address_bits);
 
     nullifier->generate_r1cs_witness(nullifier_bits);
     commitment_secret->generate_r1cs_witness(secret_bits);

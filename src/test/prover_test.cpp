@@ -103,7 +103,6 @@ bool test_proof_verification(
         updated_root_value,
         address_bits,
         address_commitment,
-        m_tree->depth,
         pk
     );
 
@@ -125,8 +124,9 @@ int main ()
     libff::enter_block("[START] General setup for the tests", true);
     libff::default_ec_pp::init_public_params();
     const size_t test_tree_depth = 3;
-    // Create a prover for the testsr
-    Miximus<ppT, HashT> prover;
+
+    // Create a prover for the tests
+    Miximus<ppT, HashT> prover(test_tree_depth);
     // Run the trusted setup once for all tests
     prover.generate_trusted_setup();
     // Create a merkle tree to run our tests
