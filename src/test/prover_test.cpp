@@ -72,10 +72,12 @@ bool test_proof_verification(
 
     if (debug)
     {
-        std::cout << "=== [DEBUG] Inputs bit representation: " << std::endl;
-        dump_bit_vector(stream, inputs);
+        std::cout << "=== Nullifier bit representation: " << std::endl;
+        dump_bit_vector(stream, nullifier);
         std::cout << "=== [DEBUG] Commitment bit representation: ";
         dump_bit_vector(stream, commitment);
+        std::cout << "=== [DEBUG] Inputs bit representation: " << std::endl;
+        dump_bit_vector(stream, inputs);
         std::cout << "=== [DEBUG] Root before insertion bit representation: ";
         dump_bit_vector(stream, initial_root_value);
         std::cout << "=== [DEBUG] Root after insertion bit representation: ";
@@ -141,23 +143,12 @@ int main ()
     // --- Test 1: Generate a valid proof for commitment inserted at 0 address -- //
     libff::enter_block("[START] TEST1: Should be a valid proof", true);
     const libff::bit_vector nullifier = generate_digests(HashT::get_digest_len());
-    std::cout << "=== Nullifier bit representation: " << std::endl;
-    dump_bit_vector(stream, nullifier);
-
     const libff::bit_vector commitment_secret = generate_digests(HashT::get_digest_len());
-    std::cout << "=== Commitment bit representation: " << std::endl;
-    dump_bit_vector(stream, commitment_secret);
 
     /*
      * Careful with bit ordering!
-     * See comment below takne from the merkle_tree_check_read_gadget.tcc file:
-         The tricky part here is ordering. For Merkle tree
-         authentication paths, path[0] corresponds to one layer below
-         the root (and path[tree_depth-1] corresponds to the layer
-         containing the leaf), while address_bits has the reverse order:
-         address_bits[0] is LSB, and corresponds to layer containing the
-         leaf, and address_bits[tree_depth-1] is MSB, and corresponds to
-         the subtree directly under the root.
+     * See comment in merkle_tree_check_read_gadget.tcc:
+     * address_bits should be little endian (address_bits[0] -> LSB, and address_bits[depth-1] -> MSB)
      **/
     libff::bit_vector address_bits = {1, 0, 0}; // This binary string needs to be in little endian!
     const size_t address = 1;
