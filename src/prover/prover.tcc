@@ -213,7 +213,6 @@ extended_proof<ppT> Miximus<ppT, HashT>::prove(
         size_t tree_depth, // TODO: Remove as this information is accessible directly inside the function (tree_depth is an attrbute of the Miximus class)
         libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key // We pass all the inputs and the proving key to generate a proof
         ) {
-	////address_bits_lc_arr.fill_with_bits(pb, address_bits);
 	// We need to set the value of the address before we generate the witnesses because
 	// the merkle tree gadgets use the value of the address !! (Carefu with the order of instructions here!)
 	address_bits_va.fill_with_bits(pb, address_bits); //// TO SEE
@@ -226,11 +225,7 @@ extended_proof<ppT> Miximus<ppT, HashT>::prove(
     check_membership->generate_r1cs_witness();
     multipacking_gadget_1->generate_r1cs_witness_from_bits();
     multipacking_gadget_2->generate_r1cs_witness_from_bits();
-    address_bits_va.fill_with_bits(pb, address_bits);
     commitment->generate_r1cs_witness(commitment_bits);
-
-    bool is_valid_witness = pb.is_satisfied();
-    std::cout << "*** [DEBUG] Satisfiability result: " << is_valid_witness << " ***\n";
 
     // Build a proof using the witness built above and the proving key generated during the trusted setup
     extended_proof<ppT> ext_proof = gen_proof<ppT>(pb, proving_key);

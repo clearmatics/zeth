@@ -59,7 +59,7 @@ class Miximus {
 
 		// Equivalent to positions var here:
 		// https://github.com/zcash/zcash/blob/master/src/zcash/circuit/merkle.tcc#L6
-		pb_variable_array<libff::Fr<ppT> > address_bits_va;
+		pb_variable_array<libff::Fr<ppT> > address_bits_va; // TODO: See if this needs to be replaced by a pb_linear_combination_array (got an out of bound container error last time I tried... To investigate)
 
 		// A block_variable is a type corresponding to the input of the hash_gagdet
 		// Thus the different parts of the input are all put into a block_variable
