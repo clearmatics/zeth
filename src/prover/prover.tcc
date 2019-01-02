@@ -171,16 +171,20 @@ Miximus<ppT, HashT>::Miximus(const size_t merkle_tree_depth): tree_depth(merkle_
                 "check_membership"
                 )
             );
+    
+    // We generate all constraints
+    nullifier->generate_r1cs_constraints();
+    commitment_secret->generate_r1cs_constraints();
+    root_digest->generate_r1cs_constraints();
+    commitment->generate_r1cs_constraints();
 
-    // We enforce_bitness in the mutlipacking gadgets to make sure they take bits
-    // as input. This makes sure they actually pack bits in field elements.
+    // We enforce_bitness to make sure we actually pack bits in field elements.
     multipacking_gadget_1->generate_r1cs_constraints(true); // enforce_bitness set to true
     multipacking_gadget_2->generate_r1cs_constraints(true); // enforce_bitness set to true
 
     hash_gagdet->generate_r1cs_constraints(true); // ensure_output_bitness set to true
     path_variable->generate_r1cs_constraints();
     check_membership->generate_r1cs_constraints();
-    commitment->generate_r1cs_constraints();
 }
 
 template<typename ppT, typename HashT>
@@ -208,18 +212,30 @@ extended_proof<ppT> Miximus<ppT, HashT>::prove(
     )
 {
 	// We need to set the value of the address before we generate the witnesses because
-	// the merkle tree gadgets use the value of the address !! (Carefu with the order of instructions here!)
+	// the merkle tree gadgets use the value of the address !! (Careful with the order of instructions here!)
 	address_bits_va.fill_with_bits(pb, address_bits);
 
+    // Fill the digests with the given bit values
     nullifier->generate_r1cs_witness(nullifier_bits);
     commitment_secret->generate_r1cs_witness(secret_bits);
     root_digest->generate_r1cs_witness(root_bits);
-    hash_gagdet->generate_r1cs_witness();
-    path_variable->generate_r1cs_witness(address, merkle_path);
-    check_membership->generate_r1cs_witness();
+    commitment->generate_r1cs_witness(commitment_bits);
+
+    // Pack the digests into field elements to reduce the number of constraints
     multipacking_gadget_1->generate_r1cs_witness_from_bits();
     multipacking_gadget_2->generate_r1cs_witness_from_bits();
-    commitment->generate_r1cs_witness(commitment_bits);
+
+    // Generate a witness assessing that we know the pre-image of the commitment
+    // ie: `commitment = sha256(nullifier || commitment_secret)`
+    hash_gagdet->generate_r1cs_witness();
+
+    // Checks that `merkle_path` is a valid authentication path for the value `commitment`
+    // at the `address_bits`-th leaf of the merkle tree with root `root_bits`
+    path_variable->generate_r1cs_witness(address, merkle_path);
+    check_membership->generate_r1cs_witness();
+
+    bool is_valid_witness = pb.is_satisfied();
+    std::cout << "******* [DEBUG] Satisfiability result: " << is_valid_witness << " *******" << std::endl;
 
     // Build a proof using the witness built above and the proving key generated during the trusted setup
     extended_proof<ppT> ext_proof = gen_proof<ppT>(pb, proving_key);
