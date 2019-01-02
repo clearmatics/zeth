@@ -74,13 +74,13 @@ bool test_proof_verification(
     {
         std::cout << "=== Nullifier bit representation: " << std::endl;
         dump_bit_vector(stream, nullifier);
-        std::cout << "=== [DEBUG] Commitment bit representation: ";
+        std::cout << "=== [DEBUG] Commitment bit representation: " << std::endl;
         dump_bit_vector(stream, commitment);
         std::cout << "=== [DEBUG] Inputs bit representation: " << std::endl;
         dump_bit_vector(stream, inputs);
-        std::cout << "=== [DEBUG] Root before insertion bit representation: ";
+        std::cout << "=== [DEBUG] Root before insertion bit representation: " << std::endl;
         dump_bit_vector(stream, initial_root_value);
-        std::cout << "=== [DEBUG] Root after insertion bit representation: ";
+        std::cout << "=== [DEBUG] Root after insertion bit representation: " << std::endl;
         dump_bit_vector(stream, updated_root_value);
     }
 
@@ -140,10 +140,10 @@ int main ()
     std::ostream &stream = std::cout;
     libff::leave_block("[END] General setup for the tests", true);
 
-    // --- Test 1: Generate a valid proof for commitment inserted at 0 address -- //
+    // --- Test 1: Generate a valid proof for commitment inserted at address 1 -- //
     libff::enter_block("[START] TEST1: Should be a valid proof", true);
-    const libff::bit_vector nullifier = generate_digests(HashT::get_digest_len());
-    const libff::bit_vector commitment_secret = generate_digests(HashT::get_digest_len());
+    const libff::bit_vector nullifier = {0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+    const libff::bit_vector commitment_secret = {1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
     /*
      * Careful with bit ordering!
@@ -163,12 +163,40 @@ int main ()
         true // Set the debug flag to get the result of every step
     );
 
-
     if (!res) {
-        libff::enter_block("[END] TEST1: Should be a valid proof --> Result: FAIL", true);
+        libff::enter_block("[END] TEST1: Should be a valid proof (and the proof is invalid) --> Result: FAIL", true);
         return 1;
     }
     libff::enter_block("[END] TEST1: Should be a valid proof --> Result: PASS", true);
+
+    // --- Test 2: Generate an invalid proof -- //
+    libff::enter_block("[START] TEST2: Should be an invalid proof", true);
+    const libff::bit_vector nullifier2 = {1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1};
+    const libff::bit_vector commitment_secret2 = {1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1};
+
+    // We VOLUNTARILY set the address to 2 and the address_bits to 100 (=1)
+    // To violate some constraints in the merkle_tree_check_read_gadget and generate
+    // an invalid proof
+    libff::bit_vector address_bitsErr = {1, 0, 0};
+    const size_t addressErr = 2;
+
+    bool res2 = test_proof_verification<ppT>(
+        stream,
+        prover,
+        test_merkle_tree,
+        nullifier2,
+        commitment_secret2,
+        addressErr,
+        address_bitsErr,
+        true // Set the debug flag to get the result of every step
+    );
+    std::cout << "RES TEST 2: " << res2 << std::endl;
+
+    if (res2) { // Note: the test passes only if res == 0 (ie: invalid proof)
+        libff::enter_block("[END] TEST2: Should be an invalid proof (and the proof is valid) --> Result: FAIL", true);
+        return 1;
+    }
+    libff::enter_block("[END] TEST2: Should be an invalid proof --> Result: PASS", true);
 
     return 0;
 }
