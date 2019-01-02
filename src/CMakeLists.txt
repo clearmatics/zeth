@@ -61,6 +61,7 @@ target_link_libraries(
     test_prover
 
     snark
+    gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
 )

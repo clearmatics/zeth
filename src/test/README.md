@@ -8,9 +8,9 @@
 
 # Go in the build repository and run the following commands
 cmake ..
-make testzeth
+make test_prover
 
 # Note: All the test that are not directly related to zeth might fail!
 # If you want to see the logs of the prover tests, then run (still from the build directory)
-./src/testzeth
+./src/test_prover
 ```
