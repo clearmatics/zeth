@@ -5,7 +5,7 @@ presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-eth
 
 ## Building the project:
 
-### Using docker
+### Using docker (Recommended)
 
 ```
 # Clone this repository:
