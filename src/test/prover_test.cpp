@@ -49,6 +49,7 @@ template<typename ppT>
 bool test_proof_verification(
         std::ostream &stream,
         Miximus<ppT, HashT> &prover,
+        libsnark::r1cs_ppzksnark_keypair<ppT> &keypair,
         std::unique_ptr<merkle_tree<HashT>> &m_tree,
         libff::bit_vector nullifier,
         libff::bit_vector commitment_secret,
@@ -89,11 +90,8 @@ bool test_proof_verification(
     // Get the merkle path to the commitment we inserted
     std::vector<merkle_authentication_node> path = m_tree->get_path(address_commitment);
 
-    // Get the proving key - Need to run the trusted setup
-    boost::filesystem::path setup_dir = getPathToSetupDir();
-    boost::filesystem::path prov_key_raw("pk.raw");
-    boost::filesystem::path path_prov_key_raw = setup_dir / prov_key_raw;
-    libsnark::r1cs_ppzksnark_proving_key<ppT> pk = deserializeProvingKeyFromFile<ppT>(path_prov_key_raw);
+    // Get the proving key
+    libsnark::r1cs_ppzksnark_proving_key<ppT> pk = keypair.pk;
 
     // 1. Generate the proof
     libff::print_header("=== Generate the proof ===");
@@ -110,9 +108,8 @@ bool test_proof_verification(
 
     // 2. Verify the proof
     libff::print_header("=== Verify the proof ===");
-    boost::filesystem::path verif_key_raw("vk.raw");
-    boost::filesystem::path full_path_verif_key_raw = setup_dir / verif_key_raw;
-    auto vk = deserializeVerificationKeyFromFile<ppT>(full_path_verif_key_raw);
+    // Get the verification key
+    libsnark::r1cs_ppzksnark_verification_key<ppT> vk = keypair.vk;
 
     libff::print_header("=== R1CS ppzkSNARK Verifier ===");
     return r1cs_ppzksnark_verifier_strong_IC<ppT>(vk, ext_proof.get_primary_input(), ext_proof.get_proof());
@@ -129,8 +126,9 @@ TEST(MainTest, ProofGenAndVerif)
 
     // Create a prover for the tests
     Miximus<ppT, HashT> prover(test_tree_depth);
-    // Run the trusted setup once for all tests
-    prover.generate_trusted_setup();
+    // Run the trusted setup once for all tests, and keep the keypair in memory for the duration of the tests
+    libsnark::r1cs_ppzksnark_keypair<ppT> keypair = prover.generate_trusted_setup();
+
     // Create a merkle tree to run our tests
     // Note: make_unique should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree<HashT>> test_merkle_tree = std::unique_ptr<merkle_tree<HashT>>(
@@ -157,6 +155,7 @@ TEST(MainTest, ProofGenAndVerif)
     bool res = test_proof_verification<ppT>(
         stream,
         prover,
+        keypair,
         test_merkle_tree,
         nullifier,
         commitment_secret,
@@ -181,6 +180,7 @@ TEST(MainTest, ProofGenAndVerif)
     bool res2 = test_proof_verification<ppT>(
         stream,
         prover,
+        keypair,
         test_merkle_tree,
         nullifier2,
         commitment_secret2,
