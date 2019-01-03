@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <cassert>
 #include <iomanip>
@@ -28,8 +29,6 @@
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
 
-typedef libff::default_ec_pp ppT;
-
 // -- Defined in the CPP file -- //
 libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(const uint8_t* _x);
 std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> _x);
@@ -42,8 +41,8 @@ boost::filesystem::path getPathToDebugDir();
 bool replace(std::string& str, const std::string& from, const std::string& to);
 
 // -- Defined in the TCC file -- //
-template<typename T> void writeToFile(boost::filesystem::path path, T& obj);
-template<typename T> T loadFromFile(boost::filesystem::path path);
+template<typename serializableT> void writeToFile(boost::filesystem::path path, serializableT& obj);
+template<typename serializableT> serializableT loadFromFile(boost::filesystem::path path);
 
 template<typename ppT> void serializeProvingKeyToFile(libsnark::r1cs_ppzksnark_proving_key<ppT> pk, boost::filesystem::path pk_path);
 template<typename ppT> libsnark::r1cs_ppzksnark_proving_key<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path);
@@ -56,7 +55,8 @@ template<typename ppT> void verificationKey_to_json(libsnark::r1cs_ppzksnark_key
 template<typename ppT> void proof_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path = "");
 template<typename ppT> void write_setup(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path setup_dir = "");
 
-template<typename ppT> void constraint_to_json(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path = "");
+template<typename ppT> void r1cs_constraints_to_json(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path = "");
+template<typename ppT> void fill_json_constraints_in_ss(libsnark::linear_combination<libff::Fr<ppT> > constraints, std::stringstream& ss);
 template<typename ppT> void array_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path = "");
 template<typename ppT> void r1cs_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path = "");
 template<typename ppT> void proof_and_input_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path = "");
