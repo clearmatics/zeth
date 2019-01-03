@@ -11,8 +11,8 @@ presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-eth
 # Clone this repository:
 git clone git@gitlab.clearmatics.net:ar/zeth.git
 cd zeth
-
 git submodule update --init --recursive
+
 docker build -t zeth-dev .
 docker run -ti zeth-dev
 
@@ -56,6 +56,7 @@ sudo apt-get install libprocps-dev
 . ./setup_env.sh
 
 # Make sure you have python 3 installed
+# and that you have pycrypto (pip install pycrypto)
 ```
 
 #### Create an address pair
