@@ -14,3 +14,6 @@ keystore/*.json
 # Ignore the output of the trusted setup (ie: Proving and Verifying key)
 trusted_setup/*.raw
 trusted_setup/*.json
+
+# Ignore the content of the debug folder
+debug/*json
