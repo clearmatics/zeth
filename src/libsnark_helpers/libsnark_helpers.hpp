@@ -39,22 +39,22 @@ std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p);
 boost::filesystem::path getPathToSetupDir();
 boost::filesystem::path getPathToDebugDir();
 
-void serializeProvingKeyToFile(libsnark::r1cs_ppzksnark_proving_key<ppT> pk, boost::filesystem::path pk_path);
-libsnark::r1cs_ppzksnark_proving_key<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path);
-void serializeVerificationKeyToFile(libsnark::r1cs_ppzksnark_verification_key<ppT> vk, boost::filesystem::path vk_path);
-libsnark::r1cs_ppzksnark_verification_key<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path);
-
-void exportVerificationKey(libsnark::r1cs_ppzksnark_keypair<ppT> keypair);
-void display_proof(libsnark::r1cs_ppzksnark_proof<ppT> proof);
-void verificationKey_to_json(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path path = "");
-void proof_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path = "");
-void write_setup(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path setup_dir = "");
-
 bool replace(std::string& str, const std::string& from, const std::string& to);
 
 // -- Defined in the TCC file -- //
 template<typename T> void writeToFile(boost::filesystem::path path, T& obj);
 template<typename T> T loadFromFile(boost::filesystem::path path);
+
+template<typename ppT> void serializeProvingKeyToFile(libsnark::r1cs_ppzksnark_proving_key<ppT> pk, boost::filesystem::path pk_path);
+template<typename ppT> libsnark::r1cs_ppzksnark_proving_key<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path);
+template<typename ppT> void serializeVerificationKeyToFile(libsnark::r1cs_ppzksnark_verification_key<ppT> vk, boost::filesystem::path vk_path);
+template<typename ppT> libsnark::r1cs_ppzksnark_verification_key<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path);
+
+template<typename ppT> void exportVerificationKey(libsnark::r1cs_ppzksnark_keypair<ppT> keypair);
+template<typename ppT> void display_proof(libsnark::r1cs_ppzksnark_proof<ppT> proof);
+template<typename ppT> void verificationKey_to_json(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path path = "");
+template<typename ppT> void proof_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path = "");
+template<typename ppT> void write_setup(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path setup_dir = "");
 
 template<typename ppT> void constraint_to_json(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path = "");
 template<typename ppT> void array_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path = "");

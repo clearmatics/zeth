@@ -171,7 +171,7 @@ Miximus<ppT, HashT>::Miximus(const size_t merkle_tree_depth): tree_depth(merkle_
                 "check_membership"
                 )
             );
-    
+
     // We generate all constraints
     nullifier->generate_r1cs_constraints();
     commitment_secret->generate_r1cs_constraints();
@@ -194,7 +194,7 @@ libsnark::r1cs_ppzksnark_keypair<ppT> Miximus<ppT, HashT>::generate_trusted_setu
     libsnark::r1cs_ppzksnark_keypair<ppT> keypair = gen_trusted_setup<ppT>(pb);
 
     // Write the keys in a file
-    write_setup(keypair); // Take the default path
+    write_setup<ppT>(keypair); // Take the default path
 
     return keypair;
 }

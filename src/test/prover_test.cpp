@@ -93,7 +93,7 @@ bool test_proof_verification(
     boost::filesystem::path setup_dir = getPathToSetupDir();
     boost::filesystem::path prov_key_raw("pk.raw");
     boost::filesystem::path path_prov_key_raw = setup_dir / prov_key_raw;
-    libsnark::r1cs_ppzksnark_proving_key<ppT> pk = deserializeProvingKeyFromFile(path_prov_key_raw);
+    libsnark::r1cs_ppzksnark_proving_key<ppT> pk = deserializeProvingKeyFromFile<ppT>(path_prov_key_raw);
 
     // 1. Generate the proof
     libff::print_header("=== Generate the proof ===");
@@ -112,7 +112,7 @@ bool test_proof_verification(
     libff::print_header("=== Verify the proof ===");
     boost::filesystem::path verif_key_raw("vk.raw");
     boost::filesystem::path full_path_verif_key_raw = setup_dir / verif_key_raw;
-    auto vk = deserializeVerificationKeyFromFile(full_path_verif_key_raw);
+    auto vk = deserializeVerificationKeyFromFile<ppT>(full_path_verif_key_raw);
 
     libff::print_header("=== R1CS ppzkSNARK Verifier ===");
     return r1cs_ppzksnark_verifier_strong_IC<ppT>(vk, ext_proof.get_primary_input(), ext_proof.get_proof());

@@ -79,7 +79,7 @@ int proveCommand(Miximus<ppT, HashT> &prover, int argc, char* argv[]) {
     libsnark::r1cs_ppzksnark_proving_key<ppT> pk;
     // TODO: Refactor this try/catch block by handling errors correctly in backend functions (adding a int& error arg to critical functions)
     try {
-        pk = deserializeProvingKeyFromFile(path_prov_key_raw);
+        pk = deserializeProvingKeyFromFile<ppT>(path_prov_key_raw);
     } catch (const std::exception& e) {
         std::cerr << "[FATAL] Error while loading the proving key: Verify that your environment is correctly configured "
             << "(" << e.what() << ")" << std::endl;
