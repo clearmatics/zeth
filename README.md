@@ -28,14 +28,18 @@ mkdir build
 cd build
 cmake .. && make
 
+# Run the tests
+make test_prover
+./src/test_prover
+
 # Test the zeth command line (see the usage)
-./src/zeth
+zeth
 
 # Run the trusted setup
-./src/zeth setup
+zeth setup
 
 # Generate a proof
-./src/zeth prove [args] 
+zeth prove [args] 
 ```
 
 ### Without docker
@@ -105,10 +109,10 @@ These commands are ran in the `zeth` repo.
 
 ```bash
 # Generate the trusted setup (proving and verification keys)
-./build/src/zeth setup
+zeth setup
 
 # Generate a proof for a given commitment in the tree
-./build/src/zeth prove [Args] # See Usage of the command
+zeth prove [Args] # See Usage of the command
 ```
 
 ### Launch the Python wrapper
