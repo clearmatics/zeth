@@ -6,10 +6,17 @@
 #include <cassert>
 #include <iomanip>
 
-//#include <libsnark_helpers/libsnark_helpers.hpp>
+#include "libsnark_helpers/libsnark_helpers.hpp"
+#include "libsnark_helpers/extended_proof.hpp"
 
-template<typename FieldT> void generate_proof(libsnark::protoboard<FieldT> pb);
-template<typename FieldT> void run_trusted_setup(libsnark::protoboard<FieldT> pb);
+// We instantiate the ppT (public parameters Template with the public paramaters of the curve we use (alt_bn128))
+typedef libff::default_ec_pp ppT; // We use the public parameters of the alt_bn_128 curve to do our operations
+
+template<typename ppT>
+extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key);
+
+template<typename ppT>
+libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(libsnark::protoboard<libff::Fr<ppT> > pb);
 
 #include "computation.tcc"
 

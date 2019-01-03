@@ -10,12 +10,11 @@
 
 // We need to access the merkle_authentication_node declaration
 #include <libsnark/common/data_structures/merkle_tree.hpp>
+#include "cli_utils.hpp"
 
-int proveCommand(int argc, char* argv[]);
 void printUsageProveCmd();
-int checkNbArgs(int nbArgs, char* args[]);
-libff::bit_vector addressBitsFromAddress(int address, int tree_depth, int *error);
-std::vector<bool> convertIntToBinary(int x);
-libff::bit_vector hexadecimalToBinaryVector(char* str, int* error);
+template<typename ppT, typename HashT> int proveCommand(Miximus<ppT, HashT> &prover, int argc, char* argv[]);
+
+#include "proveCmd.tcc"
 
 #endif
