@@ -1,9 +1,8 @@
-pragma solidity ^0.4.22;
+pragma solidity ^0.4.24;
 
 import "./MerkleTree.sol";
 import "./Verifier.sol";
 
-// TODO: Update the version of solidity to use the latest along with the latest syntax (constructor function)
 contract Miximus is MerkleTree {
     // The roots of the different updated trees
     mapping(bytes32 => bool) roots;
@@ -18,7 +17,7 @@ contract Miximus is MerkleTree {
     uint denomination;
 
     // Constructor
-    function Miximus(address _zksnark_verify, uint denom) {
+    constructor(address _zksnark_verify, uint denom) {
         zksnark_verifier = Verifier(_zksnark_verify);
         denomination = denom;
     }
@@ -28,18 +27,33 @@ contract Miximus is MerkleTree {
         zksnark_verifier = Verifier(_zksnark_verify);
     }
 
+    // Event to emit the address of a commitment in the merke tree
+    event LogAddress(uint commAddr);
+
+    // Event to emit the merkle root of a tree
+    event LogMerkleRoot(bytes32 root);
+
     // Deposit takes a commitment as a parameter
     // The commitment in inserted in the Merkle Tree of commitment
     // (inserted as a leaf in the merkle tree)
-    function deposit (bytes32 commitment) payable {
-        // Make sure the user paid the good denomination to append a commitment in the tree
-        // (Need to pay 1ether to participate in the mixing)
-        require(msg.value == (denomination * (1 ether))); // We assume that the denomination is an int multiple of ethers (to adjust if necessary)
-        insert(commitment);
+    function deposit(bytes32 commitment) payable {
+        // We assume that the denomination is an int multiple of ethers (to adjust if necessary)
+        require(
+            msg.value == (denomination * (1 ether)),
+            "Wrong msg.value: Should equal the denomination of the mixer"
+        );
+
+        uint memory commitmentAddress = insert(commitment);
+        emit LogAddress(commitmentAddress);
 
         // We need to padZero the tree root because when we generate the proof
         // The last byte get stripped
-        roots[padZero(getTree()[1])] = true;
+        //
+        // Fix the issue with padZero: See if we can safely delete it and use the 2 inputs representing the root instead
+        currentRoot = getRoot();
+        event LogMerkleRoot(currentRoot);
+
+        roots[padZero(currentRoot)] = true;
     }
 
     // The withdraw function enables a user to redeem 1 ether by providing
@@ -55,53 +69,71 @@ contract Miximus is MerkleTree {
         uint[2] k,
         uint[] input
     ) {
-        address recipient  = nullifierToAddress(reverse(bytes32(input[2])));
-        // If we didn't padZero the root in the deposit function
-        // This require would fail all the time
-        require(roots[reverse(bytes32(input[0]))], "[DEBUG REQUIRE] Invalid root");
+        // The recipient is part of the nullifier --> To change!
+        address recipient  = nullifierToAddress(flip_endianness(bytes32(input[2])));
 
-        require(!nullifiers[padZero(reverse(bytes32(input[2])))], "[DEBUG REQUIRE] Invalid nullifier");
-        require(zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input), "[DEBUG REQUIRE] Invalid proof");
+        // If we didn't padZero the root in the deposit function this require would fail all the time
+        require(
+            roots[flip_endianness(bytes32(input[0]))],
+            "Invalid root: This root doesn't exist"
+        );
 
-        // TODO: Use the denomination set in the Mixer constructor rather than 1 ether
-        recipient.transfer(1 ether);
-        nullifiers[padZero(reverse(bytes32(input[2])))] = true;
+        // CAREFUL: Here the root is represented by 2 inputs: input[0], and input[1] --> Because we couldn't pack it
+        // in a single field element
+        // TODO: We need to take care of this, and consider the full root (not only input[0])
+        // To this extend, the "padZero" function should not be useful anymore
+
+        require(
+            !nullifiers[padZero(flip_endianness(bytes32(input[2])))],
+            "Invalid nullifier: This nullifier has already been used"
+        );
+
+        require(
+            zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
+            "Invalid proof: Unable to verify the proof correctly"
+        );
+
+        // Send the right denomination to the recipient
+        recipient.transfer(denomination * (1 ether));
+
+        // Declare the nullifier as being used (not usable anymore: prevents double spend)
+        nullifiers[padZero(flip_endianness(bytes32(input[2])))] = true;
     }
 
-    // The forward function enables a user who has been the recipient
-    // of a "private payment" in the past
-    // (thus possessing the secret associated with a non-spent nullifier, and a commitment in the tree)
-    // to use it to pay someone else
-    // (ie: "spend" his nullifier and creating a new commitment in the tree to pay someone else)
-    function forward (
-        bytes32 commitment,
-        uint[2] a,
-        uint[2] a_p,
-        uint[2][2] b,
-        uint[2] b_p,
-        uint[2] c,
-        uint[2] c_p,
-        uint[2] h,
-        uint[2] k,
-        uint[] input
-    ) returns (address) {
-        address recipient  = nullifierToAddress(reverse(bytes32(input[2])));
-        require(msg.sender == recipient);
-
-        require(roots[reverse(bytes32(input[0]))], "[DEBUG REQUIRE] Invalid root");
-        require(!nullifiers[padZero(reverse(bytes32(input[2])))], "[DEBUG REQUIRE] Invalid nullifier");
-        require(zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input), "[DEBUG REQUIRE] Invalid proof");
-
-        // We insert the new commitment in the tree once:
-        // 1. We checked that the forward request was triggered by the recipient of a past payment who has an "unspent nullifier"
-        // 2. The proof given is valid
-        insert(commitment);
-        roots[padZero(getTree()[1])] = true;
-        // The caller of the "forward" function now has "spent" his nullifier to pay someone else
-        // This allow for people to use the payments they receive as a way to pay others
-        nullifiers[padZero(reverse(bytes32(input[2])))] = true;
-        return(recipient);
-    }
+//    // The forward function enables a user who has been the recipient
+//    // of a "private payment" in the past
+//    // (thus possessing the secret associated with a non-spent nullifier, and a commitment in the tree)
+//    // to use it to pay someone else
+//    // (ie: "spend" his nullifier and creating a new commitment in the tree to pay someone else)
+//    function forward (
+//        bytes32 commitment,
+//        uint[2] a,
+//        uint[2] a_p,
+//        uint[2][2] b,
+//        uint[2] b_p,
+//        uint[2] c,
+//        uint[2] c_p,
+//        uint[2] h,
+//        uint[2] k,
+//        uint[] input
+//    ) returns (address) {
+//        address recipient  = nullifierToAddress(flip_endianness(bytes32(input[2])));
+//        require(msg.sender == recipient);
+//
+//        require(roots[flip_endianness(bytes32(input[0]))], "[DEBUG REQUIRE] Invalid root");
+//        require(!nullifiers[padZero(flip_endianness(bytes32(input[2])))], "[DEBUG REQUIRE] Invalid nullifier");
+//        require(zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input), "[DEBUG REQUIRE] Invalid proof");
+//
+//        // We insert the new commitment in the tree once:
+//        // 1. We checked that the forward request was triggered by the recipient of a past payment who has an "unspent nullifier"
+//        // 2. The proof given is valid
+//        insert(commitment);
+//        roots[padZero(getTree()[1])] = true;
+//        // The caller of the "forward" function now has "spent" his nullifier to pay someone else
+//        // This allow for people to use the payments they receive as a way to pay others
+//        nullifiers[padZero(flip_endianness(bytes32(input[2])))] = true;
+//        return(recipient);
+//    }
 
     function nullifierToAddress(bytes32 source) returns(address) {
         bytes20[2] memory y = [bytes20(0), 0];
@@ -129,7 +161,7 @@ contract Miximus is MerkleTree {
     // Example:
     // Input: 1011...01100
     // Output: 00110...1101
-    function reverse(bytes32 a) public pure returns(bytes32) {
+    function flip_endianness(bytes32 a) public pure returns(bytes32) {
         uint r;
         uint i;
         uint b;
