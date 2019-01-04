@@ -1,9 +1,9 @@
 pragma solidity ^0.4.24;
 
-import "./MerkleTree.sol";
+import "./MerkleTreeSha256.sol";
 import "./Verifier.sol";
 
-contract Miximus is MerkleTree {
+contract Miximus is MerkleTreeSha256 {
     // The roots of the different updated trees
     mapping(bytes32 => bool) roots;
 
@@ -17,7 +17,7 @@ contract Miximus is MerkleTree {
     uint denomination;
 
     // Constructor
-    constructor(address _zksnark_verify, uint denom) {
+    constructor(address _zksnark_verify, uint denom, uint depth) MerkleTreeSha256(depth) {
         zksnark_verifier = Verifier(_zksnark_verify);
         denomination = denom;
     }
