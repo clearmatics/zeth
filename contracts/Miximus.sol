@@ -33,9 +33,8 @@ contract Miximus is MerkleTree {
     // Event to emit the merkle root of a tree
     event LogMerkleRoot(bytes32 root);
 
-    // Deposit takes a commitment as a parameter
-    // The commitment in inserted in the Merkle Tree of commitment
-    // (inserted as a leaf in the merkle tree)
+    // Deposit takes a commitment as a parameter. The commitment in inserted in the Merkle Tree of commitment
+    // in exchange of an amount of ether (the mixer's denomination) being paid
     function deposit(bytes32 commitment) payable {
         // We assume that the denomination is an int multiple of ethers (to adjust if necessary)
         require(
@@ -56,8 +55,8 @@ contract Miximus is MerkleTree {
         roots[padZero(currentRoot)] = true;
     }
 
-    // The withdraw function enables a user to redeem 1 ether by providing
-    // a valid proof of knowledge of the secret
+    // The withdraw function enables a user to redeem the mixer's denomination amount of ether by providing
+    // a valid proof that he knows the pre-image of a commitment in the merkle tree that has never been "spent"
     function withdraw (
         uint[2] a,
         uint[2] a_p,
@@ -100,40 +99,52 @@ contract Miximus is MerkleTree {
         nullifiers[padZero(flip_endianness(bytes32(input[2])))] = true;
     }
 
-//    // The forward function enables a user who has been the recipient
-//    // of a "private payment" in the past
-//    // (thus possessing the secret associated with a non-spent nullifier, and a commitment in the tree)
-//    // to use it to pay someone else
-//    // (ie: "spend" his nullifier and creating a new commitment in the tree to pay someone else)
-//    function forward (
-//        bytes32 commitment,
-//        uint[2] a,
-//        uint[2] a_p,
-//        uint[2][2] b,
-//        uint[2] b_p,
-//        uint[2] c,
-//        uint[2] c_p,
-//        uint[2] h,
-//        uint[2] k,
-//        uint[] input
-//    ) returns (address) {
-//        address recipient  = nullifierToAddress(flip_endianness(bytes32(input[2])));
-//        require(msg.sender == recipient);
-//
-//        require(roots[flip_endianness(bytes32(input[0]))], "[DEBUG REQUIRE] Invalid root");
-//        require(!nullifiers[padZero(flip_endianness(bytes32(input[2])))], "[DEBUG REQUIRE] Invalid nullifier");
-//        require(zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input), "[DEBUG REQUIRE] Invalid proof");
-//
-//        // We insert the new commitment in the tree once:
-//        // 1. We checked that the forward request was triggered by the recipient of a past payment who has an "unspent nullifier"
-//        // 2. The proof given is valid
-//        insert(commitment);
-//        roots[padZero(getTree()[1])] = true;
-//        // The caller of the "forward" function now has "spent" his nullifier to pay someone else
-//        // This allow for people to use the payments they receive as a way to pay others
-//        nullifiers[padZero(flip_endianness(bytes32(input[2])))] = true;
-//        return(recipient);
-//    }
+    // The forward function enables a user who has been the recipient of a "private payment" in the past
+    // (someone possessing the secret associated with a non-spent nullifier, and a commitment in the tree)
+    // to use it to pay someone else (ie: "spend" his nullifier and creating a new commitment in the tree to pay someone else)
+    //
+    // This function basically does a payment via the use of commitments and zero knowledge proof verification on-chain
+    function forward (
+        bytes32 commitment,
+        uint[2] a,
+        uint[2] a_p,
+        uint[2][2] b,
+        uint[2] b_p,
+        uint[2] c,
+        uint[2] c_p,
+        uint[2] h,
+        uint[2] k,
+        uint[] input
+    ) {
+        address recipient  = nullifierToAddress(flip_endianness(bytes32(input[2])));
+
+        require(
+            msg.sender == recipient,
+            "Invalid sender: The sender should be the address specified in the nullifier"
+        );
+        require(
+            roots[flip_endianness(bytes32(input[0]))],
+            "Invalid root: This root doesn't exist"
+        );
+        require(
+            !nullifiers[padZero(flip_endianness(bytes32(input[2])))],
+            "Invalid nullifier: This nullifier has already been used"
+        );
+        require(
+            zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
+            "Invalid proof: Unable to verify the proof correctly"
+        );
+
+        // We insert the new commitment in the tree once:
+        // 1. We checked that the forward request was triggered by the recipient of a past payment who has an "unspent nullifier"
+        // 2. The proof given is valid
+        uint memory commitmentAddress = insert(commitment);
+        emit LogAddress(commitmentAddress);
+
+        currentRoot = getRoot();
+        event LogMerkleRoot(currentRoot);
+        roots[padZero(currentRoot)] = true;
+    }
 
     function nullifierToAddress(bytes32 source) returns(address) {
         bytes20[2] memory y = [bytes20(0), 0];
