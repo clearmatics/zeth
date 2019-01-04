@@ -33,6 +33,11 @@ contract Miximus is MerkleTree {
     // Event to emit the merkle root of a tree
     event LogMerkleRoot(bytes32 root);
 
+    // Event to emit the ciphertexts of the coins' data to be sent to the recipient of the payment
+    // This event is key to obfuscate the tranaction graph while enabling on-chain storage of the coins' data
+    // (useful to ease backup of user's wallets)
+    event LogSecretCiphers(bytes ciphertext);
+
     // Deposit takes a commitment as a parameter. The commitment in inserted in the Merkle Tree of commitment
     // in exchange of an amount of ether (the mixer's denomination) being paid
     function deposit(bytes32 commitment) payable {
@@ -105,6 +110,7 @@ contract Miximus is MerkleTree {
     //
     // This function basically does a payment via the use of commitments and zero knowledge proof verification on-chain
     function forward (
+        bytes ciphertext,
         bytes32 commitment,
         uint[2] a,
         uint[2] a_p,
@@ -140,6 +146,9 @@ contract Miximus is MerkleTree {
         // 2. The proof given is valid
         uint memory commitmentAddress = insert(commitment);
         emit LogAddress(commitmentAddress);
+
+        // Emit the coin's secret data encrypted with the recipient's key
+        emit LogSecretCiphers(ciphertext);
 
         currentRoot = getRoot();
         event LogMerkleRoot(currentRoot);
