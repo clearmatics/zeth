@@ -11,8 +11,14 @@
     "debug": "truffle debug",
     "coverage": "solidity-coverage",
     "genbin": "solc --overwrite --bin ./contracts/*.sol -o abi",
-	"genabi": "solc --overwrite --abi ./contracts/*.sol -o abi"
+    "genabi": "solc --overwrite --abi ./contracts/*.sol -o abi"
   },
   "author": "Clearmatics Technologies LTD: Cryptography R&D Department",
-  "license": "LGPL-3.0+"
+  "license": "LGPL-3.0+",
+  "dependencies": {
+    "add": "^2.0.6",
+    "browserify": "^16.2.3",
+    "child_process": "^1.0.2",
+    "web3": "^1.0.0-beta.37"
+  }
 }
