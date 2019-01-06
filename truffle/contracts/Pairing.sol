@@ -13,12 +13,12 @@ library Pairing {
     }
 
     /// @return the generator of G1
-    function P1() internal returns (G1Point memory) {
+    function P1() internal pure returns (G1Point memory) {
         return G1Point(1, 2);
     }
 
     /// @return the generator of G2
-    function P2() internal returns (G2Point memory) {
+    function P2() internal pure returns (G2Point memory) {
         return G2Point(
             [11559732032986387107991004021392285783925812861821192530917403151452391805634,
              10857046999023057135944570762232829481370756359578518086990519993285655852781],
@@ -28,7 +28,7 @@ library Pairing {
     }
 
     /// @return the negation of p, i.e. p.add(p.negate()) should be zero.
-    function negate(G1Point memory p) internal returns (G1Point memory) {
+    function negate(G1Point memory p) internal pure returns (G1Point memory) {
         // The prime q in the base field F_q for G1
         uint q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
         if (p.X == 0 && p.Y == 0)
