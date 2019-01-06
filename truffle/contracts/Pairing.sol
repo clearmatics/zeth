@@ -45,6 +45,7 @@ library Pairing {
         input[3] = p2.Y;
         bool success;
         assembly {
+            // Call the bn256Add precompiled: https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L57
             success := call(sub(gas, 2000), 6, 0, input, 0xc0, r, 0x60)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
@@ -61,6 +62,7 @@ library Pairing {
         input[2] = s;
         bool success;
         assembly {
+            // Call the bn256ScalarMul precompiled: https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L58
             success := call(sub(gas, 2000), 7, 0, input, 0x80, r, 0x60)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
@@ -89,6 +91,7 @@ library Pairing {
         uint[1] memory out;
         bool success;
         assembly {
+            // Call the bn256Pairing precompiled: https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L59
             success := call(sub(gas, 2000), 8, 0, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
@@ -145,4 +148,3 @@ library Pairing {
         return pairing(p1, p2);
     }
 }
-
