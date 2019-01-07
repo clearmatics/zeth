@@ -16,9 +16,6 @@ const Verifier = artifacts.require("./Verifier.sol");
 //const Pairing = artifacts.require("./Pairing.sol");
 
 module.exports = (deployer) => {
-  const test_merkle_tree_depth = 3;
-  const test_mixer_denomination = 2;
-
   deployer.deploy(MerkleTreeSha256, 3);
   deployer.deploy(
     Verifier,
@@ -36,7 +33,7 @@ module.exports = (deployer) => {
     vk.z[1],
     vk.IC
   ).then(function () {
-    return deployer.deploy(Miximus, Verifier.address, test_mixer_denomination, test_merkle_tree_depth);
+    return deployer.deploy(Miximus, Verifier.address, 2, 4);
   })
 
   // Deploy the verifier contract and then deploy Miximus
