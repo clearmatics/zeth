@@ -26,12 +26,14 @@ if (typeof web3 !== 'undefined') {
 function getNullifier(recipientAddr) {
   var hardcoded_salt = "FFFFFFFFFFFFFFFFFFFFFFFA"; // For testing purpose obviously
   var nullifier = stripHexPrefix(recipientAddr + hardcoded_salt);
-  console.log("NULLIFIER --> " + nullifier);
+  console.log("[INFO] Nullifier: " + nullifier);
   return nullifier;
 }
 
 // --- Wrapper arounf the zeth CLI --- //
 function zethProve(args) {
+  var cmd_str = shellescape(["zeth"].concat(args)).toString().trim("\n");
+  console.log("[INFO] Running command: " + cmd_str);
   return execSync(shellescape(["zeth"].concat(args))).toString().trim("\n");
 }
 
