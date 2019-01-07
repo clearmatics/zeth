@@ -30,6 +30,11 @@ function getNullifier(recipientAddr) {
   return nullifier;
 }
 
+// --- Wrapper arounf the zeth CLI --- //
+function zethProve(args) {
+  return execSync(shellescape(["zeth"].concat(args))).toString().trim("\n");
+}
+
 contract('Miximus', (accounts) => {
   it('Test deposit on the mixer', async () => {
     // We have a merkle tree of depth 3 for the tests
@@ -73,21 +78,6 @@ contract('Miximus', (accounts) => {
       "Wrong balance for the accountMixer: Should be 2"
     );
 
-    // --- Generate a proof to initiate the withdrawal --- //
-    function zethProve(args) {
-      console.log("=== DEBUG HERE in zeth prove ===");
-      return execSync(shellescape(["zeth"].concat(args))).toString().trim("\n");
-     // var logStream = fs.createWriteStream('./logFile.log', {flags: 'a'});
-     // var spawn = require('child_process').spawn,
-     //       zeth    = spawn('zeth', args);
-
-     // zeth.stdout.pipe(logStream);
-     // zeth.stderr.pipe(logStream);
-
-     // zeth.on('close', function (code) {
-     //   console.log('child process exited with code ' + code);
-     // });
-    }
     // Get the merkle tree after insertion to generate the proof
     let tree = await instance.getTree({from: accounts[2]});
     for(var i = 0; i < tree.length; i++) {
@@ -103,7 +93,8 @@ contract('Miximus', (accounts) => {
       "The commitment read from the tree should be equal to the one appended"
     )
 
-    // Get merkle root for the commitment at node 7 in the tree (address = 0 has it is relative to leaves)
+    // Get merkle root and merkle path for the commitment at node 15 in the tree
+    // (The address of the commitment is 0 since the address is relative to the leaves array)
     let node16 = stripHexPrefix(tree[16]);
     let node8= stripHexPrefix(tree[8]);
     let node4= stripHexPrefix(tree[4]);
@@ -111,9 +102,8 @@ contract('Miximus', (accounts) => {
     let tree_depth = 4; // need to match the tree depth that is used to instantiate the cli (tree depth we used for the trsuted setup)
     let address = 0;
 
-    console.log("=== DEBUG: Befoe the call tot he prove function ===");
+    // Invoke the CLI prove command
     zethProve(["prove", tree_depth, address, secret, nullifier, commitment, root, node2, node4, node8, node16]);
-    console.log("=== DEBUG 3 ===");
 
     var path = require('path');
     var debug_path = process.env.ZETH_DEBUG_DIR;
@@ -123,8 +113,7 @@ contract('Miximus', (accounts) => {
     // --- The accounts[1] does the withdrawal (recipient) --- //
     var account1 = accounts[1];
     var initialBalanceAccount1 = await web3.eth.getBalance(account1);
-    console.log("=== DEBUG: Calling withdraw ===");
-    var txInfo2 = await instance.withdraw(
+    var txInfo = await instance.withdraw(
       extended_proof.a,
       extended_proof.a_p,
       extended_proof.b,
@@ -137,15 +126,13 @@ contract('Miximus', (accounts) => {
       {from: account1}
     );
     var balanceAccount1 = await web3.eth.getBalance(account1);
-    // Get the gas cost of the deposit function to do a precise assert
-    var tx2 = await web3.eth.getTransaction(txInfo.tx);
-    var gasCost2 = (tx2.gasPrice) * (txInfo2.receipt.gasUsed);
-    console.log("initialBalanceAccount1: " + initialBalanceAccount1);
-    console.log("balanceAccount1: " + balanceAccount1);
-    console.log("gasCost: " + gasCost2);
+
+    // Get the gas cost of the withdrawal function to do a precise assert
+    tx = await web3.eth.getTransaction(txInfo.tx);
+    gasCost = (tx.gasPrice) * (txInfo.receipt.gasUsed);
     assert.equal(
       balanceAccount1,
-      (initialBalanceAccount1 - gasCost2) + Number(web3.utils.toWei('2', 'ether')),
+      (initialBalanceAccount1 - gasCost) + Number(web3.utils.toWei('2', 'ether')),
       "Wrong balance for the account1: Should be increased by 2 from the initial balance"
     );
 
