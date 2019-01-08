@@ -39,11 +39,14 @@ contract Miximus is MerkleTreeSha256 {
     // Event to emit the ciphertexts of the coins' data to be sent to the recipient of the payment
     // This event is key to obfuscate the tranaction graph while enabling on-chain storage of the coins' data
     // (useful to ease backup of user's wallets)
-    event LogSecretCiphers(bytes ciphertext);
+    event LogSecretCiphers(string ciphertext);
 
     // Deposit takes a commitment as a parameter. The commitment in inserted in the Merkle Tree of commitment
     // in exchange of an amount of ether (the mixer's denomination) being paid
-    function deposit(bytes32 commitment) public payable {
+    function deposit(
+        string memory ciphertext,
+        bytes32 commitment
+    ) public payable {
         // We assume that the denomination is an int multiple of ethers (to adjust if necessary)
         require(
             msg.value == (denomination * (1 ether)),
@@ -55,6 +58,9 @@ contract Miximus is MerkleTreeSha256 {
 
         bytes32 currentRoot = getRoot();
         emit LogMerkleRoot(currentRoot);
+
+        // Emit the coin's secret data encrypted with the recipient's key
+        emit LogSecretCiphers(ciphertext);
 
         roots[currentRoot] = true;
     }
@@ -114,7 +120,7 @@ contract Miximus is MerkleTreeSha256 {
     //
     // This function basically does a payment via the use of commitments and zero knowledge proof verification on-chain
     function forward (
-        bytes memory ciphertext,
+        string memory ciphertext,
         bytes32 commitment,
         uint[2] memory a,
         uint[2] memory a_p,
