@@ -115,7 +115,7 @@ contract('Miximus', (accounts) => {
     // --- The accounts[1] does the withdrawal (recipient) --- //
     var account1 = accounts[1];
     var initialBalanceAccount1 = await web3.eth.getBalance(account1);
-    var txInfo = await instance.withdraw(
+    txInfo = await instance.withdraw(
       extended_proof.a,
       extended_proof.a_p,
       extended_proof.b,
