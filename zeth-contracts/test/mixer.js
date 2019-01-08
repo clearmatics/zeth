@@ -132,6 +132,28 @@ contract('Miximus', (accounts) => {
 			"0x" + commitment,
 			{from: account0, value: web3.utils.toWei('2', 'ether')}
 		);
+
+    // Get the events emitted during the deposit (contains the ciphertext of the commitment secret)
+    assert.equal(
+      "LogAddress",
+      txInfo.receipt.logs[0].event,
+      "The first event emitted should be LogAddress"
+    );
+    assert.equal(
+      "LogMerkleRoot",
+      txInfo.receipt.logs[1].event,
+      "The second event emitted should be LogMerkleRoot"
+    );
+    assert.equal(
+      "LogSecretCiphers",
+      txInfo.receipt.logs[2].event,
+      "The third event emitted should be LogSecretCiphers"
+    );
+
+    var emitted_commitment_address = txInfo.receipt.logs[0].args["commAddr"];
+    var emitted_root = stripHexPrefix(txInfo.receipt.logs[1].args["root"]);
+    var emitted_ciphertext = txInfo.receipt.logs[2].args["ciphertext"];
+
     var balanceAccount0 = await web3.eth.getBalance(account0);
     // Get the gas cost of the deposit function to do a precise assert
     var tx = await web3.eth.getTransaction(txInfo.tx);
@@ -173,11 +195,31 @@ contract('Miximus', (accounts) => {
     let tree_depth = 4; // need to match the tree depth that is used to instantiate the cli (tree depth we used for the trsuted setup)
     let address = 0;
 
+    // Assert the theoretical values with the various values read from the events emitted after depositing the funds
+    assert.equal(
+      emitted_commitment_address,
+      address,
+      "The commitment address emitted is invalid"
+    );
+    assert.equal(
+      emitted_root,
+      root,
+      "The root emitted is invalid"
+    );
+    assert.equal(
+      emitted_ciphertext,
+      secret_ciphertext,
+      "The ciphertext emitted is invalid"
+    );
+
+    // The intended recipient (accounts[1]) decrypts the ciphertext to get the commitment secret to generate the proof
+    var decrypted_secret = decryptStringWithRsaPrivateKey(emitted_ciphertext, private_key_account_1);
+
     // Invoke the CLI prove command
 		// This command takes the secret as one of the input, which is only accessible via the encrypted boradcast
 		// That can only be decrypted by the owner of the private key associated to the public key used to encrypt
 		// (intended recipient of the payment)
-    zethProve(["prove", tree_depth, address, secret, nullifier, commitment, root, node2, node4, node8, node16]);
+    zethProve(["prove", tree_depth, emitted_commitment_address, secret, nullifier, commitment, emitted_root, node2, node4, node8, node16]);
 
     var path = require('path');
     var debug_path = process.env.ZETH_DEBUG_DIR;
