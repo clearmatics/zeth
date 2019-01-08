@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 library Bytes {
-    function getDigestFromFieldElements(uint[] memory input) internal pure returns (bytes32) {
+    function getDigestFromFieldElements(uint[] memory input) public pure returns (bytes32) {
         // We know that input[0] is a field element
         // Thus, it is encoded on 253 bits, and it should be the biggest between inputs[0] and inputs[1]
         // Inputs[0] actually contains 253 bits from the digest
@@ -40,6 +40,15 @@ library Bytes {
         uint8 n = 5;
         uint8 aInt = uint8(last_byte_suffix); // Converting bytes1 into 8 bit integer
         uint8 reversed = uint8(reverseByte(aInt));
+
+        // Note, we store the result of 2 ** n in uint8. However, if n is to big (ie: n > 8)
+        // This can overflow. Here this is fine as n is NOT a user input, and does not aim to be changed
+        // Nevertheless we need to keep this in mind. As a consequence we add the "dummy" require below that
+        // should fail if we manually change the value of n
+        require(
+            n < 8,
+            "The number of right shifts should be inferior to 8"
+        );
         uint8 shifted = reversed / 2 ** n;
         bytes1 shifted_byte = bytes1(shifted);
 
@@ -56,7 +65,7 @@ library Bytes {
         return (ultimateRes);
     }
 
-    function bytesToBytes32(bytes memory b, uint offset) internal pure returns (bytes32) {
+    function bytesToBytes32(bytes memory b, uint offset) public pure returns (bytes32) {
         bytes32 out;
 
         for (uint i = 0; i < 32; i++) {
@@ -65,7 +74,7 @@ library Bytes {
         return out;
     }
 
-    function flip_endianness(bytes32 a) internal pure returns(bytes32) {
+    function flip_endianness(bytes32 a) public pure returns(bytes32) {
         uint r;
         uint i;
         uint b;
@@ -77,14 +86,14 @@ library Bytes {
         return bytes32(r);
     }
 
-    function getLastByte(bytes32 x) internal pure returns(bytes1) {
+    function getLastByte(bytes32 x) public pure returns(bytes1) {
         return x[31];
     }
 
     // Example:
     // Input: 8 (decimal) -> 0000 1000 (binary)
     // Output: 0001 0000 (binary) -> 16 (decimal)
-    function reverseByte(uint a) internal pure returns (uint) {
+    function reverseByte(uint a) public pure returns (uint) {
         uint c = 0xf070b030d0509010e060a020c0408000;
 
         return (( c >> ((a & 0xF)*8)) & 0xF0)   +

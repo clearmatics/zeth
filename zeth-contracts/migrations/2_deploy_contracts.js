@@ -13,7 +13,8 @@ vk.IC = tmp;
 const MerkleTreeSha256 = artifacts.require("./MerkleTreeSha256.sol");
 const Miximus = artifacts.require("./Miximus.sol");
 const Verifier = artifacts.require("./Verifier.sol");
-//const Pairing = artifacts.require("./Pairing.sol");
+const Bytes = artifacts.require("./Bytes.sol");
+const Bytes_tests = artifacts.require("./Bytes_tests.sol");
 
 module.exports = (deployer) => {
   deployer.deploy(MerkleTreeSha256, 3);
@@ -36,24 +37,7 @@ module.exports = (deployer) => {
     return deployer.deploy(Miximus, Verifier.address, 2, 4);
   })
 
-  // Deploy the verifier contract and then deploy Miximus
-  // Retrieve the data from the trusted setup to instantiate the verifier
-  //
-  // Run a trusted setup to instantiate the verifier contract
-  //trusted_setup();
-  //console.log("trusted_setup() start");
-  //const { exec } = require('child_process');
-  //exec('zeth setup', function(err, data) {
-  //  if(err) {
-  //    console.log(err);
-  //    return;
-  //  }
-  //  console.log(data.toString());
-  //});
-
-  //deployer.deploy(Verifier).then(function () {
-  //  return deployer.deploy(Miximus, Verifier.address, mixer_denomination, merkle_tree_depth);
-  //});
-
-  //deployer.deploy(Pairing);
+  deployer.deploy(Bytes);
+  deployer.link(Bytes, Bytes_tests);
+  deployer.deploy(Bytes_tests);
 };
