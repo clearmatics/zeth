@@ -2,8 +2,11 @@ pragma solidity ^0.5.0;
 
 import "./MerkleTreeSha256.sol";
 import "./Verifier.sol";
+import "./Bytes.sol";
 
 contract Miximus is MerkleTreeSha256 {
+    using Bytes for *;
+
     // The roots of the different updated trees
     mapping(bytes32 => bool) roots;
 
@@ -57,7 +60,7 @@ contract Miximus is MerkleTreeSha256 {
         bytes32 currentRoot = getRoot();
         emit LogMerkleRoot(currentRoot);
 
-        roots[padZero(currentRoot)] = true;
+        roots[currentRoot] = true;
     }
 
     // The withdraw function enables a user to redeem the mixer's denomination amount of ether by providing
@@ -79,16 +82,15 @@ contract Miximus is MerkleTreeSha256 {
         // for more information on address payable type and conversion from and to address type
         address payable recipientAddr = address(uint160(recipient));
 
-        // If we didn't padZero the root in the deposit function this require would fail all the time
+        // We re-assemble the full root digest from both field elements (created when we packed the
+        // 256-bit digest into field elements, that are both encoded on 253 bits --> size of the field we use)
+        uint256[] memory root_inputs = new uint[](2);
+        root_inputs[0] = input[0]; // See the way the inputs are ordered in the extended proof
+        root_inputs[1] = input[1];
         require(
-            roots[flip_endianness(bytes32(input[0]))],
+            roots[Bytes.sha256_digest_from_field_elements(root_inputs)],
             "Invalid root: This root doesn't exist"
         );
-
-        // CAREFUL: Here the root is represented by 2 inputs: input[0], and input[1] --> Because we couldn't pack it
-        // in a single field element
-        // TODO: We need to take care of this, and consider the full root (not only input[0])
-        // To this extend, the "padZero" function should not be useful anymore
 
         require(
             !nullifiers[padZero(flip_endianness(bytes32(input[2])))],
@@ -131,10 +133,17 @@ contract Miximus is MerkleTreeSha256 {
             msg.sender == recipient,
             "Invalid sender: The sender should be the address specified in the nullifier"
         );
+
+        // We re-assemble the full root digest from both field elements (created when we packed the
+        // 256-bit digest into field elements, that are both encoded on 253 bits --> size of the field we use)
+        uint256[] memory root_inputs = new uint[](2);
+        root_inputs[0] = input[0]; // See the way the inputs are ordered in the extended proof
+        root_inputs[1] = input[1];
         require(
-            roots[flip_endianness(bytes32(input[0]))],
+            roots[Bytes.sha256_digest_from_field_elements(root_inputs)],
             "Invalid root: This root doesn't exist"
         );
+
         require(
             !nullifiers[padZero(flip_endianness(bytes32(input[2])))],
             "Invalid nullifier: This nullifier has already been used"
@@ -155,7 +164,7 @@ contract Miximus is MerkleTreeSha256 {
 
         bytes32 currentRoot = getRoot();
         emit LogMerkleRoot(currentRoot);
-        roots[padZero(currentRoot)] = true;
+        roots[currentRoot] = true;
     }
 
     function nullifierToAddress(bytes32 source) internal pure returns(address) {
