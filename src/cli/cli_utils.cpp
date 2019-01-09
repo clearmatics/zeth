@@ -18,19 +18,21 @@ libff::bit_vector addressBitsFromAddress(int address, int tree_depth, int *error
         return libff::bit_vector(result);
     }
 
-    // We need to "front pad" the bi conversion we obtained to have an address encoded by a binary
-    // string of the length of the tree_depth
+    // We need to "back pad" the binary conversion we obtained to have an address encoded
+    // by a binary string of the length of the tree_depth
     if(binary.size() < tree_depth) {
-        for (int i = 0; i < binary.size(); ++i) {
-            result[(tree_depth - binary.size()) + i] = binary[i];
+        for (int i = 0; i < binary.size(); i++) {
+            result[i] = binary[i];
         }
-        // We return the "front padded" vector
+        // We return the "back padded" vector
         return libff::bit_vector(result);
     }
 
     return libff::bit_vector(binary);
 }
 
+// As we push_back in the vector, this function returns the little endian
+// binary encoding of the integer x
 std::vector<bool> convertIntToBinary(int x) {
     std::vector<bool> ret;
     while(x) {
@@ -40,7 +42,6 @@ std::vector<bool> convertIntToBinary(int x) {
             ret.push_back(0);
         x>>=1;
     }
-    std::reverse(ret.begin(),ret.end());
     return ret;
 }
 

@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y \
         git \
         libboost-all-dev \
         libgmp3-dev \
+        libprocps-dev \
         g++ \
         gcc \
         libxslt-dev \
