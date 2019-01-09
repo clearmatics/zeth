@@ -55,6 +55,11 @@ npm run testrpc
 # We assume here that you are in /home/zeth
 cd zeth-contracts
 npm install
+
+# Run a trusted setup for the tests
+zeth setup
+
+# Run the tests
 truffle test
 ```
 
