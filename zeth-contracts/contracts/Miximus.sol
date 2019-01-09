@@ -33,9 +33,6 @@ contract Miximus is MerkleTreeSha256 {
     // Event to emit the address of a commitment in the merke tree
     event LogAddress(uint commAddr);
 
-    // TODO: Remove
-    event LogVerifCode(uint code);
-
     // Event to emit the merkle root of a tree
     event LogMerkleRoot(bytes32 root);
 
@@ -105,16 +102,10 @@ contract Miximus is MerkleTreeSha256 {
             "Invalid nullifier: This nullifier has already been used"
         );
 
-        uint code = zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input);
-        emit LogVerifCode(code);
         require(
-            code == 0,
+            zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
             "Invalid proof: Unable to verify the proof correctly"
         );
-        //require(
-        //    zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
-        //    "Invalid proof: Unable to verify the proof correctly"
-        //);
 
         // Send the right denomination to the recipient
         recipientAddr.transfer(denomination * (1 ether));
@@ -166,10 +157,8 @@ contract Miximus is MerkleTreeSha256 {
             "Invalid nullifier: This nullifier has already been used"
         );
 
-        uint code = zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input);
-        //emit LogVerifCode(code);
         require(
-            code == 0,
+            zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
             "Invalid proof: Unable to verify the proof correctly"
         );
 
@@ -184,10 +173,9 @@ contract Miximus is MerkleTreeSha256 {
         emit LogAddress(insert(commitment));
 
         // Add the new root to the list of existing roots
-        //bytes32 currentRoot = getRoot();
-        roots[getRoot()] = true;
-
-        emit LogMerkleRoot(getRoot());
+        bytes32 currentRoot = getRoot();
+        roots[currentRoot] = true;
+        emit LogMerkleRoot(currentRoot);
 
         // Emit the coin's secret data encrypted with the recipient's key
         emit LogSecretCiphers(ciphertext);

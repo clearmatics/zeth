@@ -5,8 +5,6 @@ import "./Pairing.sol";
 contract Verifier {
     using Pairing for *;
 
-    event LogVerificationCode(uint code);
-
     struct VerifyingKey {
         Pairing.G2Point A;
         Pairing.G1Point B;
@@ -127,7 +125,7 @@ contract Verifier {
         uint[2] memory h,
         uint[2] memory k,
         uint[] memory input
-    ) public returns (uint) {
+    ) public returns (bool) {
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.A_p = Pairing.G1Point(a_p[0], a_p[1]);
@@ -145,12 +143,11 @@ contract Verifier {
 
         uint verification_result = verify(inputValues, proof);
         if (verification_result != 0) {
-            emit LogVerificationCode(verification_result);
             emit LogVerifier("Failed to verify the transaction");
-            return verification_result;
+            return false;
         }
 
         emit LogVerifier("Proof verification successfull");
-        return verification_result;
+        return true;
     }
 }

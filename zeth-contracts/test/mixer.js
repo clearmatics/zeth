@@ -313,15 +313,10 @@ contract('Miximus', (accounts) => {
     var emitted_deposit_ciphertext = deposit_txInfo.receipt.logs[2].args["ciphertext"];
 
 		var balance_account0_after_deposit = await web3.eth.getBalance(accounts[0]);
-    // Get the gas cost of the deposit function to do a precise assert
-    var deposit_tx = await web3.eth.getTransaction(deposit_txInfo.tx);
-    var deposit_gas_cost = (deposit_tx.gasPrice) * (deposit_txInfo.receipt.gasUsed);
-    // TODO: Uncomment
-    //assert.equal(
-    //  balance_account0_after_deposit,
-    //  balance_account0_before_deposit - (Number(web3.utils.toWei('2', 'ether')) + deposit_gas_cost),
-    //  "Wrong balance for the accounts[0]: Should be decreased by 2 from the initial balance"
-    //);
+    assert(
+      balance_account0_after_deposit <= (balance_account0_before_deposit + Number(web3.utils.toWei('2', 'ether'))),
+      "Wrong balance for the accounts[0]: Should be decreased by 2 (+ gas cost) from the initial balance"
+    );
 
     var balance_mixer_after_deposit = await web3.eth.getBalance(accountMixer);
     assert.equal(
@@ -382,11 +377,6 @@ contract('Miximus', (accounts) => {
     //var transfer_extended_proof = require(extended_proof_json);
     var transfer_extended_proof = JSON.parse(fs.readFileSync(extended_proof_json, 'utf8'));
 
-    console.log("============== [DEBUG]: transfer proof inputs " + transfer_extended_proof.input[0])
-    console.log("============== [DEBUG]: transfer proof inputs " + transfer_extended_proof.input[1])
-    console.log("============== [DEBUG]: transfer proof inputs " + transfer_extended_proof.input[2])
-    console.log("============== [DEBUG]: transfer proof inputs " + transfer_extended_proof.input[3])
-
     // --- The accounts[1] does the transfer to accounts[2] (recipient) --- //
 		console.log("\n ===== Step2: Accounts[1] does a transfer() to accounts[2] ====== ");
 		var transfer_secret = crypto.createHash('sha256').update("test-secret-transfer").digest('hex');
@@ -414,23 +404,11 @@ contract('Miximus', (accounts) => {
       transfer_extended_proof.input,
       {from: accounts[1]}
     );
-
-    // Get the gas cost of the withdrawal function to do a precise assert
-    var transfer_tx = await web3.eth.getTransaction(transfer_txInfo.tx);
     var balance_account1_after_transfer = await web3.eth.getBalance(accounts[1]);
-    var transfer_gas_cost = (transfer_tx.gasPrice) * (transfer_txInfo.receipt.gasUsed);
-
-    console.log("balance_account1_before_transfer: " + balance_account1_before_transfer);
-    console.log("balance_account1_after_transfer: " + balance_account1_after_transfer);
-    console.log("transfer_gas_cost: " + transfer_gas_cost);
-    console.log("tx gas price: " + transfer_tx.gasPrice);
-    console.log("tx gas used: " + transfer_txInfo.receipt.gasUsed);
-    // TODO: Uncomment
-    //assert.equal(
-    //  balance_account1_after_transfer,
-    //  (balance_account1_before_transfer - transfer_gas_cost),
-    //  "Wrong balance for the accounts[1]: Should be decreased by the gas cost of the transfer function"
-    //);
+    assert(
+      balance_account1_after_transfer <= balance_account1_before_transfer,
+      "Wrong balance for the accounts[1]: Should be decreased by the gas cost of the transfer function"
+    );
 
 		// Make sure that the Mixer still has 2 ether in his balance after the call to the transfer function
     var balance_mixer_after_transfer = await web3.eth.getBalance(accountMixer);
@@ -516,11 +494,6 @@ contract('Miximus', (accounts) => {
     //var withdraw_extended_proof = require(extended_proof_json);
     var withdraw_extended_proof = JSON.parse(fs.readFileSync(extended_proof_json, 'utf8'));
 
-    console.log("============== [DEBUG]: withdraw proof inputs " + withdraw_extended_proof.input[0])
-    console.log("============== [DEBUG]: withdraw proof inputs " + withdraw_extended_proof.input[1])
-    console.log("============== [DEBUG]: withdraw proof inputs " + withdraw_extended_proof.input[2])
-    console.log("============== [DEBUG]: withdraw proof inputs " + withdraw_extended_proof.input[3])
-
 		// =================== Now we need to withdraw from accounts[2] account ==================== //
 		console.log("\n ===== Step3: Accounts[2] does a withdrawal and gets his balance updated =====");
     var balance_account2_before_withdraw = await web3.eth.getBalance(accounts[2]);
@@ -539,14 +512,10 @@ contract('Miximus', (accounts) => {
     var balance_account2_after_withdraw = await web3.eth.getBalance(accounts[2]);
 
     // Get the gas cost of the withdrawal function to do a precise assert
-    var withdraw_tx = await web3.eth.getTransaction(withdraw_txInfo.tx);
-    var withdraw_gas_cost = (withdraw_tx.gasPrice) * (withdraw_txInfo.receipt.gasUsed);
-    // TODO: Uncomment
-    //assert.equal(
-    //  balance_account2_after_withdraw,
-    //  (balance_account2_before_withdraw - withdraw_gas_cost) + Number(web3.utils.toWei('2', 'ether')),
-    //  "Wrong balance for the accounts[2]: Should be increased by 2 from the initial balance"
-    //);
+    assert(
+      balance_account2_after_withdraw > balance_account2_before_withdraw,
+      "Wrong balance for the accounts[2]: Should be increased by 2 (minus the gas cost) from the initial balance"
+    );
 
     var balance_mixer_after_withdrawal = await web3.eth.getBalance(accountMixer);
     assert.equal(
