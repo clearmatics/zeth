@@ -17,3 +17,6 @@ trusted_setup/*.json
 
 # Ignore the content of the debug folder
 debug/*json
+
+# Ignore node_modules
+zeth-contracts/node_modules/*
