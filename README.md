@@ -8,15 +8,20 @@
 
 ### Using docker (Recommended)
 
-```
+In order to run the project in docker, you will need 2 terminals. The titles of the sections below are prefixed with the terminal ID the commands should be ran into.
+
+#### Terminal 1: Configure the project and run the cpp tests
+
+```bash
 # Clone this repository:
 git clone git@gitlab.clearmatics.net:ar/zeth.git
 cd zeth
 git submodule update --init --recursive
 
 docker build -t zeth-dev .
-docker run -ti zeth-dev
+docker run -ti --name zeth zeth-dev
 
+## All the commands below are ran in the docker container
 # Configure your environment
 . ./setup_env.sh
 
@@ -32,15 +37,25 @@ cmake .. && make
 # Run the tests
 make test_prover
 ./src/test_prover
+```
 
-# Test the zeth command line (see the usage)
-zeth
+#### Terminal 2: Start an Ethereum testnet to test the smart contracts
 
-# Run the trusted setup
-zeth setup
+```bash
+docker exec -ti zeth /bin/bash
 
-# Generate a proof
-zeth prove [args] 
+# Start the ethruem test net by running the following commands
+cd zeth-contracts
+npm run testrpc
+```
+
+#### Terminal 1 (Again): Start the solidity tests
+
+```bash
+# We assume here that you are in /home/zeth
+cd zeth-contracts
+npm install
+truffle test
 ```
 
 ### Without docker
@@ -52,6 +67,11 @@ zeth prove [args]
 sudo apt-get install libboost-all-dev
 sudo apt-get install libgmp3-dev
 sudo apt-get install libprocps-dev
+
+node --version # v10.15.0
+npm --version # 6.4.1
+truffle --version # v5.0.1
+ganache-cli --version # v6.2.5
 
 # Setup your environment
 . ./setup_env.sh
