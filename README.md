@@ -1,7 +1,8 @@
 # Zeth - Zerocash on Ethereum 
 
-**Disclaimer:** Adapated from [Miximus](https://github.com/barryWhiteHat/miximus.git), and following the design
-presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum).
+**Disclaimer:** This work is heavily inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git), and follows the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum).
+
+:point_right: Check our documentation on the [wiki](https://gitlab.clearmatics.net/ar/zeth/wikis) to have more details about Zeth.
 
 ## Building the project:
 
