@@ -33,6 +33,9 @@ contract Miximus is MerkleTreeSha256 {
     // Event to emit the address of a commitment in the merke tree
     event LogAddress(uint commAddr);
 
+    // TODO: Remove
+    event LogVerifCode(uint code);
+
     // Event to emit the merkle root of a tree
     event LogMerkleRoot(bytes32 root);
 
@@ -102,10 +105,16 @@ contract Miximus is MerkleTreeSha256 {
             "Invalid nullifier: This nullifier has already been used"
         );
 
+        uint code = zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input);
+        emit LogVerifCode(code);
         require(
-            zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
+            code == 0,
             "Invalid proof: Unable to verify the proof correctly"
         );
+        //require(
+        //    zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
+        //    "Invalid proof: Unable to verify the proof correctly"
+        //);
 
         // Send the right denomination to the recipient
         recipientAddr.transfer(denomination * (1 ether));
@@ -114,12 +123,12 @@ contract Miximus is MerkleTreeSha256 {
         nullifiers[current_nullifier] = true;
     }
 
-    // The forward function enables a user who has been the recipient of a "private payment" in the past
+    // The transfer function enables a user who has been the recipient of a "private payment" in the past
     // (someone possessing the secret associated with a non-spent nullifier, and a commitment in the tree)
     // to use it to pay someone else (ie: "spend" his nullifier and creating a new commitment in the tree to pay someone else)
     //
     // This function basically does a payment via the use of commitments and zero knowledge proof verification on-chain
-    function forward (
+    function transfer (
         string memory ciphertext,
         bytes32 commitment,
         uint[2] memory a,
@@ -157,27 +166,31 @@ contract Miximus is MerkleTreeSha256 {
             "Invalid nullifier: This nullifier has already been used"
         );
 
+        uint code = zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input);
+        //emit LogVerifCode(code);
         require(
-            zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
+            code == 0,
             "Invalid proof: Unable to verify the proof correctly"
         );
 
+        // Declare the nullifier as being used (not usable anymore: prevents double spend)
+        nullifiers[current_nullifier] = true;
+
         // We insert the new commitment in the tree once:
-        // 1. We checked that the forward request was triggered by the recipient of a past payment who has an "unspent nullifier"
+        // 1. We checked that the transfer request was triggered by the recipient of a past payment who has an "unspent nullifier"
         // 2. The proof given is valid
-        uint commitmentAddress = insert(commitment);
-        emit LogAddress(commitmentAddress);
+        //uint commitmentAddress = insert(commitment);
+        //emit LogAddress(commitmentAddress);
+        emit LogAddress(insert(commitment));
+
+        // Add the new root to the list of existing roots
+        //bytes32 currentRoot = getRoot();
+        roots[getRoot()] = true;
+
+        emit LogMerkleRoot(getRoot());
 
         // Emit the coin's secret data encrypted with the recipient's key
         emit LogSecretCiphers(ciphertext);
-
-        bytes32 currentRoot = getRoot();
-        emit LogMerkleRoot(currentRoot);
-
-        // Declare the nullifier as being used (not usable anymore: prevents double spend)
-        nullifiers[current_nullifier] = true;
-        // Add the new root to the list of existing roots
-        roots[currentRoot] = true;
     }
 
     function nullifierToAddress(bytes32 source) internal pure returns(address) {

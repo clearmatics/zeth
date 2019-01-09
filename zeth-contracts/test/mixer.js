@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 var Web3 = require('web3');
-var path = require("path");
 
 const stripHexPrefix = require('strip-hex-prefix');
 const shellescape = require('shell-escape');
@@ -12,6 +11,10 @@ const MerkleTreeSha256 = artifacts.require("./MerkleTreeSha256.sol");
 const Miximus = artifacts.require("./Miximus.sol");
 const Verifier = artifacts.require("./Verifier.sol");
 const Pairing = artifacts.require("./Pairing.sol");
+
+const path = require("path");
+const debug_path = process.env.ZETH_DEBUG_DIR;
+const extended_proof_json = path.join(debug_path, 'proof_and_input.json');
 
 function prefixHexadecimalString(hex_str) {
   return "0x" + hex_str;
@@ -97,185 +100,24 @@ function zethProve(args) {
 }
 
 contract('Miximus', (accounts) => {
-  it('Test deposit-withdrawal on the mixer', async () => {
-    // We have a merkle tree of depth 3 for the tests
-    let instance = await Miximus.deployed();
-
-    console.log("Accounts[0] deposits a commitment for Accounts[1], and Accounts[1] withdraws");
-
-    // --- Leaves layer (layer 3) --- //
-    // We insert at the first available leaf (leftmost leaf --> index 7 in the tree of depth 3)
-    var secret = crypto.createHash('sha256').update("test-secret").digest('hex');
-    var nullifier = getNullifier(accounts[1]); // accounts[1] is the recipient
-    let commitment = crypto.createHash('sha256').
-            update(Buffer.from(nullifier + secret, 'hex')).
-            digest('hex');
-
-		// We encrypt the secret with the recipient's public key
-		var secret_ciphertext = encryptStringWithRsaPublicKey(secret, public_key_account_1);
-    console.log("[INFO] Ciphertext of the commitment secret that is broadcasted on the network: " + secret_ciphertext);
-
-    // --- The accounts[0] does the deposit (sender) --- //
-    // We have a mixer of std denom of 2 ether --> see migration file
-    var account0 = accounts[0];
-    var accountMixer = instance.address;
-    var initialBalanceMixer = await web3.eth.getBalance(accountMixer);
-    assert.equal(
-      initialBalanceMixer,
-      web3.utils.toWei('0', 'ether'),
-      "Wrong balance for the accountMixer: Should be 0"
-    );
-
-    var initialBalanceAccount0 = await web3.eth.getBalance(account0);
-    var txInfo = await instance.deposit(
-			secret_ciphertext,
-			"0x" + commitment,
-			{from: account0, value: web3.utils.toWei('2', 'ether')}
-		);
-
-    // Get the events emitted during the deposit (contains the ciphertext of the commitment secret)
-    assert.equal(
-      "LogAddress",
-      txInfo.receipt.logs[0].event,
-      "The first event emitted should be LogAddress"
-    );
-    assert.equal(
-      "LogMerkleRoot",
-      txInfo.receipt.logs[1].event,
-      "The second event emitted should be LogMerkleRoot"
-    );
-    assert.equal(
-      "LogSecretCiphers",
-      txInfo.receipt.logs[2].event,
-      "The third event emitted should be LogSecretCiphers"
-    );
-
-    var emitted_commitment_address = txInfo.receipt.logs[0].args["commAddr"];
-    var emitted_root = stripHexPrefix(txInfo.receipt.logs[1].args["root"]);
-    var emitted_ciphertext = txInfo.receipt.logs[2].args["ciphertext"];
-
-    var balanceAccount0 = await web3.eth.getBalance(account0);
-    // Get the gas cost of the deposit function to do a precise assert
-    var tx = await web3.eth.getTransaction(txInfo.tx);
-    var gasCost = (tx.gasPrice) * (txInfo.receipt.gasUsed);
-    assert.equal(
-      balanceAccount0,
-      initialBalanceAccount0 - (Number(web3.utils.toWei('2', 'ether')) + gasCost),
-      "Wrong balance for the account0: Should be decreased by 2 from the initial balance"
-    );
-
-    var balanceMixerAfterDeposit = await web3.eth.getBalance(accountMixer);
-    assert.equal(
-      balanceMixerAfterDeposit,
-      web3.utils.toWei('2', 'ether'),
-      "Wrong balance for the accountMixer: Should be 2"
-    );
-
-    // Get the merkle tree after insertion to generate the proof
-    let tree = await instance.getTree({from: accounts[2]});
-    for(var i = 0; i < tree.length; i++) {
-      console.log("Node(" + i + ") =>" + tree[i]);
-    }
-    let root = stripHexPrefix(tree[0]);
-    console.log("Root => " + root);
-    let commitment_inserted = tree[15];
-    console.log("Commitment inserted => " + commitment_inserted);
-    assert.equal(
-      stripHexPrefix(commitment_inserted),
-      commitment,
-      "The commitment read from the tree should be equal to the one appended"
-    )
-
-    // Get merkle root and merkle path for the commitment at node 15 in the tree
-    // (The address of the commitment is 0 since the address is relative to the leaves array)
-    let node16 = stripHexPrefix(tree[16]);
-    let node8= stripHexPrefix(tree[8]);
-    let node4= stripHexPrefix(tree[4]);
-    let node2 = stripHexPrefix(tree[2]);
-    let tree_depth = 4; // need to match the tree depth that is used to instantiate the cli (tree depth we used for the trsuted setup)
-    let address = 0;
-
-    // Assert the theoretical values with the various values read from the events emitted after depositing the funds
-    assert.equal(
-      emitted_commitment_address,
-      address,
-      "The commitment address emitted is invalid"
-    );
-    assert.equal(
-      emitted_root,
-      root,
-      "The root emitted is invalid"
-    );
-    assert.equal(
-      emitted_ciphertext,
-      secret_ciphertext,
-      "The ciphertext emitted is invalid"
-    );
-
-    // The intended recipient (accounts[1]) decrypts the ciphertext to get the commitment secret to generate the proof
-    var decrypted_secret = decryptStringWithRsaPrivateKey(emitted_ciphertext, private_key_account_1);
-
-    // Invoke the CLI prove command
-		// This command takes the secret as one of the input, which is only accessible via the encrypted boradcast
-		// That can only be decrypted by the owner of the private key associated to the public key used to encrypt
-		// (intended recipient of the payment)
-    zethProve(["prove", tree_depth, emitted_commitment_address, secret, nullifier, commitment, emitted_root, node2, node4, node8, node16]);
-
-    var path = require('path');
-    var debug_path = process.env.ZETH_DEBUG_DIR;
-    var extended_proof_json = path.join(debug_path, 'proof_and_input.json');
-    var extended_proof = require(extended_proof_json);
-
-    // --- The accounts[1] does the withdrawal (recipient) --- //
-    var account1 = accounts[1];
-    var initialBalanceAccount1 = await web3.eth.getBalance(account1);
-    txInfo = await instance.withdraw(
-      extended_proof.a,
-      extended_proof.a_p,
-      extended_proof.b,
-      extended_proof.b_p,
-      extended_proof.c,
-      extended_proof.c_p,
-      extended_proof.h,
-      extended_proof.k,
-      extended_proof.input,
-      {from: account1}
-    );
-    var balanceAccount1 = await web3.eth.getBalance(account1);
-
-    // Get the gas cost of the withdrawal function to do a precise assert
-    tx = await web3.eth.getTransaction(txInfo.tx);
-    gasCost = (tx.gasPrice) * (txInfo.receipt.gasUsed);
-    assert.equal(
-      balanceAccount1,
-      (initialBalanceAccount1 - gasCost) + Number(web3.utils.toWei('2', 'ether')),
-      "Wrong balance for the account1: Should be increased by 2 from the initial balance"
-    );
-
-    var balanceMixerAfterWithdrawal = await web3.eth.getBalance(accountMixer);
-    assert.equal(
-      balanceMixerAfterWithdrawal,
-      web3.utils.toWei('0', 'ether'),
-      "Wrong balance for the accountMixer: Should be 0"
-    );
-  });
-
-  //it('Test deposit-transfer-withdrawal on the mixer', async () => {
-  //  // We have a merkle tree of depth 3 for the tests
+  //it('Test deposit-withdrawal on the mixer', async () => {
   //  let instance = await Miximus.deployed();
+  //  let tree_depth = 4; // need to match the tree depth that is used to instantiate the cli (tree depth we used for the trsuted setup)
 
-  //  // --- Leaves layer (layer 3) --- //
-  //  console.log("Step1: Deposit from accounts[0] to accounts[1] (in the nullifier)")
+  //  console.log("\n ===== Accounts[0] deposits a commitment for Accounts[1], and Accounts[1] withdraws ===== ");
   //  // We insert at the first available leaf (leftmost leaf --> index 7 in the tree of depth 3)
-  //  var secret_1 = crypto.createHash('sha256').update("test-secret").digest('hex');
-  //  var nullifier_1 = getNullifier(accounts[1]); // accounts[1] is the recipient
-  //  let commitment_1 = crypto.createHash('sha256').
-  //          update(Buffer.from(nullifier_1 + secret_1, 'hex')).
+  //  var secret = crypto.createHash('sha256').update("test-secret").digest('hex');
+  //  var nullifier = getNullifier(accounts[1]); // accounts[1] is the recipient
+  //  let commitment = crypto.createHash('sha256').
+  //          update(Buffer.from(nullifier + secret, 'hex')).
   //          digest('hex');
+
+	//	// We encrypt the secret with the recipient's public key
+	//	var secret_ciphertext = encryptStringWithRsaPublicKey(secret, public_key_account_1);
+  //  console.log("[INFO] Ciphertext of the commitment secret that is broadcasted on the network: " + secret_ciphertext);
 
   //  // --- The accounts[0] does the deposit (sender) --- //
   //  // We have a mixer of std denom of 2 ether --> see migration file
-  //  var account0 = accounts[0];
   //  var accountMixer = instance.address;
   //  var initialBalanceMixer = await web3.eth.getBalance(accountMixer);
   //  assert.equal(
@@ -284,16 +126,42 @@ contract('Miximus', (accounts) => {
   //    "Wrong balance for the accountMixer: Should be 0"
   //  );
 
-  //  var initialBalanceAccount0 = await web3.eth.getBalance(account0);
-  //  var txInfo = await instance.deposit("0x" + commitment, {from: account0, value: web3.utils.toWei('2', 'ether')});
-  //  var balanceAccount0 = await web3.eth.getBalance(account0);
+  //  var initialBalanceAccount0 = await web3.eth.getBalance(accounts[0]);
+  //  var txInfo = await instance.deposit(
+	//		secret_ciphertext,
+	//		"0x" + commitment,
+	//		{from: accounts[0], value: web3.utils.toWei('2', 'ether')}
+	//	);
+
+  //  // Get the events emitted during the deposit (contains the ciphertext of the commitment secret)
+  //  assert.equal(
+  //    "LogAddress",
+  //    txInfo.receipt.logs[0].event,
+  //    "The first event emitted should be LogAddress"
+  //  );
+  //  assert.equal(
+  //    "LogMerkleRoot",
+  //    txInfo.receipt.logs[1].event,
+  //    "The second event emitted should be LogMerkleRoot"
+  //  );
+  //  assert.equal(
+  //    "LogSecretCiphers",
+  //    txInfo.receipt.logs[2].event,
+  //    "The third event emitted should be LogSecretCiphers"
+  //  );
+
+  //  var emitted_commitment_address = txInfo.receipt.logs[0].args["commAddr"];
+  //  var emitted_root = stripHexPrefix(txInfo.receipt.logs[1].args["root"]);
+  //  var emitted_ciphertext = txInfo.receipt.logs[2].args["ciphertext"];
+
+  //  var balanceAccount0 = await web3.eth.getBalance(accounts[0]);
   //  // Get the gas cost of the deposit function to do a precise assert
   //  var tx = await web3.eth.getTransaction(txInfo.tx);
   //  var gasCost = (tx.gasPrice) * (txInfo.receipt.gasUsed);
   //  assert.equal(
   //    balanceAccount0,
   //    initialBalanceAccount0 - (Number(web3.utils.toWei('2', 'ether')) + gasCost),
-  //    "Wrong balance for the account0: Should be decreased by 2 from the initial balance"
+  //    "Wrong balance for the accounts[0]: Should be decreased by 2 from the initial balance"
   //  );
 
   //  var balanceMixerAfterDeposit = await web3.eth.getBalance(accountMixer);
@@ -321,14 +189,36 @@ contract('Miximus', (accounts) => {
   //  // Get merkle root and merkle path for the commitment at node 15 in the tree
   //  // (The address of the commitment is 0 since the address is relative to the leaves array)
   //  let node16 = stripHexPrefix(tree[16]);
-  //  let node8= stripHexPrefix(tree[8]);
-  //  let node4= stripHexPrefix(tree[4]);
+  //  let node8 = stripHexPrefix(tree[8]);
+  //  let node4 = stripHexPrefix(tree[4]);
   //  let node2 = stripHexPrefix(tree[2]);
-  //  let tree_depth = 4; // need to match the tree depth that is used to instantiate the cli (tree depth we used for the trsuted setup)
-  //  let address = 1; // The commitment should be appended to the address 1 in the tree
+  //  let address = 0;
+
+  //  // Assert the theoretical values with the various values read from the events emitted after depositing the funds
+  //  assert.equal(
+  //    emitted_commitment_address,
+  //    address,
+  //    "The commitment address emitted is invalid"
+  //  );
+  //  assert.equal(
+  //    emitted_root,
+  //    root,
+  //    "The root emitted is invalid"
+  //  );
+  //  assert.equal(
+  //    emitted_ciphertext,
+  //    secret_ciphertext,
+  //    "The ciphertext emitted is invalid"
+  //  );
+
+  //  // The intended recipient (accounts[1]) decrypts the ciphertext to get the commitment secret to generate the proof
+  //  var decrypted_secret = decryptStringWithRsaPrivateKey(emitted_ciphertext, private_key_account_1);
 
   //  // Invoke the CLI prove command
-  //  zethProve(["prove", tree_depth, address, secret, nullifier, commitment, root, node2, node4, node8, node16]);
+	//	// This command takes the secret as one of the input, which is only accessible via the encrypted boradcast
+	//	// That can only be decrypted by the owner of the private key associated to the public key used to encrypt
+	//	// (intended recipient of the payment)
+  //  zethProve(["prove", tree_depth, emitted_commitment_address, secret, nullifier, commitment, emitted_root, node2, node4, node8, node16]);
 
   //  var path = require('path');
   //  var debug_path = process.env.ZETH_DEBUG_DIR;
@@ -336,10 +226,8 @@ contract('Miximus', (accounts) => {
   //  var extended_proof = require(extended_proof_json);
 
   //  // --- The accounts[1] does the withdrawal (recipient) --- //
-  //  var account1 = accounts[1];
-  //  var initialBalanceAccount1 = await web3.eth.getBalance(account1);
-  //  txInfo = await instance.forward(
-  //    ciphertext_secret
+  //  var initialBalanceAccount1 = await web3.eth.getBalance(accounts[1]);
+  //  txInfo = await instance.withdraw(
   //    extended_proof.a,
   //    extended_proof.a_p,
   //    extended_proof.b,
@@ -349,9 +237,9 @@ contract('Miximus', (accounts) => {
   //    extended_proof.h,
   //    extended_proof.k,
   //    extended_proof.input,
-  //    {from: account1}
+  //    {from: accounts[1]}
   //  );
-  //  var balanceAccount1 = await web3.eth.getBalance(account1);
+  //  var balanceAccount1 = await web3.eth.getBalance(accounts[1]);
 
   //  // Get the gas cost of the withdrawal function to do a precise assert
   //  tx = await web3.eth.getTransaction(txInfo.tx);
@@ -359,7 +247,7 @@ contract('Miximus', (accounts) => {
   //  assert.equal(
   //    balanceAccount1,
   //    (initialBalanceAccount1 - gasCost) + Number(web3.utils.toWei('2', 'ether')),
-  //    "Wrong balance for the account1: Should be increased by 2 from the initial balance"
+  //    "Wrong balance for the accounts[1]: Should be increased by 2 from the initial balance"
   //  );
 
   //  var balanceMixerAfterWithdrawal = await web3.eth.getBalance(accountMixer);
@@ -369,4 +257,302 @@ contract('Miximus', (accounts) => {
   //    "Wrong balance for the accountMixer: Should be 0"
   //  );
   //});
+
+  it('Test deposit-transfer-withdrawal on the mixer', async () => {
+    let instance = await Miximus.deployed();
+    let tree_depth = 4; // need to match the tree depth that is used to instantiate the cli (tree depth we used for the trsuted setup)
+
+    // ================== Trigger a Deposit from accounts[0] to accounts[1] ================== //
+    console.log("\n===== Step1: Deposit from accounts[0] to accounts[1] (in the nullifier) =====")
+    // We insert at the first available leaf (leftmost leaf --> index 7 in the tree of depth 3)
+    var deposit_secret = crypto.createHash('sha256').update("test-secret-deposit").digest('hex');
+    var deposit_nullifier = getNullifier(accounts[1]); // accounts[1] is the recipient
+    let deposit_commitment = crypto.createHash('sha256').
+            update(Buffer.from(deposit_nullifier + deposit_secret, 'hex')).
+            digest('hex');
+
+    // We encrypt the secret with the recipient's public key
+    var deposit_secret_ciphertext = encryptStringWithRsaPublicKey(deposit_secret, public_key_account_1);
+    console.log("[INFO] Ciphertext of the commitment secret that is broadcasted on the network: " + deposit_secret_ciphertext);
+
+    // --- The accounts[0] does the deposit (sender) --- //
+    // We have a mixer of std denom of 2 ether --> see migration file
+    var accountMixer = instance.address;
+    var initialBalanceMixer = await web3.eth.getBalance(accountMixer);
+    assert.equal(
+      initialBalanceMixer,
+      web3.utils.toWei('0', 'ether'),
+      "Wrong balance for the accountMixer: Should be 0"
+    );
+
+    var balance_account0_before_deposit = await web3.eth.getBalance(accounts[0]);
+    var deposit_txInfo = await instance.deposit(
+      deposit_secret_ciphertext,
+      "0x" + deposit_commitment,
+      {from: accounts[0], value: web3.utils.toWei('2', 'ether')}
+    );
+
+		assert.equal(
+      "LogAddress",
+      deposit_txInfo.receipt.logs[0].event,
+      "The first event emitted should be LogAddress"
+    );
+    assert.equal(
+      "LogMerkleRoot",
+      deposit_txInfo.receipt.logs[1].event,
+      "The second event emitted should be LogMerkleRoot"
+    );
+    assert.equal(
+      "LogSecretCiphers",
+      deposit_txInfo.receipt.logs[2].event,
+      "The third event emitted should be LogSecretCiphers"
+    );
+
+		var emitted_deposit_commitment_address = deposit_txInfo.receipt.logs[0].args["commAddr"];
+    var emitted_deposit_root = stripHexPrefix(deposit_txInfo.receipt.logs[1].args["root"]);
+    var emitted_deposit_ciphertext = deposit_txInfo.receipt.logs[2].args["ciphertext"];
+
+		var balance_account0_after_deposit = await web3.eth.getBalance(accounts[0]);
+    // Get the gas cost of the deposit function to do a precise assert
+    var deposit_tx = await web3.eth.getTransaction(deposit_txInfo.tx);
+    var deposit_gas_cost = (deposit_tx.gasPrice) * (deposit_txInfo.receipt.gasUsed);
+    // TODO: Uncomment
+    //assert.equal(
+    //  balance_account0_after_deposit,
+    //  balance_account0_before_deposit - (Number(web3.utils.toWei('2', 'ether')) + deposit_gas_cost),
+    //  "Wrong balance for the accounts[0]: Should be decreased by 2 from the initial balance"
+    //);
+
+    var balance_mixer_after_deposit = await web3.eth.getBalance(accountMixer);
+    assert.equal(
+      balance_mixer_after_deposit,
+      web3.utils.toWei('2', 'ether'),
+      "Wrong balance for the accountMixer: Should be 2"
+    );
+
+    // Get the merkle tree after insertion to generate the proof
+    let deposit_tree = await instance.getTree({from: accounts[2]});
+    for(var i = 0; i < deposit_tree.length; i++) {
+      console.log("Node(" + i + ") =>" + deposit_tree[i]);
+    }
+
+    let deposit_root = stripHexPrefix(deposit_tree[0]);
+    console.log("Root => " + deposit_root);
+
+    let deposit_commitment_inserted = deposit_tree[15];
+    console.log("Commitment inserted => " + deposit_commitment_inserted);
+    assert.equal(
+      stripHexPrefix(deposit_commitment_inserted),
+      deposit_commitment,
+      "The commitment read from the tree should be equal to the one appended"
+    )
+
+    // Get merkle root and merkle path for the commitment at node 16 in the tree
+    // (The address of the commitment is 0 since the address is relative to the leaves array)
+    let deposit_node16 = stripHexPrefix(deposit_tree[16]); // We update the merkle path to work with the new appended commitment (address = 1 here, not 0 anymore)
+    let deposit_node8 = stripHexPrefix(deposit_tree[8]);
+    let deposit_node4 = stripHexPrefix(deposit_tree[4]);
+    let deposit_node2 = stripHexPrefix(deposit_tree[2]);
+    let deposit_address = 0; // The commitment should be appended to the address 1 in the tree (address 0 is taken by commitment in previous test)
+
+		// Assert the theoretical values with the various values read from the events emitted after depositing the funds
+    assert.equal(
+      emitted_deposit_commitment_address,
+      deposit_address,
+      "The commitment address emitted is invalid"
+    );
+    assert.equal(
+      emitted_deposit_root,
+      deposit_root,
+      "The root emitted is invalid"
+    );
+    assert.equal(
+      emitted_deposit_ciphertext,
+      deposit_secret_ciphertext,
+      "The ciphertext emitted is invalid"
+    );
+
+		// The intended recipient (accounts[1]) decrypts the ciphertext to get the commitment secret to generate the proof
+    var deposit_decrypted_secret = decryptStringWithRsaPrivateKey(emitted_deposit_ciphertext, private_key_account_1);
+
+    // Invoke the CLI prove command
+    zethProve(["prove", tree_depth, emitted_deposit_commitment_address, deposit_decrypted_secret, deposit_nullifier, deposit_commitment, emitted_deposit_root, deposit_node2, deposit_node4, deposit_node8, deposit_node16]);
+
+    // We read the proof provided as argument to the transfer call
+    //var transfer_extended_proof = require(extended_proof_json);
+    var transfer_extended_proof = JSON.parse(fs.readFileSync(extended_proof_json, 'utf8'));
+
+    console.log("============== [DEBUG]: transfer proof inputs " + transfer_extended_proof.input[0])
+    console.log("============== [DEBUG]: transfer proof inputs " + transfer_extended_proof.input[1])
+    console.log("============== [DEBUG]: transfer proof inputs " + transfer_extended_proof.input[2])
+    console.log("============== [DEBUG]: transfer proof inputs " + transfer_extended_proof.input[3])
+
+    // --- The accounts[1] does the transfer to accounts[2] (recipient) --- //
+		console.log("\n ===== Step2: Accounts[1] does a transfer() to accounts[2] ====== ");
+		var transfer_secret = crypto.createHash('sha256').update("test-secret-transfer").digest('hex');
+    var transfer_nullifier = getNullifier(accounts[2]); // accounts[2] is the recipient
+    let transfer_commitment = crypto.createHash('sha256').
+            update(Buffer.from(transfer_nullifier + transfer_secret, 'hex')).
+            digest('hex');
+
+		// We encrypt the secret with the recipient's public key (recipient = accounts[2] here)
+		var transfer_secret_ciphertext = encryptStringWithRsaPublicKey(transfer_secret, public_key_account_2);
+    console.log("[INFO] Ciphertext of the commitment secret that is broadcasted on the network after the transfer call: " + transfer_secret_ciphertext);
+
+    var balance_account1_before_transfer = await web3.eth.getBalance(accounts[1]);
+    var transfer_txInfo = await instance.transfer(
+      transfer_secret_ciphertext,
+			"0x" + transfer_commitment,
+      transfer_extended_proof.a,
+      transfer_extended_proof.a_p,
+      transfer_extended_proof.b,
+      transfer_extended_proof.b_p,
+      transfer_extended_proof.c,
+      transfer_extended_proof.c_p,
+      transfer_extended_proof.h,
+      transfer_extended_proof.k,
+      transfer_extended_proof.input,
+      {from: accounts[1]}
+    );
+
+    // Get the gas cost of the withdrawal function to do a precise assert
+    var transfer_tx = await web3.eth.getTransaction(transfer_txInfo.tx);
+    var balance_account1_after_transfer = await web3.eth.getBalance(accounts[1]);
+    var transfer_gas_cost = (transfer_tx.gasPrice) * (transfer_txInfo.receipt.gasUsed);
+
+    console.log("balance_account1_before_transfer: " + balance_account1_before_transfer);
+    console.log("balance_account1_after_transfer: " + balance_account1_after_transfer);
+    console.log("transfer_gas_cost: " + transfer_gas_cost);
+    console.log("tx gas price: " + transfer_tx.gasPrice);
+    console.log("tx gas used: " + transfer_txInfo.receipt.gasUsed);
+    // TODO: Uncomment
+    //assert.equal(
+    //  balance_account1_after_transfer,
+    //  (balance_account1_before_transfer - transfer_gas_cost),
+    //  "Wrong balance for the accounts[1]: Should be decreased by the gas cost of the transfer function"
+    //);
+
+		// Make sure that the Mixer still has 2 ether in his balance after the call to the transfer function
+    var balance_mixer_after_transfer = await web3.eth.getBalance(accountMixer);
+    assert.equal(
+      balance_mixer_after_transfer,
+      web3.utils.toWei('2', 'ether'),
+      "Wrong balance for the accountMixer: Should be 2"
+    );
+
+		// Get the events emitted during the call to the transfer function (contains the ciphertext of the commitment secret)
+    assert.equal(
+      "LogAddress",
+      transfer_txInfo.receipt.logs[0].event,
+      "The first event emitted should be LogAddress"
+    );
+    assert.equal(
+      "LogMerkleRoot",
+      transfer_txInfo.receipt.logs[1].event,
+      "The second event emitted should be LogMerkleRoot"
+    );
+    assert.equal(
+      "LogSecretCiphers",
+      transfer_txInfo.receipt.logs[2].event,
+      "The third event emitted should be LogSecretCiphers"
+    );
+
+		var transfer_emitted_commitment_address = transfer_txInfo.receipt.logs[0].args["commAddr"];
+    var transfer_emitted_root = stripHexPrefix(transfer_txInfo.receipt.logs[1].args["root"]); // Strip the "0x" prefix of hex strings
+    var transfer_emitted_ciphertext = transfer_txInfo.receipt.logs[2].args["ciphertext"];
+
+    // Get the merkle tree after insertion to generate the proof
+    let transfer_tree = await instance.getTree({from: accounts[2]});
+    for(var i = 0; i < transfer_tree.length; i++) {
+      console.log("Node(" + i + ") =>" + transfer_tree[i]);
+    }
+
+    let transfer_root = stripHexPrefix(transfer_tree[0]);
+    console.log("Root => " + transfer_root);
+
+    let transfer_commitment_inserted = transfer_tree[16];
+    console.log("Commitment inserted => " + transfer_commitment_inserted);
+    assert.equal(
+      stripHexPrefix(transfer_commitment_inserted),
+      transfer_commitment,
+      "The commitment read from the tree should be equal to the one appended"
+    )
+
+    // Get merkle root and merkle path for the commitment at node 15 in the tree
+    // (The address of the commitment is 0 since the address is relative to the leaves array)
+    let transfer_node15 = stripHexPrefix(transfer_tree[15]);
+    let transfer_node8 = stripHexPrefix(transfer_tree[8]);
+    let transfer_node4 = stripHexPrefix(transfer_tree[4]);
+    let transfer_node2 = stripHexPrefix(transfer_tree[2]);
+    let transfer_address = 1;
+
+    // Assert the theoretical values with the various values read from the events emitted after depositing the funds
+    assert.equal(
+      transfer_emitted_commitment_address,
+      transfer_address,
+      "The commitment address emitted is invalid"
+    );
+    assert.equal(
+      transfer_emitted_root,
+      transfer_root,
+      "The root emitted is invalid"
+    );
+    assert.equal(
+      transfer_emitted_ciphertext,
+      transfer_secret_ciphertext,
+      "The ciphertext emitted is invalid"
+    );
+
+    // The intended recipient (accounts[1]) decrypts the ciphertext to get the commitment secret to generate the proof
+    var transfer_decrypted_secret = decryptStringWithRsaPrivateKey(transfer_emitted_ciphertext, private_key_account_2);
+
+    // Invoke the CLI prove command
+		// This command takes the secret as one of the input, which is only accessible via the encrypted boradcast
+		// That can only be decrypted by the owner of the private key associated to the public key used to encrypt
+		// (intended recipient of the payment)
+    zethProve(["prove", tree_depth, transfer_emitted_commitment_address, transfer_decrypted_secret, transfer_nullifier, transfer_commitment, transfer_emitted_root, transfer_node2, transfer_node4, transfer_node8, transfer_node15]);
+
+    // Read the proof provided as input for the withdrawal
+    //var withdraw_extended_proof = require(extended_proof_json);
+    var withdraw_extended_proof = JSON.parse(fs.readFileSync(extended_proof_json, 'utf8'));
+
+    console.log("============== [DEBUG]: withdraw proof inputs " + withdraw_extended_proof.input[0])
+    console.log("============== [DEBUG]: withdraw proof inputs " + withdraw_extended_proof.input[1])
+    console.log("============== [DEBUG]: withdraw proof inputs " + withdraw_extended_proof.input[2])
+    console.log("============== [DEBUG]: withdraw proof inputs " + withdraw_extended_proof.input[3])
+
+		// =================== Now we need to withdraw from accounts[2] account ==================== //
+		console.log("\n ===== Step3: Accounts[2] does a withdrawal and gets his balance updated =====");
+    var balance_account2_before_withdraw = await web3.eth.getBalance(accounts[2]);
+    var withdraw_txInfo = await instance.withdraw(
+      withdraw_extended_proof.a,
+      withdraw_extended_proof.a_p,
+      withdraw_extended_proof.b,
+      withdraw_extended_proof.b_p,
+      withdraw_extended_proof.c,
+      withdraw_extended_proof.c_p,
+      withdraw_extended_proof.h,
+      withdraw_extended_proof.k,
+      withdraw_extended_proof.input,
+      {from: accounts[2]}
+    );
+    var balance_account2_after_withdraw = await web3.eth.getBalance(accounts[2]);
+
+    // Get the gas cost of the withdrawal function to do a precise assert
+    var withdraw_tx = await web3.eth.getTransaction(withdraw_txInfo.tx);
+    var withdraw_gas_cost = (withdraw_tx.gasPrice) * (withdraw_txInfo.receipt.gasUsed);
+    // TODO: Uncomment
+    //assert.equal(
+    //  balance_account2_after_withdraw,
+    //  (balance_account2_before_withdraw - withdraw_gas_cost) + Number(web3.utils.toWei('2', 'ether')),
+    //  "Wrong balance for the accounts[2]: Should be increased by 2 from the initial balance"
+    //);
+
+    var balance_mixer_after_withdrawal = await web3.eth.getBalance(accountMixer);
+    assert.equal(
+      balance_mixer_after_withdrawal,
+      web3.utils.toWei('0', 'ether'),
+      "Wrong balance for the accountMixer: Should be 0"
+    );
+  });
 });
