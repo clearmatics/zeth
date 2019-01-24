@@ -7,7 +7,7 @@ template<typename FieldT>
 class COMM_gadget : gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<libsnark::sha256_ethereum<FieldT>> hasher;
+    std::shared_ptr<sha256_ethereum<FieldT>> hasher; // This really is std::shared_ptr<HashT> > hasher;
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
 
 public:
