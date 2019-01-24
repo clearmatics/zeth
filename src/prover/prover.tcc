@@ -201,13 +201,22 @@ libsnark::r1cs_ppzksnark_keypair<ppT> Miximus<ppT, HashT>::generate_trusted_setu
 
 template<typename ppT, typename HashT>
 extended_proof<ppT> Miximus<ppT, HashT>::prove(
-        std::vector<merkle_authentication_node> merkle_path, // Secret input
-        libff::bit_vector secret_bits, // Secret input
-        libff::bit_vector nullifier_bits,
-        libff::bit_vector commitment_bits, // The leaf we want to prove for in the merkle tree: Secret input
+        std::vector<merkle_authentication_node> merkle_path_1, // Secret input
+        libff::bit_vector secret_bits_1, // Secret input
+        libff::bit_vector nullifier_bits_1,
+        libff::bit_vector commitment_bits_1, // The leaf we want to prove for in the merkle tree: Secret input
+        libff::bit_vector address_bits_1, // Secret input
+        size_t address_1,
+        std::vector<merkle_authentication_node> merkle_path_2, // Secret input
+        libff::bit_vector secret_bits_2, // Secret input
+        libff::bit_vector nullifier_bits_2,
+        libff::bit_vector commitment_bits_2, // The leaf we want to prove for in the merkle tree: Secret input
+        libff::bit_vector address_bits_2, // Secret input
+        size_t address_2,
+        size_t value_new_1,
+        size_t value_new_2,
+        size_t value_pub,
         libff::bit_vector root_bits,
-        libff::bit_vector address_bits, // Secret input
-        size_t address, // TODO: Remove the need for the address bits and create the bit_vector from the size_t value (in little endian)
         libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key // We pass all the inputs and the proving key to generate a proof
     )
 {

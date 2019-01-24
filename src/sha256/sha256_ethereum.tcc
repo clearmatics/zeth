@@ -42,6 +42,8 @@ sha256_ethereum<FieldT>::sha256_ethereum(libsnark::protoboard<FieldT> &pb,
 
     // Set the zero variable to the zero of our field, to later transform
     // boolean vectors into vectors of ONE and ZERO in our field FieldT
+    // TODO: pass ZERO as argument and delete these instructions. 
+    // It should alredy be allocated on the protoboard which is given as argument of this function
     libsnark::pb_variable<FieldT> ZERO;
     ZERO.allocate(pb, "ZERO");
     pb.val(ZERO) = FieldT::zero(); // Here we want pb.val(ZERO) = 0;

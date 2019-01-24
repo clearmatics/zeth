@@ -1,5 +1,5 @@
-#ifndef __ZETH_PROVER_HPP__
-#define __ZETH_PROVER_HPP__
+#ifndef __ZETH_MAIN_CIRCUIT_HPP__
+#define __ZETH_MAIN_CIRCUIT_HPP__
 
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
@@ -14,35 +14,28 @@
 using namespace libsnark;
 using namespace libff;
 
-// TODO: Refactor the prover to define a standard interface, and define a ProverT template
-// to be able to us the CLI to generate proofs for different computations (ie: Different circuits)
-template<typename ppT, typename HashT>
-class Miximus {
-    public:
+template<typename ppT, typename HashT, size_t NumInputs, size_t NumOutputs>
+class joinsplit_gadget : gadget<libff::Fr<ppT> > {
+    private:
         typedef libff::Fr<ppT> FieldT;
 
-        // --  Attributes -- // --> defined in the zeth.h file
-        // const size_t tree_depth; // Not needed anymore as it is defined in the zeth.h file
+        const size_t tree_depth;
 
-        // -- JoinSplit settings -- // --> Defined in the zeth.h file
+        // -- JoinSplit settings -- //
         // Hardcoded to 2 to start with, and we'll see if we can increase this further later.
-        // TODO: For now we keep the JoinSplit as simple as possible by enabling
-        // to pour only 2 old coins into 2 newer coins. In the future, we want to replace most of the given
-        // variables into arrays in order to enable to pour N coins into M other coins.
-        //const size_t max_inputs = 2;
-        //const size_t max_outputs = 2;
-
+        const size_t max_inputs = 2;
+        const size_t max_outputs = 2;
         // We define the max amount of a coin (testing purpose)
         const unsigned int max_amount = 1000;
 
-        protoboard<libff::Fr<ppT> > pb;
+        // Multipacking gadgets for the inputs (root and nullifierS)
+        std::shared_ptr<multipacking_gadget<FieldT> > multipacking_gadget_root;
+        std::array<std::shared_ptr<multipacking_gadget<FieldT> > > multipacking_gadgets_nullifiers;
 
-        // Multipacking gadgets for the 2 inputs
-        std::shared_ptr<multipacking_gadget<libff::Fr<ppT> > > multipacking_gadget_1;
-        std::shared_ptr<multipacking_gadget<libff::Fr<ppT> > > multipacking_gadget_2;
-
-        // root_digest of the merkle tree, the commitment we want to "spend" is in
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > root_digest;
+        std::shared_ptr<digest_variable<libff::Fr<ppT> > > root_digest; // merkle root
+        std::array<std::shared_ptr<digest_variable<FieldT>, NumInputs> > input_nullifiers;
+        std::array<std::shared_ptr<digest_variable<FieldT>, NumOutputs> > output_commitments;
+        pb_variable_array<FieldT> zk_vpub_old;
 
         //// ===== Variables used to compute the nullifier -- PRF
         std::shared_ptr<digest_variable<libff::Fr<ppT> > > rho; // Page 22, section 5.1 Zerocash extended paper (rho is set to be 256 bits)
@@ -92,7 +85,7 @@ class Miximus {
         std::shared_ptr <block_variable<libff::Fr<ppT> > > inputs;
 
         pb_variable<libff::Fr<ppT> > ZERO;
-
+size_t NumInputs, size_t NumOutputs
         // TODO:
         // `unpacked_inputs`, and `packed_inputs` should be `pb_linear_combination_array`
         // According to the constructor of the multipacking_gadget
