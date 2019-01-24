@@ -8,6 +8,7 @@
 
 #define ZETH_V_SIZE 8 // 64bits for the value
 #define ZETH_RHO_SIZE 32 // 256bits for rho
+#define ZETH_A_SK_SIZE 32 // 256bits for rho
 #define ZETH_R_SIZE 48 // 384bits for r
 
-#endif // ZC_ZCASH_H_
+#endif // ZETH_CONSTANTS_H_
