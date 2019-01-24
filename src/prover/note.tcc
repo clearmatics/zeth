@@ -241,7 +241,10 @@ public:
         // valid.
         commitment->bits.fill_with_bits(
             this->pb,
-            uint256_to_bool_vector(note.cm())
+            uint256_to_bool_vector(note.cm) 
+            // The cm is an attribute of the zethNote, rather than a function
+            // since the hash of the coin is computed outside of 
+            // the cpp module and set to the zethNote afterwards
         );
 
         // Set enforce flag for nonzero input value
@@ -303,7 +306,7 @@ public:
             outer_k->bits,
             this->value,
             commitment
-        ));generate_r1cs_constraints
+        ));
     }
 
     void generate_r1cs_constraints() {
