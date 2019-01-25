@@ -11,6 +11,9 @@
 #include <sha256/sha256_ethereum.hpp>
 #include "computation.hpp"
 
+#include "zeth.h" // Contains the definitions of the constants we use
+#include "prover/note.tcc" // Contains the circuits for the notes
+
 using namespace libsnark;
 using namespace libff;
 
@@ -19,109 +22,287 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
     private:
         typedef libff::Fr<ppT> FieldT;
 
-        const size_t tree_depth;
-
-        // -- JoinSplit settings -- //
-        // Hardcoded to 2 to start with, and we'll see if we can increase this further later.
-        const size_t max_inputs = 2;
-        const size_t max_outputs = 2;
-        // We define the max amount of a coin (testing purpose)
-        const unsigned int max_amount = 1000;
-
         // Multipacking gadgets for the inputs (root and nullifierS)
-        std::shared_ptr<multipacking_gadget<FieldT> > multipacking_gadget_root;
-        std::array<std::shared_ptr<multipacking_gadget<FieldT> > > multipacking_gadgets_nullifiers;
+        //
+        // WARNING: "multipacking_gadget" are not needed since we generate the primary input using
+        // the function witness_map that basically packs the bit vectors into a vector of
+        // field elements, while making sure it is done correctly
+        //
+        //std::shared_ptr<multipacking_gadget<FieldT> > multipacking_gadget_root;
+        //std::array<std::shared_ptr<multipacking_gadget<FieldT> >, NumInputs> multipacking_gadgets_nullifiers;
 
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > root_digest; // merkle root
-        std::array<std::shared_ptr<digest_variable<FieldT>, NumInputs> > input_nullifiers;
-        std::array<std::shared_ptr<digest_variable<FieldT>, NumOutputs> > output_commitments;
-        pb_variable_array<FieldT> zk_vpub_old;
+        // ---- Primary inputs (public)
+        std::shared_ptr<digest_variable<FieldT> > root_digest; // merkle root
+        std::array<std::shared_ptr<digest_variable<FieldT>, NumInputs> > input_nullifiers; // List of nullifiers of the notes to spend
+        std::array<std::shared_ptr<digest_variable<FieldT>, NumOutputs> > output_commitments; // List of commitments generated for the new notes
+        pb_variable_array<FieldT> zk_vpub; // Value that is taken out of the mix
 
-        //// ===== Variables used to compute the nullifier -- PRF
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > rho; // Page 22, section 5.1 Zerocash extended paper (rho is set to be 256 bits)
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > a_sk; // Page 22, section 5.1, paragraph "Instantiating the NP statement POUR" Zerocash extended paper (a_sk is set to be 256 bits)
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > rho_front_padding; // Page 22, section 5.1, padding of '01' to pad rho in the generation of the serial nb
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > nullifier_right_part; // Thsi is '01' || [rho]_254 (the 254 MSB of rho)
+        // ---- Auxiliary inputs (private)
+        pb_variable<FieldT> ZERO;
+        pb_variable_array<FieldT> zk_total_uint64;
 
-        //// ===== Variables used to generate the a_pk from a_sk -- PRF
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > a_sk_back_padding; // Page 22, section 5.1, a_sk is padded by 256 0's to get a_pk
-        std::shared_ptr<sha256_ethereum<libff::Fr<ppT> > > hash_gadget_a_pk; // Hash used to compute sha256(a_sk || 0^256)
+        // Input note gadgets
+        std::array<std::shared_ptr<input_note_gadget<FieldT>>, NumInputs> input_notes;
 
-        //// ===== Variables used to compute the inner commitment k (k = sha256(r || [sha256(a_pk || rho)]_128)), where r is a 384 bit string
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > trap_r; // Here we are careful to set the length of this digest variable to 384 bits AND NOT digest_len !!!
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > a_pk; // Page 22, section 5.1 Zerocash extended paper (a_pk is set to be 256 bits)
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > inner_commitment_k;
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > inner_commitment_k_left_part; // The left part of this commitment is the first 256 bits of trap_r
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > inner_commitment_k_right_part; // The right part of this commitment is the last 128 bits of trap_r || the 128 most significant bits of [sha256(a_pk || rho)]_128
-        std::shared_ptr<sha256_ethereum<libff::Fr<ppT> > > hash_gagdet_inner_commitment_k_inner; // Hash used to compute [sha256(a_pk || rho)]_128 in k
-        std::shared_ptr<sha256_ethereum<libff::Fr<ppT> > > hash_gagdet_inner_commitment_k_outer; // Hash used to compute sha256(r || hash_inner)
+        // Output note gadgets
+        std::array<std::shared_ptr<output_note_gadget<FieldT>>, NumOutputs> output_notes;
 
-        //// ===== Variables used to compute the outer commitment cm (that is appended in the merkle tree)
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > value_v; // Page 22, section 5.1 Zerocash extended paper (value_v is set to be 64 bits)
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > value_v_front_padding; // Page 22, section 5.1 Zerocash extended paper (the value_v is front padded with 192 0's)
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > outer_commitment_right_part; // This is the digest made of 0^192 || value_v => 256-bit string
-        std::shared_ptr<digest_variable<libff::Fr<ppT> > > outer_commitment_cm; // The left part of the outer commitment is the inner_commitment=_k
+    public:
+        // Make sure that we do not exceed the number of inputs/outputs
+        // specified in the configuration of the JoinSplit (see: zeth.h file)
+        //
+        // Note1: We can relax the condition to have 2ins for 2outs for the joinsplit
+        // by supporting dummy notes of value 0 
+        // (this is, already supported via the constraint [value * (1 - enforce)]) in the merkle tree checks
+        //
+        // Note2: We should be able to easily relax the 2-2 configuration by increasing the
+        // constants ZETH_NUM_JS_INPUTS and ZETH_NUM_JS_OUTPUTS in the project configuration
+        assert(NumInputs <= ZETH_NUM_JS_INPUTS);
+        assert(NumOutputs <= ZETH_NUM_JS_OUTPUTS);
 
-        // hash gadget to generate the commitment from the nullifier and the commitment_secret
-        // such that: commitment = sha256_ethereum(nullifier, commitment_secret)
-        std::shared_ptr<sha256_ethereum<libff::Fr<ppT> > > hash_gagdet_outer_commitment_cm; // Hash used to compute cm = sha256(k || 0^192 || value_v)
+        // ---- Primary inputs in a packed form to be added to the extended proof 
+        // Given to the verifier on-chain
+        //
+        // WARNING: "multipacking_gadget" are not needed since we generate the primary input using
+        // the function witness_map that basically packs the bit vectors into a vector of
+        // field elements, while making sure it is done correctly
+        //
+        ////pb_variable_array<FieldT> packed_root;
+        ////std::array<pb_variable_array<FieldT>, NumInputs> packed_nullifiers;
 
-        // merkle_authentication_path_variable is a list of length = merkle_tree_depth
-        // whose elements are couples in the form: (left_digest, right_digest)
-        std::shared_ptr<merkle_authentication_path_variable<libff::Fr<ppT>, HashT> > path_variable;
+        joinsplit_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
+            ZERO.allocate(pb);
+            zk_total_uint64.allocate(pb, 64);
 
-        // The merkle_tree_check_read_gadget gadget checks the following:
-        // given a root R, address A, value V, and authentication path P, check that P is
-        // a valid authentication path for the value V as the A-th leaf in a Merkle tree with root R.
-        std::shared_ptr<merkle_tree_check_read_gadget<libff::Fr<ppT>, HashT> > check_membership;
+            for (size_t i = 0; i < NumInputs; i++) {
+                // Input note gadget for commitments, macs, nullifiers,
+                // and spend authority.
+                input_notes[i].reset(new input_note_gadget<FieldT>(
+                    pb,
+                    ZERO,
+                    input_nullifiers[i],
+                    *root_digest
+                ));
 
-        // Equivalent to positions var here:
-        // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/merkle.tcc#L6
-        pb_variable_array<libff::Fr<ppT> > address_bits_va; // TODO: See if this needs to be replaced by a pb_linear_combination_array (got an out of bound container error last time I tried... To investigate)
+                // multipacking gadgets to pack the public inputs into field elements to
+                // be given to the on-chain verifier. Here we pack the nullifiers of the
+                // note we spend (input of the joinsplit)
+                ////multipacking_gadgets_nullifiers[i].reset(new multipacking_gadget<FieldT>(
+                ////    pb,
+                ////    input_nullifiers[i]->bits,
+                ////    packed_nullifiers[i],
+                ////    FieldT::capacity(),
+                ////    "multipacking_gadgets_nullifiers"
+                ////));
+            }
 
-        // A block_variable is a type corresponding to the input of the hash_gagdet
-        // Thus the different parts of the input are all put into a block_variable
-        // in order to be hashed and constitute a commitment.
-        std::shared_ptr <block_variable<libff::Fr<ppT> > > inputs;
+            for (size_t i = 0; i < NumOutputs; i++) {
+                output_notes[i].reset(new output_note_gadget<FieldT>(
+                    pb,
+                    ZERO,
+                    output_commitments[i]
+                ));
+            }
 
-        pb_variable<libff::Fr<ppT> > ZERO;
-size_t NumInputs, size_t NumOutputs
-        // TODO:
-        // `unpacked_inputs`, and `packed_inputs` should be `pb_linear_combination_array`
-        // According to the constructor of the multipacking_gadget
-        // Thus we should either:
-        // 1. Convert them from `pb_variable_array` to `pb_linear_combination_array`
-        // using the function pb_linear_combination_array(const pb_variable_array<FieldT> &arr) { for (auto &v : arr) this->emplace_back(pb_linear_combination<FieldT>(v)); }
-        // from the `pb_linear_combination_array` class in `pb_variable.hpp`
-        // OR
-        // 2. Change the type of `unpacked_inputs`, and `packed_inputs`
-        // to `pb_linear_combination_array` directly
+            // multipacking gadgets to pack the public inputs into field elements to
+            // be given to the on-chain verifier. Here we pack the root of the merkle tree
+            ////multipacking_gadget_root.reset(new multipacking_gadget<FieldT>(
+            ////    pb,
+            ////    root_digest->bits,
+            ////    packed_root,
+            ////    FieldT::capacity(),
+            ////    "multipacking_gadget_root"
+            ////));
+        }
 
-        // First input in an "unpacked" form, ie: a sequence of bits
-        pb_variable_array<libff::Fr<ppT> > unpacked_root_digest;
-        // First input in a "packed" form, ie: a sequence of field elements
-        pb_variable_array<libff::Fr<ppT> > packed_root_digest;
+        void generate_r1cs_constraints() {
+            // The true passed here ensures all the inputs
+            // are boolean constrained.
+            unpacker->generate_r1cs_constraints(true);
 
-        // Second input in an "unpacked" form, ie: a sequence of bits
-        pb_variable_array<libff::Fr<ppT> > unpacked_nullifier;
-        // Second input in a "packed" form, ie: a sequence of field elements
-        pb_variable_array<libff::Fr<ppT> > packed_nullifier;
+            // Constrain `ZERO`
+            // Make sure that the ZERO variable is the zero of the field
+            generate_r1cs_equals_const_constraint<FieldT>(this->pb, ZERO, FieldT::zero(), "ZERO");
 
-        // -- Methods -- //
-        Miximus(const size_t merkle_tree_depth);
-        libsnark::r1cs_ppzksnark_keypair<ppT> generate_trusted_setup();
-        extended_proof<ppT> prove(
-                std::vector<merkle_authentication_node> merkle_path,
-                libff::bit_vector secret_bits,
-                libff::bit_vector nullifier_bits,
-                libff::bit_vector commitment_bits,
-                libff::bit_vector root_bits,
-                libff::bit_vector address_bits,
-                size_t address,
-                libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key
+            for (size_t i = 0; i < NumInputs; i++) {
+                // Constrain the JoinSplit input constraints.
+                input_notes[i]->generate_r1cs_constraints();
+            }
+
+            for (size_t i = 0; i < NumOutputs; i++) {
+                // Constrain the JoinSplit output constraints.
+                output_notes[i]->generate_r1cs_constraints();
+            }
+
+            // Value balance // WARNING: This is the Core of the JoinSplit.
+            // Here we check that the condition of the joinsplit holds (ie: Sum_in = Sum_out)
+            {
+                for (size_t i = 0; i < NumInputs; i++) {
+                    left_side = left_side + packed_addition(input_notes[i]->value);
+                }
+
+                // Here we only allow vpub to be used on the output side (withdraw)
+                linear_combination<FieldT> right_side = packed_addition(zk_vpub);
+                for (size_t i = 0; i < NumOutputs; i++) {
+                    right_side = right_side + packed_addition(output_notes[i]->value);
+                }
+
+                // Ensure that both sides are equal (ie: 1 * left_side = right_side)
+                this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
+                    1,
+                    left_side,
+                    right_side
+                ));
+
+                // #854: Ensure that left_side is a 64-bit integer.
+                for (size_t i = 0; i < 64; i++) {
+                    generate_boolean_r1cs_constraint<FieldT>(
+                        this->pb,
+                        zk_total_uint64[i],
+                        ""
+                    );
+                }
+
+                // Ensure that the sum on the left has been correctly computed
+                // as the sum of the inputs
+                //
+                // This constraint coupled with the constraint above (ie: that both sides are equal)
+                // ensure that no value is created out of thin air
+                this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
+                    1,
+                    left_side,
+                    packed_addition(zk_total_uint64)
+                ));
+            }
+        }
+
+        void generate_r1cs_witness(
+            const uint256& rt,
+            const std::array<JSInput, NumInputs>& inputs,
+            const std::array<ZethNote, NumOutputs>& outputs,
+            uint64_t vpub
+        ) {
+            // Witness `zero`
+            this->pb.val(ZERO) = FieldT::zero();
+
+            // Witness rt. This is not a sanity check.
+            //
+            // This ensures the read gadget constrains
+            // the intended root in the event that
+            // both inputs are zero-valued.
+            root_digest->bits.fill_with_bits(
+                this->pb,
+                uint256_to_bool_vector(rt)
+            );
+
+            // Witness public balance value 
+            // (vpub represents the public value that is withdrawn from the mixer)
+            // v_pub is only allowed on the right side (output) in our case
+            zk_vpub.fill_with_bits(
+                this->pb,
+                uint64_to_bool_vector(vpub)
+            );
+
+            {
+                // Witness total_uint64 bits
+                uint64_t left_side_acc = 0; // We don't allow vpub on the left in our case
+                for (size_t i = 0; i < NumInputs; i++) {
+                    left_side_acc += inputs[i].note.value();
+                }
+
+                zk_total_uint64.fill_with_bits(
+                    this->pb,
+                    uint64_to_bool_vector(left_side_acc)
                 );
+            }
+
+            for (size_t i = 0; i < NumInputs; i++) {
+                // Witness the input information.
+                auto merkle_path = inputs[i].witness_merkle_path;
+                auto merkle_path = inputs[i].address;
+                auto merkle_path = inputs[i].address_bits;
+                zk_input_notes[i]->generate_r1cs_witness(
+                    merkle_path,
+                    address,
+                    address_bits,
+                    inputs[i].spending_key_a_sk,
+                    inputs[i].note
+                );
+            }
+
+            for (size_t i = 0; i < NumOutputs; i++) {
+                // Witness the output information.
+                zk_output_notes[i]->generate_r1cs_witness(outputs[i]);
+            }
+
+            // [SANITY CHECK] Ensure that the intended root
+            // was witnessed by the inputs, even if the read
+            // gadget overwrote it. This allows the prover to
+            // fail instead of the verifier, in the event that
+            // the roots of the inputs do not match the
+            // treestate provided to the proving API.
+            root_digest->bits.fill_with_bits(
+                this->pb,
+                uint256_to_bool_vector(rt)
+            );
+
+            // This happens last, because only by now are all the
+            // verifier inputs resolved.
+            unpacker->generate_r1cs_witness_from_bits();
+        }
+
+        // Checkpoint
+        static r1cs_primary_input<FieldT> witness_map(
+            const uint256& rt,
+            const std::array<uint256, NumInputs>& nullifiers,
+            const std::array<uint256, NumOutputs>& commitments,
+            uint64_t vpub,
+        ) {
+            std::vector<bool> verify_inputs;
+
+            insert_uint256(verify_inputs, rt);
+            insert_uint256(verify_inputs, h_sig);
+            
+            for (size_t i = 0; i < NumInputs; i++) {
+                insert_uint256(verify_inputs, nullifiers[i]);
+                insert_uint256(verify_inputs, macs[i]);
+            }
+
+            for (size_t i = 0; i < NumOutputs; i++) {
+                insert_uint256(verify_inputs, commitments[i]);
+            }
+
+            insert_uint64(verify_inputs, vpub_old);
+            insert_uint64(verify_inputs, vpub_new);
+
+            assert(verify_inputs.size() == verifying_input_bit_size());
+            auto verify_field_elements = pack_bit_vector_into_field_element_vector<FieldT>(verify_inputs);
+            assert(verify_field_elements.size() == verifying_field_element_size());
+            return verify_field_elements;
+        }
+
+        static size_t verifying_input_bit_size() {
+            size_t acc = 0;
+
+            acc += 256; // the merkle root (anchor)
+            acc += 256; // h_sig
+            for (size_t i = 0; i < NumInputs; i++) {
+                acc += 256; // nullifier
+                acc += 256; // mac
+            }
+            for (size_t i = 0; i < NumOutputs; i++) {
+                acc += 256; // new commitment
+            }
+            acc += 64; // vpub_old
+            acc += 64; // vpub_new
+
+            return acc;
+        }
+
+        static size_t verifying_field_element_size() {
+            return div_ceil(verifying_input_bit_size(), FieldT::capacity());
+        }
 };
 
-#include "prover.tcc"
 
 #endif
