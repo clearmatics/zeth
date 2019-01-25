@@ -251,7 +251,9 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             unpacker->generate_r1cs_witness_from_bits();
         }
 
-        // Checkpoint
+        // This function takes the inputs of the circuits, and return the r1cs_primary_inputs
+        // that basically are a list of packed field elements to be added to the
+        // extended proof structure that is given to the verifier contract for on-chain verification
         static r1cs_primary_input<FieldT> witness_map(
             const uint256& rt,
             const std::array<uint256, NumInputs>& nullifiers,
@@ -261,46 +263,46 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             std::vector<bool> verify_inputs;
 
             insert_uint256(verify_inputs, rt);
-            insert_uint256(verify_inputs, h_sig);
             
             for (size_t i = 0; i < NumInputs; i++) {
                 insert_uint256(verify_inputs, nullifiers[i]);
-                insert_uint256(verify_inputs, macs[i]);
             }
 
             for (size_t i = 0; i < NumOutputs; i++) {
                 insert_uint256(verify_inputs, commitments[i]);
             }
 
-            insert_uint64(verify_inputs, vpub_old);
-            insert_uint64(verify_inputs, vpub_new);
-
-            assert(verify_inputs.size() == verifying_input_bit_size());
+            insert_uint64(verify_inputs, vpub);
+            
+            assert(verify_inputs.size() == get_input_bit_size());
+            // The pack_bit_vector_into_field_element_vector function is implemented in
+            // the file: libsnark/algebra/fields/field_utils.tcc
             auto verify_field_elements = pack_bit_vector_into_field_element_vector<FieldT>(verify_inputs);
-            assert(verify_field_elements.size() == verifying_field_element_size());
+            assert(verify_field_elements.size() == get_field_element_size());
             return verify_field_elements;
         }
 
-        static size_t verifying_input_bit_size() {
+        // This function computes the size of the primary input
+        // the inputs being binary strings here
+        static size_t get_input_bit_size() {
             size_t acc = 0;
 
             acc += 256; // the merkle root (anchor)
-            acc += 256; // h_sig
             for (size_t i = 0; i < NumInputs; i++) {
                 acc += 256; // nullifier
-                acc += 256; // mac
             }
             for (size_t i = 0; i < NumOutputs; i++) {
                 acc += 256; // new commitment
             }
-            acc += 64; // vpub_old
-            acc += 64; // vpub_new
+            acc += 64; // vpub
 
             return acc;
         }
 
+        // This function computes the size of the primary input
+        // the inputs being field elements
         static size_t verifying_field_element_size() {
-            return div_ceil(verifying_input_bit_size(), FieldT::capacity());
+            return div_ceil(get_input_bit_size(), FieldT::capacity());
         }
 };
 
