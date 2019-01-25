@@ -7,7 +7,7 @@ template<typename FieldT>
 class COMM_gadget : gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<sha256_ethereum<FieldT>> hasher; // This really is std::shared_ptr<HashT> > hasher;
+    std::shared_ptr<sha256_ethereum<FieldT>> hasher;
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
 
 public:
@@ -93,7 +93,7 @@ libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
 // value of the commitment_k without needing 2 distinct gadgets for this
 // Note that the value of the commitment_k needs to be accessible/retreivable as it
 // is used as argument of the deposit function call to check the value of the commitment
-
+//
 // See Zerocash extended paper, page 22
 // The commitment k is computed as k = sha256(r || [sha256(a_pk || rho)]_128)
 // where we define the left part: inner_k = sha256(a_pk || rho)
