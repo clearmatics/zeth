@@ -104,8 +104,6 @@ public:
 
 // PRF to generate the nullifier
 // nf = sha256(a_sk || 01 || [rho]_254): See Zerocash extended paper, page 22
-// WARNING: For now, we keep it simple and just generate the nullifier/serial nb as
-// nf = sha256(a_sk || rho)
 template<typename FieldT>
 class PRF_nf_gadget : public PRF_gadget<FieldT> {
 public:
