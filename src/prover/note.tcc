@@ -8,7 +8,7 @@
 
 // Gadget that makes sure that the note:
 // - Has a value < 2^64
-// - Has a r trapdoor which is a 384-bit string
+// - Has a valid r trapdoor which is a 384-bit string
 template<typename FieldT>
 class note_gadget : public gadget<FieldT> {
 public:
@@ -16,12 +16,12 @@ public:
     libsnark::pb_variable_array<FieldT> r; // Trapdoor r of the note (384 bits)
 
     note_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
-        value.allocate(pb, 64);
-        r.allocate(pb, 384);
+        value.allocate(pb, ZETH_V_SIZE * 8); // ZETH_V_SIZE * 8 = 8 * 8 = 64
+        r.allocate(pb, ZETH_R_SIZE * 8); // ZETH_R_SIZE * 8 = 48 * 8 = 384
     }
 
     void generate_r1cs_constraints() {
-        for (size_t i = 0; i < 64; i++) {
+        for (size_t i = 0; i < ZETH_V_SIZE * 8; i++) {
             generate_boolean_r1cs_constraint<FieldT>(
                 this->pb,
                 value[i],
@@ -29,7 +29,7 @@ public:
             );
         }
 
-        for (size_t i = 0; i < 384; i++) {
+        for (size_t i = 0; i < ZETH_R_SIZE * 8; i++) {
             generate_boolean_r1cs_constraint<FieldT>(
                 this->pb,
                 r[i],
@@ -38,14 +38,12 @@ public:
         }
     }
 
-    // TODO: Implement the ZethNote class (which should be very similar - not to stay - identical to the SproutNote class)
     void generate_r1cs_witness(const ZethNote& note) {
         // TODO: Implement trap_r_to_bool_vector as being a function that
         // - Convert R (uint256) into a bool_vector
         // - Takes 128 arbitrary bits out of this bool vector in order to build a 384-bit string
         r.fill_with_bits(this->pb, trap_r_to_bool_vector(note.r));
         value.fill_with_bits(this->pb, uint64_to_bool_vector(note.value()));
-        rho.fill_with_bits(this->pb, uint256_to_bool_vector(note.rho));
     }
 };
 
@@ -56,7 +54,7 @@ public:
 template<typename FieldT>
 class input_note_gadget : public note_gadget<FieldT> {
 private:
-    std::shared_ptr<digest_variable<FieldT>> a_pk; // output of a PRF
+    std::shared_ptr<digest_variable<FieldT>> a_pk; // output of a PRF (is a digest_variable)
     libsnark::pb_variable_array<FieldT> rho; // nullifier seed rho of the note (256 bits)
 
     std::shared_ptr<COMM_inner_k_gadget<FieldT>> commit_to_inputs_inner_k;
@@ -64,7 +62,7 @@ private:
     std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_inputs_cm;
     std::shared_ptr<digest_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
 
-    pb_variable<FieldT> value_enforce; // bit that checks whether the commitment(leaf) is in the merkle tree
+    pb_variable<FieldT> value_enforce; // bit that checks whether the commitment(leaf) is in the merkle tree (used to support dummy notes of value 0)
     pb_variable_array<FieldT> address_bits_va;
     std::shared_ptr<merkle_authentication_path_variable<FieldT, sha256_ethereum<FieldT> > > auth_path;
     std::shared_ptr<merkle_tree_check_read_gadget<FieldT, sha256_ethereum<FieldT> > > check_membership;
@@ -80,8 +78,8 @@ public:
         std::shared_ptr<digest_variable<FieldT>> nullifier,
         digest_variable<FieldT> rt // merkle_root
     ) : note_gadget<FieldT>(pb) {
-        a_sk.allocate(pb, 256);
-        rho.allocate(pb, 256);
+        a_sk.allocate(pb, ZETH_A_SK_SIZE * 8); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
+        rho.allocate(pb, ZETH_RHO_SIZE * 8); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
         address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
         a_pk.reset(new digest_variable<FieldT>(pb, 256, ""));
         commitment.reset(new digest_variable<FieldT>(pb, 256, ""));
@@ -95,9 +93,9 @@ public:
             a_pk
         ));
     
-        // Call to the "PRF_nf_gadget" to make sMerklePathure the nullifier
-        // is correctly computed from a_sk and rMerklePathho
-        expose_nullifiers.reset(new PRF_nf_gadgeMerklePatht<FieldT>(
+        // Call to the "PRF_nf_gadget" to make sure the nullifier
+        // is correctly computed from a_sk and rho
+        expose_nullifiers.reset(new PRF_nf_gadget<FieldT>(
             pb,
             ZERO,
             a_sk,
@@ -105,7 +103,7 @@ public:
             nullifier
         ));
 
-        // Checkpoint: Below this point, we need to do several calls 
+        // Below this point, we need to do several calls 
         // to the commitment gagdets.
         //
         // Call to the "note_commitment_gadget" to make sure that the
@@ -140,7 +138,7 @@ public:
         // commitment is in the merkle tree of root rt
         auth_path.reset(new merkle_authentication_path_variable<FieldT, sha256_ethereum<FieldT>> (
             pb,
-            ZETH_MERKLE_TREE_DEPTH, // Defined in the zeth.h file
+            ZETH_MERKLE_TREE_DEPTH,
             "auth_path"
         ));
         check_membership.reset(new merkle_tree_check_read_gadget<FieldT, sha256_ethereum<FieldT>>(
@@ -150,7 +148,7 @@ public:
             *commitment,
             rt,
             *auth_path,
-            value_enforce,
+            value_enforce, // boolean that is set to ONE is the cm is in the tree of root rt, ZERO otherwise
             "check_membership"
         ));
     }
@@ -260,8 +258,6 @@ public:
         check_membership->generate_r1cs_witness();
     }
 };
-
-// Checkpoint
 
 // Commit to the output notes of the JS
 template<typename FieldT>
