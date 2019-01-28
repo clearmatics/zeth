@@ -1,6 +1,8 @@
 #ifndef __ZETH_NOTES_CIRCUITS_TCC__
 #define __ZETH_NOTES_CIRCUITS_TCC__
 
+#include "bits256.hpp"
+
 // Disclaimer: Content taken and adapted from the Zcash codebase
 
 // Reminder on the structure of a coin. 
@@ -201,7 +203,7 @@ public:
         std::vector<merkle_authentication_node> merkle_path,
         size_t address,
         libff::bit_vector address_bits,
-        const uint256 a_sk_in,
+        const bits256 a_sk_in,
         const ZethNote& note
     ) {
         note_gadget<FieldT>::generate_r1cs_witness(note);
@@ -209,7 +211,7 @@ public:
         // Witness a_sk for the input
         a_sk->bits.fill_with_bits(
             this->pb,
-            uint256_to_bool_vector(a_sk_in)
+            get_vector_from_bits256(a_sk_in)
         );
 
         // Witness a_pk for a_sk with PRF_addr
@@ -218,13 +220,13 @@ public:
         // [SANITY CHECK] Witness a_pk with note information
         a_pk->bits.fill_with_bits(
             this->pb,
-            uint256_to_bool_vector(note.a_pk)
+            get_vector_from_bits256(note.a_pk)
         );
 
         // Witness rho for the input note
         rho->bits.fill_with_bits(
             this->pb,
-            uint256_to_bool_vector(note.rho)
+            get_vector_from_bits256(note.rho)
         );
 
         // Witness the nullifier for the input note
@@ -239,7 +241,7 @@ public:
         // valid.
         commitment->bits.fill_with_bits(
             this->pb,
-            uint256_to_bool_vector(note.cm) 
+            get_vector_from_bits256(note.cm) 
             // The cm is an attribute of the zethNote, rather than a function
             // since the hash of the coin is computed outside of 
             // the cpp module and set to the zethNote afterwards
@@ -322,12 +324,12 @@ public:
         // note information.
         rho->bits.fill_with_bits(
             this->pb,
-            uint256_to_bool_vector(note.rho)
+            get_vector_from_bits256(note.rho)
         );
 
         a_pk->bits.fill_with_bits(
             this->pb,
-            uint256_to_bool_vector(note.a_pk)
+            get_vector_from_bits256(note.a_pk)
         );
 
         commit_to_outputs_inner_k->generate_r1cs_witness();
