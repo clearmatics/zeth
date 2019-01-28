@@ -232,7 +232,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
         }
 
         void generate_r1cs_witness(
-            const uint256& rt,
+            const bits256& rt,
             const std::array<JSInput, NumInputs>& inputs,
             const std::array<ZethNote, NumOutputs>& outputs,
             uint64_t vpub
