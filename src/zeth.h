@@ -1,5 +1,5 @@
-#ifndef ZETH_CONSTANTS_H_
-#define ZETH_CONSTANTS_H_
+#ifndef __ZETH_CONSTANTS__
+#define __ZETH_CONSTANTS__
 
 #define ZETH_NUM_JS_INPUTS 2
 #define ZETH_NUM_JS_OUTPUTS 2
@@ -11,4 +11,7 @@
 #define ZETH_A_SK_SIZE 32 // 256 bits for rho
 #define ZETH_R_SIZE 48 // 384 bits for r
 
-#endif // ZETH_CONSTANTS_H_
+#define ZETH_DIGEST_BIT_SIZE 256 // Size of a sha256 digest in bits
+#define ZETH_DIGEST_HEX_SIZE 64 // Size of a sha256 digest in hex characters
+
+#endif // __ZETH_CONSTANTS__
