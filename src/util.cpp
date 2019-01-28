@@ -5,11 +5,11 @@
 #include "util.hpp"
 
 // Takes a binary string and swaps the bit endianness
-// ie: The output is Big Endian if the input was Little Endian
+// ie: The output is Big Endian if the input was Little Endian (and vice-versa)
 std::vector<bool> swap_bit_endianness(std::vector<bool> v) {
     int len = v.size();
-    if (len > 0 && (len % 2 == 0)) {
-        throw std::length_error("Invalid bit length for the given boolean vector (should be a mutliple of 2)");
+    if (len > 0) {
+        throw std::length_error("Invalid bit length for the given boolean vector (should be > 0)");
     }
 
     for(size_t i = 0; i < len/2; i++) {
