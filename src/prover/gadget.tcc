@@ -23,15 +23,17 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
         typedef libff::Fr<ppT> FieldT;
 
         // Multipacking gadgets for the inputs (root and nullifierS)
-        //
-        // WARNING: "multipacking_gadget" are not needed since we generate the primary input using
-        // the function witness_map that basically packs the bit vectors into a vector of
-        // field elements, while making sure it is done correctly
-        //
-        //std::shared_ptr<multipacking_gadget<FieldT> > multipacking_gadget_root;
-        //std::array<std::shared_ptr<multipacking_gadget<FieldT> >, NumInputs> multipacking_gadgets_nullifiers;
+        // NumInputs + NumOutputs + 1 because we pack the nullifiers (Inputs of JS = NumInputs), 
+        // the commitments (Output of JS = NumOutputs) AND the merkle root (+1) AND the v_pub taken out of the mix (+1)
+        std::array<pb_variable_array<FieldT>, NumInputs + NumOutputs + 1 + 1> packed_inputs;
+        std::array<pb_variable_array<FieldT>, NumInputs + NumOutputs + 1 + 1> unpacked_inputs;
+        // We use an array of multipackers here instead of a single packer that packs everything
+        // This leads to more public inputs (and thus affects a little bit the verification time)
+        // but this makes easier to retrieve the root and each nullifiers from the public inputs
+        std::array<std::shared_ptr<multipacking_gadget<FieldT>>, NumInputs + NumOutputs + 1 + 1> packers;
 
         // ---- Primary inputs (public)
+        // NB of public inputs = 1 + NumInputs + NumOutputs + 1
         std::shared_ptr<digest_variable<FieldT> > root_digest; // merkle root
         std::array<std::shared_ptr<digest_variable<FieldT>, NumInputs> > input_nullifiers; // List of nullifiers of the notes to spend
         std::array<std::shared_ptr<digest_variable<FieldT>, NumOutputs> > output_commitments; // List of commitments generated for the new notes
@@ -71,6 +73,80 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
         ////std::array<pb_variable_array<FieldT>, NumInputs> packed_nullifiers;
 
         joinsplit_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
+            // Block dedicated to generate the verifier inputs
+            {
+                // The verification inputs are all bit-strings of various
+                // lengths (256-bit digests and 64-bit integers) and so we
+                // pack them into as few field elements as possible. (The
+                // more verification inputs you have, the more expensive
+                // verification is.)
+                
+                // We allocate 2 variables to pack the merkle root
+                packed_inputs[0].allocate(pb, 1+1);
+                for (size_t i = 1; i < NumInputs + NumOutputs + 1; i++) {
+                    // Here we pack the nullifiers and the commitments
+                    // Both are 256bit long and thus take 2 (1+1) field elements to be packed into
+                    packed_inputs[i].allocate(pb, 1+1);
+                }
+
+                // We have one input for each input, output and for the root (they are all 256bits which takes 2field el)
+                int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1; // There are NumInputs + NumOutputs + 1 digest inputs (each takes 2 field elements to be represented) + 1 other input whihc is the value (encoded on 64 bits so can be represented on onyl one field element)
+                pb.set_input_sizes(nb_inputs);
+
+                // Initialize the unpacked input corresponding to the root
+                unpacked_inputs[0].insert(unpacked_inputs[0].end(), root_digest->bits.begin(), root_digest->bits.end());
+
+                // Initialize the unpacked input corresponding to the inputs
+                for (size_t i = 1, j = 0; i < NumInputs + 1 && j < NumInputs; i++, j++) {
+                    unpacked_inputs[i].insert(
+                        unpacked_inputs[i].end(), 
+                        input_nullifiers[j]->bits.begin(), 
+                        input_nullifiers[j]->bits.end()
+                    );
+                }
+
+                // Initialize the unpacked input corresponding to the outputs
+                for (size_t i = NumInputs + 1, j = 0; i < NumOutputs + NumInputs + 1 && j < NumOutputs; i++, j++) {
+                    unpacked_inputs[i].insert(
+                        unpacked_inputs[i].end(), 
+                        output_commitments[j]->bits.begin(), 
+                        output_commitments[j]->bits.end()
+                    );
+                }
+
+                // Initialize the unpacked input corresponding to the v_pub (value taken out of the mix)
+                unpacked_inputs[NumOutputs + NumInputs + 1].insert(
+                    unpacked_inputs[NumOutputs + NumInputs + 1].end(), 
+                    zk_vpub.begin(), 
+                    zk_vpub-.end()
+                );
+
+                // Sanity checks with asserts
+                assert(unpacked_inputs.size() == nb_inputs);
+                assert(packed_inputs.size() == nb_inputs);
+
+                // Total size of unpacked inputs
+                size_t total_size_unpacked_inputs = 0;
+                for(size_t i = 0; i < NumOutputs + NumInputs + 1; i++) {
+                    total_size_unpacked_inputs += unpacked_inputs[i].size();
+                }
+                total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs + 1].size() // for the v_pub
+
+                assert(total_size_unpacked_inputs == verifying_input_bit_size());
+
+                // These gadgets will ensure that all of the inputs we provide are
+                // boolean constrained, and and correctly packed into field elements
+                for(size_t i = 0; i < nb_inputs; i++) {
+                    packers[i].reset(new multipacking_gadget<FieldT>(
+                        pb,
+                        unpacked_inputs[i],
+                        zk_packed_inputs[i],
+                        FieldT::capacity(),
+                        "unpacker"
+                    ));
+                }
+            }
+
             ZERO.allocate(pb);
             zk_total_uint64.allocate(pb, 64);
 
@@ -83,17 +159,6 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
                     input_nullifiers[i],
                     *root_digest
                 ));
-
-                // multipacking gadgets to pack the public inputs into field elements to
-                // be given to the on-chain verifier. Here we pack the nullifiers of the
-                // note we spend (input of the joinsplit)
-                ////multipacking_gadgets_nullifiers[i].reset(new multipacking_gadget<FieldT>(
-                ////    pb,
-                ////    input_nullifiers[i]->bits,
-                ////    packed_nullifiers[i],
-                ////    FieldT::capacity(),
-                ////    "multipacking_gadgets_nullifiers"
-                ////));
             }
 
             for (size_t i = 0; i < NumOutputs; i++) {
@@ -103,16 +168,6 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
                     output_commitments[i]
                 ));
             }
-
-            // multipacking gadgets to pack the public inputs into field elements to
-            // be given to the on-chain verifier. Here we pack the root of the merkle tree
-            ////multipacking_gadget_root.reset(new multipacking_gadget<FieldT>(
-            ////    pb,
-            ////    root_digest->bits,
-            ////    packed_root,
-            ////    FieldT::capacity(),
-            ////    "multipacking_gadget_root"
-            ////));
         }
 
         void generate_r1cs_constraints() {
@@ -192,7 +247,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             // both inputs are zero-valued.
             root_digest->bits.fill_with_bits(
                 this->pb,
-                uint256_to_bool_vector(rt)
+                get_vector_from_bits256(rt)
             );
 
             // Witness public balance value 
@@ -200,7 +255,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             // v_pub is only allowed on the right side (output) in our case
             zk_vpub.fill_with_bits(
                 this->pb,
-                uint64_to_bool_vector(vpub)
+                get_vector_from_bits64(vpub)
             );
 
             {
@@ -212,7 +267,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
 
                 zk_total_uint64.fill_with_bits(
                     this->pb,
-                    uint64_to_bool_vector(left_side_acc)
+                    get_vector_from_bits64(left_side_acc)
                 );
             }
 
@@ -243,7 +298,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             // treestate provided to the proving API.
             root_digest->bits.fill_with_bits(
                 this->pb,
-                uint256_to_bool_vector(rt)
+                get_vector_from_bits256(rt)
             );
 
             // This happens last, because only by now are all the
@@ -262,14 +317,14 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
         ) {
             std::vector<bool> verify_inputs;
 
-            insert_uint256(verify_inputs, rt);
+            insert_bits256(verify_inputs, rt);
             
             for (size_t i = 0; i < NumInputs; i++) {
-                insert_uint256(verify_inputs, nullifiers[i]);
+                insert_bits256(verify_inputs, nullifiers[i]);
             }
 
             for (size_t i = 0; i < NumOutputs; i++) {
-                insert_uint256(verify_inputs, commitments[i]);
+                insert_bits256(verify_inputs, commitments[i]);
             }
 
             insert_uint64(verify_inputs, vpub);
