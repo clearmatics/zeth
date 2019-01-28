@@ -5,6 +5,8 @@
 
 #include "libsnark_helpers/libsnark_helpers.hpp"
 
+namespace libzeth {
+
 /*
  * An extended_proof is a data structure containing a proof and the corresponding primary inputs
  * It corresponds to the data needed for the verifier to be able to run the verifying
@@ -34,5 +36,7 @@ public:
 };
 
 #include "extended_proof.tcc"
+
+} // libzeth
 
 #endif
