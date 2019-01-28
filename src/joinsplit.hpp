@@ -5,6 +5,7 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 #include "note.hpp"
+#include "bits256.hpp"
 
 namespace libzeth {
 
@@ -16,7 +17,7 @@ public:
     // --- Merkle tree witness (path, and address)
     std::vector<libsnark::merkle_authentication_node> witness_merkle_path;
     size_t address;
-    libff::bit_vector address_bits;
+    bitsAddr address_bits; // boolean vector of length the depth of the merkle tree
 
     ZethNote note;
     bits256 spending_key_a_sk;
