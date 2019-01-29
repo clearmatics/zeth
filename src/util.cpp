@@ -1,4 +1,5 @@
 #include<iostream>
+#include<algorithm>
 #include<vector>
 
 #include "zeth.h"
@@ -6,9 +7,10 @@
 
 // Takes a binary string and swaps the bit endianness
 // ie: The output is Big Endian if the input was Little Endian (and vice-versa)
-std::vector<bool> swap_bit_endianness(std::vector<bool> v) {
+template<typename T>
+T swap_bit_endianness(T v) {
     int len = v.size();
-    if (len > 0) {
+    if (len == 0) {
         throw std::length_error("Invalid bit length for the given boolean vector (should be > 0)");
     }
 
@@ -18,6 +20,21 @@ std::vector<bool> swap_bit_endianness(std::vector<bool> v) {
 
     return v;
 }
+
+/*
+std::vector<bool> swap_bit_endianness(std::vector<bool> v) {
+    int len = v.size();
+    if (len == 0) {
+        throw std::length_error("Invalid bit length for the given boolean vector (should be > 0)");
+    }
+
+    for(size_t i = 0; i < len/2; i++) {
+        std::swap(v[i], v[(len - 1)-i]);
+    }
+
+    return v;
+}
+*/
 
 // Takes an hexadecimal digest and converts it into a binary vector
 std::vector<bool> hexadecimal_digest_to_binary_vector(char* str) {

@@ -4,7 +4,9 @@
 #include <vector>
 #include <cstdint>
 
-std::vector<bool> swap_bit_endianness(std::vector<bool> v);
+template<typename T>
+T swap_bit_endianness(T v);
+
 std::vector<bool> hexadecimal_digest_to_binary_vector(char* str);
 
 #endif

@@ -29,9 +29,9 @@ public:
         hasher.reset(new sha256_ethereum<FieldT>(
             pb,
             libsnark::SHA256_block_size,
-            block,
-            result,
-        "PRF_ethereum_hasher"));
+            *block,
+            *result,
+            "PRF_ethereum_hasher"));
     }
 
     void generate_r1cs_constraints() {
