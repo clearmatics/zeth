@@ -82,7 +82,7 @@ libsnark::pb_variable_array<FieldT> getRightSideNFPRF(
 
     for (size_t i = 0; i < 254; ++i)
     {
-        right_side.emplace_back(rho[i] ? ONE : ZERO);
+        right_side.emplace_back(rho[i]);
     }
 
     // Check that we correctly built a 256-bit string

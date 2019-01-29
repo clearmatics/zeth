@@ -43,8 +43,6 @@ void dump_bit_vector(std::ostream &out, const libff::bit_vector &v)
 }
 
 TEST(TestPRFs, TestGenZeroes) {
-    libff::print_header("Starting PRFs tests");
-
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
     ZERO.allocate(pb);
@@ -89,6 +87,90 @@ TEST(TestPRFs, TestGenZeroes) {
 
     libsnark::pb_variable_array<FieldT> result = gen256zeroes<FieldT>(ZERO);
     ASSERT_EQ(result.get_bits(pb), zeroes256.get_bits(pb));
+};
+
+TEST(TestPRFs, OtherTest) {
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+
+    libsnark::pb_variable_array<FieldT> rho = from_bits(
+        {
+            0, 0, 0, 0, 1, 1, 1, 1, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            1, 1, 1, 1, 1, 1, 1, 1, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            1, 1, 1, 1, 1, 1, 1, 1, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            1, 1, 1, 1, 1, 1, 1, 1, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            1, 1, 1, 1, 1, 1, 1, 1
+        }, ZERO
+    );
+
+    libsnark::pb_variable_array<FieldT> expected = from_bits(
+        {
+            0, 1, 0, 0, 1, 1, 1, 1, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            1, 1, 1, 1, 1, 1, 1, 1, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            1, 1, 1, 1, 1, 1, 1, 1, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            1, 1, 1, 1, 1, 1, 1, 1, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            1, 1, 1, 1, 1, 1, 1, 1
+        }, ZERO
+    );
+
+    libsnark::pb_variable_array<FieldT> result = getRightSideNFPRF(ZERO, rho);
+    ASSERT_EQ(result.get_bits(pb), expected.get_bits(pb));
 };
 
 } // namespace
