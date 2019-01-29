@@ -127,10 +127,7 @@ public:
     ) : COMM_gadget<FieldT>(pb, ZERO, trap_r, get128bits(inner_k), result) {}
 };
 
-// PRF to generate the nullifier
-// nf = sha256(a_sk || 01 || [rho]_254): See Zerocash extended paper, page 22
-// WARNING: For now, we keep it simple and just generate the nullifier/serial nb as
-// nf = sha256(a_sk || rho)
+// cm = sha256(outer_k || 0^192 || value_v)
 template<typename FieldT>
 class COMM_cm_gadget : public COMM_gadget<FieldT> {
 public:
