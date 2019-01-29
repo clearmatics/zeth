@@ -15,6 +15,7 @@ file(GLOB_RECURSE SOURCES
     libsnark_helpers/extended_proof.tcc
     sha256/sha256_ethereum.cpp
     sha256/sha256_ethereum.tcc
+    util.cpp
     #cli/setupCmd.cpp
     #cli/setupCmd.tcc
     #cli/proveCmd.cpp

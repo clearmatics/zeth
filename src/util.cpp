@@ -21,21 +21,6 @@ T swap_bit_endianness(T v) {
     return v;
 }
 
-/*
-std::vector<bool> swap_bit_endianness(std::vector<bool> v) {
-    int len = v.size();
-    if (len == 0) {
-        throw std::length_error("Invalid bit length for the given boolean vector (should be > 0)");
-    }
-
-    for(size_t i = 0; i < len/2; i++) {
-        std::swap(v[i], v[(len - 1)-i]);
-    }
-
-    return v;
-}
-*/
-
 // Takes an hexadecimal digest and converts it into a binary vector
 std::vector<bool> hexadecimal_digest_to_binary_vector(char* str) {
     std::string hex_str(str);
