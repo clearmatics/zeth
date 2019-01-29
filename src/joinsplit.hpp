@@ -17,17 +17,19 @@ public:
     // --- Merkle tree witness (path, and address)
     std::vector<libsnark::merkle_authentication_node> witness_merkle_path;
     size_t address;
-    bitsAddr address_bits; // boolean vector of length the depth of the merkle tree
+    bitsAddr address_bits; // boolean vector of length the depth of the merkle tree containing the binary encoding of the address
 
     ZethNote note;
     bits256 spending_key_a_sk;
     bits256 nullifier;
 
     JSInput();
-    JSInput(std::vector<libsnark::merkle_authentication_node> witness_merkle_path,
-            ZethNote note,
-            bits256 key,
-            bits256 nullifier) : witness_merkle_path(witness_merkle_path), note(note), spending_key_a_sk(key), nullifier(nullifier){}
+    JSInput(
+        std::vector<libsnark::merkle_authentication_node> witness_merkle_path,
+        ZethNote note,
+        bits256 key,
+        bits256 nullifier
+    ) : witness_merkle_path(witness_merkle_path), note(note), spending_key_a_sk(key), nullifier(nullifier){}
 };
 
 } // libzeth

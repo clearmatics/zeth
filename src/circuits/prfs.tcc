@@ -3,23 +3,25 @@
 
 // Disclaimer: Taken and adapted from Zcash's codebase
 
+#include <libsnark/gadgetlib1/gadget.hpp>
+
 template<typename FieldT>
-class PRF_gadget : gadget<FieldT> {
+class PRF_gadget : public libsnark::gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<libsnark::sha256_ethereum<FieldT>> hasher;
+    std::shared_ptr<sha256_ethereum<FieldT>> hasher;
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
 
 public:
     PRF_gadget(
         libsnark::protoboard<FieldT>& pb,
         libsnark::pb_variable<FieldT>& ZERO,
-        pb_variable_array<FieldT> x,
-        pb_variable_array<FieldT> y,
-        std::shared_ptr<digest_variable<FieldT>> result
-    ) : gadget<FieldT>(pb), result(result) {
+        libsnark::pb_variable_array<FieldT> x,
+        libsnark::pb_variable_array<FieldT> y,
+        std::shared_ptr<libsnark::digest_variable<FieldT>> result
+    ) : libsnark::gadget<FieldT>(pb, "PRF_gadget"), result(result) {
 
-        block.reset(new block_variable<FieldT>(pb, {
+        block.reset(new libsnark::block_variable<FieldT>(pb, {
             x,
             y
         }, "PRF_block"));
@@ -68,7 +70,7 @@ libsnark::pb_variable_array<FieldT> getRightSideNFPRF(
     libsnark::pb_variable<FieldT>& ZERO,
     libsnark::pb_variable_array<FieldT>& rho
 ) {
-    pb_variable_array<FieldT> right_side;
+    libsnark::pb_variable_array<FieldT> right_side;
     right_side.emplace_back(ZERO); // 0
     right_side.emplace_back(ONE); // 01
 

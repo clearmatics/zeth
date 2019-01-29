@@ -1,19 +1,26 @@
-include_directories(.)
+include_directories(
+    $ENV{ZETH}
+    $ENV{ZETH}/src
+    $ENV{ZETH}/src/libsnark_helpers
+    $ENV{ZETH}/src/circuits
+    $ENV{ZETH}/src/sha256
+    libff/common/default_types
+)
 
 file(GLOB_RECURSE SOURCES
-    prover/computation.tcc
-    prover/prover.tcc
+    #circuits/computation.tcc
+    #circuits/prover.tcc
     libsnark_helpers/libsnark_helpers.cpp
     libsnark_helpers/libsnark_helpers.tcc
     libsnark_helpers/extended_proof.tcc
     sha256/sha256_ethereum.cpp
     sha256/sha256_ethereum.tcc
-    cli/setupCmd.cpp
-    cli/setupCmd.tcc
-    cli/proveCmd.cpp
-    cli/proveCmd.tcc
-    cli/mainCmd.cpp
-    cli/cli_utils.cpp
+    #cli/setupCmd.cpp
+    #cli/setupCmd.tcc
+    #cli/proveCmd.cpp
+    #cli/proveCmd.tcc
+    #cli/mainCmd.cpp
+    #cli/cli_utils.cpp
 )
 
 # Enable Boost for program_options
@@ -50,15 +57,17 @@ target_include_directories(
 
 # Tests
 ## Test for the prover
+#set(HEADER_FILES $ENV{ZETH}/src/sha256/sha256_ethereum.hpp)
 add_executable(
-    test_prover
+    test_circuits
     EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
 
-    test/prover_test.cpp
+    test/prfs_test.cpp
     ${SOURCES}
+    #${HEADER_FILES}
 )
 target_link_libraries(
-    test_prover
+    test_circuits
 
     snark
     gtest_main
@@ -66,7 +75,7 @@ target_link_libraries(
     ${Boost_FILESYSTEM_LIBRARY}
 )
 target_include_directories(
-    test_prover
+    test_circuits
 
     PUBLIC
     ${DEPENDS_DIR}/libsnark
@@ -74,9 +83,9 @@ target_include_directories(
 )
 include(CTest)
 add_test(
-    NAME test_prover
-    COMMAND test_prover
+    NAME test_circuits
+    COMMAND test_circuits
 )
 
 # We add the test of the prover as part of the testzeth
-add_dependencies(testzeth test_prover)
+add_dependencies(testzeth test_circuits)

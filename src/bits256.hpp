@@ -3,6 +3,7 @@
 
 #include <array>
 #include <vector>
+#include "zeth.h"
 
 typedef std::array<bool, 256> bits256;
 typedef std::array<bool, 64> bits64;
