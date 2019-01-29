@@ -44,7 +44,6 @@ public:
 
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get128bits(
-    libsnark::pb_variable<FieldT>& ZERO,
     libsnark::pb_variable_array<FieldT>& inner_k
 ) {
     libsnark::pb_variable_array<FieldT> ret;
@@ -125,7 +124,7 @@ public:
         libsnark::pb_variable_array<FieldT>& trap_r, // 384 bits
         libsnark::pb_variable_array<FieldT>& inner_k, // 256 bits, but we only keep 128 bits our of it
         std::shared_ptr<libsnark::digest_variable<FieldT>> result
-    ) : COMM_gadget<FieldT>(pb, ZERO, trap_r, get128bits(ZERO, inner_k), result) {}
+    ) : COMM_gadget<FieldT>(pb, ZERO, trap_r, get128bits(inner_k), result) {}
 };
 
 // PRF to generate the nullifier
