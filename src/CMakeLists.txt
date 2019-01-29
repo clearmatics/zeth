@@ -57,10 +57,10 @@ target_include_directories(
 )
 
 # Tests
-## Test for the prover
-#set(HEADER_FILES $ENV{ZETH}/src/sha256/sha256_ethereum.hpp)
+
+## Test for the prfs circuits
 add_executable(
-    test_circuits
+    test_prfs
     EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
 
     test/prfs_test.cpp
@@ -68,7 +68,7 @@ add_executable(
     #${HEADER_FILES}
 )
 target_link_libraries(
-    test_circuits
+    test_prfs
 
     snark
     gtest_main
@@ -76,7 +76,7 @@ target_link_libraries(
     ${Boost_FILESYSTEM_LIBRARY}
 )
 target_include_directories(
-    test_circuits
+    test_prfs
 
     PUBLIC
     ${DEPENDS_DIR}/libsnark
@@ -84,9 +84,40 @@ target_include_directories(
 )
 include(CTest)
 add_test(
-    NAME test_circuits
-    COMMAND test_circuits
+    NAME test_prfs
+    COMMAND test_prfs
+)
+
+## Test for the commitments circuits
+add_executable(
+    test_commitments
+    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
+
+    test/commitments_test.cpp
+    ${SOURCES}
+    #${HEADER_FILES}
+)
+target_link_libraries(
+    test_commitments
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_commitments
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+include(CTest)
+add_test(
+    NAME test_commitments
+    COMMAND test_commitments
 )
 
 # We add the test of the prover as part of the testzeth
-add_dependencies(testzeth test_circuits)
+add_dependencies(testzeth test_prfs)
+add_dependencies(testzeth test_commitments)

@@ -4,7 +4,7 @@
 // Disclaimer: Taken and adapted from Zcash's codebase
 
 template<typename FieldT>
-class COMM_gadget : gadget<FieldT> {
+class COMM_gadget : libsnark::gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
     std::shared_ptr<sha256_ethereum<FieldT>> hasher;
@@ -14,12 +14,12 @@ public:
     COMM_gadget(
         libsnark::protoboard<FieldT>& pb,
         libsnark::pb_variable<FieldT>& ZERO,
-        pb_variable_array<FieldT> x,
-        pb_variable_array<FieldT> y,
-        std::shared_ptr<digest_variable<FieldT>> result
-    ) : gadget<FieldT>(pb), result(result) {
+        libsnark::pb_variable_array<FieldT> x,
+        libsnark::pb_variable_array<FieldT> y,
+        std::shared_ptr<libsnark::digest_variable<FieldT>> result
+    ) : libsnark::gadget<FieldT>(pb), result(result) {
 
-        block.reset(new block_variable<FieldT>(pb, {
+        block.reset(new libsnark::block_variable<FieldT>(pb, {
             x,
             y
         }, "COMM_block"));
@@ -54,7 +54,7 @@ libsnark::pb_variable_array<FieldT> get128bits(
     assert(inner_k.size() > 128);
 
     for(int i = 0; i < 128; i++) {
-        ret.emplace_back(inner_k[i] ? ONE : ZERO);
+        ret.emplace_back(inner_k[i]);
     }
 
     // Check that we correctly built a 128-bit string
@@ -80,7 +80,7 @@ libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
 
     for (size_t i = 0; i < value_v.size(); ++i)
     {
-        right_side.emplace_back(value_v[i] ? ONE : ZERO);
+        right_side.emplace_back(value_v[i]);
     }
 
     // Check that we correctly built a 256-bit string
@@ -140,7 +140,7 @@ public:
         libsnark::pb_variable_array<FieldT>& outer_k,
         libsnark::pb_variable_array<FieldT>& value_v, // 64 bits
         std::shared_ptr<libsnark::digest_variable<FieldT>> result
-    ) : PRF_gadget<FieldT>(pb, ZERO, outer_k, getRightSideCMCOMM(ZERO, value_v), result) {}
+    ) : COMM_gadget<FieldT>(pb, ZERO, outer_k, getRightSideCMCOMM(ZERO, value_v), result) {}
 };
 
 #endif
