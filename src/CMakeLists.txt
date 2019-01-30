@@ -58,6 +58,36 @@ target_include_directories(
 
 # Tests
 
+## Test for the sha256 circuit
+add_executable(
+    test_sha256
+    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
+
+    test/sha256_test.cpp
+    ${SOURCES}
+    #${HEADER_FILES}
+)
+target_link_libraries(
+    test_sha256
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_sha256
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+include(CTest)
+add_test(
+    NAME test_sha256
+    COMMAND test_sha256
+)
+
 ## Test for the prfs circuits
 add_executable(
     test_prfs
