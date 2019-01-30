@@ -8,23 +8,30 @@ namespace libzeth {
 
 class BaseNote {
 protected:
-    uint64_t value_ = 0;
+    bits64 value_;
 public:
-    BaseNote() {}
-    BaseNote(uint64_t value) : value_(value) {};
+    BaseNote() { value_.fill(false); }
+    BaseNote(bits64 value) : value_(value) {};
     virtual ~BaseNote() {};
 
-    inline uint64_t value() const { return value_; };
+    inline bits64 value() const { return value_; };
+
+    // Test if the note is a 0-valued note
+    inline bool is_zero_valued() const {
+        bits64 zero;
+        zero.fill(false);
+        return value_ == zero;
+    }
 };
 
 class ZethNote : public BaseNote {
 public:
     bits256 a_pk; // 256-bit vector
     bits256 rho; // 256-bit vector
-    bits256 r; // r is in theory a 384-bit random string. Here we take it as a random 256bit integer, that we use to generate a 384-bit string in the circuits
+    bits384 r; // 384-bit random vector
     bits256 cm; // 256-bit vector
 
-    ZethNote(bits256 a_pk, uint64_t value, bits256 rho, bits256 r, bits256 cm)
+    ZethNote(bits256 a_pk, bits64 value, bits256 rho, bits384 r, bits256 cm)
         : BaseNote(value), a_pk(a_pk), rho(rho), r(r) , cm(cm){}
 
     ZethNote();

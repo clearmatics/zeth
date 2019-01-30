@@ -5,6 +5,7 @@
 #include <vector>
 #include "zeth.h"
 
+typedef std::array<bool, 384> bits384;
 typedef std::array<bool, 256> bits256;
 typedef std::array<bool, 64> bits64;
 typedef std::array<bool, ZETH_MERKLE_TREE_DEPTH> bitsAddr;

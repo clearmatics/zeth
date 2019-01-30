@@ -1,7 +1,23 @@
 #ifndef __ZETH_NOTES_CIRCUITS_TCC__
 #define __ZETH_NOTES_CIRCUITS_TCC__
 
+// get the bits utils
 #include "bits256.hpp"
+
+// Get the ZethNote class
+#include "note.hpp"
+
+// Get the prfs and commitments circuits
+#include "prfs.tcc"
+#include "commitments.tcc"
+
+#include "circuits-util.tcc"
+
+#include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.hpp>
+#include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
+
+using namespace libzeth;
+using namespace libsnark;
 
 // Disclaimer: Content taken and adapted from the Zcash codebase
 
@@ -12,12 +28,12 @@
 // - Has a value < 2^64
 // - Has a valid r trapdoor which is a 384-bit string
 template<typename FieldT>
-class note_gadget : public gadget<FieldT> {
+class note_gadget : public libsnark::gadget<FieldT> {
 public:
-    pb_variable_array<FieldT> value; // Binary value of the note (64 bits)
+    libsnark::pb_variable_array<FieldT> value; // Binary value of the note (64 bits)
     libsnark::pb_variable_array<FieldT> r; // Trapdoor r of the note (384 bits)
 
-    note_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
+    note_gadget(libsnark::protoboard<FieldT> &pb) : libsnark::gadget<FieldT>(pb) {
         value.allocate(pb, ZETH_V_SIZE * 8); // ZETH_V_SIZE * 8 = 8 * 8 = 64
         r.allocate(pb, ZETH_R_SIZE * 8); // ZETH_R_SIZE * 8 = 48 * 8 = 384
     }
@@ -44,8 +60,8 @@ public:
         // TODO: Implement trap_r_to_bool_vector as being a function that
         // - Convert R (uint256) into a bool_vector
         // - Takes 128 arbitrary bits out of this bool vector in order to build a 384-bit string
-        r.fill_with_bits(this->pb, trap_r_to_bool_vector(note.r));
-        value.fill_with_bits(this->pb, uint64_to_bool_vector(note.value()));
+        r.fill_with_bits(this->pb, get_vector_from_bits384(note.r));
+        value.fill_with_bits(this->pb, get_vector_from_bits64(note.value()));
     }
 };
 
@@ -56,18 +72,20 @@ public:
 template<typename FieldT>
 class input_note_gadget : public note_gadget<FieldT> {
 private:
-    std::shared_ptr<digest_variable<FieldT>> a_pk; // output of a PRF (is a digest_variable)
+    std::shared_ptr<libsnark::digest_variable<FieldT>> a_pk; // output of a PRF (is a digest_variable)
     libsnark::pb_variable_array<FieldT> rho; // nullifier seed rho of the note (256 bits)
 
     std::shared_ptr<COMM_inner_k_gadget<FieldT>> commit_to_inputs_inner_k;
+    std::shared_ptr<libsnark::digest_variable<FieldT>> inner_k;
     std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_inputs_outer_k;
+    std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_inputs_cm;
-    std::shared_ptr<digest_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
+    std::shared_ptr<libsnark::digest_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
 
-    pb_variable<FieldT> value_enforce; // bit that checks whether the commitment(leaf) is in the merkle tree (used to support dummy notes of value 0)
-    pb_variable_array<FieldT> address_bits_va;
-    std::shared_ptr<merkle_authentication_path_variable<FieldT, sha256_ethereum<FieldT> > > auth_path;
-    std::shared_ptr<merkle_tree_check_read_gadget<FieldT, sha256_ethereum<FieldT> > > check_membership;
+    libsnark::pb_variable<FieldT> value_enforce; // bit that checks whether the commitment(leaf) is in the merkle tree (used to support dummy notes of value 0)
+    libsnark::pb_variable_array<FieldT> address_bits_va;
+    std::shared_ptr<libsnark::merkle_authentication_path_variable<FieldT, sha256_ethereum<FieldT> > > auth_path;
+    std::shared_ptr<libsnark::merkle_tree_check_read_gadget<FieldT, sha256_ethereum<FieldT> > > check_membership;
 
     std::shared_ptr<PRF_addr_a_pk_gadget<FieldT>> spend_authority; // makes sure the a_pk is computed corectly from a_sk
     std::shared_ptr<PRF_nf_gadget<FieldT>> expose_nullifiers; // makes sure the nullifiers are computed correctly from rho and a_sk
@@ -75,15 +93,17 @@ public:
     libsnark::pb_variable_array<FieldT> a_sk; // a_sk is assumed to be a random uint256
 
     input_note_gadget(
-        protoboard<FieldT>& pb,
-        pb_variable<FieldT>& ZERO,
-        std::shared_ptr<digest_variable<FieldT>> nullifier,
-        digest_variable<FieldT> rt // merkle_root
+        libsnark::protoboard<FieldT>& pb,
+        libsnark::pb_variable<FieldT>& ZERO,
+        std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
+        libsnark::digest_variable<FieldT> rt // merkle_root
     ) : note_gadget<FieldT>(pb) {
         a_sk.allocate(pb, ZETH_A_SK_SIZE * 8); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
         rho.allocate(pb, ZETH_RHO_SIZE * 8); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
         address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
         a_pk.reset(new digest_variable<FieldT>(pb, 256, ""));
+        inner_k.reset(new digest_variable<FieldT>(pb, 256, ""));
+        outer_k.reset(new digest_variable<FieldT>(pb, 256, ""));
         commitment.reset(new digest_variable<FieldT>(pb, 256, ""));
 
         // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk
@@ -138,12 +158,12 @@ public:
 
         // These gadgets make sure that the computed
         // commitment is in the merkle tree of root rt
-        auth_path.reset(new merkle_authentication_path_variable<FieldT, sha256_ethereum<FieldT>> (
+        auth_path.reset(new libsnark::merkle_authentication_path_variable<FieldT, sha256_ethereum<FieldT>> (
             pb,
             ZETH_MERKLE_TREE_DEPTH,
             "auth_path"
         ));
-        check_membership.reset(new merkle_tree_check_read_gadget<FieldT, sha256_ethereum<FieldT>>(
+        check_membership.reset(new libsnark::merkle_tree_check_read_gadget<FieldT, sha256_ethereum<FieldT>>(
             pb,
             ZETH_MERKLE_TREE_DEPTH,
             address_bits_va,
@@ -189,7 +209,7 @@ public:
         // If `value` is nonzero, `enforce` _must_ be one.
         generate_boolean_r1cs_constraint<FieldT>(this->pb, value_enforce,"");
 
-        this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
             packed_addition(this->value),
             (1 - value_enforce),
             0
@@ -200,7 +220,7 @@ public:
     }
 
     void generate_r1cs_witness(
-        std::vector<merkle_authentication_node> merkle_path,
+        std::vector<libsnark::merkle_authentication_node> merkle_path,
         size_t address,
         libff::bit_vector address_bits,
         const bits256 a_sk_in,
@@ -209,7 +229,7 @@ public:
         note_gadget<FieldT>::generate_r1cs_witness(note);
 
         // Witness a_sk for the input
-        a_sk->bits.fill_with_bits(
+        a_sk.fill_with_bits(
             this->pb,
             get_vector_from_bits256(a_sk_in)
         );
@@ -224,7 +244,7 @@ public:
         );
 
         // Witness rho for the input note
-        rho->bits.fill_with_bits(
+        rho.fill_with_bits(
             this->pb,
             get_vector_from_bits256(note.rho)
         );
@@ -252,10 +272,10 @@ public:
         // Remember that if the note has a value of 0, we do not enforce the corresponding
         // commitment to be in the tree. If the value is > 0 though, we enforce
         // the corresponding commitment to be in the merkle tree of commitment
-        this->pb.val(value_enforce) = (note.value() != 0) ? FieldT::one() : FieldT::zero();
+        this->pb.val(value_enforce) = (!note.is_zero_valued()) ? FieldT::one() : FieldT::zero();
 
         // Witness merkle tree authentication path
-        address_bits_va.fill_with_bits(pb, address_bits);
+        address_bits_va.fill_with_bits(this->pb, address_bits);
         auth_path->generate_r1cs_witness(address, merkle_path);
         check_membership->generate_r1cs_witness();
     }
@@ -266,21 +286,25 @@ template<typename FieldT>
 class output_note_gadget : public note_gadget<FieldT> {
 private:
     libsnark::pb_variable_array<FieldT> rho;
-    std::shared_ptr<digest_variable<FieldT>> a_pk;
+    std::shared_ptr<libsnark::digest_variable<FieldT>> a_pk;
 
     std::shared_ptr<COMM_inner_k_gadget<FieldT>> commit_to_outputs_inner_k;
+    std::shared_ptr<libsnark::digest_variable<FieldT>> inner_k;
     std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_outputs_outer_k;
+    std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_outputs_cm;
-    std::shared_ptr<digest_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
+    std::shared_ptr<libsnark::digest_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
 
 public:
     output_note_gadget(
-        protoboard<FieldT>& pb,
-        pb_variable<FieldT>& ZERO,
-        std::shared_ptr<digest_variable<FieldT>> commitment
+        libsnark::protoboard<FieldT>& pb,
+        libsnark::pb_variable<FieldT>& ZERO,
+        std::shared_ptr<libsnark::digest_variable<FieldT>> commitment
     ) : note_gadget<FieldT>(pb) {
         rho.allocate(pb, 256);
         a_pk.reset(new digest_variable<FieldT>(pb, 256, ""));
+        inner_k.reset(new digest_variable<FieldT>(pb, 256, ""));
+        outer_k.reset(new digest_variable<FieldT>(pb, 256, ""));
 
         // Commit to the output notes publicly without
         // disclosing them.
@@ -322,7 +346,7 @@ public:
 
         // [SANITY CHECK] Witness rho ourselves with the
         // note information.
-        rho->bits.fill_with_bits(
+        rho.fill_with_bits(
             this->pb,
             get_vector_from_bits256(note.rho)
         );

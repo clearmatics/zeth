@@ -2,10 +2,12 @@
 #define __ZETH_CIRCUITS_UTILS_TCC__
 
 #include <libsnark/gadgetlib1/pb_variable.hpp>
-#include "utils.hpp"
+#include "util.hpp"
 #include "src/bits256.tcc"
 #include "src/util.hpp"
 
+// This function is a redefinition of the from_bits function in the sha256_ethereum gadget
+/*
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::pb_variable<FieldT>& ZERO) {
     pb_variable_array<FieldT> acc;
@@ -16,6 +18,7 @@ libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::
 
     return acc;
 };
+*/
 
 // Converts a given number encoded on bitlen bits into a
 // binary string of lentgh bitlen.
@@ -59,10 +62,10 @@ T swap_endianness_u64(T v) {
 }
 
 template<typename FieldT>
-libsnark::linear_combination<FieldT> packed_addition(pb_variable_array<FieldT> input) {
+libsnark::linear_combination<FieldT> packed_addition(libsnark::pb_variable_array<FieldT> input) {
     auto input_swapped = swap_endianness_u64(input);
 
-    return pb_packing_sum<FieldT>(pb_variable_array<FieldT>(
+    return libsnark::pb_packing_sum<FieldT>(libsnark::pb_variable_array<FieldT>(
         input_swapped.rbegin(), input_swapped.rend()
     ));
 };

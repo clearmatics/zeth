@@ -148,6 +148,36 @@ add_test(
     COMMAND test_commitments
 )
 
+## Test for the note circuits
+add_executable(
+    test_note
+    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
+
+    test/note_test.cpp
+    ${SOURCES}
+    #${HEADER_FILES}
+)
+target_link_libraries(
+    test_note
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_note
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+include(CTest)
+add_test(
+    NAME test_note
+    COMMAND test_note
+)
+
 # We add the test of the prover as part of the testzeth
 add_dependencies(testzeth test_prfs)
 add_dependencies(testzeth test_commitments)
