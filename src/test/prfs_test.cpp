@@ -7,6 +7,11 @@
 // Header to use the merkle tree data structure
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
+// Used to instantiate our templates
+#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
+#include <libff/algebra/curves/public_params.hpp>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+
 // Header to use the sha256_ethereum gadget
 #include "sha256_ethereum.hpp"
 
@@ -16,23 +21,32 @@
 
 using namespace libsnark;
 
-typedef libff::default_ec_pp ppT;
+//typedef libff::default_ec_pp ppT;
+typedef libff::alt_bn128_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
 
+// Note on the instantiation of the FieldT template type
+//
+// We use the alt_bn128_pp public params, with a field instantiated with libff::Fr<ppT>
+// which corresponds (according to libff/algebra/curves/public_params.hpp) to 
+// the typedef 'typedef alt_bn128_Fr Fp_type;' (see: libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp)
+// 'alt_bn128_Fr' being itself defined in 'libff/algebra/curves/alt_bn128/alt_bn128_init.hpp'
+// as 'typedef Fp_model<alt_bn128_r_limbs, alt_bn128_modulus_r> alt_bn128_Fr;'
+//
+// The Fp_model class is defined in 'libff/algebra/fields/fp.hpp' and implements
+// arithmetic in the finite field F[p], for prime p of fixed length. (p being passed as a template)
+// like:
+// ```
+// template<mp_size_t n, const bigint<n>& modulus>
+// class Fp_model {
+// ```
+//
+// In our case, the modulus is 'alt_bn128_modulus_r' is initialized to the value:
+// ` alt_bn128_modulus_r = bigint_r("21888242871839275222246405745257275088548364400416034343698204186575808495617");`
+// in the 'libff/algebra/curves/alt_bn128/alt_bn128_init.hpp' file
+
 namespace {
-
-libff::bit_vector generate_digests(int digest_len)
-{
-    libff::bit_vector digest_bits;
-    srand(time(0));
-    for (int i = 0; i < digest_len; i++)
-    {
-        digest_bits.push_back(rand() % 2);
-    }
-
-    return digest_bits;
-}
 
 void dump_bit_vector(std::ostream &out, const libff::bit_vector &v)
 {
@@ -97,6 +111,9 @@ TEST(TestPRFs, TestGetRightSideNFPRF) {
     ZERO.allocate(pb);
     pb.val(ZERO) = FieldT::zero();
 
+    std::ostream &stream = std::cout;
+
+    // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> rho = from_bits(
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0, 0, 0, 0, 1, 1, 1, 1,
@@ -134,45 +151,49 @@ TEST(TestPRFs, TestGetRightSideNFPRF) {
         }, ZERO
     );
 
+    // hex: 0x43C000000000003FC00000000000003FC00000000000003FC00000000000003F
     libsnark::pb_variable_array<FieldT> expected = from_bits(
         {
-            0, 1, 0, 0, 1, 1, 1, 1, // 0, 1, 0, 0, 1, 1, 1, 1, (0, 1 is the right prefix here)
+            0, 1, 0, 0, 0, 0, 1, 1, //  (0, 1 is the right prefix here)
+            1, 1, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 1, 1, 1, 1, 1, 1, 
+            1, 1, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1, 
+            0, 0, 1, 1, 1, 1, 1, 1, 
+            1, 1, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 1, 1, 1, 1, 1, 1, 
+            1, 1, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 1, 1, 1, 1, 1, 1
         }, ZERO
     );
 
     libsnark::pb_variable_array<FieldT> result = getRightSideNFPRF(ZERO, rho);
     ASSERT_EQ(result.get_bits(pb), expected.get_bits(pb));
+
+    dump_bit_vector(stream, result.get_bits(pb));
+    dump_bit_vector(stream, expected.get_bits(pb));
 };
 
 TEST(TestPRFs, TestPRFAddrApkGadget) {
@@ -181,7 +202,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget) {
     ZERO.allocate(pb);
     pb.val(ZERO) = FieldT::zero();
 
-    // a_sk corresponds to the number: 0x0F00000000000FF00000000000000FF00000000000000FF00000000000000FF
+    // a_sk corresponds to the number: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_sk = from_bits(
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -219,12 +240,14 @@ TEST(TestPRFs, TestPRFAddrApkGadget) {
         }, ZERO
     );
 
-    // a_pk should equal: 0x0cccc0bd83f43526c2573b6a9523757f9f27706381a7020d36e3ed16597a9c8c
-    // Since a_pk = sha256(a_sk || 0^256):
+    // a_pk should equal: 0xa8bdcd1403ea97e088094d7c085c843b4f5895487f5827b3046b2e0328f5f58e
+    // Since a_pk = sha256(a_sk || 0^256), where:
+    // - a_sk = 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+    // - 0^256 = 0x0000000000000000000000000000000000000000000000000000000000000000
     // 
     // Note: This test vector has been generated by using the solidity sha256 function
     // (we want to make sure that we generate the same digests both on-chain and off-chain)
-    char* a_pk_str = "0cccc0bd83f43526c2573b6a9523757f9f27706381a7020d36e3ed16597a9c8c";
+    char* a_pk_str = "a8bdcd1403ea97e088094d7c085c843b4f5895487f5827b3046b2e0328f5f58e";
     libsnark::pb_variable_array<FieldT> a_pk_expected = from_bits(
         hexadecimal_digest_to_binary_vector(a_pk_str), 
         ZERO
@@ -256,7 +279,7 @@ TEST(TestPRFs, TestPRFNFGadget) {
     ZERO.allocate(pb);
     pb.val(ZERO) = FieldT::zero();
 
-    // a_sk corresponds to the number: 0x0F00000000000FF00000000000000FF00000000000000FF00000000000000FF
+    // a_sk corresponds to the number: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_sk = from_bits(
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -294,10 +317,10 @@ TEST(TestPRFs, TestPRFNFGadget) {
         }, ZERO
     );
 
-    // hex: 0x0F0000000000FF00000000000000FF00000000000000FF00000000000000FF
+    // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> rho = from_bits(
         {
-            0, 0, 0, 0, 1, 1, 1, 1,
+            0, 0, 0, 0, 1, 1, 1, 1, // 0, 0, 0, 0, 1, 1, 1, 1,
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
@@ -335,12 +358,13 @@ TEST(TestPRFs, TestPRFNFGadget) {
     // nf should equal: 
     // nf = sha256(a_sk || 01 || [rho]_254)
     // 
-    // The hex of rho is: 0x0F0000000000FF00000000000000FF00000000000000FF00000000000000FF
-    // and the hex of '01 || [rho]_254' is: 0x4F0000000000FF00000000000000FF00000000000000FF00000000000000FF
+    // a_sk: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+    // rho:  0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+    // '01 || [rho]_254': 0x43C000000000003FC00000000000003FC00000000000003FC00000000000003F
     // 
     // Note: This test vector has been generated by using the solidity sha256 function
     // (we want to make sure that we generate the same digests both on-chain and off-chain)
-    char* nf_str = "d1695506f6712c975f72f78521dabca0675c2ed8b152a1aaab54c582851bb926";
+    char* nf_str = "a4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3";
     libsnark::pb_variable_array<FieldT> nf_expected = from_bits(
         hexadecimal_digest_to_binary_vector(nf_str), 
         ZERO
@@ -370,6 +394,7 @@ TEST(TestPRFs, TestPRFNFGadget) {
 } // namespace
 
 int main(int argc, char **argv) {
+    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not forget to do this !!!!
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
