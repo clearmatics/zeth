@@ -246,8 +246,6 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
 
     std::shared_ptr<libsnark::digest_variable<FieldT> > commitment;
     commitment.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "root_digest"));
-    commitment->generate_r1cs_constraints();
-    commitment->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(cm_bits256)));
     std::shared_ptr<output_note_gadget<FieldT>> output_note_g  = std::shared_ptr<output_note_gadget<FieldT>>(
         new output_note_gadget<FieldT>(
             pb,
@@ -273,8 +271,12 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
 
     bool is_valid_witness = pb.is_satisfied();
     std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;
-
     ASSERT_TRUE(is_valid_witness);
+
+    // Last check to make sure the commitment computed is the expected one
+    libff::bit_vector obtained_digest = commitment->get_digest();
+    libff::bit_vector expected_digest = libff::bit_vector(get_vector_from_bits256(cm_bits256));
+    ASSERT_EQ(obtained_digest, expected_digest);
 };
 
 } // namespace
