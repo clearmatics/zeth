@@ -21,12 +21,12 @@ T swap_bit_endianness(T v) {
     return v;
 }
 
-// Takes an hexadecimal digest and converts it into a binary vector
-std::vector<bool> hexadecimal_digest_to_binary_vector(char* str) {
+// Takes an hexadecimal string and converts it into a binary vector
+std::vector<bool> hexadecimal_str_to_binary_vector(char* str) {
     std::string hex_str(str);
     std::vector<bool> result;
     std::vector<bool> tmp;
-    std::vector<bool> zero_vector(256, 0);
+    std::vector<bool> zero_vector(hex_str.length() * 4, 0); // Each hex character is encoded on 4bits
 
     const std::vector<bool> vect0 = {0, 0, 0, 0};
     const std::vector<bool> vect1 = {0, 0, 0, 1};
@@ -44,10 +44,6 @@ std::vector<bool> hexadecimal_digest_to_binary_vector(char* str) {
     const std::vector<bool> vectD = {1, 1, 0, 1};
     const std::vector<bool> vectE = {1, 1, 1, 0};
     const std::vector<bool> vectF = {1, 1, 1, 1};
-
-    if(hex_str.length() != ZETH_DIGEST_HEX_SIZE) {
-        throw std::length_error("Invalid string length for the given hexadecimal digest (should be ZETH_DIGEST_HEX_SIZE)");
-    }
 
     for(std::string::iterator it = hex_str.begin(); it != hex_str.end(); ++it) {
         switch(*it) {
@@ -79,4 +75,15 @@ std::vector<bool> hexadecimal_digest_to_binary_vector(char* str) {
     }
 
     return result;
+}
+
+// Takes an hexadecimal digest and converts it into a binary vector
+std::vector<bool> hexadecimal_digest_to_binary_vector(char* str) {
+    std::string hex_str(str);
+    if(hex_str.length() != ZETH_DIGEST_HEX_SIZE) {
+        throw std::length_error("Invalid string length for the given hexadecimal digest (should be ZETH_DIGEST_HEX_SIZE)");
+    }
+
+
+    return hexadecimal_str_to_binary_vector(str);
 }

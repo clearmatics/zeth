@@ -52,105 +52,55 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 
     // trap_r: 384 bits
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<FieldT> trap_r = from_bits(
-        {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1  // FF
-        }, ZERO
-    );
+    char* trap_r_str = "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF";
+    bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector(trap_r_str));
 
     // 64 bits for the value
     // hex: 0x2F0000000000000F
-    libsnark::pb_variable_array<FieldT> value = from_bits(
-        {
-            0, 0, 1, 0, 1, 1, 1, 1, // 2F
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 1, 1, 1, 1 // 0F
-        }, ZERO
-    );
+    char* value_str = "2F0000000000000F";
+    bits64 value_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector(value_str));
 
     // hex: 0xFF0000000000000000000000000000000000000000000000000000000000000F
     char* a_sk_str = "FF0000000000000000000000000000000000000000000000000000000000000F";
+    bits256 a_sk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(a_sk_str));
 
+    // hex: 0xFFFF000000000000000000000000000000000000000000000000000000009009
+    char* rho_str = "FFFF000000000000000000000000000000000000000000000000000000009009";
+    bits256 rho_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(rho_str));
+
+    // hex: 0x8FFFC00000000000000000000000000000000000000000000000000000002402
+    char* rho_254_padded_with_01 = "8FFFC00000000000000000000000000000000000000000000000000000002402";
+
+    // Get a_pk from a_sk (PRF)
+    //
     // a_sk = 0xFF0000000000000000000000000000000000000000000000000000000000000F
     // 0^256 = 0x0000000000000000000000000000000000000000000000000000000000000000
     // a_pk = sha256(a_sk || 0^256)
     // Generated directly from a_sk and solidity sha256 (solidity v0.5.0)
     char* a_pk_str = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b";
+    bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(a_pk_str));
 
-    // hex: 0xFFFF000000000000000000000000000000000000000000000000000000009009
-    char* rho_str = "FFFF000000000000000000000000000000000000000000000000000000009009";
-
-    // hex: 0x8FFFC00000000000000000000000000000000000000000000000000000002402
-    char* rho_254_padded_with_01 = "8FFFC00000000000000000000000000000000000000000000000000000002402";
-
+    // Get nf from a_sk and rho (PRF)
+    //
     // nf = sha256(a_sk || 01 || [rho]_254)
     // a_sk: 0xFF0000000000000000000000000000000000000000000000000000000000000F
     // '01 || [rho]_254' = 0x8FFFC00000000000000000000000000000000000000000000000000000002402
     // The test vector generated directly from a_sk and solidity sha256 (solidity v0.5.0), gives:
     // nf = 0x69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f
     char* nf_str = "69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f";
+    bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(nf_str));
 
+    // Get the coin's commitment (COMM)
+    //
     // inner_k = sha256(a_pk || rho)
     char* inner_k_str = "c8064b9113f19c058aa0295a88fd79c096eb2b9553f95af0c9c7b322448e8446";
     // outer_k = sha256(r || [inner_commitment]_128)
     char* inner_k_str_first_128_bits = "c8064b9113f19c058aa0295a88fd79c0";
     char* outer_k_str = "806e5c213a2f3d436273e924eb6311ac2db6c33624b28165b79c779e00fa2752";
     // cm = sha256(outer_k || 0^192 || value_v)
-    char* value_str = "2F0000000000000F";
     char* value_front_padded_zeroes = "0000000000000000000000000000000000000000000000002F0000000000000F";
     char* cm_str = "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331";
+    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(cm_str));
 
     /*
      *
@@ -173,33 +123,29 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
         )
     );
 
+    // Check the root of the empty tree (for debug purpose/before insertion)
     libff::bit_vector initial_root_value = test_merkle_tree->get_root();
 
-    libff::bit_vector commitment = libff::bit_vector(hexadecimal_digest_to_binary_vector(cm_str));
+    // In practice the address is emitted by the mixer contract once the commitment is appended to the tree
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
-    test_merkle_tree->set_value(address_commitment, commitment);
+    test_merkle_tree->set_value(address_commitment, libff::bit_vector(get_vector_from_bits256(cm_bits256)));
 
+    // Get the root of the new/non-empty tree (after insertion)
     libff::bit_vector updated_root_value = test_merkle_tree->get_root();
 
     std::cout << "=== [DEBUG] Root before insertion bit representation: " << std::endl;
     dump_bit_vector(stream, initial_root_value);
     std::cout << "=== [DEBUG] Root after insertion bit representation: " << std::endl;
     dump_bit_vector(stream, updated_root_value);
-    std::cout << "=== [DEBUG] Commitment inserted: " << std::endl;
-    dump_bit_vector(stream, commitment);
 
     libff::leave_block("[END] Setup a local merkle tree and append our commitment to it", true);
-
-    std::cout << "=== [DEBUG] 1 " << std::endl;
 
     libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
     std::shared_ptr<libsnark::digest_variable<FieldT> > nullifier_digest;
     nullifier_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "nullifier_digest"));
     nullifier_digest->generate_r1cs_constraints();
-    nullifier_digest->generate_r1cs_witness(libff::bit_vector(hexadecimal_digest_to_binary_vector(nf_str)));
-
-    std::cout << "=== [DEBUG] 2 " << std::endl;
+    nullifier_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(nf_bits256)));
 
     std::shared_ptr<libsnark::digest_variable<FieldT> > root_digest;
     root_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "root_digest"));
@@ -214,21 +160,15 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
         )
     );
 
-    std::cout << "=== [DEBUG] 3 " << std::endl;
-
+    // Get the merkle path to the commitment we appended
     std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
-    bits256 a_sk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(a_sk_str));
-    bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(a_pk_str));
-    bits256 rho_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(rho_str));
-    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(cm_str));
-    bits64 value_bits64 = get_bits64_from_vector(value.get_bits(pb));
-    bits384 r_bits384 = get_bits384_from_vector(trap_r.get_bits(pb));
 
+    // Create a note from the coin's data
     ZethNote note(
         a_pk_bits256, 
         value_bits64, 
         rho_bits256, 
-        r_bits384, 
+        trap_r_bits384, 
         cm_bits256
     );
 
@@ -243,8 +183,8 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     libff::leave_block("[END] Data conversion to generate a witness of the note gadget", true);
 
     bool is_valid_witness = pb.is_satisfied();
-
     std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;
+
     ASSERT_TRUE(is_valid_witness);
 };
 
