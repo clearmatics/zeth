@@ -178,6 +178,96 @@ add_test(
     COMMAND test_note
 )
 
+## Test for the JS circuit
+add_executable(
+    test_joinsplit
+    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
+
+    test/gadget_test.cpp
+    ${SOURCES}
+    #${HEADER_FILES}
+)
+target_link_libraries(
+    test_joinsplit
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_joinsplit
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+include(CTest)
+add_test(
+    NAME test_joinsplit
+    COMMAND test_joinsplit
+)
+
+## Test for the note debug circuits
+add_executable(
+    test_debug
+    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
+
+    test/note_debug_test.cpp
+    ${SOURCES}
+    #${HEADER_FILES}
+)
+target_link_libraries(
+    test_debug
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_debug
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+include(CTest)
+add_test(
+    NAME test_debug
+    COMMAND test_debug
+)
+
+## Test for the packed_addition
+add_executable(
+    test_packed
+    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
+
+    test/packed_addition_test.cpp
+    ${SOURCES}
+    #${HEADER_FILES}
+)
+target_link_libraries(
+    test_packed
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_packed
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+include(CTest)
+add_test(
+    NAME test_packed
+    COMMAND test_packed
+)
+
 # We add the test of the prover as part of the testzeth
 add_dependencies(testzeth test_prfs)
 add_dependencies(testzeth test_commitments)
