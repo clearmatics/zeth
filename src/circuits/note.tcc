@@ -57,9 +57,6 @@ public:
     }
 
     void generate_r1cs_witness(const ZethNote& note) {
-        // TODO: Implement trap_r_to_bool_vector as being a function that
-        // - Convert R (uint256) into a bool_vector
-        // - Takes 128 arbitrary bits out of this bool vector in order to build a 384-bit string
         r.fill_with_bits(this->pb, get_vector_from_bits384(note.r));
         value.fill_with_bits(this->pb, get_vector_from_bits64(note.value()));
     }
@@ -156,6 +153,10 @@ public:
             commitment
         ));
 
+        // We do not forget to allocate the `value_enforce` variable
+        // since it is submitted to boolean constraints
+        value_enforce.allocate(pb);
+
         // These gadgets make sure that the computed
         // commitment is in the merkle tree of root rt
         auth_path.reset(new libsnark::merkle_authentication_path_variable<FieldT, sha256_ethereum<FieldT>> (
@@ -170,7 +171,7 @@ public:
             *commitment,
             rt,
             *auth_path,
-            value_enforce, // boolean that is set to ONE is the cm is in the tree of root rt, ZERO otherwise
+            value_enforce, // boolean that is set to ONE if the cm needs to be in the tree of root rt (and if the given path needs to be correct), ZERO otherwise
             "check_membership"
         ));
     }
@@ -207,13 +208,13 @@ public:
         // Given `enforce` is boolean constrained:
         // If `value` is zero, `enforce` _can_ be zero.
         // If `value` is nonzero, `enforce` _must_ be one.
-        generate_boolean_r1cs_constraint<FieldT>(this->pb, value_enforce,"");
+        generate_boolean_r1cs_constraint<FieldT>(this->pb, value_enforce, "value_enforce_boolean_constraint");
 
         this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
             packed_addition(this->value),
             (1 - value_enforce),
             0
-        ), "");
+        ));
 
         auth_path->generate_r1cs_constraints();
         check_membership->generate_r1cs_constraints();
@@ -267,15 +268,78 @@ public:
             // the cpp module and set to the zethNote afterwards
         );
 
+        libff::bit_vector bits_cm = get_vector_from_bits256(note.cm);
+        std::cout << "=== [DEBUG] dump commitment ===" << std::endl;
+        for(int i = 0; i < bits_cm.size(); i++) {
+            std::cout << bits_cm[i];
+        }
+        std::cout << "=== [DEBUG] END dump commitment ===" << std::endl;
+
         // Set enforce flag for nonzero input value
         // Set the enforce flag according to the value of the note
         // Remember that if the note has a value of 0, we do not enforce the corresponding
         // commitment to be in the tree. If the value is > 0 though, we enforce
         // the corresponding commitment to be in the merkle tree of commitment
-        this->pb.val(value_enforce) = (!note.is_zero_valued()) ? FieldT::one() : FieldT::zero();
+        //
+        // Note: We need to set the value of `value_enforce`, because this bit is used in the 
+        // merkle_tree_check_read_gadget which uses a `field_vector_copy_gadget` that does a
+        // check with the computed root and the root given to the `merkle_tree_check_read_gadget`
+        // 
+        // This check is in the form of constraints like:
+        // ```
+        // template<typename FieldT>
+        // void field_vector_copy_gadget<FieldT>::generate_r1cs_constraints(){
+        //      for (size_t i = 0; i < source.size(); ++i)
+        //      {
+        //          this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(do_copy, source[i] - target[i], 0),
+        //                                 FMT(this->annotation_prefix, " copying_check_%zu", i));
+        //      }
+        //  }
+        // ```
+        // If `do_copy` is set to 0, we basically do NOT compare the computed root and the given root.
+        // This is useful in our case as we can use any random merkle path with our dummy/0-valued coin
+        // and make sure that the computed root is never compared  with the actual root (because they will never be
+        // equal as we used a random merkle path to witness the 0-valued coin)
+        //
+        // Basically `value_enforce` makes sure that we give a VALID merkle auth path to our commitment
+        // or, in other words, that the commitment is in the tree.
+        //
+        // The `value_enforce` is NOT set by the gagdet, it is set by us to tell whether we want to
+        // verify the commitment is in the tree or whether we want to render this check useless by having
+        // a tautology (ie: 0 = 0 for each constraints of the field_vector_copy_gadget)
+        //
+        // UPDATE:
+        // The way the variable `value_enforce` works here is that: we give a root as input to the
+        // `merkle_tree_check_read_gadget`. This gadget computes the root obtained by the verification
+        // of the merkle authentication path and stores the result in `computed_root` which is a 
+        // digest variable.
+        // Then, the value of the `value_enforce` or `read_successful` variable is checked to
+        // copy the result of the `computed_root` IN the variable `root` which is the given root
+        // If the value of `value_enforce` is FieldT::one() => the content of `root` is replaced
+        // by the content of `computed_root`. Else (if `value_enforce == FieldT::zero()`), then
+        // the value of `root` remains the same.
+        //
+        // Note that if the given path is not an auth path to the given commitment, and if the 
+        // value of `value_enforce` is set to FieldT::one(), then the value of `root` is changed
+        // to the value of the computed root. But because the merkle root is a public
+        // input, it is sent to the verifier. Thus, if the auth path is not valid, the verifier
+        // gets the root value `root`, but this value is replaced by `computed_root` in the
+        // circuit, which should lead the verification of the proof to fail.
+        //
+        // WARNING: Because we decide to use a single root for ALL the inputs of the JoinSplit
+        // here, we need to be extra careful. Note that if one of the input oes not have a valid
+        // auth path (is not correctly authenticated), the root (shared by all inputs)
+        // will be changed and the proof should be rejected.
+        this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
+        
+        std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
 
         // Witness merkle tree authentication path
         address_bits_va.fill_with_bits(this->pb, address_bits);
+        // [SANITY CHECK] Make sure `address_bits` and `address` represent the same
+        // value encoded on different bases (binary and decimal)
+        assert(address_bits_va.get_field_element_from_bits(pb).as_ulong() == address);
+
         auth_path->generate_r1cs_witness(address, merkle_path);
         check_membership->generate_r1cs_witness();
     }
