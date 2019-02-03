@@ -160,12 +160,14 @@ sha256_ethereum<FieldT>::sha256_ethereum(libsnark::protoboard<FieldT> &pb,
     // Then looking into https://github.com/golang/go/blob/master/src/crypto/sha256/sha256.go#L236
     // We see that d.checkSum() calls d.Write() again, but this time, with the padding!
     // Thus, this corresponds to the second round of hashing we do here with the hasher2.
+    const std::string annotation_hasher1 = std::string("hasher1-") + annotation_prefix;
+    const std::string annotation_hasher2 = std::string("hasher2-") + annotation_prefix;
     hasher1.reset(new libsnark::sha256_compression_function_gadget<FieldT>(
                 pb, // protoboard
                 IV, // previous output - Here the IV
                 input_block.bits, // new block
                 *intermediate_hash, // output
-                "hasher1" // annotation
+                annotation_hasher1 // annotation
                 )
             );
 
@@ -179,7 +181,7 @@ sha256_ethereum<FieldT>::sha256_ethereum(libsnark::protoboard<FieldT> &pb,
                 IV2,
                 length_padding,
                 output,
-                "hasher2"
+                annotation_hasher2
                 )
             );
 }
