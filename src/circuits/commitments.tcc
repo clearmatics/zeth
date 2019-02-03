@@ -16,20 +16,23 @@ public:
         libsnark::pb_variable<FieldT>& ZERO,
         libsnark::pb_variable_array<FieldT> x,
         libsnark::pb_variable_array<FieldT> y,
-        std::shared_ptr<libsnark::digest_variable<FieldT>> result
+        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+        const std::string &annotation_prefix = ""
     ) : libsnark::gadget<FieldT>(pb), result(result) {
+        const std::string annotation_block = std::string("COMM_block-") + annotation_prefix;
+        const std::string annotation_hasher = std::string("COMM_ethereum_hasher-") + annotation_prefix;
 
         block.reset(new libsnark::block_variable<FieldT>(pb, {
             x,
             y
-        }, "COMM_block"));
+        }, annotation_block));
 
         hasher.reset(new sha256_ethereum<FieldT>(
             pb,
             libsnark::SHA256_block_size,
             *block,
             *result,
-            "COMM_ethereum_hasher"
+            annotation_hasher
         ));
     }
 
@@ -106,8 +109,9 @@ public:
         libsnark::pb_variable<FieldT>& ZERO,
         libsnark::pb_variable_array<FieldT>& a_pk, // 256 bits
         libsnark::pb_variable_array<FieldT>& rho, // 256 bits
-        std::shared_ptr<libsnark::digest_variable<FieldT>> result
-    ) : COMM_gadget<FieldT>(pb, ZERO, a_pk, rho, result) {}
+        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+        const std::string &annotation_prefix = "COMM_inner_k_gadget"
+    ) : COMM_gadget<FieldT>(pb, ZERO, a_pk, rho, result, annotation_prefix) {}
 };
 
 // See Zerocash extended paper, page 22
@@ -123,8 +127,9 @@ public:
         libsnark::pb_variable<FieldT>& ZERO,
         libsnark::pb_variable_array<FieldT>& trap_r, // 384 bits
         libsnark::pb_variable_array<FieldT>& inner_k, // 256 bits, but we only keep 128 bits our of it
-        std::shared_ptr<libsnark::digest_variable<FieldT>> result
-    ) : COMM_gadget<FieldT>(pb, ZERO, trap_r, get128bits(inner_k), result) {}
+        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+        const std::string &annotation_prefix = "COMM_outer_k_gadget"
+    ) : COMM_gadget<FieldT>(pb, ZERO, trap_r, get128bits(inner_k), result, annotation_prefix) {}
 };
 
 // cm = sha256(outer_k || 0^192 || value_v)
@@ -136,8 +141,9 @@ public:
         libsnark::pb_variable<FieldT>& ZERO,
         libsnark::pb_variable_array<FieldT>& outer_k,
         libsnark::pb_variable_array<FieldT>& value_v, // 64 bits
-        std::shared_ptr<libsnark::digest_variable<FieldT>> result
-    ) : COMM_gadget<FieldT>(pb, ZERO, outer_k, getRightSideCMCOMM(ZERO, value_v), result) {}
+        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+        const std::string &annotation_prefix = "COMM_cm_gadget"
+    ) : COMM_gadget<FieldT>(pb, ZERO, outer_k, getRightSideCMCOMM(ZERO, value_v), result, annotation_prefix) {}
 };
 
 #endif
