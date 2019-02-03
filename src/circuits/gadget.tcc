@@ -8,20 +8,20 @@
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp>
 #include <libsnark_helpers/libsnark_helpers.hpp>
 
+#include <boost/static_assert.hpp>
+
 #include <sha256/sha256_ethereum.hpp>
 #include "computation.hpp"
 
 #include "zeth.h" // Contains the definitions of the constants we use
-#include "prover/note.tcc" // Contains the circuits for the notes
+#include "note.tcc" // Contains the circuits for the notes
 
 using namespace libsnark;
 using namespace libff;
 
-template<typename ppT, typename HashT, size_t NumInputs, size_t NumOutputs>
-class joinsplit_gadget : gadget<libff::Fr<ppT> > {
+template<typename FieldT, typename HashT, size_t NumInputs, size_t NumOutputs>
+class joinsplit_gadget : libsnark::gadget<FieldT> {
     private:
-        typedef libff::Fr<ppT> FieldT;
-
         // Multipacking gadgets for the inputs (root and nullifierS)
         // NumInputs + NumOutputs + 1 because we pack the nullifiers (Inputs of JS = NumInputs), 
         // the commitments (Output of JS = NumOutputs) AND the merkle root (+1) AND the v_pub taken out of the mix (+1)
@@ -35,8 +35,8 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
         // ---- Primary inputs (public)
         // NB of public inputs = 1 + NumInputs + NumOutputs + 1
         std::shared_ptr<digest_variable<FieldT> > root_digest; // merkle root
-        std::array<std::shared_ptr<digest_variable<FieldT>, NumInputs> > input_nullifiers; // List of nullifiers of the notes to spend
-        std::array<std::shared_ptr<digest_variable<FieldT>, NumOutputs> > output_commitments; // List of commitments generated for the new notes
+        std::array<std::shared_ptr<digest_variable<FieldT> >, NumInputs> input_nullifiers; // List of nullifiers of the notes to spend
+        std::array<std::shared_ptr<digest_variable<FieldT> >, NumOutputs> output_commitments; // List of commitments generated for the new notes
         pb_variable_array<FieldT> zk_vpub; // Value that is taken out of the mix
 
         // ---- Auxiliary inputs (private)
@@ -59,8 +59,8 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
         //
         // Note2: We should be able to easily relax the 2-2 configuration by increasing the
         // constants ZETH_NUM_JS_INPUTS and ZETH_NUM_JS_OUTPUTS in the project configuration
-        assert(NumInputs <= ZETH_NUM_JS_INPUTS);
-        assert(NumOutputs <= ZETH_NUM_JS_OUTPUTS);
+        BOOST_STATIC_ASSERT(NumInputs <= ZETH_NUM_JS_INPUTS);
+        BOOST_STATIC_ASSERT(NumOutputs <= ZETH_NUM_JS_OUTPUTS);
 
         // ---- Primary inputs in a packed form to be added to the extended proof 
         // Given to the verifier on-chain
@@ -118,7 +118,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
                 unpacked_inputs[NumOutputs + NumInputs + 1].insert(
                     unpacked_inputs[NumOutputs + NumInputs + 1].end(), 
                     zk_vpub.begin(), 
-                    zk_vpub-.end()
+                    zk_vpub.end()
                 );
 
                 // Sanity checks with asserts
@@ -140,7 +140,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
                     packers[i].reset(new multipacking_gadget<FieldT>(
                         pb,
                         unpacked_inputs[i],
-                        zk_packed_inputs[i],
+                        packed_inputs[i],
                         FieldT::capacity(),
                         "unpacker"
                     ));
@@ -173,7 +173,10 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
         void generate_r1cs_constraints() {
             // The true passed here ensures all the inputs
             // are boolean constrained.
-            unpacker->generate_r1cs_constraints(true);
+            int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1;
+            for(size_t i = 0; i < nb_inputs; i++) {
+                packers[i]->generate_r1cs_constraints(true);
+            }
 
             // Constrain `ZERO`
             // Make sure that the ZERO variable is the zero of the field
@@ -192,6 +195,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             // Value balance // WARNING: This is the Core of the JoinSplit.
             // Here we check that the condition of the joinsplit holds (ie: Sum_in = Sum_out)
             {
+                linear_combination<FieldT> left_side();
                 for (size_t i = 0; i < NumInputs; i++) {
                     left_side = left_side + packed_addition(input_notes[i]->value);
                 }
@@ -214,7 +218,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
                     generate_boolean_r1cs_constraint<FieldT>(
                         this->pb,
                         zk_total_uint64[i],
-                        ""
+                        "boolean_constraint_zk_total_uint64[i]"
                     );
                 }
 
@@ -235,7 +239,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             const bits256& rt,
             const std::array<JSInput, NumInputs>& inputs,
             const std::array<ZethNote, NumOutputs>& outputs,
-            uint64_t vpub
+            bits64 vpub
         ) {
             // Witness `zero`
             this->pb.val(ZERO) = FieldT::zero();
@@ -260,7 +264,9 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
 
             {
                 // Witness total_uint64 bits
-                uint64_t left_side_acc = 0; // We don't allow vpub on the left in our case
+                // TODO: Implement a way to do addition with binary strings
+                // see: https://stackoverflow.com/questions/13282825/adding-binary-numbers-in-c
+                uint64_t left_side_acc = 0; // We don't allow vpub on the left in our case (TODO: allow it)
                 for (size_t i = 0; i < NumInputs; i++) {
                     left_side_acc += inputs[i].note.value();
                 }
@@ -274,8 +280,8 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             for (size_t i = 0; i < NumInputs; i++) {
                 // Witness the input information.
                 auto merkle_path = inputs[i].witness_merkle_path;
-                auto merkle_path = inputs[i].address;
-                auto merkle_path = inputs[i].address_bits;
+                auto address = inputs[i].address;
+                auto address_bits = inputs[i].address_bits;
                 zk_input_notes[i]->generate_r1cs_witness(
                     merkle_path,
                     address,
@@ -309,11 +315,12 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
         // This function takes the inputs of the circuits, and return the r1cs_primary_inputs
         // that basically are a list of packed field elements to be added to the
         // extended proof structure that is given to the verifier contract for on-chain verification
+        /*
         static r1cs_primary_input<FieldT> witness_map(
-            const uint256& rt,
-            const std::array<uint256, NumInputs>& nullifiers,
-            const std::array<uint256, NumOutputs>& commitments,
-            uint64_t vpub,
+            const bits256& rt,
+            const std::array<bits256, NumInputs>& nullifiers,
+            const std::array<bits256, NumOutputs>& commitments,
+            bits64 vpub,
         ) {
             std::vector<bool> verify_inputs;
 
@@ -336,6 +343,7 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             assert(verify_field_elements.size() == get_field_element_size());
             return verify_field_elements;
         }
+        */
 
         // This function computes the size of the primary input
         // the inputs being binary strings here
@@ -360,6 +368,5 @@ class joinsplit_gadget : gadget<libff::Fr<ppT> > {
             return div_ceil(get_input_bit_size(), FieldT::capacity());
         }
 };
-
 
 #endif
