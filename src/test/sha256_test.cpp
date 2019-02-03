@@ -15,6 +15,9 @@
 // Header to use the sha256_ethereum gadget
 #include "sha256_ethereum.hpp"
 
+// Use the bits256 type util functions
+#include "bits256.tcc"
+
 #include "util.hpp"
 
 using namespace libsnark;
@@ -183,6 +186,68 @@ TEST(TestSHA256, TestHash) {
     dump_bit_vector(stream, expected.get_bits(pb));
 
     ASSERT_EQ(result->get_digest(), expected.get_bits(pb));
+};
+
+TEST(TestSHA256, TestHashWithZeroLeg) {
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+
+    libsnark::pb_variable_array<FieldT> left;
+    libsnark::pb_variable_array<FieldT> right;
+    left.allocate(pb, 256);
+    right.allocate(pb, 256);
+
+    std::cout << " DEBUG 1 " << std::endl;
+
+    char* left_str = "806e5c213a2f3d436273e924eb6311ac2db6c33624b28165b79c779e00fa2752";
+    char* right_str = "0000000000000000000000000000000000000000000000000000000000000000";
+    char* expected_str = "a631eca6f9fc96e9b0135804aceb5e97df404c3877d14e7f5ea67b4c120cec44";
+
+    libff::bit_vector left_bits = libff::bit_vector(hexadecimal_digest_to_binary_vector(left_str));
+    libff::bit_vector right_bits = libff::bit_vector(hexadecimal_digest_to_binary_vector(right_str));
+    libff::bit_vector expected_bits = libff::bit_vector(hexadecimal_digest_to_binary_vector(expected_str));
+
+    left.fill_with_bits(pb, left_bits);
+    right.fill_with_bits(pb, right_bits);
+
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result;
+    result.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+
+    std::shared_ptr<libsnark::block_variable<FieldT>> input_block;
+    input_block.reset(new libsnark::block_variable<FieldT>(pb, {
+            left,
+            right
+        }, "Block_variable")
+    );
+    
+    std::shared_ptr<sha256_ethereum<FieldT>> hasher;
+    hasher.reset(new sha256_ethereum<FieldT>(
+        pb, 
+        libsnark::SHA256_block_size,
+        *input_block,
+        *result,
+        "Sha256_ethereum")
+    );
+
+    hasher->generate_r1cs_constraints(true);
+    hasher->generate_r1cs_witness();
+
+    bool is_valid_witness = pb.is_satisfied();
+    ASSERT_TRUE(is_valid_witness);
+
+    std::ostream &stream = std::cout;
+    std::cout << " -- left -- " << std::endl;
+    dump_bit_vector(stream, left.get_bits(pb));
+    std::cout << " -- right -- " << std::endl;
+    dump_bit_vector(stream, right.get_bits(pb));
+    std::cout << " -- Result digest -- " << std::endl;
+    dump_bit_vector(stream, result->get_digest());
+    std::cout << " -- Expected digest -- " << std::endl;
+    dump_bit_vector(stream, expected_bits);
+
+    ASSERT_EQ(result->get_digest(), expected_bits);
 };
 
 } // namespace
