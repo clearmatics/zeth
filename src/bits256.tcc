@@ -50,4 +50,39 @@ std::vector<bool> get_vector_from_bits64(bits64 arr) {
     return dump_array_in_vector<64>(arr);
 };
 
+// Sum 2 binary strings
+template<size_t BitLen>
+std::array<bool, BitLen> binaryAddition(std::array<bool, BitLen> A, std::array<bool, BitLen> B) {
+    std::array<bool, BitLen> sum;
+    sum.fill(0);
+    
+    bool carry = 0;
+    for(int i = BitLen - 1; i >= 0; i--){
+        sum[i] = ((A[i] ^ B[i]) ^ carry); // c is carry
+        carry = ((A[i] & B[i]) | (A[i] & carry)) | (B[i] & carry);
+        std::cout << "Carry: " << carry << std::endl;
+    }
+    
+    // If the last carry is 1, then we have an overflow
+    if(carry) {
+        throw std::overflow_error("Overflow: The sum of the binary addition cannot be encoded on <BitLen> bits");
+    }
+    
+    return sum;
+}
+
+bits64 sum_bits64(bits64 a, bits64 b) {
+    std::array<bool, 64> sum;
+
+    try {
+        sum = binaryAddition(a, b);
+    } catch (const std::overflow_error& e) {
+        // We return 0 encoded in binary if we overflow
+        sum.fill(0);
+    }
+    
+    return sum;
+};
+
+
 #endif // __ZETH_BITS256_TCC__
