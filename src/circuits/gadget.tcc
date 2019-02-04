@@ -264,11 +264,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             {
                 // Witness total_uint64 bits
-                // TODO: Implement a way to do addition with binary strings
+                // We add binary numbers here
                 // see: https://stackoverflow.com/questions/13282825/adding-binary-numbers-in-c
-                uint64_t left_side_acc = 0; // We don't allow vpub on the left in our case (TODO: allow it)
+                std::array<bool, 64> zero_array;
+                zero_array.fill(0);
+                bits64 left_side_acc = zero_array; // We don't allow vpub on the left in our case (TODO: allow it)
                 for (size_t i = 0; i < NumInputs; i++) {
-                    left_side_acc += inputs[i].note.value();
+                    left_side_acc = binaryAddition<6>(left_side_acc, inputs[i].note.value());
                 }
 
                 zk_total_uint64.fill_with_bits(
