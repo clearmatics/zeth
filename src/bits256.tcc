@@ -30,6 +30,10 @@ bits64 get_bits64_from_vector(std::vector<bool> vect) {
     return dump_vector_in_array<64>(vect);
 };
 
+bitsAddr get_bitsAddr_from_vector(std::vector<bool> vect) {
+    return dump_vector_in_array<ZETH_MERKLE_TREE_DEPTH>(vect);
+};
+
 // Dump an array into a vector
 template<size_t Size>
 std::vector<bool> dump_array_in_vector(std::array<bool, Size> arr) {
@@ -48,6 +52,10 @@ std::vector<bool> get_vector_from_bits256(bits256 arr) {
 
 std::vector<bool> get_vector_from_bits64(bits64 arr) {
     return dump_array_in_vector<64>(arr);
+};
+
+std::vector<bool> get_vector_from_bitsAddr(bitsAddr arr) {
+    return dump_array_in_vector<ZETH_MERKLE_TREE_DEPTH>(arr);
 };
 
 // Sum 2 binary strings

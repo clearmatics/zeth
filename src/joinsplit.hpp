@@ -23,7 +23,7 @@ public:
     bits256 spending_key_a_sk;
     bits256 nullifier;
 
-    JSInput();
+    JSInput(){};
     JSInput(
         std::vector<libsnark::merkle_authentication_node> witness_merkle_path,
         size_t address,

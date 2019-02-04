@@ -34,7 +34,7 @@ public:
     ZethNote(bits256 a_pk, bits64 value, bits256 rho, bits384 r, bits256 cm)
         : BaseNote(value), a_pk(a_pk), rho(rho), r(r) , cm(cm){}
 
-    ZethNote();
+    ZethNote(){};
     virtual ~ZethNote() {};
 };
 

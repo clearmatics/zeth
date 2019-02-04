@@ -15,7 +15,7 @@
 // Access the defined constants
 #include "zeth.h"
 
-// Include the type we need
+// Include the types we need
 #include "bits256.tcc"
 #include "joinsplit.hpp"
 #include "note.hpp"
@@ -28,6 +28,8 @@ using namespace libzeth;
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
+
+class libzeth::JSInput;
 
 namespace {
 
@@ -47,11 +49,17 @@ TEST(TestMainCircuit, TestMainGadget) {
     ZERO.allocate(pb);
     pb.val(ZERO) = FieldT::zero();
 
+    std::cout << "[DEBUG] 1 in test" << std::endl; 
+
     // We test a JoinSplit with only 1 input and 1 output (and no v_pub value)
     joinsplit_gadget<FieldT, HashT, 1, 1> js_gadget(pb);
 
+    std::cout << "[DEBUG] 2 in test" << std::endl;
+
     // Generate the constraints
-    js_gadget->generate_r1cs_constraints();
+    js_gadget.generate_r1cs_constraints();
+
+    std::cout << "[DEBUG] 3 in test" << std::endl;
 
     // Create the input witness
     libff::enter_block("[BEGIN] Create JSInput", true);
@@ -105,6 +113,8 @@ TEST(TestMainCircuit, TestMainGadget) {
     // cm = sha256(outer_k || 0^192 || value_v)
     char* value_front_padded_zeroes = "0000000000000000000000000000000000000000000000002F0000000000000F";
     char* cm_str = "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331";
+
+    std::cout << " ************************ [DEBUG] 4 in test ************************\n" << std::endl;
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(cm_str));
 
     // Get the merkle root
@@ -121,6 +131,7 @@ TEST(TestMainCircuit, TestMainGadget) {
     // Get the root of the new/non-empty tree (after insertion)
     libff::bit_vector updated_root_value = test_merkle_tree->get_root();
 
+    std::cout << " ************************ [DEBUG] 5 in test ************************\n" << std::endl;
     // Get the merkle path
     std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
 
@@ -132,14 +143,17 @@ TEST(TestMainCircuit, TestMainGadget) {
         cm_bits256
     );
 
+    bitsAddr binary_address = get_bitsAddr_from_vector(address_bits);
     JSInput input(
         path,
         address_commitment,
-        address_bits,
+        binary_address,
         note_input,
         a_sk_bits256,
         nf_bits256
     );
+
+    std::cout << " ************************ [DEBUG] 6 in test ************************\n" << std::endl;
 
     std::array<JSInput, 1> inputs;
     inputs.fill(input);
@@ -172,6 +186,8 @@ TEST(TestMainCircuit, TestMainGadget) {
     char* cm_str_out = "f23084ce25a5844abdae214896d13c376a9aea4bfe4cafbb5572822feb39b8ea";
     bits256 cm_out_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector(cm_str_out));
 
+    std::cout << " ************************ [DEBUG] 7 in test ************************\n" << std::endl;
+
     ZethNote note_output(
         a_pk_out_bits256,
         value_out_bits64,
@@ -189,8 +205,17 @@ TEST(TestMainCircuit, TestMainGadget) {
     libff::leave_block("[END] Create JSOutput/ZethNote", true);
 
     libff::enter_block("[BEGIN] Generate witness", true);
-    // Generate the constraints
-    js_gadget->generate_r1cs_witness();
+
+    std::cout << "\n \n ************************ [DEBUG] 8 in test ************************\n \n" << std::endl;
+    
+    js_gadget.generate_r1cs_witness(
+        get_bits256_from_vector(updated_root_value),
+        inputs,
+        outputs,
+        value_pub_out_bits64
+    );
+
+    std::cout << "\n \n ************************ [DEBUG] 9 in test ************************\n \n" << std::endl;
     libff::leave_block("[END] Generate witness", true);
 
     bool is_valid_witness = pb.is_satisfied();

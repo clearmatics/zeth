@@ -1,5 +1,5 @@
-#ifndef __ZETH_MAIN_CIRCUIT_HPP__
-#define __ZETH_MAIN_CIRCUIT_HPP__
+#ifndef __ZETH_MAIN_CIRCUIT_TCC__
+#define __ZETH_MAIN_CIRCUIT_TCC__
 
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
@@ -72,8 +72,10 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         ////pb_variable_array<FieldT> packed_root;
         ////std::array<pb_variable_array<FieldT>, NumInputs> packed_nullifiers;
 
-        joinsplit_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
+        joinsplit_gadget(protoboard<FieldT> &pb,
+                        const std::string &annotation_prefix="joinsplit_gadget") : gadget<FieldT>(pb) {
             // Block dedicated to generate the verifier inputs
+            std::cout << "[DEBUG] 1 in JS gadget constructor" << std::endl; 
             {
                 // The verification inputs are all bit-strings of various
                 // lengths (256-bit digests and 64-bit integers) and so we
@@ -82,19 +84,39 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // verification is.)
                 
                 // We allocate 2 variables to pack the merkle root
-                packed_inputs[0].allocate(pb, 1+1);
+                packed_inputs[0].allocate(pb, 1 + 1);
+
+                // We allocate 2 field elements to pack the inputs nullifiers AND the output commitments
                 for (size_t i = 1; i < NumInputs + NumOutputs + 1; i++) {
                     // Here we pack the nullifiers and the commitments
                     // Both are 256bit long and thus take 2 (1+1) field elements to be packed into
-                    packed_inputs[i].allocate(pb, 1+1);
+                    packed_inputs[i].allocate(pb, 1 + 1);
                 }
+
+                // We allocate 1 field element to pack the value (v_pub)
+                packed_inputs[NumInputs + NumOutputs + 1].allocate(pb, 1);
+
+                std::cout << "[DEBUG] 1.2 in JS gadget constructor" << std::endl;
 
                 // We have one input for each input, output and for the root (they are all 256bits which takes 2field el)
                 int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1; // There are NumInputs + NumOutputs + 1 digest inputs (each takes 2 field elements to be represented) + 1 other input whihc is the value (encoded on 64 bits so can be represented on onyl one field element)
                 pb.set_input_sizes(nb_inputs);
 
+                std::cout << "[DEBUG] 1.3 in JS gadget constructor" << std::endl;
+
+                // Initialize the digest_variables
+                root_digest.reset(new digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " root_digest")));
+                for (size_t i = 0; i < NumInputs; i++) {
+                    input_nullifiers[i].reset(new digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " input_nullifiers_%zu", i)));
+                }
+                for (size_t i = 0; i < NumOutputs; i++) {
+                    output_commitments[i].reset(new digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " output_commitments_%zu", i)));
+                }
+
                 // Initialize the unpacked input corresponding to the root
                 unpacked_inputs[0].insert(unpacked_inputs[0].end(), root_digest->bits.begin(), root_digest->bits.end());
+
+                std::cout << "[DEBUG] 1.4 in JS gadget constructor" << std::endl;
 
                 // Initialize the unpacked input corresponding to the inputs
                 for (size_t i = 1, j = 0; i < NumInputs + 1 && j < NumInputs; i++, j++) {
@@ -105,6 +127,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     );
                 }
 
+                std::cout << "[DEBUG] 1.5 in JS gadget constructor" << std::endl;
+
                 // Initialize the unpacked input corresponding to the outputs
                 for (size_t i = NumInputs + 1, j = 0; i < NumOutputs + NumInputs + 1 && j < NumOutputs; i++, j++) {
                     unpacked_inputs[i].insert(
@@ -114,12 +138,18 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     );
                 }
 
+                std::cout << "[DEBUG] 1.6 in JS gadget constructor" << std::endl;
+
+                // Allocate the zk_vpub
+                zk_vpub.allocate(pb, 64);
                 // Initialize the unpacked input corresponding to the v_pub (value taken out of the mix)
                 unpacked_inputs[NumOutputs + NumInputs + 1].insert(
                     unpacked_inputs[NumOutputs + NumInputs + 1].end(), 
                     zk_vpub.begin(), 
                     zk_vpub.end()
                 );
+
+                std::cout << "[DEBUG] 1.7 in JS gadget constructor" << std::endl;
 
                 // Sanity checks with asserts
                 assert(unpacked_inputs.size() == nb_inputs);
@@ -130,22 +160,55 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 for(size_t i = 0; i < NumOutputs + NumInputs + 1; i++) {
                     total_size_unpacked_inputs += unpacked_inputs[i].size();
                 }
-                total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs + 1].size() // for the v_pub
+                total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs + 1].size(); // for the v_pub
 
-                assert(total_size_unpacked_inputs == verifying_input_bit_size());
+                std::cout << "[DEBUG] 1.8 in JS gadget constructor" << std::endl;
+
+                assert(total_size_unpacked_inputs == get_input_bit_size());
 
                 // These gadgets will ensure that all of the inputs we provide are
                 // boolean constrained, and and correctly packed into field elements
-                for(size_t i = 0; i < nb_inputs; i++) {
+                // We basically build the public inputs here
+                // First we pack the root
+                packers[0].reset(new multipacking_gadget<FieldT>(
+                    pb,
+                    unpacked_inputs[0],
+                    packed_inputs[0],
+                    FieldT::capacity(),
+                    FMT(this->annotation_prefix, " packer_root")
+                ));
+
+                // Then we pack the nullifiers
+                for (size_t i = 1; i < NumInputs + 1 ; i++) {
                     packers[i].reset(new multipacking_gadget<FieldT>(
                         pb,
                         unpacked_inputs[i],
                         packed_inputs[i],
                         FieldT::capacity(),
-                        "unpacker"
+                        FMT(this->annotation_prefix, " packer_nullifiers_%zu", i)
                     ));
                 }
+
+                // Finally we pack the output commitments
+                for (size_t i = NumInputs + 1; i < NumOutputs + NumInputs + 1; i++) {
+                    packers[i].reset(new multipacking_gadget<FieldT>(
+                        pb,
+                        unpacked_inputs[i],
+                        packed_inputs[i],
+                        FieldT::capacity(),
+                        FMT(this->annotation_prefix, " packer_output_commitments_%zu", i)
+                    ));
+                }
+
+                packers[NumInputs + NumOutputs + 1].reset(new multipacking_gadget<FieldT>(
+                    pb,
+                    unpacked_inputs[NumInputs + NumOutputs + 1],
+                    packed_inputs[NumInputs + NumOutputs + 1],
+                    FieldT::capacity(),
+                    FMT(this->annotation_prefix, " packer_value_pub")
+                ));
             }
+            std::cout << "[DEBUG] 2 in JS gadget constructor" << std::endl; 
 
             ZERO.allocate(pb);
             zk_total_uint64.allocate(pb, 64);
@@ -171,12 +234,16 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         }
 
         void generate_r1cs_constraints() {
+
+            std::cout << " ================= [DEBUG] 1 in JS generate_r1cs_constraints" << std::endl; 
             // The true passed here ensures all the inputs
             // are boolean constrained.
             int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1;
-            for(size_t i = 0; i < nb_inputs; i++) {
+            for(size_t i = 0; i < packers.size(); i++) {
                 packers[i]->generate_r1cs_constraints(true);
             }
+
+            std::cout << " ================= [DEBUG] 2 in JS generate_r1cs_constraints" << std::endl; 
 
             // Constrain `ZERO`
             // Make sure that the ZERO variable is the zero of the field
@@ -192,19 +259,27 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 output_notes[i]->generate_r1cs_constraints();
             }
 
+            std::cout << " ================= [DEBUG] 3 in JS generate_r1cs_constraints" << std::endl; 
+
             // Value balance // WARNING: This is the Core of the JoinSplit.
             // Here we check that the condition of the joinsplit holds (ie: Sum_in = Sum_out)
             {
-                linear_combination<FieldT> left_side();
+                linear_combination<FieldT> left_side;
                 for (size_t i = 0; i < NumInputs; i++) {
                     left_side = left_side + packed_addition(input_notes[i]->value);
                 }
+
+                std::cout << " ================= [DEBUG] 4 in JS generate_r1cs_constraints" << std::endl;
+                std::cout << "[DEBUG] 4.1 in JS generate_r1cs_constraints" << std::endl; 
+                std::cout << "[DEBUG] 4.2 in JS generate_r1cs_constraints" << std::endl; 
 
                 // Here we only allow vpub to be used on the output side (withdraw)
                 linear_combination<FieldT> right_side = packed_addition(zk_vpub);
                 for (size_t i = 0; i < NumOutputs; i++) {
                     right_side = right_side + packed_addition(output_notes[i]->value);
                 }
+
+                std::cout << " ================= [DEBUG] 5 in JS generate_r1cs_constraints" << std::endl; 
 
                 // Ensure that both sides are equal (ie: 1 * left_side = right_side)
                 this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
@@ -213,14 +288,18 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     right_side
                 ));
 
+                std::cout << " ================= [DEBUG] 6 in JS generate_r1cs_constraints" << std::endl; 
+
                 // #854: Ensure that left_side is a 64-bit integer.
                 for (size_t i = 0; i < 64; i++) {
                     generate_boolean_r1cs_constraint<FieldT>(
                         this->pb,
                         zk_total_uint64[i],
-                        "boolean_constraint_zk_total_uint64[i]"
+                        FMT(this->annotation_prefix, " boolean_constraint_zk_total_uint64_%zu", i)
                     );
                 }
+
+                std::cout << " ================= [DEBUG] 7 in JS generate_r1cs_constraints" << std::endl; 
 
                 // Ensure that the sum on the left has been correctly computed
                 // as the sum of the inputs
@@ -241,6 +320,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             const std::array<ZethNote, NumOutputs>& outputs,
             bits64 vpub
         ) {
+            std::cout << "\n [[[[[[[[[[[[[[DEBUG] -1- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl; 
             // Witness `zero`
             this->pb.val(ZERO) = FieldT::zero();
 
@@ -253,6 +333,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 this->pb,
                 get_vector_from_bits256(rt)
             );
+            std::cout << "\n [[[[[[[[[[[[[[DEBUG] -2- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
 
             // Witness public balance value 
             // (vpub represents the public value that is withdrawn from the mixer)
@@ -262,6 +343,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 get_vector_from_bits64(vpub)
             );
 
+            std::cout << "\n [[[[[[[[[[[[[[DEBUG] -3- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
+
             {
                 // Witness total_uint64 bits
                 // We add binary numbers here
@@ -270,7 +353,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 zero_array.fill(0);
                 bits64 left_side_acc = zero_array; // We don't allow vpub on the left in our case (TODO: allow it)
                 for (size_t i = 0; i < NumInputs; i++) {
-                    left_side_acc = binaryAddition<6>(left_side_acc, inputs[i].note.value());
+                    left_side_acc = binaryAddition<64>(left_side_acc, inputs[i].note.value());
                 }
 
                 zk_total_uint64.fill_with_bits(
@@ -279,12 +362,14 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 );
             }
 
+            std::cout << "\n [[[[[[[[[[[[[[DEBUG] -4- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
+
             for (size_t i = 0; i < NumInputs; i++) {
                 // Witness the input information.
-                auto merkle_path = inputs[i].witness_merkle_path;
-                auto address = inputs[i].address;
-                auto address_bits = inputs[i].address_bits;
-                zk_input_notes[i]->generate_r1cs_witness(
+                std::vector<libsnark::merkle_authentication_node> merkle_path = inputs[i].witness_merkle_path;
+                size_t address = inputs[i].address;
+                libff::bit_vector address_bits = get_vector_from_bitsAddr(inputs[i].address_bits);
+                input_notes[i]->generate_r1cs_witness(
                     merkle_path,
                     address,
                     address_bits,
@@ -293,10 +378,22 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 );
             }
 
+            std::cout << "\n [[[[[[[[[[[[[[DEBUG] -5- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
+
+            /*
+                    std::vector<libsnark::merkle_authentication_node> merkle_path,
+                    size_t address,
+                    libff::bit_vector address_bits,
+                    const bits256 a_sk_in,
+                    const ZethNote& note
+            */
+
             for (size_t i = 0; i < NumOutputs; i++) {
                 // Witness the output information.
-                zk_output_notes[i]->generate_r1cs_witness(outputs[i]);
+                output_notes[i]->generate_r1cs_witness(outputs[i]);
             }
+
+            std::cout << "\n [[[[[[[[[[[[[[DEBUG] -6- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
 
             // [SANITY CHECK] Ensure that the intended root
             // was witnessed by the inputs, even if the read
@@ -309,9 +406,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 get_vector_from_bits256(rt)
             );
 
+            std::cout << "\n [[[[[[[[[[[[[[DEBUG] -6- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
+
             // This happens last, because only by now are all the
             // verifier inputs resolved.
-            unpacker->generate_r1cs_witness_from_bits();
+            for(size_t i = 0; i < packers.size(); i++) {
+                packers[i]->generate_r1cs_witness_from_bits();
+            }
         }
 
         // This function takes the inputs of the circuits, and return the r1cs_primary_inputs
@@ -371,4 +472,4 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         }
 };
 
-#endif
+#endif // __ZETH_MAIN_CIRCUIT_TCC__
