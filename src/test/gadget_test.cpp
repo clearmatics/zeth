@@ -890,6 +890,24 @@ TEST(TestMainCircuit, TestValid1To1JoinSplitWithPubOutputValueAndNonZeroOutputNo
 
     // Here we make sure the value of the zeth note that is an output of the JS equals the value of the input
     // as we want this proof to be correctly verified
+    //
+    // Note that here, we have:
+    // - value of output coin = "1800000000000007"
+    // - value of v_pub = "1700000000000008"
+    // BUT, we changed the value of the output coin WIHTOUT recomputing the hash of the commitment
+    // (it is still "f23084ce25a5844abdae214896d13c376a9aea4bfe4cafbb5572822feb39b8ea" while this digest was computed when
+    // the value of the output coin was "2F0000000000000F")
+    // This does not affect the satisfiability of the constraints, because the value of the commtiment cm
+    // if computed in the circuit and the value of the digest of cm is overwritten in the snark.
+    //
+    // Note that the verification should fail since the public input will contain the commitment value
+    // "f23084ce25a5844abdae214896d13c376a9aea4bfe4cafbb5572822feb39b8ea" (corresponding to the value "2F0000000000000F")
+    // which is not the one of the output coin; while the circuit will have the GOOD commitment as output of the
+    // commitment circuit. Thus we will have a mismatch between the value of the public input and the value used
+    // to compute the proof.
+    //
+    // /!\ WARNING: Everything works here because we only check the statisfiability of the constraints of the circuits
+    // NOTE: A similar input should lead to a failure to verify the proof when we compute the proof and verify it.
     char* value_str_out = "1800000000000007";
     bits64 value_out_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector(value_str_out));
 
