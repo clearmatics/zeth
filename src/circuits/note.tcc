@@ -21,9 +21,6 @@ using namespace libsnark;
 
 // Disclaimer: Content taken and adapted from the Zcash codebase
 
-// Reminder on the structure of a coin. 
-// c = (v, rho, r, a_pk, [cm]) ([cm] is not really part of the coin. It is the commitment to the coin)
-
 // Gadget that makes sure that the note:
 // - Has a value < 2^64
 // - Has a valid r trapdoor which is a 384-bit string
@@ -126,11 +123,22 @@ public:
         // to the commitment gagdets.
         //
         // Call to the "note_commitment_gadget" to make sure that the
-        // commitment cm has been correctly computed from the coin data
+        // commitment cm is computed correctly from the coin data
         // ie: a_pk, value, rho, and trap_r
         // These gadgets compute the commitment cm (coin commitment)
         //
         // TODO: Factorize the 2 gadgets to compute k into a single gadget
+        // 
+        // Note: In our case it can be useful to retrieve the commitment k if we want to
+        // implement the mint function the same way as it is done in Zerocash.
+        // That way we only need to provide k along with the value when we deposit
+        // onto the mixer. Doing so removes the need to generate a proof when we deposit
+        // However, this comes with a drawback of introducing different types of function calls
+        // on the smart contract and also requires additional steps/function calls to "pour"/split
+        // the newly created commitment corresponding to a coin of value V, into a set of commitments
+        // corresponding to coins of value v_i such that Sum_i coins.value = V (ie: this step provides
+        // an additional layer of obfuscation and minimizes the interactions with the mixer (that we know
+        // affect the public state and leak data)).
         commit_to_inputs_inner_k.reset(new COMM_inner_k_gadget<FieldT>(
             pb,
             ZERO,
@@ -209,7 +217,6 @@ public:
         // If `value` is zero, `enforce` _can_ be zero.
         // If `value` is nonzero, `enforce` _must_ be one.
         generate_boolean_r1cs_constraint<FieldT>(this->pb, value_enforce, "value_enforce_boolean_constraint");
-
         this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
             packed_addition(this->value),
             (1 - value_enforce),
@@ -238,11 +245,11 @@ public:
         // Witness a_pk for a_sk with PRF_addr
         spend_authority->generate_r1cs_witness();
 
-        // [SANITY CHECK] Witness a_pk with note information
-        a_pk->bits.fill_with_bits(
-            this->pb,
-            get_vector_from_bits256(note.a_pk)
-        );
+        //// [SANITY CHECK] Witness a_pk with note information
+        ////a_pk->bits.fill_with_bits(
+        ////    this->pb,
+        ////    get_vector_from_bits256(note.a_pk)
+        ////);
 
         // Witness rho for the input note
         rho.fill_with_bits(
@@ -258,22 +265,11 @@ public:
         commit_to_inputs_outer_k->generate_r1cs_witness();
         commit_to_inputs_cm->generate_r1cs_witness();
 
-        // [SANITY CHECK] Ensure the commitment is
-        // valid.
-        commitment->bits.fill_with_bits(
-            this->pb,
-            get_vector_from_bits256(note.cm) 
-            // The cm is an attribute of the zethNote, rather than a function
-            // since the hash of the coin is computed outside of 
-            // the cpp module and set to the zethNote afterwards
-        );
-
-        libff::bit_vector bits_cm = get_vector_from_bits256(note.cm);
-        std::cout << "=== [DEBUG] dump commitment ===" << std::endl;
-        for(int i = 0; i < bits_cm.size(); i++) {
-            std::cout << bits_cm[i];
-        }
-        std::cout << "=== [DEBUG] END dump commitment ===" << std::endl;
+        //// [SANITY CHECK] Ensure the commitment is valid.
+        ////commitment->bits.fill_with_bits(
+        ////    this->pb,
+        ////    get_vector_from_bits256(note.cm) 
+        ////);
 
         // Set enforce flag for nonzero input value
         // Set the enforce flag according to the value of the note
@@ -336,7 +332,8 @@ public:
 
         // Witness merkle tree authentication path
         address_bits_va.fill_with_bits(this->pb, address_bits);
-        // [SANITY CHECK] Make sure `address_bits` and `address` represent the same
+
+        // Make sure `address_bits` and `address` represent the same
         // value encoded on different bases (binary and decimal)
         assert(address_bits_va.get_field_element_from_bits(pb).as_ulong() == address);
 
@@ -357,7 +354,7 @@ private:
     std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_outputs_outer_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_outputs_cm;
-    std::shared_ptr<libsnark::digest_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
+    //std::shared_ptr<libsnark::digest_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
 
 public:
     output_note_gadget(
@@ -370,8 +367,7 @@ public:
         inner_k.reset(new digest_variable<FieldT>(pb, 256, ""));
         outer_k.reset(new digest_variable<FieldT>(pb, 256, ""));
 
-        // Commit to the output notes publicly without
-        // disclosing them.
+        // Commit to the output notes publicly without disclosing them.
         commit_to_outputs_inner_k.reset(new COMM_inner_k_gadget<FieldT>(
             pb,
             ZERO,
@@ -408,17 +404,17 @@ public:
     void generate_r1cs_witness(const ZethNote& note) {
         note_gadget<FieldT>::generate_r1cs_witness(note);
 
-        // [SANITY CHECK] Witness rho ourselves with the
-        // note information.
+        // Witness rho with the note information.
         rho.fill_with_bits(
             this->pb,
             get_vector_from_bits256(note.rho)
         );
 
-        a_pk->bits.fill_with_bits(
-            this->pb,
-            get_vector_from_bits256(note.a_pk)
-        );
+        //// [SANITY CHECK] Witness a_pk with note information
+        ////a_pk->bits.fill_with_bits(
+        ////    this->pb,
+        ////    get_vector_from_bits256(note.a_pk)
+        ////);
 
         commit_to_outputs_inner_k->generate_r1cs_witness();
         commit_to_outputs_outer_k->generate_r1cs_witness();
