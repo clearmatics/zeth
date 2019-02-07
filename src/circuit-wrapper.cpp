@@ -77,7 +77,7 @@ public:
             rhs_value = binaryAddition<64>(rhs_value, outputs[i].value());
         }
 
-        // [SANITY CHECK] Make sure that the balance betweem rhs and lfh is respected
+        // [CHECK] Make sure that the balance between rhs and lfh is respected
         // Used to stop any proof computation that would inevitably fail
         // due to a violation of the equality:
         // left_value = right_value
