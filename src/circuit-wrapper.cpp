@@ -78,6 +78,10 @@ public:
         }
 
         // [SANITY CHECK] Make sure that the balance betweem rhs and lfh is respected
+        // Used to stop any proof computation that would inevitably fail
+        // due to a violation of the equality:
+        // left_value = right_value
+        // in the JoinSplit
         if (lhs_value != rhs_value) {
             throw std::invalid_argument("invalid joinsplit balance");
         }
