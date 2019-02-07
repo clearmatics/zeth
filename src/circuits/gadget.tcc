@@ -32,23 +32,24 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         // but this makes easier to retrieve the root and each nullifiers from the public inputs
         std::array<std::shared_ptr<multipacking_gadget<FieldT>>, NumInputs + NumOutputs + 1 + 1> packers;
 
-        // ---- Primary inputs (public)
+        // TODO: Remove ZERO and pass it in the constructor
+        pb_variable<FieldT> ZERO;
+
+        // ---- Primary inputs (public) ----
         // NB of public inputs = 1 + NumInputs + NumOutputs + 1
+        // In practice, we use sha256 as a PRF and COMM. Since the co-domain of sha256 is bigger
+        // than the field we use, every digest is packed into 2 field elements. Thus the number
+        // of field elements corresponding to the public inputs is:
+        // Public field elements = 2 * (1 + NumInputs + NumOutputs) + 1
         std::shared_ptr<digest_variable<FieldT> > root_digest; // merkle root
         std::array<std::shared_ptr<digest_variable<FieldT> >, NumInputs> input_nullifiers; // List of nullifiers of the notes to spend
         std::array<std::shared_ptr<digest_variable<FieldT> >, NumOutputs> output_commitments; // List of commitments generated for the new notes
         pb_variable_array<FieldT> zk_vpub; // Value that is taken out of the mix
 
-        // ---- Auxiliary inputs (private)
-        pb_variable<FieldT> ZERO;
+        // ---- Auxiliary inputs (private) ----
         pb_variable_array<FieldT> zk_total_uint64;
-
-        // Input note gadgets
-        std::array<std::shared_ptr<input_note_gadget<FieldT>>, NumInputs> input_notes;
-
-        // Output note gadgets
-        std::array<std::shared_ptr<output_note_gadget<FieldT>>, NumOutputs> output_notes;
-
+        std::array<std::shared_ptr<input_note_gadget<FieldT>>, NumInputs> input_notes; // Input note gadgets
+        std::array<std::shared_ptr<output_note_gadget<FieldT>>, NumOutputs> output_notes; // Output note gadgets
     public:
         // Make sure that we do not exceed the number of inputs/outputs
         // specified in the configuration of the JoinSplit (see: zeth.h file)
@@ -62,18 +63,10 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         BOOST_STATIC_ASSERT(NumInputs <= ZETH_NUM_JS_INPUTS);
         BOOST_STATIC_ASSERT(NumOutputs <= ZETH_NUM_JS_OUTPUTS);
 
-        // ---- Primary inputs in a packed form to be added to the extended proof 
-        // Given to the verifier on-chain
-        //
-        // WARNING: "multipacking_gadget" are not needed since we generate the primary input using
-        // the function witness_map that basically packs the bit vectors into a vector of
-        // field elements, while making sure it is done correctly
-        //
-        ////pb_variable_array<FieldT> packed_root;
-        ////std::array<pb_variable_array<FieldT>, NumInputs> packed_nullifiers;
-
+        // Primary inputs are packed to be added to the extended proof and given to the verifier on-chain
         joinsplit_gadget(protoboard<FieldT> &pb,
-                        const std::string &annotation_prefix="joinsplit_gadget") : gadget<FieldT>(pb) {
+                        const std::string &annotation_prefix = "joinsplit_gadget"
+        ) : gadget<FieldT>(pb) {
             // Block dedicated to generate the verifier inputs
             std::cout << "[DEBUG] 1 in JS gadget constructor" << std::endl; 
             {
@@ -236,6 +229,18 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         void generate_r1cs_constraints() {
 
             std::cout << " ================= [DEBUG] 1 in JS generate_r1cs_constraints" << std::endl; 
+
+            /*
+            for (size_t i = 0; i < NumInputs; i++) {
+                input_nullifiers[i]->generate_r1cs_constraints();
+            }
+            for (size_t i = 0; i < NumOutputs; i++) {
+                output_commitments[i]->generate_r1cs_constraints();
+            }
+            
+            root_digest->generate_r1cs_constraints();
+            */
+
             // The true passed here ensures all the inputs
             // are boolean constrained.
             int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1;
@@ -324,15 +329,25 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             // Witness `zero`
             this->pb.val(ZERO) = FieldT::zero();
 
+            /*
+            for (size_t i = 0; i < NumInputs; i++) {
+                input_nullifiers[i]->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(inputs[i].nullifier)));
+            }
+            for (size_t i = 0; i < NumOutputs; i++) {
+                output_commitments[i]->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(outputs[i].cm)));
+            }
+            */
+            root_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(rt)));
+
             // Witness rt. This is not a sanity check.
             //
             // This ensures the read gadget constrains
             // the intended root in the event that
             // both inputs are zero-valued.
-            root_digest->bits.fill_with_bits(
-                this->pb,
-                get_vector_from_bits256(rt)
-            );
+            //root_digest->bits.fill_with_bits(
+            //    this->pb,
+            //    get_vector_from_bits256(rt)
+            //);
             std::cout << "\n [[[[[[[[[[[[[[DEBUG] -2- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
 
             // Witness public balance value 
@@ -342,6 +357,20 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 this->pb,
                 get_vector_from_bits64(vpub)
             );
+
+            // /!\ We witness the multipacking gadgets before we overwrite any data.
+            // This constitutes the public inputs
+            //
+            // Note that when we witness the gadgets below we migth overwrite some data
+            // This is fine here because, the proof should pass if all the data structures' content
+            // are overwritten with the same data.
+            // HOWEVER, if the prover uses erroneous/malicious data as assignement to the circuit,
+            // then the witnessed data packed into the packing gagdets will differ from the same data
+            // structures' content used in the proof generation, and thus the proof will fail to be verified
+            // by the on-chain verifier
+            ////for(size_t i = 0; i < packers.size(); i++) {
+            ////    packers[i]->generate_r1cs_witness_from_bits();
+            ////}
 
             std::cout << "\n [[[[[[[[[[[[[[DEBUG] -3- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
 
@@ -390,26 +419,40 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             for (size_t i = 0; i < NumOutputs; i++) {
                 // Witness the output information.
+                std::cout << "Displaying the output_note details: " << std::endl;
+                std::cout << "value size: " << outputs[i].value().size() << std::endl;
+                auto val = outputs[i].value();
+                std::cout << "value: ";
+                for(int i = 0; i < val.size(); i++) {
+                    std::cout << val[i];
+                } 
+                std::cout << std::endl;
+                std::cout << "commitment given: " << outputs[i].cm.size() << std::endl;
+                auto val_cm = outputs[i].cm;
+                for(int i = 0; i < val_cm.size(); i++) {
+                    std::cout << val_cm[i];
+                } 
+                std::cout << std::endl;
                 output_notes[i]->generate_r1cs_witness(outputs[i]);
             }
 
             std::cout << "\n [[[[[[[[[[[[[[DEBUG] -6- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
-
+            //
             // [SANITY CHECK] Ensure that the intended root
-            // was witnessed by the inputs, even if the read
-            // gadget overwrote it. This allows the prover to
-            // fail instead of the verifier, in the event that
-            // the roots of the inputs do not match the
-            // treestate provided to the proving API.
+            //    // was witnessed by the inputs, even if the read
+            //    // gadget overwrote it. This allows the prover to 
+            //   // fail instead of the verifier, in the event that
+            //    // the roots of the inputs do not match the
+            //    // treestate provided to the proving API.
             root_digest->bits.fill_with_bits(
                 this->pb,
                 get_vector_from_bits256(rt)
             );
-
+            //
             std::cout << "\n [[[[[[[[[[[[[[DEBUG] -6- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
-
-            // This happens last, because only by now are all the
-            // verifier inputs resolved.
+            //
+            //    // This happens last, because only by now are all the
+            //    // verifier inputs resolved.
             for(size_t i = 0; i < packers.size(); i++) {
                 packers[i]->generate_r1cs_witness_from_bits();
             }
