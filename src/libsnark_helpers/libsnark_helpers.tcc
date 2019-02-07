@@ -405,11 +405,16 @@ void primary_input_to_json(libsnark::r1cs_ppzksnark_primary_input<ppT> input, bo
 
 template<typename ppT>
 void display_primary_input(libsnark::r1cs_ppzksnark_primary_input<ppT> input) {
-    std::cout << "\ninput = [";
-    for (size_t i = 1; i < input.size(); ++i) {
-        std::cout << input[i] << " , ";
+    std::cout << "{\n";
+    std::cout << " \"inputs\" :" << "["; // 1 should always be the first variable passed
+    for (size_t i = 0; i < input.size(); ++i) {
+        std::cout << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\"";
+        if ( i < input.size() - 1 ) {
+            std::cout << ", ";
+        }
     }
-    std::cout << "];\n";
+    std::cout << "]\n";
+    std::cout << "}";
 }
 
 #endif
