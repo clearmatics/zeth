@@ -425,7 +425,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 std::cout << "value: ";
                 for(int i = 0; i < val.size(); i++) {
                     std::cout << val[i];
-                } 
+                }
+                /*
                 std::cout << std::endl;
                 std::cout << "commitment given: " << outputs[i].cm.size() << std::endl;
                 auto val_cm = outputs[i].cm;
@@ -433,6 +434,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     std::cout << val_cm[i];
                 } 
                 std::cout << std::endl;
+                */
                 output_notes[i]->generate_r1cs_witness(outputs[i]);
             }
 
