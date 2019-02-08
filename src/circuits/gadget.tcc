@@ -25,12 +25,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         // Multipacking gadgets for the inputs (root and nullifierS)
         // NumInputs + NumOutputs + 1 because we pack the nullifiers (Inputs of JS = NumInputs), 
         // the commitments (Output of JS = NumOutputs) AND the merkle root (+1) AND the v_pub taken out of the mix (+1)
-        std::array<pb_variable_array<FieldT>, NumInputs + NumOutputs + 1 + 1> packed_inputs;
-        std::array<pb_variable_array<FieldT>, NumInputs + NumOutputs + 1 + 1> unpacked_inputs;
+        // AND the public value that is put into the mix (+1)
+        std::array<pb_variable_array<FieldT>, NumInputs + NumOutputs + 1 + 1 + 1> packed_inputs;
+        std::array<pb_variable_array<FieldT>, NumInputs + NumOutputs + 1 + 1 + 1> unpacked_inputs;
         // We use an array of multipackers here instead of a single packer that packs everything
         // This leads to more public inputs (and thus affects a little bit the verification time)
         // but this makes easier to retrieve the root and each nullifiers from the public inputs
-        std::array<std::shared_ptr<multipacking_gadget<FieldT>>, NumInputs + NumOutputs + 1 + 1> packers;
+        std::array<std::shared_ptr<multipacking_gadget<FieldT>>, NumInputs + NumOutputs + 1 + 1 + 1> packers;
 
         // TODO: Remove ZERO and pass it in the constructor
         pb_variable<FieldT> ZERO;
@@ -44,7 +45,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         std::shared_ptr<digest_variable<FieldT> > root_digest; // merkle root
         std::array<std::shared_ptr<digest_variable<FieldT> >, NumInputs> input_nullifiers; // List of nullifiers of the notes to spend
         std::array<std::shared_ptr<digest_variable<FieldT> >, NumOutputs> output_commitments; // List of commitments generated for the new notes
-        pb_variable_array<FieldT> zk_vpub; // Value that is taken out of the mix
+        pb_variable_array<FieldT> zk_vpub_in; // Public value that is put into the mix
+        pb_variable_array<FieldT> zk_vpub_out; // Value that is taken out of the mix
 
         // ---- Auxiliary inputs (private) ----
         pb_variable_array<FieldT> zk_total_uint64;
@@ -86,13 +88,16 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     packed_inputs[i].allocate(pb, 1 + 1);
                 }
 
-                // We allocate 1 field element to pack the value (v_pub)
+                // We allocate 1 field element to pack the value (v_pub_out)
                 packed_inputs[NumInputs + NumOutputs + 1].allocate(pb, 1);
+
+                // We allocate 1 field element to pack the value (v_pub_in)
+                packed_inputs[NumInputs + NumOutputs + 1 + 1].allocate(pb, 1);
 
                 std::cout << "[DEBUG] 1.2 in JS gadget constructor" << std::endl;
 
                 // We have one input for each input, output and for the root (they are all 256bits which takes 2field el)
-                int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1; // There are NumInputs + NumOutputs + 1 digest inputs (each takes 2 field elements to be represented) + 1 other input whihc is the value (encoded on 64 bits so can be represented on onyl one field element)
+                int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1 + 1; // There are NumInputs + NumOutputs + 1 digest inputs (each takes 2 field elements to be represented) + 1 other input which is the value v_pub_out (encoded on 64 bits so can be represented on only one field element) + 1 input which is the v_pub_in
                 pb.set_input_sizes(nb_inputs);
 
                 std::cout << "[DEBUG] 1.3 in JS gadget constructor" << std::endl;
@@ -133,13 +138,22 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
                 std::cout << "[DEBUG] 1.6 in JS gadget constructor" << std::endl;
 
-                // Allocate the zk_vpub
-                zk_vpub.allocate(pb, 64);
+                // Allocate the zk_vpub_in
+                zk_vpub_in.allocate(pb, 64);
+                // Initialize the unpacked input corresponding to the v_pub (value taken out of the mix)
+                unpacked_inputs[NumOutputs + NumInputs + 1 + 1].insert(
+                    unpacked_inputs[NumOutputs + NumInputs + 1 + 1].end(), 
+                    zk_vpub_in.begin(), 
+                    zk_vpub_in.end()
+                );
+
+                // Allocate the zk_vpub_out
+                zk_vpub_out.allocate(pb, 64);
                 // Initialize the unpacked input corresponding to the v_pub (value taken out of the mix)
                 unpacked_inputs[NumOutputs + NumInputs + 1].insert(
                     unpacked_inputs[NumOutputs + NumInputs + 1].end(), 
-                    zk_vpub.begin(), 
-                    zk_vpub.end()
+                    zk_vpub_out.begin(), 
+                    zk_vpub_out.end()
                 );
 
                 std::cout << "[DEBUG] 1.7 in JS gadget constructor" << std::endl;
@@ -198,7 +212,15 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     unpacked_inputs[NumInputs + NumOutputs + 1],
                     packed_inputs[NumInputs + NumOutputs + 1],
                     FieldT::capacity(),
-                    FMT(this->annotation_prefix, " packer_value_pub")
+                    FMT(this->annotation_prefix, " packer_value_pub_out")
+                ));
+
+                packers[NumInputs + NumOutputs + 1 + 1].reset(new multipacking_gadget<FieldT>(
+                    pb,
+                    unpacked_inputs[NumInputs + NumOutputs + 1 + 1],
+                    packed_inputs[NumInputs + NumOutputs + 1 + 1],
+                    FieldT::capacity(),
+                    FMT(this->annotation_prefix, " packer_value_pub_in")
                 ));
             }
             std::cout << "[DEBUG] 2 in JS gadget constructor" << std::endl; 
@@ -243,7 +265,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             // The true passed here ensures all the inputs
             // are boolean constrained.
-            int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1;
             for(size_t i = 0; i < packers.size(); i++) {
                 packers[i]->generate_r1cs_constraints(true);
             }
@@ -269,7 +290,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             // Value balance // WARNING: This is the Core of the JoinSplit.
             // Here we check that the condition of the joinsplit holds (ie: Sum_in = Sum_out)
             {
-                linear_combination<FieldT> left_side;
+                linear_combination<FieldT> left_side = packed_addition(zk_vpub_in);
                 for (size_t i = 0; i < NumInputs; i++) {
                     left_side = left_side + packed_addition(input_notes[i]->value);
                 }
@@ -278,8 +299,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 std::cout << "[DEBUG] 4.1 in JS generate_r1cs_constraints" << std::endl; 
                 std::cout << "[DEBUG] 4.2 in JS generate_r1cs_constraints" << std::endl; 
 
-                // Here we only allow vpub to be used on the output side (withdraw)
-                linear_combination<FieldT> right_side = packed_addition(zk_vpub);
+                // Here we only allow vpub_out to be used on the output side (withdraw)
+                linear_combination<FieldT> right_side = packed_addition(zk_vpub_out);
                 for (size_t i = 0; i < NumOutputs; i++) {
                     right_side = right_side + packed_addition(output_notes[i]->value);
                 }
@@ -323,7 +344,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             const bits256& rt,
             const std::array<JSInput, NumInputs>& inputs,
             const std::array<ZethNote, NumOutputs>& outputs,
-            bits64 vpub
+            bits64 vpub_in,
+            bits64 vpub_out
         ) {
             std::cout << "\n [[[[[[[[[[[[[[DEBUG] -1- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl; 
             // Witness `zero`
@@ -351,11 +373,16 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             std::cout << "\n [[[[[[[[[[[[[[DEBUG] -2- in JS generate_r1cs_constraints ]]]]]]]]]]]]]]]\n" << std::endl;
 
             // Witness public balance value 
-            // (vpub represents the public value that is withdrawn from the mixer)
+            // (vpub_out represents the public value that is withdrawn from the mixer)
             // v_pub is only allowed on the right side (output) in our case
-            zk_vpub.fill_with_bits(
+            zk_vpub_out.fill_with_bits(
                 this->pb,
-                get_vector_from_bits64(vpub)
+                get_vector_from_bits64(vpub_out)
+            );
+
+            zk_vpub_in.fill_with_bits(
+                this->pb,
+                get_vector_from_bits64(vpub_in)
             );
 
             // /!\ We witness the multipacking gadgets before we overwrite any data.
@@ -378,9 +405,10 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // Witness total_uint64 bits
                 // We add binary numbers here
                 // see: https://stackoverflow.com/questions/13282825/adding-binary-numbers-in-c
-                std::array<bool, 64> zero_array;
-                zero_array.fill(0);
-                bits64 left_side_acc = zero_array; // We don't allow vpub on the left in our case (TODO: allow it)
+                ///std::array<bool, 64> zero_array;
+                ///zero_array.fill(0);
+                ///bits64 left_side_acc = zero_array; // We don't allow vpub_out on the left in our case (TODO: allow it)
+                bits64 left_side_acc = vpub_in;
                 for (size_t i = 0; i < NumInputs; i++) {
                     left_side_acc = binaryAddition<64>(left_side_acc, inputs[i].note.value());
                 }
@@ -468,7 +496,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             const bits256& rt,
             const std::array<bits256, NumInputs>& nullifiers,
             const std::array<bits256, NumOutputs>& commitments,
-            bits64 vpub,
+            bits64 vpub_out,
         ) {
             std::vector<bool> verify_inputs;
 
@@ -482,7 +510,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 insert_bits256(verify_inputs, commitments[i]);
             }
 
-            insert_uint64(verify_inputs, vpub);
+            insert_uint64(verify_inputs, vpub_out);
             
             assert(verify_inputs.size() == get_input_bit_size());
             // The pack_bit_vector_into_field_element_vector function is implemented in
@@ -505,7 +533,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             for (size_t i = 0; i < NumOutputs; i++) {
                 acc += 256; // new commitment
             }
-            acc += 64; // vpub
+            acc += 64; // vpub_out
+            acc += 64; // vpub_in
 
             return acc;
         }

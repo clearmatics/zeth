@@ -143,6 +143,7 @@ bool Test_ValidJS1In1Out(
         get_bits256_from_vector(root_value),
         inputs,
         outputs,
+        get_bits64_from_vector(hexadecimal_str_to_binary_vector("0000000000000000")), // No value in here
         value_pub_out_bits64,
         keypair.pk
     );
@@ -269,6 +270,7 @@ bool Test_InvalidJS1In1Out(
         get_bits256_from_vector(root_value),
         inputs,
         outputs,
+        get_bits64_from_vector(hexadecimal_str_to_binary_vector("0000000000000000")), // No value in here
         value_pub_out_bits64,
         keypair.pk
     );
@@ -400,6 +402,7 @@ bool Test_ValidJS1In1Out1PubVal(
         get_bits256_from_vector(updated_root_value),
         inputs,
         outputs,
+        get_bits64_from_vector(hexadecimal_str_to_binary_vector("0000000000000000")), // No value in here
         value_pub_out_bits64,
         keypair.pk
     );
@@ -558,6 +561,7 @@ bool Test_ValidJS2In2Out(
         get_bits256_from_vector(updated_root_value),
         inputs,
         outputs,
+        get_bits64_from_vector(hexadecimal_str_to_binary_vector("0000000000000000")), // No value in here
         value_pub_out_bits64,
         keypair.pk
     );

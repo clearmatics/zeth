@@ -58,14 +58,15 @@ public:
         const bits256& root_bits,
         const std::array<JSInput, NumInputs>& inputs,
         const std::array<ZethNote, NumOutputs>& outputs,
-        bits64 vpub,
+        bits64 vpub_in,
+        bits64 vpub_out,
         libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key
     ) {
         // left hand side and right hand side of the joinsplit
-        std::array<bool, 64> zero_array;
-        zero_array.fill(0);
-        bits64 lhs_value = zero_array;
-        bits64 rhs_value = vpub;
+        ////std::array<bool, 64> zero_array;
+        ////zero_array.fill(0);
+        bits64 lhs_value = vpub_in;
+        bits64 rhs_value = vpub_out;
 
         // Compute the sum on the left hand side of the joinsplit
         for (size_t i = 0; i < NumInputs; i++) {
@@ -94,7 +95,8 @@ public:
             root_bits,
             inputs,
             outputs,
-            vpub
+            vpub_in,
+            vpub_out
         );
 
         bool is_valid_witness = pb.is_satisfied();
