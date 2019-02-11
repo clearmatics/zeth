@@ -1,9 +1,6 @@
 include_directories(
     $ENV{ZETH}
     $ENV{ZETH}/src
-    $ENV{ZETH}/src/libsnark_helpers
-    $ENV{ZETH}/src/circuits
-    $ENV{ZETH}/src/sha256
     libff/common/default_types
 )
 
@@ -11,10 +8,11 @@ file(GLOB_RECURSE SOURCES
     #circuits/computation.tcc
     #circuits/prover.tcc
     libsnark_helpers/libsnark_helpers.cpp
-    libsnark_helpers/libsnark_helpers.tcc
-    libsnark_helpers/extended_proof.tcc
-    sha256/sha256_ethereum.cpp
-    sha256/sha256_ethereum.tcc
+    # libsnark_helpers/libsnark_helpers.tcc # The tcc files shouldn't be necessary as they are included in the hpp files whihc themselves are included in the cpp files
+    # libsnark_helpers/extended_proof.tcc
+    circuits/sha256/sha256_ethereum.cpp
+    types/bits.cpp
+    # sha256/sha256_ethereum.tcc
     util.cpp
     #cli/setupCmd.cpp
     #cli/setupCmd.tcc
@@ -63,7 +61,7 @@ add_executable(
     test_sha256
     EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
 
-    test/sha256_test.cpp
+    circuits/sha256/test/sha256_test.cpp
     ${SOURCES}
     #${HEADER_FILES}
 )

@@ -8,13 +8,11 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 // Header to use the sha256_ethereum gadget
-#include "sha256_ethereum.hpp"
+#include "circuits/sha256/sha256_ethereum.hpp"
+// Get the gadget to test
+#include "circuits/commitments/commitments.hpp"
 
 #include "util.hpp"
-
-#include "commitments.tcc"
-
-using namespace libsnark;
 
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
@@ -267,7 +265,7 @@ TEST(TestCOMMs, TestCOMMInnerKGadget) {
     );
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
-    result.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+    result.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
     std::shared_ptr<COMM_inner_k_gadget<FieldT> > comm_inner_k_gadget;
     comm_inner_k_gadget.reset(new COMM_inner_k_gadget<FieldT>(
@@ -409,7 +407,7 @@ TEST(TestCOMMs, TestCOMMOuterKGadget) {
     );
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
-    result.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+    result.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
     std::shared_ptr<COMM_outer_k_gadget<FieldT> > comm_outer_k_gadget;
     comm_outer_k_gadget.reset(new COMM_outer_k_gadget<FieldT>(
@@ -504,7 +502,7 @@ TEST(TestCOMMs, TestCOMMCMGadget) {
     );
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
-    result.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+    result.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
     std::shared_ptr<COMM_cm_gadget<FieldT> > comm_cm_gadget;
     comm_cm_gadget.reset(new COMM_cm_gadget<FieldT>(

@@ -1,6 +1,10 @@
 #ifndef __SHA256_ETHEREUM_HPP__
 #define __SHA256_ETHEREUM_HPP__
 
+// DISCLAIMER:
+// Content taken and adapted from:
+// https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
+
 #include <iostream>
 
 #include "libsnark/gadgetlib1/gadget.hpp"
@@ -14,10 +18,15 @@
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
 
+// Get the from_bits function
+#include "circuits/circuits-util.hpp"
+
 // See: https://github.com/scipr-lab/libff/blob/master/libff/common/default_types/ec_pp.hpp
 // We need to set the right curve as a flag during the compilation, and the right curve is going to be picked
 // if we use the default_ec_pp as a FieldT`
 // typedef libff::Fr<libff::default_ec_pp> FieldT;
+
+namespace libzeth {
 
 const size_t SHA256_ETH_digest_size = 256;
 const size_t SHA256_ETH_block_size = 512;
@@ -39,7 +48,7 @@ public:
                     const size_t block_length,
                     const libsnark::block_variable<FieldT> &input_block,
                     const libsnark::digest_variable<FieldT> &output,
-                    const std::string &annotation_prefix);
+                    const std::string &annotation_prefix = "sha256_ethereum");
 
     void generate_r1cs_constraints(const bool ensure_output_bitness=true);
     void generate_r1cs_witness();
@@ -51,15 +60,15 @@ public:
     static size_t expected_constraints(const bool ensure_output_bitness);
 };
 
+template<typename FieldT>
+libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::pb_variable<FieldT>& ZERO);
+
 // See: https://github.com/scipr-lab/libff/blob/master/libff/common/default_types/ec_pp.hpp
 // We need to set the right curve as a flag during the compilation, and the right curve is going to be picked
 // if we use the default_ec_pp as a FieldT`
 // typedef libff::Fr<libff::default_ec_pp> FieldT;
 
-// These functions are not methods of our gadget class
-std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const size_t wordsize);
-template<typename FieldT> libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::pb_variable<FieldT>& ZERO);
-
-#include "sha256_ethereum.tcc"
+} // libzeth
+#include "circuits/sha256/sha256_ethereum.tcc"
 
 #endif

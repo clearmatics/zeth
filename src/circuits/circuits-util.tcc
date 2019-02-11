@@ -1,24 +1,10 @@
 #ifndef __ZETH_CIRCUITS_UTILS_TCC__
 #define __ZETH_CIRCUITS_UTILS_TCC__
 
+#include <vector>
 #include <libsnark/gadgetlib1/pb_variable.hpp>
-#include "util.hpp"
-#include "src/bits256.tcc"
-#include "src/util.hpp"
 
-// This function is a redefinition of the from_bits function in the sha256_ethereum gadget
-/*
-template<typename FieldT>
-libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::pb_variable<FieldT>& ZERO) {
-    pb_variable_array<FieldT> acc;
-
-    BOOST_FOREACH(bool bit, bits) {
-        acc.emplace_back(bit ? ONE : ZERO);
-    }
-
-    return acc;
-};
-*/
+namespace libzeth {
 
 // Converts a given number encoded on bitlen bits into a
 // binary string of lentgh bitlen.
@@ -34,16 +20,6 @@ std::vector<bool> convert_to_binary_LE(T x, int bitlen) {
         x>>=1;
     }
     return ret;
-};
-
-void insert_bits256(std::vector<bool>& into, bits256 from) {
-    std::vector<bool> blob = get_vector_from_bits256(from);
-    into.insert(into.end(), blob.begin(), blob.end());
-};
-
-void insert_bits64(std::vector<bool>& into, bits64 from) {
-    std::vector<bool> num = get_vector_from_bits64(from);
-    into.insert(into.end(), num.begin(), num.end());
 };
 
 template<typename T>
@@ -69,5 +45,25 @@ libsnark::linear_combination<FieldT> packed_addition(libsnark::pb_variable_array
         input_swapped.rbegin(), input_swapped.rend()
     ));
 };
+
+// From_bits() takes a vector of boolean values, and convert this vector of boolean values into a vector of
+// identities in the field FieldT, where bool(0) <-> ZERO (Additive identity in FieldT), and where
+// bool(1) <-> ONE (Multiplicative identity in FieldT)
+
+/*
+template<typename FieldT>
+libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::pb_variable<FieldT>& ZERO)
+{
+    libsnark::pb_variable_array<FieldT> acc;
+    for (size_t i = 0; i < bits.size(); i++) {
+        bool bit = bits[i];
+        acc.emplace_back(bit ? ONE : ZERO);
+    }
+
+    return acc;
+}
+*/
+
+} // libzeth
 
 #endif // __ZETH_CIRCUITS_UTILS_TCC__

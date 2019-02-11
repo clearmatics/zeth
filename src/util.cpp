@@ -5,6 +5,8 @@
 #include "zeth.h"
 #include "util.hpp"
 
+namespace libzeth {
+
 // Takes a binary string and swaps the bit endianness
 // ie: The output is Big Endian if the input was Little Endian (and vice-versa)
 template<typename T>
@@ -87,3 +89,5 @@ std::vector<bool> hexadecimal_digest_to_binary_vector(char* str) {
 
     return hexadecimal_str_to_binary_vector(str);
 }
+
+} // libzeth

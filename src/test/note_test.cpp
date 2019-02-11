@@ -8,19 +8,19 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 // Header to use the sha256_ethereum gadget
-#include "sha256_ethereum.hpp"
+#include "circuits/sha256/sha256_ethereum.hpp"
 
 #include "util.hpp"
 
 // Access the defined constants
 #include "zeth.h"
 
-// Use the bits256 type util functions
-#include "bits256.tcc"
+// Bring the types in scope
+#include "types/bits.tcc"
+#include "types/note.hpp"
 
-// Gadgets to test
-#include "note.hpp"
-#include "note.tcc"
+// Gadget to test
+#include "circuits/notes/note.tcc"
 
 using namespace libzeth;
 

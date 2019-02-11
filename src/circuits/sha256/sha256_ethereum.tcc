@@ -1,9 +1,11 @@
 #ifndef __ZETH_SHA256_ETHEREUM_TCC__
 #define __ZETH_SHA256_ETHEREUM_TCC__
 
-
-// Content adapted from:
+// DISCLAIMER:
+// Content taken and adapted from:
 // https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
+
+namespace libzeth {
 
 // This define directive is useless/redundant, as ONE is defined here:
 // libsnark/gadgetlib1/pb_variable.hpp#74
@@ -36,12 +38,13 @@ sha256_ethereum<FieldT>::sha256_ethereum(libsnark::protoboard<FieldT> &pb,
                                         const libsnark::block_variable<FieldT> &input_block,
                                         const libsnark::digest_variable<FieldT> &output,
                                         const std::string &annotation_prefix) :
-    libsnark::gadget<FieldT>(pb, "sha256_ethereum")
+    libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
     intermediate_hash.reset(new libsnark::digest_variable<FieldT>(pb, 256, "intermediate"));
 
     // Set the zero variable to the zero of our field, to later transform
-    // boolean vectors into vectors of ONE and ZERO in our field FieldT
+    // boolean vectors into vectors of ONE and ZERO intemplate<typename FieldT>
+    //
     // TODO: pass ZERO as argument and delete these instructions. 
     // It should alredy be allocated on the protoboard which is given as argument of this function
     libsnark::pb_variable<FieldT> ZERO;
@@ -218,7 +221,7 @@ template<typename FieldT>
 size_t sha256_ethereum<FieldT>::expected_constraints(const bool ensure_output_bitness)
 {
     libff::UNUSED(ensure_output_bitness);
-    return 54560; /* hardcoded for now */
+    return 54560;
 }
 
 template<typename FieldT>
@@ -236,9 +239,6 @@ libff::bit_vector sha256_ethereum<FieldT>::get_hash(const libff::bit_vector &inp
     return output_variable.get_digest();
 }
 
-// From_bits() takes a vector of boolean values, and convert this vector of boolean values into a vector of
-// identities in the field FieldT, where bool(0) <-> ZERO (Additive identity in FieldT), and where
-// bool(1) <-> ONE (Multiplicative identity in FieldT)
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::pb_variable<FieldT>& ZERO)
 {
@@ -251,4 +251,6 @@ libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::
     return acc;
 }
 
-#endif
+} // libzeth
+
+#endif // __ZETH_SHA256_ETHEREUM_TCC__

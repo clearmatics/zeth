@@ -1,4 +1,16 @@
-#include "sha256_ethereum.hpp"
+#include "util.hpp"
+
+namespace libzeth {
+
+void insert_bits256(std::vector<bool>& into, bits256 from) {
+    std::vector<bool> blob = get_vector_from_bits256(from);
+    into.insert(into.end(), blob.begin(), blob.end());
+};
+
+void insert_bits64(std::vector<bool>& into, bits64 from) {
+    std::vector<bool> num = get_vector_from_bits64(from);
+    into.insert(into.end(), num.begin(), num.end());
+};
 
 std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const size_t wordsize) {
     std::vector<unsigned long> res;
@@ -13,3 +25,5 @@ std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const si
     }
     return res;
 }
+
+} // libzeth

@@ -4,8 +4,8 @@
 #include <vector>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
-#include "note.hpp"
-#include "bits256.hpp"
+#include "types/note.hpp"
+#include "types/bits.hpp"
 
 namespace libzeth {
 

@@ -1,10 +1,10 @@
-/**
- * File taken and modified from wraplibsnark.cpp originally written by:
- * - Jacob Eberhardt
- * - Dennis Kuhnert
- */
+// DISCLAIMER:
+// Content taken and adapted from:
+// wraplibsnark.cpp (originally written by Jacob Eberhardt and Dennis Kuhnert)
 
-#include "libsnark_helpers.hpp"
+#include "libsnark_helpers/libsnark_helpers.hpp"
+
+namespace libzeth {
 
 // Conversion byte[32] <-> libsnark bigint.
 libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(const uint8_t* _x)
@@ -31,7 +31,11 @@ std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> 
             x[i * 8 + j] = uint8_t(uint64_t(_x.data[3 - i]) >> (8 * (7 - j)));
         }
     }
-
+/**
+ * File taken and modified from wraplibsnark.cpp originally written by:
+ * - Jacob Eberhardt
+ * - Dennis Kuhnert
+ */
     std::stringstream ss;
     ss << std::setfill('0');
     for (unsigned i = 0; i<32; i++)
@@ -107,3 +111,5 @@ bool replace(std::string& str, const std::string& from, const std::string& to)
     str.replace(start_pos, from.length(), to);
     return true;
 }
+
+} // libzeth

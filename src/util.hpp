@@ -4,10 +4,14 @@
 #include <vector>
 #include <cstdint>
 
+namespace libzeth {
+
 template<typename T>
 T swap_bit_endianness(T v);
 
 std::vector<bool> hexadecimal_str_to_binary_vector(char* str);
 std::vector<bool> hexadecimal_digest_to_binary_vector(char* str);
+
+} // libzeth
 
 #endif

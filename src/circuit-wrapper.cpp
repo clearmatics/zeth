@@ -1,8 +1,12 @@
-#include "computation.hpp"
-#include "joinsplit.hpp"
-#include "note.hpp"
+#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
-#include "gadget.tcc"
+#include "libsnark_helpers/extended_proof.hpp"
+
+#include "circuits/computation.hpp"
+#include "circuits/joinsplit.tcc"
+
+#include "circuits/joinsplit.hpp"
+#include "types/note.hpp"
 
 // This file should be wrapper around the prover circuit and should basically generate 
 // all the data necessary to be fed into the gagdets (ie: this function should build the witness)

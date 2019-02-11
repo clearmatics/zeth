@@ -1,6 +1,8 @@
 #ifndef __ZETH_LIBSNARK_HELPERS_TCC__
 #define __ZETH_LIBSNARK_HELPERS_TCC__
 
+namespace libzeth {
+
 // SerializableT represents any type that overloads the operator<< and operator>> of ostream and istream
 // Note: Both r1cs_ppzksnark_proving_key and r1cs_ppzksnark_verifying_key implement
 // these overloading, so both of them can easily be writen and loaded from files
@@ -416,5 +418,7 @@ void display_primary_input(libsnark::r1cs_ppzksnark_primary_input<ppT> input) {
     std::cout << "]\n";
     std::cout << "}";
 }
+
+} // libzeth
 
 #endif

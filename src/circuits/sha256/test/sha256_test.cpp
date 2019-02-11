@@ -13,14 +13,15 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 // Header to use the sha256_ethereum gadget
-#include "sha256_ethereum.hpp"
+#include "circuits/sha256/sha256_ethereum.hpp"
 
 // Use the bits256 type util functions
-#include "bits256.tcc"
+#include "types/bits.tcc"
 
 #include "util.hpp"
 
 using namespace libsnark;
+using namespace libzeth;
 
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt

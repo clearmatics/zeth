@@ -35,8 +35,7 @@ public:
     void dump_primary_inputs();
 };
 
-#include "extended_proof.tcc"
-
 } // libzeth
+#include "libsnark_helpers/extended_proof.tcc"
 
 #endif

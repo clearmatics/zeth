@@ -1,23 +1,25 @@
-#ifndef __ZETH_MAIN_CIRCUIT_TCC__
-#define __ZETH_MAIN_CIRCUIT_TCC__
+#ifndef __ZETH_JOINSPLIT_CIRCUIT_TCC__
+#define __ZETH_JOINSPLIT_CIRCUIT_TCC__
 
 #include <libsnark/common/data_structures/merkle_tree.hpp>
-
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.hpp>
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp>
-#include <libsnark_helpers/libsnark_helpers.hpp>
 
 #include <boost/static_assert.hpp>
 
-#include <sha256/sha256_ethereum.hpp>
-#include "computation.hpp"
+#include "libsnark_helpers/libsnark_helpers.hpp"
+#include "circuits/sha256/sha256_ethereum.hpp"
+#include "circuits/computation.hpp"
+#include "circuits/notes/note.hpp" // Contains the circuits for the notes
+
+#include "types/joinsplit.hpp"
 
 #include "zeth.h" // Contains the definitions of the constants we use
-#include "note.tcc" // Contains the circuits for the notes
 
 using namespace libsnark;
 using namespace libff;
+using namespace libzeth;
 
 template<typename FieldT, typename HashT, size_t NumInputs, size_t NumOutputs>
 class joinsplit_gadget : libsnark::gadget<FieldT> {
@@ -546,4 +548,4 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         }
 };
 
-#endif // __ZETH_MAIN_CIRCUIT_TCC__
+#endif // __ZETH_JOINSPLIT_CIRCUIT_TCC__

@@ -13,9 +13,11 @@
 #include "libsnark_helpers/libsnark_helpers.hpp"
 
 // Header to use the sha256_ethereum gadget
-#include "sha256/sha256_ethereum.hpp"
+#include "circuits/sha256/sha256_ethereum.hpp"
 
 #include "circuit-wrapper.cpp"
+
+#include "util.hpp"
 
 using namespace libsnark;
 

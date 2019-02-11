@@ -3,6 +3,10 @@
 
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
+#include "libsnark_helpers/extended_proof.hpp"
+
+namespace libzeth {
+
 // Generate the proof and returns a struct {proof, primary_input}
 template<typename ppT>
 extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key)
@@ -30,5 +34,7 @@ libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(libsnark::protoboard<lib
 	// (crs_f, shortcrs_f, as denoted in [GGPR12])
     return libsnark::r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
 }
+
+} // libzeth
 
 #endif

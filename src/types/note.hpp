@@ -2,7 +2,8 @@
 #define __ZETH_NOTE_HPP__
 
 #include <array>
-#include "bits256.hpp"
+
+#include "types/bits.hpp"
 
 namespace libzeth {
 
