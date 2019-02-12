@@ -39,7 +39,7 @@ message JSInput {
 
 // Inputs of the prove function of the prover
 message Inputs {
-  PackedDigest root = 1;
+  string root = 1;
   repeated JSInput inNullifiers = 2; // List of inputs to the JS
   repeated ZethNote outCommitments = 3; // List of output to the JS
   string inPubValue = 4; // Hexadecimal string representing a int64
