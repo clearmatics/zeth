@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package proverpkg;
+
+service Prover {
+  // Run the setup on the prover side
+  rpc RunSetup(EmptyMessage) returns (EmptyMessage) {}
+  
+  // Could be used to fetch the proving and verifying key from the proving service
+  // rpc GetSetup(EmptyMessage) returns (Setup) {} # Can be used if we need to fecth the proving key nd verif key from the prover
+
+  // Request a proof generation on the given input
+  rpc Prove(Inputs) returns (ExtendedProof) {}
+}
+
+message EmptyMessage {
+  // Nothing
+}
+
+message PackedDigest {
+  string part1 = 1; // First 253bits of the digest
+  string part2 = 2; // Last 3bits of the digest
+}
+
+message ZethNote {
+  string aPK = 1;
+  int64 value = 2;
+  string rho = 4;
+  string trapR = 5;
+}
+
+message JSInput {
+  repeated string merkleNode = 1; // Merkle path to the commitment
+  int64 address = 2;
+  ZethNote note = 3;
+  string spendingASK = 4;
+  string nullifier = 5;
+}
+
+// Inputs of the prove function of the prover
+message Inputs {
+  PackedDigest root = 1;
+  repeated JSInput inNullifiers = 2; // List of inputs to the JS
+  repeated ZethNote outCommitments = 3; // List of output to the JS
+  string inPubValue = 4; // Hexadecimal string representing a int64
+  string outPubValue = 5; // Hexadecimal string representing a int64
+}
+
+message ProofPublicInputs {
+  PackedDigest root = 1;
+  repeated PackedDigest inNullifiers = 2;
+  repeated PackedDigest outCommitments = 3;
+  string inPubValue = 4; // Hexadecimal string representing a int64
+  string outPubValue = 5; // Hexadecimal string representing a int64
+}
+
+// All the data is given as hexadecimal strings
+message HexadecimalPointBaseGroup1Affine {
+  string xCoord = 1;
+  string yCoord = 2;
+}
+
+message HexadecimalPointBaseGroup2Affine {
+  string xC1Coord = 1;
+  string xC0Coord = 2;
+  string yC1Coord = 3;
+  string yC0Coord = 4;
+}
+
+// Contains the proof along with the public input
+message ExtendedProof {
+  HexadecimalPointBaseGroup1Affine a = 1;
+  HexadecimalPointBaseGroup1Affine aP = 2;
+  HexadecimalPointBaseGroup2Affine b = 3;
+  HexadecimalPointBaseGroup1Affine bP = 4;
+  HexadecimalPointBaseGroup1Affine c = 5;
+  HexadecimalPointBaseGroup1Affine cP = 6;
+  HexadecimalPointBaseGroup1Affine h = 7;
+  HexadecimalPointBaseGroup1Affine k = 8;
+  ProofPublicInputs inputs = 9;
+}
