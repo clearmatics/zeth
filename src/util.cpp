@@ -1,6 +1,7 @@
 #include<iostream>
 #include<algorithm>
 #include<vector>
+#include<stdexcept>
 
 #include "zeth.h"
 #include "util.hpp"
