@@ -1,4 +1,4 @@
-var PROTO_PATH = __dirname + '/test.proto';
+var PROTO_PATH = __dirname + '/prover.proto';
 var grpc = require('grpc');
 var protoLoader = require('@grpc/proto-loader');
 // Suggested options for similarity to existing grpc.load behavior
@@ -14,17 +14,16 @@ var protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 
 // The protoDescriptor object has the full package hierarchy
 // Here we access the test package (test being the name of the unique package in the proto file) defined in the proto file
-var test = protoDescriptor.test;
+var prover = protoDescriptor.proverpkg;
 
 function main() {
     // We instantiate the TestService from the test package
-    var client = new test.TestService('localhost:50051',
+    var client = new prover.Prover('0.0.0.0:50051',
                                          grpc.credentials.createInsecure());
 
-    client.ping({content: "Content request", code: 10}, function(err, response) {
-      console.log('Response content:', response.content);
-      console.log('Response code:', response.code);
+    client.runSetup({}, function(err, response) {
+      console.log('Sent request to run the setup');
     });
   }
-  
+
   main();
