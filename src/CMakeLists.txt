@@ -5,21 +5,10 @@ include_directories(
 )
 
 file(GLOB_RECURSE SOURCES
-    #circuits/computation.tcc
-    #circuits/prover.tcc
+    circuits/circuits-util.cpp
     libsnark_helpers/libsnark_helpers.cpp
-    # libsnark_helpers/libsnark_helpers.tcc # The tcc files shouldn't be necessary as they are included in the hpp files whihc themselves are included in the cpp files
-    # libsnark_helpers/extended_proof.tcc
-    circuits/sha256/sha256_ethereum.cpp
     types/bits.cpp
-    # sha256/sha256_ethereum.tcc
     util.cpp
-    #cli/setupCmd.cpp
-    #cli/setupCmd.tcc
-    #cli/proveCmd.cpp
-    #cli/proveCmd.tcc
-    #cli/mainCmd.cpp
-    #cli/cli_utils.cpp
 )
 
 # Enable Boost for program_options

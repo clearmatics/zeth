@@ -15,7 +15,7 @@
 // Header to use the sha256_ethereum gadget
 #include "circuits/sha256/sha256_ethereum.hpp"
 
-#include "circuit-wrapper.cpp"
+#include "circuit-wrapper.hpp"
 
 #include "util.hpp"
 
