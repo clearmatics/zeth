@@ -1,7 +1,50 @@
+cmake_minimum_required(VERSION 2.8)
+
+project(zeth)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+#### [Begin] gRPC - Protobuf related config ####
+# Protobuf
+set(_PROTOBUF_PROTOC protoc)
+find_library(_PROTOBUF_LIBPROTOBUF NAMES protobuf libprotobuf)
+
+# gRPC
+set(GRPC_CPP_PLUGIN grpc_cpp_plugin)
+#set(GRPC_CPP_PLUGIN_PATH "which ${grpc_cpp_plugin}")
+find_library(_GRPC_GRPCPP_UNSECURE NAMES grpc++ libgrpc++)
+
+# Proto files
+get_filename_component(prover_proto "../api/prover-grpc/prover.proto" ABSOLUTE)
+get_filename_component(prover_proto_path "${prover_proto}" PATH)
+
+# Generated sources
+set(prover_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/prover.pb.cc")
+set(prover_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/prover.pb.h")
+set(prover_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/prover.grpc.pb.cc")
+set(prover_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/prover.grpc.pb.h")
+add_custom_command(
+      OUTPUT "${prover_proto_srcs}" "${prover_proto_hdrs}" "${prover_grpc_srcs}" "${prover_grpc_hdrs}"
+      COMMAND ${_PROTOBUF_PROTOC}
+      ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${prover_proto_path}"
+        #--plugin=protoc-gen-grpc="${GRPC_CPP_PLUGIN_PATH}"
+        --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin
+        "${prover_proto}"
+      DEPENDS "${prover_proto}"
+)
+#### [End] gRPC - Protobuf related config ####
+
+# Include generated *.pb.h files
+# and include the rest of the codebase
 include_directories(
-    $ENV{ZETH}
-    $ENV{ZETH}/src
-    libff/common/default_types
+  #"${CMAKE_CURRENT_BINARY_DIR}"
+  "${PROJECT_BINARY_DIR}"
+  $ENV{ZETH}
+  $ENV{ZETH}/src
+  $ENV{ZETH}/src/libnark_helpers
+  libff/common/default_types
 )
 
 file(GLOB_RECURSE SOURCES
@@ -19,271 +62,22 @@ include_directories( ${Boost_INCLUDE_DIR} )
 # so that we will find zethConfig.h
 include_directories("${PROJECT_BINARY_DIR}")
 
-add_executable(
-    zeth
-
-    main.cpp
-    ${SOURCES}
-)
-
-target_link_libraries(
-    zeth
-
-    LINK_PUBLIC # See: https://stackoverflow.com/questions/21125362/cmake-link-private-and-its-inheritance
-    snark # Libsnark library
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-
-target_include_directories(
-    zeth
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Tests
-
-## Test for the sha256 circuit
-add_executable(
-    test_sha256
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    circuits/sha256/test/sha256_test.cpp
-    ${SOURCES}
-    #${HEADER_FILES}
-)
-target_link_libraries(
-    test_sha256
-
+# Build the targets (prover server)
+foreach(_target
+  prover_server)
+  add_executable(${_target} "${_target}.cc"
+    ${prover_proto_srcs}
+    ${prover_grpc_srcs}
+    ${SOURCES})
+  target_link_libraries(${_target}
+    LINK_PUBLIC
     snark
-    gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_sha256
-
+    ${_GRPC_GRPCPP_UNSECURE}
+    ${_PROTOBUF_LIBPROTOBUF})
+  target_include_directories(${_target}
     PUBLIC
     ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-include(CTest)
-add_test(
-    NAME test_sha256
-    COMMAND test_sha256
-)
-
-## Test for the prfs circuits
-add_executable(
-    test_prfs
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    test/prfs_test.cpp
-    ${SOURCES}
-    #${HEADER_FILES}
-)
-target_link_libraries(
-    test_prfs
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_prfs
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-include(CTest)
-add_test(
-    NAME test_prfs
-    COMMAND test_prfs
-)
-
-## Test for the commitments circuits
-add_executable(
-    test_commitments
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    test/commitments_test.cpp
-    ${SOURCES}
-    #${HEADER_FILES}
-)
-target_link_libraries(
-    test_commitments
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_commitments
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-include(CTest)
-add_test(
-    NAME test_commitments
-    COMMAND test_commitments
-)
-
-## Test for the note circuits
-add_executable(
-    test_note
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    test/note_test.cpp
-    ${SOURCES}
-    #${HEADER_FILES}
-)
-target_link_libraries(
-    test_note
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_note
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-include(CTest)
-add_test(
-    NAME test_note
-    COMMAND test_note
-)
-
-## Test for the JS circuit
-add_executable(
-    test_joinsplit
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    test/gadget_test.cpp
-    ${SOURCES}
-    #${HEADER_FILES}
-)
-target_link_libraries(
-    test_joinsplit
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_joinsplit
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-include(CTest)
-add_test(
-    NAME test_joinsplit
-    COMMAND test_joinsplit
-)
-
-## Test for the note debug circuits
-add_executable(
-    test_debug
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    test/note_debug_test.cpp
-    ${SOURCES}
-    #${HEADER_FILES}
-)
-target_link_libraries(
-    test_debug
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_debug
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-include(CTest)
-add_test(
-    NAME test_debug
-    COMMAND test_debug
-)
-
-## Test for the packed_addition
-add_executable(
-    test_packed
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    test/packed_addition_test.cpp
-    ${SOURCES}
-    #${HEADER_FILES}
-)
-target_link_libraries(
-    test_packed
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_packed
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-include(CTest)
-add_test(
-    NAME test_packed
-    COMMAND test_packed
-)
-
-## Test for the full_prover
-add_executable(
-    test_full
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    test/full_prover_test.cpp
-    ${SOURCES}
-)
-target_link_libraries(
-    test_full
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_full
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-include(CTest)
-add_test(
-    NAME test_full
-    COMMAND test_full
-)
-
-# We add the test of the prover as part of the testzeth
-add_dependencies(testzeth test_prfs)
-add_dependencies(testzeth test_commitments)
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft)
+endforeach()
