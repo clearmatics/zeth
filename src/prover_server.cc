@@ -144,7 +144,7 @@ class ProverImpl final : public Prover::Service {
         throw std::invalid_argument("Invalid number of JS outputs");
       }
 
-      std::cout << "Process every inputs of the JoinSplit" << std::endl;
+      std::cout << "[DEBUG] Process every inputs of the JoinSplit" << std::endl;
       std::array<libzeth::JSInput, JSIns> jsInputs;
       for(int i = 0; i < JSIns; i++) {
         proverpkg::JSInput receivedInput = proofInputs->jsinputs(i);
@@ -152,7 +152,7 @@ class ProverImpl final : public Prover::Service {
         jsInputs[i] = parsedInput;
       }
 
-      std::cout << "Process every outputs of the JoinSplit" << std::endl;
+      std::cout << "[DEBUG] Process every outputs of the JoinSplit" << std::endl;
       std::array<libzeth::ZethNote, JSOut> jsOutputs;
       for(int i = 0; i < JSOut; i++) {
         proverpkg::ZethNote receivedOutput = proofInputs->jsoutputs(i);
@@ -160,11 +160,33 @@ class ProverImpl final : public Prover::Service {
         jsOutputs[i] = parsedOutput;
       }
 
-      std::cout << "SUCCESS" << std::endl;
+      std::cout << "[DEBUG] Data parsed successfully" << std::endl;
+
+      std::cout << "[DEBUG] Reading and loading the proving key from default file location" << std::endl;
+      boost::filesystem::path setup_dir = getPathToSetupDir();
+      boost::filesystem::path prov_key_raw("pk.raw");
+      boost::filesystem::path path_prov_key_raw = setup_dir / prov_key_raw;
+      libsnark::r1cs_ppzksnark_proving_key<ppT> pk = deserializeProvingKeyFromFile<ppT>(path_prov_key_raw);
+
+      std::cout << "[DEBUG] Generating the proof" << std::endl;
+      libzeth::CircuitWrapper<JSIns, JSOut> prover;
+      extended_proof<ppT> proof = prover.prove(
+        root_bits, 
+        jsInputs, 
+        jsOutputs, 
+        vpub_in, 
+        vpub_out, 
+        pk
+      );
+
+      std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+      proof.dump_proof();
+      proof.dump_primary_inputs();
     } catch (const std::exception& e) {
       std::cout << "[ERROR] " << e.what() << std::endl;
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
     } catch (...) {
+      std::cout << "[ERROR] In catch(...)"<< std::endl;
       return ::grpc::Status(::grpc::StatusCode::UNKNOWN, "");
     }
     
@@ -206,7 +228,7 @@ void RunServer() {
 
   // Finally assemble the server.
   std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << server_address << std::endl;
+  std::cout << "[DEBUG] Server listening on " << server_address << std::endl;
 
   // Wait for the server to shutdown. Note that some other thread must be
   // responsible for shutting down the server for this call to ever return.
@@ -216,8 +238,10 @@ void RunServer() {
 
 int main(int argc, char** argv) {
   // We inititalize the curve parameters here
+  std::cout << "[DEBUG] Init params" << std::endl;
   ppT::init_public_params();
 
+  std::cout << "[DEBUG] Run server" << std::endl;
   RunServer();
   return 0;
 }
