@@ -25,8 +25,7 @@ T swap_bit_endianness(T v) {
 }
 
 // Takes an hexadecimal string and converts it into a binary vector
-std::vector<bool> hexadecimal_str_to_binary_vector(char* str) {
-    std::string hex_str(str);
+std::vector<bool> hexadecimal_str_to_binary_vector(std::string hex_str) {
     std::vector<bool> result;
     std::vector<bool> tmp;
     std::vector<bool> zero_vector(hex_str.length() * 4, 0); // Each hex character is encoded on 4bits
@@ -81,14 +80,13 @@ std::vector<bool> hexadecimal_str_to_binary_vector(char* str) {
 }
 
 // Takes an hexadecimal digest and converts it into a binary vector
-std::vector<bool> hexadecimal_digest_to_binary_vector(char* str) {
-    std::string hex_str(str);
+std::vector<bool> hexadecimal_digest_to_binary_vector(std::string hex_str) {
     if(hex_str.length() != ZETH_DIGEST_HEX_SIZE) {
         throw std::length_error("Invalid string length for the given hexadecimal digest (should be ZETH_DIGEST_HEX_SIZE)");
     }
 
 
-    return hexadecimal_str_to_binary_vector(str);
+    return hexadecimal_str_to_binary_vector(hex_str);
 }
 
 } // libzeth
