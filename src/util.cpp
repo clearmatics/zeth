@@ -89,4 +89,12 @@ std::vector<bool> hexadecimal_digest_to_binary_vector(std::string hex_str) {
     return hexadecimal_str_to_binary_vector(hex_str);
 }
 
+bits256 hexadecimal_digest_to_bits256(std::string str) {
+    return get_bits256_from_vector(hexadecimal_digest_to_binary_vector(str));
+}
+
+bits64 hexadecimal_value_to_bits64(std::string str) {
+    return get_bits64_from_vector(hexadecimal_str_to_binary_vector(str));
+}
+
 } // libzeth

@@ -27,6 +27,7 @@ using grpc::ServerReader;
 using grpc::ServerReaderWriter;
 using grpc::ServerWriter;
 using grpc::Status;
+using grpc::StatusCode;
 
 // Use the Prover service defined in the proto file
 using proverpkg::Prover;
@@ -34,8 +35,8 @@ using proverpkg::Prover;
 // Use the messages defined in the proto file
 using proverpkg::EmptyMessage;
 using proverpkg::PackedDigest;
-using proverpkg::ZethNote;
-using proverpkg::JSInput;
+//using proverpkg::ZethNote;
+//using proverpkg::JSInput;
 using proverpkg::Inputs;
 using proverpkg::ProofPublicInputs;
 using proverpkg::HexadecimalPointBaseGroup1Affine;
@@ -46,36 +47,67 @@ typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
 typedef sha256_ethereum<FieldT> HashT;
 
+// Note, these denote the number of INs and OUTs of the JS
+// For now this is handled by global consts, but we can easily
+// think about fancier things, where the server has some config attributes
+// that could be changed via a call to a rcp function like:
+// `rpc ConfigProver(ConfigMsg) returns (RespMsg) {}`
+// This function could change the config of the server that could thee re-run a
+// setup for the new config to gen proofs for the new circuit
+//
+// We could go even futher and keep the setups of the diff config in a folder
+// (a sort of a setup cache)
+// to prevent the server from running setups for configs it has already seen
+//
+// No matter whether this would be a good feature or not, this is out of scope
+// for this PoC
+const size_t JSIns = 1;
+const size_t JSOut = 1;
+
 class ProverImpl final : public Prover::Service {
   Status RunSetup(
-	ServerContext* context, 
-	const EmptyMessage* request,
-	EmptyMessage* response
+    ServerContext* context, 
+    const EmptyMessage* request,
+    EmptyMessage* response
   ) override {
-    std::cout << "Receive the request to run the setup: " << std::endl;
+    std::cout << "[ACK] Received the request to run the setup:" << std::endl;
 
-    ppT::init_public_params();
-    libzeth::CircuitWrapper<1, 1> prover;
+    libzeth::CircuitWrapper<JSIns, JSOut> prover;
     libsnark::r1cs_ppzksnark_keypair<ppT> keypair = prover.generate_trusted_setup();
 
     return Status::OK;
   }
   
   Status Prove(
-	ServerContext* context,
-	const Inputs* inputs,
-	ExtendedProof* proof
+    ServerContext* context,
+    const Inputs* inputs,
+    ExtendedProof* proof
   ) override {
-    std::cout << "Receive the request to run the proof on inputs: " << std::endl;
+    std::cout << "[ACK] Received the request to generate a proof:" << std::endl;
 
-    // TODO:
-    std::string root = inputs->root();
-    std::vector<bool> digest = hexadecimal_digest_to_binary_vector(root);
-    std::cout << "Inputs [root in hex] " << root << std::endl;
-    std::cout << "Inputs [root in binary] " << std::endl;
-    for(int i = 0; i < digest.size(); i++) {
-      std::cout << digest[i] << ", ";
+    // Parse received message to feed to the prover
+    try {
+      libzeth::bits256 root_bits = libzeth::hexadecimal_digest_to_bits256(inputs->root());
+      libzeth::bits64 vpub_in = libzeth::hexadecimal_value_to_bits64(inputs->inpubvalue());
+      libzeth::bits64 vpub_out = libzeth::hexadecimal_value_to_bits64(inputs->outpubvalue());
+
+      std::cout << "Iteration over the inNullifiers" << std::endl;
+      for(int i = 0; i < inputs->innullifiers_size(); i++) {
+        proverpkg::JSInput in = inputs->innullifiers(i);
+        std::cout << in.spendingask() << std::endl;
+      }
+
+      std::cout << "Iteration over the outCommitments" << std::endl;
+      for(int i = 0; i < inputs->outcommitments_size(); i++) {
+        proverpkg::ZethNote out = inputs->outcommitments(i);
+        std::cout << out.rho() << std::endl;
+      }
+    } catch (const std::exception& e) {
+      return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
+    } catch (...) {
+      return ::grpc::Status(::grpc::StatusCode::UNKNOWN, "");
     }
+    
     // myCustomProveFunction()
 
     return Status::OK;
@@ -89,13 +121,13 @@ void ServerStartMessage() {
   std::string version = "Version [TBD Use the zethConfig]";
   std::string warning = "**WARNING:** This code is a research-quality proof of concept, DO NOT USE in production!";
 
-  std::cout << "\n ===================================================== " << std::endl;
+  std::cout << "\n=====================================================" << std::endl;
   std::cout << copyright << std::endl;
   std::cout << license << std::endl;
   std::cout << project << std::endl;
   std::cout << version << std::endl;
   std::cout << warning << std::endl;
-  std::cout << " ===================================================== " << std::endl;
+  std::cout << "=====================================================\n" << std::endl;
 }
 
 void RunServer() {
@@ -123,7 +155,9 @@ void RunServer() {
 }
 
 int main(int argc, char** argv) {
-  RunServer();
+  // We inititalize the curve parameters here
+  ppT::init_public_params();
 
+  RunServer();
   return 0;
 }
