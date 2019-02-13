@@ -10,7 +10,7 @@ service Prover {
   // rpc GetSetup(EmptyMessage) returns (Setup) {} # Can be used if we need to fecth the proving key nd verif key from the prover
 
   // Request a proof generation on the given input
-  rpc Prove(Inputs) returns (ExtendedProof) {}
+  rpc Prove(ProofInputs) returns (ExtendedProof) {}
 }
 
 message EmptyMessage {
@@ -24,9 +24,9 @@ message PackedDigest {
 
 message ZethNote {
   string aPK = 1;
-  int64 value = 2;
-  string rho = 4;
-  string trapR = 5;
+  string value = 2; // Hexadecimal string representing a int64
+  string rho = 3;
+  string trapR = 4;
 }
 
 message JSInput {
@@ -38,10 +38,10 @@ message JSInput {
 }
 
 // Inputs of the prove function of the prover
-message Inputs {
+message ProofInputs {
   string root = 1;
-  repeated JSInput inNullifiers = 2; // List of inputs to the JS
-  repeated ZethNote outCommitments = 3; // List of output to the JS
+  repeated JSInput jsInputs = 2; // List of inputs to the JS
+  repeated ZethNote jsOutputs = 3; // List of output to the JS
   string inPubValue = 4; // Hexadecimal string representing a int64
   string outPubValue = 5; // Hexadecimal string representing a int64
 }

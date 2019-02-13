@@ -8,6 +8,9 @@
 #include <grpcpp/server_context.h>
 #include <grpcpp/security/server_credentials.h>
 
+// Necessary header to parse the data
+#include <libsnark/common/data_structures/merkle_tree.hpp>
+
 // Include zeth headers
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "circuits/computation.hpp"
@@ -35,9 +38,7 @@ using proverpkg::Prover;
 // Use the messages defined in the proto file
 using proverpkg::EmptyMessage;
 using proverpkg::PackedDigest;
-//using proverpkg::ZethNote;
-//using proverpkg::JSInput;
-using proverpkg::Inputs;
+using proverpkg::ProofInputs;
 using proverpkg::ProofPublicInputs;
 using proverpkg::HexadecimalPointBaseGroup1Affine;
 using proverpkg::HexadecimalPointBaseGroup2Affine;
@@ -77,32 +78,91 @@ class ProverImpl final : public Prover::Service {
 
     return Status::OK;
   }
+
+  libzeth::ZethNote ParseZethNote(const proverpkg::ZethNote& note) {
+    bits256 noteAPK = libzeth::hexadecimal_digest_to_bits256(note.apk());
+    bits64 noteValue = libzeth::hexadecimal_value_to_bits64(note.value());
+    bits256 noteRho = libzeth::hexadecimal_digest_to_bits256(note.rho());
+    bits384 noteRTrapR = libzeth::get_bits384_from_vector(libzeth::hexadecimal_str_to_binary_vector(note.trapr()));
+
+    return libzeth::ZethNote(
+      noteAPK,
+      noteValue,
+      noteRho,
+      noteRTrapR
+    );
+  }
+
+  libsnark::merkle_authentication_node ParseMerkleNode(std::string mk_node) {
+    return libff::bit_vector(libzeth::hexadecimal_digest_to_binary_vector(mk_node));
+  }
+
+  libzeth::JSInput ParseJSInput(const proverpkg::JSInput& input) {
+        if (ZETH_MERKLE_TREE_DEPTH != input.merklenode_size()) {
+          throw std::invalid_argument("Invalid merkle path length");
+        }
+
+        libzeth::ZethNote inputNote = ParseZethNote(input.note());
+        size_t inputAddress = input.address();
+        bitsAddr inputAddressBits = libzeth::get_bitsAddr_from_vector(libzeth::address_bits_from_address(inputAddress, ZETH_MERKLE_TREE_DEPTH));
+        bits256 inputSpendingASK = libzeth::hexadecimal_digest_to_bits256(input.spendingask());
+        bits256 inputNullifier = libzeth::hexadecimal_digest_to_bits256(input.nullifier());
+
+        std::vector<libsnark::merkle_authentication_node> inputMerklePath;
+        for(int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
+          libsnark::merkle_authentication_node mk_node = ParseMerkleNode(input.merklenode(i));
+          inputMerklePath.push_back(mk_node);
+        }
+
+        return libzeth::JSInput(
+          inputMerklePath,
+          inputAddress,
+          inputAddressBits,
+          inputNote,
+          inputSpendingASK,
+          inputNullifier
+        );
+  }
   
   Status Prove(
     ServerContext* context,
-    const Inputs* inputs,
+    const ProofInputs* proofInputs,
     ExtendedProof* proof
   ) override {
     std::cout << "[ACK] Received the request to generate a proof:" << std::endl;
 
     // Parse received message to feed to the prover
     try {
-      libzeth::bits256 root_bits = libzeth::hexadecimal_digest_to_bits256(inputs->root());
-      libzeth::bits64 vpub_in = libzeth::hexadecimal_value_to_bits64(inputs->inpubvalue());
-      libzeth::bits64 vpub_out = libzeth::hexadecimal_value_to_bits64(inputs->outpubvalue());
+      libzeth::bits256 root_bits = libzeth::hexadecimal_digest_to_bits256(proofInputs->root());
+      libzeth::bits64 vpub_in = libzeth::hexadecimal_value_to_bits64(proofInputs->inpubvalue());
+      libzeth::bits64 vpub_out = libzeth::hexadecimal_value_to_bits64(proofInputs->outpubvalue());
 
-      std::cout << "Iteration over the inNullifiers" << std::endl;
-      for(int i = 0; i < inputs->innullifiers_size(); i++) {
-        proverpkg::JSInput in = inputs->innullifiers(i);
-        std::cout << in.spendingask() << std::endl;
+      if (JSIns != proofInputs->jsinputs_size()) {
+        throw std::invalid_argument("Invalid number of JS inputs");
+      }
+      if (JSOut != proofInputs->jsoutputs_size()) {
+        throw std::invalid_argument("Invalid number of JS outputs");
       }
 
-      std::cout << "Iteration over the outCommitments" << std::endl;
-      for(int i = 0; i < inputs->outcommitments_size(); i++) {
-        proverpkg::ZethNote out = inputs->outcommitments(i);
-        std::cout << out.rho() << std::endl;
+      std::cout << "Process every inputs of the JoinSplit" << std::endl;
+      std::array<libzeth::JSInput, JSIns> jsInputs;
+      for(int i = 0; i < JSIns; i++) {
+        proverpkg::JSInput receivedInput = proofInputs->jsinputs(i);
+        libzeth::JSInput parsedInput = ParseJSInput(receivedInput);
+        jsInputs[i] = parsedInput;
       }
+
+      std::cout << "Process every outputs of the JoinSplit" << std::endl;
+      std::array<libzeth::ZethNote, JSOut> jsOutputs;
+      for(int i = 0; i < JSOut; i++) {
+        proverpkg::ZethNote receivedOutput = proofInputs->jsoutputs(i);
+        libzeth::ZethNote parsedOutput = ParseZethNote(receivedOutput);
+        jsOutputs[i] = parsedOutput;
+      }
+
+      std::cout << "SUCCESS" << std::endl;
     } catch (const std::exception& e) {
+      std::cout << "[ERROR] " << e.what() << std::endl;
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
     } catch (...) {
       return ::grpc::Status(::grpc::StatusCode::UNKNOWN, "");
