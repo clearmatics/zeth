@@ -4,10 +4,10 @@ package proverpkg;
 
 service Prover {
   // Run the setup on the prover side
-  rpc RunSetup(EmptyMessage) returns (EmptyMessage) {}
+  rpc RunSetup(EmptyMessage) returns (EmptyMessage) {} // Change this and return the verification key
   
   // Could be used to fetch the proving and verifying key from the proving service
-  // rpc GetSetup(EmptyMessage) returns (Setup) {} # Can be used if we need to fecth the proving key nd verif key from the prover
+  // rpc GetSetup(EmptyMessage) returns (Setup) {}
 
   // Request a proof generation on the given input
   rpc Prove(ProofInputs) returns (ExtendedProof) {}
@@ -46,6 +46,8 @@ message ProofInputs {
   string outPubValue = 5; // Hexadecimal string representing a int64
 }
 
+// We comment this message as the primary input is passed as a json string for now
+/*
 message ProofPublicInputs {
   PackedDigest root = 1;
   repeated PackedDigest inNullifiers = 2;
@@ -53,6 +55,7 @@ message ProofPublicInputs {
   string inPubValue = 4; // Hexadecimal string representing a int64
   string outPubValue = 5; // Hexadecimal string representing a int64
 }
+*/
 
 // All the data is given as hexadecimal strings
 message HexadecimalPointBaseGroup1Affine {
@@ -77,5 +80,6 @@ message ExtendedProof {
   HexadecimalPointBaseGroup1Affine cP = 6;
   HexadecimalPointBaseGroup1Affine h = 7;
   HexadecimalPointBaseGroup1Affine k = 8;
-  ProofPublicInputs inputs = 9;
+  //ProofPublicInputs inputs = 9;
+  string inputs = 9;
 }

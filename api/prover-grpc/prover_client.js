@@ -21,54 +21,12 @@ function main() {
   var client = new prover.Prover('0.0.0.0:50051',
     grpc.credentials.createInsecure());
 
-  //client.runSetup({}, function(err, response) {
-  //  console.log('Sent request to run the setup');
-  //});
-
-  // First call to client.prove() [DEBUG]
-//  {
-//    var root = "ROOT";
-//    var JSInputs1 = [{
-//      merkleNode: ["node1", "node2"],
-//      address: 7,
-//      note: {
-//        aPK: "apk",
-//        value: 22,
-//        rho: "rho",
-//        trapR: "trapR"
-//      },
-//      spendingASK: "spendingASK",
-//      nullifier: "nullifier"
-//    }];
-//
-//    var outCommitments = [{
-//      aPK: "outAPK",
-//        value: 99,
-//        rho: "outRHO",
-//        trapR: "outR"
-//    }];
-//
-//    var inPubValue = "inPubVal";
-//    var outPubValue = "outPubVal";
-//
-//
-//    client.prove({
-//      root: root,
-//      inNullifiers: JSInputs1,
-//      outCommitments: outCommitments,
-//      inPubValue: inPubValue,
-//      outPubValue: outPubValue
-//    }, function(err, response) {
-//      console.log('Sent request to PROVE');
-//    });
-//  }
-
   // Second call to client.prove with digest data
   {
     var root = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b";
     var JSInputs1 = [{
       merkleNode: [
-        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b", 
+        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
         "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
         "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
         "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
@@ -94,7 +52,7 @@ function main() {
     var inPubValue = "2F0000000000000F";
     var outPubValue = "2F0000000000000F";
 
-
+    console.log("Send request to generate a proof");
     client.prove({
       root: root,
       jsInputs: JSInputs1,
@@ -103,6 +61,8 @@ function main() {
       outPubValue: outPubValue
     }, function(err, response) {
       console.log('Sent request to PROVE');
+      console.log("Received response: ==> ");
+      console.log(response);
     });
   }
 }
