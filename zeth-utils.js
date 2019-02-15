@@ -23,7 +23,7 @@ var noteRandomness = function() {
 // We follow the formatting of the proto file
 var createZethNote = function(randomness, recipientApk, value) {
 	return {
-		apk: recipientApk,
+		aPK: recipientApk,
 		value: value,
 		rho: randomness.rho,
 		trapR: randomness.trapR
@@ -57,6 +57,18 @@ var computeCommitment = function(zethNote) {
 
 	return cm;
 };
+
+var computeNullifier = function(zethNote, spendingAuthAsk) {
+  // nf = sha256(a_sk || 01 || [rho]_254)
+  var first254Rho = zethNote.rho.substring(0, 254);
+  var rightLeg = "01" + first254Rho;
+	var nullifier = abi.soliditySHA256(
+		["bytes32", "bytes32"],
+		[hexFmt(spendingAuthAsk), hexFmt(rightLeg)]
+	).toString('hex');
+
+  return nullifier;
+}
 
 var decimalToHexadecimal = function(str) {
 	var dec = str.toString().split(''), sum = [], hex = [], i, s
@@ -205,37 +217,13 @@ var initTestKeystore = function() {
 	return keystore;
 };
 
+// Expose the module's functions
 module.exports.noteRandomness = noteRandomness;
 module.exports.createZethNote = createZethNote;
 module.exports.hexFmt = hexFmt;
 module.exports.computeCommitment = computeCommitment;
+module.exports.computeNullifier = computeNullifier;
 module.exports.decimalToHexadecimal = decimalToHexadecimal;
 module.exports.deriveAPK = deriveAPK;
 module.exports.generateApkAskKeypair = generateApkAskKeypair;
 module.exports.initTestKeystore = initTestKeystore;
-
-/*
-const keystore = initTestKeystore();
-
-console.log(" === Generating a zeth note [Payment from Alice to Bob] === ");
-
-var randomness = noteRandomness(); // rho and trapR for the coin
-var recipientAPK = keystore.Bob.AddrPk.a_pk;
-// Note that the value FFFFFFFFFFFFFFF  in hex corresponds to 18446744073709551615 wei
-// which is a little above 18ETH. If this not enough, we can use another unit for the value
-//
-// For this PoC, we will stick to Wei as a unit for the value as we do not care about
-// transacting big values
-var value_wei = web3.utils.toWei('7.156', 'ether');
-var value_hexadecimal = decimalToHexadecimal(value_wei.toString());
-var note = createZethNote(randomness, recipientAPK, value_hexadecimal);
-
-console.log("[DEBUG] Display coin's data");
-console.log(`Apk: ${hexFmt(note.apk)}`);
-console.log(`Rho: ${hexFmt(note.rho)}`);
-console.log(`Value: ${hexFmt(note.value)}`);
-console.log(`TrapR: ${hexFmt(note.trapR)}`);
-
-var commitment = computeCommitment(note);
-console.log(`Commitment: ${hexFmt(commitment)}`);
-*/
