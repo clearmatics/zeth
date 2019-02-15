@@ -70,10 +70,20 @@ libsnark::merkle_authentication_node ParseMerkleNode(std::string mk_node) {
 }
 
 libzeth::ZethNote ParseZethNote(const proverpkg::ZethNote& note) {
+  std::cout << "[ParseZethNote] Debug 1" << std::endl;
+  std::cout << "[ParseZethNote] Debug NoteAPK" << note.apk() << std::endl;
   bits256 noteAPK = libzeth::hexadecimal_digest_to_bits256(note.apk());
+
+  std::cout << "[ParseZethNote] Debug 2" << std::endl;
   bits64 noteValue = libzeth::hexadecimal_value_to_bits64(note.value());
+
+  std::cout << "[ParseZethNote] Debug 3" << std::endl;
   bits256 noteRho = libzeth::hexadecimal_digest_to_bits256(note.rho());
+
+  std::cout << "[ParseZethNote] Debug 4" << std::endl;
   bits384 noteRTrapR = libzeth::get_bits384_from_vector(libzeth::hexadecimal_str_to_binary_vector(note.trapr()));
+
+  std::cout << "[ParseZethNote] Debug 5" << std::endl;
 
   return libzeth::ZethNote(
     noteAPK,
@@ -88,16 +98,28 @@ libzeth::JSInput ParseJSInput(const proverpkg::JSInput& input) {
     throw std::invalid_argument("Invalid merkle path length");
   }
 
+  std::cout << "[ParseJSInput] Debug 1" << std::endl;
   libzeth::ZethNote inputNote = ParseZethNote(input.note());
+
+  std::cout << "[ParseJSInput] Debug 2" << std::endl;
   size_t inputAddress = input.address();
+
+  std::cout << "[ParseJSInput] Debug 3" << std::endl;
   bitsAddr inputAddressBits = libzeth::get_bitsAddr_from_vector(libzeth::address_bits_from_address(inputAddress, ZETH_MERKLE_TREE_DEPTH));
+
+  std::cout << "[ParseJSInput] Debug 4" << std::endl;
   bits256 inputSpendingASK = libzeth::hexadecimal_digest_to_bits256(input.spendingask());
+
+  std::cout << "[ParseJSInput] Debug 5" << std::endl;
   bits256 inputNullifier = libzeth::hexadecimal_digest_to_bits256(input.nullifier());
+
+  std::cout << "[ParseJSInput] Debug 6" << std::endl;
   std::vector<libsnark::merkle_authentication_node> inputMerklePath;
   for(int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
     libsnark::merkle_authentication_node mk_node = ParseMerkleNode(input.merklenode(i));
     inputMerklePath.push_back(mk_node);
   }
+  std::cout << "[ParseJSInput] Debug 7" << std::endl;
 
   return libzeth::JSInput(
     inputMerklePath,
@@ -186,6 +208,48 @@ void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* proof) 
   proof->set_inputs(inputs_json);
 }
 
+void PrepareVerifyingKeyResponse(VerificationKey* verificationKey) {
+  HexadecimalPointBaseGroup2Affine *a = new HexadecimalPointBaseGroup2Affine(); // in G2
+  HexadecimalPointBaseGroup1Affine *b = new HexadecimalPointBaseGroup1Affine(); // in G1
+  HexadecimalPointBaseGroup2Affine *c = new HexadecimalPointBaseGroup2Affine(); // in G2
+  HexadecimalPointBaseGroup2Affine *g = new HexadecimalPointBaseGroup2Affine(); // in G2
+  HexadecimalPointBaseGroup1Affine *gb1 = new HexadecimalPointBaseGroup1Affine(); // in G1
+  HexadecimalPointBaseGroup2Affine *gb2 = new HexadecimalPointBaseGroup2Affine(); // in G2
+  HexadecimalPointBaseGroup2Affine *z = new HexadecimalPointBaseGroup2Affine(); // in G2
+
+  libsnark::r1cs_ppzksnark_verification_key<ppT> vk = this->keypair.vk;
+  a->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.alphaA_g2)); // in G2
+  b->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(vk.alphaB_g1)); // in G1
+  c->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.alphaC_g2)); // in G2
+  g->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.gamma_g2)); // in G2
+  gb1->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(vk.gamma_beta_g1)); // in G1
+  gb2->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.gamma_beta_g2)); // in G2
+  z->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.rC_Z_g2)); // in G2
+  
+  libsnark::r1cs_ppzksnark_primary_input<ppT> pubInputs = ext_proof.get_primary_input();
+  std::stringstream ss;
+  ss <<  "[[" << outputPointG1AffineAsHex(vk.encoded_IC_query.first) << "]";
+
+  for (size_t i = 1; i < icLength; ++i) {
+    auto vkICi = outputPointG1AffineAsHex(vk.encoded_IC_query.rest.values[i - 1]);
+    ss << ",[" <<  vkICi << "]";
+  }
+  ss << "]";
+  std::string IC_json = ss.str();
+
+  // Note on memory safety: set_allocated deleted the allocated objects
+  // See: https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
+  // for more details
+  verificationKey->set_allocated_a(a);
+  verificationKey->set_allocated_b(b);
+  verificationKey->set_allocated_c(c);
+  verificationKey->set_allocated_g(g);
+  verificationKey->set_allocated_gb1(gb1);
+  verificationKey->set_allocated_gb2(gb2);
+  verificationKey->set_allocated_z(z);
+  verificationKey->set_ic(IC_json);
+}
+
 class ProverImpl final : public Prover::Service {
 private:
   libzeth::CircuitWrapper<JSIns, JSOut> prover;
@@ -197,21 +261,25 @@ public:
     libsnark::r1cs_ppzksnark_keypair<ppT>& keypair
   ) : prover(prover), keypair(keypair) {}
 
-/*
-  Status RunSetup(
+  Status GetVerificationKey(
     ServerContext* context, 
     const EmptyMessage* request,
-    EmptyMessage* response
+    VerificationKey* response
   ) override {
-    std::cout << "[ACK] Received the request to run the setup:" << std::endl;
-
-    //libzeth::CircuitWrapper<JSIns, JSOut> prover;
-    this->keypair = this->prover.generate_trusted_setup();
+    std::cout << "[DEBUG] Preparing response" << std::endl;
+    try {
+      PrepareVerifyingKeyResponse(response);
+    } catch (const std::exception& e) {
+      std::cout << "[ERROR] " << e.what() << std::endl;
+      return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
+    } catch (...) {
+      std::cout << "[ERROR] In catch(...)"<< std::endl;
+      return ::grpc::Status(::grpc::StatusCode::UNKNOWN, "");
+    }
 
     return Status::OK;
   }
-*/
-  
+
   Status Prove(
     ServerContext* context,
     const ProofInputs* proofInputs,
@@ -221,10 +289,14 @@ public:
 
     // Parse received message to feed to the prover
     try {
+      std::cout << " === [DEBUG] 1 === " << std::endl;
       libzeth::bits256 root_bits = libzeth::hexadecimal_digest_to_bits256(proofInputs->root());
+      std::cout << " === [DEBUG] 2 === " << std::endl;
       libzeth::bits64 vpub_in = libzeth::hexadecimal_value_to_bits64(proofInputs->inpubvalue());
+      std::cout << " === [DEBUG] 3 === " << std::endl;
       libzeth::bits64 vpub_out = libzeth::hexadecimal_value_to_bits64(proofInputs->outpubvalue());
 
+      std::cout << " === [DEBUG] 4 === " << std::endl;
       if (JSIns != proofInputs->jsinputs_size()) {
         throw std::invalid_argument("Invalid number of JS inputs");
       }
@@ -257,7 +329,6 @@ public:
       //libsnark::r1cs_ppzksnark_proving_key<ppT> pk = deserializeProvingKeyFromFile<ppT>(path_prov_key_raw);
 
       std::cout << "[DEBUG] Generating the proof" << std::endl;
-      //libzeth::CircuitWrapper<JSIns, JSOut> prover;
       extended_proof<ppT> ext_proof = this->prover.prove(
         root_bits, 
         jsInputs, 
@@ -339,7 +410,7 @@ int main(int argc, char** argv) {
   libzeth::CircuitWrapper<JSIns, JSOut> prover;
   libsnark::r1cs_ppzksnark_keypair<ppT> keypair = prover.generate_trusted_setup();
 
-  std::cout << "[DEBUG] Setup successful, start server" << std::endl;
+  std::cout << "[DEBUG] Setup successful, starting the server..." << std::endl;
   RunServer(prover, keypair);
   return 0;
 }

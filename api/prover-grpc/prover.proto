@@ -3,11 +3,12 @@ syntax = "proto3";
 package proverpkg;
 
 service Prover {
-  // Run the setup on the prover side
-  rpc RunSetup(EmptyMessage) returns (EmptyMessage) {} // Change this and return the verification key
+  // Run the setup on the prover side (Don't needed as the setup is ran when the server starts)
+  // Can be used for further use of the proving service though
+  // rpc RunSetup(EmptyMessage) returns (EmptyMessage) {}
   
-  // Could be used to fetch the proving and verifying key from the proving service
-  // rpc GetSetup(EmptyMessage) returns (Setup) {}
+  // Fetch the verifying key from the proving service
+  rpc GetVerificationKey(EmptyMessage) returns (VerificationKey) {}
 
   // Request a proof generation on the given input
   rpc Prove(ProofInputs) returns (ExtendedProof) {}
@@ -70,6 +71,17 @@ message HexadecimalPointBaseGroup2Affine {
   string yC0Coord = 4;
 }
 
+message VerificationKey {
+  HexadecimalPointBaseGroup2Affine a = 1;
+  HexadecimalPointBaseGroup1Affine b = 2;
+  HexadecimalPointBaseGroup2Affine c = 3;
+  HexadecimalPointBaseGroup2Affine g = 4;
+  HexadecimalPointBaseGroup1Affine gb1 = 5;
+  HexadecimalPointBaseGroup2Affine gb2 = 6;
+  HexadecimalPointBaseGroup2Affine z = 7;
+  string IC = 8;
+}
+
 // Contains the proof along with the public input
 message ExtendedProof {
   HexadecimalPointBaseGroup1Affine a = 1;
@@ -80,6 +92,5 @@ message ExtendedProof {
   HexadecimalPointBaseGroup1Affine cP = 6;
   HexadecimalPointBaseGroup1Affine h = 7;
   HexadecimalPointBaseGroup1Affine k = 8;
-  //ProofPublicInputs inputs = 9;
   string inputs = 9;
 }

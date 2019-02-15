@@ -118,7 +118,7 @@ function getProof() {
     console.log(response);
 
     console.log("JSON Parsed response ===> ");
-    var ext_proof_a = [response.a.xCoord, response.a.yCoord]";
+    var ext_proof_a = [response.a.xCoord, response.a.yCoord];
     var ext_proof_ap = [response.aP.xCoord, response.aP.yCoord];
     var ext_proof_b = [[response.b.xC1Coord, response.b.xC0Coord], [response.b.yC1Coord, response.b.yC0Coord]];
     var ext_proof_bp = [response.bP.xCoord, response.bP.yCoord];
@@ -132,6 +132,17 @@ function getProof() {
   });
 }
 
+function parseHexadecimalPointBaseGroup2Affine(point) {
+  return [
+    [point.xC1Coord, point.xC0Coord],
+    [point.yC1Coord, point.yC0Coord]
+  ];
+}
+
+function parseHexadecimalPointBaseGroup1Affine(point) {
+  return [point.xCoord, point.yCoord];
+}
+
 // Get the verification key
 function main() {
 	// Create a client RPC instance to delegate proof generations to the Prover
@@ -143,6 +154,24 @@ function main() {
     console.log('Sent request to Get the verification key');
     console.log("Response ===> ");
     console.log(response);
+    var vk_a = parseHexadecimalPointBaseGroup2Affine(response.a);
+    var vk_b = parseHexadecimalPointBaseGroup1Affine(response.b);
+    var vk_c = parseHexadecimalPointBaseGroup2Affine(response.c);
+    var vk_g = parseHexadecimalPointBaseGroup2Affine(response.g);
+    var vk_gb1 = parseHexadecimalPointBaseGroup1Affine(response.gb1);
+    var vk_gb2 = parseHexadecimalPointBaseGroup2Affine(response.gb2)
+    var vk_z = parseHexadecimalPointBaseGroup2Affine(response.z)
+    var vk_ic = response.IC;
+
+    console.log("= VARS ===>");
+    console.log(vk_a);
+    console.log(vk_b);
+    console.log(vk_c);
+    console.log(vk_g);
+    console.log(vk_gb1);
+    console.log(vk_gb2);
+    console.log(vk_z);
+    console.log(vk_ic);
   });
 }
 
