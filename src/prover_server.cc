@@ -42,6 +42,7 @@ using proverpkg::ProofInputs;
 //using proverpkg::ProofPublicInputs;
 using proverpkg::HexadecimalPointBaseGroup1Affine;
 using proverpkg::HexadecimalPointBaseGroup2Affine;
+using proverpkg::VerificationKey;
 using proverpkg::ExtendedProof;
 
 typedef libff::default_ec_pp ppT;
@@ -208,7 +209,7 @@ void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* proof) 
   proof->set_inputs(inputs_json);
 }
 
-void PrepareVerifyingKeyResponse(VerificationKey* verificationKey) {
+void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>& vk, VerificationKey* verificationKey) {
   HexadecimalPointBaseGroup2Affine *a = new HexadecimalPointBaseGroup2Affine(); // in G2
   HexadecimalPointBaseGroup1Affine *b = new HexadecimalPointBaseGroup1Affine(); // in G1
   HexadecimalPointBaseGroup2Affine *c = new HexadecimalPointBaseGroup2Affine(); // in G2
@@ -217,7 +218,6 @@ void PrepareVerifyingKeyResponse(VerificationKey* verificationKey) {
   HexadecimalPointBaseGroup2Affine *gb2 = new HexadecimalPointBaseGroup2Affine(); // in G2
   HexadecimalPointBaseGroup2Affine *z = new HexadecimalPointBaseGroup2Affine(); // in G2
 
-  libsnark::r1cs_ppzksnark_verification_key<ppT> vk = this->keypair.vk;
   a->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.alphaA_g2)); // in G2
   b->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(vk.alphaB_g1)); // in G1
   c->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.alphaC_g2)); // in G2
@@ -226,8 +226,8 @@ void PrepareVerifyingKeyResponse(VerificationKey* verificationKey) {
   gb2->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.gamma_beta_g2)); // in G2
   z->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.rC_Z_g2)); // in G2
   
-  libsnark::r1cs_ppzksnark_primary_input<ppT> pubInputs = ext_proof.get_primary_input();
   std::stringstream ss;
+  unsigned icLength = vk.encoded_IC_query.rest.indices.size() + 1;
   ss <<  "[[" << outputPointG1AffineAsHex(vk.encoded_IC_query.first) << "]";
 
   for (size_t i = 1; i < icLength; ++i) {
@@ -266,14 +266,15 @@ public:
     const EmptyMessage* request,
     VerificationKey* response
   ) override {
+    std::cout << "[ACK] Received the request to get the verification key:" << std::endl;
     std::cout << "[DEBUG] Preparing response" << std::endl;
     try {
-      PrepareVerifyingKeyResponse(response);
+      PrepareVerifyingKeyResponse(this->keypair.vk, response);
     } catch (const std::exception& e) {
       std::cout << "[ERROR] " << e.what() << std::endl;
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
     } catch (...) {
-      std::cout << "[ERROR] In catch(...)"<< std::endl;
+      std::cout << "[ERROR] In catch(...)" << std::endl;
       return ::grpc::Status(::grpc::StatusCode::UNKNOWN, "");
     }
 
