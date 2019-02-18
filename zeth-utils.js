@@ -107,6 +107,27 @@ var generateApkAskKeypair = function() {
 	};
 };
 
+var createJSInput = function(merklePath, address, note, ask, nullifier) {
+  return {
+    merkleNode: merklePath,
+    address: address,
+    note: note,
+    spendingASK: ask,
+    nullifier: nullifier
+  };
+}
+
+var parseHexadecimalPointBaseGroup1Affine = function(point) {
+  return [point.xCoord, point.yCoord];
+}
+
+var parseHexadecimalPointBaseGroup2Affine =  function(point) {
+  return [
+    [point.xC1Coord, point.xC0Coord],
+    [point.yC1Coord, point.yC0Coord]
+  ];
+}
+
 // Keystore for the tests
 var initTestKeystore = function() {
 	// Alice credentials in the zeth abstraction
@@ -226,4 +247,7 @@ module.exports.computeNullifier = computeNullifier;
 module.exports.decimalToHexadecimal = decimalToHexadecimal;
 module.exports.deriveAPK = deriveAPK;
 module.exports.generateApkAskKeypair = generateApkAskKeypair;
+module.exports.createJSInput = createJSInput;
+module.exports.parseHexadecimalPointBaseGroup1Affine = parseHexadecimalPointBaseGroup1Affine;
+module.exports.parseHexadecimalPointBaseGroup2Affine = parseHexadecimalPointBaseGroup2Affine;
 module.exports.initTestKeystore = initTestKeystore;
