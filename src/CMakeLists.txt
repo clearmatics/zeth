@@ -15,7 +15,7 @@ set(GRPC_CPP_PLUGIN grpc_cpp_plugin)
 find_library(_GRPC_GRPCPP_UNSECURE NAMES grpc++ libgrpc++)
 
 # Proto files
-get_filename_component(prover_proto "../api/prover-grpc/prover.proto" ABSOLUTE)
+get_filename_component(prover_proto "../api/prover.proto" ABSOLUTE)
 get_filename_component(prover_proto_path "${prover_proto}" PATH)
 
 # Generated sources
