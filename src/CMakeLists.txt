@@ -1,49 +1,39 @@
-cmake_minimum_required(VERSION 2.8)
+include_directories(.)
 
-project(zeth)
+# GRPC and Protocol Buffers libraries location
+# `ldconfig -p | grep libgrpc`
+# `ldconfig -p | grep libprotobuf`
+# Returns the location of the GRPC and Protocol Buffers libraries
+#
+# CMAKE_MODULE_PATH: Path used for searching by FIND_XXX(), with appropriate suffixes added.
+# See: https://cmake.org/cmake/help/v3.0/variable/CMAKE_PREFIX_PATH.html
+list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib" "/usr/lib")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+# Cmake find modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-#### [Begin] gRPC - Protobuf related config ####
-# Protobuf
-set(_PROTOBUF_PROTOC protoc)
-find_library(_PROTOBUF_LIBPROTOBUF NAMES protobuf libprotobuf)
+find_package(Protobuf REQUIRED)
+find_package(GRPC REQUIRED)
 
-# gRPC
-set(GRPC_CPP_PLUGIN grpc_cpp_plugin)
-#set(GRPC_CPP_PLUGIN_PATH "which ${grpc_cpp_plugin}")
-find_library(_GRPC_GRPCPP_UNSECURE NAMES grpc++ libgrpc++)
-
-# Proto files
-get_filename_component(prover_proto "../api/prover.proto" ABSOLUTE)
-get_filename_component(prover_proto_path "${prover_proto}" PATH)
-
-# Generated sources
-set(prover_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/prover.pb.cc")
-set(prover_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/prover.pb.h")
-set(prover_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/prover.grpc.pb.cc")
-set(prover_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/prover.grpc.pb.h")
-add_custom_command(
-      OUTPUT "${prover_proto_srcs}" "${prover_proto_hdrs}" "${prover_grpc_srcs}" "${prover_grpc_hdrs}"
-      COMMAND ${_PROTOBUF_PROTOC}
-      ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
-        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-        -I "${prover_proto_path}"
-        #--plugin=protoc-gen-grpc="${GRPC_CPP_PLUGIN_PATH}"
-        --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin
-        "${prover_proto}"
-      DEPENDS "${prover_proto}"
+set(PROTOS
+    $ENV{ZETH_API_DIR}/prover.proto
 )
-#### [End] gRPC - Protobuf related config ####
 
-# Include generated *.pb.h files
-# and include the rest of the codebase
+# Set the target of the generated files to ${CMAKE_CURRENT_BINARY_DIR}/proto-src
+# Then create this folder and add it to the include directories
+set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto-src)
+file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
+include_directories(${PROTO_SRC_DIR})
+
+# See cmake scripts in the cmake folder
+# Generate the grpc and protobuf files and set the result of the generation
+# in the given env var (PROTO_SRCS, PROTO_HDRS, GRPC_SRCS, GRPC_HDRS)
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTOS})
+grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS})
+
 include_directories(
-  #"${CMAKE_CURRENT_BINARY_DIR}"
-  "${PROJECT_BINARY_DIR}"
   $ENV{ZETH}
   $ENV{ZETH}/src
-  $ENV{ZETH}/src/libnark_helpers
   libff/common/default_types
 )
 
@@ -60,24 +50,24 @@ include_directories( ${Boost_INCLUDE_DIR} )
 
 # Add the binary tree to the search path for include files
 # so that we will find zethConfig.h
-include_directories("${PROJECT_BINARY_DIR}")
+include_directories( ${PROJECT_BINARY_DIR} )
 
-# Build the targets (prover server)
-foreach(_target
-  prover_server)
-  add_executable(${_target} "${_target}.cc"
-    ${prover_proto_srcs}
-    ${prover_grpc_srcs}
-    ${SOURCES})
-  target_link_libraries(${_target}
-    LINK_PUBLIC
+# Building the server
+add_executable(prover_server
+    ${CMAKE_CURRENT_SOURCE_DIR}/prover_server.cc
+    ${PROTO_SRCS}
+    ${GRPC_SRCS}
+    ${SOURCES}
+)
+target_link_libraries(prover_server
     snark
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
-    ${_GRPC_GRPCPP_UNSECURE}
-    ${_PROTOBUF_LIBPROTOBUF})
-  target_include_directories(${_target}
+    gRPC::grpc++_reflection
+    protobuf::libprotobuf
+)
+target_include_directories(prover_server
     PUBLIC
     ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft)
-endforeach()
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)

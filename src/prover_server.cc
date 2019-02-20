@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cstdio>
+#include <memory>
 #include <string>
 
 #include <grpc/grpc.h>
@@ -26,9 +26,6 @@
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
-using grpc::ServerReader;
-using grpc::ServerReaderWriter;
-using grpc::ServerWriter;
 using grpc::Status;
 using grpc::StatusCode;
 
@@ -39,7 +36,6 @@ using proverpkg::Prover;
 using proverpkg::EmptyMessage;
 using proverpkg::PackedDigest;
 using proverpkg::ProofInputs;
-//using proverpkg::ProofPublicInputs;
 using proverpkg::HexadecimalPointBaseGroup1Affine;
 using proverpkg::HexadecimalPointBaseGroup2Affine;
 using proverpkg::VerificationKey;
@@ -137,7 +133,7 @@ HexadecimalPointBaseGroup1Affine FormatHexadecimalPointBaseGroup1Affine(libff::a
   aff.to_affine_coordinates();
   std::string xCoord = "0x" + HexStringFromLibsnarkBigint(aff.X.as_bigint());
   std::string yCoord = "0x" + HexStringFromLibsnarkBigint(aff.Y.as_bigint());
-  
+
   HexadecimalPointBaseGroup1Affine res;
   res.set_xcoord(xCoord);
   res.set_ycoord(yCoord);
@@ -152,7 +148,7 @@ HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affine(libff::a
   std::string xC0Coord = "0x" + HexStringFromLibsnarkBigint(aff.X.c0.as_bigint());
   std::string yC1Coord = "0x" + HexStringFromLibsnarkBigint(aff.Y.c1.as_bigint());
   std::string yC0Coord = "0x" + HexStringFromLibsnarkBigint(aff.Y.c0.as_bigint());
-  
+
   HexadecimalPointBaseGroup2Affine res;
   res.set_xc0coord(xC0Coord);
   res.set_xc1coord(xC1Coord);
@@ -165,6 +161,7 @@ HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affine(libff::a
 void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* proof) {
   libsnark::r1cs_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
 
+  std::cout << "[DEBUG: PrepareProofResponse] Allocating points" << std::endl;
   HexadecimalPointBaseGroup1Affine *a = new HexadecimalPointBaseGroup1Affine();
   HexadecimalPointBaseGroup1Affine *a_p = new HexadecimalPointBaseGroup1Affine();
   HexadecimalPointBaseGroup2Affine *b = new HexadecimalPointBaseGroup2Affine(); // in G2
@@ -174,6 +171,7 @@ void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* proof) 
   HexadecimalPointBaseGroup1Affine *h = new HexadecimalPointBaseGroup1Affine();
   HexadecimalPointBaseGroup1Affine *k = new HexadecimalPointBaseGroup1Affine();
 
+  std::cout << "[DEBUG: PrepareProofResponse] CopyFrom's" << std::endl;
   a->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.g_A.g));
   a_p->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.g_A.h));
   b->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(proofObj.g_B.g)); // in G2
@@ -182,7 +180,8 @@ void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* proof) 
   c_p->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.g_C.h));
   h->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.g_H));
   k->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.g_K));
-  
+
+  std::cout << "[DEBUG: PrepareProofResponse] Processing primary inputs" << std::endl;
   libsnark::r1cs_ppzksnark_primary_input<ppT> pubInputs = ext_proof.get_primary_input();
   std::stringstream ss;
   ss << "[";
@@ -198,6 +197,7 @@ void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* proof) 
   // Note on memory safety: set_allocated deleted the allocated objects
   // See: https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
   // for more details
+  std::cout << "[DEBUG: PrepareProofResponse] set allocated" << std::endl;
   proof->set_allocated_a(a);
   proof->set_allocated_ap(a_p);
   proof->set_allocated_b(b);
@@ -210,6 +210,7 @@ void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* proof) 
 }
 
 void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>& vk, VerificationKey* verificationKey) {
+  std::cout << "[DEBUG: PrepareVerifyingKeyResponse] Allocating points" << std::endl;
   HexadecimalPointBaseGroup2Affine *a = new HexadecimalPointBaseGroup2Affine(); // in G2
   HexadecimalPointBaseGroup1Affine *b = new HexadecimalPointBaseGroup1Affine(); // in G1
   HexadecimalPointBaseGroup2Affine *c = new HexadecimalPointBaseGroup2Affine(); // in G2
@@ -218,6 +219,7 @@ void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>&
   HexadecimalPointBaseGroup2Affine *gb2 = new HexadecimalPointBaseGroup2Affine(); // in G2
   HexadecimalPointBaseGroup2Affine *z = new HexadecimalPointBaseGroup2Affine(); // in G2
 
+  std::cout << "[DEBUG: PrepareVerifyingKeyResponse] CopyFrom's" << std::endl;
   a->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.alphaA_g2)); // in G2
   b->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(vk.alphaB_g1)); // in G1
   c->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.alphaC_g2)); // in G2
@@ -225,11 +227,11 @@ void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>&
   gb1->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(vk.gamma_beta_g1)); // in G1
   gb2->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.gamma_beta_g2)); // in G2
   z->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.rC_Z_g2)); // in G2
-  
+
+  std::cout << "[DEBUG: PrepareVerifyingKeyResponse] processing IC" << std::endl;
   std::stringstream ss;
   unsigned icLength = vk.encoded_IC_query.rest.indices.size() + 1;
   ss <<  "[[" << outputPointG1AffineAsHex(vk.encoded_IC_query.first) << "]";
-
   for (size_t i = 1; i < icLength; ++i) {
     auto vkICi = outputPointG1AffineAsHex(vk.encoded_IC_query.rest.values[i - 1]);
     ss << ",[" <<  vkICi << "]";
@@ -239,15 +241,24 @@ void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>&
 
   // Note on memory safety: set_allocated deleted the allocated objects
   // See: https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-  // for more details
+  std::cout << "[DEBUG: PrepareVerifyingKeyResponse] set_allocated" << std::endl;
+  std::cout << "set_allocated_a" << std::endl;
   verificationKey->set_allocated_a(a);
+  std::cout << "set_allocated_b" << std::endl;
   verificationKey->set_allocated_b(b);
+  std::cout << "set_allocated_c" << std::endl;
   verificationKey->set_allocated_c(c);
+  std::cout << "set_allocated_g" << std::endl;
   verificationKey->set_allocated_g(g);
+  std::cout << "set_allocated_gb1" << std::endl;
   verificationKey->set_allocated_gb1(gb1);
+  std::cout << "set_allocated_gb2" << std::endl;
   verificationKey->set_allocated_gb2(gb2);
+  std::cout << "set_allocated_z" << std::endl;
   verificationKey->set_allocated_z(z);
+  std::cout << "set_ic" << std::endl;
   verificationKey->set_ic(IC_json);
+  std::cout << "done with the set_allocated" << std::endl;
 }
 
 class ProverImpl final : public Prover::Service {
@@ -262,7 +273,7 @@ public:
   ) : prover(prover), keypair(keypair) {}
 
   Status GetVerificationKey(
-    ServerContext* context, 
+    ServerContext* context,
     const EmptyMessage* request,
     VerificationKey* response
   ) override {
@@ -331,11 +342,11 @@ public:
 
       std::cout << "[DEBUG] Generating the proof" << std::endl;
       extended_proof<ppT> ext_proof = this->prover.prove(
-        root_bits, 
-        jsInputs, 
-        jsOutputs, 
-        vpub_in, 
-        vpub_out, 
+        root_bits,
+        jsInputs,
+        jsOutputs,
+        vpub_in,
+        vpub_out,
         this->keypair.pk
       );
 
