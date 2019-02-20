@@ -1,12 +1,18 @@
 const Web3 = require('web3');
+const fs = require('fs');
+const path = require('path');
+
+// Zeth module that contains utils to parse the prover
+// responses and format the client's requests
 const zeth = require('./zeth-utils');
 
-var PROTO_PATH = __dirname + '/api/prover-grpc/prover.proto';
+var api_path = process.env.ZETH_API_DIR;
+var prover_proto = path.join(api_path, "prover.proto");
 var grpc = require('grpc');
 var protoLoader = require('@grpc/proto-loader');
 // Suggested options for similarity to existing grpc.load behavior
 var packageDefinition = protoLoader.loadSync(
-  PROTO_PATH,
+  prover_proto,
   {keepCase: true,
     longs: String,
     enums: String,
@@ -133,22 +139,22 @@ function getProof() {
 }
 
 function parseHexadecimalPointBaseGroup2Affine(point) {
-  return [
-    [point.xC1Coord, point.xC0Coord],
-    [point.yC1Coord, point.yC0Coord]
-  ];
+	return [
+		[point.xC1Coord, point.xC0Coord],
+		[point.yC1Coord, point.yC0Coord]
+	];
 }
 
 function parseHexadecimalPointBaseGroup1Affine(point) {
-  return [point.xCoord, point.yCoord];
+	return [point.xCoord, point.yCoord];
 }
 
 // Get the verification key
 function main() {
-	// Create a client RPC instance to delegate proof generations to the Prover
+  // Create a client RPC instance to delegate proof generations to the Prover
   var client = new prover.Prover('0.0.0.0:50051', grpc.credentials.createInsecure());
 
-	// RPC call to the prover to fetch the verification key
+  // RPC call to the prover to fetch the verification key
   console.log("Send request to fetch the verification key");
   client.getVerificationKey({}, function(err, response) {
     console.log('Sent request to Get the verification key');
@@ -161,19 +167,27 @@ function main() {
     var vk_gb1 = parseHexadecimalPointBaseGroup1Affine(response.gb1);
     var vk_gb2 = parseHexadecimalPointBaseGroup2Affine(response.gb2)
     var vk_z = parseHexadecimalPointBaseGroup2Affine(response.z)
-    var vk_ic = response.IC;
+    var vk_ic = JSON.parse(response.IC);
 
-    console.log("= VARS ===>");
-    console.log(vk_a);
-    console.log(vk_b);
-    console.log(vk_c);
-    console.log(vk_g);
-    console.log(vk_gb1);
-    console.log(vk_gb2);
-    console.log(vk_z);
-    console.log(vk_ic);
+    var vkObj = {
+      a: vk_a,
+      b: vk_b,
+      c: vk_c,
+      g: vk_g,
+      gb1: vk_gb1,
+      gb2: vk_gb2,
+      z: vk_z,
+      IC: vk_ic
+    };
+
+    console.log(" === vkObj === ");
+    console.log(vkObj);
+
+    var setup_path = process.env.ZETH_TRUSTED_SETUP_DIR;
+    var vk_json = path.join(setup_path, "vk.json");
+
+    fs.writeFileSync(vk_json, JSON.stringify(vkObj));
   });
 }
-
 
 main();
