@@ -6,8 +6,6 @@ import time
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 from web3.contract import ConciseContract
-#from solc import compile_source, compile_standard
-#from solc import compile_source, compile_files, link_code
 from solcx import compile_standard, compile_files
 
 # Get the utils written to interact with the prover
@@ -162,56 +160,75 @@ def verify(wrapper_verifier, parsedProof):
 def getProofTestCase1():
     print("Test case 1: Bob deposits 4 ETH for himself")
     keystore = zeth.initTestKeystore()
-    zeroWei = "0000000000000000000"
     zeroWeiHex = "0000000000000000"
 
     bobAPK = keystore["Bob"]["AddrPk"]["aPK"] # we generate a coin for Bob (recipient)
     bobASK = keystore["Bob"]["AddrSk"]["aSK"]
-    print("Bob keys")
-    print(bobAPK)
-    print(bobASK)
 
-    noteBobIn = zeth.createZethNote(zeth.noteRandomness(), bobAPK, zeroWeiHex)
-    nullifierIn = zeth.computeNullifier(noteBobIn, bobASK)
+    # Dummy note 1
+    noteBobIn1 = zeth.createZethNote(zeth.noteRandomness(), bobAPK, zeroWeiHex)
+    nullifierIn1 = zeth.computeNullifier(noteBobIn1, bobASK)
+    addressNote1 = 7
+    # Dummy note 2
+    noteBobIn2 = zeth.createZethNote(zeth.noteRandomness(), bobAPK, zeroWeiHex)
+    nullifierIn2 = zeth.computeNullifier(noteBobIn2, bobASK)
+    addressNote2 = 8
 
-    root = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
-    merklePath = [
+    dummyRoot = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
+    dummyMerklePath = [
         "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
         "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
         "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
         "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
     ]
     jsInputs = [
-        zeth.createJSInput(merklePath, 7, noteBobIn, bobASK, nullifierIn)
+        zeth.createJSInput(dummyMerklePath, addressNote1, noteBobIn1, bobASK, nullifierIn1),
+        zeth.createJSInput(dummyMerklePath, addressNote2, noteBobIn2, bobASK, nullifierIn2)
     ]
 
-    valueOut = zeth.int64ToHexadecimal(Web3.toWei('4', 'ether')) # Note of value 4 as output of the JS
-    noteBobOut = zeth.createZethNote(zeth.noteRandomness(), bobAPK, valueOut)
-    nullifierOut = zeth.computeNullifier(noteBobOut, bobASK)
+    # Note 1
+    noteValueOut1 = zeth.int64ToHexadecimal(Web3.toWei('9.597170848876199936', 'ether')) # Note of value 2 as output of the JS
+    print("noteValueOut1")
+    print(noteValueOut1)
+    noteBobOut1 = zeth.createZethNote(zeth.noteRandomness(), bobAPK, noteValueOut1)
+    nullifierOut1 = zeth.computeNullifier(noteBobOut1, bobASK)
+    # Note 2
+    noteValueOut2 = zeth.int64ToHexadecimal(Web3.toWei('8.453256543524093952', 'ether')) # Note of value 2 as output of the JS
+    print("noteValueOut2")
+    print(noteValueOut2)
+    noteBobOut2 = zeth.createZethNote(zeth.noteRandomness(), bobAPK, noteValueOut2)
+    nullifierOut2 = zeth.computeNullifier(noteBobOut2, bobASK)
     jsOutputs = [
-        noteBobOut
+        noteBobOut1,
+        noteBobOut2
     ]
 
-    inPubValue = zeth.int64ToHexadecimal(Web3.toWei('4', 'ether'))
-    outPubValue = zeroWeiHex # No pub output
+    inPubValue = zeth.int64ToHexadecimal(Web3.toWei('18.050427392400293888', 'ether')) # incorrect value for the JS equality
+    print("inPubValue")
+    print(inPubValue)
+    outPubValue = zeroWeiHex
+    print("outPubValue")
+    print(outPubValue)
 
-    proofInput = makeProofInputs(root, jsInputs, jsOutputs, inPubValue, outPubValue)
+    proofInput = makeProofInputs(dummyRoot, jsInputs, jsOutputs, inPubValue, outPubValue)
     proofObj = getProof(proofInput)
     proofJSON = parseProof(proofObj)
     return proofJSON
 
 def testCase1(wrapper_verifier_instance):
     print(" === TestCase 1 ===")
-    print("[TestCase1] Get proof from server")
     parsedProof = getProofTestCase1()
-    print("[TestCase1] Verifying proof")
+    print("- TestCase 1: Parsed proof")
+    print(parsedProof)
     verify(wrapper_verifier_instance, parsedProof)
 
 if __name__ == '__main__':
-    print("[DEBUG] Fetching the verification key from the proving server")
+    print("[DEBUG] 1. Fetching the verification key from the proving server")
     vk = getVerificationKey()
-    print("[DEBUG] Received VK, writing the key...")
+    print("[DEBUG] 2. Received VK, writing the key...")
     writeVerificationKey(vk)
-    print("[DEBUG] VK written, deploying the smart contracts...")
+    print("[DEBUG] 3. VK written, deploying the smart contracts...")
     wrapper_verifier_instance = deploy()
+    print("[DEBUG] Running tests...")
     testCase1(wrapper_verifier_instance)
+    #testCase2(wrapper_verifier_instance)
