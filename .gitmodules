@@ -1,6 +1,6 @@
 [submodule "depends/libsnark"]
 	path = depends/libsnark
-	url = https://github.com/scipr-lab/libsnark.git
+	url = git@gitlab.clearmatics.net:gg/libsnark-fork.git
 [submodule "depends/googletest"]
 	path = depends/googletest
 	url = https://github.com/google/googletest.git
