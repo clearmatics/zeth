@@ -4,96 +4,54 @@
 #include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
-// Header to use the merkle tree data structure
-#include <libsnark/common/data_structures/merkle_tree.hpp>
-
-// Header to use the sha256_ethereum gadget
-#include "sha256_ethereum.hpp"
-
 #include "util.hpp"
 
-// Access the defined constants
+// Access zeth configuration constants
 #include "zeth.h"
 
 // Include the type we need
-#include "bits256.tcc"
-#include "joinsplit.hpp"
-#include "note.hpp"
-
-// Gadgets to test
-#include "circuits-util.tcc"
+#include "types/bits.hpp"
+#include "types/joinsplit.hpp"
+#include "types/note.hpp"
+#include "circuits/circuits-util.hpp"
+#include "circuits/notes/note.hpp"
 
 using namespace libzeth;
 
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
-typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
 
 namespace {
 
-void dump_bit_vector(std::ostream &out, const libff::bit_vector &v)
+void dump_bit_vector_compact(std::ostream &out, const libff::bit_vector &v)
 {
     out << "{";
     for (size_t i = 0; i < v.size() - 1; ++i)
     {
-        out << v[i] << ", ";
+        out << v[i];
     }
     out << v[v.size() - 1] << "}\n";
 }
 
-/*
-Notes about the `packed_addition`.
+TEST(TestPackedAddition, TestPackedAddition1) {
+    libff::print_header("Starting test: LHS => value_left1 = 0x000000000000000A, value_left2 = 0x000000000000000A || RHS => value_right1 = 0x0000000000000014");
 
-The packed addition takes a `pb_variable_array` as input and calls the `pb_packing_sum` function to return a 
-`linear_combination`.
-We know that a linear combination is in the form: 
-`Sum_i coeff_i * var_i`, where the coeffs are field elements and var_i denotes the ith variable in the
-list of variables of the R1CS.
-
-Each term of the linear combination is a linear term and has the form: `coeff_i * var_i`.
-Bascially the packed addition will create a linear combination in the form:
-    A*X, where A and X are vectors of size N (N denotes the number of variables) in the `pb_variable_array`
-
-The vector A represents the vector of coefficients, and the vector X represents the vector of variables.
-The coefficients are the powers of 2 from 0 to the size of the `pb_variable_array` - 1, and the variables
-are boolean/bit variables that correspond to the bit encoding of the number.
-
-Example:
-1) pb_variable_array<FieldT> var
-2) var.allocate(4) // 4 bits to encode the integer represented by `var`
-3) libsnark::linear_combination<FieldT> lin_comb = packed_addition(var);
-
-At that point lin_comb is in the form:
-A = |1| (2^0)  and X = |x_0|
-    |2| (2^1)          |x_1|
-    |4| (2^2)          |x_2|
-    |8| (2^3)          |x_3|
-
-4) Now we assign a value to `var`, var.fill_with_bits({1,0,0,1})
-5) The lin comb becomes:
-A = |1| (2^0)  and X = |1|
-    |2| (2^1)          |0|
-    |4| (2^2)          |0|
-    |8| (2^3)          |1|
-*/
-
-TEST(TestPackedAddition, TestPackedAddition) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
     ZERO.allocate(pb);
     pb.val(ZERO) = FieldT::zero();
 
     // === Set the constraints
-    libsnark::pb_variable_array<FieldT> value_left;
-    value_left.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> value_left1;
+    value_left1.allocate(pb, 64);
     libsnark::pb_variable_array<FieldT> value_left_2;
     value_left_2.allocate(pb, 64);
     
-    libsnark::pb_variable_array<FieldT> value_right;
-    value_right.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> value_right1;
+    value_right1.allocate(pb, 64);
 
-    libsnark::linear_combination<FieldT> left_side = packed_addition(value_left) + packed_addition(value_left_2);
-    libsnark::linear_combination<FieldT> right_side = packed_addition(value_right);
+    libsnark::linear_combination<FieldT> left_side = packed_addition(value_left1) + packed_addition(value_left_2);
+    libsnark::linear_combination<FieldT> right_side = packed_addition(value_right1);
 
     // Constraint to ensure that both sides are equal
     pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
@@ -103,21 +61,278 @@ TEST(TestPackedAddition, TestPackedAddition) {
     ));
 
     // === Witness
-    char* value_left_str = "000000000000000A";
-    char* value_left_str_2 = "000000000000000A";
-    bits64 value_left_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector(value_left_str));
-    value_left.fill_with_bits(pb, libff::bit_vector(get_vector_from_bits64(value_left_bits64)));
-
-    bits64 value_left_2_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector(value_left_str_2));
-    value_left_2.fill_with_bits(pb, libff::bit_vector(get_vector_from_bits64(value_left_2_bits64)));
+    value_left1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("000000000000000A")));
+    value_left_2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("000000000000000A")));
 
     // 0A + 0A = 14 in hexa
-    char* value_right_str = "0000000000000014";
-    bits64 value_right_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector(value_right_str));
-    value_right.fill_with_bits(pb, libff::bit_vector(get_vector_from_bits64(value_right_bits64)));
+    value_right1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000014")));
 
     bool witness_bool = pb.is_satisfied();
     std::cout << "************* SAT result: " << witness_bool <<  " ******************" << std::endl;
+    ASSERT_TRUE(witness_bool);
+};
+
+TEST(TestPackedAddition, TestPackedAddition2) {
+    libff::print_header("Starting test: LHS => value_left1 = 0x3782DACE9D900000, value_left2 = 0x3782DACE9D900000 || RHS => value_right1 = 0x6124FEE993BC0000, value_right2 = 0x0DE0B6B3A7640000");
+
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+
+    // === Set the constraints
+    libsnark::pb_variable_array<FieldT> value_left1;
+    value_left1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> value_left2;
+    value_left2.allocate(pb, 64);
+    
+    libsnark::pb_variable_array<FieldT> value_right1;
+    value_right1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> value_right2;
+    value_right2.allocate(pb, 64);
+
+    libsnark::linear_combination<FieldT> left_side = packed_addition(value_left1);
+    left_side = left_side + packed_addition(value_left2);
+    libsnark::linear_combination<FieldT> right_side = packed_addition(value_right1);
+    right_side = right_side + packed_addition(value_right2);
+
+    // Constraint to ensure that both sides are equal
+    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
+        1,
+        left_side,
+        right_side
+    ));
+
+    // === Witness
+    value_left1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("3782DACE9D900000"))); // 0x3782DACE9D900000 = 4ETH
+    value_left2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("3782DACE9D900000"))); // 0x3782DACE9D900000 = 4ETH
+
+    value_right1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("6124FEE993BC0000"))); // 0x6124FEE993BC0000 = 7ETH
+    value_right2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0DE0B6B3A7640000"))); // 0x0DE0B6B3A7640000 = 1ETH
+
+    bool witness_bool = pb.is_satisfied();
+    std::cout << "************* SAT result: " << witness_bool <<  " ******************" << std::endl;
+    ASSERT_TRUE(witness_bool);
+};
+
+TEST(TestPackedAddition, TestPackedAddition3) {
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+
+    libff::print_header("Starting test: IN => v_pub = 0x0000000000000010, note1 = 0x2F0000000000000F, note2 = 0x0 || OUT => v_pub = 0x000000000000000B, note1 = 0x1A00000000000012, note2 = 0x1500000000000002");
+
+    // === Set the constraints
+    libsnark::pb_variable_array<FieldT> v_pub_in;
+    v_pub_in.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> v_pub_out;
+    v_pub_out.allocate(pb, 64);
+    
+    libsnark::pb_variable_array<FieldT> in_val_note1;
+    in_val_note1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> in_val_note2;
+    in_val_note2.allocate(pb, 64);
+
+    libsnark::pb_variable_array<FieldT> out_val_note1;
+    out_val_note1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> out_val_note2;
+    out_val_note2.allocate(pb, 64);
+
+    libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
+    left_side = left_side + packed_addition(in_val_note1);
+    left_side = left_side + packed_addition(in_val_note2);
+
+    libsnark::linear_combination<FieldT> right_side = packed_addition(v_pub_out);
+    right_side = right_side + packed_addition(out_val_note1);
+    right_side = right_side + packed_addition(out_val_note2);
+
+    // Constraint to ensure that both sides are equal
+    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
+        1,
+        left_side,
+        right_side
+    ));
+
+    // === Witness
+    v_pub_in.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000010")));
+    in_val_note1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("2F0000000000000F")));
+    in_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+
+    v_pub_out.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("000000000000000B")));
+    out_val_note1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("1A00000000000012")));
+    out_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("1500000000000002")));
+
+    bool witness_bool = pb.is_satisfied();
+    std::cout << "************* SAT result: " << witness_bool <<  " ******************" << std::endl;
+    ASSERT_TRUE(witness_bool);
+};
+
+TEST(TestPackedAddition, TestPackedAddition4) {
+    libff::print_header("Starting test: IN => v_pub = 0xFA80001400000000, note1 = 0x0, note2 = 0x0 || OUT => v_pub = 0x0, note1 = 0x8530000A00000000, note2 = 0x7550000A00000000");
+
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+    
+    libff::print_header("Starting Debug test");
+
+    // === Set the constraints
+    std::cout << "[DEBUG] variables allocation" << std::endl;
+    libsnark::pb_variable_array<FieldT> v_pub_in;
+    v_pub_in.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> v_pub_out;
+    v_pub_out.allocate(pb, 64);
+    
+    libsnark::pb_variable_array<FieldT> in_val_note1;
+    in_val_note1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> in_val_note2;
+    in_val_note2.allocate(pb, 64);
+
+    libsnark::pb_variable_array<FieldT> out_val_note1;
+    out_val_note1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> out_val_note2;
+    out_val_note2.allocate(pb, 64);
+
+    libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
+    left_side = left_side + packed_addition(in_val_note1);
+    left_side = left_side + packed_addition(in_val_note2);
+
+    libsnark::linear_combination<FieldT> right_side = packed_addition(v_pub_out);
+    right_side = right_side + packed_addition(out_val_note1);
+    right_side = right_side + packed_addition(out_val_note2);
+
+    // Constraint to ensure that both sides are equal
+    std::cout << "[DEBUG] Defining constraint" << std::endl;
+    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
+        1,
+        left_side,
+        right_side
+    ));
+
+    // === Witness
+    std::cout << "[DEBUG] Defining the witnesses" << std::endl;
+    v_pub_in.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("FA80001400000000"))); // 0xFA80001400000000 = 18.050427392400293888 ETH
+    in_val_note1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+    in_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+
+    v_pub_out.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+    out_val_note1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("8530000A00000000"))); // 0x8530000A00000000 = 9.597170848876199936 ETH
+    out_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("7550000A00000000"))); // 7550000A00000000 = 8.453256543524093952 ETH
+
+    bool witness_bool = pb.is_satisfied();
+    std::cout << "************* SAT result: " << witness_bool <<  " ******************" << std::endl;
+    ASSERT_TRUE(witness_bool);
+};
+
+TEST(TestPackedAddition, TestPackedAddition5) {
+    libff::print_header("Starting test: IN => v_pub = 0x6124FEE993BC0000, note1 = 0x0, note2 = 0x0 || OUT => v_pub = 0x0, note1 = 0x3782DACE9D900000, note2 = 0x29A2241AF62C0000");
+
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+
+    // === Set the constraints
+    libsnark::pb_variable_array<FieldT> v_pub_in;
+    v_pub_in.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> v_pub_out;
+    v_pub_out.allocate(pb, 64);
+    
+    libsnark::pb_variable_array<FieldT> in_val_note1;
+    in_val_note1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> in_val_note2;
+    in_val_note2.allocate(pb, 64);
+
+    libsnark::pb_variable_array<FieldT> out_val_note1;
+    out_val_note1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> out_val_note2;
+    out_val_note2.allocate(pb, 64);
+
+    libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
+    left_side = left_side + packed_addition(in_val_note1);
+    left_side = left_side + packed_addition(in_val_note2);
+
+    libsnark::linear_combination<FieldT> right_side = packed_addition(v_pub_out);
+    right_side = right_side + packed_addition(out_val_note1);
+    right_side = right_side + packed_addition(out_val_note2);
+
+    // Constraint to ensure that both sides are equal
+    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
+        1,
+        left_side,
+        right_side
+    ));
+
+    // === Witness
+    v_pub_in.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("6124FEE993BC0000"))); // 0x6124FEE993BC0000 = 7ETH
+    in_val_note1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+    in_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+
+    v_pub_out.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+    out_val_note1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("3782DACE9D900000"))); // 0x3782DACE9D900000 = 4ETH
+    out_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("29A2241AF62C0000"))); // 0x29A2241AF62C0000 = 3ETH
+
+    bool witness_bool = pb.is_satisfied();
+    std::cout << "************* SAT result: " << witness_bool <<  " ******************" << std::endl;
+    ASSERT_TRUE(witness_bool);
+};
+
+TEST(TestPackedAddition, TestPackedAddition6) {
+    libff::print_header("Starting test: IN => v_pub = 0x6124FEE993BC0000, note1 = 0x0, note2 = 0x0 || OUT => v_pub = 0x0, note1 = 0x3782DACE9D900001, note2 = 0x29A2241AF62C0000");
+
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+
+    // === Set the constraints
+    libsnark::pb_variable_array<FieldT> v_pub_in;
+    v_pub_in.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> v_pub_out;
+    v_pub_out.allocate(pb, 64);
+    
+    libsnark::pb_variable_array<FieldT> in_val_note1;
+    in_val_note1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> in_val_note2;
+    in_val_note2.allocate(pb, 64);
+
+    libsnark::pb_variable_array<FieldT> out_val_note1;
+    out_val_note1.allocate(pb, 64);
+    libsnark::pb_variable_array<FieldT> out_val_note2;
+    out_val_note2.allocate(pb, 64);
+
+    libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
+    left_side = left_side + packed_addition(in_val_note1);
+    left_side = left_side + packed_addition(in_val_note2);
+
+    libsnark::linear_combination<FieldT> right_side = packed_addition(v_pub_out);
+    right_side = right_side + packed_addition(out_val_note1);
+    right_side = right_side + packed_addition(out_val_note2);
+
+    // Constraint to ensure that both sides are equal
+    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
+        1,
+        left_side,
+        right_side
+    ));
+
+    // === Witness
+    v_pub_in.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("6124FEE993BC0000"))); // 0x6124FEE993BC0000 = 7ETH
+    in_val_note1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+    in_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+
+    v_pub_out.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
+    out_val_note1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("3782DACE9D900001"))); // 0x3782DACE9D900000 = 4.000000000000000001ETH
+    out_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("29A2241AF62C0000"))); // 0x29A2241AF62C0000 = 3ETH
+
+    bool witness_bool = pb.is_satisfied();
+    std::cout << "************* SAT result: " << witness_bool <<  " ******************" << std::endl;
+
+    // The equality constaint should be violated as 1 wei is created out of thin air in this test
+    // 7ETH =/= 7.000000000000000001ETH
+    ASSERT_FALSE(witness_bool);
 };
 
 } // namespace
