@@ -219,7 +219,7 @@ TEST(TestPackedAddition, TestPackedAddition4) {
 
     v_pub_out.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000000")));
     out_val_note1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("8530000A00000000"))); // 0x8530000A00000000 = 9.597170848876199936 ETH
-    out_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("7550000A00000000"))); // 7550000A00000000 = 8.453256543524093952 ETH
+    out_val_note2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("7550000A00000000"))); // 0x7550000A00000000 = 8.453256543524093952 ETH
 
     bool witness_bool = pb.is_satisfied();
     std::cout << "************* SAT result: " << witness_bool <<  " ******************" << std::endl;
