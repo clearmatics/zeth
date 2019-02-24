@@ -71,3 +71,52 @@ target_include_directories(prover_server
     ${DEPENDS_DIR}/libsnark
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
+
+# Tests
+# Test the packed_addition used in the joinsplit
+add_executable(
+    test_addition
+    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
+
+    test/packed_addition_test.cpp
+    ${SOURCES}
+)
+target_link_libraries(
+    test_addition
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_addition
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+# Test the joinsplit circuit
+add_executable(
+    test_prover
+    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
+
+    test/prover_test.cpp
+    ${SOURCES}
+)
+target_link_libraries(
+    test_prover
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_prover
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
