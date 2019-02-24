@@ -33,7 +33,6 @@ std::array<bool, BitLen> binaryAddition(std::array<bool, BitLen> A, std::array<b
     for(int i = BitLen - 1; i >= 0; i--){
         sum[i] = ((A[i] ^ B[i]) ^ carry); // c is carry
         carry = ((A[i] & B[i]) | (A[i] & carry)) | (B[i] & carry);
-        std::cout << "Carry: " << carry << std::endl;
     }
     
     // If the last carry is 1, then we have an overflow
