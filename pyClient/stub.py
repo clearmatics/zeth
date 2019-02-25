@@ -81,12 +81,15 @@ def parseProof(proofObj):
 def compileContracts():
     contractsDir = os.environ['ZETH_CONTRACTS_DIR']
     path_to_pairing = os.path.join(contractsDir, "Pairing.sol")
+    path_to_bytes = os.path.join(contractsDir, "Bytes.sol")
     path_to_verifier = os.path.join(contractsDir, "Verifier.sol")
     path_to_wrapperVerifier = os.path.join(contractsDir, "WrapperVerifier.sol")
-    compiled_sol = compile_files([path_to_pairing, path_to_verifier, path_to_wrapperVerifier])
+    path_to_mixer = os.path.join(contractsDir, "Mixer.sol")
+    compiled_sol = compile_files([path_to_pairing, path_to_bytes, path_to_verifier, path_to_wrapperVerifier, path_to_mixer])
     verifier_interface = compiled_sol[path_to_verifier + ':Verifier']
     wrapper_verifier_interface = compiled_sol[path_to_wrapperVerifier + ':WrapperVerifier']
-    return(wrapper_verifier_interface, verifier_interface)
+    mixer_interface = compiled_sol[path_to_mixer + ':Mixer']
+    return(wrapper_verifier_interface, verifier_interface, mixer_interface)
 
 def hex2int(elements):
     ints = []
@@ -95,7 +98,7 @@ def hex2int(elements):
     return(ints)
 
 def deploy():
-    wrapper_verifier_interface, verifier_interface = compileContracts()
+    wrapper_verifier_interface, verifier_interface, mixer_interface = compileContracts()
     setupDir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     vk_json = os.path.join(setupDir, "vk.json")
     with open(vk_json) as json_data:
@@ -132,12 +135,66 @@ def deploy():
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
     wrapper_verifier_address = tx_receipt['contractAddress']
     print("[INFO] WrapperVerifier address: ", wrapper_verifier_address)
-    # Contract instance in concise mode
+
+    # Deploy the Mixer contract once the Verifier is successfully deployed
+    mixer = w3.eth.contract(abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
+    tx_hash = mixer.constructor(
+        _zksnark_verify=verifier_address,
+        depth=4
+    ).transact({'from': w3.eth.accounts[0], 'gas': 4000000})
+    # Get tx receipt to get Mixer contract address
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    mixer_address = tx_receipt['contractAddress']
+    print("[INFO] Mixer address: ", mixer_address)
+
+    # Get contract instances
     wrapper_verifier = w3.eth.contract(
         address=wrapper_verifier_address,
         abi=wrapper_verifier_interface['abi']
     )
-    return(wrapper_verifier)
+    mixer = w3.eth.contract(
+        address=mixer_address,
+        abi=mixer_interface['abi']
+    )
+
+    # Get the initial merkle root to proceed to the first payments
+    event_filter_logMerkleRoot = mixer.eventFilter("LogMerkleRoot", {'fromBlock': 0, 'toBlock': 'latest'})
+    event_logs_logMerkleRoot = event_filter_logMerkleRoot.get_all_entries()
+    initialRoot = w3.toHex(event_logs_logMerkleRoot[0].args.root)
+    print("Initial root hex: " +  initialRoot)
+    return(wrapper_verifier, mixer, initialRoot[2:])
+
+def mix(mixer, parsedProof, senderAddress, weiPubValue):
+    tx_hash = mixer.functions.mix(
+        "should be ciphertext1",
+        "should be ciphertext 2",
+        hex2int(parsedProof["a"]),
+        hex2int(parsedProof["a_p"]),
+        [hex2int(parsedProof["b"][0]), hex2int(parsedProof["b"][1])],
+        hex2int(parsedProof["b_p"]),
+        hex2int(parsedProof["c"]),
+        hex2int(parsedProof["c_p"]),
+        hex2int(parsedProof["h"]),
+        hex2int(parsedProof["k"]),
+        hex2int(parsedProof["inputs"])
+    ).transact({'from': senderAddress, 'value': weiPubValue, 'gas': 4000000})
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    # Gather the addresses of the appended commitments
+    event_filter_logAddress = mixer.eventFilter("LogAddress", {'fromBlock': 0, 'toBlock': 'latest'})
+    event_logs_logAddress = event_filter_logAddress.get_all_entries()
+    # Get the new merkle root
+    event_filter_logMerkleRoot = mixer.eventFilter("LogMerkleRoot", {'fromBlock': 0, 'toBlock': 'latest'})
+    event_logs_logMerkleRoot = event_filter_logMerkleRoot.get_all_entries()
+    # Get the ciphertexts
+    event_filter_logSecretCiphers = mixer.eventFilter("LogSecretCiphers", {'fromBlock': 0, 'toBlock': 'latest'})
+    event_logs_logSecretCiphers = event_filter_logSecretCiphers.get_all_entries()
+
+    print("event_logs_logAddress: ")
+    print(event_logs_logAddress)
+    print("event_logs_logMerkleRoot: ")
+    print(event_logs_logMerkleRoot)
+    print("event_logs_logSecretCiphers: ")
+    print(event_logs_logSecretCiphers)
 
 def verify(wrapper_verifier, parsedProof):
     tx_hash = wrapper_verifier.functions.verify(
@@ -157,8 +214,17 @@ def verify(wrapper_verifier, parsedProof):
     print("Event text: " + event_logs[0].args.text)
     print("Event name: " + event_logs[0].event)
 
-def getProofTestCase1():
-    print("Test case 1: Bob deposits 4 ETH for himself")
+def getRoot(mixer_instance):
+    tx_hash = mixer_instance.functions.getRoot().transact({'from': w3.eth.accounts[0], 'gas': 4000000})
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    event_filter = wrapper_verifier.eventFilter("LogDebug", {'fromBlock': 0, 'toBlock': 'latest'})
+    event_logs = event_filter.get_all_entries()
+    root = event_logs[0].args.text
+    print("Event text: " + event_logs[0].args.text)
+    print("Event name: " + event_logs[0].event)
+
+def getProofForBobDeposit(root):
+    print("Bob deposits 4 ETH for himself and splits them into note1: 2ETH, note2: 2ETH")
     keystore = zeth.initTestKeystore()
     zeroWeiHex = "0000000000000000"
 
@@ -174,7 +240,8 @@ def getProofTestCase1():
     nullifierIn2 = zeth.computeNullifier(noteBobIn2, bobASK)
     addressNote2 = 8
 
-    dummyRoot = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
+    #dummyRoot = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
+    dummyRoot = root
     dummyMerklePath = [
         "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
         "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
@@ -187,48 +254,105 @@ def getProofTestCase1():
     ]
 
     # Note 1
-    noteValueOut1 = zeth.int64ToHexadecimal(Web3.toWei('9.597170848876199936', 'ether')) # Note of value 2 as output of the JS
-    print("noteValueOut1")
-    print(noteValueOut1)
+    noteValueOut1 = zeth.int64ToHexadecimal(Web3.toWei('2', 'ether')) # Note of value 2 as output of the JS
     noteBobOut1 = zeth.createZethNote(zeth.noteRandomness(), bobAPK, noteValueOut1)
-    nullifierOut1 = zeth.computeNullifier(noteBobOut1, bobASK)
     # Note 2
-    noteValueOut2 = zeth.int64ToHexadecimal(Web3.toWei('8.453256543524093952', 'ether')) # Note of value 2 as output of the JS
-    print("noteValueOut2")
-    print(noteValueOut2)
+    noteValueOut2 = zeth.int64ToHexadecimal(Web3.toWei('2', 'ether')) # Note of value 2 as output of the JS
     noteBobOut2 = zeth.createZethNote(zeth.noteRandomness(), bobAPK, noteValueOut2)
-    nullifierOut2 = zeth.computeNullifier(noteBobOut2, bobASK)
     jsOutputs = [
         noteBobOut1,
         noteBobOut2
     ]
 
-    inPubValue = zeth.int64ToHexadecimal(Web3.toWei('18.050427392400293888', 'ether')) # incorrect value for the JS equality
-    print("inPubValue")
-    print(inPubValue)
+    inPubValue = zeth.int64ToHexadecimal(Web3.toWei('4', 'ether'))
     outPubValue = zeroWeiHex
-    print("outPubValue")
-    print(outPubValue)
 
     proofInput = makeProofInputs(dummyRoot, jsInputs, jsOutputs, inPubValue, outPubValue)
     proofObj = getProof(proofInput)
     proofJSON = parseProof(proofObj)
-    return proofJSON
 
-def testCase1(wrapper_verifier_instance):
-    print(" === TestCase 1 ===")
-    parsedProof = getProofTestCase1()
-    print("- TestCase 1: Parsed proof")
-    print(parsedProof)
-    verify(wrapper_verifier_instance, parsedProof)
+    # We return the zeth notes to be able to spend them later
+    # and the proof used to create them
+    return (noteBobOut1, noteBobOut2, proofJSON)
+
+def bobDeposit(mixer_instance, root, bobEthAddress):
+    print(" === Bob deposits 4ETH for him ===")
+    (noteBobOut1, noteBobOut2, proof) = getProofForBobDeposit(root)
+    mix(mixer_instance, proof, bobEthAddress, w3.toWei(4, 'ether'))
+
+def getProofForAliceDeposit():
+    print("Alice deposits 1 ETH for Charlie and 1 ETH for her")
+    keystore = zeth.initTestKeystore()
+    zeroWeiHex = "0000000000000000"
+
+    charlieAPK = keystore["Charlie"]["AddrPk"]["aPK"] # we generate a coin for Charlie (recipient1)
+    charlieASK = keystore["Charlie"]["AddrSk"]["aSK"]
+    aliceAPK = keystore["Alice"]["AddrPk"]["aPK"] # we generate a coin for Alice (recipient2)
+    aliceASK = keystore["Alice"]["AddrSk"]["aSK"]
+
+    # Dummy note 1
+    noteAliceIn1 = zeth.createZethNote(zeth.noteRandomness(), aliceAPK, zeroWeiHex)
+    nullifierIn1 = zeth.computeNullifier(noteAliceIn1, aliceASK)
+    addressNote1 = 7
+    # Dummy note 2
+    noteAliceIn2 = zeth.createZethNote(zeth.noteRandomness(), aliceAPK, zeroWeiHex)
+    nullifierIn2 = zeth.computeNullifier(noteAliceIn2, aliceASK)
+    addressNote2 = 8
+
+    dummyRoot = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
+    dummyMerklePath = [
+        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
+        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
+        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
+        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
+    ]
+    jsInputs = [
+        zeth.createJSInput(dummyMerklePath, addressNote1, noteAliceIn1, aliceASK, nullifierIn1),
+        zeth.createJSInput(dummyMerklePath, addressNote2, noteAliceIn2, aliceASK, nullifierIn2)
+    ]
+
+    # Note 1
+    noteValueOut1 = zeth.int64ToHexadecimal(Web3.toWei('1', 'ether')) # Note of value 1 as output of the JS
+    noteCharlieOut1 = zeth.createZethNote(zeth.noteRandomness(), charlieAPK, noteValueOut1)
+    # Note 2
+    noteValueOut2 = zeth.int64ToHexadecimal(Web3.toWei('1', 'ether')) # Note of value 1 as output of the JS
+    noteAliceOut2 = zeth.createZethNote(zeth.noteRandomness(), aliceAPK, noteValueOut2)
+    jsOutputs = [
+        noteCharlieOut1,
+        noteAliceOut2
+    ]
+
+    inPubValue = zeth.int64ToHexadecimal(Web3.toWei('2', 'ether'))
+    outPubValue = zeroWeiHex
+
+    proofInput = makeProofInputs(dummyRoot, jsInputs, jsOutputs, inPubValue, outPubValue)
+    proofObj = getProof(proofInput)
+    proofJSON = parseProof(proofObj)
+
+    # We return the zeth notes to be able to spend them later
+    # and the proof used to create them
+    return (noteCharlieOut1, noteAliceOut2, proofJSON)
+
+def aliceDeposit(wrapper_verifier_instance):
+    print(" === Alice deposits 2ETH: 1ETH for Charlie, and 1ETH for her ===")
+    (noteCharlieOut1, noteAliceOut2, proof) = getProofForAliceDeposit()
+    verify(wrapper_verifier_instance, proof)
 
 if __name__ == '__main__':
+    # Ethereum addresses
+    bobEthAddress = w3.eth.accounts[1]
+    aliceEthAddress = w3.eth.accounts[2]
+    charlieEthAddress = w3.eth.accounts[3]
+
+    # Zeth addresses
+    zethKeystore = zeth.initTestKeystore()
+
     print("[DEBUG] 1. Fetching the verification key from the proving server")
     vk = getVerificationKey()
     print("[DEBUG] 2. Received VK, writing the key...")
     writeVerificationKey(vk)
     print("[DEBUG] 3. VK written, deploying the smart contracts...")
-    wrapper_verifier_instance = deploy()
+    (wrapper_verifier_instance, mixer_instance, initialRoot) = deploy()
     print("[DEBUG] Running tests...")
-    testCase1(wrapper_verifier_instance)
-    #testCase2(wrapper_verifier_instance)
+    bobDeposit(mixer_instance, initialRoot, bobEthAddress)
+    #aliceDeposit(wrapper_verifier_instance)
