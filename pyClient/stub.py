@@ -180,13 +180,13 @@ def mix(mixer, parsedProof, senderAddress, weiPubValue):
     ).transact({'from': senderAddress, 'value': weiPubValue, 'gas': 4000000})
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
     # Gather the addresses of the appended commitments
-    event_filter_logAddress = mixer.eventFilter("LogAddress", {'fromBlock': 0, 'toBlock': 'latest'})
+    event_filter_logAddress = mixer.eventFilter("LogAddress", {'fromBlock': 'latest', 'toBlock': 'latest'})
     event_logs_logAddress = event_filter_logAddress.get_all_entries()
     # Get the new merkle root
-    event_filter_logMerkleRoot = mixer.eventFilter("LogMerkleRoot", {'fromBlock': 0, 'toBlock': 'latest'})
+    event_filter_logMerkleRoot = mixer.eventFilter("LogMerkleRoot", {'fromBlock': 'latest', 'toBlock': 'latest'})
     event_logs_logMerkleRoot = event_filter_logMerkleRoot.get_all_entries()
     # Get the ciphertexts
-    event_filter_logSecretCiphers = mixer.eventFilter("LogSecretCiphers", {'fromBlock': 0, 'toBlock': 'latest'})
+    event_filter_logSecretCiphers = mixer.eventFilter("LogSecretCiphers", {'fromBlock': 'latest', 'toBlock': 'latest'})
     event_logs_logSecretCiphers = event_filter_logSecretCiphers.get_all_entries()
 
     print("event_logs_logAddress: ")
