@@ -1,116 +1,9 @@
-from Crypto import Random
-#from eth_abi.packed import encode_single_packed, encode_abi_packed
-#import eth_abi
-from eth_abi import encode_single, encode_abi
-import hashlib
-
-import prover_pb2
-import prover_pb2_grpc
-
-def noteRandomness():
-    rand_rho = bytes(Random.get_random_bytes(32)).hex()
-    rand_trapR = bytes(Random.get_random_bytes(48)).hex()
-    randomness = {
-        "rho": rand_rho,
-        "trapR": rand_trapR
-    }
-    return randomness
-
-# We follow the formatting of the proto file
-def createZethNote(randomness, recipientApk, value):
-    note = prover_pb2.ZethNote(
-        aPK=recipientApk,
-        value=value,
-        rho=randomness["rho"],
-        trapR=randomness["trapR"]
-    )
-    return note
-
-def hexFmt(string):
-    return "0x" + string
-
-"""
-def computeCommitment(zethNote):
-    # inner_k = sha256(a_pk || rho)
-    inner_k = hashlib.sha256(
-        encode_abi(['bytes32', 'bytes32'], (hexFmt(zethNote["aPK"]), hexFmt(zethNote["rho"])))
-    ).hexdigest()
-
-    # outer_k = sha256(r || [inner_k]_128)
-    first128InnerComm = inner_k[0:128];
-    outer_k = hashlib.sha256(
-        encode_abi(['string', 'string'], (hexFmt(zethNote["trapR"]), hexFmt(first128InnerComm)))
-    ).hexdigest()
-
-    # cm = sha256(outer_k || 0^192 || value_v)
-    frontPad = "000000000000000000000000000000000000000000000000";
-    cm = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], (hexFmt(outer_k), hexFmt(frontPad + zethNote["value"])))
-    ).hexdigest()
-    return cm
-"""
-
-def hexadecimalDigestToBinaryString(digest):
-    #binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
-    binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
-    return binary(digest)
-
-def computeNullifier(zethNote, spendingAuthAsk):
-    # nf = sha256(a_sk || 01 || [rho]_254)
-    binaryRho = hexadecimalDigestToBinaryString(zethNote.rho)
-    first254Rho = binaryRho[0:254]
-    rightLegBin = "01" + first254Rho
-    rightLegHex = "{0:0>4X}".format(int(rightLegBin, 2))
-    print("Compute nullifier")
-    nullifier = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(spendingAuthAsk), bytes.fromhex(rightLegHex)])
-    ).hexdigest()
-    return nullifier
-
-def int64ToHexadecimal(number):
-    return '{:016x}'.format(number)
-
-def deriveAPK(ask):
-    # a_pk = sha256(a_sk || 0^256)
-    zeroes = "0000000000000000000000000000000000000000000000000000000000000000";
-    a_pk = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(ask), bytes.fromhex(zeroes)])
-    ).hexdigest()
-    return a_pk
-
-def generateApkAskKeypair():
-    a_sk = bytes(Random.get_random_bytes(32)).hex()
-    a_pk = deriveAPK(a_sk)
-    keypair = {
-        "aSK": a_sk,
-        "aPK": a_pk
-    }
-    return keypair
-
-
-def createJSInput(merklePath, address, note, ask, nullifier):
-    jsInput = prover_pb2.JSInput(
-        merkleNode=merklePath,
-        address=address,
-        note=note,
-        spendingASK=ask,
-        nullifier=nullifier
-    )
-    return jsInput
-
-def parseHexadecimalPointBaseGroup1Affine(point):
-  return [point.xCoord, point.yCoord]
-
-def parseHexadecimalPointBaseGroup2Affine(point):
-  return [
-    [point.xC1Coord, point.xC0Coord],
-    [point.yC1Coord, point.yC0Coord]
-  ]
+import zethGRPC
 
 # Keystore for the tests
 def initTestKeystore():
     # Alice credentials in the zeth abstraction
-    AliceOwnershipKeys = generateApkAskKeypair()
+    AliceOwnershipKeys = zethGRPC.generateApkAskKeypair()
     AliceEncKey = """-----BEGIN PUBLIC KEY-----
     MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDP34BAdxAX0p9yxhcoqkQtCKWc
     o/t/MEqLfjCP/dwkrN9MmML4CGYXqF0X9UKxv+2qxhtxkLLFtPnyT6PRTQDnPuHw
@@ -134,7 +27,7 @@ def initTestKeystore():
     -----END RSA PRIVATE KEY-----"""
 
     # Bob credentials in the zeth abstraction
-    BobOwnershipKeys = generateApkAskKeypair()
+    BobOwnershipKeys = zethGRPC.generateApkAskKeypair()
     BobEncKey = """-----BEGIN PUBLIC KEY-----
     MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3Ba45mM+JhO9tNpHwldnnvAtA
     /j2XqiV4HNhkql39vt76oy6RV7Yl3KIW+dsT5EwZos8NmgvWo28pC4u+4nXbuNLH
@@ -158,7 +51,7 @@ def initTestKeystore():
     -----END RSA PRIVATE KEY-----"""
 
     # Charlie credentials in the zeth abstraction
-    CharlieOwnershipKeys = generateApkAskKeypair()
+    CharlieOwnershipKeys = zethGRPC.generateApkAskKeypair()
     CharlieEncKey = """-----BEGIN RSA PRIVATE KEY-----
     MIICWwIBAAKBgQDz6F8PhRiHVCnfq5jxOx+N8Usov35NJSWQ3R/iRmNK+BeNedXb
     qvunEbLPEdus5h9BE2RwR0wumDe7WJWIjjRLEU7C5dJGDEviWlJBC+yw0wbnWA5F
