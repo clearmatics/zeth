@@ -76,10 +76,12 @@ def get_proof_bob_deposit(keystore, mk_root):
 def bob_deposit(mixer_instance, mk_root, bob_eth_address):
     print(" === Bob deposits 4ETH for him ===")
     (output_note1, output_note2, proof_json) = get_proof_bob_deposit(keystore, mk_root)
+    output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
+    output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     return zethContracts.mix(
         mixer_instance,
-        "ciphertext1",
-        "ciphertext2",
+        output_note1_str,
+        output_note2_str,
         proof_json,
         bob_eth_address,
         w3.toWei(4, 'ether'),

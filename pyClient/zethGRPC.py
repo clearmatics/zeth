@@ -53,6 +53,15 @@ def createZethNote(randomness, recipientApk, value):
     )
     return note
 
+def parseZethNote(zethNoteGRPCObj):
+    noteJSON = {
+        "aPK": zethNoteGRPCObj.aPK,
+        "value": zethNoteGRPCObj.value,
+        "rho": zethNoteGRPCObj.rho,
+        "trapR": zethNoteGRPCObj.trapR,
+    }
+    return noteJSON
+
 def hexFmt(string):
     return "0x" + string
 
