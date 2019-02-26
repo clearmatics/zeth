@@ -110,7 +110,7 @@ def mix(
 
     commitment_address1 = event_logs_logAddress[0].args.commAddr
     commitment_address2 = event_logs_logAddress[1].args.commAddr
-    new_mk_root = w3.toHex(event_logs_logMerkleRoot[0].args.root)
+    new_mk_root = w3.toHex(event_logs_logMerkleRoot[0].args.root)[2:] # [2:] to strip the '0x' prefix
     ciphertext1 = event_logs_logSecretCiphers[0].args.ciphertext
     ciphertext2 = event_logs_logSecretCiphers[1].args.ciphertext
     return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
