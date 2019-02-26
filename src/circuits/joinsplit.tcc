@@ -486,15 +486,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         static size_t verifying_field_element_size() {
             return div_ceil(get_input_bit_size(), FieldT::capacity());
         }
-
-        // [DEBUG ONLY] Function used for a debugging purpose only
-        static void display_binary_vector(std::ostream &out, const libff::bit_vector &v) {
-            out << "{";
-            for (size_t i = 0; i < v.size() - 1; ++i) {
-                out << v[i];
-            }
-            out << v[v.size() - 1] << "}\n";
-        }
 };
 
 #endif // __ZETH_JOINSPLIT_CIRCUIT_TCC__

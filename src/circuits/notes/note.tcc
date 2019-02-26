@@ -201,14 +201,15 @@ void input_note_gadget<FieldT>::generate_r1cs_witness(
         this->pb,
         get_vector_from_bits256(a_sk_in)
     );
+
     // Witness a_pk for a_sk with PRF_addr
     spend_authority->generate_r1cs_witness();
 
-    //// [SANITY CHECK] Witness a_pk with note information
-    ////a_pk->bits.fill_with_bits(
-    ////    this->pb,
-    ////    get_vector_from_bits256(note.a_pk)
-    ////);
+    // [SANITY CHECK] Witness a_pk with note information
+    a_pk->bits.fill_with_bits(
+        this->pb,
+        get_vector_from_bits256(note.a_pk)
+    );
 
     // Witness rho for the input note
     rho.fill_with_bits(
@@ -349,17 +350,17 @@ void output_note_gadget<FieldT>::generate_r1cs_witness(const ZethNote& note) {
     // Generate witness of the parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
 
-    // Witness rho with the note information.
+    // Witness rho with the note information
     rho.fill_with_bits(
         this->pb,
         get_vector_from_bits256(note.rho)
     );
 
-    //// [SANITY CHECK] Witness a_pk with note information
-    ////a_pk->bits.fill_with_bits(
-    ////    this->pb,
-    ////    get_vector_from_bits256(note.a_pk)
-    ////);
+    // Witness a_pk with note information
+    a_pk->bits.fill_with_bits(
+        this->pb,
+        get_vector_from_bits256(note.a_pk)
+    );
 
     commit_to_outputs_inner_k->generate_r1cs_witness();
     commit_to_outputs_outer_k->generate_r1cs_witness();

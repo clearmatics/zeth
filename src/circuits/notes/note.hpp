@@ -31,7 +31,7 @@ public:
     libsnark::pb_variable_array<FieldT> r; // Trapdoor r of the note (384 bits)
 
     note_gadget(libsnark::protoboard<FieldT> &pb, 
-                const std::string &annotation_prefix = "Base_note_gadget");
+                const std::string &annotation_prefix = "base_note_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness(const ZethNote& note);
 };
@@ -67,7 +67,7 @@ public:
                     libsnark::pb_variable<FieldT>& ZERO,
                     std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
                     libsnark::digest_variable<FieldT> rt, // merkle_root
-                    const std::string &annotation_prefix = "Input_note_gadget");
+                    const std::string &annotation_prefix = "input_note_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness(std::vector<libsnark::merkle_authentication_node> merkle_path,
                             size_t address,
@@ -95,7 +95,7 @@ public:
         libsnark::protoboard<FieldT>& pb,
         libsnark::pb_variable<FieldT>& ZERO,
         std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
-        const std::string &annotation_prefix = "Output_note_gadget");
+        const std::string &annotation_prefix = "output_note_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness(const ZethNote& note);
 };
