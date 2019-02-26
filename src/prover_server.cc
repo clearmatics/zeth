@@ -54,13 +54,13 @@ libzeth::ZethNote ParseZethNote(const proverpkg::ZethNote& note) {
   bits256 noteAPK = libzeth::hexadecimal_digest_to_bits256(note.apk());
   bits64 noteValue = libzeth::hexadecimal_value_to_bits64(note.value());
   bits256 noteRho = libzeth::hexadecimal_digest_to_bits256(note.rho());
-  bits384 noteRTrapR = libzeth::get_bits384_from_vector(libzeth::hexadecimal_str_to_binary_vector(note.trapr()));
+  bits384 noteTrapR = libzeth::get_bits384_from_vector(libzeth::hexadecimal_str_to_binary_vector(note.trapr()));
 
   return libzeth::ZethNote(
     noteAPK,
     noteValue,
     noteRho,
-    noteRTrapR
+    noteTrapR
   );
 }
 
