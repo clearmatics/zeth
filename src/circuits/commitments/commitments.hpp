@@ -40,9 +40,7 @@ libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
 );
 
 // TODO: Implement the COMM_k_gadget as a 2 hash rounds in order to directly get the
-// value of the commitment_k without needing 2 distinct gadgets for this
-// Note that the value of the commitment_k needs to be accessible/retreivable as it
-// is used as argument of the deposit function call to check the value of the commitment
+// value of the commitment_k without needing 2 distinct gadgets for this.
 //
 // See Zerocash extended paper, page 22
 // The commitment k is computed as k = sha256(r || [sha256(a_pk || rho)]_128)

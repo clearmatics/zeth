@@ -9,26 +9,21 @@
 
 // Header to use the sha256_ethereum gadget
 #include "circuits/sha256/sha256_ethereum.hpp"
+
+// Access the `from_bits` function and other utils
+#include "circuits/circuits-util.hpp"
+#include "util.hpp"
+
 // Get the gadget to test
 #include "circuits/commitments/commitments.hpp"
-
-#include "util.hpp"
 
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
 
-namespace {
+using namespace libzeth;
 
-void dump_bit_vector(std::ostream &out, const libff::bit_vector &v)
-{
-    out << "{";
-    for (size_t i = 0; i < v.size() - 1; ++i)
-    {
-        out << v[i] << ", ";
-    }
-    out << v[v.size() - 1] << "}\n";
-}
+namespace {
 
 TEST(TestCOMMs, TestGet128bits) {
     libsnark::protoboard<FieldT> pb;
@@ -57,7 +52,7 @@ TEST(TestCOMMs, TestGet128bits) {
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
@@ -128,7 +123,7 @@ TEST(TestCOMMs, TestGetRightSideCMCOMM) {
             // 192 zero bits
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
@@ -453,7 +448,7 @@ TEST(TestCOMMs, TestCOMMCMGadget) {
             0, 0, 0, 0, 0, 0, 0, 0, 
             1, 1, 1, 1, 1, 1, 1, 1, // FF
             0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
             0, 0, 0, 0, 0, 0, 0, 0, 
@@ -525,7 +520,7 @@ TEST(TestCOMMs, TestCOMMCMGadget) {
 } // namespace
 
 int main(int argc, char **argv) {
-    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not forget to do this !!!!
+    ppT::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

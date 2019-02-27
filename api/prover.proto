@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package proverpkg;
+
+service Prover {
+  // Run the setup on the prover side (Don't needed as the setup is ran when the server starts)
+  // Can be used for further use of the proving service though
+  // rpc RunSetup(EmptyMessage) returns (EmptyMessage) {}
+  
+  // Fetch the verifying key from the proving service
+  rpc GetVerificationKey(EmptyMessage) returns (VerificationKey) {}
+
+  // Request a proof generation on the given input
+  rpc Prove(ProofInputs) returns (ExtendedProof) {}
+}
+
+message EmptyMessage {
+  // Nothing
+}
+
+message PackedDigest {
+  string part1 = 1; // First 253bits of the digest
+  string part2 = 2; // Last 3bits of the digest
+}
+
+message ZethNote {
+  string aPK = 1;
+  string value = 2; // Hexadecimal string representing a int64
+  string rho = 3;
+  string trapR = 4;
+}
+
+message JSInput {
+  repeated string merkleNode = 1; // Merkle path to the commitment
+  int64 address = 2;
+  ZethNote note = 3;
+  string spendingASK = 4;
+  string nullifier = 5;
+}
+
+// Inputs of the prove function of the prover
+message ProofInputs {
+  string root = 1;
+  repeated JSInput jsInputs = 2; // List of inputs to the JS
+  repeated ZethNote jsOutputs = 3; // List of output to the JS
+  string inPubValue = 4; // Hexadecimal string representing a int64
+  string outPubValue = 5; // Hexadecimal string representing a int64
+}
+
+// We comment this message as the primary input is passed as a json string for now
+/*
+message ProofPublicInputs {
+  PackedDigest root = 1;
+  repeated PackedDigest inNullifiers = 2;
+  repeated PackedDigest outCommitments = 3;
+  string inPubValue = 4; // Hexadecimal string representing a int64
+  string outPubValue = 5; // Hexadecimal string representing a int64
+}
+*/
+
+// All the data is given as hexadecimal strings
+message HexadecimalPointBaseGroup1Affine {
+  string xCoord = 1;
+  string yCoord = 2;
+}
+
+message HexadecimalPointBaseGroup2Affine {
+  string xC1Coord = 1;
+  string xC0Coord = 2;
+  string yC1Coord = 3;
+  string yC0Coord = 4;
+}
+
+message VerificationKey {
+  HexadecimalPointBaseGroup2Affine a = 1;
+  HexadecimalPointBaseGroup1Affine b = 2;
+  HexadecimalPointBaseGroup2Affine c = 3;
+  HexadecimalPointBaseGroup2Affine g = 4;
+  HexadecimalPointBaseGroup1Affine gb1 = 5;
+  HexadecimalPointBaseGroup2Affine gb2 = 6;
+  HexadecimalPointBaseGroup2Affine z = 7;
+  string IC = 8;
+}
+
+// Contains the proof along with the public input
+message ExtendedProof {
+  HexadecimalPointBaseGroup1Affine a = 1;
+  HexadecimalPointBaseGroup1Affine aP = 2;
+  HexadecimalPointBaseGroup2Affine b = 3;
+  HexadecimalPointBaseGroup1Affine bP = 4;
+  HexadecimalPointBaseGroup1Affine c = 5;
+  HexadecimalPointBaseGroup1Affine cP = 6;
+  HexadecimalPointBaseGroup1Affine h = 7;
+  HexadecimalPointBaseGroup1Affine k = 8;
+  string inputs = 9;
+}

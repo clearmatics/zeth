@@ -35,9 +35,9 @@ contract Bytes_tests {
 		return ok;
 	}
 
-    function testFlipEndianness() public pure returns (bool) {
+    function testFlipEndiannessBytes32() public pure returns (bool) {
 		bytes32 test_bytes = 0x00000000000000000000000000000000000000000000000000000000000000AF;
-		bytes32 reversed_bytes = Bytes.flip_endianness(test_bytes);
+		bytes32 reversed_bytes = Bytes.flip_endianness_bytes32(test_bytes);
 
 		bool ok = (reversed_bytes == 0xF500000000000000000000000000000000000000000000000000000000000000);
 		require(

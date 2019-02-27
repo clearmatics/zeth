@@ -31,11 +31,7 @@ std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> 
             x[i * 8 + j] = uint8_t(uint64_t(_x.data[3 - i]) >> (8 * (7 - j)));
         }
     }
-/**
- * File taken and modified from wraplibsnark.cpp originally written by:
- * - Jacob Eberhardt
- * - Dennis Kuhnert
- */
+    
     std::stringstream ss;
     ss << std::setfill('0');
     for (unsigned i = 0; i<32; i++)

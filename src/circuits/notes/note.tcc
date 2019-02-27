@@ -1,7 +1,7 @@
 #ifndef __ZETH_NOTES_CIRCUITS_TCC__
 #define __ZETH_NOTES_CIRCUITS_TCC__
 
-// DISCLAIMER: 
+// DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
 
@@ -10,7 +10,7 @@ namespace libzeth {
 template<typename FieldT>
 note_gadget<FieldT>::note_gadget(libsnark::protoboard<FieldT> &pb,
                                 const std::string &annotation_prefix
-) : libsnark::gadget<FieldT>(pb, annotation_prefix) 
+) : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
     value.allocate(pb, ZETH_V_SIZE * 8); // ZETH_V_SIZE * 8 = 8 * 8 = 64
     r.allocate(pb, ZETH_R_SIZE * 8); // ZETH_R_SIZE * 8 = 48 * 8 = 384
@@ -51,7 +51,7 @@ input_note_gadget<FieldT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
                                                 std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
                                                 libsnark::digest_variable<FieldT> rt, // merkle_root
                                                 const std::string &annotation_prefix
-) : note_gadget<FieldT>(pb, annotation_prefix) 
+) : note_gadget<FieldT>(pb, annotation_prefix)
 {
     a_sk.allocate(pb, ZETH_A_SK_SIZE * 8); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
     rho.allocate(pb, ZETH_RHO_SIZE * 8); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
@@ -79,7 +79,7 @@ input_note_gadget<FieldT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
         rho,
         nullifier
     ));
-    // Below this point, we need to do several calls 
+    // Below this point, we need to do several calls
     // to the commitment gagdets.
     //
     // Call to the "note_commitment_gadget" to make sure that the
@@ -89,7 +89,7 @@ input_note_gadget<FieldT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
     // These gadgets compute the commitment cm (coin commitment)
     //
     // TODO: Factorize the 2 gadgets to compute k into a single gadget
-    // 
+    //
     // Note: In our case it can be useful to retrieve the commitment k if we want to
     // implement the mint function the same way as it is done in Zerocash.
     // That way we only need to provide k along with the value when we deposit
@@ -147,13 +147,13 @@ template<typename FieldT>
 void input_note_gadget<FieldT>::generate_r1cs_constraints() {
     // Generate constraints of parent gadget
     note_gadget<FieldT>::generate_r1cs_constraints();
-    
+
     // Generate the constraints for the a_sk 256-bit string
     for (size_t i = 0; i < ZETH_A_SK_SIZE * 8; i++) { // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
             this->pb,
             a_sk[i],
-            "boolean_value"
+            "a_sk"
         );
     }
     // Generate the constraints for the rho 256-bit string
@@ -161,7 +161,7 @@ void input_note_gadget<FieldT>::generate_r1cs_constraints() {
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
             this->pb,
             rho[i],
-            "boolean_value"
+            "rho"
         );
     }
     spend_authority->generate_r1cs_constraints();
@@ -173,12 +173,14 @@ void input_note_gadget<FieldT>::generate_r1cs_constraints() {
     // Given `enforce` is boolean constrained:
     // If `value` is zero, `enforce` _can_ be zero.
     // If `value` is nonzero, `enforce` _must_ be one.
-    libsnark::generate_boolean_r1cs_constraint<FieldT>(this->pb, value_enforce, "value_enforce_boolean_constraint");
+    libsnark::generate_boolean_r1cs_constraint<FieldT>(this->pb, value_enforce, "value_enforce");
     this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
-        packed_addition(this->value),
-        (1 - value_enforce),
-        0
-    ));
+            packed_addition(this->value),
+            (1 - value_enforce),
+            0
+        ),
+        FMT(this->annotation_prefix, " wrap_constraint_mkpath_dummy_inputs")
+    );
     auth_path->generate_r1cs_constraints();
     check_membership->generate_r1cs_constraints();
 }
@@ -199,14 +201,15 @@ void input_note_gadget<FieldT>::generate_r1cs_witness(
         this->pb,
         get_vector_from_bits256(a_sk_in)
     );
+
     // Witness a_pk for a_sk with PRF_addr
     spend_authority->generate_r1cs_witness();
 
-    //// [SANITY CHECK] Witness a_pk with note information
-    ////a_pk->bits.fill_with_bits(
-    ////    this->pb,
-    ////    get_vector_from_bits256(note.a_pk)
-    ////);
+    // [SANITY CHECK] Witness a_pk with note information
+    a_pk->bits.fill_with_bits(
+        this->pb,
+        get_vector_from_bits256(note.a_pk)
+    );
 
     // Witness rho for the input note
     rho.fill_with_bits(
@@ -224,7 +227,7 @@ void input_note_gadget<FieldT>::generate_r1cs_witness(
     //// [SANITY CHECK] Ensure the commitment is valid.
     ////commitment->bits.fill_with_bits(
     ////    this->pb,
-    ////    get_vector_from_bits256(note.cm) 
+    ////    get_vector_from_bits256(note.cm)
     ////);
 
     // Set enforce flag for nonzero input value
@@ -233,10 +236,10 @@ void input_note_gadget<FieldT>::generate_r1cs_witness(
     // commitment to be in the tree. If the value is > 0 though, we enforce
     // the corresponding commitment to be in the merkle tree of commitment
     //
-    // Note: We need to set the value of `value_enforce`, because this bit is used in the 
+    // Note: We need to set the value of `value_enforce`, because this bit is used in the
     // merkle_tree_check_read_gadget which uses a `field_vector_copy_gadget` that does a
     // check with the computed root and the root given to the `merkle_tree_check_read_gadget`
-    // 
+    //
     // This check is in the form of constraints like:
     // ```
     // template<typename FieldT>
@@ -263,7 +266,7 @@ void input_note_gadget<FieldT>::generate_r1cs_witness(
     // UPDATE:
     // The way the variable `value_enforce` works here is that: we give a root as input to the
     // `merkle_tree_check_read_gadget`. This gadget computes the root obtained by the verification
-    // of the merkle authentication path and stores the result in `computed_root` which is a 
+    // of the merkle authentication path and stores the result in `computed_root` which is a
     // digest variable.
     // Then, the value of the `value_enforce` or `read_successful` variable is checked to
     // copy the result of the `computed_root` IN the variable `root` which is the given root
@@ -271,7 +274,7 @@ void input_note_gadget<FieldT>::generate_r1cs_witness(
     // by the content of `computed_root`. Else (if `value_enforce == FieldT::zero()`), then
     // the value of `root` remains the same.
     //
-    // Note that if the given path is not an auth path to the given commitment, and if the 
+    // Note that if the given path is not an auth path to the given commitment, and if the
     // value of `value_enforce` is set to FieldT::one(), then the value of `root` is changed
     // to the value of the computed root. But because the merkle root is a public
     // input, it is sent to the verifier. Thus, if the auth path is not valid, the verifier
@@ -283,7 +286,7 @@ void input_note_gadget<FieldT>::generate_r1cs_witness(
     // auth path (is not correctly authenticated), the root (shared by all inputs)
     // will be changed and the proof should be rejected.
     this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
-    
+
     std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
     // Witness merkle tree authentication path
     address_bits_va.fill_with_bits(this->pb, address_bits);
@@ -300,7 +303,7 @@ output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
                                             libsnark::pb_variable<FieldT>& ZERO,
                                             std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
                                             const std::string &annotation_prefix
-) : note_gadget<FieldT>(pb, annotation_prefix) 
+) : note_gadget<FieldT>(pb, annotation_prefix)
 {
     rho.allocate(pb, 256);
     a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, "a_pk"));
@@ -347,17 +350,17 @@ void output_note_gadget<FieldT>::generate_r1cs_witness(const ZethNote& note) {
     // Generate witness of the parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
 
-    // Witness rho with the note information.
+    // Witness rho with the note information
     rho.fill_with_bits(
         this->pb,
         get_vector_from_bits256(note.rho)
     );
 
-    //// [SANITY CHECK] Witness a_pk with note information
-    ////a_pk->bits.fill_with_bits(
-    ////    this->pb,
-    ////    get_vector_from_bits256(note.a_pk)
-    ////);
+    // Witness a_pk with note information
+    a_pk->bits.fill_with_bits(
+        this->pb,
+        get_vector_from_bits256(note.a_pk)
+    );
 
     commit_to_outputs_inner_k->generate_r1cs_witness();
     commit_to_outputs_outer_k->generate_r1cs_witness();

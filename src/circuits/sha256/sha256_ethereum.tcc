@@ -1,31 +1,14 @@
 #ifndef __ZETH_SHA256_ETHEREUM_TCC__
 #define __ZETH_SHA256_ETHEREUM_TCC__
 
+// Get the from_bits function
+#include "circuits/circuits-util.hpp"
+
 // DISCLAIMER:
 // Content taken and adapted from:
 // https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
 
 namespace libzeth {
-
-// This define directive is useless/redundant, as ONE is defined here:
-// libsnark/gadgetlib1/pb_variable.hpp#74
-#define ONE libsnark::pb_variable<FieldT>(0)
-//
-// We know that a pb_variable takes an index in the constructor:
-// See: libsnark/gadgetlib1/pb_variable.hpp#29
-// Then the pb_variable can be allocated on the protoboard
-// See here for the allocation function: libsnark/gadgetlib1/pb_variable.tcc#19
-// This function calls the allocation function of the protoboard: libsnark/gadgetlib1/protoboard.tcc#38
-// This function basically allocates the variable on the protoboard at the index defined by the variable
-// "next_free_var". It then returns the index the variable was allocated at, and, we can see in
-// libsnark/gadgetlib1/pb_variable.tcc#19 that the index of the variable is given by the index where
-// the variable was allocated on the protoboard.
-// MOREOVER, we see in: libsnark/gadgetlib1/protoboard.tcc#19 (the constructor of the protoboard)
-// that "next_free_var = 1; /* to account for constant 1 term *". Thus, the variable at index
-// 0 on the protoboard is the constant_term variable, which value is FieldT::one()
-// (which basically is the multiplicative identity of the field FieldT)
-// Thus we are safe here. The ONE is well equal to the value FieldT::one()
-// Functions that are not in the class definition anymore (helpers)
 
 // See: https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L115
 // For the implementation of the sha256 precompiled on ethereum, which basically calls the functions from the crypto/sha256 go package:
@@ -207,7 +190,6 @@ void sha256_ethereum<FieldT>::generate_r1cs_witness()
 template<typename FieldT>
 size_t sha256_ethereum<FieldT>::get_digest_len()
 {
-    //return 256;
     return SHA256_ETH_digest_size;
 }
 
@@ -237,18 +219,6 @@ libff::bit_vector sha256_ethereum<FieldT>::get_hash(const libff::bit_vector &inp
     eth_hasher.generate_r1cs_witness();
 
     return output_variable.get_digest();
-}
-
-template<typename FieldT>
-libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::pb_variable<FieldT>& ZERO)
-{
-    libsnark::pb_variable_array<FieldT> acc;
-    for (size_t i = 0; i < bits.size(); i++) {
-        bool bit = bits[i];
-        acc.emplace_back(bit ? ONE : ZERO);
-    }
-
-    return acc;
 }
 
 } // libzeth

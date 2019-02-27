@@ -14,6 +14,7 @@
   "license": "LGPL-3.0+",
   "dependencies": {
     "add": "^2.0.6",
+    "ethereumjs-abi": "^0.6.6",
     "shell-escape": "^0.2.0",
     "strip-hex-prefix": "^1.0.0",
     "web3": "^1.0.0-beta.37"

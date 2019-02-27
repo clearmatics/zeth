@@ -13,13 +13,17 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 // Header to use the sha256_ethereum gadget
-#include "sha256_ethereum.hpp"
+#include "circuits/sha256/sha256_ethereum.hpp"
 
+// Access the `from_bits` function and other utils
+#include "circuits/circuits-util.hpp"
 #include "util.hpp"
 
-#include "prfs.tcc"
+// Gadget to test
+#include "circuits/prfs/prfs.hpp"
 
 using namespace libsnark;
+using namespace libzeth;
 
 //typedef libff::default_ec_pp ppT;
 typedef libff::alt_bn128_pp ppT;

@@ -18,9 +18,6 @@
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
 
-// Get the from_bits function
-#include "circuits/circuits-util.hpp"
-
 // See: https://github.com/scipr-lab/libff/blob/master/libff/common/default_types/ec_pp.hpp
 // We need to set the right curve as a flag during the compilation, and the right curve is going to be picked
 // if we use the default_ec_pp as a FieldT`
@@ -59,14 +56,6 @@ public:
 
     static size_t expected_constraints(const bool ensure_output_bitness);
 };
-
-template<typename FieldT>
-libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::pb_variable<FieldT>& ZERO);
-
-// See: https://github.com/scipr-lab/libff/blob/master/libff/common/default_types/ec_pp.hpp
-// We need to set the right curve as a flag during the compilation, and the right curve is going to be picked
-// if we use the default_ec_pp as a FieldT`
-// typedef libff::Fr<libff::default_ec_pp> FieldT;
 
 } // libzeth
 #include "circuits/sha256/sha256_ethereum.tcc"
