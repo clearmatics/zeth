@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <stdio.h>
 
 #include <grpc/grpc.h>
 #include <grpcpp/server.h>
@@ -16,7 +17,7 @@
 #include "circuits/computation.hpp"
 #include "circuits/sha256/sha256_ethereum.hpp"
 #include "circuit-wrapper.hpp"
-//#include "zethConfig.h"
+#include "zethConfig.h"
 
 #include "util.hpp"
 #include "zeth.h"
@@ -304,12 +305,23 @@ public:
   }
 };
 
+std::string Version() {
+  char buffer[100];
+  int n;
+  n = snprintf(buffer, 100, "Version %d.%d", ZETH_VERSION_MAJOR, ZETH_VERSION_MINOR); // Defined in the zethConfig file
+  if (n < 0) {
+      return "Version <Not specified>";
+  }
+  std::string version(buffer);
+  return version;
+}
+
 void ServerStartMessage() {
   std::string copyright = "Copyright (c) 2015-2019 Clearmatics Technologies Ltd";
   std::string license = "SPDX-License-Identifier: LGPL-3.0+";
   std::string project = "R&D Department: PoC for Zerocash on Ethereum/Autonity";
-  std::string version = "Version [TBD Use the zethConfig]";
-  std::string warning = "**WARNING:** This code is a research-quality proof of concept, DO NOT USE in production!";
+  std::string version = Version();
+  std::string warning = "**WARNING:** This code is a research-quality proof of concept, DO NOT use in production!";
 
   std::cout << "\n=====================================================" << std::endl;
   std::cout << copyright << std::endl;

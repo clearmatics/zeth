@@ -7,6 +7,17 @@ cmake_minimum_required(VERSION 3.0)
 # Sets the env vars PROJECT_SOURCE_DIR, and PROJECT_BINARY_DIR
 project(zeth)
 
+# Versionning of the project
+set (ZETH_VERSION_MAJOR 0)
+set (ZETH_VERSION_MINOR 2)
+
+# Configure a header file to pass some of the CMake settings
+# to the source code
+configure_file (
+    "${PROJECT_SOURCE_DIR}/zethConfig.h.in"
+    "${PROJECT_BINARY_DIR}/zethConfig.h"
+)
+
 # Flags and compilation options for use with libsnark
 set(
   CURVE # Variable name
