@@ -6,8 +6,7 @@ import "./Bytes.sol";
 
 /*
  * Note1:
- *
- * Use the Szabo as a unit for the payments.
+ * We might want to use the `Szabo` as a unit for the payments.
  * In fact, as we are using hex strings of length 64bits in the prover to handle the values,
  * the max value we can encode is: "0xFFFFFFFFFFFFFFFF" which corresponds to:
  * "18446744073709551615". If we use this number as WEI, this represents:
@@ -25,14 +24,14 @@ import "./Bytes.sol";
 
 /*
  * Note2: Because we emit the ciphertexts and the addresses of insertion of the commitments in the tree in the same
- * tx ==> We have a great way for the recipient to accelerate the verification of a payment:
+ * tx, we have a great way for the recipient to accelerate the verification of a payment.
  * In fact:
- * If Alice receives a payment => she has the decryption key to retrieve the plaintext of an encrypted note that is emitted in the
+ * If Alice receives a payment, then she has the decryption key to retrieve the plaintext of an encrypted note that is emitted in the
  * call of the `transfer`. However, in the same smart contract call are emitted the addresses of insertion of the commitments
- * in the merkle tree => meaning that the recipient does not need to verify that the re-computed commitment is in the set of the merkle tree leaves
- * BUT JUST has to verify that the recomputed commitment is one of the commitment in the address set that is emitted during the smart contract call
- * ==> This is much faster to verify as we directly tell the recipient "where to look for his commitment in the tree"
- * ==> We avoid a lot of unecessary overhead just to confirm a payment here
+ * in the merkle tree. This means that the recipient does not need to verify that the re-computed commitment is "somewhere" in the set of the merkle tree leaves.
+ * Instead the recipient JUST has to verify that the recomputed commitment is one of the commitment in the address set that is emitted during the smart contract call.
+ * This makes it easier to check the validity of a payment, and is much faster to verify as we directly tell the recipient "where to look for his commitment in the tree".
+ * By leveraging this data, we avoid a lot of unecessary overhead just to confirm a payment here.
 **/
 
 contract Mixer is MerkleTreeSha256 {
