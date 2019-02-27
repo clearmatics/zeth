@@ -15,10 +15,12 @@
 // Header to use the sha256_ethereum gadget
 #include "circuits/sha256/sha256_ethereum.hpp"
 
+// Access the `from_bits` function and other utils
+#include "circuits/circuits-util.hpp"
+#include "util.hpp"
+
 // Use the bits256 type util functions
 #include "types/bits.tcc"
-
-#include "util.hpp"
 
 using namespace libsnark;
 using namespace libzeth;
@@ -199,8 +201,6 @@ TEST(TestSHA256, TestHashWithZeroLeg) {
     libsnark::pb_variable_array<FieldT> right;
     left.allocate(pb, 256);
     right.allocate(pb, 256);
-
-    std::cout << " DEBUG 1 " << std::endl;
 
     char* left_str = "806e5c213a2f3d436273e924eb6311ac2db6c33624b28165b79c779e00fa2752";
     char* right_str = "0000000000000000000000000000000000000000000000000000000000000000";
