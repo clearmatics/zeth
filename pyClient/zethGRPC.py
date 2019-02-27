@@ -62,29 +62,38 @@ def parseZethNote(zethNoteGRPCObj):
     }
     return noteJSON
 
+def zethNoteObjFromParsed(parsedZethNote):
+    note = prover_pb2.ZethNote(
+        aPK=parsedZethNote["aPK"],
+        value=parsedZethNote["value"],
+        rho=parsedZethNote["rho"],
+        trapR=parsedZethNote["trapR"]
+    )
+    return note
+
 def hexFmt(string):
     return "0x" + string
 
-"""
-def computeCommitment(zethNote):
+# Used by the recipient of a payment to recompute the commitment and check the membership in the tree
+# to confirm the validity of a payment
+def computeCommitment(zethNoteGRPCObj):
     # inner_k = sha256(a_pk || rho)
     inner_k = hashlib.sha256(
-        encode_abi(['bytes32', 'bytes32'], (hexFmt(zethNote["aPK"]), hexFmt(zethNote["rho"])))
+        encode_abi(['bytes32', 'bytes32'], (bytes.fromhex(zethNoteGRPCObj.aPK), bytes.fromhex(zethNoteGRPCObj.rho)))
     ).hexdigest()
 
     # outer_k = sha256(r || [inner_k]_128)
     first128InnerComm = inner_k[0:128];
     outer_k = hashlib.sha256(
-        encode_abi(['string', 'string'], (hexFmt(zethNote["trapR"]), hexFmt(first128InnerComm)))
+        encode_abi(['bytes', 'bytes'], (bytes.fromhex(zethNoteGRPCObj.trapR), bytes.fromhex(first128InnerComm)))
     ).hexdigest()
 
     # cm = sha256(outer_k || 0^192 || value_v)
     frontPad = "000000000000000000000000000000000000000000000000";
     cm = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], (hexFmt(outer_k), hexFmt(frontPad + zethNote["value"])))
+        encode_abi(["bytes32", "bytes32"], (bytes.fromhex(outer_k), bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
     ).hexdigest()
     return cm
-"""
 
 def hexadecimalDigestToBinaryString(digest):
     binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
