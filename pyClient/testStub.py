@@ -386,12 +386,20 @@ if __name__ == '__main__':
         recovered_plaintext2 = decrypt(ciphertext2_bob_transfer, keystore["Charlie"]["AddrSk"]["dk"])
         print("[INFO] Charlie recovered one of the plaintext encrypted by Bob!")
         print("[INFO] Charlie now knows he received a payment from Bob.")
+        # Just as an example we write the received coin in the coinstore
+        print("[INFO] Writing the received note in the coinstore")
+        coinstore_dir = os.environ['ZETH_COINSTORE']
+        path_to_coin = os.path.join(coinstore_dir, "note_from_bob_test.json")
+        file = open(path_to_coin, "w")
+        file.write(recovered_plaintext2)
+        file.close()
     except:
         print("[ERROR] Charlie failed to decrypt a ciphertext emitted by Bob's transaction: Was not the recipient!")
 
     # Here `recovered_plaintext1` should contain a valid note in json str format and `recovered_plaintext2` should be the empty string
     assert (recovered_plaintext1 == ""),"`recovered_plaintext1` Should be the empty string since the 1st note of Bob's transfer was his change"
     assert (recovered_plaintext2 != ""),"`recovered_plaintext2` Should contain a valid note in json str format"
+
 
     # Charlie now gets the merkle path for the commitment he wants to spend
     mk_byte_tree = mixer_instance.functions.getTree().call()
