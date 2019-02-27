@@ -236,17 +236,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         }
 
         void generate_r1cs_constraints() {
-            /*
-            // NOT NECESSARY THESE ARE CONSTRAINTED AND WITNESSED IN THE NOTE GADGETS!!
-            for (size_t i = 0; i < NumInputs; i++) {
-                input_nullifiers[i]->generate_r1cs_constraints();
-            }
-            for (size_t i = 0; i < NumOutputs; i++) {
-                output_commitments[i]->generate_r1cs_constraints();
-            }
-
-            root_digest->generate_r1cs_constraints();
-            */
+            //root_digest->generate_r1cs_constraints();
 
             // The `true` passed to `generate_r1cs_constraints` ensures that all inputs are boolean strings
             for(size_t i = 0; i < packers.size(); i++) {
@@ -298,12 +288,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                         FMT(this->annotation_prefix, " boolean_constraint_zk_total_uint64_%zu", i)
                     );
                 }
+
                 this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
                         1,
                         left_side,
                         packed_addition(zk_total_uint64)
                     ),
-                    FMT(this->annotation_prefix, " lhs_equal_zk_total_constaint")
+                    FMT(this->annotation_prefix, " lhs_equal_zk_total_constraint")
                 );
             }
         }
@@ -318,56 +309,22 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             // Witness `zero`
             this->pb.val(ZERO) = FieldT::zero();
 
-            /*
-            // NOT NECESSARY THESE ARE CONSTRAINTED AND WITNESSED IN THE NOTE GADGETS!!
-            for (size_t i = 0; i < NumInputs; i++) {
-                input_nullifiers[i]->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(inputs[i].nullifier)));
-            }
-            for (size_t i = 0; i < NumOutputs; i++) {
-                output_commitments[i]->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(outputs[i].cm)));
-            }
-            */
-
             // Witness the merkle root          
             root_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(rt)));
 
-            // Witness rt. This is not a sanity check.
+            // Witness public values
             //
-            // This ensures the read gadget constrains
-            // the intended root in the event that
-            // both inputs are zero-valued.
-            //root_digest->bits.fill_with_bits(
-            //    this->pb,
-            //    get_vector_from_bits256(rt)
-            //);
-
-            // Witness public balance values
-            //
-            // Witness LHS Public value
+            // Witness LHS public value
             zk_vpub_in.fill_with_bits(
                 this->pb,
                 get_vector_from_bits64(vpub_in)
             );
 
-            // Witness RHS Public value
+            // Witness RHS public value
             zk_vpub_out.fill_with_bits(
                 this->pb,
                 get_vector_from_bits64(vpub_out)
             );
-
-            // /!\ We witness the multipacking gadgets before we overwrite any data.
-            // This constitutes the public inputs
-            //
-            // Note that when we witness the gadgets below we migth overwrite some data
-            // This is fine here because, the proof should pass if all the data structures' content
-            // are overwritten with the same data.
-            // HOWEVER, if the prover uses erroneous/malicious data as assignement to the circuit,
-            // then the witnessed data packed into the packing gagdets will differ from the same data
-            // structures' content used in the proof generation, and thus the proof will fail to be verified
-            // by the on-chain verifier
-            ////for(size_t i = 0; i < packers.size(); i++) {
-            ////    packers[i]->generate_r1cs_witness_from_bits();
-            ////}
 
             {
                 // Witness total_uint64 bits
@@ -384,8 +341,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 );
             }
 
+            // Witness the JoinSplit inputs
             for (size_t i = 0; i < NumInputs; i++) {
-                // Witness the JoinSplit inputs
                 std::vector<libsnark::merkle_authentication_node> merkle_path = inputs[i].witness_merkle_path;
                 size_t address = inputs[i].address;
                 libff::bit_vector address_bits = get_vector_from_bitsAddr(inputs[i].address_bits);
@@ -398,8 +355,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 );
             }
 
+            // Witness the JoinSplit outputs
             for (size_t i = 0; i < NumOutputs; i++) {
-                // Witness the JoinSplit outputs
                 output_notes[i]->generate_r1cs_witness(outputs[i]);
             }
 
@@ -420,41 +377,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 packers[i]->generate_r1cs_witness_from_bits();
             }
         }
-
-        // This function takes the inputs of the circuits, and return the r1cs_primary_inputs
-        // that basically are a list of packed field elements to be added to the
-        // extended proof structure that is given to the verifier contract for on-chain verification
-        /*
-        static r1cs_primary_input<FieldT> witness_map(
-            const bits256& rt,
-            const std::array<bits256, NumInputs>& nullifiers,
-            const std::array<bits256, NumOutputs>& commitments,
-            bits64 vpub_in,
-            bits64 vpub_out
-        ) {
-            std::vector<bool> verify_inputs;
-
-            insert_bits256(verify_inputs, rt);
-
-            for (size_t i = 0; i < NumInputs; i++) {
-                insert_bits256(verify_inputs, nullifiers[i]);
-            }
-
-            for (size_t i = 0; i < NumOutputs; i++) {
-                insert_bits256(verify_inputs, commitments[i]);
-            }
-
-            insert_uint64(verify_inputs, vpub_in);
-            insert_uint64(verify_inputs, vpub_out);
-
-            assert(verify_inputs.size() == get_input_bit_size());
-            // The pack_bit_vector_into_field_element_vector function is implemented in
-            // the file: libsnark/algebra/fields/field_utils.tcc
-            auto verify_field_elements = pack_bit_vector_into_field_element_vector<FieldT>(verify_inputs);
-            assert(verify_field_elements.size() == get_field_element_size());
-            return verify_field_elements;
-        }
-        */
 
         // Computes the binary size of the primary inputs
         static size_t get_input_bit_size() {

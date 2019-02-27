@@ -23,16 +23,6 @@ typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tes
 
 namespace {
 
-void dump_bit_vector_compact(std::ostream &out, const libff::bit_vector &v)
-{
-    out << "{";
-    for (size_t i = 0; i < v.size() - 1; ++i)
-    {
-        out << v[i];
-    }
-    out << v[v.size() - 1] << "}\n";
-}
-
 bool TestValidJS2In2Case1(
     CircuitWrapper<2, 2> &prover,
     libsnark::r1cs_ppzksnark_keypair<ppT> keypair
