@@ -52,7 +52,13 @@ CCePPHuHI3A7+3ROFMKXmmjDauEMcpLhQen5f4/Corg=
 
     # Charlie credentials in the zeth abstraction
     CharlieOwnershipKeys = zethGRPC.generateApkAskKeypair()
-    CharlieEncKey = """-----BEGIN RSA PRIVATE KEY-----
+    CharlieEncKey = """-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDz6F8PhRiHVCnfq5jxOx+N8Uso
+v35NJSWQ3R/iRmNK+BeNedXbqvunEbLPEdus5h9BE2RwR0wumDe7WJWIjjRLEU7C
+5dJGDEviWlJBC+yw0wbnWA5FV6Mrq0UJSLVe5Q5uiLuHuzI9Ag9UOqJZTXQ5yfG8
+9QRE8HumA1tzfxCrQwIDAQAB
+-----END PUBLIC KEY-----"""
+    CharlieDecKey = """-----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgQDz6F8PhRiHVCnfq5jxOx+N8Usov35NJSWQ3R/iRmNK+BeNedXb
 qvunEbLPEdus5h9BE2RwR0wumDe7WJWIjjRLEU7C5dJGDEviWlJBC+yw0wbnWA5F
 V6Mrq0UJSLVe5Q5uiLuHuzI9Ag9UOqJZTXQ5yfG89QRE8HumA1tzfxCrQwIDAQAB
@@ -67,12 +73,6 @@ RPgURnYhlEAZwzMKvl7W98tpDkT4fyDFPPP+/3tSx2jpLR9PGW+laZvTusOj2ADs
 7z/qEfyNvdzdkgWpCQJAZyTN+aWuoqhR9h3fsCLy4NisJ3z5reViXZVMKW4J8jat
 aKtIj2rMlUbT+hLkAQmUb4YZwxtPibPTIUFTwrHmiw==
 -----END RSA PRIVATE KEY-----"""
-    CharlieDecKey = """-----BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDz6F8PhRiHVCnfq5jxOx+N8Uso
-v35NJSWQ3R/iRmNK+BeNedXbqvunEbLPEdus5h9BE2RwR0wumDe7WJWIjjRLEU7C
-5dJGDEviWlJBC+yw0wbnWA5FV6Mrq0UJSLVe5Q5uiLuHuzI9Ag9UOqJZTXQ5yfG8
-9QRE8HumA1tzfxCrQwIDAQAB
------END PUBLIC KEY-----"""
 
     keystore = {
         "Alice": {
