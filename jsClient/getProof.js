@@ -32,7 +32,7 @@ if (typeof web3 !== 'undefined') {
 }
 
 const keystore = zeth.initTestKeystore();
-const zeroWei = "0000000000000000000"; // web3.utils.toWei('0', 'ether') returns 0 and not "0000000000000000000"!
+const zeroWei = "0000000000000000000";
 const zeroWeiHex = "0000000000000000";
 
 function BobDepositsForHimself(client) {
@@ -44,7 +44,6 @@ function BobDepositsForHimself(client) {
 	var commitmentIn = zeth.computeCommitment(noteBobIn);
 	var nullifierIn = zeth.computeNullifier(noteBobIn, bobASK);
 
-  console.log("[DEBUG] HERE 1");
   // Erroneous merkle path, but this is fine as membership in the merkle tree is
   // not checked because we have a coin of denomination 0
 	var root = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b";
@@ -59,13 +58,6 @@ function BobDepositsForHimself(client) {
     zeth.createJSInput(merklePath, 7, noteBobIn, bobASK, nullifierIn)
   ];
 
-  console.log("[DEBUG] HERE 2");
-	// Note that the value FFFFFFFFFFFFFFF  in hex corresponds to 18446744073709551615 wei
-	// which is a little above 18ETH. If this not enough, we can use another unit for the value
-	//
-	// For this PoC, we will stick to Wei as a unit for the value as we do not care about
-	// transacting big values
-	//
 	// Generate coin (value 0) for a deposit: Input of the JS
 	var valueOut = zeth.decimalToHexadecimal(web3.utils.toWei('7', 'ether').toString()); // Note of value 7 as output of the JS
 	var noteBobOut = zeth.createZethNote(zeth.noteRandomness(), bobAPK, valueOut);
@@ -80,7 +72,6 @@ function BobDepositsForHimself(client) {
   var inPubValue = zeth.decimalToHexadecimal(web3.utils.toWei('7', 'ether').toString());
   var outPubValue = zeroWeiHex; // No pub output
 
-  console.log("[DEBUG] HERE 3");
 	var proofInputs = {
 		root: root,
 		jsInputs: jsInputs,
@@ -90,16 +81,12 @@ function BobDepositsForHimself(client) {
 	};
 
   // RPC call to the prover
-  console.log("[DEBUG] Send request to generate a proof");
   client.prove(proofInputs, function(err, response) {
-    console.log("[DEBUG] Enter the callback");
     if (err) {
       console.log("[ERROR] " + err);
       return;
     }
 
-    console.log("[DEBUG] Received proof");
-    console.log("[DEBUG] Parsing the proof...");
     var result_proof = {
       a: zeth.parseHexadecimalPointBaseGroup1Affine(response.a),
       a_p: zeth.parseHexadecimalPointBaseGroup1Affine(response.aP),

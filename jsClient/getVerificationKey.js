@@ -54,7 +54,7 @@ function getVerificationKey() {
     }
 
     console.log("[DEBUG] Received verification key from server");
-    console.log("[DEBUG] Parsing the key");
+    console.log("[DEBUG] Parsing the key...");
     var vk_obj = {
       a: parseHexadecimalPointBaseGroup2Affine(response.a),
       b: parseHexadecimalPointBaseGroup1Affine(response.b),

@@ -1,5 +1,5 @@
-jsWrapper/node_modules/*
-jsWrapper/package-lock.json
+jsClient/node_modules/*
+jsClient/package-lock.json
 
 # Ignore the build repo
 build/
