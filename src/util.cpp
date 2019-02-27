@@ -9,7 +9,6 @@
 namespace libzeth {
 
 // Takes a binary string and swaps the bit endianness
-// ie: The output is Big Endian if the input was Little Endian (and vice-versa)
 template<typename T>
 T swap_bit_endianness(T v) {
     int len = v.size();
@@ -109,7 +108,7 @@ std::vector<bool> address_bits_from_address(int address, int tree_depth) {
     // We need to "back pad" the binary conversion we obtained to have an address encoded
     // by a binary string of the length of the tree_depth
     if(binary.size() < tree_depth) {
-        for (int i = 0; i < binary.size(); i++) {
+        for (size_t i = 0; i < binary.size(); i++) {
             result[i] = binary[i];
         }
         // We return the "back padded" vector
