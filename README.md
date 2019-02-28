@@ -50,6 +50,7 @@ prover_server
 ```bash
 # Start the ethereum test net by running the following commands
 cd zeth-contracts
+# (Make sure you have ganache-cli installed, if not, run "npm install ganache-cli")
 npm run testrpc
 ```
 
