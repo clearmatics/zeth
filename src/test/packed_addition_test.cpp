@@ -23,16 +23,6 @@ typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 
 namespace {
 
-void dump_bit_vector_compact(std::ostream &out, const libff::bit_vector &v)
-{
-    out << "{";
-    for (size_t i = 0; i < v.size() - 1; ++i)
-    {
-        out << v[i];
-    }
-    out << v[v.size() - 1] << "}\n";
-}
-
 TEST(TestPackedAddition, TestPackedAddition1) {
     libff::print_header("Starting test: LHS => value_left1 = 0x000000000000000A, value_left2 = 0x000000000000000A || RHS => value_right1 = 0x0000000000000014");
 

@@ -3,14 +3,16 @@
 ## Run the tests
 
 ```bash
-# Configure your environment by running the following command from the /zeth repo
+# Configure your environment by running the following command from the ${ZETH} repo
+cd ${ZETH}
 . ./setup_env.sh
 
 # Go in the build repository and run the following commands
+cd ${ZETH}/build
 cmake ..
-make test_prover
+make check # (or just "make test" if the tests are already built)
 
-# Note: All the test that are not directly related to zeth might fail!
-# If you want to see the logs of the prover tests, then run (still from the build directory)
-./src/test_prover
+# Note: Every test can be ran independently by running the executable.
+# Example:
+test_prover
 ```

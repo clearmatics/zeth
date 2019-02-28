@@ -72,7 +72,7 @@ target_include_directories(prover_server
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
-# Tests
+## Tests
 # Test the packed_addition used in the joinsplit
 add_executable(
     test_addition
@@ -94,14 +94,85 @@ target_include_directories(
 
     PUBLIC
     ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libff
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+# Test the notes circuits
+add_executable(
+    test_note
+    EXCLUDE_FROM_ALL
+
+    test/note_test.cpp
+    ${SOURCES}
+)
+target_link_libraries(
+    test_note
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_note
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+# Test the prfs circuits
+add_executable(
+    test_prfs
+    EXCLUDE_FROM_ALL
+
+    test/prfs_test.cpp
+    ${SOURCES}
+)
+target_link_libraries(
+    test_prfs
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_prfs
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+# Test the commitments circuits
+add_executable(
+    test_commitments
+    EXCLUDE_FROM_ALL
+
+    test/commitments_test.cpp
+    ${SOURCES}
+)
+target_link_libraries(
+    test_commitments
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_commitments
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
 # Test the joinsplit circuit
 add_executable(
     test_prover
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
+    EXCLUDE_FROM_ALL
 
     test/prover_test.cpp
     ${SOURCES}
@@ -121,11 +192,32 @@ target_include_directories(
     ${DEPENDS_DIR}/libsnark
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
+
 include(CTest)
+add_test(
+    NAME test_addition
+    COMMAND test_addition
+)
+add_test(
+    NAME test_note
+    COMMAND test_note
+)
+add_test(
+    NAME test_prfs
+    COMMAND test_prfs
+)
+add_test(
+    NAME test_commitments
+    COMMAND test_commitments
+)
 add_test(
     NAME test_prover
     COMMAND test_prover
 )
 
 # We add the test of the prover as part of the testzeth
+add_dependencies(check test_addition)
+add_dependencies(check test_note)
+add_dependencies(check test_prfs)
+add_dependencies(check test_commitments)
 add_dependencies(check test_prover)
