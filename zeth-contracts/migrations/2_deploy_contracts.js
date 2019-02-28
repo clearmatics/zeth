@@ -11,13 +11,13 @@ for (var i = 0; i < vk.IC.length; i++) {
 vk.IC = tmp;
 
 const MerkleTreeSha256 = artifacts.require("./MerkleTreeSha256.sol");
-const Miximus = artifacts.require("./Miximus.sol");
+const Mixer = artifacts.require("./Mixer.sol");
 const Verifier = artifacts.require("./Verifier.sol");
 const Bytes = artifacts.require("./Bytes.sol");
 const Bytes_tests = artifacts.require("./Bytes_tests.sol");
 
 module.exports = (deployer) => {
-  deployer.deploy(MerkleTreeSha256, 3);
+  console.log("[WARNING] Make sure you have the right verification key stored in the `ZETH_TRUSTED_SETUP_DIR`!")
   deployer.deploy(
     Verifier,
     vk.a[0],
@@ -34,10 +34,14 @@ module.exports = (deployer) => {
     vk.z[1],
     vk.IC
   ).then(function () {
-    return deployer.deploy(Miximus, Verifier.address, 2, 4);
+    // We deploy a mixer with a merkle tree of depth 4
+    return deployer.deploy(Mixer, Verifier.address, 4);
   })
 
   deployer.deploy(Bytes);
   deployer.link(Bytes, Bytes_tests);
   deployer.deploy(Bytes_tests);
+
+  // Deploy a merkle tree of depth 3 for the tests
+  deployer.deploy(MerkleTreeSha256, 3);
 };

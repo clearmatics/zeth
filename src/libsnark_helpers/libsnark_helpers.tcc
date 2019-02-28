@@ -1,6 +1,8 @@
 #ifndef __ZETH_LIBSNARK_HELPERS_TCC__
 #define __ZETH_LIBSNARK_HELPERS_TCC__
 
+namespace libzeth {
+
 // SerializableT represents any type that overloads the operator<< and operator>> of ostream and istream
 // Note: Both r1cs_ppzksnark_proving_key and r1cs_ppzksnark_verifying_key implement
 // these overloading, so both of them can easily be writen and loaded from files
@@ -20,7 +22,7 @@ void writeToFile(boost::filesystem::path path, serializableT& obj) {
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-}
+};
 
 template<typename serializableT>
 serializableT loadFromFile(boost::filesystem::path path) {
@@ -44,31 +46,31 @@ serializableT loadFromFile(boost::filesystem::path path) {
     ss >> obj;
 
     return obj;
-}
+};
 
 template<typename ppT>
 void serializeProvingKeyToFile(libsnark::r1cs_ppzksnark_proving_key<ppT> pk, boost::filesystem::path pk_path)
 {
     writeToFile<libsnark::r1cs_ppzksnark_proving_key<ppT> >(pk_path, pk);
-}
+};
 
 template<typename ppT>
 libsnark::r1cs_ppzksnark_proving_key<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path)
 {
     return loadFromFile<libsnark::r1cs_ppzksnark_proving_key<ppT> >(pk_path);
-}
+};
 
 template<typename ppT>
 void serializeVerificationKeyToFile(libsnark::r1cs_ppzksnark_verification_key<ppT> vk, boost::filesystem::path vk_path)
 {
     writeToFile<libsnark::r1cs_ppzksnark_verification_key<ppT> >(vk_path, vk);
-}
+};
 
 template<typename ppT>
 libsnark::r1cs_ppzksnark_verification_key<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path)
 {
     return loadFromFile<libsnark::r1cs_ppzksnark_verification_key<ppT> >(vk_path);
-}
+};
 
 template<typename ppT>
 void exportVerificationKey(libsnark::r1cs_ppzksnark_keypair<ppT> keypair)
@@ -92,7 +94,7 @@ void exportVerificationKey(libsnark::r1cs_ppzksnark_keypair<ppT> keypair)
     }
 
     std::cout << "\t\t}" << std::endl;
-}
+};
 
 template<typename ppT>
 void display_proof(libsnark::r1cs_ppzksnark_proof<ppT> proof)
@@ -106,7 +108,7 @@ void display_proof(libsnark::r1cs_ppzksnark_proof<ppT> proof)
     std::cout << "proof.C_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.h)<<");" << std::endl;
     std::cout << "proof.H = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_H)<<");"<< std::endl;
     std::cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< std::endl;
-}
+};
 
 template<typename ppT>
 void verificationKey_to_json(libsnark::r1cs_ppzksnark_verification_key<ppT> vk, boost::filesystem::path path)
@@ -148,7 +150,7 @@ void verificationKey_to_json(libsnark::r1cs_ppzksnark_verification_key<ppT> vk, 
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-}
+};
 
 template<typename ppT>
 void proof_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path) {
@@ -180,7 +182,7 @@ void proof_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem:
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-}
+};
 
 template<typename ppT>
 void write_setup(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path setup_dir)
@@ -205,7 +207,7 @@ void write_setup(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesyste
 
 	serializeVerificationKeyToFile<ppT>(verification_key, path_vk_raw);
 	serializeProvingKeyToFile<ppT>(proving_key, path_pk_raw);
-}
+};
 
 template<typename ppT>
 void r1cs_constraints_to_json(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path)
@@ -230,7 +232,7 @@ void r1cs_constraints_to_json(libsnark::linear_combination<libff::Fr<ppT> > cons
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-}
+};
 
 template<typename ppT>
 void fill_json_constraints_in_ss(libsnark::linear_combination<libff::Fr<ppT> > constraints, std::stringstream& ss)
@@ -250,7 +252,7 @@ void fill_json_constraints_in_ss(libsnark::linear_combination<libff::Fr<ppT> > c
         count++;
     }
     ss << "}";
-}
+};
 
 template <typename ppT>
 void array_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path) {
@@ -281,7 +283,7 @@ void array_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variable
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-}
+};
 
 template<typename ppT>
 void r1cs_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path) {
@@ -330,7 +332,7 @@ void r1cs_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-}
+};
 
 template<typename ppT>
 void proof_and_input_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
@@ -370,7 +372,7 @@ void proof_and_input_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, libsnark
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-}
+};
 
 template<typename ppT>
 void primary_input_to_json(libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
@@ -401,15 +403,22 @@ void primary_input_to_json(libsnark::r1cs_ppzksnark_primary_input<ppT> input, bo
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-}
+};
 
 template<typename ppT>
 void display_primary_input(libsnark::r1cs_ppzksnark_primary_input<ppT> input) {
-    std::cout << "\ninput = [";
-    for (size_t i = 1; i < input.size(); ++i) {
-        std::cout << input[i] << " , ";
+    std::cout << "{\n";
+    std::cout << " \"inputs\" :" << "["; // 1 should always be the first variable passed
+    for (size_t i = 0; i < input.size(); ++i) {
+        std::cout << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\"";
+        if ( i < input.size() - 1 ) {
+            std::cout << ", ";
+        }
     }
-    std::cout << "];\n";
-}
+    std::cout << "]\n";
+    std::cout << "}";
+};
 
-#endif
+} // libzeth
+
+#endif // __ZETH_LIBSNARK_HELPERS_TCC__

@@ -21,6 +21,9 @@ contract MerkleTreeSha256 {
     // Number of leaves
     uint nbLeaves;
 
+    // Debug only
+    event LogDebug(bytes32 message);
+
     // Constructor
     constructor(uint treeDepth) public {
         depth = treeDepth;
@@ -54,7 +57,7 @@ contract MerkleTreeSha256 {
     //
     // Recomputing the merkle should not be necessary as it could be read directly from the smart contract state
     // but we'll use this function for now
-    function getLeaves() view public returns (bytes32[] memory) { // returns the bytes32[] array of leaves
+    function getLeaves() public view returns (bytes32[] memory) { // returns the bytes32[] array of leaves
         bytes32[] memory tmpLeaves = new bytes32[](nbLeaves);
         for(uint i = 0; i < nbLeaves; i++) {
             tmpLeaves[i] = leaves[i];
@@ -73,7 +76,7 @@ contract MerkleTreeSha256 {
     // because we usually affect the node index 1 to the root and follow the convention
     // to append 0 if we go left or 1 if we go right in the merkle tree
     // However, here we start at the index 0 for the merkle tree
-    function getTree() view public returns (bytes32[] memory) {
+    function getTree() public view returns (bytes32[] memory) {
         uint nbNodes = 2**(depth + 1) - 1;
         bytes32[] memory tmpTree = new bytes32[](nbNodes);
 
@@ -94,7 +97,7 @@ contract MerkleTreeSha256 {
     }
 
     // Returns the root of the merkle tree
-    function getRoot() view public returns(bytes32) {
+    function getRoot() public view returns(bytes32) {
         return getTree()[0];
     }
 }

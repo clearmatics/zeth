@@ -2,15 +2,18 @@
 
 **Disclaimer:** This work is heavily inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git), and follows the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum).
 
-:point_right: Check our documentation on the [wiki](https://gitlab.clearmatics.net/ar/zeth/wikis) to have more details about Zeth.
+:point_right: Check our documentation on the [paper](https://gitlab.clearmatics.net/ar/zeth-protocol/blob/master/zeth.pdf) to have more details about Zeth.
 
 ## Building the project:
 
 ### Using docker (Recommended)
 
-In order to run the project in docker, you will need 2 terminals. The titles of the sections below are prefixed with the terminal ID the commands should be ran into.
+In order to run the project, you will need 3 terminals. 
+One termonal will run the proving service/server, another one will run the ethereum testnet, and the final one
+will run the solidity tests.
+The titles of the sections below are prefixed with the terminal ID the commands should be ran into.
 
-#### Terminal 1: Configure the project and run the cpp tests
+#### Terminal 1: Configure the project and run the cpp tests (Docker)
 
 ```bash
 # Clone this repository:
@@ -19,7 +22,7 @@ cd zeth
 git submodule update --init --recursive
 
 docker build -t zeth-dev .
-docker run -ti --name zeth zeth-dev
+docker run -ti -p 50051:50051 --name zeth zeth-dev
 
 ## All the commands below are ran in the docker container
 # Configure your environment
@@ -34,22 +37,20 @@ mkdir build
 cd build
 cmake .. && make
 
-# Run the tests
-make test_prover
-./src/test_prover
+# Start the proving server
+make
+./src/prover_server
 ```
 
 #### Terminal 2: Start an Ethereum testnet to test the smart contracts
 
 ```bash
-docker exec -ti zeth /bin/bash
-
-# Start the ethruem test net by running the following commands
+# Start the ethereum test net by running the following commands
 cd zeth-contracts
 npm run testrpc
 ```
 
-#### Terminal 1 (Again): Start the solidity tests
+#### Terminal 3: Start the solidity tests
 
 ```bash
 # We assume here that you are in /home/zeth

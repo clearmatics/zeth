@@ -1,5 +1,8 @@
-jsWrapper/node_modules/*
-jsWrapper/package-lock.json
+jsClient/node_modules/*
+jsClient/package-lock.json
+
+# Ignore the virtualenv in the python client
+pyClient/zeth-devenv/
 
 # Ignore the build repo
 build/
