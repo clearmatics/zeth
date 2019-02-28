@@ -19,11 +19,18 @@ RUN apt-get update && apt-get install -y \
 RUN curl -sL https://deb.nodesource.com/setup_10.x | sudo bash - && sudo apt-get install -y nodejs
 RUN npm install -g truffle ganache-cli
 
+# Configue the environment for gRPC
+RUN apt-get install -y \
+        build-essential \
+        autoconf \
+        libtool
+RUN git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc /var/local/git/grpc
+RUN cd /var/local/git/grpc && git submodule update --init --recursive
+RUN cd /var/local/git/grpc/third_party/protobuf && ./autogen.sh && ./configure --prefix=/usr && make -j12 && make check && make install && make clean
+RUN cd /var/local/git/grpc && make install
+
+# Copy the project in the docker container
 COPY . /home/zeth
-
-#RUN cd zeth-contracts && npm install
-
-RUN pip install pycrypto
 
 WORKDIR /home/zeth
 

@@ -9,7 +9,7 @@ This folder is the target to store:
 
 ----------------
 
-For now the trusted setup is ran by a single, trusted, entity.
-A more advanced piece of software would look into MPC to generate the CRS.
+For now the trusted setup is ran by a single, trusted, entity (it is ran automatically when we start the prover server).
+A more advanced piece of software would use an MPC to generate the proving and verification keys.
 
 **Reference link:** [Zcash's power of Tau](https://z.cash.foundation/blog/conclusion-of-powers-of-tau/)

@@ -1,6 +1,8 @@
 #ifndef __ZETH_EXTENDED_PROOF_TCC__
 #define __ZETH_EXTENDED_PROOF_TCC__
 
+namespace libzeth {
+
 template<typename ppT>
 extended_proof<ppT>::extended_proof(libsnark::r1cs_ppzksnark_proof<ppT> &in_proof,
                                     libsnark::r1cs_ppzksnark_primary_input<ppT> &in_primary_input)
@@ -52,4 +54,6 @@ void extended_proof<ppT>::dump_primary_inputs()
 	display_primary_input<ppT>(*this->primary_inputs);
 }
 
-#endif
+} // libzeth
+
+#endif // __ZETH_EXTENDED_PROOF_TCC__

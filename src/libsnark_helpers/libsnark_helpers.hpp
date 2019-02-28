@@ -1,11 +1,6 @@
-/**
- * This file is modified from:
- *
- * @file wraplibsnark.hpp
- * @author Jacob Eberhardt <jacob.eberhardt@tu-berlin.de
- * @author Dennis Kuhnert <dennis.kuhnert@campus.tu-berlin.de>
- * @date 2017
- */
+// DISCLAIMER:
+// Content taken and adapted from:
+// wraplibsnark.cpp (originally written by Jacob Eberhardt and Dennis Kuhnert)
 
 #ifndef __LIBSNARK_HELPERS_HPP__
 #define __LIBSNARK_HELPERS_HPP__
@@ -28,6 +23,8 @@
 // Contains required interfaces and types (keypair, proof, generator, prover, verifier)
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
+
+namespace libzeth {
 
 // -- Defined in the CPP file -- //
 libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(const uint8_t* _x);
@@ -65,7 +62,7 @@ template<typename ppT> void primary_input_to_json(libsnark::r1cs_ppzksnark_prima
 // Display
 template<typename ppT> void display_primary_input(libsnark::r1cs_ppzksnark_primary_input<ppT> input);
 
-// Include the template file
-#include "libsnark_helpers.tcc"
+} // libzeth
+#include "libsnark_helpers/libsnark_helpers.tcc"
 
 #endif
