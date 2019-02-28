@@ -105,6 +105,8 @@ endif()
 # Add the given directories to those the compiler uses to search for include files
 include_directories(.)
 
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+
 # Add sub-directories for the build
 add_subdirectory(depends)
 add_subdirectory(src)

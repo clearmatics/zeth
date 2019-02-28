@@ -94,6 +94,7 @@ target_include_directories(
 
     PUBLIC
     ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libff
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
@@ -120,3 +121,11 @@ target_include_directories(
     ${DEPENDS_DIR}/libsnark
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
+include(CTest)
+add_test(
+    NAME test_prover
+    COMMAND test_prover
+)
+
+# We add the test of the prover as part of the testzeth
+add_dependencies(check test_prover)
