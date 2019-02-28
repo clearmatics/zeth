@@ -42,7 +42,7 @@ make check # Builds and run the tests (once the tests are built once, calling "m
 
 # Compile and start the proving server
 make
-./src/prover_server
+prover_server
 ```
 
 #### Terminal 2: Start an Ethereum testnet to test the smart contracts
