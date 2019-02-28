@@ -1,5 +1,7 @@
 # Zeth - Zerocash on Ethereum 
 
+:rotating_light: **WARNING** This project is a Proof of Concept. It is highly inefficient and has not be thoroughly reviewed. Please do not use in production!
+
 **Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git). 
 It follows and extend the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by ZCash.
 
@@ -10,7 +12,7 @@ It follows and extend the design presented in [zerocash-ethereum](https://github
 ### Using docker (Recommended)
 
 In order to run the project, you will need 3 terminals.
-One termonal will run the proving service/server, another one will run the ethereum testnet, and the final one
+One terminal will run the proving service/server, another one will run the ethereum testnet, and the final one
 will run a python stub that triggers a few proof generations on the proving server in order to do confidential transactions on the Ethereum testnet.
 
 The titles of the sections below are prefixed with the terminal ID the commands should be ran into.
@@ -106,13 +108,14 @@ make
 ### Use the pyClient or the jsClient
 
 This Proof of Concept comes with the building blocks to integrate zeth into your DApp.
+You can use the python and/or the javascript clients to interact with the proving service and request proofs on a given input.
+This is a great way to experiment with confidential asset transfer on Ethereum!
 
-You use the python and/or the javascript clients to interact with the proving service and request proofs on a given input.
-This is a great way to experiment with confidential asset transfer on Ethereum.
-
-Instructions to run these clients can be founds in the README of their respective folders.
+If you do not know where to start, don't panic! Just follow the instructions of the README in `pyClient` to run the `testStub.py` script.
+This script implements a scenario where Alice, Bob and Charlie do confidential asset transfers.
 
 **Note:** These clients are very minimal and only used for testing purpose.
+We provide the building block to write a CLI or a frontend to make ZETH more user friendly, and we welcome any contributions! :)
 
 ## References
 
