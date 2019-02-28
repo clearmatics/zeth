@@ -46,7 +46,7 @@ set(
 option(
   MULTICORE
   "Enable parallelized execution, using OpenMP"
-  OFF
+  ON
 )
 
 option(
