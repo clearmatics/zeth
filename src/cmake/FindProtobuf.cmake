@@ -1,4 +1,7 @@
-#
+# DISCLAIMER:
+# File taken from:
+# https://github.com/IvanSafonov/grpc-cmake-example/blob/master/cmake/FindProtobuf.cmake
+
 # Locate and configure the Google Protocol Buffers library
 #
 # Adds the following targets:

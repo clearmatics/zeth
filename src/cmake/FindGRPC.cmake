@@ -1,4 +1,7 @@
-#
+# DISCLAIMER
+# File taken from:
+# https://github.com/IvanSafonov/grpc-cmake-example/blob/master/cmake/FindGRPC.cmake
+
 # Locate and configure the gRPC library
 #
 # Adds the following targets:
