@@ -32,10 +32,6 @@ RUN cd /var/local/git/grpc && make install
 # Copy the project in the docker container
 COPY . /home/zeth
 
-#RUN cd zeth-contracts && npm install
-
-RUN pip install pycrypto
-
 WORKDIR /home/zeth
 
 CMD ["/bin/bash"]
