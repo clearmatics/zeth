@@ -56,4 +56,4 @@ void extended_proof<ppT>::dump_primary_inputs()
 
 } // libzeth
 
-#endif
+#endif // __ZETH_EXTENDED_PROOF_TCC__

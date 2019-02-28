@@ -1,6 +1,10 @@
 #ifndef __ZETH_NOTES_CIRCUITS_HPP__
 #define __ZETH_NOTES_CIRCUITS_HPP__
 
+// DISCLAIMER: 
+// Content Taken and adapted from Zcash
+// https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
+
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.hpp>
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
 
@@ -14,10 +18,6 @@
 #include "types/bits.hpp"
 // Get the ZethNote class
 #include "types/note.hpp"
-
-// DISCLAIMER: 
-// Content Taken and adapted from Zcash
-// https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
 
 namespace libzeth {
 

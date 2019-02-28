@@ -1,12 +1,12 @@
 #ifndef __ZETH_SHA256_ETHEREUM_TCC__
 #define __ZETH_SHA256_ETHEREUM_TCC__
 
-// Get the from_bits function
-#include "circuits/circuits-util.hpp"
-
 // DISCLAIMER:
 // Content taken and adapted from:
 // https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
+
+// Get the from_bits function
+#include "circuits/circuits-util.hpp"
 
 namespace libzeth {
 
