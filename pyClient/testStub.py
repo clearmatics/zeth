@@ -1,17 +1,7 @@
-import random
-import logging
 import json
 import os
-import time
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
-import zlib
-import base64
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
-
-# Do RPC calls
-import grpc
 
 # Get the utils to deploy and call the contracts
 import zethContracts
@@ -19,78 +9,11 @@ import zethContracts
 import zethGRPC
 # Get the mock data for the test
 import zethMock
+# Get the utils to encrypt/decrypt
+import zethUtils
 
-w3 = Web3(HTTPProvider("http://localhost:8545"));
+w3 = Web3(HTTPProvider("http://localhost:8545"))
 test_grpc_endpoint = 'localhost:50051'
-
-def encrypt(message, public_key):
-    rsa_key = RSA.importKey(public_key)
-    rsa_key = PKCS1_OAEP.new(rsa_key)
-
-    blob = zlib.compress(message.encode())
-
-    # Refer to: https://pycryptodome.readthedocs.io/en/latest/src/cipher/oaep.html#Crypto.Cipher.PKCS1_OAEP.PKCS1OAEP_Cipher.encrypt
-    # to define the chunk size
-    chunk_size = 62 # (128 - 2 - 2*32) since we use RSA modulus of 1024 bits (128 bytes) in the keystore
-    offset = 0
-    end_loop = False
-    encrypted =  "".encode()
-
-    while not end_loop:
-        chunk = blob[offset:offset + chunk_size]
-
-        # Padding
-        if len(chunk) % chunk_size != 0:
-            end_loop = True
-            chunk += " ".encode() * (chunk_size - len(chunk))
-
-        encrypted += rsa_key.encrypt(chunk)
-        offset += chunk_size
-
-    return base64.b64encode(encrypted)
-
-def decrypt(encrypted_blob, private_key):
-    rsakey = RSA.importKey(private_key)
-    rsakey = PKCS1_OAEP.new(rsakey)
-
-    encrypted_blob = base64.b64decode(encrypted_blob)
-
-    chunk_size = 128 # Size of the modulus we use here
-    offset = 0
-    decrypted = "".encode()
-
-    # Loop over our chunks
-    while offset < len(encrypted_blob):
-        chunk = encrypted_blob[offset: offset + chunk_size]
-        decrypted += rsakey.decrypt(chunk)
-        offset += chunk_size
-    return str(zlib.decompress(decrypted), 'utf-8')
-
-# Converts the realtive address of a leaf to an absolute address in the tree
-# Important note: The merkle root index 0 (not 1!)
-def convert_leaf_address_to_node_address(address_leaf, tree_depth):
-    address = address_leaf + (2 ** tree_depth - 1)
-    if(address > 2 ** (tree_depth + 1) - 1):
-        return -1
-    return address
-
-def compute_merkle_path(address_commitment, tree_depth, byte_tree):
-    merkle_path = []
-    address_bits = []
-    address = convert_leaf_address_to_node_address(address_commitment, tree_depth)
-    if(address == -1):
-        return merkle_path # return empty merkle_path
-    for i in range (0 , tree_depth):
-        address_bits.append(address % 2)
-        if (address % 2 == 0):
-            print("append note at address: " + str(address - 1))
-            merkle_path.append(w3.toHex(byte_tree[address - 1])[2:]) # [2:] to strip the 0x prefix
-            address = int(address/2) - 1 # - 1 because we decided to start counting from 0 (which is the index of the root node)
-        else:
-            print("append note at address: " + str(address + 1))
-            merkle_path.append(w3.toHex(byte_tree[address + 1])[2:])
-            address = int(address/2)
-    return merkle_path[::-1] # Return the merkle tree in reverse order
 
 def get_proof_bob_deposit(keystore, mk_root):
     print("Bob deposits 4 ETH for himself and splits them into note1: 2ETH, note2: 2ETH")
@@ -151,8 +74,8 @@ def bob_deposit(mixer_instance, mk_root, bob_eth_address, keystore):
     (output_note1, output_note2, proof_json) = get_proof_bob_deposit(keystore, mk_root)
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
-    ciphertext1 = encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"])
-    ciphertext2 = encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["ek"])
+    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"])
+    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["ek"])
     return zethContracts.mix(
         mixer_instance,
         ciphertext1,
@@ -219,8 +142,8 @@ def bob_to_charlie(mixer_instance, mk_root, mk_path, input_note1, address_note1,
     )
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
-    ciphertext1 = encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"]) # Bob is the recipient
-    ciphertext2 = encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
+    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"]) # Bob is the recipient
+    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
     return zethContracts.mix(
         mixer_instance,
         ciphertext1,
@@ -286,8 +209,8 @@ def charlie_withdraw(mixer_instance, mk_root, mk_path, input_note1, address_note
     )
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
-    ciphertext1 = encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
-    ciphertext2 = encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
+    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
+    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
     return zethContracts.mix(
         mixer_instance,
         ciphertext1,
@@ -337,8 +260,8 @@ if __name__ == '__main__':
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she was the recipient
     # But she wasn't the recipient (Bob was), so she fails to decrypt
     try:
-        bob_recovered_plaintext1 = decrypt(ciphertext1BtB, keystore["Alice"]["AddrSk"]["dk"])
-        bob_recovered_plaintext2 = decrypt(ciphertext2BtB, keystore["Alice"]["AddrSk"]["dk"])
+        bob_recovered_plaintext1 = zethUtils.decrypt(ciphertext1BtB, keystore["Alice"]["AddrSk"]["dk"])
+        bob_recovered_plaintext2 = zethUtils.decrypt(ciphertext2BtB, keystore["Alice"]["AddrSk"]["dk"])
         print("/!\ Alice recovered the 2 plaintext encrypted by Bob for Bob!!!")
         print("Recovered plaintext1: " + bob_recovered_plaintext1 + " plaintext2: " + bob_recovered_plaintext2)
     except:
@@ -352,10 +275,10 @@ if __name__ == '__main__':
         print("Node: " + w3.toHex(node)[2:])
 
     # Get the merkle path for the commitment to spend
-    mk_path = compute_merkle_path(cm_address1BtB, mk_tree_depth, mk_byte_tree)
+    mk_path = zethUtils.compute_merkle_path(cm_address1BtB, mk_tree_depth, mk_byte_tree)
 
     # Bob decrypts one of the note he previously received (useless here but useful if the payment came from someone else)
-    input_note_json = json.loads(decrypt(ciphertext1BtB, keystore["Bob"]["AddrSk"]["dk"]))
+    input_note_json = json.loads(zethUtils.decrypt(ciphertext1BtB, keystore["Bob"]["AddrSk"]["dk"]))
     input_noteBtC = zethGRPC.zethNoteObjFromParsed(input_note_json)
 
     # TODO: Recompute the commitment from the coin's data (to check the validity of the payment)
@@ -383,7 +306,7 @@ if __name__ == '__main__':
         print("[ERROR] Charlie failed to decrypt a ciphertext emitted by Bob's transaction: Was not the recipient!")
     recovered_plaintext2 = ""
     try:
-        recovered_plaintext2 = decrypt(ciphertext2_bob_transfer, keystore["Charlie"]["AddrSk"]["dk"])
+        recovered_plaintext2 = zethUtils.decrypt(ciphertext2_bob_transfer, keystore["Charlie"]["AddrSk"]["dk"])
         print("[INFO] Charlie recovered one of the plaintext encrypted by Bob!")
         print("[INFO] Charlie now knows he received a payment from Bob.")
         # Just as an example we write the received coin in the coinstore
@@ -408,7 +331,7 @@ if __name__ == '__main__':
         print("Node: " + w3.toHex(node)[2:])
 
     # Get the merkle path for the commitment to spend
-    mk_path_charlie_withdraw = compute_merkle_path(cm_address2_bob_transfer, mk_tree_depth, mk_byte_tree)
+    mk_path_charlie_withdraw = zethUtils.compute_merkle_path(cm_address2_bob_transfer, mk_tree_depth, mk_byte_tree)
     input_note_charlie_withdraw = zethGRPC.zethNoteObjFromParsed(json.loads(recovered_plaintext2))
     (cm_address1_charlie_withdraw, cm_address2_charlie_withdraw, new_mk_root_charlie_withdraw, ciphertext1_charlie_withdraw, ciphertext2_charlie_withdraw) = charlie_withdraw(mixer_instance, new_mk_root_bob_transfer, mk_path_charlie_withdraw, input_note_charlie_withdraw, cm_address2_bob_transfer, charlie_eth_address, keystore)
 
