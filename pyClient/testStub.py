@@ -245,7 +245,7 @@ if __name__ == '__main__':
     zethGRPC.writeVerificationKey(vk)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
-    (mixer_instance, initial_root) = zethContracts.deploy(mk_tree_depth, deployer_eth_address, 4000000)
+    (mixer_instance, initial_root) = zethContracts.deploy(mk_tree_depth, deployer_eth_address, 4000000, "0x0000000000000000000000000000000000000000")
 
     print("[INFO] 4. Running tests...")
     print("Initial balances: ")
