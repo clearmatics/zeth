@@ -35,7 +35,7 @@ def compile_contracts():
 
     # interface
     token_interface = compiled_sol[path_to_token +":ERC20Mintable"]
-      
+
     return token_interface
 
 # Deploy the mixer contract with the given merkle tree depth
@@ -54,10 +54,7 @@ def deploy(mk_tree_depth, deployer_address, deployment_gas):
         abi=token_interface['abi'],
     )
 
-    # Deploy zeth contracts
-    mixer, initial_root = zethContracts.deploy(mk_tree_depth, deployer_address, deployment_gas, tx_receipt.contractAddress)
-
-    return(mixer, initial_root, token)
+    return token
 
 
 
@@ -301,7 +298,10 @@ if __name__ == '__main__':
     zethGRPC.writeVerificationKey(vk)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
-    (mixer_instance, initial_root, token_instance) = deploy(mk_tree_depth, deployer_eth_address, 4000000)
+    token_interface = compile_contracts()
+    verifier_interface, mixer_interface = zethContracts.compile_contracts()
+    token_instance = deploy(mk_tree_depth, deployer_eth_address, 4000000)
+    mixer_instance, initial_root = zethContracts.deploy(mk_tree_depth, verifier_interface, mixer_interface ,deployer_eth_address, 4000000, token_instance.address)
 
     print("[INFO] 4. Running tests...")
     print("Note that we define as 1 ETHToken as 10^18 balance value (as the ratio ETH/wei).")

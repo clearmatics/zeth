@@ -25,8 +25,7 @@ def compile_contracts():
 # Deploy the mixer contract with the given merkle tree depth
 # and returns an instance of the mixer along with the initial merkle tree
 # root to use for the first zero knowledge payments
-def deploy(mk_tree_depth, deployer_address, deployment_gas, token_address):
-    verifier_interface, mixer_interface = compile_contracts()
+def deploy(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address):
     setup_dir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     vk_json = os.path.join(setup_dir, "vk.json")
     with open(vk_json) as json_data:
