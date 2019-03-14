@@ -34,5 +34,6 @@ python -m grpc_tools.protoc -I../api/ --python_out=. --grpc_python_out=. ../api/
 ### Start the testing client
 
 ```
-python testStub.py
+python testStub.py #to test ethereum mixing
+python testStubToken.py #to test token mixing
 ```
