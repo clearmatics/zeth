@@ -1,5 +1,3 @@
-#TODO: add compile and deploy function
-# TODO: change printing
 import json
 import os
 import sys
@@ -358,8 +356,6 @@ if __name__ == '__main__':
     input_note_json = json.loads(zethUtils.decrypt(ciphertext1BtB, keystore["Bob"]["AddrSk"]["dk"]))
     input_noteBtC = zethGRPC.zethNoteObjFromParsed(input_note_json)
 
-    # TODO: Recompute the commitment from the coin's data (to check the validity of the payment)
-    # TODO: Make sure this recomputed commitment is equal to the commitment at address cm_address1BtB
     (cm_address1_bob_transfer, cm_address2_bob_transfer, new_mk_root_bob_transfer, ciphertext1_bob_transfer, ciphertext2_bob_transfer) = bob_to_charlie(mixer_instance, new_mk_rootBtB, mk_path, input_noteBtC, cm_address1BtB, bob_eth_address, keystore)
 
     # Printing token balances to show that as expected nothing is changed. Tokens are still owned by the Mixer.
@@ -377,7 +373,6 @@ if __name__ == '__main__':
     print("Balances after Bob's transfer to Charlie: ")
     print_token_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
 
-    # TODO: Charlie withdraws 0.9 ETH and keeps 0.1ETH in the mixer
     # Charlie tries to decrypt the ciphertexts from Bob's previous transaction
     recovered_plaintext1 = ""
     try:
@@ -420,4 +415,3 @@ if __name__ == '__main__':
     print("Balances after Charlie's withdrawal: ")
     print_token_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
 
-    # TODO: Do a dummy payment from Alice to Alice where sum inputs = 0 = sum outputs (payment that is only used to make noise)
