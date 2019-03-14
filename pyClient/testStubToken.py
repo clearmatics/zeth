@@ -43,8 +43,8 @@ def deploy(mk_tree_depth, deployer_address, deployment_gas):
     #Compile and get token contract interface
     token_interface = compile_contracts()
 
-    Token = w3.eth.contract(abi=token_interface['abi'], bytecode=token_interface['bin'])
-    tx_hash = Token.constructor().transact()
+    token = w3.eth.contract(abi=token_interface['abi'], bytecode=token_interface['bin'])
+    tx_hash = token.constructor().transact()
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
 
     token = w3.eth.contract(
@@ -111,7 +111,7 @@ def get_proof_bob_deposit(keystore, mk_root):
     return (output_note1, output_note2, proof_json)
 
 def bob_deposit(mixer_instance, mk_root, bob_eth_address, keystore):
-    print(" === Bob deposits 4ETH for him ===")
+    print(" === Bob deposits 4 ETH Token for him ===")
     (output_note1, output_note2, proof_json) = get_proof_bob_deposit(keystore, mk_root)
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
@@ -128,7 +128,7 @@ def bob_deposit(mixer_instance, mk_root, bob_eth_address, keystore):
     )
 
 def get_proof_bob_transfer_to_charlie(keystore, mk_root, mk_path, input_note1, address_note1):
-    print("Bob transfers 1 ETH to Charlie from his funds on the mixer")
+    print("Bob transfers 1 ETH Token to Charlie from his funds on the mixer")
     zero_wei_hex = "0000000000000000"
 
     charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"] # We generate a coin for Charlie (recipient1)
@@ -173,7 +173,7 @@ def get_proof_bob_transfer_to_charlie(keystore, mk_root, mk_path, input_note1, a
     return (output_note1, output_note2, proof_json)
 
 def bob_to_charlie(mixer_instance, mk_root, mk_path, input_note1, address_note1, bob_eth_address, keystore):
-    print(" === Bob transfers 1ETH to Charlie ===")
+    print(" === Bob transfers 1 ETH Token to Charlie ===")
     (output_note1, output_note2, proof_json) = get_proof_bob_transfer_to_charlie(
         keystore,
         mk_root,
@@ -196,7 +196,7 @@ def bob_to_charlie(mixer_instance, mk_root, mk_path, input_note1, address_note1,
     )
 
 def get_proof_charlie_withdraw(keystore, mk_root, mk_path, input_note1, address_note1):
-    print("Charlie withdraws 0.9ETH from his funds on the mixer")
+    print("Charlie withdraws 0.9 ETH Token from his funds on the mixer")
     zero_wei_hex = "0000000000000000"
 
     charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"] # We generate a coin of value 0.1ETH for Charlie (recipient)
@@ -240,7 +240,7 @@ def get_proof_charlie_withdraw(keystore, mk_root, mk_path, input_note1, address_
     return (output_note1, output_note2, proof_json)
 
 def charlie_withdraw(mixer_instance, mk_root, mk_path, input_note1, address_note1, charlie_eth_address, keystore):
-    print(" === Charlie withdraws 0.9 ===")
+    print(" === Charlie withdraws 0.9 ETH Token ===")
     (output_note1, output_note2, proof_json) = get_proof_charlie_withdraw(
         keystore,
         mk_root,
@@ -302,7 +302,7 @@ if __name__ == '__main__':
     mixer_instance, initial_root = zethContracts.deploy(mk_tree_depth, verifier_interface, mixer_interface ,deployer_eth_address, 4000000, token_instance.address)
 
     print("[INFO] 4. Running tests...")
-    print("Note that we define as 1 ETHToken as 10^18 balance value (as the ratio ETH/wei).")
+    print("Note that we define 1 ETH Token as 10^18 balance value (as the ratio ETH/wei).")
     # Assign 4ETHToken to Bob
     mint_token(bob_eth_address, 4)
 
