@@ -50,13 +50,18 @@ prover_server
 ```bash
 # Start the ethereum test net by running the following commands
 cd zeth-contracts
-# (Make sure you have ganache-cli installed, if not, run "npm install ganache-cli")
+# Install dependencies
+npm install
+# Run testrpc
 npm run testrpc
 ```
 
 #### Terminal 3: Start the testing Python stub
 
 ```bash
+# Configure your environment
+. ./setup_env.sh
+
 cd pyClient
 
 # Follow the few steps described in the README of the python stub

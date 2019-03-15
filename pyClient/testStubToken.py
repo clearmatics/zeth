@@ -1,7 +1,9 @@
 import json
 import os
+import sys
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
+from solcx import compile_standard, compile_files
 
 # Get the utils to deploy and call the contracts
 import zethContracts
@@ -15,8 +17,47 @@ import zethUtils
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 test_grpc_endpoint = 'localhost:50051'
 
+w3.eth.defaultAccount = w3.eth.accounts[0]
+
+# Compile and deploy functions
+def compile_contracts():
+    # variables
+    zeth_dir = os.environ['ZETH']
+    allowed_path = os.path.join(zeth_dir, "zeth-contracts/node_modules/openzeppelin-solidity/contracts")
+    
+    # path
+    path_to_token = os.path.join(zeth_dir, "zeth-contracts/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol")
+
+    # compilation
+    compiled_sol = compile_files([path_to_token], allow_paths=allowed_path)
+
+    # interface
+    token_interface = compiled_sol[path_to_token +":ERC20Mintable"]
+
+    return token_interface
+
+# Deploy the mixer contract with the given merkle tree depth
+# and returns an instance of the mixer along with the initial merkle tree
+# root to use for the first zero knowledge payments, and a token contract instance.
+def deploy(mk_tree_depth, deployer_address, deployment_gas):
+    #Compile and get token contract interface
+    token_interface = compile_contracts()
+
+    token = w3.eth.contract(abi=token_interface['abi'], bytecode=token_interface['bin'])
+    tx_hash = token.constructor().transact()
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+
+    token = w3.eth.contract(
+        address=tx_receipt.contractAddress,
+        abi=token_interface['abi'],
+    )
+
+    return token
+
+
+
 def get_proof_bob_deposit(keystore, mk_root):
-    print("Bob deposits 4 ETH for himself and splits them into note1: 2ETH, note2: 2ETH")
+    print("Bob deposits 4 ETH Token for himself and splits them into note1: 2ETH Token, note2: 2ETH Token")
     zero_wei_hex = "0000000000000000"
 
     # Here Bob is the recipient of the newly generated notes
@@ -70,7 +111,7 @@ def get_proof_bob_deposit(keystore, mk_root):
     return (output_note1, output_note2, proof_json)
 
 def bob_deposit(mixer_instance, mk_root, bob_eth_address, keystore):
-    print(" === Bob deposits 4ETH for him ===")
+    print(" === Bob deposits 4 ETH Token for him ===")
     (output_note1, output_note2, proof_json) = get_proof_bob_deposit(keystore, mk_root)
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
@@ -82,12 +123,12 @@ def bob_deposit(mixer_instance, mk_root, bob_eth_address, keystore):
         ciphertext2,
         proof_json,
         bob_eth_address,
-        w3.toWei(4, 'ether'),
+        "1",
         4000000
     )
 
 def get_proof_bob_transfer_to_charlie(keystore, mk_root, mk_path, input_note1, address_note1):
-    print("Bob transfers 1 ETH to Charlie from his funds on the mixer")
+    print("Bob transfers 1 ETH Token to Charlie from his funds on the mixer")
     zero_wei_hex = "0000000000000000"
 
     charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"] # We generate a coin for Charlie (recipient1)
@@ -132,7 +173,7 @@ def get_proof_bob_transfer_to_charlie(keystore, mk_root, mk_path, input_note1, a
     return (output_note1, output_note2, proof_json)
 
 def bob_to_charlie(mixer_instance, mk_root, mk_path, input_note1, address_note1, bob_eth_address, keystore):
-    print(" === Bob transfers 1ETH to Charlie ===")
+    print(" === Bob transfers 1 ETH Token to Charlie ===")
     (output_note1, output_note2, proof_json) = get_proof_bob_transfer_to_charlie(
         keystore,
         mk_root,
@@ -150,12 +191,12 @@ def bob_to_charlie(mixer_instance, mk_root, mk_path, input_note1, address_note1,
         ciphertext2,
         proof_json,
         bob_eth_address,
-        w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
+        "1", # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
         4000000
     )
 
 def get_proof_charlie_withdraw(keystore, mk_root, mk_path, input_note1, address_note1):
-    print("Charlie withdraws 0.9ETH from his funds on the mixer")
+    print("Charlie withdraws 0.9 ETH Token from his funds on the mixer")
     zero_wei_hex = "0000000000000000"
 
     charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"] # We generate a coin of value 0.1ETH for Charlie (recipient)
@@ -199,7 +240,7 @@ def get_proof_charlie_withdraw(keystore, mk_root, mk_path, input_note1, address_
     return (output_note1, output_note2, proof_json)
 
 def charlie_withdraw(mixer_instance, mk_root, mk_path, input_note1, address_note1, charlie_eth_address, keystore):
-    print(" === Charlie withdraws 0.9 ===")
+    print(" === Charlie withdraws 0.9 ETH Token ===")
     (output_note1, output_note2, proof_json) = get_proof_charlie_withdraw(
         keystore,
         mk_root,
@@ -217,15 +258,25 @@ def charlie_withdraw(mixer_instance, mk_root, mk_path, input_note1, address_note
         ciphertext2,
         proof_json,
         charlie_eth_address,
-        w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
+        "1", # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
         4000000
     )
 
-def print_balances(bob, alice, charlie, mixer):
-    print("Bob's ETH balance: ", w3.eth.getBalance(bob))
-    print("Alice's ETH balance: ", w3.eth.getBalance(alice))
-    print("Charlie's ETH balance: ", w3.eth.getBalance(charlie))
-    print("Mixer's ETH balance: ", w3.eth.getBalance(mixer))
+def print_token_balances(bob, alice, charlie, mixer):
+    print("Alice's Token balance: {}".format(token_instance.functions.balanceOf(alice).call()))
+    print("Bob's Token balance: {}".format(token_instance.functions.balanceOf(bob).call()))
+    print("Charlie's Token balance: {}".format(token_instance.functions.balanceOf(charlie).call()))
+    print("Mixer's Token balance: {}".format(token_instance.functions.balanceOf(mixer).call()))
+
+def approve(owner_address, spender_address, token_amount):
+    return token_instance.functions.approve(spender_address, w3.toWei(token_amount, 'ether')).transact({'from': owner_address})
+
+def allowance(owner_address, spender_address):
+    return token_instance.functions.allowance(owner_address, spender_address).call()
+
+def mint_token(spender_address, token_amount):
+    return token_instance.functions.mint(spender_address, w3.toWei(token_amount, 'ether')).transact()
+
 
 if __name__ == '__main__':
     # Ethereum addresses
@@ -245,18 +296,41 @@ if __name__ == '__main__':
     zethGRPC.writeVerificationKey(vk)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
-    (verifier_interface, mixer_interface) = zethContracts.compile_contracts()
-    (mixer_instance, initial_root) = zethContracts.deploy(mk_tree_depth, verifier_interface, mixer_interface ,deployer_eth_address, 4000000, "0x0000000000000000000000000000000000000000")
+    token_interface = compile_contracts()
+    verifier_interface, mixer_interface = zethContracts.compile_contracts()
+    token_instance = deploy(mk_tree_depth, deployer_eth_address, 4000000)
+    mixer_instance, initial_root = zethContracts.deploy(mk_tree_depth, verifier_interface, mixer_interface ,deployer_eth_address, 4000000, token_instance.address)
 
     print("[INFO] 4. Running tests...")
+    print("Note that we define 1 ETH Token as 10^18 balance value (as the ratio ETH/wei).")
+    # Assign 4ETHToken to Bob
+    mint_token(bob_eth_address, 4)
+
     print("Initial balances: ")
-    print_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+    print_token_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+
+    # Bob try to deposit 4 ETHToken split in 2 notes of denominations of 2 ETHToken  and 2 ETHToken on the mixer (without approving)
+    try:
+        (cm_address1BtB, cm_address2BtB, new_mk_rootBtB, ciphertext1BtB, ciphertext2BtB) = bob_deposit(mixer_instance, initial_root, bob_eth_address, keystore)
+    except:
+        allowance_mixer =  allowance(bob_eth_address, mixer_instance.address)
+        print("[ERROR] Bob deposit failed since token transfer has not been approved! In fact, the allowance for Mixer from Bob is:", allowance_mixer)
+        print("... token balances are unchanged:")
+        print_token_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+
+    # Bob approves the transfer
+    print("=== Bob approving 4 ETHToken transfer to the Mixer ===")
+    tx_hash = approve(bob_eth_address, mixer_instance.address, 4)
+    w3.eth.waitForTransactionReceipt(tx_hash)
+
+    allowance_mixer = allowance(bob_eth_address, mixer_instance.address)
+    print("Now the allowance for the Mixer from Bob is:", allowance_mixer)
 
     # Bob deposits 4ETH split in 2 notes of denominations of 2ETh and 2ETH on the mixer
     (cm_address1BtB, cm_address2BtB, new_mk_rootBtB, ciphertext1BtB, ciphertext2BtB) = bob_deposit(mixer_instance, initial_root, bob_eth_address, keystore)
 
     print("Balances after Bob's deposit: ")
-    print_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+    print_token_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
 
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she was the recipient
     # But she wasn't the recipient (Bob was), so she fails to decrypt
@@ -284,6 +358,11 @@ if __name__ == '__main__':
 
     (cm_address1_bob_transfer, cm_address2_bob_transfer, new_mk_root_bob_transfer, ciphertext1_bob_transfer, ciphertext2_bob_transfer) = bob_to_charlie(mixer_instance, new_mk_rootBtB, mk_path, input_noteBtC, cm_address1BtB, bob_eth_address, keystore)
 
+    # Printing token balances to show that as expected nothing is changed. Tokens are still owned by the Mixer.
+    print("As expected, nothing is changed. Tokens are still owned by the Mixer.")
+    print_token_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+
+
     # Bob tries to do a double spent (spending the zeth note `input_noteBtC,` twice)
     try:
         (cm_address1_bob_transfer_ds, cm_address2_bob_transfer_ds, new_mk_root_bob_transfer_ds, ciphertext1_bob_transfer_ds, ciphertext2_bob_transfer_ds) = bob_to_charlie(mixer_instance, new_mk_rootBtB, mk_path, input_noteBtC, cm_address1BtB, bob_eth_address, keystore)
@@ -292,7 +371,7 @@ if __name__ == '__main__':
         print("Bob tried to use the same commitment twice (double spent) as input of the joinsplit, and failed!")
 
     print("Balances after Bob's transfer to Charlie: ")
-    print_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+    print_token_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
 
     # Charlie tries to decrypt the ciphertexts from Bob's previous transaction
     recovered_plaintext1 = ""
@@ -334,5 +413,5 @@ if __name__ == '__main__':
     (cm_address1_charlie_withdraw, cm_address2_charlie_withdraw, new_mk_root_charlie_withdraw, ciphertext1_charlie_withdraw, ciphertext2_charlie_withdraw) = charlie_withdraw(mixer_instance, new_mk_root_bob_transfer, mk_path_charlie_withdraw, input_note_charlie_withdraw, cm_address2_bob_transfer, charlie_eth_address, keystore)
 
     print("Balances after Charlie's withdrawal: ")
-    print_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+    print_token_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
 

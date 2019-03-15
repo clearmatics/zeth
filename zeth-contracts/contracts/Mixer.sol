@@ -5,6 +5,40 @@ import "./Verifier.sol";
 import "./Bytes.sol";
 
 /*
+ * Declare the ERC20 interface in order to handle ERC20 tokens transfers
+ * to and from the Mixer. Note that we only declare the functions we are interested in,
+ * namely, transferFrom() (used to do a Deposit), and transfer() (used to do a withdrawal)
+**/
+contract ERC20 {
+    function transferFrom(address from, address to, uint256 value) public;
+    function transfer(address to, uint256 value) public;
+}
+
+/*
+ * ERC223 token compatible contract
+**/
+contract ERC223ReceivingContract {
+    // See: https://github.com/Dexaran/ERC223-token-standard/blob/Recommended/Receiver_Interface.sol
+    struct Token {
+        address sender;
+        uint value;
+        bytes data;
+        bytes4 sig;
+    }
+
+    function tokenFallback(address from, uint value, bytes memory data) public pure {
+        Token memory tkn;
+        tkn.sender = from;
+        tkn.value = value;
+        tkn.data = data;
+
+         // see https://solidity.readthedocs.io/en/v0.5.5/types.html#conversions-between-elementary-types
+        uint32 u = uint32(bytes4(data[0])) + uint32(bytes4(data[1]) >> 8) + uint32(bytes4(data[2]) >> 16) + uint32(bytes4(data[3]) >> 24);
+        tkn.sig = bytes4(u);
+    }
+}
+
+/*
  * Note1:
  * We might want to use the `Szabo` as a unit for the payments.
  * In fact, as we are using hex strings of length 64bits in the prover to handle the values,
@@ -34,7 +68,7 @@ import "./Bytes.sol";
  * By leveraging this data, we avoid a lot of unecessary overhead just to confirm a payment here.
 **/
 
-contract Mixer is MerkleTreeSha256 {
+contract Mixer is MerkleTreeSha256, ERC223ReceivingContract {
     using Bytes for *;
 
     // The roots of the different updated trees
@@ -54,6 +88,8 @@ contract Mixer is MerkleTreeSha256 {
     uint constant jsOut = 2;
     // We have 2 field elements for each digest (root, nullifiers, commitments) and 1 + 1 public values
     uint constant nbInputs = 2 * (1 + jsIn + jsOut) + 1 + 1;
+    // Contract variable that indicates the address of the token contract. If token = address(0) then the mixer works with ether.
+    address public token;
 
     // Event to emit the address of a commitment in the merke tree
     event LogAddress(uint commAddr);
@@ -70,13 +106,15 @@ contract Mixer is MerkleTreeSha256 {
     event LogDebug(string message);
 
     // Constructor
-    constructor(address _zksnark_verify, uint depth) MerkleTreeSha256(depth) public {
+    constructor(address _zksnark_verify, uint depth, address _token) MerkleTreeSha256(depth) public {
         zksnark_verifier = Verifier(_zksnark_verify);
         
         // We log the first root to get started
         bytes32 initialRoot = getRoot();
         roots[initialRoot] = true;
         emit LogMerkleRoot(initialRoot);
+
+        token = _token;
     }
 
     // This function allows to mix coins and execute payments in zero knowledge
@@ -150,10 +188,15 @@ contract Mixer is MerkleTreeSha256 {
 
         // If the vpub_in is > 0, we need to make sure the right amount is paid
         if (vpub_in > 0) {
-            require(
-                msg.value == vpub_in,
-                "Wrong msg.value: Value paid is not correct"
-            );
+            if (token != address(0)) {
+                ERC20 erc20Token = ERC20(token);
+                erc20Token.transferFrom(msg.sender, address(this), uint256(vpub_in));
+            } else {
+                require(
+                    msg.value == vpub_in,
+                    "Wrong msg.value: Value paid is not correct"
+                    );
+            }
         } else {
             // If vpub_in is = 0, since we have a payable function, we need to
             // send the amount paid back to the caller
@@ -167,7 +210,12 @@ contract Mixer is MerkleTreeSha256 {
         // If value_pub_out > 0 then we do a withdraw
         // We retrieve the msg.sender and send him the appropriate value IF proof is valid
         if (vpub_out > 0) {
-            msg.sender.transfer(vpub_out);
+            if (token != address(0)) {
+                ERC20 erc20Token = ERC20(token);
+                erc20Token.transfer(msg.sender, uint256(vpub_out));
+            } else {
+                msg.sender.transfer(vpub_out);
+            }
         }
 
         // Add the new root to the list of existing roots
