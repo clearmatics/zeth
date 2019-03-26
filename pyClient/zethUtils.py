@@ -6,6 +6,19 @@ import base64
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 
+"""
+Note: In this proof of concept we encrypt the notes' data with RSA-OAEP.
+This scheme is known not to be IK-CCA. As a consequence, it is fundamental
+to switch to an encryption scheme that is IK-CCA to fully meet the privacy
+promises of ZETH.
+
+Reference:
+ - [BBDP01]:
+   "Key-Privacy in Public-Key Encryption",
+   M. Bellare, A. Boldyreva, A. Desai, and D. Pointcheval,
+   Asiacrypt 2001,
+   <https://iacr.org/archive/asiacrypt2001/22480568.pdf>
+"""
 def encrypt(message, public_key):
     rsa_key = RSA.importKey(public_key)
     rsa_key = PKCS1_OAEP.new(rsa_key)
