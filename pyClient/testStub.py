@@ -1,4 +1,5 @@
 import json
+import time
 import os
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
@@ -15,53 +16,51 @@ import zethUtils
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 test_grpc_endpoint = 'localhost:50051'
 
-def get_proof_bob_deposit(keystore, mk_root):
-    print("Bob deposits 4 ETH for himself and splits them into note1: 2ETH, note2: 2ETH")
-    zero_wei_hex = "0000000000000000"
+# Global variables for the tests
+#
+# Ethereum addresses
+deployer_eth_address = w3.eth.accounts[0]
+bob_eth_address = w3.eth.accounts[1]
+alice_eth_address = w3.eth.accounts[2]
+charlie_eth_address = w3.eth.accounts[3]
+# Dummy note value in HEX
+zero_wei_hex = "0000000000000000"
+# Zeth addresses
+keystore = zethMock.initTestKeystore()
+# Depth of the merkle tree (need to match the one used in the cpp prover)
+mk_tree_depth = 4
 
-    # Here Bob is the recipient of the newly generated notes
-    bob_apk = keystore["Bob"]["AddrPk"]["aPK"]
-    bob_ask = keystore["Bob"]["AddrSk"]["aSK"]
-
-    # Create the JoinSplit inputs
-    #
-    # Dummy note 1
-    input_note1 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), bob_apk, zero_wei_hex)
-    input_nullifier1 = zethGRPC.computeNullifier(input_note1, bob_ask)
-    address_note1 = 7
-    # Dummy note 2
-    input_note2 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), bob_apk, zero_wei_hex)
-    input_nullifier2 = zethGRPC.computeNullifier(input_note2, bob_ask)
-    address_note2 = 8
-
-    dummy_mk_path = [
-        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
-        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
-        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b",
-        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
-    ]
+def get_proof_joinsplit_2by2(
+        mk_root,
+        input_note1,
+        input_address1,
+        mk_path1,
+        input_note2,
+        input_address2,
+        mk_path2,
+        sender_ask,
+        recipient1_apk,
+        recipient2_apk,
+        output_note_value1,
+        output_note_value2,
+        public_in_value,
+        public_out_value
+    ):
+    input_nullifier1 = zethGRPC.computeNullifier(input_note1, sender_ask)
+    input_nullifier2 = zethGRPC.computeNullifier(input_note2, sender_ask)
     js_inputs = [
-        zethGRPC.createJSInput(dummy_mk_path, address_note1, input_note1, bob_ask, input_nullifier1),
-        zethGRPC.createJSInput(dummy_mk_path, address_note2, input_note2, bob_ask, input_nullifier2)
+        zethGRPC.createJSInput(mk_path1, input_address1, input_note1, sender_ask, input_nullifier1),
+        zethGRPC.createJSInput(mk_path2, input_address2, input_note2, sender_ask, input_nullifier2)
     ]
 
-    # Create the JoinSplit outputs
-    #
-    # Note 1: value 2ETH
-    value_output_note1 = zethGRPC.int64ToHexadecimal(Web3.toWei('2', 'ether'))
-    output_note1 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), bob_apk, value_output_note1)
-    # Note 2: value 2ETH
-    value_output_note2 = zethGRPC.int64ToHexadecimal(Web3.toWei('2', 'ether'))
-    output_note2 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), bob_apk, value_output_note2)
+    output_note1 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), recipient1_apk, output_note_value1)
+    output_note2 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), recipient2_apk, output_note_value2)
     js_outputs = [
         output_note1,
         output_note2
     ]
 
-    input_pub_val = zethGRPC.int64ToHexadecimal(Web3.toWei('4', 'ether'))
-    output_pub_val = zero_wei_hex
-
-    proof_input = zethGRPC.makeProofInputs(mk_root, js_inputs, js_outputs, input_pub_val, output_pub_val)
+    proof_input = zethGRPC.makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value)
     proof_obj = zethGRPC.getProof(test_grpc_endpoint, proof_input)
     proof_json = zethGRPC.parseProof(proof_obj)
 
@@ -69,9 +68,32 @@ def get_proof_bob_deposit(keystore, mk_root):
     # and the proof used to create them
     return (output_note1, output_note2, proof_json)
 
-def bob_deposit(mixer_instance, mk_root, bob_eth_address, keystore):
-    print(" === Bob deposits 4ETH for him ===")
-    (output_note1, output_note2, proof_json) = get_proof_bob_deposit(keystore, mk_root)
+def bob_deposit(mixer_instance, mk_root, bob_eth_address):
+    print("=== Bob deposits 4 ETH for himself and splits his deposited funds into note1: 2ETH, note2: 2ETH ===")
+    bob_apk = keystore["Bob"]["AddrPk"]["aPK"]
+    bob_ask = keystore["Bob"]["AddrSk"]["aSK"]
+    # Create the JoinSplit dummy inputs for the deposit
+    (input_note1, input_nullifier1, input_address1) = zethMock.getDummyInput(bob_apk, bob_ask)
+    (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
+    dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
+
+    (output_note1, output_note2, proof_json) = get_proof_joinsplit_2by2(
+        mk_root,
+        input_note1,
+        input_address1,
+        dummy_mk_path,
+        input_note2,
+        input_address2,
+        dummy_mk_path,
+        bob_ask, # sender
+        bob_apk, # recipient1
+        bob_apk, # recipient2
+        zethGRPC.int64ToHexadecimal(Web3.toWei('2', 'ether')), # value output note 1
+        zethGRPC.int64ToHexadecimal(Web3.toWei('2', 'ether')), # value output note 2
+        zethGRPC.int64ToHexadecimal(Web3.toWei('4', 'ether')), # v_in
+        zero_wei_hex # v_out
+    )
+
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"])
@@ -86,60 +108,34 @@ def bob_deposit(mixer_instance, mk_root, bob_eth_address, keystore):
         4000000
     )
 
-def get_proof_bob_transfer_to_charlie(keystore, mk_root, mk_path, input_note1, address_note1):
-    print("Bob transfers 1 ETH to Charlie from his funds on the mixer")
-    zero_wei_hex = "0000000000000000"
+def bob_to_charlie(mixer_instance, mk_root, mk_path1, input_note1, input_address1, bob_eth_address):
+    print("=== Bob transfers 1ETH to Charlie from his funds on the mixer ===")
 
     charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"] # We generate a coin for Charlie (recipient1)
     bob_apk = keystore["Bob"]["AddrPk"]["aPK"] # We generate a coin for Bob: the change (recipient2)
     bob_ask = keystore["Bob"]["AddrSk"]["aSK"] # Bob is the sender
 
-    # Note 1: The note Bob spends for his transfer
-    input_nullifier1 = zethGRPC.computeNullifier(input_note1, bob_ask)
+    # Create the an additional dummy input for the JoinSplit
+    (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
+    dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    # Note 2: This note is a dummy note
-    input_note2 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), bob_apk, zero_wei_hex)
-    input_nullifier2 = zethGRPC.computeNullifier(input_note2, bob_ask)
-    address_note2 = 8
-
-    js_inputs = [
-        zethGRPC.createJSInput(mk_path, address_note1, input_note1, bob_ask, input_nullifier1),
-        zethGRPC.createJSInput(mk_path, address_note2, input_note2, bob_ask, input_nullifier2)
-    ]
-
-    # Create the JoinSplit outputs
-    #
-    # Note 1: value 2ETH
-    value_output_note1 = zethGRPC.int64ToHexadecimal(Web3.toWei('1', 'ether'))
-    output_note1 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), bob_apk, value_output_note1)
-    # Note 2: value 2ETH
-    value_output_note2 = zethGRPC.int64ToHexadecimal(Web3.toWei('1', 'ether'))
-    output_note2 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), charlie_apk, value_output_note2)
-    js_outputs = [
-        output_note1,
-        output_note2
-    ]
-
-    input_pub_val = zero_wei_hex
-    output_pub_val = zero_wei_hex
-
-    proof_input = zethGRPC.makeProofInputs(mk_root, js_inputs, js_outputs, input_pub_val, output_pub_val)
-    proof_obj = zethGRPC.getProof(test_grpc_endpoint, proof_input)
-    proof_json = zethGRPC.parseProof(proof_obj)
-
-    # We return the zeth notes to be able to spend them later
-    # and the proof used to create them
-    return (output_note1, output_note2, proof_json)
-
-def bob_to_charlie(mixer_instance, mk_root, mk_path, input_note1, address_note1, bob_eth_address, keystore):
-    print(" === Bob transfers 1ETH to Charlie ===")
-    (output_note1, output_note2, proof_json) = get_proof_bob_transfer_to_charlie(
-        keystore,
+    (output_note1, output_note2, proof_json) = get_proof_joinsplit_2by2(
         mk_root,
-        mk_path,
         input_note1,
-        address_note1
+        input_address1,
+        mk_path1,
+        input_note2,
+        input_address2,
+        dummy_mk_path,
+        bob_ask, # sender
+        bob_apk, # recipient1 (change)
+        charlie_apk, # recipient2 (transfer)
+        zethGRPC.int64ToHexadecimal(Web3.toWei('1', 'ether')), # value output note 1
+        zethGRPC.int64ToHexadecimal(Web3.toWei('1', 'ether')), # value output note 2
+        zero_wei_hex, # v_in
+        zero_wei_hex # v_out
     )
+
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"]) # Bob is the recipient
@@ -154,59 +150,33 @@ def bob_to_charlie(mixer_instance, mk_root, mk_path, input_note1, address_note1,
         4000000
     )
 
-def get_proof_charlie_withdraw(keystore, mk_root, mk_path, input_note1, address_note1):
-    print("Charlie withdraws 0.9ETH from his funds on the mixer")
-    zero_wei_hex = "0000000000000000"
+def charlie_withdraw(mixer_instance, mk_root, mk_path1, input_note1, input_address1, charlie_eth_address):
+    print(" === Charlie withdraws 0.9 from his funds on the Mixer ===")
 
-    charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"] # We generate a coin of value 0.1ETH for Charlie (recipient)
-    charlie_ask = keystore["Charlie"]["AddrSk"]["aSK"] # Charlie is the sender
+    charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
+    charlie_ask = keystore["Charlie"]["AddrSk"]["aSK"]
 
-    # Note 1: The note Charlie splits and spends for his withdrawal
-    input_nullifier1 = zethGRPC.computeNullifier(input_note1, charlie_ask)
+    # Create the an additional dummy input for the JoinSplit
+    (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(charlie_apk, charlie_ask)
+    dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    # Note 2: This note is a dummy note
-    input_note2 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), charlie_apk, zero_wei_hex)
-    input_nullifier2 = zethGRPC.computeNullifier(input_note2, charlie_ask)
-    address_note2 = 8
-
-    js_inputs = [
-        zethGRPC.createJSInput(mk_path, address_note1, input_note1, charlie_ask, input_nullifier1),
-        zethGRPC.createJSInput(mk_path, address_note2, input_note2, charlie_ask, input_nullifier2)
-    ]
-
-    # Create the JoinSplit outputs
-    #
-    # Note 1: value 0.1ETH
-    value_output_note1 = zethGRPC.int64ToHexadecimal(Web3.toWei('0.1', 'ether'))
-    output_note1 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), charlie_apk, value_output_note1)
-    # Note 2: value 0ETH
-    value_output_note2 = zero_wei_hex
-    output_note2 = zethGRPC.createZethNote(zethGRPC.noteRandomness(), charlie_apk, value_output_note2)
-    js_outputs = [
-        output_note1,
-        output_note2
-    ]
-
-    input_pub_val = zero_wei_hex
-    output_pub_val = zethGRPC.int64ToHexadecimal(Web3.toWei('0.9', 'ether'))
-
-    proof_input = zethGRPC.makeProofInputs(mk_root, js_inputs, js_outputs, input_pub_val, output_pub_val)
-    proof_obj = zethGRPC.getProof(test_grpc_endpoint, proof_input)
-    proof_json = zethGRPC.parseProof(proof_obj)
-
-    # We return the zeth notes to be able to spend them later
-    # and the proof used to create them
-    return (output_note1, output_note2, proof_json)
-
-def charlie_withdraw(mixer_instance, mk_root, mk_path, input_note1, address_note1, charlie_eth_address, keystore):
-    print(" === Charlie withdraws 0.9 ===")
-    (output_note1, output_note2, proof_json) = get_proof_charlie_withdraw(
-        keystore,
+    (output_note1, output_note2, proof_json) = get_proof_joinsplit_2by2(
         mk_root,
-        mk_path,
         input_note1,
-        address_note1
+        input_address1,
+        mk_path1,
+        input_note2,
+        input_address2,
+        dummy_mk_path,
+        charlie_ask, # sender
+        charlie_apk, # recipient1
+        charlie_apk, # recipient2
+        zethGRPC.int64ToHexadecimal(Web3.toWei('0.1', 'ether')), # value output note 1
+        zero_wei_hex, # value output note 2
+        zero_wei_hex, # v_in
+        zethGRPC.int64ToHexadecimal(Web3.toWei('0.9', 'ether')), # v_out
     )
+
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
@@ -227,17 +197,32 @@ def print_balances(bob, alice, charlie, mixer):
     print("Charlie's ETH balance: ", w3.eth.getBalance(charlie))
     print("Mixer's ETH balance: ", w3.eth.getBalance(mixer))
 
-if __name__ == '__main__':
-    # Ethereum addresses
-    deployer_eth_address = w3.eth.accounts[0]
-    bob_eth_address = w3.eth.accounts[1]
-    alice_eth_address = w3.eth.accounts[2]
-    charlie_eth_address = w3.eth.accounts[3]
-    # Zeth addresses
-    keystore = zethMock.initTestKeystore()
-    # Depth of the merkle tree (need to match the one used in the cpp prover)
-    mk_tree_depth = 4
+def receive(ciphertext, decryption_key, username):
+    recovered_plaintext = ""
+    try:
+        recovered_plaintext = zethUtils.decrypt(ciphertext, decryption_key)
+        print("[INFO] {} recovered one plaintext".format(username))
+        print("[INFO] {} received a payment!".format(username))
+        # Just as an example we write the received coin in the coinstore
+        print("[INFO] Writing the received note in the coinstore")
+        coinstore_dir = os.environ['ZETH_COINSTORE']
+        coin_filename = "{}_{}.json".format(username, int(round(time.time() * 1000)))
+        path_to_coin = os.path.join(coinstore_dir, coin_filename)
+        file = open(path_to_coin, "w")
+        file.write(recovered_plaintext)
+        file.close()
+    except Exception as e:
+        print("[ERROR] in receive. Might not be the recipient! (msg: {})".format(e))
+    return recovered_plaintext
 
+def get_merkle_tree(mixer_instance):
+    mk_byte_tree = mixer_instance.functions.getTree().call()
+    print("[DEBUG] Displaying the Merkle tree of commitments: ")
+    for node in mk_byte_tree:
+        print("Node: " + w3.toHex(node)[2:])
+    return mk_byte_tree
+
+if __name__ == '__main__':
     print("[INFO] 1. Fetching the verification key from the proving server")
     vk = zethGRPC.getVerificationKey(test_grpc_endpoint)
 
@@ -246,93 +231,115 @@ if __name__ == '__main__':
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     (verifier_interface, mixer_interface) = zethContracts.compile_contracts()
-    (mixer_instance, initial_root) = zethContracts.deploy(mk_tree_depth, verifier_interface, mixer_interface ,deployer_eth_address, 4000000, "0x0000000000000000000000000000000000000000")
+    (mixer_instance, initial_root) = zethContracts.deploy(
+        mk_tree_depth,
+        verifier_interface,
+        mixer_interface,
+        deployer_eth_address,
+        4000000,
+        "0x0000000000000000000000000000000000000000"
+    )
 
     print("[INFO] 4. Running tests...")
-    print("Initial balances: ")
-    print_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+    print("- Initial balances: ")
+    print_balances(
+        bob_eth_address,
+        alice_eth_address,
+        charlie_eth_address,
+        mixer_instance.address
+    )
 
     # Bob deposits 4ETH split in 2 notes of denominations of 2ETh and 2ETH on the mixer
-    (cm_address1BtB, cm_address2BtB, new_mk_rootBtB, ciphertext1BtB, ciphertext2BtB) = bob_deposit(mixer_instance, initial_root, bob_eth_address, keystore)
+    result_deposit_bob_to_bob = bob_deposit(mixer_instance, initial_root, bob_eth_address)
+    cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
+    cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]
+    new_merkle_root_bob_to_bob = result_deposit_bob_to_bob[2]
+    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob[3]
+    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob[4]
 
-    print("Balances after Bob's deposit: ")
-    print_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+    print("- Balances after Bob's deposit: ")
+    print_balances(
+        bob_eth_address,
+        alice_eth_address,
+        charlie_eth_address,
+        mixer_instance.address
+    )
 
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she was the recipient
     # But she wasn't the recipient (Bob was), so she fails to decrypt
-    try:
-        bob_recovered_plaintext1 = zethUtils.decrypt(ciphertext1BtB, keystore["Alice"]["AddrSk"]["dk"])
-        bob_recovered_plaintext2 = zethUtils.decrypt(ciphertext2BtB, keystore["Alice"]["AddrSk"]["dk"])
-        print("/!\ Alice recovered the 2 plaintext encrypted by Bob for Bob!!!")
-        print("Recovered plaintext1: " + bob_recovered_plaintext1 + " plaintext2: " + bob_recovered_plaintext2)
-    except:
-        print("Alice tried to decrypt ciphertexts that were not dedicated to her, and failed!")
+    recovered_plaintext1 = receive(ciphertext_bob_to_bob1, keystore["Alice"]["AddrSk"]["dk"], "alice")
+    recovered_plaintext2 = receive(ciphertext_bob_to_bob2, keystore["Alice"]["AddrSk"]["dk"], "alice")
+    assert (recovered_plaintext1 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
+    assert (recovered_plaintext2 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
 
     # Bob does a transfer of 1ETH to Charlie on the mixer
+    #
     # Bob looks in the merkle tree and gets the merkle path to the commitment he wants to spend
-    mk_byte_tree = mixer_instance.functions.getTree().call()
-    print("[DEBUG] Displaying the merkle tree maintained by the mixer contract: ")
-    for node in mk_byte_tree:
-        print("Node: " + w3.toHex(node)[2:])
-
-    # Get the merkle path for the commitment to spend
-    mk_path = zethUtils.compute_merkle_path(cm_address1BtB, mk_tree_depth, mk_byte_tree)
-
+    mk_byte_tree = get_merkle_tree(mixer_instance)
+    mk_path = zethUtils.compute_merkle_path(cm_address_bob_to_bob1, mk_tree_depth, mk_byte_tree)
     # Bob decrypts one of the note he previously received (useless here but useful if the payment came from someone else)
-    input_note_json = json.loads(zethUtils.decrypt(ciphertext1BtB, keystore["Bob"]["AddrSk"]["dk"]))
-    input_noteBtC = zethGRPC.zethNoteObjFromParsed(input_note_json)
-
-    (cm_address1_bob_transfer, cm_address2_bob_transfer, new_mk_root_bob_transfer, ciphertext1_bob_transfer, ciphertext2_bob_transfer) = bob_to_charlie(mixer_instance, new_mk_rootBtB, mk_path, input_noteBtC, cm_address1BtB, bob_eth_address, keystore)
-
-    # Bob tries to do a double spent (spending the zeth note `input_noteBtC,` twice)
+    input_note_json = json.loads(zethUtils.decrypt(ciphertext_bob_to_bob1, keystore["Bob"]["AddrSk"]["dk"]))
+    input_note_bob_to_charlie = zethGRPC.zethNoteObjFromParsed(input_note_json)
+    # Execution of the transfer
+    result_transfer_bob_to_charlie = bob_to_charlie(
+        mixer_instance,
+        new_merkle_root_bob_to_bob,
+        mk_path,
+        input_note_bob_to_charlie,
+        cm_address_bob_to_bob1,
+        bob_eth_address
+    )
+    cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie[0] # Bob -> Bob (Change)
+    cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie[1] # Bob -> Charlie (payment to Charlie)
+    new_merkle_root_bob_to_charlie = result_transfer_bob_to_charlie[2]
+    ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[3]
+    ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[4]
+    # Bob tries to do spend `input_note_bob_to_charlie` twice
+    result_double_spending = ""
     try:
-        (cm_address1_bob_transfer_ds, cm_address2_bob_transfer_ds, new_mk_root_bob_transfer_ds, ciphertext1_bob_transfer_ds, ciphertext2_bob_transfer_ds) = bob_to_charlie(mixer_instance, new_mk_rootBtB, mk_path, input_noteBtC, cm_address1BtB, bob_eth_address, keystore)
-        print("/!\ Double spent successful for Bob!")
+        result_double_spending = bob_to_charlie(
+            mixer_instance,
+            new_merkle_root_bob_to_bob,
+            mk_path,
+            input_note_bob_to_charlie,
+            cm_address_bob_to_bob1,
+            bob_eth_address
+        )
     except:
-        print("Bob tried to use the same commitment twice (double spent) as input of the joinsplit, and failed!")
+        print("Bob's double spending successfully rejected")
+    assert (result_double_spending == ""),"Bob managed to spend the same note twice!"
 
     print("Balances after Bob's transfer to Charlie: ")
-    print_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
+    print_balances(
+        bob_eth_address,
+        alice_eth_address,
+        charlie_eth_address,
+        mixer_instance.address
+    )
 
     # Charlie tries to decrypt the ciphertexts from Bob's previous transaction
-    recovered_plaintext1 = ""
-    try:
-        recovered_plaintext1 = decrypt(ciphertext1_bob_transfer, keystore["Charlie"]["AddrSk"]["dk"])
-        print("[INFO] Charlie recovered one of the plaintext encrypted by Bob!")
-        print("[INFO] Charlie now knows he received a payment from Bob.")
-    except:
-        print("[ERROR] Charlie failed to decrypt a ciphertext emitted by Bob's transaction: Was not the recipient!")
-    recovered_plaintext2 = ""
-    try:
-        recovered_plaintext2 = zethUtils.decrypt(ciphertext2_bob_transfer, keystore["Charlie"]["AddrSk"]["dk"])
-        print("[INFO] Charlie recovered one of the plaintext encrypted by Bob!")
-        print("[INFO] Charlie now knows he received a payment from Bob.")
-        # Just as an example we write the received coin in the coinstore
-        print("[INFO] Writing the received note in the coinstore")
-        coinstore_dir = os.environ['ZETH_COINSTORE']
-        path_to_coin = os.path.join(coinstore_dir, "note_from_bob_test.json")
-        file = open(path_to_coin, "w")
-        file.write(recovered_plaintext2)
-        file.close()
-    except:
-        print("[ERROR] Charlie failed to decrypt a ciphertext emitted by Bob's transaction: Was not the recipient!")
-
-    # Here `recovered_plaintext1` should contain a valid note in json str format and `recovered_plaintext2` should be the empty string
-    assert (recovered_plaintext1 == ""),"`recovered_plaintext1` Should be the empty string since the 1st note of Bob's transfer was his change"
-    assert (recovered_plaintext2 != ""),"`recovered_plaintext2` Should contain a valid note in json str format"
-
+    recovered_plaintext1 = receive(ciphertext_bob_to_charlie1, keystore["Charlie"]["AddrSk"]["dk"], "charlie")
+    recovered_plaintext2 = receive(ciphertext_bob_to_charlie2, keystore["Charlie"]["AddrSk"]["dk"], "charlie")
+    assert (recovered_plaintext1 == ""),"Charlie managed to decrypt a ciphertext that was not encrypted with his key!"
+    assert (recovered_plaintext2 != ""),"Charlie should have been able to decrypt the ciphertext that was obtained with his key!"
 
     # Charlie now gets the merkle path for the commitment he wants to spend
-    mk_byte_tree = mixer_instance.functions.getTree().call()
-    print("[DEBUG] Displaying the merkle tree maintained by the mixer contract: ")
-    for node in mk_byte_tree:
-        print("Node: " + w3.toHex(node)[2:])
-
-    # Get the merkle path for the commitment to spend
-    mk_path_charlie_withdraw = zethUtils.compute_merkle_path(cm_address2_bob_transfer, mk_tree_depth, mk_byte_tree)
+    mk_byte_tree = get_merkle_tree(mixer_instance)
+    mk_path = zethUtils.compute_merkle_path(cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
     input_note_charlie_withdraw = zethGRPC.zethNoteObjFromParsed(json.loads(recovered_plaintext2))
-    (cm_address1_charlie_withdraw, cm_address2_charlie_withdraw, new_mk_root_charlie_withdraw, ciphertext1_charlie_withdraw, ciphertext2_charlie_withdraw) = charlie_withdraw(mixer_instance, new_mk_root_bob_transfer, mk_path_charlie_withdraw, input_note_charlie_withdraw, cm_address2_bob_transfer, charlie_eth_address, keystore)
+    result_charlie_withdrawal = charlie_withdraw(
+        mixer_instance,
+        new_merkle_root_bob_to_charlie,
+        mk_path,
+        input_note_charlie_withdraw,
+        cm_address_bob_to_charlie2,
+        charlie_eth_address
+    )
 
     print("Balances after Charlie's withdrawal: ")
-    print_balances(bob_eth_address, alice_eth_address, charlie_eth_address, mixer_instance.address)
-
+    print_balances(
+        bob_eth_address,
+        alice_eth_address,
+        charlie_eth_address,
+        mixer_instance.address
+    )
