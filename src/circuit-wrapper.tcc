@@ -1,17 +1,18 @@
 #include "circuits/computation.hpp"
+#include "zeth.h"
 
 namespace libzeth {
 
 template<size_t NumInputs, size_t NumOutputs>
-libsnark::r1cs_ppzksnark_keypair<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {
+keyPairT<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {//TODO check if I need to import everything
     libsnark::protoboard<FieldT> pb;
     joinsplit_gadget<FieldT, HashT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
         
     // Generate a verification and proving key (trusted setup)
     // and write them in a file
-    libsnark::r1cs_ppzksnark_keypair<ppT> keypair = gen_trusted_setup<ppT>(pb);
-    write_setup<ppT>(keypair, this->setupPath);
+    keyPairT<ppT> keypair = gen_trusted_setup<ppT>(pb);
+    writeSetup<ppT>(keypair, this->setupPath);
 
     return keypair;
 }
@@ -23,7 +24,7 @@ extended_proof<ppT> CircuitWrapper<NumInputs, NumOutputs>::prove(
     const std::array<ZethNote, NumOutputs>& outputs,
     bits64 vpub_in,
     bits64 vpub_out,
-    libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key
+    provingKeyT<ppT> proving_key
 ) {
     // left hand side and right hand side of the joinsplit
     bits64 lhs_value = vpub_in;
