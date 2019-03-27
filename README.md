@@ -89,7 +89,6 @@ We provide the building block to write a CLI or a frontend to make ZETH more use
 ## References
 
 - **BabyZoe:** https://github.com/zcash-hackworks/babyzoe
-- **Hackishlibsnarkbindings:** https://github.com/ebfull/hackishlibsnarkbindings
 - **Miximus:** https://github.com/barryWhiteHat/miximus.git
 - **ZeroCash:** http://zerocash-project.org/
 - **ZCash github:** https://github.com/zcash/zcash
