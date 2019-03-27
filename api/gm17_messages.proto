@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package proverpkg;
+
+import public "util.proto";
+
+message R1csSePpzksnarkVerificationKey {
+    //TODO
+  }
+  
+  message R1csSePpzksnarkExtendedProof {
+    //TODO
+    string inputs = 1;
+  }
