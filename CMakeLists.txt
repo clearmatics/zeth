@@ -18,6 +18,15 @@ configure_file (
     "${PROJECT_BINARY_DIR}/zethConfig.h"
 )
 
+# Flags and compilation options to chose the type of snark
+set(
+  SNARK # Variable name
+  "R1CS_PPZKSNARK"
+  CACHE
+  STRING
+  "Default snark: one of R1CS_PPZKSNARK, R1CS_GG__PPZKSNARK, R1CS_SE__PPZKSNARK"
+)
+
 # Flags and compilation options for use with libsnark
 set(
   CURVE # Variable name
@@ -83,6 +92,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 
 add_definitions(-DCURVE_${CURVE})
+add_definitions(-DSNARK_${SNARK})
 
 enable_testing()
 
