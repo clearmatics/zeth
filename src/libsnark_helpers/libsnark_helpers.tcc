@@ -1,6 +1,7 @@
 #ifndef __ZETH_LIBSNARK_HELPERS_TCC__
 #define __ZETH_LIBSNARK_HELPERS_TCC__
 
+
 namespace libzeth {
 
 // SerializableT represents any type that overloads the operator<< and operator>> of ostream and istream
@@ -49,27 +50,27 @@ serializableT loadFromFile(boost::filesystem::path path) {
 };
 
 template<typename ppT>
-void serializeProvingKeyToFile(libsnark::r1cs_ppzksnark_proving_key<ppT> pk, boost::filesystem::path pk_path)
+void serializeProvingKeyToFile(provingKeyT<ppT> &pk, boost::filesystem::path pk_path)
 {
-    writeToFile<libsnark::r1cs_ppzksnark_proving_key<ppT> >(pk_path, pk);
+    writeToFile<provingKeyT<ppT>>(pk_path, pk);
 };
 
 template<typename ppT>
-libsnark::r1cs_ppzksnark_proving_key<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path)
+provingKeyT<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path)
 {
-    return loadFromFile<libsnark::r1cs_ppzksnark_proving_key<ppT> >(pk_path);
+    return loadFromFile<provingKeyT<ppT>>(pk_path);
 };
 
 template<typename ppT>
-void serializeVerificationKeyToFile(libsnark::r1cs_ppzksnark_verification_key<ppT> vk, boost::filesystem::path vk_path)
+void serializeVerificationKeyToFile(verificationKeyT<ppT> &vk, boost::filesystem::path vk_path)
 {
-    writeToFile<libsnark::r1cs_ppzksnark_verification_key<ppT> >(vk_path, vk);
+    writeToFile<verificationKeyT<ppT>>(vk_path, vk);
 };
 
 template<typename ppT>
-libsnark::r1cs_ppzksnark_verification_key<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path)
+verificationKeyT<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path)
 {
-    return loadFromFile<libsnark::r1cs_ppzksnark_verification_key<ppT> >(vk_path);
+    return loadFromFile<verificationKeyT<ppT>>(vk_path);
 };
 
 template<typename ppT>
@@ -97,7 +98,13 @@ void exportVerificationKey(libsnark::r1cs_ppzksnark_keypair<ppT> keypair)
 };
 
 template<typename ppT>
-void display_proof(libsnark::r1cs_ppzksnark_proof<ppT> proof)
+void exportVerificationKey(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair)
+{
+//TODO: to implement
+};
+
+template<typename ppT>
+void displayProof(libsnark::r1cs_ppzksnark_proof<ppT> proof)
 {
     std::cout << "Proof:"<< std::endl;
     std::cout << "proof.A = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.g)<< ");" << std::endl;
@@ -111,7 +118,13 @@ void display_proof(libsnark::r1cs_ppzksnark_proof<ppT> proof)
 };
 
 template<typename ppT>
-void verificationKey_to_json(libsnark::r1cs_ppzksnark_verification_key<ppT> vk, boost::filesystem::path path)
+void displayProof(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof)
+{
+//TODO: to implement
+};
+
+template<typename ppT>
+void verificationKeyToJson(libsnark::r1cs_ppzksnark_verification_key<ppT> vk, boost::filesystem::path path)
 {
     if (path.empty())
     {
@@ -153,7 +166,13 @@ void verificationKey_to_json(libsnark::r1cs_ppzksnark_verification_key<ppT> vk, 
 };
 
 template<typename ppT>
-void proof_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path) {
+void verificationKeyToJson(libsnark::r1cs_gg_ppzksnark_verification_key<ppT> vk, boost::filesystem::path path)
+{
+    //TODO: implement
+};
+
+template<typename ppT>
+void proofToJson(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path) {
 	if (path.empty())
     {
 		boost::filesystem::path tmp_path = getPathToDebugDir(); // Used for a debug purpose
@@ -185,7 +204,12 @@ void proof_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem:
 };
 
 template<typename ppT>
-void write_setup(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path setup_dir)
+void proofToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, boost::filesystem::path path){
+    //TODO: implement
+} 
+
+template<typename ppT>
+void writeSetup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir)
 {
 	if (setup_dir.empty())
     {
@@ -200,17 +224,17 @@ void write_setup(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesyste
 	boost::filesystem::path path_vk_raw = setup_dir / vk_raw;
 	boost::filesystem::path path_pk_raw = setup_dir / pk_raw;
 
-    libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key = keypair.pk;
-    libsnark::r1cs_ppzksnark_verification_key<ppT> verification_key = keypair.vk;
+    provingKeyT<ppT> proving_key = keypair.pk;
+    verificationKeyT<ppT> verification_key = keypair.vk;
 
-	verificationKey_to_json<ppT>(verification_key, path_vk_json);
+	verificationKeyToJson<ppT>(verification_key, path_vk_json);
 
 	serializeVerificationKeyToFile<ppT>(verification_key, path_vk_raw);
 	serializeProvingKeyToFile<ppT>(proving_key, path_pk_raw);
 };
 
 template<typename ppT>
-void r1cs_constraints_to_json(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path)
+void r1csConstraintsToJson(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path)
 {
 	if (path.empty())
     {
@@ -225,7 +249,7 @@ void r1cs_constraints_to_json(libsnark::linear_combination<libff::Fr<ppT> > cons
     std::ofstream fh;
     fh.open(str_path, std::ios::binary);
 
-    fill_json_constraints_in_ss(constraints, ss);
+    fillJsonConstraintsInSs(constraints, ss);
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::out);
 
@@ -235,7 +259,7 @@ void r1cs_constraints_to_json(libsnark::linear_combination<libff::Fr<ppT> > cons
 };
 
 template<typename ppT>
-void fill_json_constraints_in_ss(libsnark::linear_combination<libff::Fr<ppT> > constraints, std::stringstream& ss)
+void fillJsonConstraintsInSs(libsnark::linear_combination<libff::Fr<ppT> > constraints, std::stringstream& ss)
 {
     ss << "{";
     uint count = 0;
@@ -255,7 +279,7 @@ void fill_json_constraints_in_ss(libsnark::linear_combination<libff::Fr<ppT> > c
 };
 
 template <typename ppT>
-void array_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path) {
+void arrayToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path) {
 	if (path.empty())
     {
 		boost::filesystem::path tmp_path = getPathToDebugDir(); // Used for a debug purpose
@@ -286,7 +310,7 @@ void array_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variable
 };
 
 template<typename ppT>
-void r1cs_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path) {
+void r1csToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path) {
 	if (path.empty()) {
 		boost::filesystem::path tmp_path = getPathToDebugDir(); // Used for a debug purpose
 		boost::filesystem::path r1cs_json("r1cs.json");
@@ -297,7 +321,7 @@ void r1cs_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables
 
     // output inputs, right now need to compile with debug flag so that the `variable_annotations`
     // exists. Having trouble setting that up so will leave for now.
-    libsnark::r1cs_ppzksnark_constraint_system<ppT> constraints = pb.get_constraint_system();
+    libsnark::r1cs_constraint_system<ppT> constraints = pb.get_constraint_system();
     std::stringstream ss;
     std::ofstream fh;
     fh.open(str_path, std::ios::binary);
@@ -315,11 +339,11 @@ void r1cs_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables
 
     for (size_t c = 0; c < constraints.num_constraints(); ++c) {
         ss << "[";// << "\"A\"=";
-        fill_json_constraints_in_ss<ppT>(constraints.constraints[c].a, ss);
+        fillJsonConstraintsInSs<ppT>(constraints.constraints[c].a, ss);
         ss << ",";// << "\"B\"=";
-        fill_json_constraints_in_ss<ppT>(constraints.constraints[c].b, ss);
+        fillJsonConstraintsInSs<ppT>(constraints.constraints[c].b, ss);
         ss << ",";// << "\"A\"=";;
-        fill_json_constraints_in_ss<ppT>(constraints.constraints[c].c, ss);
+        fillJsonConstraintsInSs<ppT>(constraints.constraints[c].c, ss);
         if (c == constraints.num_constraints()-1 ) {
             ss << "]\n";
         } else {
@@ -335,7 +359,7 @@ void r1cs_to_json(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables
 };
 
 template<typename ppT>
-void proof_and_input_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
+void proofAndInputToJson(libsnark::r1cs_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
 	if (path.empty()) {
 		boost::filesystem::path tmp_path = getPathToDebugDir(); // Used for a debug purpose
 		boost::filesystem::path proof_and_input_json("proof_and_input.json");
@@ -375,7 +399,12 @@ void proof_and_input_to_json(libsnark::r1cs_ppzksnark_proof<ppT> proof, libsnark
 };
 
 template<typename ppT>
-void primary_input_to_json(libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
+void proofAndInputToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, libsnark::r1cs_gg_ppzksnark_primary_input<ppT> input, boost::filesystem::path path){
+//TODO: to implement
+};
+
+template<typename ppT>
+void primaryInputToJson(libsnark::r1cs_primary_input<libff::Fr<ppT>> input, boost::filesystem::path path) {//TODO: am I sure that is general?
 	if (path.empty()) {
 		boost::filesystem::path tmp_path = getPathToDebugDir(); // Used for a debug purpose
 		boost::filesystem::path primary_input_json("primary_input.json");
@@ -406,7 +435,7 @@ void primary_input_to_json(libsnark::r1cs_ppzksnark_primary_input<ppT> input, bo
 };
 
 template<typename ppT>
-void display_primary_input(libsnark::r1cs_ppzksnark_primary_input<ppT> input) {
+void display_primary_input(libsnark::r1cs_primary_input<libff::Fr<ppT>> input) {
     std::cout << "{\n";
     std::cout << " \"inputs\" :" << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < input.size(); ++i) {
