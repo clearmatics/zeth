@@ -3,6 +3,8 @@ from Crypto.PublicKey import RSA
 import zlib
 import base64
 
+import zethGRPC
+
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 
@@ -88,3 +90,20 @@ def compute_merkle_path(address_commitment, tree_depth, byte_tree):
             address = int(address/2)
     return merkle_path[::-1] # Return the merkle tree in reverse order
 
+def receive(ciphertext, decryption_key, username):
+    recovered_plaintext = ""
+    try:
+        recovered_plaintext = decrypt(ciphertext, decryption_key)
+        print("[INFO] {} recovered one plaintext".format(username))
+        print("[INFO] {} received a payment!".format(username))
+        # Just as an example we write the received coin in the coinstore
+        print("[INFO] Writing the received note in the coinstore")
+        coinstore_dir = os.environ['ZETH_COINSTORE']
+        coin_filename = "{}_{}.json".format(username, int(round(time.time() * 1000)))
+        path_to_coin = os.path.join(coinstore_dir, coin_filename)
+        file = open(path_to_coin, "w")
+        file.write(recovered_plaintext)
+        file.close()
+    except Exception as e:
+        print("[ERROR] in receive. Might not be the recipient! (msg: {})".format(e))
+    return recovered_plaintext
