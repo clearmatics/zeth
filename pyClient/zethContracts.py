@@ -46,7 +46,7 @@ def deploy(mk_tree_depth, verifier_interface, mixer_interface, deployer_address,
         gammaBeta2_2=zethGRPC.hex2int(vk["gb2"][1]),
         Z1=zethGRPC.hex2int(vk["z"][0]),
         Z2=zethGRPC.hex2int(vk["z"][1]),
-        input=zethGRPC.hex2int(sum(vk["IC"], []))
+        IC_coefficients=zethGRPC.hex2int(sum(vk["IC"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Verifier contract address
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
