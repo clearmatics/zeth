@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 /*
- * Reference:
+ * Reference papers:
  *
  * [BCTV14]:
  * "Succinct Non-Interactive Zero Knowledge for a von Neumann Architecture",
@@ -13,7 +13,6 @@ pragma solidity ^0.5.0;
  * "On the security of the BCTV Pinocchio zk-SNARK variant",
  * Ariel Gabizon,
  * <https://eprint.iacr.org/2019/119.pdf>
- *
 **/
 
 import "./Pairing.sol";
