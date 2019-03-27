@@ -1,9 +1,6 @@
 #ifndef __ZETH_CIRCUIT_WRAPPER_HPP__
 #define __ZETH_CIRCUIT_WRAPPER_HPP__
 
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-
-#include "libsnark_helpers/extended_proof.hpp"
 #include "types/note.hpp"
 
 #include "circuits/joinsplit.tcc"
@@ -27,7 +24,8 @@ public:
     ): setupPath(setupPath) {};
 
     // Generate the trusted setup
-    libsnark::r1cs_ppzksnark_keypair<ppT> generate_trusted_setup();
+
+    keyPairT<ppT> generate_trusted_setup();
 
     // Generate a proof and returns an extended proof
     extended_proof<ppT> prove(const bits256& root_bits,
@@ -35,7 +33,7 @@ public:
                             const std::array<ZethNote, NumOutputs>& outputs,
                             bits64 vpub_in,
                             bits64 vpub_out,
-                            libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key);
+                            provingKeyT<ppT> proving_key);
 };
 
 } // libzeth
