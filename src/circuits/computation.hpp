@@ -11,10 +11,11 @@ typedef libff::default_ec_pp ppT; // We use the public parameters of the alt_bn_
 namespace libzeth {
 
 template<typename ppT>
-extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key);
+extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, provingKeyT<ppT> proving_key);
 
 template<typename ppT>
 libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(libsnark::protoboard<libff::Fr<ppT> > pb);
+
 
 } // libzeth
 #include "circuits/computation.tcc"
