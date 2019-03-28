@@ -16,7 +16,7 @@ def getVerificationKey(grpcEndpoint):
     with grpc.insecure_channel(grpcEndpoint) as channel:
         stub = prover_pb2_grpc.ProverStub(channel)
         print("-------------- Get the verification key --------------")
-        verificationkey = stub.GetVerificationKey(make_empty_message());
+        verificationkey = stub.GetVerificationKey(make_empty_message())
         return verificationkey
 
 # Request a proof generation to the proving service
@@ -83,13 +83,13 @@ def computeCommitment(zethNoteGRPCObj):
     ).hexdigest()
 
     # outer_k = sha256(r || [inner_k]_128)
-    first128InnerComm = inner_k[0:128];
+    first128InnerComm = inner_k[0:128]
     outer_k = hashlib.sha256(
         encode_abi(['bytes', 'bytes'], (bytes.fromhex(zethNoteGRPCObj.trapR), bytes.fromhex(first128InnerComm)))
     ).hexdigest()
 
     # cm = sha256(outer_k || 0^192 || value_v)
-    frontPad = "000000000000000000000000000000000000000000000000";
+    frontPad = "000000000000000000000000000000000000000000000000"
     cm = hashlib.sha256(
         encode_abi(["bytes32", "bytes32"], (bytes.fromhex(outer_k), bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
     ).hexdigest()
@@ -116,7 +116,7 @@ def int64ToHexadecimal(number):
 
 def deriveAPK(ask):
     # a_pk = sha256(a_sk || 0^256)
-    zeroes = "0000000000000000000000000000000000000000000000000000000000000000";
+    zeroes = "0000000000000000000000000000000000000000000000000000000000000000"
     a_pk = hashlib.sha256(
         encode_abi(["bytes32", "bytes32"], [bytes.fromhex(ask), bytes.fromhex(zeroes)])
     ).hexdigest()
@@ -195,3 +195,42 @@ def parseProof(proofObj):
     proofJSON["k"] = parseHexadecimalPointBaseGroup1Affine(proofObj.k)
     proofJSON["inputs"] = json.loads(proofObj.inputs)
     return proofJSON
+
+def get_proof_joinsplit_2by2(
+        grpcEndpoint,
+        mk_root,
+        input_note1,
+        input_address1,
+        mk_path1,
+        input_note2,
+        input_address2,
+        mk_path2,
+        sender_ask,
+        recipient1_apk,
+        recipient2_apk,
+        output_note_value1,
+        output_note_value2,
+        public_in_value,
+        public_out_value
+    ):
+    input_nullifier1 = computeNullifier(input_note1, sender_ask)
+    input_nullifier2 = computeNullifier(input_note2, sender_ask)
+    js_inputs = [
+        createJSInput(mk_path1, input_address1, input_note1, sender_ask, input_nullifier1),
+        createJSInput(mk_path2, input_address2, input_note2, sender_ask, input_nullifier2)
+    ]
+
+    output_note1 = createZethNote(noteRandomness(), recipient1_apk, output_note_value1)
+    output_note2 = createZethNote(noteRandomness(), recipient2_apk, output_note_value2)
+    js_outputs = [
+        output_note1,
+        output_note2
+    ]
+
+    proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value)
+    proof_obj = getProof(grpcEndpoint, proof_input)
+    proof_json = parseProof(proof_obj)
+
+    # We return the zeth notes to be able to spend them later
+    # and the proof used to create them
+    return (output_note1, output_note2, proof_json)

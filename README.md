@@ -7,11 +7,17 @@ It follows and extend the design presented in [zerocash-ethereum](https://github
 
 :point_right: Check our [paper](https://gitlab.clearmatics.net/ar/zeth-protocol/blob/master/zeth.pdf) for more information about ZETH.
 
-## Building the project:
+## Building and running the project:
 
-### Using docker (Recommended)
+### Environment
 
-In order to run the project, you will need 3 terminals.
+In order to follow the README below, you will need:
+- [Docker](https://www.docker.com/get-started)
+- [Npm](https://www.npmjs.com/get-npm) (at least version `6.4.1`)
+- [Node](https://nodejs.org/en/) (at least version `v9.5.0`)
+- [Python3](https://www.python.org/downloads/) (at least version `3.6.3`)
+
+We use 3 terminals to run the project.
 One terminal will run the proving service/server, another one will run the ethereum testnet, and the final one
 will run a python stub that triggers a few proof generations on the proving server in order to do confidential transactions on the Ethereum testnet.
 
@@ -50,70 +56,32 @@ prover_server
 ```bash
 # Start the ethereum test net by running the following commands
 cd zeth-contracts
-# (Make sure you have ganache-cli installed, if not, run "npm install ganache-cli")
+
+# Install dependencies
+npm install
+
+# Start a local Ethereum testnet
 npm run testrpc
 ```
 
 #### Terminal 3: Start the testing Python stub
 
 ```bash
-cd pyClient
-
-# Follow the few steps described in the README of the python stub
-```
-
-### Without docker
-
-#### Configure your environment
-
-```bash
-# Install dependencies
-sudo apt-get install libboost-all-dev
-sudo apt-get install libgmp3-dev
-sudo apt-get install libprocps-dev
-
-# Make sure you have gRPC installed (see: https://github.com/grpc/grpc/blob/v1.19.0/src/cpp/README.md)
-
-node --version # v10.15.0
-npm --version # 6.4.1
-truffle --version # v5.0.1
-ganache-cli --version # v6.2.5
-protoc --version # libprotoc 3.6.1
-
-# Setup your environment
+# Configure your environment
 . ./setup_env.sh
-```
 
-#### Run the prover
-
-Follow the steps described in the Docker section (install submodules, compile, test and run)
-
-**Note:**
-In order to compile the project on **MacOS** (see: https://github.com/scipr-lab/libsnark/issues/99), run:
-
-```bash
-brew install pkg-config
-
-mkdir build && cd build
-
-LD_LIBRARY_PATH=/usr/local/opt/openssl/lib:"${LD_LIBRARY_PATH}"
-CPATH=/usr/local/opt/openssl/include:"${CPATH}"
-PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig:"${PKG_CONFIG_PATH}"
-export LD_LIBRARY_PATH CPATH PKG_CONFIG_PATH
-
-CPPFLAGS=-I/usr/local/opt/openssl/include LDFLAGS=-L/usr/local/opt/openssl/lib PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig cmake -DWITH_PROCPS=OFF -DWITH_SUPERCOP=OFF ..
-
-make
+cd pyClient
+# Follow the few steps described in the README of the python stub
 ```
 
 ### Use the pyClient or the jsClient
 
-This Proof of Concept comes with the building blocks to integrate zeth into your DApp.
+This Proof of Concept comes with the building blocks to integrate zeth with your applications.
 You can use the python and/or the javascript clients to interact with the proving service and request proofs on a given input.
 This is a great way to experiment with confidential asset transfer on Ethereum!
 
-If you do not know where to start, don't panic! Just follow the instructions of the README in `pyClient` to run the `testStub.py` script.
-This script implements a scenario where Alice, Bob and Charlie do confidential asset transfers.
+If you do not know where to start, don't panic! Just follow the instructions of the README in `pyClient` to run the `testEtherMixing.py` script.
+This script implements a scenario where Alice, Bob and Charlie do confidential Ether transfers.
 
 **Note:** These clients are very minimal and only used for testing purpose.
 We provide the building block to write a CLI or a frontend to make ZETH more user friendly, and we welcome any contributions! :)
@@ -121,7 +89,6 @@ We provide the building block to write a CLI or a frontend to make ZETH more use
 ## References
 
 - **BabyZoe:** https://github.com/zcash-hackworks/babyzoe
-- **Hackishlibsnarkbindings:** https://github.com/ebfull/hackishlibsnarkbindings
 - **Miximus:** https://github.com/barryWhiteHat/miximus.git
 - **ZeroCash:** http://zerocash-project.org/
 - **ZCash github:** https://github.com/zcash/zcash
@@ -201,3 +168,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
+
+### Miximus
+
+[barryWhiteHat/miximus GNU General Public License v3.0](https://github.com/barryWhiteHat/miximus/blob/master/LICENSE)

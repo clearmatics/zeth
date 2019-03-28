@@ -9,7 +9,7 @@ from solcx import compile_standard, compile_files
 # and access the formatting utils
 import zethGRPC
 
-w3 = Web3(HTTPProvider("http://localhost:8545"));
+w3 = Web3(HTTPProvider("http://localhost:8545"))
 
 def compile_contracts():
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
@@ -25,8 +25,7 @@ def compile_contracts():
 # Deploy the mixer contract with the given merkle tree depth
 # and returns an instance of the mixer along with the initial merkle tree
 # root to use for the first zero knowledge payments
-def deploy(mk_tree_depth, deployer_address, deployment_gas):
-    verifier_interface, mixer_interface = compile_contracts()
+def deploy(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address):
     setup_dir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     vk_json = os.path.join(setup_dir, "vk.json")
     with open(vk_json) as json_data:
@@ -47,7 +46,7 @@ def deploy(mk_tree_depth, deployer_address, deployment_gas):
         gammaBeta2_2=zethGRPC.hex2int(vk["gb2"][1]),
         Z1=zethGRPC.hex2int(vk["z"][0]),
         Z2=zethGRPC.hex2int(vk["z"][1]),
-        input=zethGRPC.hex2int(sum(vk["IC"], []))
+        IC_coefficients=zethGRPC.hex2int(sum(vk["IC"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Verifier contract address
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -56,7 +55,8 @@ def deploy(mk_tree_depth, deployer_address, deployment_gas):
     mixer = w3.eth.contract(abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
     tx_hash = mixer.constructor(
         _zksnark_verify=verifier_address,
-        depth=mk_tree_depth
+        depth=mk_tree_depth,
+        _token=token_address
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Mixer contract address
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
