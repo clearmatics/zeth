@@ -107,3 +107,18 @@ aKtIj2rMlUbT+hLkAQmUb4YZwxtPibPTIUFTwrHmiw==
         }
     }
     return keystore
+
+def getDummyMerklePath(length):
+    mkPath = []
+    # Arbitrary sha256 digest used to build the dummy merkle path
+    dummyNode = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
+    for i in range(length):
+        mkPath.append(dummyNode)
+    return mkPath
+
+def getDummyInput(recipient_apk, recipient_ask):
+    zero_wei_hex = "0000000000000000"
+    dummy_note = zethGRPC.createZethNote(zethGRPC.noteRandomness(), recipient_apk, zero_wei_hex)
+    dummy_note_nullifier = zethGRPC.computeNullifier(dummy_note, recipient_ask)
+    dummy_note_address = 7
+    return (dummy_note, dummy_note_nullifier, dummy_note_address)
