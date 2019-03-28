@@ -3,7 +3,7 @@
 :rotating_light: **WARNING** This project is a Proof of Concept. It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
 
 **Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git). 
-It follows and extend the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by [ZCash](https://github.com/zcash/zcash).
+It follows and extends the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by [Zcash](https://github.com/zcash/zcash).
 
 :point_right: Check our [paper](LINK TO PAPER) for more information about Zeth.
 
@@ -79,22 +79,22 @@ This Proof of Concept comes with some minimal building blocks to integrate Zeth 
 You can use the python and/or the javascript clients to interact with the proving service and request proofs on a given `(instance, witness)` pair.
 
 If you do not know where to start, you can just follow the instructions of the README in `pyClient` to run one of the `testEtherMixing.py` or `testERCTokenMixing.py` script.
-These scripts implements a scenario where Alice, Bob and Charlie do confidential transfers using Ether and an ERC20 token, respectively.
+These scripts implement a scenario where Alice, Bob and Charlie do confidential transfers using Ether and an ERC20 token, respectively.
 
 **Note:** These clients are very minimal and only used for testing purpose!
 
-## References
+## References and useful links
 
 - **BabyZoe:** https://github.com/zcash-hackworks/babyzoe
 - **Miximus:** https://github.com/barryWhiteHat/miximus.git
 - **ZeroCash:** http://zerocash-project.org/
-- **ZCash github:** https://github.com/zcash/zcash
+- **Zcash github:** https://github.com/zcash/zcash
 - **SCIPR LAB github:** https://github.com/scipr-lab/
 - **Zerocash-Ethereum:** https://github.com/AntoineRondelet/zerocash-ethereum
 
 ## License notices:
 
-### ZCash
+### Zcash
 
 ```
 Copyright (c) 2016-2018 The Zcash developers
