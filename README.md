@@ -1,11 +1,11 @@
 # Zeth - Zerocash on Ethereum 
 
-:rotating_light: **WARNING** This project is a Proof of Concept. It is highly inefficient and has not be thoroughly reviewed. Please do not use in production!
+:rotating_light: **WARNING** This project is a Proof of Concept. It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
 
 **Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git). 
-It follows and extend the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by ZCash.
+It follows and extend the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by [ZCash](https://github.com/zcash/zcash).
 
-:point_right: Check our [paper](https://gitlab.clearmatics.net/ar/zeth-protocol/blob/master/zeth.pdf) for more information about ZETH.
+:point_right: Check our [paper](LINK TO PAPER) for more information about Zeth.
 
 ## Building and running the project:
 
@@ -18,8 +18,7 @@ In order to follow the README below, you will need:
 - [Python3](https://www.python.org/downloads/) (at least version `3.6.3`)
 
 We use 3 terminals to run the project.
-One terminal will run the proving service/server, another one will run the ethereum testnet, and the final one
-will run a python stub that triggers a few proof generations on the proving server in order to do confidential transactions on the Ethereum testnet.
+One terminal will be used to run the proving service/server, another one will be used to run a local Ethereum testnet, and the final terminal will be used to run a python stub that triggers a few proof generations on the proving server in order to do confidential transactions on the Ethereum testnet.
 
 The titles of the sections below are prefixed with the terminal ID the commands should be ran into.
 
@@ -76,15 +75,13 @@ cd pyClient
 
 ### Use the pyClient or the jsClient
 
-This Proof of Concept comes with the building blocks to integrate zeth with your applications.
-You can use the python and/or the javascript clients to interact with the proving service and request proofs on a given input.
-This is a great way to experiment with confidential asset transfer on Ethereum!
+This Proof of Concept comes with some minimal building blocks to integrate Zeth with your applications.
+You can use the python and/or the javascript clients to interact with the proving service and request proofs on a given `(instance, witness)` pair.
 
-If you do not know where to start, don't panic! Just follow the instructions of the README in `pyClient` to run the `testEtherMixing.py` script.
-This script implements a scenario where Alice, Bob and Charlie do confidential Ether transfers.
+If you do not know where to start, you can just follow the instructions of the README in `pyClient` to run one of the `testEtherMixing.py` or `testERCTokenMixing.py` script.
+These scripts implements a scenario where Alice, Bob and Charlie do confidential transfers using Ether and an ERC20 token, respectively.
 
-**Note:** These clients are very minimal and only used for testing purpose.
-We provide the building block to write a CLI or a frontend to make ZETH more user friendly, and we welcome any contributions! :)
+**Note:** These clients are very minimal and only used for testing purpose!
 
 ## References
 
