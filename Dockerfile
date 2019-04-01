@@ -1,4 +1,4 @@
-FROM python:3.6.7-slim-jessie
+FROM python:3.6.8-slim-jessie
 
 RUN apt-get update && apt-get install -y \
         git \
