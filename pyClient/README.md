@@ -7,6 +7,8 @@ We assume that Python3 is installed, along with the [venv](https://docs.python.o
 ```
 $ python --version
 Python 3.6.3
+
+# Make sure you have gcc installed
 ```
 
 ## Run the client

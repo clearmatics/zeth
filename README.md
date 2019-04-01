@@ -26,7 +26,7 @@ The titles of the sections below are prefixed with the terminal ID the commands 
 
 ```bash
 # Clone this repository:
-git clone git@gitlab.clearmatics.net:ar/zeth.git
+git clone git@github.com:clearmatics/zeth.git
 cd zeth
 git submodule update --init --recursive
 
