@@ -30,8 +30,8 @@ git clone git@github.com:clearmatics/zeth.git
 cd zeth
 git submodule update --init --recursive
 
-docker build -t zeth-dev .
-docker run -ti -p 50051:50051 --name zeth zeth-dev
+docker pull clearmatics/zeth-dev:latest 
+docker run -ti -p 50051:50051 --name zeth clearmatics/zeth-dev:latest
 
 ## All the commands below are ran in the docker container
 # Configure your environment
