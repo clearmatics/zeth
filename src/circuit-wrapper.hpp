@@ -4,8 +4,9 @@
 #include "types/note.hpp"
 
 #include "circuits/joinsplit.tcc"
+#include "libsnark_helpers/libsnark_helpers.hpp" 
 
-#include "libsnark_helpers/extended_proof.hpp"
+
 
 typedef libff::default_ec_pp ppT; // We use the public parameters of the alt_bn_128 curve to do our operations
 
@@ -37,6 +38,7 @@ public:
                             bits64 vpub_in,
                             bits64 vpub_out,
                             provingKeyT<ppT> proving_key);
+    
 };
 
 } // libzeth

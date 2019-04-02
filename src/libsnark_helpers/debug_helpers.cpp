@@ -2,7 +2,7 @@
 // Content taken and adapted from:
 // wraplibsnark.cpp (originally written by Jacob Eberhardt and Dennis Kuhnert)
 
-#include "libsnark_helpers/libsnark_helpers.hpp"
+#include "libsnark_helpers/debug_helpers.hpp"
 
 namespace libzeth {
 
