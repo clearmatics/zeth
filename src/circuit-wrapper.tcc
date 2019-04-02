@@ -1,4 +1,3 @@
-#include "circuits/computation.hpp"
 #include "zeth.h"
 
 namespace libzeth {

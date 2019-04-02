@@ -5,6 +5,9 @@
 
 #include "circuits/joinsplit.tcc"
 
+#include "libsnark_helpers/extended_proof.hpp"
+
+typedef libff::default_ec_pp ppT; // We use the public parameters of the alt_bn_128 curve to do our operations
 
 namespace libzeth {
 
