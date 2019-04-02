@@ -22,24 +22,31 @@
 
 // Contains required interfaces and types (keypair, proof, generator, prover, verifier)
 #include "zeth.h"
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
+#include "extended_proof.hpp"
+
+#ifdef LIBZETH_DEFAULT_SNARK_DEFINED
+#include "pghr13_response.hpp"
+#include "snarks/pghr13/pghr13_computation.hpp"
+#elif SNARK_R1CS_GG_PPZKSNARK
+#include "groth16_response.hpp"//TODO
+#include "snarks/groth16/groth16_computation.hpp"//TODO
+#endif
 
 namespace libzeth {
+// -- Defined in the TCC file -- //TODO: here
 
-// -- Defined in the CPP file -- //
-libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(const uint8_t* _x);
-std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> _x);
-std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p);
-std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p);
+// Write on disk
+void write_extended_proof(boost::filesystem::path path = "");
+void write_proof(boost::filesystem::path path = ""); 
+void write_primary_input(boost::filesystem::path path = "");
 
-boost::filesystem::path getPathToSetupDir();
-boost::filesystem::path getPathToDebugDir();
+// Display on stdout
+void dump_proof();
+void dump_primary_inputs();
 
-bool replace(std::string& str, const std::string& from, const std::string& to);
-
-// -- Defined in the TCC file -- //
+//old
 template<typename serializableT> void writeToFile(boost::filesystem::path path, serializableT& obj);
 template<typename serializableT> serializableT loadFromFile(boost::filesystem::path path);
 
@@ -48,18 +55,6 @@ template<typename ppT> provingKeyT<ppT> deserializeProvingKeyFromFile(boost::fil
 template<typename ppT> void serializeVerificationKeyToFile(verificationKeyT<ppT> &vk, boost::filesystem::path vk_path);
 template<typename ppT> verificationKeyT<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path);
 
-template<typename ppT> void exportVerificationKey(libsnark::r1cs_ppzksnark_keypair<ppT> keypair);
-template<typename ppT> void exportVerificationKey(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair);
-
-template<typename ppT> void displayProof(libsnark::r1cs_ppzksnark_proof<ppT> proof);
-template<typename ppT> void displayProof(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof);
-
-template<typename ppT> void verificationKeyToJson(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path path = "");
-template<typename ppT> void verificationKeyToJson(libsnark::r1cs_gg_ppzksnark_verification_key<ppT> vk, boost::filesystem::path path);
-
-template<typename ppT> void proofToJson(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path);
-template<typename ppT> void proofToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, boost::filesystem::path path);
-
 template<typename ppT> void writeSetup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir = "");
 
 template<typename ppT> void r1csConstraintsToJson(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path = "");
@@ -67,14 +62,16 @@ template<typename ppT> void fillJsonConstraintsInSs(libsnark::linear_combination
 template<typename ppT> void arrayToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path = "");
 template<typename ppT> void r1csToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path = "");
 
-template<typename ppT> void proofAndInputToJson(libsnark::r1cs_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path = "");
-template<typename ppT> void proofAndInputToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, libsnark::r1cs_gg_ppzksnark_primary_input<ppT> input, boost::filesystem::path path = "");
 
-template<typename ppT> void primaryInputToJson(libsnark::r1cs_primary_input<libff::Fr<ppT>> input, boost::filesystem::path = ""); 
+template<typename ppT> void primaryInputToJson(libsnark::r1cs_primary_input<libff::Fr<ppT>> input, boost::filesystem::path = "");
 
 // Display
 template<typename ppT> void displayPrimaryInput(libsnark::r1cs_primary_input<libff::Fr<ppT>> input);
 
+
+template<typename ppT> void write_proof(libzeth::proofT<ppT> proof, boost::filesystem::path path); //exported from extende proof
+template<typename ppT> void write_extended_proof(libzeth::extended_proof<ppT> extended_proof, boost::filesystem::path path); //exported from extende proof
+template<typename ppT> void dump_proof(proofT<ppT> proof); //exported from extende proof
 
 } // libzeth
 #include "libsnark_helpers/libsnark_helpers.tcc"

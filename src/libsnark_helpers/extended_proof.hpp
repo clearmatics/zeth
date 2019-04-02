@@ -1,8 +1,8 @@
 #ifndef __ZETH_EXTENDED_PROOF_HPP__
 #define __ZETH_EXTENDED_PROOF_HPP__
 
-#include "libsnark_helpers/libsnark_helpers.hpp"
-
+#include "debug_helpers.hpp"
+#include "zeth.h"//TODO: review this import
 namespace libzeth {
 
 /*
@@ -18,17 +18,10 @@ private:
 
 public:
     extended_proof(proofT<ppT> &in_proof, libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input);
-
     proofT<ppT> get_proof();
     libsnark::r1cs_primary_input<libff::Fr<ppT>> get_primary_input();
+    void write_primary_input(boost::filesystem::path path = "");
 
-	// Write on disk
-	void write_extended_proof(boost::filesystem::path path = "");
-	void write_proof(boost::filesystem::path path = "");
-	void write_primary_input(boost::filesystem::path path = "");
-
-    // Display on stdout
-    void dump_proof();
     void dump_primary_inputs();
 };
 
