@@ -1,5 +1,5 @@
-#ifndef __ZETH_COMPUTATION_TCC__
-#define __ZETH_COMPUTATION_TCC__
+#ifndef __ZETH_PGHR13_COMPUTATION_TCC__
+#define __ZETH_PGHR13_COMPUTATION_TCC__
 
 #include "libsnark_helpers/extended_proof.hpp"
 
@@ -32,12 +32,9 @@ keyPairT<ppT> gen_trusted_setup(libsnark::protoboard<libff::Fr<ppT> > pb)
 	// (crs_f, shortcrs_f, as denoted in [GGPR12]) 
     
     //TODO: find another solution. Here it is difficult make overloading
-    switch(SNARK) {
-        case 1 : return libsnark::r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
-        //case 2 : return libsnark::r1cs_gg_ppzksnark_generator<ppT>(pb.get_constraint_system()); TODO: fix this
+    return libsnark::r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
+    //case 2 : return libsnark::r1cs_gg_ppzksnark_generator<ppT>(pb.get_constraint_system()); TODO: fix this
     }
-}
-
 } // libzeth
 
 #endif

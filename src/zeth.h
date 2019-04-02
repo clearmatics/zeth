@@ -35,7 +35,7 @@ template<typename ppT>
 using proofT = libsnark::r1cs_ppzksnark_proof <ppT>;
 template<typename ppT>
 using keyPairT = libsnark::r1cs_ppzksnark_keypair <ppT>;
-#define SNARK 1 // TODO: review this define
+
 }
 
 #endif
