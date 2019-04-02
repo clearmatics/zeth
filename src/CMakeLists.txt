@@ -50,6 +50,7 @@ include_directories(
 )
 
 file(GLOB_RECURSE SOURCES
+    libsnark_helpers/debug_helpers.cpp
     circuits/circuits-util.cpp
     libsnark_helpers/libsnark_helpers.cpp
     types/bits.cpp
