@@ -5,7 +5,7 @@
 **Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git). 
 It follows and extends the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by [Zcash](https://github.com/zcash/zcash).
 
-:point_right: Check our [paper](LINK TO PAPER) for more information about Zeth.
+:point_right: Check our [paper](https://arxiv.org/pdf/1904.00905.pdf) for more information about Zeth.
 
 ## Building and running the project:
 
