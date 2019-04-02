@@ -63,7 +63,7 @@ extended_proof<ppT> CircuitWrapper<NumInputs, NumOutputs>::prove(
 
     // Write the extended proof in a file (Default path is taken if not specified)
     extended_proof<ppT> ext_proof = gen_proof<ppT>(pb, proving_key);
-    ext_proof.write_extended_proof();
+    write_extended_proof(ext_proof, "");
 
     return ext_proof;
 }

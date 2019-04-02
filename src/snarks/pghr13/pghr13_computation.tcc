@@ -1,8 +1,6 @@
 #ifndef __ZETH_PGHR13_COMPUTATION_TCC__
 #define __ZETH_PGHR13_COMPUTATION_TCC__
 
-#include "libsnark_helpers/extended_proof.hpp"
-
 namespace libzeth {
 
     // Generate the proof and returns a struct {proof, primary_input}
