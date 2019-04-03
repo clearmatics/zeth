@@ -160,7 +160,7 @@ def parseHexadecimalPointBaseGroup2Affine(point):
 def make_empty_message():
     return prover_pb2.EmptyMessage()
 
-def parseVerificationKey(vkObj):
+def parseBctv14VerificationKey(vkObj):
     vkJSON = {}
     vkJSON["a"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.a)
     vkJSON["b"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csPpzksnarkVerificationKey.b)
@@ -172,9 +172,12 @@ def parseVerificationKey(vkObj):
     vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
     return vkJSON
 
-# Writes the verification key (object) in a json file
+def parseGroth16VerificationKey(vkObj):
+    pass
+
+# Writes the verification key (object) in a json file#TODO generalize
 def writeVerificationKey(vkObj):
-    vkJSON = parseVerificationKey(vkObj)
+    vkJSON = parseBctv14VerificationKey(vkObj)
     setupDir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     filename = os.path.join(setupDir, "vk.json")
     with open(filename, 'w') as outfile:
@@ -189,7 +192,7 @@ def makeProofInputs(root, jsInputs, jsOutputs, inPubValue, outPubValue):
         outPubValue=outPubValue
     )
 
-def parseProof(proofObj):
+def parseBctv14Proof(proofObj):
     proofJSON = {}
     proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.a)
     proofJSON["a_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.aP)
@@ -202,7 +205,10 @@ def parseProof(proofObj):
     proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
     return proofJSON
 
-def get_proof_joinsplit_2by2(
+def parseGroth16Proof(proofObj):
+    pass
+
+def get_proof_joinsplit_2by2(#TODO: generalize this and the parsing functions 
         grpcEndpoint,
         mk_root,
         input_note1,
@@ -235,7 +241,7 @@ def get_proof_joinsplit_2by2(
 
     proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value)
     proof_obj = getProof(grpcEndpoint, proof_input)
-    proof_json = parseProof(proof_obj)
+    proof_json = parseBctv14Proof(proof_obj)
 
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them

@@ -11,21 +11,34 @@ import zethGRPC
 
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 
-def compile_contracts():
+def compile_bctv14_contracts():
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
-    path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
-    path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
     path_to_verifier = os.path.join(contracts_dir, "Bctv14Verifier.sol")
     path_to_mixer = os.path.join(contracts_dir, "Bctv14Mixer.sol")
-    compiled_sol = compile_files([path_to_pairing, path_to_bytes, path_to_verifier, path_to_mixer])
+    compiled_sol = compile_files([path_to_verifier, path_to_mixer])
     verifier_interface = compiled_sol[path_to_verifier + ':Verifier']
     mixer_interface = compiled_sol[path_to_mixer + ':Bctv14Mixer']
     return(verifier_interface, mixer_interface)
 
+def compile_groth16_contracts():
+    contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
+    path_to_verifier = os.path.join(contracts_dir, "Groth16Verifier.sol")
+    path_to_mixer = os.path.join(contracts_dir, "Groth16Mixer.sol")
+    compiled_sol = compile_files([path_to_verifier, path_to_mixer])
+    verifier_interface = compiled_sol[path_to_verifier + ':Verifier']
+    mixer_interface = compiled_sol[path_to_mixer + ':Groth16Mixer']
+    return(verifier_interface, mixer_interface)
+
+def compile_util_contracts(zksnark="bctv14"):
+    contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
+    path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
+    path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
+    compiled_sol = compile_files([path_to_pairing, path_to_bytes])
+
 # Deploy the mixer contract with the given merkle tree depth
 # and returns an instance of the mixer along with the initial merkle tree
 # root to use for the first zero knowledge payments
-def deploy(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address):
+def deploy_bctv14(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address):
     setup_dir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     vk_json = os.path.join(setup_dir, "vk.json")
     with open(vk_json) as json_data:
@@ -54,7 +67,7 @@ def deploy(mk_tree_depth, verifier_interface, mixer_interface, deployer_address,
     # Deploy the Mixer contract once the Verifier is successfully deployed
     mixer = w3.eth.contract(abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
     tx_hash = mixer.constructor(
-        zksnark_verify=verifier_address,
+        _zksnark_verify=verifier_address,
         depth=mk_tree_depth,
         token=token_address
     ).transact({'from': deployer_address, 'gas': deployment_gas})
@@ -72,8 +85,11 @@ def deploy(mk_tree_depth, verifier_interface, mixer_interface, deployer_address,
     initialRoot = w3.toHex(event_logs_logMerkleRoot[0].args.root)
     return(mixer, initialRoot[2:])
 
+def deploy_groth16():
+    pass #TODO
+
 # Call to the mixer's mix function to do zero knowledge payments
-def mix(
+def mix_bctv14(
         mixer_instance,
         ciphertext1,
         ciphertext2,
@@ -114,3 +130,6 @@ def mix(
     ciphertext1 = event_logs_logSecretCiphers[0].args.ciphertext
     ciphertext2 = event_logs_logSecretCiphers[1].args.ciphertext
     return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
+
+def mix_groth16():
+    pass #TODO
