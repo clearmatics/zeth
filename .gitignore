@@ -27,6 +27,12 @@ zeth-contracts/node_modules/*
 # Ignore grpc code
 pyClient/prover_pb2.py
 pyClient/prover_pb2_grpc.py
+pyClient/bctv14_messages_pb2.py
+pyClient/bctv14_messages_pb2_grpc.py
+pyClient/groth16_messages_pb2.py
+pyClient/groth16_messages_pb2_grpc.py
+pyClient/util_pb2.py
+pyClient/util_pb2_grpc.py
 
 # Ignore pycash
 pyClient/__pycache__/
