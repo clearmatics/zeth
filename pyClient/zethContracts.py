@@ -15,11 +15,11 @@ def compile_contracts():
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
     path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
-    path_to_verifier = os.path.join(contracts_dir, "Verifier.sol")
-    path_to_mixer = os.path.join(contracts_dir, "Mixer.sol")
+    path_to_verifier = os.path.join(contracts_dir, "Bctv14Verifier.sol")
+    path_to_mixer = os.path.join(contracts_dir, "Bctv14Mixer.sol")
     compiled_sol = compile_files([path_to_pairing, path_to_bytes, path_to_verifier, path_to_mixer])
     verifier_interface = compiled_sol[path_to_verifier + ':Verifier']
-    mixer_interface = compiled_sol[path_to_mixer + ':Mixer']
+    mixer_interface = compiled_sol[path_to_mixer + ':Bctv14Mixer']
     return(verifier_interface, mixer_interface)
 
 # Deploy the mixer contract with the given merkle tree depth
@@ -54,9 +54,9 @@ def deploy(mk_tree_depth, verifier_interface, mixer_interface, deployer_address,
     # Deploy the Mixer contract once the Verifier is successfully deployed
     mixer = w3.eth.contract(abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
     tx_hash = mixer.constructor(
-        _zksnark_verify=verifier_address,
+        zksnark_verify=verifier_address,
         depth=mk_tree_depth,
-        _token=token_address
+        token=token_address
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Mixer contract address
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
