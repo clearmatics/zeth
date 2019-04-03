@@ -4,7 +4,6 @@ package proverpkg;
 
 import "bctv14_messages.proto";
 import "groth16_messages.proto";
-import "gm17_messages.proto";
 
 service Prover {
   // Run the setup on the prover side (Don't needed as the setup is ran when the server starts)
@@ -46,7 +45,6 @@ message VerificationKey {
   oneof VK {
     R1csPpzksnarkVerificationKey r1csPpzksnarkVerificationKey = 1;
     R1csGgPpzksnarkVerificationKey r1csGgPpzksnarkVerificationKey = 2;
-    R1csSePpzksnarkVerificationKey r1csSePpzksnarkVerificationKey = 3;
   }
 }
 
@@ -54,7 +52,6 @@ message ExtendedProof {
   oneof EP {
     R1csPpzksnarkExtendedProof r1csPpzksnarkExtendedProof = 1;
     R1csGgPpzksnarkExtendedProof r1csGgPpzksnarkExtendedProof = 2;
-    R1csSePpzksnarkExtendedProof r1csSePpzksnarkExtendedProof = 3;
   }
 }
 
