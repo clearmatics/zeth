@@ -5,7 +5,7 @@ namespace libzeth {
 
     // Generate the proof and returns a struct {proof, primary_input}
     template<typename ppT>//TODO recover provingKey from KeyPair
-    extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, provingKeyT<ppT> proving_key)
+    extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key)
     {
         // See: https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp#L81
         // For the definition of r1cs_primary_input and r1cs_auxiliary_input
@@ -31,7 +31,6 @@ namespace libzeth {
         
         //TODO: find another solution. Here it is difficult make overloading
         return libsnark::r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
-        //case 2 : return libsnark::r1cs_gg_ppzksnark_generator<ppT>(pb.get_constraint_system()); TODO: fix this
         }
 
     template<typename ppT>

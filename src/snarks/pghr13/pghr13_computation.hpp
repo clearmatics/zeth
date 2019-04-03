@@ -11,7 +11,7 @@ namespace libzeth {
 
     // circuit-wrapper functions //TODO: here I can specify the type
     template<typename ppT>
-    extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, provingKeyT<ppT> proving_key);
+    extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key);
 
     template<typename ppT>
     keyPairT<ppT> gen_trusted_setup(libsnark::protoboard<libff::Fr<ppT> > pb);
