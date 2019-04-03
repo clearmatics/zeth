@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package proverpkg;
 
-import "bctv14_messages.proto";
+import "pghr13_messages.proto";
 import "groth16_messages.proto";
 
 service Prover {

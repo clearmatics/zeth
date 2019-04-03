@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 ```
 # Generate the stub code
-python -m grpc_tools.protoc -I../api/ --python_out=. --grpc_python_out=. ../api/prover.proto ../api/bctv14_messages.proto ../api/groth16_messages.proto ../api/util.proto
+python -m grpc_tools.protoc -I../api/ --python_out=. --grpc_python_out=. ../api/prover.proto ../api/pghr13_messages.proto ../api/groth16_messages.proto ../api/util.proto
 ```
 
 ### Start the testing client

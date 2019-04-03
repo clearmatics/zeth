@@ -11,13 +11,13 @@ import zethGRPC
 
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 
-def compile_bctv14_contracts():
+def compile_pghr13_contracts():
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
-    path_to_verifier = os.path.join(contracts_dir, "Bctv14Verifier.sol")
-    path_to_mixer = os.path.join(contracts_dir, "Bctv14Mixer.sol")
+    path_to_verifier = os.path.join(contracts_dir, "Pghr13Verifier.sol")
+    path_to_mixer = os.path.join(contracts_dir, "Pghr13Mixer.sol")
     compiled_sol = compile_files([path_to_verifier, path_to_mixer])
     verifier_interface = compiled_sol[path_to_verifier + ':Verifier']
-    mixer_interface = compiled_sol[path_to_mixer + ':Bctv14Mixer']
+    mixer_interface = compiled_sol[path_to_mixer + ':Pghr13Mixer']
     return(verifier_interface, mixer_interface)
 
 def compile_groth16_contracts():
@@ -29,7 +29,7 @@ def compile_groth16_contracts():
     mixer_interface = compiled_sol[path_to_mixer + ':Groth16Mixer']
     return(verifier_interface, mixer_interface)
 
-def compile_util_contracts(zksnark="bctv14"):
+def compile_util_contracts():
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
     path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
@@ -38,7 +38,7 @@ def compile_util_contracts(zksnark="bctv14"):
 # Deploy the mixer contract with the given merkle tree depth
 # and returns an instance of the mixer along with the initial merkle tree
 # root to use for the first zero knowledge payments
-def deploy_bctv14(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address):
+def deploy_pghr13(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address):
     setup_dir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     vk_json = os.path.join(setup_dir, "vk.json")
     with open(vk_json) as json_data:
@@ -89,7 +89,7 @@ def deploy_groth16():
     pass #TODO
 
 # Call to the mixer's mix function to do zero knowledge payments
-def mix_bctv14(
+def mix_pghr13(
         mixer_instance,
         ciphertext1,
         ciphertext2,

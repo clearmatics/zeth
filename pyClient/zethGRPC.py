@@ -10,8 +10,8 @@ from eth_abi import encode_single, encode_abi
 import grpc
 import util_pb2
 import util_pb2_grpc
-import bctv14_messages_pb2
-import bctv14_messages_pb2_grpc
+import pghr13_messages_pb2
+import pghr13_messages_pb2_grpc
 import groth16_messages_pb2
 import groth16_messages_pb2_grpc
 import prover_pb2

@@ -50,8 +50,8 @@ if __name__ == '__main__':
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     zethContracts.compile_util_contracts()
-    (verifier_interface, mixer_interface) = zethContracts.compile_bctv14_contracts()
-    (mixer_instance, initial_root) = zethContracts.deploy_bctv14(
+    (verifier_interface, mixer_interface) = zethContracts.compile_pghr13_contracts()
+    (mixer_instance, initial_root) = zethContracts.deploy_pghr13(
         mk_tree_depth,
         verifier_interface,
         mixer_interface,
