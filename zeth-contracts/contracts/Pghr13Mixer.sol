@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "./MerkleTreeSha256.sol";
-import "./Bctv14Verifier.sol";
+import "./Pghr13Verifier.sol";
 import "./Bytes.sol";
 import "./Mixer.sol";
 
@@ -35,7 +35,7 @@ import "./Mixer.sol";
  * By leveraging this data, we avoid a lot of unecessary overhead just to confirm a payment here.
 **/
 
-contract Bctv14Mixer is Mixer {
+contract Pghr13Mixer is Mixer {
     using Bytes for *;
 
     // Smart contract responsible of on-chain verification of proofs

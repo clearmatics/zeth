@@ -35,7 +35,7 @@ import "./Mixer.sol";
  * By leveraging this data, we avoid a lot of unecessary overhead just to confirm a payment here.
 **/
 
-contract Bctv14Mixer is Mixer {
+contract Pghr13Mixer is Mixer {
     using Bytes for *;
 
     // Smart contract responsible of on-chain verification of proofs

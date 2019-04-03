@@ -55,7 +55,7 @@ file(GLOB_RECURSE SOURCES
     libsnark_helpers/libsnark_helpers.cpp
     types/bits.cpp
     util.cpp
-    pghr13_response.cpp
+    snarks/pghr13/pghr13_response.cpp
 )
 
 # Enable Boost for program_options
