@@ -23,7 +23,7 @@ set(PROTOS_UTIL
     $ENV{ZETH_API_DIR}/util.proto)
 
 set(PROTOS_BCTV14
-    $ENV{ZETH_API_DIR}/bctv14_messages.proto)
+    $ENV{ZETH_API_DIR}/pghr13_messages.proto)
 
 set(PROTOS_GROTH16
     $ENV{ZETH_API_DIR}/groth16_messages.proto)
