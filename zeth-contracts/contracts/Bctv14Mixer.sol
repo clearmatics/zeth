@@ -96,7 +96,7 @@ contract Bctv14Mixer is Mixer {
 
         // 3. Verify the proof
         require(
-            zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
+            _zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
             "Invalid proof: Unable to verify the proof correctly"
         );
 
