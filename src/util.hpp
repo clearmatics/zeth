@@ -11,7 +11,8 @@
 #include "types/note.hpp"
 #include "types/joinsplit.hpp"
 
-#include "prover.grpc.pb.h"
+#include "util.pb.h"
+#include "libsnark_helpers/debug_helpers.hpp"
 
 namespace libzeth {
 
@@ -30,7 +31,8 @@ std::vector<bool> address_bits_from_address(int address, int tree_depth);
 libsnark::merkle_authentication_node ParseMerkleNode(std::string mk_node);
 libzeth::ZethNote ParseZethNote(const proverpkg::ZethNote& note);
 libzeth::JSInput ParseJSInput(const proverpkg::JSInput& input);
-
+proverpkg::HexadecimalPointBaseGroup1Affine FormatHexadecimalPointBaseGroup1Affine(libff::alt_bn128_G1 point);
+proverpkg::HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affine(libff::alt_bn128_G2 point);
 } // libzeth
 
 #endif

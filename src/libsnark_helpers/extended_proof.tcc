@@ -22,8 +22,6 @@ libsnark::r1cs_primary_input<libff::Fr<ppT>> extended_proof<ppT>::get_primary_in
     return *this->primary_inputs;
 }
 
-
-
 template<typename ppT>
 void extended_proof<ppT>::write_primary_input(boost::filesystem::path path)
 {
