@@ -2,7 +2,8 @@
 #define __ZETH_EXTENDED_PROOF_HPP__
 
 #include "debug_helpers.hpp"
-#include "zeth.h"//TODO: review this import
+#include "zeth.h"
+
 namespace libzeth {
 
 /*
