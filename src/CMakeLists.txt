@@ -63,20 +63,26 @@ include_directories( ${Boost_INCLUDE_DIR} )
 include_directories( ${PROJECT_BINARY_DIR} )
 
 # Building the server
-add_executable(prover_server
+add_executable(
+    prover_server
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/prover_server.cc
     ${PROTO_SRCS}
     ${GRPC_SRCS}
     ${SOURCES}
 )
-target_link_libraries(prover_server
+target_link_libraries(
+    prover_server
+    
     snark
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     gRPC::grpc++_reflection
     protobuf::libprotobuf
 )
-target_include_directories(prover_server
+target_include_directories(
+    prover_server
+    
     PUBLIC
     ${DEPENDS_DIR}/libsnark
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
@@ -90,6 +96,7 @@ add_executable(
 
     test/packed_addition_test.cpp
     ${SOURCES}
+    ${PROTO_SRCS}
 )
 target_link_libraries(
     test_addition
@@ -98,6 +105,7 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
+    protobuf::libprotobuf
 )
 target_include_directories(
     test_addition
@@ -114,6 +122,7 @@ add_executable(
 
     test/note_test.cpp
     ${SOURCES}
+    ${PROTO_SRCS}
 )
 target_link_libraries(
     test_note
@@ -122,6 +131,7 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
+    protobuf::libprotobuf
 )
 target_include_directories(
     test_note
@@ -138,6 +148,7 @@ add_executable(
 
     test/prfs_test.cpp
     ${SOURCES}
+    ${PROTO_SRCS}
 )
 target_link_libraries(
     test_prfs
@@ -146,6 +157,7 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
+    protobuf::libprotobuf
 )
 target_include_directories(
     test_prfs
@@ -162,6 +174,7 @@ add_executable(
 
     test/commitments_test.cpp
     ${SOURCES}
+    ${PROTO_SRCS}
 )
 target_link_libraries(
     test_commitments
@@ -170,6 +183,7 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
+    protobuf::libprotobuf
 )
 target_include_directories(
     test_commitments
@@ -186,6 +200,8 @@ add_executable(
 
     test/prover_test.cpp
     ${SOURCES}
+    ${PROTO_SRCS}
+
 )
 target_link_libraries(
     test_prover
@@ -194,6 +210,8 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
+    protobuf::libprotobuf
+
 )
 target_include_directories(
     test_prover
