@@ -46,11 +46,16 @@ include_directories(
   libff/common/default_types
 )
 
-file(GLOB_RECURSE SOURCES
+file(GLOB_RECURSE SOURCES_TEST
     libsnark_helpers/debug_helpers.cpp
     circuits/circuits-util.cpp
     types/bits.cpp
     util.cpp
+    )
+
+file(GLOB_RECURSE SOURCES
+    ${SOURCES_TEST}
+    util_api.cpp
     snarks/pghr13/pghr13_response.cpp
 )
 
@@ -95,8 +100,7 @@ add_executable(
     EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
 
     test/packed_addition_test.cpp
-    ${SOURCES}
-    ${PROTO_SRCS}
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_addition
@@ -105,7 +109,6 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
-    protobuf::libprotobuf
 )
 target_include_directories(
     test_addition
@@ -121,8 +124,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/note_test.cpp
-    ${SOURCES}
-    ${PROTO_SRCS}
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_note
@@ -131,7 +133,6 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
-    protobuf::libprotobuf
 )
 target_include_directories(
     test_note
@@ -147,8 +148,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/prfs_test.cpp
-    ${SOURCES}
-    ${PROTO_SRCS}
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_prfs
@@ -157,7 +157,6 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
-    protobuf::libprotobuf
 )
 target_include_directories(
     test_prfs
@@ -173,8 +172,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/commitments_test.cpp
-    ${SOURCES}
-    ${PROTO_SRCS}
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_commitments
@@ -183,7 +181,6 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
-    protobuf::libprotobuf
 )
 target_include_directories(
     test_commitments
@@ -199,9 +196,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/prover_test.cpp
-    ${SOURCES}
-    ${PROTO_SRCS}
-
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_prover
@@ -210,7 +205,6 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
-    protobuf::libprotobuf
 
 )
 target_include_directories(

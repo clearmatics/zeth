@@ -1,7 +1,8 @@
 #include "libsnark_helpers/extended_proof.hpp"
 
 #include "prover.grpc.pb.h"
-#include "util.hpp"
+#include "util_api.hpp"
+
 
 using proverpkg::VerificationKey;
 using proverpkg::ExtendedProof;
