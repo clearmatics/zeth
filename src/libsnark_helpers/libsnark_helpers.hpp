@@ -29,8 +29,10 @@
 #include "snarks/pghr13/pghr13_response.hpp"
 #include "snarks/pghr13/pghr13_computation.hpp"
 #elif SNARK_R1CS_GG_PPZKSNARK
-#include "groth16_response.hpp"//TODO
-#include "snarks/groth16/groth16_computation.hpp"//TODO
+#include "groth16_response.hpp"
+#include "snarks/groth16/groth16_computation.hpp"
+#else
+#error You must define one of the SNARK_* symbols indicated into the CMakelists.txt file.
 #endif
 
 namespace libzeth {
