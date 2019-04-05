@@ -223,50 +223,6 @@ void r1csToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, 
     fh.close();
 };
 
-template<typename ppT>
-void primaryInputToJson(libsnark::r1cs_primary_input<libff::Fr<ppT>> input, boost::filesystem::path path) {//TODO: evaluate if remove it
-	if (path.empty()) {
-		boost::filesystem::path tmp_path = getPathToDebugDir(); // Used for a debug purpose
-		boost::filesystem::path primary_input_json("primary_input.json");
-		path = tmp_path / primary_input_json;
-	}
-    // Convert the boost path into char*
-    const char* str_path = path.string().c_str();
-
-    std::stringstream ss;
-    std::ofstream fh;
-    fh.open(str_path, std::ios::binary);
-
-    ss << "{\n";
-    ss << " \"inputs\" :" << "["; // 1 should always be the first variable passed
-    for (size_t i = 0; i < input.size(); ++i) {
-        ss << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\"";
-        if ( i < input.size() - 1 ) {
-            ss<< ", ";
-        }
-    }
-    ss << "]\n";
-    ss << "}";
-
-    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
-};
-
-template<typename ppT>
-void display_primary_input(libsnark::r1cs_primary_input<libff::Fr<ppT>> input) { //TODO: change name
-    std::cout << "{\n";
-    std::cout << " \"inputs\" :" << "["; // 1 should always be the first variable passed
-    for (size_t i = 0; i < input.size(); ++i) {
-        std::cout << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\"";
-        if ( i < input.size() - 1 ) {
-            std::cout << ", ";
-        }
-    }
-    std::cout << "]\n";
-    std::cout << "}";
-};
 
 template<typename ppT> 
 void write_proof(libzeth::proofT<ppT> proof, boost::filesystem::path path)

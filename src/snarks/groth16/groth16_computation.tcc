@@ -30,8 +30,7 @@ namespace libzeth {
         // (crs_f, shortcrs_f, as denoted in [GGPR12]) 
         
         //TODO: find another solution. Here it is difficult make overloading
-        return libsnark::r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
-        //case 2 : return libsnark::r1cs_gg_ppzksnark_generator<ppT>(pb.get_constraint_system()); TODO: fix this
+        return libsnark::r1cs_gg_ppzksnark_generator<ppT>(pb.get_constraint_system());
         }
 
     template<typename ppT>

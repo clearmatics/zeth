@@ -54,6 +54,20 @@ void extended_proof<ppT>::write_primary_input(boost::filesystem::path path)
     fh.close();
 }
 
+template<typename ppT>
+void extended_proof<ppT>::dump_primary_inputs(){
+    std::cout << "{\n";
+    std::cout << " \"inputs\" :" << "["; // 1 should always be the first variable passed
+    for (size_t i = 0; i < (*this->primary_inputs).size(); ++i) {
+        std::cout << "\"0x" << HexStringFromLibsnarkBigint((*this->primary_inputs)[i].as_bigint()) << "\"";
+        if ( i < (*this->primary_inputs).size() - 1 ) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]\n";
+    std::cout << "}";
+}
+
 } // libzeth
 
 #endif // __ZETH_EXTENDED_PROOF_TCC__

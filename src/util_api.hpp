@@ -1,12 +1,13 @@
 #ifndef __ZETH_UTIL_API_HPP__
 #define __ZETH_UTIL_API_HPP__
 
+#include <libff/common/default_types/ec_pp.hpp>
+
 #include "util.hpp"
 #include "types/bits.hpp"
 #include "util.pb.h"
 #include "types/note.hpp"
 #include "types/joinsplit.hpp"
-#include <libff/common/default_types/ec_pp.hpp>
 #include "libsnark_helpers/debug_helpers.hpp"
 
 typedef libff::default_ec_pp ppT;

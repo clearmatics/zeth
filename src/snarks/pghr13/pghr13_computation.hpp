@@ -2,7 +2,9 @@
 #define __ZETH_PGHR13_COMPUTATION_HPP__
 
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
+#include <libsnark/gadgetlib1/gadget.hpp>
 #include "libsnark_helpers/extended_proof.hpp"
+
 
 // We instantiate the ppT (public parameters Template with the public paramaters of the curve we use (alt_bn128))
 typedef libff::default_ec_pp ppT; // We use the public parameters of the alt_bn_128 curve to do our operations

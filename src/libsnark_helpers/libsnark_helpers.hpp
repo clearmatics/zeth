@@ -22,7 +22,7 @@
 
 // Contains required interfaces and types (keypair, proof, generator, prover, verifier)
 #include "zeth.h"
-#include <libsnark/gadgetlib1/gadget.hpp>
+
 #include "extended_proof.hpp"
 
 #ifdef LIBZETH_DEFAULT_SNARK_DEFINED
@@ -38,14 +38,6 @@
 namespace libzeth {
 // -- Defined in the TCC file -- //TODO: here
 
-// Write on disk
-void write_extended_proof(boost::filesystem::path path = "");
-void write_proof(boost::filesystem::path path = ""); 
-void write_primary_input(boost::filesystem::path path = "");
-
-// Display on stdout
-void dump_proof();
-void dump_primary_inputs();
 
 //old
 template<typename serializableT> void writeToFile(boost::filesystem::path path, serializableT& obj);
@@ -65,10 +57,6 @@ template<typename ppT> void r1csToJson(libsnark::protoboard<libff::Fr<ppT> > pb,
 
 
 template<typename ppT> void primaryInputToJson(libsnark::r1cs_primary_input<libff::Fr<ppT>> input, boost::filesystem::path = "");
-
-// Display
-template<typename ppT> void displayPrimaryInput(libsnark::r1cs_primary_input<libff::Fr<ppT>> input);
-
 
 template<typename ppT> void write_proof(libzeth::proofT<ppT> proof, boost::filesystem::path path); //exported from extende proof
 template<typename ppT> void write_extended_proof(libzeth::extended_proof<ppT> extended_proof, boost::filesystem::path path); //exported from extende proof
