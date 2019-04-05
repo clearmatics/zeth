@@ -3,6 +3,7 @@
 
 #include "debug_helpers.hpp"
 #include "zeth.h"
+#include "snarks.hpp"
 
 namespace libzeth {
 

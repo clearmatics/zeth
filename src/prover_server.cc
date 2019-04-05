@@ -14,6 +14,7 @@
 
 // Include zeth headers
 #include "zeth.h"
+#include "snarks.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "circuits/sha256/sha256_ethereum.hpp"
 #include "zethConfig.h"
