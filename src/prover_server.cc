@@ -16,7 +16,6 @@
 #include "zeth.h"
 #include "snarks.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
-#include "circuits/sha256/sha256_ethereum.hpp"
 #include "zethConfig.h"
 
 #include "util.hpp"
@@ -127,7 +126,7 @@ public:
 
       std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
       dump_proof<ppT>(ext_proof.get_proof());
-      display_primary_input<ppT>(ext_proof.get_primary_input());
+      ext_proof.dump_primary_inputs();
 
       std::cout << "[DEBUG] Preparing response..." << std::endl;
       PrepareProofResponse(ext_proof, proof);

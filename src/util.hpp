@@ -5,14 +5,7 @@
 #include <string>
 #include <cstdint>
 
-#include <libsnark/common/data_structures/merkle_tree.hpp>
-
 #include "types/bits.hpp"
-#include "types/note.hpp"
-#include "types/joinsplit.hpp"
-
-#include "util.pb.h"
-#include "libsnark_helpers/debug_helpers.hpp"
 
 namespace libzeth {
 

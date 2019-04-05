@@ -22,8 +22,8 @@ public:
     extended_proof(proofT<ppT> &in_proof, libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input);
     proofT<ppT> get_proof();
     libsnark::r1cs_primary_input<libff::Fr<ppT>> get_primary_input();
+    
     void write_primary_input(boost::filesystem::path path = "");
-
     void dump_primary_inputs();
 };
 
