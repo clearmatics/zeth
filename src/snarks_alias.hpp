@@ -1,5 +1,5 @@
-#ifndef SNARKS_HPP_
-#define SNARKS_HPP_
+#ifndef SNARKS_ALIAS_HPP_
+#define SNARKS_ALIAS_HPP_
 
 /************************ Pick a Snark ****************************/
 
@@ -42,4 +42,4 @@ using keyPairT = libsnark::r1cs_gg_ppzksnark_keypair <ppT>;
 #error You must define one of the SNARK_* symbols indicated into the CMakelists.txt file.
 #endif
 
-#endif // SNARKS_HPP_
+#endif // SNARKS_ALIAS_HPP_
