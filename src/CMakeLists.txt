@@ -56,7 +56,6 @@ file(GLOB_RECURSE SOURCES_TEST
 file(GLOB_RECURSE SOURCES
     ${SOURCES_TEST}
     util_api.cpp
-    snarks/pghr13/pghr13_response.cpp
 )
 
 # Enable Boost for program_options
