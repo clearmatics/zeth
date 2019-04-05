@@ -14,7 +14,7 @@
 
 // Include zeth headers
 #include "zeth.h"
-#include "snarks.hpp"
+#include "snarks_alias.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "zethConfig.h"
 
