@@ -3,7 +3,7 @@
 
 #include "debug_helpers.hpp"
 #include "zeth.h"
-#include "snarks.hpp"
+#include "snarks_alias.hpp"
 
 namespace libzeth {
 
@@ -25,6 +25,8 @@ public:
     
     void write_primary_input(boost::filesystem::path path = "");
     void dump_primary_inputs();
+
+
 };
 
 } // libzeth

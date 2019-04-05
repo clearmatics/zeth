@@ -4,8 +4,8 @@
 namespace libzeth {
 
     // Generate the proof and returns a struct {proof, primary_input}
-    template<typename ppT>//TODO recover provingKey from KeyPair
-    extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key)
+    template<typename ppT>
+    libsnark::r1cs_ppzksnark_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key)
     {
         // See: https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp#L81
         // For the definition of r1cs_primary_input and r1cs_auxiliary_input
@@ -15,9 +15,7 @@ namespace libzeth {
         // Generate proof from public input, auxiliary input (private/secret data), and proving key
         proofT<ppT> proof = libsnark::r1cs_ppzksnark_prover(proving_key, primary_input, auxiliary_input);
 
-        // Instantiate an extended_proof from the proof we generated and the given primary_input
-        extended_proof<ppT> ext_proof = extended_proof<ppT>(proof, primary_input);
-        return ext_proof;
+        return proof;
     }
 
     // Run the trusted setup and returns a struct {proving_key, verifying_key}

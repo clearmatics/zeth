@@ -20,9 +20,10 @@
 
 #include <libff/common/default_types/ec_pp.hpp>
 
+#include <libsnark/gadgetlib1/gadget.hpp>
 // Contains required interfaces and types (keypair, proof, generator, prover, verifier)
 #include "zeth.h"
-#include "snarks.hpp"
+#include "snarks_alias.hpp"
 
 #include "extended_proof.hpp"
 
@@ -37,8 +38,6 @@
 #endif
 
 namespace libzeth {
-// -- Defined in the TCC file -- //TODO: here
-
 
 //old
 template<typename serializableT> void writeToFile(boost::filesystem::path path, serializableT& obj);
@@ -59,10 +58,9 @@ template<typename ppT> void r1csToJson(libsnark::protoboard<libff::Fr<ppT> > pb,
 
 template<typename ppT> void primaryInputToJson(libsnark::r1cs_primary_input<libff::Fr<ppT>> input, boost::filesystem::path = "");
 
-template<typename ppT> void write_proof(libzeth::proofT<ppT> proof, boost::filesystem::path path); //exported from extende proof
-template<typename ppT> void write_extended_proof(libzeth::extended_proof<ppT> extended_proof, boost::filesystem::path path); //exported from extende proof
-template<typename ppT> void dump_proof(proofT<ppT> proof); //exported from extende proof
-
+template<typename ppT> void write_proof(libzeth::proofT<ppT> proof, boost::filesystem::path path);//TODO: fix it
+template<typename ppT> void write_extended_proof(libzeth::extended_proof<ppT> extended_proof, boost::filesystem::path path);
+template<typename ppT> void dump_proof(proofT<ppT> proof);
 } // libzeth
 #include "libsnark_helpers/libsnark_helpers.tcc"
 

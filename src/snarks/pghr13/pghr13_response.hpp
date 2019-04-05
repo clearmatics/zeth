@@ -3,7 +3,7 @@
 
 #include "libsnark_helpers/extended_proof.hpp"
 
-#include "prover.grpc.pb.h"
+#include "prover.grpc.pb.h"//TODO: check if is redundant
 #include "util_api.hpp"
 
 
