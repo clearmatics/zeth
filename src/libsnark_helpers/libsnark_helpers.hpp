@@ -22,10 +22,11 @@
 
 // Contains required interfaces and types (keypair, proof, generator, prover, verifier)
 #include "zeth.h"
+#include "snarks.hpp"
 
 #include "extended_proof.hpp"
 
-#ifdef LIBZETH_DEFAULT_SNARK_DEFINED
+#ifdef SNARK_R1CS_PPZKSNARK
 #include "snarks/pghr13/pghr13_response.hpp"
 #include "snarks/pghr13/pghr13_computation.hpp"
 #elif SNARK_R1CS_GG_PPZKSNARK
