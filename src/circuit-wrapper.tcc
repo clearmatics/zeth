@@ -62,7 +62,12 @@ extended_proof<ppT> CircuitWrapper<NumInputs, NumOutputs>::prove(
     std::cout << "******* [DEBUG] Satisfiability result: " << is_valid_witness << " *******" << std::endl;
 
     // Write the extended proof in a file (Default path is taken if not specified)
-    extended_proof<ppT> ext_proof = gen_proof<ppT>(pb, proving_key);
+    proofT<ppT> proof = libzeth::gen_proof<ppT>(pb, proving_key);
+
+    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input = pb.primary_input();
+
+    // Instantiate an extended_proof from the proof we generated and the given primary_input
+    extended_proof<ppT> ext_proof = extended_proof<ppT>(proof, primary_input);
     write_extended_proof(ext_proof, "");
 
     return ext_proof;

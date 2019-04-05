@@ -5,8 +5,17 @@
 
 #include "circuits/joinsplit.tcc"
 #include "libsnark_helpers/libsnark_helpers.hpp" 
+#include "snarks_alias.hpp"
 
-
+#ifdef SNARK_R1CS_PPZKSNARK
+#include "snarks/pghr13/pghr13_response.hpp"
+#include "snarks/pghr13/pghr13_computation.hpp"
+#elif SNARK_R1CS_GG_PPZKSNARK
+#include "groth16_response.hpp"
+#include "snarks/groth16/groth16_computation.hpp"
+#else
+#error You must define one of the SNARK_* symbols indicated into the CMakelists.txt file.
+#endif
 
 typedef libff::default_ec_pp ppT; // We use the public parameters of the alt_bn_128 curve to do our operations
 

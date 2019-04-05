@@ -3,7 +3,6 @@
 
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
-#include "libsnark_helpers/extended_proof.hpp"
 
 
 // We instantiate the ppT (public parameters Template with the public paramaters of the curve we use (alt_bn128))
@@ -13,7 +12,7 @@ namespace libzeth {
 
     // circuit-wrapper functions //TODO: here I can specify the type
     template<typename ppT>
-    extended_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key);
+    libsnark::r1cs_ppzksnark_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key);
 
     template<typename ppT>
     keyPairT<ppT> gen_trusted_setup(libsnark::protoboard<libff::Fr<ppT> > pb);
@@ -25,7 +24,7 @@ namespace libzeth {
     template<typename ppT> 
     void displayProof(libsnark::r1cs_ppzksnark_proof<ppT> proof);
 
-    template<typename ppT> //TODO not used
+    template<typename ppT>
     void verificationKeyToJson(libsnark::r1cs_ppzksnark_keypair<ppT> keypair, boost::filesystem::path path = "");
 
     template<typename ppT> 
