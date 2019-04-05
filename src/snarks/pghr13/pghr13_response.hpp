@@ -14,13 +14,14 @@ using proverpkg::R1csPpzksnarkVerificationKey;
 using proverpkg::HexadecimalPointBaseGroup1Affine;
 using proverpkg::HexadecimalPointBaseGroup2Affine;
 
-typedef libff::default_ec_pp ppT;
-
 namespace libzeth{
 
+    template<typename ppT>
     void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* message);
+    template<typename ppT>
     void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>& vk, VerificationKey* message);
     
 }
 
+#include "pghr13_response.tcc"
 #endif

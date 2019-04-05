@@ -64,7 +64,7 @@ public:
     std::cout << "[ACK] Received the request to get the verification key" << std::endl;
     std::cout << "[DEBUG] Preparing verification key for response..." << std::endl;
     try {
-      PrepareVerifyingKeyResponse(this->keypair.vk, response);
+      PrepareVerifyingKeyResponse<ppT>(this->keypair.vk, response);
     } catch (const std::exception& e) {
       std::cout << "[ERROR] " << e.what() << std::endl;
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
@@ -129,7 +129,7 @@ public:
       ext_proof.dump_primary_inputs();
 
       std::cout << "[DEBUG] Preparing response..." << std::endl;
-      PrepareProofResponse(ext_proof, proof);
+      PrepareProofResponse<ppT>(ext_proof, proof);
 
     } catch (const std::exception& e) {
       std::cout << "[ERROR] " << e.what() << std::endl;

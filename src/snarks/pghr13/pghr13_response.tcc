@@ -1,6 +1,8 @@
-#include "pghr13_response.hpp"
+#ifndef __ZETH_PGHR13_RESPONSE_TCC__
+#define __ZETH_PGHR13_RESPONSE_TCC__
 
 namespace libzeth{
+    template<typename ppT>
     void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* message) {
         libsnark::r1cs_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
 
@@ -48,7 +50,8 @@ namespace libzeth{
         r1csPpzksnarkExtendedProof->set_allocated_k(k);
         r1csPpzksnarkExtendedProof->set_inputs(inputs_json);
     }
-
+    
+    template<typename ppT>
     void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>& vk, VerificationKey* message) {
         HexadecimalPointBaseGroup2Affine *a = new HexadecimalPointBaseGroup2Affine(); // in G2
         HexadecimalPointBaseGroup1Affine *b = new HexadecimalPointBaseGroup1Affine(); // in G1
@@ -90,3 +93,5 @@ namespace libzeth{
         r1csPpzksnarkVerificationKey->set_ic(IC_json);
     }
 }
+
+#endif
