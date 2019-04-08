@@ -14,7 +14,7 @@ service Prover {
   rpc GetVerificationKey(EmptyMessage) returns (VerificationKey) {}
 
   // Request a proof generation on the given input
-  rpc Prove(ProofInputs) returns (ExtendedProof) {}//TODO
+  rpc Prove(ProofInputs) returns (ExtendedProof) {}
 }
 
 message EmptyMessage {
