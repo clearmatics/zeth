@@ -125,7 +125,7 @@ public:
       );
 
       std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-      dump_proof<ppT>(ext_proof.get_proof());
+      ext_proof.dump_proof();
       ext_proof.dump_primary_inputs();
 
       std::cout << "[DEBUG] Preparing response..." << std::endl;

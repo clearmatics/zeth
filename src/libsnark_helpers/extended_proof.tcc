@@ -68,6 +68,25 @@ void extended_proof<ppT>::dump_primary_inputs(){
     std::cout << "}";
 }
 
+template<typename ppT> 
+void extended_proof<ppT>::write_proof(boost::filesystem::path path)
+{
+    proofToJson<ppT>(*this->proof, path);
+};
+
+template<typename ppT>
+void extended_proof<ppT>::write_extended_proof(boost::filesystem::path path)
+{
+    proofAndInputToJson<ppT>(*this->proof, *this->primary_inputs, path);
+};
+
+template<typename ppT>
+void extended_proof<ppT>::dump_proof()
+{
+    displayProof<ppT>(*this->proof);
+};
+
+
 } // libzeth
 
 #endif // __ZETH_EXTENDED_PROOF_TCC__

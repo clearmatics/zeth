@@ -223,25 +223,36 @@ void r1csToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, 
     fh.close();
 };
 
-
-template<typename ppT> 
-void write_proof(libzeth::proofT<ppT> proof, boost::filesystem::path path)
-{
-    proofToJson(proof, path);
-};
-
 template<typename ppT>
-void write_extended_proof(libzeth::extended_proof<ppT> extended_proof, boost::filesystem::path path)
-{
-    proofAndInputToJson(extended_proof.get_proof(), extended_proof.get_primary_input(), path);
-};
+void primary_input_to_json(libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
+	if (path.empty()) {
+		boost::filesystem::path tmp_path = getPathToDebugDir(); // Used for a debug purpose
+		boost::filesystem::path primary_input_json("primary_input.json");
+		path = tmp_path / primary_input_json;
+	}
+    // Convert the boost path into char*
+    const char* str_path = path.string().c_str();
 
-template<typename ppT>
-void dump_proof(libzeth::proofT<ppT> proof)
-{
-    displayProof(proof);
-};
+    std::stringstream ss;
+    std::ofstream fh;
+    fh.open(str_path, std::ios::binary);
 
+    ss << "{\n";
+    ss << " \"inputs\" :" << "["; // 1 should always be the first variable passed
+    for (size_t i = 0; i < input.size(); ++i) {
+        ss << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\"";
+        if ( i < input.size() - 1 ) {
+            ss<< ", ";
+        }
+    }
+    ss << "]\n";
+    ss << "}";
+
+    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
+    fh << ss.rdbuf();
+    fh.flush();
+    fh.close();
+};
 } // libzeth
 
 #endif // __ZETH_LIBSNARK_HELPERS_TCC__
