@@ -27,7 +27,6 @@ namespace libzeth {
         // set of powers, plus the alpha, beta, gamma, and the rest of the entries, in order to form the CRS
         // (crs_f, shortcrs_f, as denoted in [GGPR12]) 
         
-        //TODO: find another solution. Here it is difficult make overloading
         return libsnark::r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
         }
 

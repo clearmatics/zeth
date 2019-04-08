@@ -24,7 +24,7 @@ set(
   "R1CS_PPZKSNARK"
   CACHE
   STRING
-  "Default snark: one of R1CS_PPZKSNARK, R1CS_GG__PPZKSNARK, R1CS_SE__PPZKSNARK"
+  "Default snark: one of R1CS_PPZKSNARK, R1CS_GG_PPZKSNARK"
 )
 
 # Flags and compilation options for use with libsnark
