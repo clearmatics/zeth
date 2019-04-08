@@ -3,7 +3,7 @@
 namespace libzeth {
 
 template<size_t NumInputs, size_t NumOutputs>
-keyPairT<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {//TODO check if I need to import everything
+keyPairT<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {
     libsnark::protoboard<FieldT> pb;
     joinsplit_gadget<FieldT, HashT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
