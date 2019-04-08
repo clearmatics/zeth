@@ -31,21 +31,21 @@
 namespace libzeth {
 
 //old
-template<typename serializableT> void writeToFile(boost::filesystem::path path, serializableT& obj);// no zeht dependency
-template<typename serializableT> serializableT loadFromFile(boost::filesystem::path path);// no zeth dependency
+template<typename serializableT> void writeToFile(boost::filesystem::path path, serializableT& obj);
+template<typename serializableT> serializableT loadFromFile(boost::filesystem::path path);
 
-template<typename ppT> void serializeProvingKeyToFile(provingKeyT<ppT> &pk, boost::filesystem::path pk_path);//call writeToFile
-template<typename ppT> provingKeyT<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path);//call loadFromFile
-template<typename ppT> void serializeVerificationKeyToFile(verificationKeyT<ppT> &vk, boost::filesystem::path vk_path);//call writeToFile
-template<typename ppT> verificationKeyT<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path);//call loadFromFile
+template<typename ppT> void serializeProvingKeyToFile(provingKeyT<ppT> &pk, boost::filesystem::path pk_path);
+template<typename ppT> provingKeyT<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path);
+template<typename ppT> void serializeVerificationKeyToFile(verificationKeyT<ppT> &vk, boost::filesystem::path vk_path);
+template<typename ppT> verificationKeyT<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path);
 
-template<typename ppT> void writeSetup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir = "");//callSerialize x2 and verificationKeyTojson (SNARK DEP)
+template<typename ppT> void writeSetup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir = "");
 
-template<typename ppT> void r1csConstraintsToJson(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path = "");//no zeth dependency
-template<typename ppT> void fillJsonConstraintsInSs(libsnark::linear_combination<libff::Fr<ppT> > constraints, std::stringstream& ss);//no zeth dependency
-template<typename ppT> void arrayToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path = "");//no zeth dependency
-template<typename ppT> void r1csToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path = "");//no zeth dependency
-template<typename ppT> void primaryInputToJson(libsnark::r1cs_primary_input<libff::Fr<ppT>> input, boost::filesystem::path = "");//no zeth dependency
+template<typename ppT> void r1csConstraintsToJson(libsnark::linear_combination<libff::Fr<ppT> > constraints, boost::filesystem::path path = "");
+template<typename ppT> void fillJsonConstraintsInSs(libsnark::linear_combination<libff::Fr<ppT> > constraints, std::stringstream& ss);
+template<typename ppT> void arrayToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path = "");
+template<typename ppT> void r1csToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path = "");
+template<typename ppT> void primaryInputToJson(libsnark::r1cs_primary_input<libff::Fr<ppT>> input, boost::filesystem::path = "");
 
 } // libzeth
 #include "libsnark_helpers/libsnark_helpers.tcc"
