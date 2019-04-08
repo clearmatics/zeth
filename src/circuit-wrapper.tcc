@@ -68,7 +68,7 @@ extended_proof<ppT> CircuitWrapper<NumInputs, NumOutputs>::prove(
 
     // Instantiate an extended_proof from the proof we generated and the given primary_input
     extended_proof<ppT> ext_proof = extended_proof<ppT>(proof, primary_input);
-    write_extended_proof(ext_proof, "");
+    ext_proof.write_extended_proof("");
 
     return ext_proof;
 }
