@@ -6,22 +6,18 @@ namespace libzeth {
     template<typename ppT>
     void exportVerificationKey(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair)
     {
-        unsigned icLength = keypair.vk.encoded_IC_query.rest.indices.size() + 1;
+        unsigned gammaABCLength = keypair.vk.gamma_ABC_g1.rest.indices.size() + 1;
 
         std::cout << "\tVerification key in Solidity compliant format:{" << std::endl;
-        std::cout << "\t\tvk.A = Pairing.G2Point(" << outputPointG2AffineAsHex(keypair.vk.alphaA_g2) << ");" << std::endl;
-        std::cout << "\t\tvk.B = Pairing.G1Point(" << outputPointG1AffineAsHex(keypair.vk.alphaB_g1) << ");" << std::endl;
-        std::cout << "\t\tvk.C = Pairing.G2Point(" << outputPointG2AffineAsHex(keypair.vk.alphaC_g2) << ");" << std::endl;
+        std::cout << "\t\tvk. = Pairing.GTPoint(" << outputPointGTAffineAsHex(keypair.vk.alpha_g1_beta_g2) << ");" << std::endl;
         std::cout << "\t\tvk.gamma = Pairing.G2Point(" << outputPointG2AffineAsHex(keypair.vk.gamma_g2) << ");" << std::endl;
-        std::cout << "\t\tvk.gammaBeta1 = Pairing.G1Point(" << outputPointG1AffineAsHex(keypair.vk.gamma_beta_g1) << ");" << std::endl;
-        std::cout << "\t\tvk.gammaBeta2 = Pairing.G2Point(" << outputPointG2AffineAsHex(keypair.vk.gamma_beta_g2) << ");" << std::endl;
-        std::cout << "\t\tvk.Z = Pairing.G2Point(" << outputPointG2AffineAsHex(keypair.vk.rC_Z_g2) << ");" << std::endl;
-        std::cout << "\t\tvk.IC = new Pairing.G1Point[](" << icLength << ");" << std::endl;
-        std::cout << "\t\tvk.IC[0] = Pairing.G1Point(" << outputPointG1AffineAsHex(keypair.vk.encoded_IC_query.first) << ");" << std::endl;
-        for (size_t i = 1; i < icLength; ++i)
+        std::cout << "\t\tvk.delta = Pairing.G2Point(" << outputPointG2AffineAsHex(keypair.vk.delta_g2) << ");" << std::endl;
+        std::cout << "\t\tvk.GammaABC = new Pairing.G1Point[](" << gammaABCLength << ");" << std::endl;
+        std::cout << "\t\tvk.GammaABC[0] = Pairing.G1Point(" << outputPointG1AffineAsHex(keypair.vk.gamma_ABC_g1.first) << ");" << std::endl;
+        for (size_t i = 1; i < gammaABCLength; ++i)
         {
-            auto vkICi = outputPointG1AffineAsHex(keypair.vk.encoded_IC_query.rest.values[i - 1]);
-            std::cout << "\t\tvk.IC[" << i << "] = Pairing.G1Point(" << vkICi << ");" << std::endl;
+            auto vkGammaABCi = outputPointG1AffineAsHex(keypair.vk.gamma_ABC_g1.rest.values[i - 1]);
+            std::cout << "\t\tvk.gammaABC[" << i << "] = Pairing.G1Point(" << vkGammaABCi << ");" << std::endl;
         }
 
         std::cout << "\t\t}" << std::endl;
@@ -31,14 +27,9 @@ namespace libzeth {
     void displayProof(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof)
     {
         std::cout << "Proof:"<< std::endl;
-        std::cout << "proof.A = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.g)<< ");" << std::endl;
-        std::cout << "proof.A_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.h)<< ");" << std::endl;
-        std::cout << "proof.B = Pairing.G2Point(" << outputPointG2AffineAsHex(proof.g_B.g)<< ");" << std::endl;
-        std::cout << "proof.B_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_B.h)<<");" << std::endl;
-        std::cout << "proof.C = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.g)<< ");" << std::endl;
-        std::cout << "proof.C_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.h)<<");" << std::endl;
-        std::cout << "proof.H = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_H)<<");"<< std::endl;
-        std::cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< std::endl;
+        std::cout << "proof.A = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A)<< ");" << std::endl;
+        std::cout << "proof.B = Pairing.G2Point(" << outputPointG2AffineAsHex(proof.g_B)<< ");" << std::endl;
+        std::cout << "proof.C = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C)<<");" << std::endl;
     };
 
     template<typename ppT>
@@ -56,23 +47,19 @@ namespace libzeth {
         std::stringstream ss;
         std::ofstream fh;
         fh.open(str_path, std::ios::binary);
-        unsigned icLength = vk.encoded_IC_query.rest.indices.size() + 1;
+        unsigned gammaABCLength = keypair.vk.gamma_ABC_g1.rest.indices.size() + 1;
 
         ss << "{\n";
-        ss << " \"a\" :[" << outputPointG2AffineAsHex(vk.alphaA_g2) << "],\n";
-        ss << " \"b\"  :[" << outputPointG1AffineAsHex(vk.alphaB_g1) << "],\n";
-        ss << " \"c\" :[" << outputPointG2AffineAsHex(vk.alphaC_g2) << "],\n";
-        ss << " \"g\" :[" << outputPointG2AffineAsHex(vk.gamma_g2)<< "],\n";
-        ss << " \"gb1\" :[" << outputPointG1AffineAsHex(vk.gamma_beta_g1)<< "],\n";
-        ss << " \"gb2\" :[" << outputPointG2AffineAsHex(vk.gamma_beta_g2)<< "],\n";
-        ss << " \"z\" :[" << outputPointG2AffineAsHex(vk.rC_Z_g2)<< "],\n";
+        ss << " \"alpha_beta\" :[" << outputPointGTAsHex(vk.alpha_g1_beta_g2) << "],\n";
+        ss << " \"gamma\"  :[" << outputPointG1AffineAsHex(vk.gamma_g2) << "],\n";
+        ss << " \"delta\" :[" << outputPointG2AffineAsHex(vk.delta_g2) << "],\n";
 
-        ss <<  "\"IC\" :[[" << outputPointG1AffineAsHex(vk.encoded_IC_query.first) << "]";
+        ss <<  "\"gammaABC\" :[[" << outputPointG1AffineAsHex(vk.encoded_IC_query.first) << "]";
 
         for (size_t i = 1; i < icLength; ++i)
         {
-            auto vkICi = outputPointG1AffineAsHex(vk.encoded_IC_query.rest.values[i - 1]);
-            ss << ",[" <<  vkICi << "]";
+            auto vkGammaABCi = outputPointG1AffineAsHex(vk.gamma_ABC_g1.rest.values[i - 1]);
+            ss << ",[" <<  vkGammaABCi << "]";
         }
 
         ss << "]";
@@ -99,14 +86,9 @@ namespace libzeth {
         fh.open(str_path, std::ios::binary);
 
         ss << "{\n";
-        ss << " \"a\" :[" << outputPointG1AffineAsHex(proof.g_A.g) << "],\n";
-        ss << " \"a_p\"  :[" << outputPointG1AffineAsHex(proof.g_A.h)<< "],\n";
-        ss << " \"b\"  :[" << outputPointG2AffineAsHex(proof.g_B.g)<< "],\n";
-        ss << " \"b_p\" :[" << outputPointG1AffineAsHex(proof.g_B.h)<< "],\n";
-        ss << " \"c\" :[" << outputPointG1AffineAsHex(proof.g_C.g)<< "],\n";
-        ss << " \"c_p\" :[" << outputPointG1AffineAsHex(proof.g_C.h)<< "],\n";
-        ss << " \"h\" :[" << outputPointG1AffineAsHex(proof.g_H)<< "],\n";
-        ss << " \"k\" :[" << outputPointG1AffineAsHex(proof.g_K)<< "]\n";
+        ss << " \"a\" :[" << outputPointG1AffineAsHex(proof.g_A) << "],\n";
+        ss << " \"b\"  :[" << outputPointG2AffineAsHex(proof.g_B)<< "],\n";
+        ss << " \"c\" :[" << outputPointG1AffineAsHex(proof.g_C)<< "],\n";
         ss << "}";
 
         ss.rdbuf()->pubseekpos(0, std::ios_base::out);
@@ -130,14 +112,9 @@ namespace libzeth {
         fh.open(str_path, std::ios::binary);
 
         ss << "{\n";
-        ss << " \"a\" :[" << outputPointG1AffineAsHex(proof.g_A.g) << "],\n";
-        ss << " \"a_p\"  :[" << outputPointG1AffineAsHex(proof.g_A.h)<< "],\n";
-        ss << " \"b\"  :[" << outputPointG2AffineAsHex(proof.g_B.g)<< "],\n";
-        ss << " \"b_p\" :[" << outputPointG1AffineAsHex(proof.g_B.h)<< "],\n";
-        ss << " \"c\" :[" << outputPointG1AffineAsHex(proof.g_C.g)<< "],\n";
-        ss << " \"c_p\" :[" << outputPointG1AffineAsHex(proof.g_C.h)<< "],\n";
-        ss << " \"h\" :[" << outputPointG1AffineAsHex(proof.g_H)<< "],\n";
-        ss << " \"k\" :[" << outputPointG1AffineAsHex(proof.g_K)<< "],\n";
+        ss << " \"a\" :[" << outputPointG1AffineAsHex(proof.g_A) << "],\n";
+        ss << " \"b\"  :[" << outputPointG2AffineAsHex(proof.g_B)<< "],\n";
+        ss << " \"c\" :[" << outputPointG1AffineAsHex(proof.g_C)<< "],\n";
         ss << " \"input\" :" << "["; // 1 should always be the first variable passed
 
         for (size_t i = 0; i < input.size(); ++i) {
