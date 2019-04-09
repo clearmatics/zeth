@@ -13,6 +13,7 @@ using proverpkg::R1csGgPpzksnarkExtendedProof;
 using proverpkg::R1csGgPpzksnarkVerificationKey;
 using proverpkg::HexadecimalPointBaseGroup1Affine;
 using proverpkg::HexadecimalPointBaseGroup2Affine;
+using proverpkg::HexadecimalPointBaseGroupT;
 
 namespace libzeth{
 
