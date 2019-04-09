@@ -67,16 +67,28 @@ std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p)
         HexStringFromLibsnarkBigint(aff.Y.c0.as_bigint()) + "\"]";
 }
 
-std::string outputPointGTAffineAsHex(libff::alt_bn128_GT _p)
+std::string outputPointGTAsHex(libff::alt_bn128_GT _p)//TODO: review aggregation
 {
-    libff::alt_bn128_GT aff = _p;
-    aff.to_affine_coordinates();
     return
         "[\"0x" +
-        HexStringFromLibsnarkBigint(aff.X.c1.as_bigint()) + "\", \"0x" +
-        HexStringFromLibsnarkBigint(aff.X.c0.as_bigint()) + "\"],\n [\"0x" +
-        HexStringFromLibsnarkBigint(aff.Y.c1.as_bigint()) + "\", \"0x" +
-        HexStringFromLibsnarkBigint(aff.Y.c0.as_bigint()) + "\"]";
+        HexStringFromLibsnarkBigint(_p.c0.c0.c0.as_bigint()) + "\", \"0x" +
+        HexStringFromLibsnarkBigint(_p.c0.c0.c1.as_bigint()) + "\"],\n [\"0x" +
+
+        HexStringFromLibsnarkBigint(_p.c0.c1.c0.as_bigint()) + "\", \"0x" +
+        HexStringFromLibsnarkBigint(_p.c0.c1.c1.as_bigint()) + "\"],\n [\"0x" +
+
+        HexStringFromLibsnarkBigint(_p.c0.c2.c0.as_bigint()) + "\", \"0x" +
+        HexStringFromLibsnarkBigint(_p.c0.c2.c1.as_bigint()) + "\"],\n [\"0x" +
+
+
+        HexStringFromLibsnarkBigint(_p.c1.c0.c0.as_bigint()) + "\", \"0x" +
+        HexStringFromLibsnarkBigint(_p.c1.c0.c1.as_bigint()) + "\"],\n [\"0x" +
+
+        HexStringFromLibsnarkBigint(_p.c1.c1.c0.as_bigint()) + "\", \"0x" +
+        HexStringFromLibsnarkBigint(_p.c1.c1.c1.as_bigint()) + "\"],\n [\"0x" +
+
+        HexStringFromLibsnarkBigint(_p.c1.c2.c0.as_bigint()) + "\", \"0x" +
+        HexStringFromLibsnarkBigint(_p.c1.c2.c1.as_bigint()) + "\"]";
 }
 
 boost::filesystem::path getPathToSetupDir()
