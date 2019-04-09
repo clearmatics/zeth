@@ -4,15 +4,15 @@
 namespace libzeth{
     template<typename ppT>
     void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* message) {
-        libsnark::r1cs_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
+        libsnark::r1cs_gg_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
 
         HexadecimalPointBaseGroup1Affine *a = new HexadecimalPointBaseGroup1Affine();
         HexadecimalPointBaseGroup2Affine *b = new HexadecimalPointBaseGroup2Affine(); // in G2
         HexadecimalPointBaseGroup1Affine *c = new HexadecimalPointBaseGroup1Affine();
 
-        a->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.a));
-        b->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(proofObj.b)); // in G2
-        c->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.c));
+        a->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.g_A));
+        b->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(proofObj.g_B)); // in G2
+        c->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.g_C));
 
         libsnark::r1cs_ppzksnark_primary_input<ppT> pubInputs = ext_proof.get_primary_input();
         std::stringstream ss;
@@ -33,24 +33,24 @@ namespace libzeth{
         r1csGgPpzksnarkExtendedProof->set_allocated_a(a);
         r1csGgPpzksnarkExtendedProof->set_allocated_b(b);
         r1csGgPpzksnarkExtendedProof->set_allocated_c(c);
-        r1csPpzksnarkExtendedProof->set_inputs(inputs_json);
+        r1csGgPpzksnarkExtendedProof->set_inputs(inputs_json);
     }
     
     template<typename ppT>
     void PrepareVerifyingKeyResponse(libsnark::r1cs_gg_ppzksnark_verification_key<ppT>& vk, VerificationKey* message) {
-        HexadecimalPointBaseGroup2Affine *agbg = new HexadecimalPointBaseGroupT(); // in GT
+        HexadecimalPointBaseGroupT *agbg = new HexadecimalPointBaseGroupT(); // in GT
         HexadecimalPointBaseGroup2Affine *g = new HexadecimalPointBaseGroup2Affine(); // in G2
         HexadecimalPointBaseGroup2Affine *d = new HexadecimalPointBaseGroup2Affine(); // in G2
 
-        abgb->CopyFrom(FormatHexadecimalPointBaseGroupT(vk.alpha_g1_beta_g2)); // in GT
+        agbg->CopyFrom(FormatHexadecimalPointBaseGroupT(vk.alpha_g1_beta_g2)); // in GT
         g->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.gamma_g2)); // in G2
         d->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.delta_g2)); // in G2
 
         std::stringstream ss;
-        unsigned gammaABCLength = keypair.vk.gamma_ABC_g1.rest.indices.size() + 1;
+        unsigned gammaABCLength = vk.gamma_ABC_g1.rest.indices.size() + 1;
         ss <<  "[[" << outputPointG1AffineAsHex(vk.gamma_ABC_g1.first) << "]";
-        for (size_t i = 1; i < icLength; ++i) {
-            auto vkGammaABCi = outputPointG1AffineAsHex(keypair.vk.gamma_ABC_g1.rest.values[i - 1]);
+        for (size_t i = 1; i < gammaABCLength; ++i) {
+            auto vkGammaABCi = outputPointG1AffineAsHex(vk.gamma_ABC_g1.rest.values[i - 1]);
             ss << ",[" <<  vkGammaABCi << "]";
         }
         ss << "]";
@@ -63,7 +63,7 @@ namespace libzeth{
         r1csGgPpzksnarkVerificationKey->set_allocated_agbg(agbg);
         r1csGgPpzksnarkVerificationKey->set_allocated_g(g);
         r1csGgPpzksnarkVerificationKey->set_allocated_d(d);
-        r1csGgPpzksnarkVerificationKey->set_ic(GammaABC_json);
+        r1csGgPpzksnarkVerificationKey->set_gabc(GammaABC_json);
     }
 }
 

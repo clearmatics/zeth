@@ -47,16 +47,16 @@ namespace libzeth {
         std::stringstream ss;
         std::ofstream fh;
         fh.open(str_path, std::ios::binary);
-        unsigned gammaABCLength = keypair.vk.gamma_ABC_g1.rest.indices.size() + 1;
+        unsigned gammaABCLength = vk.gamma_ABC_g1.rest.indices.size() + 1;
 
         ss << "{\n";
         ss << " \"alpha_beta\" :[" << outputPointGTAsHex(vk.alpha_g1_beta_g2) << "],\n";
-        ss << " \"gamma\"  :[" << outputPointG1AffineAsHex(vk.gamma_g2) << "],\n";
+        ss << " \"gamma\"  :[" << outputPointG2AffineAsHex(vk.gamma_g2) << "],\n";
         ss << " \"delta\" :[" << outputPointG2AffineAsHex(vk.delta_g2) << "],\n";
 
-        ss <<  "\"gammaABC\" :[[" << outputPointG1AffineAsHex(vk.encoded_IC_query.first) << "]";
+        ss <<  "\"gammaABC\" :[[" << outputPointG1AffineAsHex(vk.gamma_ABC_g1.first) << "]";
 
-        for (size_t i = 1; i < icLength; ++i)
+        for (size_t i = 1; i < gammaABCLength; ++i)
         {
             auto vkGammaABCi = outputPointG1AffineAsHex(vk.gamma_ABC_g1.rest.values[i - 1]);
             ss << ",[" <<  vkGammaABCi << "]";
