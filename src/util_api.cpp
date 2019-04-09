@@ -49,6 +49,7 @@ libzeth::JSInput ParseJSInput(const proverpkg::JSInput& input) {
     );
 }
 
+<<<<<<< HEAD
 proverpkg::HexadecimalPointBaseGroup1Affine FormatHexadecimalPointBaseGroup1Affine(libff::alt_bn128_G1 point) {
     libff::alt_bn128_G1 aff = point;
     aff.to_affine_coordinates();
@@ -80,3 +81,4 @@ proverpkg::HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affi
 }
 
 } // libzeth
+
