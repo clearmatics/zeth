@@ -5,11 +5,11 @@ package proverpkg;
 import public "util.proto";
 
 message R1csGgPpzksnarkVerificationKey {
-    HexadecimalPointBaseGroup1Affine g_alpha = 1;
-    HexadecimalPointBaseGroup2Affine g_beta = 2;
-    HexadecimalPointBaseGroup2Affine g = 3;
-    HexadecimalPointBaseGroup2Affine d = 4;
-    string gabc = 5;
+    HexadecimalPointBaseGroup1Affine alpha_g1 = 1;
+    HexadecimalPointBaseGroup2Affine beta_g2 = 2;
+    HexadecimalPointBaseGroup2Affine gamma_g2 = 3;
+    HexadecimalPointBaseGroup2Affine delta_g2 = 4;
+    string gamma_abc_g1 = 5;
   }
   
   message R1csGgPpzksnarkExtendedProof {
