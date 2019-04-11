@@ -171,9 +171,27 @@ def parsePghr13VerificationKey(vkObj):
     vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
     return vkJSON
 
-# Writes the verification key (object) in a json file
-def writeVerificationKey(vkObj):
+def parseGroth16VerificationKey(vkObj):
+    vkJSON = {}
+    print(vkObj)
+    vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
+    vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
+    vkJSON["gamma_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.gamma_g2)
+    vkJSON["delta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.delta_g2)
+    vkJSON["gamma_abc_g1"] = json.loads(vkObj.r1csGgPpzksnarkVerificationKey.gamma_abc_g1)
+    return vkJSON
+
+# Writes the verification key (object) in a json file#TODO generalize
+def writePghr13VerificationKey(vkObj):
     vkJSON = parsePghr13VerificationKey(vkObj)
+    setupDir = os.environ['ZETH_TRUSTED_SETUP_DIR']
+    filename = os.path.join(setupDir, "vk.json")
+    with open(filename, 'w') as outfile:
+        json.dump(vkJSON, outfile)
+
+# Writes the verification key (object) in a json file#TODO generalize
+def writeGroth16VerificationKey(vkObj):
+    vkJSON = parseGroth16VerificationKey(vkObj)
     setupDir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     filename = os.path.join(setupDir, "vk.json")
     with open(filename, 'w') as outfile:
@@ -201,7 +219,19 @@ def parsePghr13Proof(proofObj):
     proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
     return proofJSON
 
+<<<<<<< HEAD
 def get_proof_joinsplit_2by2(
+=======
+def parseGroth16Proof(proofObj):
+    proofJSON = {}
+    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.a)
+    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csGgPpzksnarkExtendedProof.b)
+    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.c)
+    proofJSON["inputs"] = json.loads(proofObj.r1csGgPpzksnarkExtendedProof.inputs)
+    return proofJSON
+
+def get_proof_joinsplit_2by2(#TODO: generalize this and the parsing functions 
+>>>>>>> pyclient add parse and write vk/proof groth16
         grpcEndpoint,
         mk_root,
         input_note1,
