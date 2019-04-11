@@ -7,9 +7,9 @@ import public "util.proto";
 message R1csGgPpzksnarkVerificationKey {
     HexadecimalPointBaseGroup1Affine g_alpha = 1;
     HexadecimalPointBaseGroup2Affine g_beta = 2;
-    HexadecimalPointBaseGroup2Affine g = 2;
-    HexadecimalPointBaseGroup2Affine d = 3;
-    string gabc = 4;
+    HexadecimalPointBaseGroup2Affine g = 3;
+    HexadecimalPointBaseGroup2Affine d = 4;
+    string gabc = 5;
   }
   
   message R1csGgPpzksnarkExtendedProof {
