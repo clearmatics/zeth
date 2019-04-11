@@ -9,7 +9,8 @@ namespace libzeth {
         unsigned gammaABCLength = keypair.vk.gamma_ABC_g1.rest.indices.size() + 1;
 
         std::cout << "\tVerification key in Solidity compliant format:{" << std::endl;
-        std::cout << "\t\tvk. = Pairing.GTPoint(" << outputPointGTAffineAsHex(keypair.vk.alpha_g1_beta_g2) << ");" << std::endl;
+        std::cout << "\t\tvk.alpha = Pairing.G1Point(" << outputPointG1AffineAsHex(keypair.vk.alpha_g1) << ");" << std::endl;
+        std::cout << "\t\tvk.beta = Pairing.G2Point(" << outputPointG2AffineAsHex(keypair.vk.beta_g2) << ");" << std::endl;
         std::cout << "\t\tvk.gamma = Pairing.G2Point(" << outputPointG2AffineAsHex(keypair.vk.gamma_g2) << ");" << std::endl;
         std::cout << "\t\tvk.delta = Pairing.G2Point(" << outputPointG2AffineAsHex(keypair.vk.delta_g2) << ");" << std::endl;
         std::cout << "\t\tvk.GammaABC = new Pairing.G1Point[](" << gammaABCLength << ");" << std::endl;
@@ -50,7 +51,8 @@ namespace libzeth {
         unsigned gammaABCLength = vk.gamma_ABC_g1.rest.indices.size() + 1;
 
         ss << "{\n";
-        ss << " \"alpha_beta\" :[" << outputPointGTAsHex(vk.alpha_g1_beta_g2) << "],\n";
+        ss << " \"alpha\"  :[" << outputPointG1AffineAsHex(vk.alpha_g1) << "],\n";
+        ss << " \"beta\"  :[" << outputPointG2AffineAsHex(vk.beta_g2) << "],\n";
         ss << " \"gamma\"  :[" << outputPointG2AffineAsHex(vk.gamma_g2) << "],\n";
         ss << " \"delta\" :[" << outputPointG2AffineAsHex(vk.delta_g2) << "],\n";
 
@@ -96,7 +98,7 @@ namespace libzeth {
         fh.flush();
         fh.close();
     };
-
+gamma
     template<typename ppT>
     void proofAndInputToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
         if (path.empty()) {
