@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package proverpkg;
+
+import public "util.proto";
+
+message R1csGgPpzksnarkVerificationKey {
+    HexadecimalPointBaseGroup1Affine g_alpha = 1;
+    HexadecimalPointBaseGroup2Affine g_beta = 2;
+    HexadecimalPointBaseGroup2Affine g = 2;
+    HexadecimalPointBaseGroup2Affine d = 3;
+    string gabc = 4;
+  }
+  
+  message R1csGgPpzksnarkExtendedProof {
+    HexadecimalPointBaseGroup1Affine a = 1;
+    HexadecimalPointBaseGroup2Affine b = 2;
+    HexadecimalPointBaseGroup1Affine c = 3;
+    string inputs = 4;
+  }
