@@ -79,7 +79,7 @@ contract Verifier {
         }
         vk_x = Pairing.add(vk_x, vk.Gamma_ABC[0]);
 
-        bool res = !Pairing.pairingProd4(
+        bool res = Pairing.pairingProd4(
             proof.A,proof.B,
             Pairing.negate(vk.Alpha), vk.Beta, 
             Pairing.negate(vk_x), vk.Gamma, 
