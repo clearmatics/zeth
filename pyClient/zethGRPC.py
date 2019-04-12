@@ -173,7 +173,6 @@ def parsePghr13VerificationKey(vkObj):
 
 def parseGroth16VerificationKey(vkObj):
     vkJSON = {}
-    print(vkObj)
     vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
     vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
     vkJSON["gamma_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.gamma_g2)
@@ -219,9 +218,6 @@ def parsePghr13Proof(proofObj):
     proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
     return proofJSON
 
-<<<<<<< HEAD
-def get_proof_joinsplit_2by2(
-=======
 def parseGroth16Proof(proofObj):
     proofJSON = {}
     proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.a)
@@ -231,7 +227,6 @@ def parseGroth16Proof(proofObj):
     return proofJSON
 
 def get_proof_joinsplit_2by2(#TODO: generalize this and the parsing functions 
->>>>>>> pyclient add parse and write vk/proof groth16
         grpcEndpoint,
         mk_root,
         input_note1,
@@ -264,7 +259,11 @@ def get_proof_joinsplit_2by2(#TODO: generalize this and the parsing functions
 
     proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value)
     proof_obj = getProof(grpcEndpoint, proof_input)
+<<<<<<< HEAD
     proof_json = parsePghr13Proof(proof_obj)
+=======
+    proof_json = parseGroth16Proof(proof_obj)#TODO: fix it
+>>>>>>> fix json keys errors
 
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
