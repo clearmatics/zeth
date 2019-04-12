@@ -113,7 +113,7 @@ public:
         libzeth::ZethNote parsedOutput = ParseZethNote(receivedOutput);
         jsOutputs[i] = parsedOutput;
       }
-      typedef libsnark::r1cs_ppzksnark_proof<ppT> proofT;
+
       std::cout << "[DEBUG] Data parsed successfully" << std::endl;
       std::cout << "[DEBUG] Generating the proof..." << std::endl;
       extended_proof<ppT> ext_proof = this->prover.prove(
