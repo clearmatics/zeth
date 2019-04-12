@@ -98,7 +98,7 @@ namespace libzeth {
         fh.flush();
         fh.close();
     };
-gamma
+
     template<typename ppT>
     void proofAndInputToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path) {
         if (path.empty()) {

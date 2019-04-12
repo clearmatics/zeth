@@ -38,7 +38,7 @@ namespace libzeth{
     
     template<typename ppT>
     void PrepareVerifyingKeyResponse(libsnark::r1cs_gg_ppzksnark_verification_key<ppT>& vk, VerificationKey* message) {
-        HexadecimalPointBaseGroup2Affine *a = new HexadecimalPointBaseGroup1Affine(); // in G1
+        HexadecimalPointBaseGroup1Affine *a = new HexadecimalPointBaseGroup1Affine(); // in G1
         HexadecimalPointBaseGroup2Affine *b = new HexadecimalPointBaseGroup2Affine(); // in G2
         HexadecimalPointBaseGroup2Affine *g = new HexadecimalPointBaseGroup2Affine(); // in G2
         HexadecimalPointBaseGroup2Affine *d = new HexadecimalPointBaseGroup2Affine(); // in G2
@@ -62,11 +62,11 @@ namespace libzeth{
         // See: https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
         R1csGgPpzksnarkVerificationKey *r1csGgPpzksnarkVerificationKey = message->mutable_r1csggppzksnarkverificationkey();
 
-        r1csGgPpzksnarkVerificationKey->set_allocated_a(a);
-        r1csGgPpzksnarkVerificationKey->set_allocated_b(b);        
-        r1csGgPpzksnarkVerificationKey->set_allocated_g(g);
-        r1csGgPpzksnarkVerificationKey->set_allocated_d(d);
-        r1csGgPpzksnarkVerificationKey->set_gabc(GammaABC_json);
+        r1csGgPpzksnarkVerificationKey->set_allocated_alpha_g1(a);
+        r1csGgPpzksnarkVerificationKey->set_allocated_beta_g2(b);        
+        r1csGgPpzksnarkVerificationKey->set_allocated_gamma_g2(g);
+        r1csGgPpzksnarkVerificationKey->set_allocated_delta_g2(d);
+        r1csGgPpzksnarkVerificationKey->set_gamma_abc_g1(GammaABC_json);
     }
 }
 
