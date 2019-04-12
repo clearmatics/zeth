@@ -76,7 +76,7 @@ def deploy_pghr13_contracts(mk_tree_depth, verifier_interface, mixer_interface, 
     initialRoot = w3.toHex(event_logs_logMerkleRoot[0].args.root)
     return(mixer, initialRoot[2:])
 
-def deploy_groth16():
+def deploy_groth16(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address):
     setup_dir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     vk_json = os.path.join(setup_dir, "vk.json")
     with open(vk_json) as json_data:
@@ -92,7 +92,7 @@ def deploy_groth16():
         Gamma2=zethGRPC.hex2int(vk["gamma_g2"][1]),
         Delta1=zethGRPC.hex2int(vk["delta_g2"][0]),
         Delta2=zethGRPC.hex2int(vk["delta_g2"][1]),
-        gamma_ABC_elements=zethGRPC.hex2int(sum(vk["gamma_ABC"], []))
+        Gamma_ABC_elements=zethGRPC.hex2int(sum(vk["gamma_abc_g1"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Verifier contract address
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -160,8 +160,6 @@ def mix_pghr13(
     ciphertext1 = event_logs_logSecretCiphers[0].args.ciphertext
     ciphertext2 = event_logs_logSecretCiphers[1].args.ciphertext
     return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
-<<<<<<< HEAD
-=======
 
 def mix_groth16(
     mixer_instance,
@@ -177,7 +175,6 @@ def mix_groth16(
         ciphertext2,
         zethGRPC.hex2int(parsed_proof["a"]),
         [zethGRPC.hex2int(parsed_proof["b"][0]), zethGRPC.hex2int(parsed_proof["b"][1])],
-        zethGRPC.hex2int(parsed_proof["b_p"]),
         zethGRPC.hex2int(parsed_proof["c"]),
         zethGRPC.hex2int(parsed_proof["inputs"])
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
@@ -200,4 +197,3 @@ def mix_groth16(
     ciphertext1 = event_logs_logSecretCiphers[0].args.ciphertext
     ciphertext2 = event_logs_logSecretCiphers[1].args.ciphertext
     return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
->>>>>>> add deploy and mix for groth16
