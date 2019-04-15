@@ -2,22 +2,19 @@ syntax = "proto3";
 
 package proverpkg;
 
+import "google/protobuf/empty.proto";
 import "pghr13_messages.proto";
 
 service Prover {
   // Run the setup on the prover side (Don't needed as the setup is ran when the server starts)
   // Can be used for further use of the proving service though
-  // rpc RunSetup(EmptyMessage) returns (EmptyMessage) {}
+  // rpc RunSetup(Empty) returns (Empty) {}
   
   // Fetch the verifying key from the proving service
-  rpc GetVerificationKey(EmptyMessage) returns (VerificationKey) {}
+  rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
 
   // Request a proof generation on the given input
   rpc Prove(ProofInputs) returns (ExtendedProof) {}
-}
-
-message EmptyMessage {
-  //nothing  
 }
 
 // Inputs of the prove function of the prover

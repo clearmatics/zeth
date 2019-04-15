@@ -27,6 +27,8 @@
 //Include circuit wrapper that makes use of the conditioned imported files above
 #include "circuit-wrapper.hpp"
 
+using google::protobuf::Empty;
+
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
@@ -37,7 +39,6 @@ using grpc::StatusCode;
 using proverpkg::Prover;
 
 // Use the messages defined in the proto file
-using proverpkg::EmptyMessage;
 using proverpkg::PackedDigest;
 using proverpkg::ProofInputs;
 
@@ -58,7 +59,7 @@ public:
 
   Status GetVerificationKey(
     ServerContext* context,
-    const EmptyMessage* request,
+    const Empty* request,
     VerificationKey* response
   ) override {
     std::cout << "[ACK] Received the request to get the verification key" << std::endl;
