@@ -30,4 +30,3 @@ namespace libzeth {
 #include "pghr13_helpers.tcc"
 
 #endif // __ZETH_PGHR13_HELPERS_HPP__
-

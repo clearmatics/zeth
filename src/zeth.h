@@ -16,5 +16,3 @@
 #define ZETH_DIGEST_HEX_SIZE 64 // Size of a sha256 digest in hex characters
 
 #endif // __ZETH_CONSTANTS__
-
-
