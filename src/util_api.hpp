@@ -25,4 +25,4 @@ proverpkg::HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affi
 
 } // libzeth
 
-#endif
+#endif // __ZETH_UTIL_API_HPP__

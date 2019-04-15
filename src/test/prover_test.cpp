@@ -482,7 +482,6 @@ bool TestValidJS2In2Deposit(
     libsnark::r1cs_ppzksnark_verification_key<ppT> vk = keypair.vk;
     bool res = libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(vk, ext_proof.get_primary_input(), ext_proof.get_proof());
 
-    //libsnark::r1cs_ppzksnark_primary_input<ppT> primary_inputs = .get_primary_input();TODO: use in case move the function
     ext_proof.dump_primary_inputs();
     libff::leave_block("[END] Verify proof", true);
 

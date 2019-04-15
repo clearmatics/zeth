@@ -171,7 +171,7 @@ def parsePghr13VerificationKey(vkObj):
     vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
     return vkJSON
 
-# Writes the verification key (object) in a json file#TODO generalize
+# Writes the verification key (object) in a json file
 def writeVerificationKey(vkObj):
     vkJSON = parsePghr13VerificationKey(vkObj)
     setupDir = os.environ['ZETH_TRUSTED_SETUP_DIR']
@@ -201,7 +201,7 @@ def parsePghr13Proof(proofObj):
     proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
     return proofJSON
 
-def get_proof_joinsplit_2by2(#TODO: generalize this and the parsing functions 
+def get_proof_joinsplit_2by2(
         grpcEndpoint,
         mk_root,
         input_note1,
