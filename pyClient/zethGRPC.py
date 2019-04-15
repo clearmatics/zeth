@@ -8,6 +8,7 @@ from eth_abi import encode_single, encode_abi
 
 # Access the gRPC service and the proto messages
 import grpc
+from google.protobuf import empty_pb2
 import util_pb2
 import util_pb2_grpc
 import pghr13_messages_pb2
@@ -156,7 +157,7 @@ def parseHexadecimalPointBaseGroup2Affine(point):
   ]
 
 def make_empty_message():
-    return prover_pb2.EmptyMessage()
+    return empty_pb2.Empty()
 
 def parsePghr13VerificationKey(vkObj):
     vkJSON = {}
