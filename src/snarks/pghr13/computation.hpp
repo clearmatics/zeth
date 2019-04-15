@@ -1,5 +1,5 @@
-#ifndef __ZETH_PGHR13_COMPUTATION_HPP__
-#define __ZETH_PGHR13_COMPUTATION_HPP__
+#ifndef __ZETH_COMPUTATION_HPP__
+#define __ZETH_COMPUTATION_HPP__
 
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
@@ -18,7 +18,7 @@ namespace libzeth {
     libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(libsnark::protoboard<libff::Fr<ppT> > pb);
 
 } // libzeth
-#include "pghr13_computation.tcc"
+#include "computation.tcc"
 
-#endif // __ZETH_PGHR13_COMPUTATION_HPP__
+#endif // __ZETH_COMPUTATION_HPP__
 

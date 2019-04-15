@@ -1,5 +1,5 @@
-#ifndef __ZETH_PGHR13_RESPONSE_HPP__
-#define __ZETH_PGHR13_RESPONSE_HPP__
+#ifndef __ZETH_RESPONSE_HPP__
+#define __ZETH_RESPONSE_HPP__
 
 #include "libsnark_helpers/extended_proof.hpp"
 
@@ -21,5 +21,5 @@ template<typename ppT>
 void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>& vk, VerificationKey* message);
 } //libzeth
 
-#include "pghr13_response.tcc"
-#endif
+#include "response.tcc"
+#endif // __ZETH_RESPONSE_HPP__

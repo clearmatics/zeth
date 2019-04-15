@@ -1,5 +1,5 @@
-#ifndef __ZETH_PGHR13_HELPERS_HPP__
-#define __ZETH_PGHR13_HELPERS_HPP__
+#ifndef __ZETH_HELPERS_HPP__
+#define __ZETH_HELPERS_HPP__
 
 #include <boost/filesystem.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
@@ -27,6 +27,6 @@ namespace libzeth {
     void proofToJson(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path);
 
 } // libzeth
-#include "pghr13_helpers.tcc"
+#include "helpers.tcc"
 
-#endif // __ZETH_PGHR13_HELPERS_HPP__
+#endif // __ZETH_HELPERS_HPP__

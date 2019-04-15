@@ -1,5 +1,5 @@
-#ifndef __ZETH_PGHR13_COMPUTATION_TCC__
-#define __ZETH_PGHR13_COMPUTATION_TCC__
+#ifndef __ZETH_COMPUTATION_TCC__
+#define __ZETH_COMPUTATION_TCC__
 
 namespace libzeth {
 
@@ -32,4 +32,4 @@ namespace libzeth {
 
 } // libzeth
 
-#endif
+#endif // __ZETH_COMPUTATION_TCC__
