@@ -25,9 +25,6 @@ set(PROTOS_UTIL
 set(PROTOS_PGHR13
     $ENV{ZETH_API_DIR}/pghr13_messages.proto)
 
-set(PROTOS_GROTH16
-    $ENV{ZETH_API_DIR}/groth16_messages.proto)
-
 # Set the target of the generated files to ${CMAKE_CURRENT_BINARY_DIR}/proto-src
 # Then create this folder and add it to the include directories
 set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto-src)
@@ -37,8 +34,8 @@ include_directories(${PROTO_SRC_DIR})
 # See cmake scripts in the cmake folder
 # Generate the grpc and protobuf files and set the result of the generation
 # in the given env var (PROTO_SRCS, PROTO_HDRS, GRPC_SRCS, GRPC_HDRS)
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_UTIL} ${PROTOS_GROTH16} ${PROTOS})
-grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_UTIL} ${PROTOS_GROTH16} ${PROTOS})
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_UTIL} ${PROTOS})
+grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_UTIL} ${PROTOS})
 
 include_directories(
   $ENV{ZETH}

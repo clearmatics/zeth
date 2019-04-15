@@ -12,8 +12,6 @@ import util_pb2
 import util_pb2_grpc
 import pghr13_messages_pb2
 import pghr13_messages_pb2_grpc
-import groth16_messages_pb2
-import groth16_messages_pb2_grpc
 import prover_pb2
 import prover_pb2_grpc
 
@@ -172,9 +170,6 @@ def parseBctv14VerificationKey(vkObj):
     vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
     return vkJSON
 
-def parseGroth16VerificationKey(vkObj):
-    pass
-
 # Writes the verification key (object) in a json file#TODO generalize
 def writeVerificationKey(vkObj):
     vkJSON = parseBctv14VerificationKey(vkObj)
@@ -204,9 +199,6 @@ def parseBctv14Proof(proofObj):
     proofJSON["k"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.k)
     proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
     return proofJSON
-
-def parseGroth16Proof(proofObj):
-    pass
 
 def get_proof_joinsplit_2by2(#TODO: generalize this and the parsing functions 
         grpcEndpoint,
