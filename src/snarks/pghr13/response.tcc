@@ -1,5 +1,5 @@
-#ifndef __ZETH_PGHR13_RESPONSE_TCC__
-#define __ZETH_PGHR13_RESPONSE_TCC__
+#ifndef __ZETH_RESPONSE_TCC__
+#define __ZETH_RESPONSE_TCC__
 
 namespace libzeth{
 template<typename ppT>
@@ -91,7 +91,7 @@ void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>&
     r1csPpzksnarkVerificationKey->set_allocated_gb2(gb2);
     r1csPpzksnarkVerificationKey->set_allocated_z(z);
     r1csPpzksnarkVerificationKey->set_ic(IC_json);
-}
+};
 } //libzeth
 
-#endif
+#endif // __ZETH_RESPONSE_TCC__

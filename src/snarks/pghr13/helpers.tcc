@@ -1,5 +1,5 @@
-#ifndef __ZETH_PGHR13_HELPER_TCC__
-#define __ZETH_PGHR13_HELPER_TCC__
+#ifndef __ZETH_HELPER_TCC__
+#define __ZETH_HELPER_TCC__
 
 namespace libzeth {
 template<typename ppT>
@@ -155,4 +155,4 @@ void proofAndInputToJson(libsnark::r1cs_ppzksnark_proof<ppT> proof, libsnark::r1
 };
 } // libzeth
 
-#endif
+#endif // __ZETH_HELPERS_TCC__
