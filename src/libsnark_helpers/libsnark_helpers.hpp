@@ -30,7 +30,6 @@
 
 namespace libzeth {
 
-//old
 template<typename serializableT> void writeToFile(boost::filesystem::path path, serializableT& obj);
 template<typename serializableT> serializableT loadFromFile(boost::filesystem::path path);
 
