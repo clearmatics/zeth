@@ -20,15 +20,6 @@ def compile_pghr13_contracts():
     mixer_interface = compiled_sol[path_to_mixer + ':Pghr13Mixer']
     return(verifier_interface, mixer_interface)
 
-def compile_groth16_contracts():
-    contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
-    path_to_verifier = os.path.join(contracts_dir, "Groth16Verifier.sol")
-    path_to_mixer = os.path.join(contracts_dir, "Groth16Mixer.sol")
-    compiled_sol = compile_files([path_to_verifier, path_to_mixer])
-    verifier_interface = compiled_sol[path_to_verifier + ':Verifier']
-    mixer_interface = compiled_sol[path_to_mixer + ':Groth16Mixer']
-    return(verifier_interface, mixer_interface)
-
 def compile_util_contracts():
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
@@ -85,9 +76,6 @@ def deploy_pghr13(mk_tree_depth, verifier_interface, mixer_interface, deployer_a
     initialRoot = w3.toHex(event_logs_logMerkleRoot[0].args.root)
     return(mixer, initialRoot[2:])
 
-def deploy_groth16():
-    pass #TODO
-
 # Call to the mixer's mix function to do zero knowledge payments
 def mix_pghr13(
         mixer_instance,
@@ -130,6 +118,3 @@ def mix_pghr13(
     ciphertext1 = event_logs_logSecretCiphers[0].args.ciphertext
     ciphertext2 = event_logs_logSecretCiphers[1].args.ciphertext
     return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
-
-def mix_groth16():
-    pass #TODO
