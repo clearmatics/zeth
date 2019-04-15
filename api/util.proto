@@ -34,7 +34,3 @@ message HexadecimalPointBaseGroup2Affine {
     string yC1Coord = 3;
     string yC0Coord = 4;
 }
-  
-message HexadecimalPointBaseGroupT {
-//TODO
-}

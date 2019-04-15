@@ -10,4 +10,4 @@
 #error You must define one of the SNARK_* symbols indicated into the CMakelists.txt file.
 #endif
 
-#endif
+#endif // __ZETH_SNARKS_IMPORT_HPP__

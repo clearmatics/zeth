@@ -27,3 +27,4 @@ message R1csPpzksnarkVerificationKey {
     HexadecimalPointBaseGroup1Affine k = 8;
     string inputs = 9;
   }
+  
