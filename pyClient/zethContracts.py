@@ -16,7 +16,7 @@ def compile_pghr13_contracts():
     path_to_verifier = os.path.join(contracts_dir, "Pghr13Verifier.sol")
     path_to_mixer = os.path.join(contracts_dir, "Pghr13Mixer.sol")
     compiled_sol = compile_files([path_to_verifier, path_to_mixer])
-    verifier_interface = compiled_sol[path_to_verifier + ':Verifier']
+    verifier_interface = compiled_sol[path_to_verifier + ':Pghr13Verifier']
     mixer_interface = compiled_sol[path_to_mixer + ':Pghr13Mixer']
     return(verifier_interface, mixer_interface)
 
