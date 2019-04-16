@@ -23,6 +23,6 @@ template<typename ppT>
 void proofToJson(libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path);
 
 } // libzeth
-#include "snarks/pgh13/helpers.tcc"
+#include "snarks/pghr13/helpers.tcc"
 
 #endif // __ZETH_HELPERS_HPP__
