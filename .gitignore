@@ -29,6 +29,8 @@ pyClient/prover_pb2.py
 pyClient/prover_pb2_grpc.py
 pyClient/pghr13_messages_pb2.py
 pyClient/pghr13_messages_pb2_grpc.py
+pyClient/groth16_messages_pb2.py
+pyClient/groth16_messages_pb2_grpc.py
 pyClient/util_pb2.py
 pyClient/util_pb2_grpc.py
 

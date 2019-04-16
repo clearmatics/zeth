@@ -226,7 +226,7 @@ def parseGroth16Proof(proofObj):
     proofJSON["inputs"] = json.loads(proofObj.r1csGgPpzksnarkExtendedProof.inputs)
     return proofJSON
 
-def get_proof_joinsplit_2by2(#TODO: generalize this and the parsing functions 
+def get_proof_joinsplit_2by2(
         grpcEndpoint,
         mk_root,
         input_note1,
@@ -241,7 +241,8 @@ def get_proof_joinsplit_2by2(#TODO: generalize this and the parsing functions
         output_note_value1,
         output_note_value2,
         public_in_value,
-        public_out_value
+        public_out_value,
+        zksnark
     ):
     input_nullifier1 = computeNullifier(input_note1, sender_ask)
     input_nullifier2 = computeNullifier(input_note2, sender_ask)
@@ -259,11 +260,10 @@ def get_proof_joinsplit_2by2(#TODO: generalize this and the parsing functions
 
     proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value)
     proof_obj = getProof(grpcEndpoint, proof_input)
-<<<<<<< HEAD
-    proof_json = parsePghr13Proof(proof_obj)
-=======
-    proof_json = parseGroth16Proof(proof_obj)#TODO: fix it
->>>>>>> fix json keys errors
+    if zksnark == "pghr13":
+        proof_json = parsePghr13Proof(proof_obj)
+    else:
+        proof_json = parseGroth16Proof(proof_obj)
 
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them

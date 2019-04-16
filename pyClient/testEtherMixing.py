@@ -35,10 +35,10 @@ def get_merkle_tree(mixer_instance):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Testing Zeth transactions by using Pghr13 or Groth16 algorithms. Set one of the two options 'groth16' or 'pghr13'")
-    parser.add_argument("snark", help="set testing for the 'groth16' or 'pghr13'")
+    parser.add_argument("zksnark", help="set testing for the 'groth16' or 'pghr13'")
     args = parser.parse_args()
-    if (args not in ['groth16, pghr13']):
-        print("Invalid argument for --snark") #TODO: add an error? or try catch struct
+    if (args.zksnark not in ['groth16', 'pghr13']):
+        print("Invalid argument for --zksnark")
         sys.exit()
 
     # Zeth addresses
@@ -55,16 +55,16 @@ if __name__ == '__main__':
     vk = zethGRPC.getVerificationKey(test_grpc_endpoint)
 
     print("[INFO] 2. Received VK, writing the key...")
-    if args.snark == "groth16":
-        zethGRPC.writeGroth16VerificationKey(vk)
-    else:
+    if args.zksnark == "pghr13":
         zethGRPC.writePghr13VerificationKey(vk)
+    else:
+        zethGRPC.writeGroth16VerificationKey(vk)
+
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
-    zethContracts.compile_util_contracts()
-    if args.snark == "groth16":
-        (verifier_interface, mixer_interface) = zethContracts.compile_groth16_contracts()
-        (mixer_instance, initial_root) = zethContracts.deploy_groth16(
+    if args.zksnark == "pghr13":
+        (verifier_interface, mixer_interface) = zethContracts.compile_pghr13_contracts()
+        (mixer_instance, initial_root) = zethContracts.deploy_pghr13_contracts(
             mk_tree_depth,
             verifier_interface,
             mixer_interface,
@@ -73,8 +73,8 @@ if __name__ == '__main__':
             "0x0000000000000000000000000000000000000000" # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
         )
     else:
-        (verifier_interface, mixer_interface) = zethContracts.compile_pghr13_contracts()
-        (mixer_instance, initial_root) = zethContracts.deploy_pghr13(
+        (verifier_interface, mixer_interface) = zethContracts.compile_groth16_contracts()
+        (mixer_instance, initial_root) = zethContracts.deploy_groth16_contracts(
             mk_tree_depth,
             verifier_interface,
             mixer_interface,
@@ -99,7 +99,8 @@ if __name__ == '__main__':
         initial_root,
         bob_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        args.zksnark
     )
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
     cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]
@@ -140,7 +141,8 @@ if __name__ == '__main__':
         cm_address_bob_to_bob1,
         bob_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        args.zksnark
     )
     cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie[0] # Bob -> Bob (Change)
     cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie[1] # Bob -> Charlie (payment to Charlie)
@@ -159,7 +161,8 @@ if __name__ == '__main__':
             cm_address_bob_to_bob1,
             bob_eth_address,
             keystore,
-            mk_tree_depth
+            mk_tree_depth,
+            args.zksnark
         )
     except Exception as e:
         print("Bob's double spending successfully rejected! (msg: {})".format(e))
@@ -192,7 +195,8 @@ if __name__ == '__main__':
         cm_address_bob_to_charlie2,
         charlie_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        args.zksnark
     )
 
     print("Balances after Charlie's withdrawal: ")

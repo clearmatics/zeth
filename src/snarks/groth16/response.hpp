@@ -24,5 +24,5 @@ namespace libzeth{
     
 }
 
-#include "groth16_response.tcc"
-#endif
+#include "snarks/groth16/response.tcc"
+#endif // __ZETH_GROTH16_RESPONSE_HPP__

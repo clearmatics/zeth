@@ -18,6 +18,6 @@ namespace libzeth {
     libsnark::r1cs_gg_ppzksnark_keypair<ppT> gen_trusted_setup (libsnark::protoboard<libff::Fr<ppT> > pb);
 
 } // libzeth
-#include "groth16_computation.tcc"
+#include "snarks/groth16/computation.tcc"
 
 #endif // __ZETH_GROTH16_COMPUTATION_HPP__

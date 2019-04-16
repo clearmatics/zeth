@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import argparse
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 from solcx import compile_standard, compile_files
@@ -65,6 +66,13 @@ def mint_token(token_instance, spender_address, deployer_address, token_amount):
     return token_instance.functions.mint(spender_address, w3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Testing Zeth transactions by using Pghr13 or Groth16 algorithms. Set one of the two options 'groth16' or 'pghr13'")
+    parser.add_argument("zksnark", help="set testing for the 'groth16' or 'pghr13'")
+    args = parser.parse_args()
+    if (args.zksnark not in ['groth16', 'pghr13']):
+        print("Invalid argument for --zksnark")
+        sys.exit()
+    
     # Ethereum addresses
     deployer_eth_address = w3.eth.accounts[0]
     bob_eth_address = w3.eth.accounts[1]
@@ -79,20 +87,35 @@ if __name__ == '__main__':
     vk = zethGRPC.getVerificationKey(test_grpc_endpoint)
 
     print("[INFO] 2. Received VK, writing the key...")
-    zethGRPC.writeVerificationKey(vk)
+    if args.zksnark == "pghr13":
+        zethGRPC.writePghr13VerificationKey(vk)
+    else:
+        zethGRPC.writeGroth16VerificationKey(vk)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     token_interface = compile_token()
-    verifier_interface, mixer_interface = zethContracts.compile_pghr13_contracts()
-    token_instance = deploy_token(deployer_eth_address, 4000000)
-    mixer_instance, initial_root = zethContracts.deploy_pghr13_contracts(
-        mk_tree_depth,
-        verifier_interface,
-        mixer_interface,
-        deployer_eth_address,
-        4000000,
-        token_instance.address
-    )
+    if args.zksnark == "pghr13":
+        (verifier_interface, mixer_interface) = zethContracts.compile_pghr13_contracts()
+        token_instance = deploy_token(deployer_eth_address, 4000000)
+        (mixer_instance, initial_root) = zethContracts.deploy_pghr13_contracts(
+            mk_tree_depth,
+            verifier_interface,
+            mixer_interface,
+            deployer_eth_address,
+            4000000,
+            token_instance.address # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
+        )
+    else:
+        (verifier_interface, mixer_interface) = zethContracts.compile_groth16_contracts()
+        token_instance = deploy_token(deployer_eth_address, 4000000)
+        (mixer_instance, initial_root) = zethContracts.deploy_groth16_contracts(
+            mk_tree_depth,
+            verifier_interface,
+            mixer_interface,
+            deployer_eth_address,
+            4000000,
+            token_instance.address # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
+        )
 
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
     # We define 1 ETH Token as 10^18 balance value (as the ratio ETH/wei)
@@ -114,7 +137,8 @@ if __name__ == '__main__':
             initial_root,
             bob_eth_address,
             keystore,
-            mk_tree_depth
+            mk_tree_depth,
+            args.zksnark
         )
     except Exception as e:
         allowance_mixer =  allowance(token_instance, bob_eth_address, mixer_instance.address)
@@ -135,7 +159,8 @@ if __name__ == '__main__':
         initial_root,
         bob_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        args.zksnark
     )
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
     cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]
@@ -176,7 +201,8 @@ if __name__ == '__main__':
         cm_address_bob_to_bob1,
         bob_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        args.zksnark
     )
     cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie[0] # Bob -> Bob (Change)
     cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie[1] # Bob -> Charlie (payment to Charlie)
@@ -195,7 +221,8 @@ if __name__ == '__main__':
             cm_address_bob_to_bob1,
             bob_eth_address,
             keystore,
-            mk_tree_depth
+            mk_tree_depth,
+            args.zksnark
         )
     except Exception as e:
         print("Bob's double spending successfully rejected! (msg: {})".format(e))
@@ -228,7 +255,8 @@ if __name__ == '__main__':
         cm_address_bob_to_charlie2,
         charlie_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        args.zksnark
     )
 
     print("- Balances after Charlie's withdrawal: ")
