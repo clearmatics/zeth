@@ -21,10 +21,10 @@ configure_file (
 # Flags and compilation options to chose the type of snark
 set(
   SNARK # Variable name
-  "R1CS_PPZKSNARK"
+  "PGHR13"
   CACHE
   STRING
-  "Default snark: one of R1CS_PPZKSNARK"
+  "Default snark: one of PGHR13, GROTH16"
 )
 
 # Flags and compilation options for use with libsnark
