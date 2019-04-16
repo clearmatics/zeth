@@ -16,7 +16,8 @@
 
 #include <libff/common/default_types/ec_pp.hpp>
 
-namespace libzeth{
+namespace libzeth {
+
 libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(const uint8_t* _x);
 std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> _x);
 std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p);
@@ -26,6 +27,7 @@ boost::filesystem::path getPathToSetupDir();
 boost::filesystem::path getPathToDebugDir();
 
 bool replace(std::string& str, const std::string& from, const std::string& to);
-} //libzeth
+
+} // libzeth
 
 #endif

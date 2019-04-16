@@ -11,11 +11,9 @@
 #include "libsnark_helpers/debug_helpers.hpp"
 
 typedef libff::default_ec_pp ppT;
-using namespace::libzeth;
 
-namespace libzeth{
+namespace libzeth {
 
-//message parsing utils
 libsnark::merkle_authentication_node ParseMerkleNode(std::string mk_node);
 ZethNote ParseZethNote(const proverpkg::ZethNote& note);
 JSInput ParseJSInput(const proverpkg::JSInput& input);

@@ -20,10 +20,12 @@ set(PROTOS
 )
 
 set(PROTOS_UTIL
-    $ENV{ZETH_API_DIR}/util.proto)
+    $ENV{ZETH_API_DIR}/util.proto
+)
 
 set(PROTOS_PGHR13
-    $ENV{ZETH_API_DIR}/pghr13_messages.proto)
+    $ENV{ZETH_API_DIR}/pghr13_messages.proto
+)
 
 # Set the target of the generated files to ${CMAKE_CURRENT_BINARY_DIR}/proto-src
 # Then create this folder and add it to the include directories
@@ -48,7 +50,7 @@ file(GLOB_RECURSE SOURCES_TEST
     circuits/circuits-util.cpp
     types/bits.cpp
     util.cpp
-    )
+)
 
 file(GLOB_RECURSE SOURCES
     ${SOURCES_TEST}
@@ -66,7 +68,7 @@ include_directories( ${PROJECT_BINARY_DIR} )
 # Building the server
 add_executable(
     prover_server
-    
+
     ${CMAKE_CURRENT_SOURCE_DIR}/prover_server.cc
     ${PROTO_SRCS}
     ${GRPC_SRCS}
@@ -74,7 +76,7 @@ add_executable(
 )
 target_link_libraries(
     prover_server
-    
+
     snark
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
@@ -83,7 +85,7 @@ target_link_libraries(
 )
 target_include_directories(
     prover_server
-    
+
     PUBLIC
     ${DEPENDS_DIR}/libsnark
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
@@ -201,7 +203,6 @@ target_link_libraries(
     gtest_main
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
-
 )
 target_include_directories(
     test_prover

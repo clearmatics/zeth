@@ -14,9 +14,9 @@ message R1csPpzksnarkVerificationKey {
     HexadecimalPointBaseGroup2Affine z = 7;
     string IC = 8;
   }
-  
-  // Contains the proof along with the public input
-  message R1csPpzksnarkExtendedProof {
+
+// Contains the proof along with the public input
+message R1csPpzksnarkExtendedProof {
     HexadecimalPointBaseGroup1Affine a = 1;
     HexadecimalPointBaseGroup1Affine aP = 2;
     HexadecimalPointBaseGroup2Affine b = 3;
@@ -26,5 +26,4 @@ message R1csPpzksnarkVerificationKey {
     HexadecimalPointBaseGroup1Affine h = 7;
     HexadecimalPointBaseGroup1Affine k = 8;
     string inputs = 9;
-  }
-  
+}

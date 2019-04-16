@@ -4,11 +4,13 @@
 #include "types/note.hpp"
 
 #include "circuits/joinsplit.tcc"
-#include "libsnark_helpers/libsnark_helpers.hpp" 
-#include "snarks_alias.hpp" // Snark dependent alias for keyPairT, provingKeyT, proofT and keyPairT
-#include "snarks_import.hpp" // Snark dependent implementation import for generate_trusted_setup() and prove() functions
+#include "libsnark_helpers/libsnark_helpers.hpp"
 
-typedef libff::default_ec_pp ppT; // We use the public parameters of the alt_bn_128 curve to do our operations
+// zkSNARK specific aliases and imports
+#include "snarks_alias.hpp"
+#include "snarks_import.hpp"
+
+typedef libff::default_ec_pp ppT;
 
 namespace libzeth {
 
@@ -28,7 +30,6 @@ public:
     ): setupPath(setupPath) {};
 
     // Generate the trusted setup
-
     keyPairT<ppT> generate_trusted_setup();
 
     // Generate a proof and returns an extended proof
@@ -38,7 +39,6 @@ public:
                             bits64 vpub_in,
                             bits64 vpub_out,
                             provingKeyT<ppT> proving_key);
-    
 };
 
 } // libzeth
