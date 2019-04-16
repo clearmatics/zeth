@@ -1,17 +1,17 @@
-#include "circuits/computation.hpp"
+#include "zeth.h"
 
 namespace libzeth {
 
 template<size_t NumInputs, size_t NumOutputs>
-libsnark::r1cs_ppzksnark_keypair<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {
+keyPairT<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {
     libsnark::protoboard<FieldT> pb;
     joinsplit_gadget<FieldT, HashT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
-        
+
     // Generate a verification and proving key (trusted setup)
     // and write them in a file
-    libsnark::r1cs_ppzksnark_keypair<ppT> keypair = gen_trusted_setup<ppT>(pb);
-    write_setup<ppT>(keypair, this->setupPath);
+    keyPairT<ppT> keypair = gen_trusted_setup<ppT>(pb);
+    writeSetup<ppT>(keypair, this->setupPath);
 
     return keypair;
 }
@@ -23,7 +23,7 @@ extended_proof<ppT> CircuitWrapper<NumInputs, NumOutputs>::prove(
     const std::array<ZethNote, NumOutputs>& outputs,
     bits64 vpub_in,
     bits64 vpub_out,
-    libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key
+    provingKeyT<ppT> proving_key
 ) {
     // left hand side and right hand side of the joinsplit
     bits64 lhs_value = vpub_in;
@@ -62,7 +62,11 @@ extended_proof<ppT> CircuitWrapper<NumInputs, NumOutputs>::prove(
     std::cout << "******* [DEBUG] Satisfiability result: " << is_valid_witness << " *******" << std::endl;
 
     // Write the extended proof in a file (Default path is taken if not specified)
-    extended_proof<ppT> ext_proof = gen_proof<ppT>(pb, proving_key);
+    proofT<ppT> proof = libzeth::gen_proof<ppT>(pb, proving_key);
+    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input = pb.primary_input();
+
+    // Instantiate an extended_proof from the proof we generated and the given primary_input
+    extended_proof<ppT> ext_proof = extended_proof<ppT>(proof, primary_input);
     ext_proof.write_extended_proof();
 
     return ext_proof;

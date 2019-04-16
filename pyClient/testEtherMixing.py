@@ -49,8 +49,9 @@ if __name__ == '__main__':
     zethGRPC.writeVerificationKey(vk)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
-    (verifier_interface, mixer_interface) = zethContracts.compile_contracts()
-    (mixer_instance, initial_root) = zethContracts.deploy(
+    zethContracts.compile_util_contracts()
+    (verifier_interface, mixer_interface) = zethContracts.compile_pghr13_contracts()
+    (mixer_instance, initial_root) = zethContracts.deploy_pghr13_contracts(
         mk_tree_depth,
         verifier_interface,
         mixer_interface,

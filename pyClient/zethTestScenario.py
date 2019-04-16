@@ -41,7 +41,7 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"])
     ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["ek"])
-    return zethContracts.mix(
+    return zethContracts.mix_pghr13(
         mixer_instance,
         ciphertext1,
         ciphertext2,
@@ -84,7 +84,7 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"]) # Bob is the recipient
     ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
-    return zethContracts.mix(
+    return zethContracts.mix_pghr13(
         mixer_instance,
         ciphertext1,
         ciphertext2,
@@ -126,7 +126,7 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
     ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
-    return zethContracts.mix(
+    return zethContracts.mix_pghr13(
         mixer_instance,
         ciphertext1,
         ciphertext2,

@@ -2,6 +2,11 @@ pragma solidity ^0.5.0;
 
 /*
  * Reference papers:
+ * \[PGHR13]:
+ * "Pinocchio: Nearly practical verifiable computation",
+ * Bryan Parno, Craig Gentry, Jon Howell, Mariana Raykova,
+ * IEEE S&P 2013,
+ * <https://eprint.iacr.org/2013/279>
  *
  * [BCTV14]:
  * "Succinct Non-Interactive Zero Knowledge for a von Neumann Architecture",
@@ -17,8 +22,8 @@ pragma solidity ^0.5.0;
 
 import "./Pairing.sol";
 
-// BCTV14 Verifier contract
-contract Verifier {
+// PGHR13 Verifier contract
+contract Pghr13Verifier {
     using Pairing for *;
 
     struct VerifyingKey {

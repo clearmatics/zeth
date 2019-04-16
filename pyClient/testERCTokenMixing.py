@@ -83,9 +83,9 @@ if __name__ == '__main__':
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     token_interface = compile_token()
-    verifier_interface, mixer_interface = zethContracts.compile_contracts()
+    verifier_interface, mixer_interface = zethContracts.compile_pghr13_contracts()
     token_instance = deploy_token(deployer_eth_address, 4000000)
-    mixer_instance, initial_root = zethContracts.deploy(
+    mixer_instance, initial_root = zethContracts.deploy_pghr13_contracts(
         mk_tree_depth,
         verifier_interface,
         mixer_interface,

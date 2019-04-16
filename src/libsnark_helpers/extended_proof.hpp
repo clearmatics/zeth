@@ -1,9 +1,10 @@
 #ifndef __ZETH_EXTENDED_PROOF_HPP__
 #define __ZETH_EXTENDED_PROOF_HPP__
 
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-
-#include "libsnark_helpers/libsnark_helpers.hpp"
+#include "debug_helpers.hpp"
+#include "zeth.h"
+#include "snarks_alias.hpp" // Snark dependent alias for keyPairT, provingKeyT, verificationKeyT, and proofT
+#include "snarks_import.hpp" // Snark dependent implementation for generate_trusted_setup() and prove() functions
 
 namespace libzeth {
 
@@ -15,20 +16,18 @@ namespace libzeth {
 template<typename ppT>
 class extended_proof {
 private:
-    std::shared_ptr<libsnark::r1cs_ppzksnark_proof<ppT>> proof;
-    std::shared_ptr<libsnark::r1cs_ppzksnark_primary_input<ppT>> primary_inputs;
+    std::shared_ptr<proofT<ppT>> proof;
+    std::shared_ptr<libsnark::r1cs_primary_input<libff::Fr<ppT>>> primary_inputs;
 
 public:
-    extended_proof(libsnark::r1cs_ppzksnark_proof<ppT> &in_proof,
-                    libsnark::r1cs_ppzksnark_primary_input<ppT> &in_primary_input);
+    extended_proof(proofT<ppT> &in_proof, libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input);
+    proofT<ppT> get_proof();
+    libsnark::r1cs_primary_input<libff::Fr<ppT>> get_primary_input();
 
-    libsnark::r1cs_ppzksnark_proof<ppT> get_proof();
-    libsnark::r1cs_ppzksnark_primary_input<ppT> get_primary_input();
-
-	// Write on disk
-	void write_extended_proof(boost::filesystem::path path = "");
-	void write_proof(boost::filesystem::path path = "");
-	void write_primary_input(boost::filesystem::path path = "");
+    // Write on disk
+    void write_primary_input(boost::filesystem::path path = "");
+    void write_proof(boost::filesystem::path path = "");
+    void write_extended_proof(boost::filesystem::path path = "");
 
     // Display on stdout
     void dump_proof();

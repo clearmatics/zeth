@@ -19,6 +19,14 @@ set(PROTOS
     $ENV{ZETH_API_DIR}/prover.proto
 )
 
+set(PROTOS_UTIL
+    $ENV{ZETH_API_DIR}/util.proto
+)
+
+set(PROTOS_PGHR13
+    $ENV{ZETH_API_DIR}/pghr13_messages.proto
+)
+
 # Set the target of the generated files to ${CMAKE_CURRENT_BINARY_DIR}/proto-src
 # Then create this folder and add it to the include directories
 set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto-src)
@@ -28,8 +36,8 @@ include_directories(${PROTO_SRC_DIR})
 # See cmake scripts in the cmake folder
 # Generate the grpc and protobuf files and set the result of the generation
 # in the given env var (PROTO_SRCS, PROTO_HDRS, GRPC_SRCS, GRPC_HDRS)
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTOS})
-grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS})
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_UTIL} ${PROTOS})
+grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_UTIL} ${PROTOS})
 
 include_directories(
   $ENV{ZETH}
@@ -37,11 +45,16 @@ include_directories(
   libff/common/default_types
 )
 
-file(GLOB_RECURSE SOURCES
+file(GLOB_RECURSE SOURCES_TEST
+    libsnark_helpers/debug_helpers.cpp
     circuits/circuits-util.cpp
-    libsnark_helpers/libsnark_helpers.cpp
     types/bits.cpp
     util.cpp
+)
+
+file(GLOB_RECURSE SOURCES
+    ${SOURCES_TEST}
+    util_api.cpp
 )
 
 # Enable Boost for program_options
@@ -53,20 +66,26 @@ include_directories( ${Boost_INCLUDE_DIR} )
 include_directories( ${PROJECT_BINARY_DIR} )
 
 # Building the server
-add_executable(prover_server
+add_executable(
+    prover_server
+
     ${CMAKE_CURRENT_SOURCE_DIR}/prover_server.cc
     ${PROTO_SRCS}
     ${GRPC_SRCS}
     ${SOURCES}
 )
-target_link_libraries(prover_server
+target_link_libraries(
+    prover_server
+
     snark
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     gRPC::grpc++_reflection
     protobuf::libprotobuf
 )
-target_include_directories(prover_server
+target_include_directories(
+    prover_server
+
     PUBLIC
     ${DEPENDS_DIR}/libsnark
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
@@ -79,7 +98,7 @@ add_executable(
     EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
 
     test/packed_addition_test.cpp
-    ${SOURCES}
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_addition
@@ -103,7 +122,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/note_test.cpp
-    ${SOURCES}
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_note
@@ -127,7 +146,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/prfs_test.cpp
-    ${SOURCES}
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_prfs
@@ -151,7 +170,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/commitments_test.cpp
-    ${SOURCES}
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_commitments
@@ -175,7 +194,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/prover_test.cpp
-    ${SOURCES}
+    ${SOURCES_TEST}
 )
 target_link_libraries(
     test_prover
