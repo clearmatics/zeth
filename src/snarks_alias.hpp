@@ -21,7 +21,6 @@ using keyPairT = libsnark::r1cs_ppzksnark_keypair<ppT>;
 #ifdef SNARK_GROTH16
 #define LIBZETH_SNARK_DEFINED
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-
 namespace libzeth {
 template<typename ppT>
 using provingKeyT = libsnark::r1cs_gg_ppzksnark_proving_key<ppT>;

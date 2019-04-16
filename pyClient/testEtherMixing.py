@@ -1,6 +1,8 @@
 import json
 import time
 import os
+import sys
+import argparse
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 
@@ -32,6 +34,13 @@ def get_merkle_tree(mixer_instance):
     return mk_byte_tree
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Testing Zeth transactions by using Pghr13 or Groth16 algorithms. Set one of the two options 'groth16' or 'pghr13'")
+    parser.add_argument("snark", help="set testing for the 'groth16' or 'pghr13'")
+    args = parser.parse_args()
+    if (args not in ['groth16, pghr13']):
+        print("Invalid argument for --snark") #TODO: add an error? or try catch struct
+        sys.exit()
+
     # Zeth addresses
     keystore = zethMock.initTestKeystore()
     # Depth of the merkle tree (need to match the one used in the cpp prover)
@@ -46,19 +55,33 @@ if __name__ == '__main__':
     vk = zethGRPC.getVerificationKey(test_grpc_endpoint)
 
     print("[INFO] 2. Received VK, writing the key...")
-    zethGRPC.writeVerificationKey(vk)
+    if args.snark == "groth16":
+        zethGRPC.writeGroth16VerificationKey(vk)
+    else:
+        zethGRPC.writePghr13VerificationKey(vk)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     zethContracts.compile_util_contracts()
-    (verifier_interface, mixer_interface) = zethContracts.compile_pghr13_contracts()
-    (mixer_instance, initial_root) = zethContracts.deploy_pghr13_contracts(
-        mk_tree_depth,
-        verifier_interface,
-        mixer_interface,
-        deployer_eth_address,
-        4000000,
-        "0x0000000000000000000000000000000000000000" # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
-    )
+    if args.snark == "groth16":
+        (verifier_interface, mixer_interface) = zethContracts.compile_groth16_contracts()
+        (mixer_instance, initial_root) = zethContracts.deploy_groth16(
+            mk_tree_depth,
+            verifier_interface,
+            mixer_interface,
+            deployer_eth_address,
+            4000000,
+            "0x0000000000000000000000000000000000000000" # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
+        )
+    else:
+        (verifier_interface, mixer_interface) = zethContracts.compile_pghr13_contracts()
+        (mixer_instance, initial_root) = zethContracts.deploy_pghr13(
+            mk_tree_depth,
+            verifier_interface,
+            mixer_interface,
+            deployer_eth_address,
+            4000000,
+            "0x0000000000000000000000000000000000000000" # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
+        )
 
     print("[INFO] 4. Running tests (asset mixed: Ether)...")
     print("- Initial balances: ")
