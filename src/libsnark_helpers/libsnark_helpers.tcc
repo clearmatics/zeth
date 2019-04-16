@@ -1,7 +1,6 @@
 #ifndef __ZETH_LIBSNARK_HELPERS_TCC__
 #define __ZETH_LIBSNARK_HELPERS_TCC__
 
-
 namespace libzeth {
 
 // SerializableT represents any type that overloads the operator<< and operator>> of ostream and istream
@@ -71,7 +70,7 @@ template<typename ppT>
 verificationKeyT<ppT> deserializeVerificationKeyFromFile(boost::filesystem::path vk_path)
 {
     return loadFromFile<verificationKeyT<ppT>>(vk_path);
-}; 
+};
 
 template<typename ppT>
 void writeSetup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir)
@@ -253,6 +252,7 @@ void primary_input_to_json(libsnark::r1cs_ppzksnark_primary_input<ppT> input, bo
     fh.flush();
     fh.close();
 };
+
 } // libzeth
 
 #endif // __ZETH_LIBSNARK_HELPERS_TCC__

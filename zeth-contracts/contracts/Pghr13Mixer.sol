@@ -42,7 +42,7 @@ contract Pghr13Mixer is Mixer {
     Verifier public _zksnark_verifier;
 
     // Constructor
-    constructor(address _zksnark_verify, uint depth, address token) Mixer (depth, token) public {
+    constructor(address _zksnark_verify, uint depth, address token) Mixer(depth, token) public {
         _zksnark_verifier = Verifier(_zksnark_verify);
     }
 

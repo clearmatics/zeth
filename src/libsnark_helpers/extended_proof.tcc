@@ -68,7 +68,7 @@ void extended_proof<ppT>::dump_primary_inputs(){
     std::cout << "}";
 }
 
-template<typename ppT> 
+template<typename ppT>
 void extended_proof<ppT>::write_proof(boost::filesystem::path path)
 {
     proofToJson<ppT>(*this->proof, path);
@@ -85,7 +85,6 @@ void extended_proof<ppT>::dump_proof()
 {
     displayProof<ppT>(*this->proof);
 };
-
 
 } // libzeth
 
