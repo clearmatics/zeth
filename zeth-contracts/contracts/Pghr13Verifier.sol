@@ -23,7 +23,7 @@ pragma solidity ^0.5.0;
 import "./Pairing.sol";
 
 // PGHR13 Verifier contract
-contract Verifier {
+contract Pghr13Verifier {
     using Pairing for *;
 
     struct VerifyingKey {
