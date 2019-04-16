@@ -67,7 +67,7 @@ namespace libzeth{
         r1csGgPpzksnarkVerificationKey->set_allocated_gamma_g2(g);
         r1csGgPpzksnarkVerificationKey->set_allocated_delta_g2(d);
         r1csGgPpzksnarkVerificationKey->set_gamma_abc_g1(GammaABC_json);
-    }
+    };
 }
 
-#endif
+#endif // __ZETH_GROTH16_RESPONSE_TCC__

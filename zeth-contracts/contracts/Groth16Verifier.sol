@@ -19,7 +19,7 @@ pragma solidity ^0.5.0;
 import "./Pairing.sol";
 
 // Groth16 Verifier contract
-contract Verifier {
+contract Groth16Verifier {
     using Pairing for *;
 
     struct VerifyingKey {
@@ -72,6 +72,11 @@ contract Verifier {
 
     function verify(uint[] memory input, Proof memory proof) internal returns (uint) {
         VerifyingKey memory vk = verifyKey;
+
+        require(
+            input.length + 1 == vk.Gamma_ABC.length,
+            "Using strong input consistency, and the input length differs from expected"
+        );
 
         Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);//TODO: to check
         for (uint i = 0; i < input.length; i++) {

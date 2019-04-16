@@ -39,11 +39,11 @@ contract Groth16Mixer is Mixer {
     using Bytes for *;
 
     // Smart contract responsible of on-chain verification of proofs
-    Verifier public _zksnark_verifier;
+    Groth16Verifier public _zksnark_verifier;
 
     // Constructor
     constructor(address _zksnark_verify, uint depth, address token) Mixer (depth, token) public {
-        _zksnark_verifier = Verifier(_zksnark_verify);
+        _zksnark_verifier = Groth16Verifier(_zksnark_verify);
     }
 
     // This function allows to mix coins and execute payments in zero knowledge

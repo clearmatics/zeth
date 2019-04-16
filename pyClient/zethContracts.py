@@ -20,6 +20,15 @@ def compile_pghr13_contracts():
     mixer_interface = compiled_sol[path_to_mixer + ':Pghr13Mixer']
     return(verifier_interface, mixer_interface)
 
+def compile_groth16_contracts():
+    contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
+    path_to_verifier = os.path.join(contracts_dir, "Groth16Verifier.sol")
+    path_to_mixer = os.path.join(contracts_dir, "Groth16Mixer.sol")
+    compiled_sol = compile_files([path_to_verifier, path_to_mixer])
+    verifier_interface = compiled_sol[path_to_verifier + ':Groth16Verifier']
+    mixer_interface = compiled_sol[path_to_mixer + ':Groth16Mixer']
+    return(verifier_interface, mixer_interface)
+
 def compile_util_contracts():
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
@@ -76,7 +85,7 @@ def deploy_pghr13_contracts(mk_tree_depth, verifier_interface, mixer_interface, 
     initialRoot = w3.toHex(event_logs_logMerkleRoot[0].args.root)
     return(mixer, initialRoot[2:])
 
-def deploy_groth16(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address):
+def deploy_groth16_contracts(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address):
     setup_dir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     vk_json = os.path.join(setup_dir, "vk.json")
     with open(vk_json) as json_data:
