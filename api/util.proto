@@ -5,22 +5,22 @@ package proverpkg;
 message PackedDigest {
   string part1 = 1; // First 253bits of the digest
   string part2 = 2; // Last 3bits of the digest
-  }
-  
+}
+ 
 message ZethNote {
   string aPK = 1;
   string value = 2; // Hexadecimal string representing a int64
   string rho = 3;
   string trapR = 4;
-  }
-  
+}
+
 message JSInput {
   repeated string merkleNode = 1; // Merkle path to the commitment
   int64 address = 2;
   ZethNote note = 3;
   string spendingASK = 4;
   string nullifier = 5;
-  }
+}
 
 // All the data is given as hexadecimal strings
 message HexadecimalPointBaseGroup1Affine {

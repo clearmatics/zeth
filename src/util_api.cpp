@@ -60,7 +60,7 @@ proverpkg::HexadecimalPointBaseGroup1Affine FormatHexadecimalPointBaseGroup1Affi
     res.set_ycoord(yCoord);
 
     return res;
-    }
+}
 
 proverpkg::HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affine(libff::alt_bn128_G2 point) {
     libff::alt_bn128_G2 aff = point;
