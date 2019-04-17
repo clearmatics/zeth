@@ -4,7 +4,7 @@
 namespace libzeth {
 
     // Generate the proof and returns a struct {proof, primary_input}
-    template<typename ppT>//TODO recover provingKey from KeyPair
+    template<typename ppT>
     libsnark::r1cs_gg_ppzksnark_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT> > pb, libsnark::r1cs_gg_ppzksnark_proving_key<ppT> proving_key)
     {
         // See: https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp#L81
@@ -27,7 +27,6 @@ namespace libzeth {
         // set of powers, plus the alpha, beta, gamma, and the rest of the entries, in order to form the CRS
         // (crs_f, shortcrs_f, as denoted in [GGPR12]) 
         
-        //TODO: find another solution. Here it is difficult make overloading
         return libsnark::r1cs_gg_ppzksnark_generator<ppT>(pb.get_constraint_system());
         }
 

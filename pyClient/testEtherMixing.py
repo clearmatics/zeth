@@ -40,6 +40,7 @@ if __name__ == '__main__':
     if (args.zksnark not in ['groth16', 'pghr13']):
         print("Invalid argument for --zksnark")
         sys.exit()
+    zksnark = args.zksnark
 
     # Zeth addresses
     keystore = zethMock.initTestKeystore()
@@ -55,33 +56,20 @@ if __name__ == '__main__':
     vk = zethGRPC.getVerificationKey(test_grpc_endpoint)
 
     print("[INFO] 2. Received VK, writing the key...")
-    if args.zksnark == "pghr13":
-        zethGRPC.writePghr13VerificationKey(vk)
-    else:
-        zethGRPC.writeGroth16VerificationKey(vk)
+    zethGRPC.writeVerificationKey(vk, zksnark)
 
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
-    if args.zksnark == "pghr13":
-        (verifier_interface, mixer_interface) = zethContracts.compile_pghr13_contracts()
-        (mixer_instance, initial_root) = zethContracts.deploy_pghr13_contracts(
-            mk_tree_depth,
-            verifier_interface,
-            mixer_interface,
-            deployer_eth_address,
-            4000000,
-            "0x0000000000000000000000000000000000000000" # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
-        )
-    else:
-        (verifier_interface, mixer_interface) = zethContracts.compile_groth16_contracts()
-        (mixer_instance, initial_root) = zethContracts.deploy_groth16_contracts(
-            mk_tree_depth,
-            verifier_interface,
-            mixer_interface,
-            deployer_eth_address,
-            4000000,
-            "0x0000000000000000000000000000000000000000" # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
-        )
+    (verifier_interface, mixer_interface) = zethContracts.compile_contracts(zksnark)
+    (mixer_instance, initial_root) = zethContracts.deploy_contracts(
+        mk_tree_depth,
+        verifier_interface,
+        mixer_interface,
+        deployer_eth_address,
+        4000000,
+        "0x0000000000000000000000000000000000000000", # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
+        zksnark
+    )
 
     print("[INFO] 4. Running tests (asset mixed: Ether)...")
     print("- Initial balances: ")
@@ -100,7 +88,7 @@ if __name__ == '__main__':
         bob_eth_address,
         keystore,
         mk_tree_depth,
-        args.zksnark
+        zksnark
     )
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
     cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]
@@ -142,7 +130,7 @@ if __name__ == '__main__':
         bob_eth_address,
         keystore,
         mk_tree_depth,
-        args.zksnark
+        zksnark
     )
     cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie[0] # Bob -> Bob (Change)
     cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie[1] # Bob -> Charlie (payment to Charlie)
@@ -162,7 +150,7 @@ if __name__ == '__main__':
             bob_eth_address,
             keystore,
             mk_tree_depth,
-            args.zksnark
+            zksnark
         )
     except Exception as e:
         print("Bob's double spending successfully rejected! (msg: {})".format(e))
@@ -196,7 +184,7 @@ if __name__ == '__main__':
         charlie_eth_address,
         keystore,
         mk_tree_depth,
-        args.zksnark
+        zksnark
     )
 
     print("Balances after Charlie's withdrawal: ")

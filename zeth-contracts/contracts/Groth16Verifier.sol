@@ -62,14 +62,6 @@ contract Groth16Verifier {
         }
     }
 
-    function getIC(uint i) public view returns (uint) {//TODO: do I need it?
-        //TODO
-    }
-
-    function getICLen() public view returns (uint) {//TODO: do I need it?
-        //TODO
-    }
-
     function verify(uint[] memory input, Proof memory proof) internal returns (uint) {
         VerifyingKey memory vk = verifyKey;
 
@@ -78,7 +70,7 @@ contract Groth16Verifier {
             "Using strong input consistency, and the input length differs from expected"
         );
 
-        Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);//TODO: to check
+        Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
         for (uint i = 0; i < input.length; i++) {
             vk_x = Pairing.add(vk_x, Pairing.mul(vk.Gamma_ABC[i + 1], input[i]));
         }
@@ -91,9 +83,9 @@ contract Groth16Verifier {
             Pairing.negate(proof.C), vk.Delta);
 
         if(!res){
-            return 1;
+            return 0;
         }
-        return 0;
+        return 1;
 
     }
 
@@ -114,7 +106,7 @@ contract Groth16Verifier {
         }
 
         uint verification_result = verify(inputValues, proof);
-        if (verification_result != 0) {
+        if (verification_result != 1) {
             emit LogVerifier("Failed to verify the transaction");
             return false;
         }
