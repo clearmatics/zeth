@@ -135,7 +135,7 @@ bool TestValidJS2In2Case1(
 
     libff::enter_block("[BEGIN] Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT vk = keypair.vk;
+    libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
