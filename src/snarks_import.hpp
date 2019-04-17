@@ -1,11 +1,11 @@
 #ifndef __ZETH_SNARKS_IMPORT_HPP__
 #define __ZETH_SNARKS_IMPORT_HPP__
 
-#ifdef SNARK_PGHR13
+#ifdef ZKSNARK_PGHR13
 #include "snarks/pghr13/helpers.hpp"
 #include "snarks/pghr13/computation.hpp"
 #include "snarks/pghr13/response.hpp"
-#elif SNARK_GROTH16
+#elif ZKSNARK_GROTH16
 #include "snarks/groth16/helpers.hpp"
 #include "snarks/groth16/computation.hpp"
 #include "snarks/groth16/response.hpp"
