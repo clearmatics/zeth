@@ -12,11 +12,6 @@ library Pairing {
         uint[2] Y;
     }
 
-    struct GTPoint {
-        uint[3][2] X;
-        uint[3][2] Y;
-    }
-
     // Return the generator of G1
     function P1() internal pure returns (G1Point memory) {
         return G1Point(1, 2);

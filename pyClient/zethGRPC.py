@@ -2,6 +2,7 @@ from Crypto import Random
 import os
 import json
 import hashlib
+import sys
 
 # Access the encoding functions
 from eth_abi import encode_single, encode_abi
@@ -159,38 +160,31 @@ def parseHexadecimalPointBaseGroup2Affine(point):
 def make_empty_message():
     return empty_pb2.Empty()
 
-def parsePghr13VerificationKey(vkObj):
+def parseVerificationKey(vkObj, zksnark):
     vkJSON = {}
-    vkJSON["a"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.a)
-    vkJSON["b"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csPpzksnarkVerificationKey.b)
-    vkJSON["c"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.c)
-    vkJSON["g"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.g)
-    vkJSON["gb1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csPpzksnarkVerificationKey.gb1)
-    vkJSON["gb2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.gb2)
-    vkJSON["z"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.z)
-    vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
+    if zksnark == "pghr13":
+        vkJSON["a"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.a)
+        vkJSON["b"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csPpzksnarkVerificationKey.b)
+        vkJSON["c"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.c)
+        vkJSON["g"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.g)
+        vkJSON["gb1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csPpzksnarkVerificationKey.gb1)
+        vkJSON["gb2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.gb2)
+        vkJSON["z"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.z)
+        vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
+    elif zksnark == "groth16":
+        vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
+        vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
+        vkJSON["gamma_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.gamma_g2)
+        vkJSON["delta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.delta_g2)
+        vkJSON["gamma_abc_g1"] = json.loads(vkObj.r1csGgPpzksnarkVerificationKey.gamma_abc_g1)
+    else:
+        print("Error zksnark type")
+        return sys.exit
     return vkJSON
 
-def parseGroth16VerificationKey(vkObj):
-    vkJSON = {}
-    vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
-    vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
-    vkJSON["gamma_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.gamma_g2)
-    vkJSON["delta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.delta_g2)
-    vkJSON["gamma_abc_g1"] = json.loads(vkObj.r1csGgPpzksnarkVerificationKey.gamma_abc_g1)
-    return vkJSON
-
-# Writes the verification key (object) in a json file#TODO generalize
-def writePghr13VerificationKey(vkObj):
-    vkJSON = parsePghr13VerificationKey(vkObj)
-    setupDir = os.environ['ZETH_TRUSTED_SETUP_DIR']
-    filename = os.path.join(setupDir, "vk.json")
-    with open(filename, 'w') as outfile:
-        json.dump(vkJSON, outfile)
-
-# Writes the verification key (object) in a json file#TODO generalize
-def writeGroth16VerificationKey(vkObj):
-    vkJSON = parseGroth16VerificationKey(vkObj)
+# Writes the verification key (object) in a json file
+def writeVerificationKey(vkObj, zksnark):
+    vkJSON = parseVerificationKey(vkObj, zksnark)
     setupDir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     filename = os.path.join(setupDir, "vk.json")
     with open(filename, 'w') as outfile:
@@ -205,25 +199,26 @@ def makeProofInputs(root, jsInputs, jsOutputs, inPubValue, outPubValue):
         outPubValue=outPubValue
     )
 
-def parsePghr13Proof(proofObj):
+def parseProof(proofObj, zksnark):
     proofJSON = {}
-    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.a)
-    proofJSON["a_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.aP)
-    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csPpzksnarkExtendedProof.b)
-    proofJSON["b_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.bP)
-    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.c)
-    proofJSON["c_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.cP)
-    proofJSON["h"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.h)
-    proofJSON["k"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.k)
-    proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
-    return proofJSON
-
-def parseGroth16Proof(proofObj):
-    proofJSON = {}
-    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.a)
-    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csGgPpzksnarkExtendedProof.b)
-    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.c)
-    proofJSON["inputs"] = json.loads(proofObj.r1csGgPpzksnarkExtendedProof.inputs)
+    if zksnark == "pghr13":
+        proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.a)
+        proofJSON["a_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.aP)
+        proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csPpzksnarkExtendedProof.b)
+        proofJSON["b_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.bP)
+        proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.c)
+        proofJSON["c_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.cP)
+        proofJSON["h"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.h)
+        proofJSON["k"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.k)
+        proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
+    elif zksnark == "groth16":
+        proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.a)
+        proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csGgPpzksnarkExtendedProof.b)
+        proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.c)
+        proofJSON["inputs"] = json.loads(proofObj.r1csGgPpzksnarkExtendedProof.inputs)
+    else:
+        print("Error zksnark type")
+        return sys.exit
     return proofJSON
 
 def get_proof_joinsplit_2by2(
@@ -260,11 +255,7 @@ def get_proof_joinsplit_2by2(
 
     proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value)
     proof_obj = getProof(grpcEndpoint, proof_input)
-    if zksnark == "pghr13":
-        proof_json = parsePghr13Proof(proof_obj)
-    else:
-        proof_json = parseGroth16Proof(proof_obj)
-
+    proof_json = parseProof(proof_obj,zksnark)
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
     return (output_note1, output_note2, proof_json)

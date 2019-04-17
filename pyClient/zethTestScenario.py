@@ -42,26 +42,16 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"])
     ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["ek"])
-    if zksnark == "pghr13":
-        return zethContracts.mix_pghr13(
-            mixer_instance,
-            ciphertext1,
-            ciphertext2,
-            proof_json,
-            bob_eth_address,
-            w3.toWei(4, 'ether'),
-            4000000
-        )
-    else:
-        return zethContracts.mix_groth16(
-            mixer_instance,
-            ciphertext1,
-            ciphertext2,
-            proof_json,
-            bob_eth_address,
-            w3.toWei(4, 'ether'),
-            4000000
-        )
+    return zethContracts.mix(
+        mixer_instance,
+        ciphertext1,
+        ciphertext2,
+        proof_json,
+        bob_eth_address,
+        w3.toWei(4, 'ether'),
+        4000000,
+        zksnark
+    )
 
 def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_note1, input_address1, bob_eth_address, keystore, mk_tree_depth, zksnark):
     print("=== Bob transfers 1ETH to Charlie from his funds on the mixer ===")
@@ -97,26 +87,17 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"]) # Bob is the recipient
     ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
-    if zksnark == "pghr13":
-        return zethContracts.mix_pghr13(
-            mixer_instance,
-            ciphertext1,
-            ciphertext2,
-            proof_json,
-            bob_eth_address,
-            w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
-            4000000
-        )
-    else:
-        return zethContracts.mix_groth16(
-            mixer_instance,
-            ciphertext1,
-            ciphertext2,
-            proof_json,
-            bob_eth_address,
-            w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
-            4000000
-        )
+
+    return zethContracts.mix(
+        mixer_instance,
+        ciphertext1,
+        ciphertext2,
+        proof_json,
+        bob_eth_address,
+        w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
+        4000000,
+        zksnark
+    )
 
 def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_note1, input_address1, charlie_eth_address, keystore, mk_tree_depth, zksnark):
     print(" === Charlie withdraws 0.9 from his funds on the Mixer ===")
@@ -151,23 +132,13 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
     ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
-    if zksnark == "pghr13":
-        return zethContracts.mix_pghr13(
-            mixer_instance,
-            ciphertext1,
-            ciphertext2,
-            proof_json,
-            charlie_eth_address,
-            w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
-            4000000
-        )
-    else:
-        return zethContracts.mix_groth16(
-            mixer_instance,
-            ciphertext1,
-            ciphertext2,
-            proof_json,
-            charlie_eth_address,
-            w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
-            4000000
-        )
+    return zethContracts.mix(
+        mixer_instance,
+        ciphertext1,
+        ciphertext2,
+        proof_json,
+        charlie_eth_address,
+        w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
+        4000000,
+        zksnark
+    )
