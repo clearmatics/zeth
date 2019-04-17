@@ -1,5 +1,5 @@
-#ifndef __ZETH_GROTH16_HELPER_TCC__
-#define __ZETH_GROTH16_HELPER_TCC__
+#ifndef __ZETH_HELPER_TCC__
+#define __ZETH_HELPER_TCC__
 
 namespace libzeth {
 
@@ -136,4 +136,4 @@ namespace libzeth {
 
 } // libzeth
 
-#endif // __ZETH_GROTH16_HELPERS_TCC__
+#endif // __ZETH_HELPERS_TCC__

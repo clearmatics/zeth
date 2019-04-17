@@ -1,5 +1,5 @@
-#ifndef __ZETH_GROTH16_RESPONSE_HPP__
-#define __ZETH_GROTH16_RESPONSE_HPP__
+#ifndef __ZETH_RESPONSE_HPP__
+#define __ZETH_RESPONSE_HPP__
 
 #include "libsnark_helpers/extended_proof.hpp"
 
@@ -25,4 +25,4 @@ namespace libzeth{
 }
 
 #include "snarks/groth16/response.tcc"
-#endif // __ZETH_GROTH16_RESPONSE_HPP__
+#endif // __ZETH_RESPONSE_HPP__

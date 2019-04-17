@@ -16,7 +16,7 @@ libsnark::r1cs_ppzksnark_proof<ppT> gen_proof(libsnark::protoboard<libff::Fr<ppT
     proofT<ppT> proof = libsnark::r1cs_ppzksnark_prover(proving_key, primary_input, auxiliary_input);
 
     return proof;
-}
+};
 
 // Run the trusted setup and returns a struct {proving_key, verifying_key}
 template<typename ppT>
@@ -27,7 +27,14 @@ libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(libsnark::protoboard<lib
     // set of powers, plus the alpha, beta, gamma, and the rest of the entries, in order to form the CRS
     // (crs_f, shortcrs_f, as denoted in [GGPR12])
     return libsnark::r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
-}
+};
+
+// Verification of a proof
+template<typename ppT>
+bool verify(libzeth::extended_proof<ppT> ext_proof, libsnark::r1cs_ppzksnark_verification_key<ppT> verification_key)
+{
+    return libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(verification_key, ext_proof.get_primary_input(), ext_proof.get_proof());
+};
 
 } // libzeth
 
