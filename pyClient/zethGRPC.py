@@ -12,8 +12,6 @@ import grpc
 from google.protobuf import empty_pb2
 import util_pb2
 import util_pb2_grpc
-import pghr13_messages_pb2
-import pghr13_messages_pb2_grpc
 import prover_pb2
 import prover_pb2_grpc
 
@@ -172,6 +170,7 @@ def parseVerificationKey(vkObj, zksnark):
         vkJSON["z"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.z)
         vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
     elif zksnark == "groth16":
+        print(vkObj)
         vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
         vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
         vkJSON["gamma_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.gamma_g2)

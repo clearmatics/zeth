@@ -18,7 +18,7 @@ def compile_contracts(zksnark):
         verifier_name = "Pghr13Verifier" 
         mixer_name =  "Pghr13Mixer"
     elif zksnark == "groth16":
-        verifier_name = "Groth16Mixer" 
+        verifier_name = "Groth16Verifier" 
         mixer_name =  "Groth16Mixer"
     else:
         print("zksnark type erro")
