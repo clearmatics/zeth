@@ -14,10 +14,10 @@ w3 = Web3(HTTPProvider("http://localhost:8545"))
 
 def compile_contracts(zksnark):
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
-    if zksnark == "pghr13":
+    if zksnark == "PGHR13":
         verifier_name = "Pghr13Verifier" 
         mixer_name =  "Pghr13Mixer"
-    elif zksnark == "groth16":
+    elif zksnark == "GROTH16":
         verifier_name = "Groth16Verifier" 
         mixer_name =  "Groth16Mixer"
     else:
@@ -47,7 +47,7 @@ def deploy_contracts(mk_tree_depth, verifier_interface, mixer_interface, deploye
 
     # Deploy the verifier contract with the good verification key
     verifier = w3.eth.contract(abi=verifier_interface['abi'], bytecode=verifier_interface['bin'])
-    if zksnark == "pghr13":
+    if zksnark == "PGHR13":
         tx_hash = verifier.constructor(
             A1=zethGRPC.hex2int(vk["a"][0]),
             A2=zethGRPC.hex2int(vk["a"][1]),
@@ -63,7 +63,7 @@ def deploy_contracts(mk_tree_depth, verifier_interface, mixer_interface, deploye
             Z2=zethGRPC.hex2int(vk["z"][1]),
             IC_coefficients=zethGRPC.hex2int(sum(vk["IC"], []))
         ).transact({'from': deployer_address, 'gas': deployment_gas})
-    elif zksnark == "groth16":
+    elif zksnark == "GROTH16":
         tx_hash = verifier.constructor(
             Alpha=zethGRPC.hex2int(vk["alpha_g1"]),
             Beta1=zethGRPC.hex2int(vk["beta_g2"][0]),
@@ -113,7 +113,7 @@ def mix(
         call_gas,
         zksnark
     ):
-    if zksnark == "pghr13":
+    if zksnark == "PGHR13":
         tx_hash = mixer_instance.functions.mix(
             ciphertext1,
             ciphertext2,
@@ -127,7 +127,7 @@ def mix(
             zethGRPC.hex2int(parsed_proof["k"]),
             zethGRPC.hex2int(parsed_proof["inputs"])
         ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
-    elif zksnark == "groth16":
+    elif zksnark == "GROTH16":
         tx_hash = mixer_instance.functions.mix(
             ciphertext1,
             ciphertext2,
