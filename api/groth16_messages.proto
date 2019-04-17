@@ -18,4 +18,3 @@ message R1csGgPpzksnarkVerificationKey {
     HexadecimalPointBaseGroup1Affine c = 3;
     string inputs = 4;
   }
-  

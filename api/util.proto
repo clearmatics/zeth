@@ -6,7 +6,7 @@ message PackedDigest {
   string part1 = 1; // First 253bits of the digest
   string part2 = 2; // Last 3bits of the digest
 }
- 
+
 message ZethNote {
   string aPK = 1;
   string value = 2; // Hexadecimal string representing a int64
