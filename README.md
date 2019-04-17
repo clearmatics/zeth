@@ -42,11 +42,13 @@ mkdir build
 cd build
 cmake ..
 
+# Compile
+make
+
 # Run the tests (optional)
 make check # Builds and run the tests (once the tests are built once, calling "make test" suffices to execute them)
 
-# Compile and start the proving server
-make
+# Start the proving server
 prover_server
 ```
 ##### Build Options
