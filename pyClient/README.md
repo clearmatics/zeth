@@ -34,6 +34,8 @@ python -m grpc_tools.protoc -I../api/ --python_out=. --grpc_python_out=. ../api/
 ### Start the testing client
 
 ```
-python testEtherMixing.py # runs a test to mix Ether
-python testERCTokenMixing.py # runs a test to mix an ERC Token
+python testEtherMixing.py $ZKSNARK# runs a test to mix Ether
+python testERCTokenMixing.py $ZKSNARK# runs a test to mix an ERC Token
 ```
+
+where `$ZKSNARK` is the zksnark chosen for the server.
