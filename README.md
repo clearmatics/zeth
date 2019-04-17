@@ -54,7 +54,7 @@ prover_server
 ##### Build Options
 By default, zeth makes use of GROTH16. To chose a different zksnark run the following:
 ```
-cmake -DZKSNARK=$ZKSNARK
+cmake -DZKSNARK=$ZKSNARK ..
 ```
 where `$ZKSNARK` is `PGHR13`(see https://eprint.iacr.org/2013/279, http://eprint.iacr.org/2013/879) or `GROTH16`(see https://eprint.iacr.org/2016/260).
 
