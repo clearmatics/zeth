@@ -55,7 +55,7 @@ By default, zeth makes use of GROTH16. To chose a different zksnark run the foll
 ```
 cmake -DZKSNARK=$ZKSNARK
 ```
-where `$ZKSNARK` is one of `PGHR13`(see https://eprint.iacr.org/2013/279, http://eprint.iacr.org/2013/879), `GROTH16`(see https://eprint.iacr.org/2016/260).
+where `$ZKSNARK` is `PGHR13`(see https://eprint.iacr.org/2013/279, http://eprint.iacr.org/2013/879) or `GROTH16`(see https://eprint.iacr.org/2016/260).
 
 #### Terminal 2: Start an Ethereum testnet to test the smart contracts
 

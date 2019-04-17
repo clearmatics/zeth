@@ -38,8 +38,7 @@ if __name__ == '__main__':
     parser.add_argument("zksnark", help="set testing for the 'groth16' or 'pghr13'")
     args = parser.parse_args()
     if (args.zksnark not in ['groth16', 'pghr13']):
-        print("Invalid argument for --zksnark")
-        sys.exit()
+        sys.exit("Invalid argument for --zksnark")
     zksnark = args.zksnark
 
     # Zeth addresses

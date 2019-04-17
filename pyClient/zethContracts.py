@@ -21,8 +21,7 @@ def compile_contracts(zksnark):
         verifier_name = "Groth16Verifier" 
         mixer_name =  "Groth16Mixer"
     else:
-        print("zksnark type erro")
-        return sys.exit()
+        return sys.exit("Invalid argument for --zksnark")
         
     path_to_verifier = os.path.join(contracts_dir, verifier_name + ".sol")
     path_to_mixer = os.path.join(contracts_dir, mixer_name+".sol")

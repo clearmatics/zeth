@@ -176,8 +176,7 @@ def parseVerificationKey(vkObj, zksnark):
         vkJSON["delta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.delta_g2)
         vkJSON["gamma_abc_g1"] = json.loads(vkObj.r1csGgPpzksnarkVerificationKey.gamma_abc_g1)
     else:
-        print("Error zksnark type")
-        return sys.exit
+        return sys.exit("Invalid argument for --zksnark")
     return vkJSON
 
 # Writes the verification key (object) in a json file
@@ -216,7 +215,7 @@ def parseProof(proofObj, zksnark):
         proofJSON["inputs"] = json.loads(proofObj.r1csGgPpzksnarkExtendedProof.inputs)
     else:
         print("Error zksnark type")
-        return sys.exit
+        return sys.exit("Invalid argument for --zksnark")
     return proofJSON
 
 def get_proof_joinsplit_2by2(
