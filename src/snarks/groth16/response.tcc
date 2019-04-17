@@ -1,5 +1,5 @@
-#ifndef __ZETH_GROTH16_RESPONSE_TCC__
-#define __ZETH_GROTH16_RESPONSE_TCC__
+#ifndef __ZETH_RESPONSE_TCC__
+#define __ZETH_RESPONSE_TCC__
 
 namespace libzeth{
     template<typename ppT>
@@ -70,4 +70,4 @@ namespace libzeth{
     };
 }
 
-#endif // __ZETH_GROTH16_RESPONSE_TCC__
+#endif // __ZETH_RESPONSE_TCC__
