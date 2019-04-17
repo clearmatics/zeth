@@ -160,7 +160,7 @@ def make_empty_message():
 
 def parseVerificationKey(vkObj, zksnark):
     vkJSON = {}
-    if zksnark == "pghr13":
+    if zksnark == "PGHR13":
         vkJSON["a"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.a)
         vkJSON["b"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csPpzksnarkVerificationKey.b)
         vkJSON["c"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.c)
@@ -169,7 +169,7 @@ def parseVerificationKey(vkObj, zksnark):
         vkJSON["gb2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.gb2)
         vkJSON["z"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.z)
         vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
-    elif zksnark == "groth16":
+    elif zksnark == "GROTH16":
         vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
         vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
         vkJSON["gamma_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.gamma_g2)
@@ -198,7 +198,7 @@ def makeProofInputs(root, jsInputs, jsOutputs, inPubValue, outPubValue):
 
 def parseProof(proofObj, zksnark):
     proofJSON = {}
-    if zksnark == "pghr13":
+    if zksnark == "PGHR13":
         proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.a)
         proofJSON["a_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.aP)
         proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csPpzksnarkExtendedProof.b)
@@ -208,7 +208,7 @@ def parseProof(proofObj, zksnark):
         proofJSON["h"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.h)
         proofJSON["k"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.k)
         proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
-    elif zksnark == "groth16":
+    elif zksnark == "GROTH16":
         proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.a)
         proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csGgPpzksnarkExtendedProof.b)
         proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.c)

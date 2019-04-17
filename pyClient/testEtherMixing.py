@@ -34,10 +34,10 @@ def get_merkle_tree(mixer_instance):
     return mk_byte_tree
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Testing Zeth transactions by using Pghr13 or Groth16 algorithms. Set one of the two options 'groth16' or 'pghr13'")
-    parser.add_argument("zksnark", help="set testing for the 'groth16' or 'pghr13'")
+    parser = argparse.ArgumentParser(description="Testing Zeth transactions by using PGHR13 or GROTH16 algorithms. Set one of the two options 'GROTH16' or 'PGHR13', , accordingly with running prover_server.")
+    parser.add_argument("zksnark", help="set testing for the 'GROTH16' or 'PGHR13'")
     args = parser.parse_args()
-    if (args.zksnark not in ['groth16', 'pghr13']):
+    if (args.zksnark not in ['GROTH16', 'PGHR13']):
         sys.exit("Invalid argument for --zksnark")
     zksnark = args.zksnark
 
