@@ -75,8 +75,7 @@ def deploy_contracts(mk_tree_depth, verifier_interface, mixer_interface, deploye
             Gamma_ABC_elements=zethGRPC.hex2int(sum(vk["gamma_abc_g1"], []))
         ).transact({'from': deployer_address, 'gas': deployment_gas})
     else:
-        print("zksnark type error")
-        return sys.exit
+        return sys.exit("Invalid argument for --zksnark")
 
     # Get tx receipt to get Verifier contract address
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -138,8 +137,7 @@ def mix(
         ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
 
     else:
-        print("zksnark type error")
-        return sys.exit
+        sys.exit("Invalid argument for --zksnark")
 
 
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)

@@ -79,4 +79,4 @@ proverpkg::HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affi
     return res;
 }
 
-}
+} // libzeth
