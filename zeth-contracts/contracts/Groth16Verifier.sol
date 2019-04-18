@@ -1,13 +1,7 @@
 pragma solidity ^0.5.0;
 
 /*
- * Reference papers:
- *
- * [BCTV14]:
- * "Succinct Non-Interactive Zero Knowledge for a von Neumann Architecture",
- * Eli Ben-Sasson, Alessandro Chiesa, Eran Tromer, Madars Virza,
- * USENIX Security 2014,
- * <http://eprint.iacr.org/2013/879>
+ * Reference paper:
  *
  *\[Gro16]:
  *"On the Size of Pairing-based Non-interactive Arguments",
