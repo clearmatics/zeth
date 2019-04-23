@@ -7,47 +7,47 @@ import "pghr13_messages.proto";
 import "groth16_messages.proto";
 
 service Prover {
-  // Run the setup on the prover side (Don't needed as the setup is ran when the server starts)
-  // Can be used for further use of the proving service though
-  // rpc RunSetup(Empty) returns (Empty) {}
-  
-  // Fetch the verifying key from the proving service
-  rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
+    // Run the setup on the prover side (Don't needed as the setup is ran when the server starts)
+    // Can be used for further use of the proving service though
+    // rpc RunSetup(Empty) returns (Empty) {}
 
-  // Request a proof generation on the given input
-  rpc Prove(ProofInputs) returns (ExtendedProof) {}
+    // Fetch the verifying key from the proving service
+    rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
+
+    // Request a proof generation on the given input
+    rpc Prove(ProofInputs) returns (ExtendedProof) {}
 }
 
 // Inputs of the prove function of the prover
 message ProofInputs {
-  string root = 1;
-  repeated JSInput jsInputs = 2; // List of inputs to the JS
-  repeated ZethNote jsOutputs = 3; // List of output to the JS
-  string inPubValue = 4; // Hexadecimal string representing a int64
-  string outPubValue = 5; // Hexadecimal string representing a int64
+    string root = 1;
+    repeated JSInput jsInputs = 2; // List of inputs to the JS
+    repeated ZethNote jsOutputs = 3; // List of output to the JS
+    string inPubValue = 4; // Hexadecimal string representing a int64
+    string outPubValue = 5; // Hexadecimal string representing a int64
 }
 
 // We comment this message as the primary input is passed as a json string for now
 /*
-message ProofPublicInputs {
-  PackedDigest root = 1;
-  repeated PackedDigest inNullifiers = 2;
-  repeated PackedDigest outCommitments = 3;
-  string inPubValue = 4; // Hexadecimal string representing a int64
-  string outPubValue = 5; // Hexadecimal string representing a int64
-}
-*/
+   message ProofPublicInputs {
+   PackedDigest root = 1;
+   repeated PackedDigest inNullifiers = 2;
+   repeated PackedDigest outCommitments = 3;
+   string inPubValue = 4; // Hexadecimal string representing a int64
+   string outPubValue = 5; // Hexadecimal string representing a int64
+   }
+ */
 
 message VerificationKey {
-  oneof VK {
-    R1csPpzksnarkVerificationKey r1csPpzksnarkVerificationKey = 1;
-    R1csGgPpzksnarkVerificationKey r1csGgPpzksnarkVerificationKey = 2;
-  }
+    oneof VK {
+        R1csPpzksnarkVerificationKey r1csPpzksnarkVerificationKey = 1;
+        R1csGgPpzksnarkVerificationKey r1csGgPpzksnarkVerificationKey = 2;
+    }
 }
 
 message ExtendedProof {
-  oneof EP {
-    R1csPpzksnarkExtendedProof r1csPpzksnarkExtendedProof = 1;
-    R1csGgPpzksnarkExtendedProof r1csGgPpzksnarkExtendedProof = 2;
-  }
+    oneof EP {
+        R1csPpzksnarkExtendedProof r1csPpzksnarkExtendedProof = 1;
+        R1csGgPpzksnarkExtendedProof r1csGgPpzksnarkExtendedProof = 2;
+    }
 }
