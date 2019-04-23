@@ -33,9 +33,7 @@ def get_merkle_tree(mixer_instance):
     return mk_byte_tree
 
 if __name__ == '__main__':
-    zksnark, err, err_msg = zethUtils.parse_zksnark_arg()
-    if err:
-        sys.exit(err_msg)
+    zksnark = zethUtils.parse_zksnark_arg()
 
     # Zeth addresses
     keystore = zethMock.initTestKeystore()
@@ -52,7 +50,6 @@ if __name__ == '__main__':
 
     print("[INFO] 2. Received VK, writing the key...")
     zethGRPC.writeVerificationKey(vk, zksnark)
-
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     (verifier_interface, mixer_interface) = zethContracts.compile_contracts(zksnark)

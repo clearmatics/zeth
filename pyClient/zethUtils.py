@@ -3,9 +3,15 @@ from Crypto.PublicKey import RSA
 import zlib
 import base64
 
+# Parse the arguments given to the script
 import argparse
+import sys
 
 import zethGRPC
+
+# Import the constants and standard errors defined for zeth
+import zethConstants as constants
+import zethErrors as errors
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider("http://localhost:8545"))
@@ -110,12 +116,11 @@ def receive(ciphertext, decryption_key, username):
         print("[ERROR] in receive. Might not be the recipient! (msg: {})".format(e))
     return recovered_plaintext
 
-# Parse the zksnark argument and returns (zksnark, error, errorMsg)
-def parse_snark_arg():
+# Parse the zksnark argument and return its value
+def parse_zksnark_arg():
     parser = argparse.ArgumentParser(description="Testing Zeth transactions using an ERC token using the specified zkSNARK ('GROTH16' or 'PGHR13'). Note that the zkSNARK must match the one used on the prover server.")
     parser.add_argument("zksnark", help="Set the zkSNARK to use")
     args = parser.parse_args()
-    if (args.zksnark not in ['GROTH16', 'PGHR13']):
-        return("", True, "Invalid 'zksnark' argument. Should be one of ('GROTH16', 'PGHR13')")
-    zksnark = args.zksnark
-    return (zksnark, False, "")
+    if (args.zksnark not in [constants.PGHR13_ZKSNARK, constants.GROTH16_ZKSNARK]):
+        return sys.exit(errors.SNARK_NOT_SUPPORTED)
+    return args.zksnark
