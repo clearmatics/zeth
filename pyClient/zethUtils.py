@@ -7,6 +7,9 @@ import base64
 import argparse
 import sys
 
+import os
+import time
+
 import zethGRPC
 
 # Import the constants and standard errors defined for zeth
@@ -14,7 +17,7 @@ import zethConstants as constants
 import zethErrors as errors
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
-w3 = Web3(HTTPProvider("http://localhost:8545"))
+w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
 """
 Note: In this proof of concept we encrypt the notes' data with RSA-OAEP.
