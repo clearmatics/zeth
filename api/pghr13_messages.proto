@@ -13,7 +13,7 @@ message R1csPpzksnarkVerificationKey {
     HexadecimalPointBaseGroup2Affine gb2 = 6;
     HexadecimalPointBaseGroup2Affine z = 7;
     string IC = 8;
-  }
+}
 
 // Contains the proof along with the public input
 message R1csPpzksnarkExtendedProof {
