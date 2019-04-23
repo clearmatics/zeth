@@ -16,9 +16,11 @@ import zethMock
 import zethUtils
 # Get the test scenario
 import zethTestScenario as zethTest
+# Get the zeth constants
+import zethConstants as constants
 
-w3 = Web3(HTTPProvider("http://localhost:8545"))
-test_grpc_endpoint = 'localhost:50051'
+w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+test_grpc_endpoint = constants.RPC_ENDPOINT
 
 # Compile the testing ERC20 token contract
 def compile_token():
@@ -76,7 +78,7 @@ if __name__ == '__main__':
     # Zeth addresses
     keystore = zethMock.initTestKeystore()
     # Depth of the merkle tree (need to match the one used in the cpp prover)
-    mk_tree_depth = 4
+    mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
 
     print("[INFO] 1. Fetching the verification key from the proving server")
     vk = zethGRPC.getVerificationKey(test_grpc_endpoint)

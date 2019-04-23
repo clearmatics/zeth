@@ -15,9 +15,11 @@ import zethMock
 import zethUtils
 # Get the test scenario
 import zethTestScenario as zethTest
+# Get the zeth constants
+import zethConstants as constants
 
-w3 = Web3(HTTPProvider("http://localhost:8545"))
-test_grpc_endpoint = 'localhost:50051'
+w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+test_grpc_endpoint = constants.RPC_ENDPOINT
 
 def print_balances(bob, alice, charlie, mixer):
     print("Bob's ETH balance: ", w3.eth.getBalance(bob))
@@ -38,7 +40,7 @@ if __name__ == '__main__':
     # Zeth addresses
     keystore = zethMock.initTestKeystore()
     # Depth of the merkle tree (need to match the one used in the cpp prover)
-    mk_tree_depth = 4
+    mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
     # Ethereum addresses
     deployer_eth_address = w3.eth.accounts[0]
     bob_eth_address = w3.eth.accounts[1]

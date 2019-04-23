@@ -15,7 +15,7 @@ import zethConstants as constants
 # Import zeth standard error messages
 import zethErrors as errors
 
-w3 = Web3(HTTPProvider("http://localhost:8545"))
+w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
 # Returns the files to use for the given zkSNARK (verifier_contract, mixer_contract)
 def get_zksnark_files(zksnark):
