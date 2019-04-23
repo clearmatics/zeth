@@ -3,11 +3,11 @@ pragma solidity ^0.5.0;
 /*
  * Reference paper:
  *
- *\[Gro16]:
- *"On the Size of Pairing-based Non-interactive Arguments",
- *Jens Groth,
- *EUROCRYPT 2016,
- *<https://eprint.iacr.org/2016/260>
+ * \[Gro16]:
+ * "On the Size of Pairing-based Non-interactive Arguments",
+ * Jens Groth,
+ * EUROCRYPT 2016,
+ * <https://eprint.iacr.org/2016/260>
 **/
 
 import "./Pairing.sol";
@@ -48,7 +48,7 @@ contract Groth16Verifier {
         verifyKey.Beta = Pairing.G2Point(Beta1, Beta2);
         verifyKey.Gamma = Pairing.G2Point(Gamma1, Gamma2);
         verifyKey.Delta = Pairing.G2Point(Delta1, Delta2);
-        
+
         uint i = 0;
         while(verifyKey.Gamma_ABC.length != Gamma_ABC_elements.length/2) {
             verifyKey.Gamma_ABC.push(Pairing.G1Point(Gamma_ABC_elements[i], Gamma_ABC_elements[i+1]));
@@ -72,15 +72,16 @@ contract Groth16Verifier {
 
         bool res = Pairing.pairingProd4(
             proof.A,proof.B,
-            Pairing.negate(vk.Alpha), vk.Beta, 
-            Pairing.negate(vk_x), vk.Gamma, 
-            Pairing.negate(proof.C), vk.Delta);
+            Pairing.negate(vk.Alpha), vk.Beta,
+            Pairing.negate(vk_x), vk.Gamma,
+            Pairing.negate(proof.C), vk.Delta
+        );
 
-        if(!res){
+        if (!res) {
             return 0;
         }
-        return 1;
 
+        return 1;
     }
 
     function verifyTx(
