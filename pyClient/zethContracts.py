@@ -28,7 +28,7 @@ def get_zksnark_files(zksnark):
 
 def compile_contracts(zksnark):
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
-    (verifier_name, mixer_name) = get_zksnark_files
+    (verifier_name, mixer_name) = get_zksnark_files(zksnark)
 
     path_to_verifier = os.path.join(contracts_dir, verifier_name + ".sol")
     path_to_mixer = os.path.join(contracts_dir, mixer_name + ".sol")
@@ -44,7 +44,7 @@ def compile_util_contracts():
     compiled_sol = compile_files([path_to_pairing, path_to_bytes])
 
 # Deploy the verifier used with PGHR13
-def deploy_pghr13_verifier(vk_json, verifier, deployer_address, deployment_gas):
+def deploy_pghr13_verifier(vk, verifier, deployer_address, deployment_gas):
     # Deploy the verifier contract with the good verification key
     tx_hash = verifier.constructor(
         A1=zethGRPC.hex2int(vk["a"][0]),
@@ -96,7 +96,7 @@ def deploy_pghr13_contracts(vk_json, mk_tree_depth, verifier, mixer_interface, d
     return deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address)
 
 # Deploy the verifier and the mixer used with GROTH16
-def deploy_groth16_verifier(vk_json, verifier, mixer_interface, deployer_address, deployment_gas, token_address):
+def deploy_groth16_verifier(vk, verifier, mixer_interface, deployer_address, deployment_gas):
     # Deploy the verifier contract with the good verification key
     tx_hash = verifier.constructor(
         Alpha=zethGRPC.hex2int(vk["alpha_g1"]),
@@ -130,9 +130,9 @@ def deploy_contracts(mk_tree_depth, verifier_interface, mixer_interface, deploye
     # Deploy the verifier contract with the good verification key
     verifier = w3.eth.contract(abi=verifier_interface['abi'], bytecode=verifier_interface['bin'])
     if zksnark == constants.PGHR13_ZKSNARK:
-        return deploy_pghr13_contracts(vk_json, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address)
+        return deploy_pghr13_contracts(vk, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address)
     elif zksnark == constants.GROTH16_ZKSNARK:
-        return deploy_groth16_contracts(vk_json, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address)
+        return deploy_groth16_contracts(vk, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address)
     else:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
@@ -161,7 +161,7 @@ def mix_pghr13(
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
 
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    return parse_mix_call(tx_receipt)
+    return parse_mix_call(mixer_instance, tx_receipt)
 
 def mix_groth16(
         mixer_instance,
@@ -182,7 +182,7 @@ def mix_groth16(
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
 
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    return parse_mix_call(tx_receipt)
+    return parse_mix_call(mixer_instance, tx_receipt)
 
 def mix(
         mixer_instance,
@@ -217,8 +217,7 @@ def mix(
     else:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
-
-def parse_mix_call(tx_receipt):
+def parse_mix_call(mixer_instance, tx_receipt):
     # Get the logs data associated with this mixing
     #
     # Gather the addresses of the appended commitments

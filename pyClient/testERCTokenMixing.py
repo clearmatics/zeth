@@ -66,9 +66,7 @@ def mint_token(token_instance, spender_address, deployer_address, token_amount):
     return token_instance.functions.mint(spender_address, w3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
 
 if __name__ == '__main__':
-    zksnark, err, err_msg = zethUtils.parse_zksnark_arg()
-    if err:
-        sys.exit(err_msg)
+    zksnark = zethUtils.parse_zksnark_arg()
 
     # Ethereum addresses
     deployer_eth_address = w3.eth.accounts[0]
