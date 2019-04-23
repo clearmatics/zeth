@@ -66,13 +66,10 @@ def mint_token(token_instance, spender_address, deployer_address, token_amount):
     return token_instance.functions.mint(spender_address, w3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Testing Zeth transactions by using PGHR13 or GROTH16 algorithms. Set one of the two options 'GROTH16' or 'PGHR13', accordingly with running prover_server.")
-    parser.add_argument("zksnark", help="set testing for the 'GROTH16' or 'PGHR13'")
-    args = parser.parse_args()
-    if (args.zksnark not in ['GROTH16', 'PGHR13']):
-        sys.exit("Invalid argument for --zksnark")
-    zksnark = args.zksnark
-    
+    zksnark, err, err_msg = zethUtils.parse_zksnark_arg()
+    if err:
+        sys.exit(err_msg)
+
     # Ethereum addresses
     deployer_eth_address = w3.eth.accounts[0]
     bob_eth_address = w3.eth.accounts[1]
@@ -87,7 +84,7 @@ if __name__ == '__main__':
     vk = zethGRPC.getVerificationKey(test_grpc_endpoint)
 
     print("[INFO] 2. Received VK, writing the key...")
-    zethGRPC.writeVerificationKey(vk,zksnark)
+    zethGRPC.writeVerificationKey(vk, zksnark)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     token_interface = compile_token()
