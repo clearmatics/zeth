@@ -38,16 +38,14 @@ docker run -ti -p 50051:50051 --name zeth zeth-dev
 # Configure your environment
 . ./setup_env.sh
 
-# Compile the circuit
+# Compile the proving server
 mkdir build
 cd build
 cmake ..
-
-# Compile
-make
-
-# Run the tests (optional)
+## (optional) Run the tests
 make check # Builds and run the tests (once the tests are built once, calling "make test" suffices to execute them)
+## Compile
+make
 
 # Start the proving server
 prover_server
