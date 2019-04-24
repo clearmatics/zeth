@@ -92,11 +92,11 @@ def deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_addr
     return(mixer, initialRoot[2:])
 
 def deploy_pghr13_contracts(vk_json, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address):
-    verifier_address = deploy_pghr13_verifier(vk_json, verifier, mixer_interface, deployer_address, deployment_gas)
+    verifier_address = deploy_pghr13_verifier(vk_json, verifier, deployer_address, deployment_gas)
     return deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address)
 
 # Deploy the verifier and the mixer used with GROTH16
-def deploy_groth16_verifier(vk, verifier, mixer_interface, deployer_address, deployment_gas):
+def deploy_groth16_verifier(vk, verifier, deployer_address, deployment_gas):
     # Deploy the verifier contract with the good verification key
     tx_hash = verifier.constructor(
         Alpha=zethGRPC.hex2int(vk["alpha_g1"]),
@@ -115,7 +115,7 @@ def deploy_groth16_verifier(vk, verifier, mixer_interface, deployer_address, dep
     return verifier_address
 
 def deploy_groth16_contracts(vk_json, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address):
-    verifier_address = deploy_groth16_verifier(vk_json, verifier, mixer_interface, deployer_address, deployment_gas)
+    verifier_address = deploy_groth16_verifier(vk_json, verifier, deployer_address, deployment_gas)
     return deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address)
 
 # Deploy the mixer contract with the given merkle tree depth
