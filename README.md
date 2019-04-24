@@ -38,18 +38,24 @@ docker run -ti -p 50051:50051 --name zeth zeth-dev
 # Configure your environment
 . ./setup_env.sh
 
-# Compile the circuit
+# Compile the proving server
 mkdir build
 cd build
 cmake ..
-
-# Run the tests (optional)
+## (optional) Run the tests
 make check # Builds and run the tests (once the tests are built once, calling "make test" suffices to execute them)
-
-# Compile and start the proving server
+## Compile
 make
+
+# Start the proving server
 prover_server
 ```
+##### Build Options
+By default, zeth makes use of GROTH16. To chose a different zksnark run the following:
+```
+cmake -DZKSNARK=$ZKSNARK ..
+```
+where `$ZKSNARK` is `PGHR13`(see https://eprint.iacr.org/2013/279, http://eprint.iacr.org/2013/879) or `GROTH16`(see https://eprint.iacr.org/2016/260).
 
 #### Terminal 2: Start an Ethereum testnet to test the smart contracts
 

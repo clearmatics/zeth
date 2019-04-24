@@ -2,6 +2,7 @@ from Crypto import Random
 import os
 import json
 import hashlib
+import sys
 
 # Access the encoding functions
 from eth_abi import encode_single, encode_abi
@@ -11,10 +12,12 @@ import grpc
 from google.protobuf import empty_pb2
 import util_pb2
 import util_pb2_grpc
-import pghr13_messages_pb2
-import pghr13_messages_pb2_grpc
 import prover_pb2
 import prover_pb2_grpc
+
+# Import the zeth constants and standard errors
+import zethConstants as constants
+import zethErrors as errors
 
 # Fetch the verification key from the proving service
 def getVerificationKey(grpcEndpoint):
@@ -159,7 +162,7 @@ def parseHexadecimalPointBaseGroup2Affine(point):
 def make_empty_message():
     return empty_pb2.Empty()
 
-def parsePghr13VerificationKey(vkObj):
+def parseVerificationKeyPGHR13(vkObj):
     vkJSON = {}
     vkJSON["a"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csPpzksnarkVerificationKey.a)
     vkJSON["b"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csPpzksnarkVerificationKey.b)
@@ -171,9 +174,26 @@ def parsePghr13VerificationKey(vkObj):
     vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
     return vkJSON
 
+def parseVerificationKeyGROTH16(vkObj):
+    vkJSON = {}
+    vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
+    vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
+    vkJSON["gamma_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.gamma_g2)
+    vkJSON["delta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.delta_g2)
+    vkJSON["gamma_abc_g1"] = json.loads(vkObj.r1csGgPpzksnarkVerificationKey.gamma_abc_g1)
+    return vkJSON
+
+def parseVerificationKey(vkObj, zksnark):
+    if zksnark == constants.PGHR13_ZKSNARK:
+        return parseVerificationKeyPGHR13(vkObj)
+    elif zksnark == constants.GROTH16_ZKSNARK:
+        return parseVerificationKeyGROTH16(vkObj)
+    else:
+        return sys.exit(errors.SNARK_NOT_SUPPORTED)
+
 # Writes the verification key (object) in a json file
-def writeVerificationKey(vkObj):
-    vkJSON = parsePghr13VerificationKey(vkObj)
+def writeVerificationKey(vkObj, zksnark):
+    vkJSON = parseVerificationKey(vkObj, zksnark)
     setupDir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     filename = os.path.join(setupDir, "vk.json")
     with open(filename, 'w') as outfile:
@@ -188,7 +208,7 @@ def makeProofInputs(root, jsInputs, jsOutputs, inPubValue, outPubValue):
         outPubValue=outPubValue
     )
 
-def parsePghr13Proof(proofObj):
+def parseProofPGHR13(proofObj):
     proofJSON = {}
     proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.a)
     proofJSON["a_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.aP)
@@ -200,6 +220,23 @@ def parsePghr13Proof(proofObj):
     proofJSON["k"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.k)
     proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
     return proofJSON
+
+def parseProofGROTH16(proofObj):
+    proofJSON = {}
+    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.a)
+    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csGgPpzksnarkExtendedProof.b)
+    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.c)
+    proofJSON["inputs"] = json.loads(proofObj.r1csGgPpzksnarkExtendedProof.inputs)
+    return proofJSON
+
+def parseProof(proofObj, zksnark):
+    proofJSON = {}
+    if zksnark == constants.PGHR13_ZKSNARK:
+        return parseProofPGHR13(proofObj)
+    elif zksnark == constants.GROTH16_ZKSNARK:
+        return parseProofGROTH16(proofObj)
+    else:
+        return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 def get_proof_joinsplit_2by2(
         grpcEndpoint,
@@ -216,7 +253,8 @@ def get_proof_joinsplit_2by2(
         output_note_value1,
         output_note_value2,
         public_in_value,
-        public_out_value
+        public_out_value,
+        zksnark
     ):
     input_nullifier1 = computeNullifier(input_note1, sender_ask)
     input_nullifier2 = computeNullifier(input_note2, sender_ask)
@@ -234,8 +272,7 @@ def get_proof_joinsplit_2by2(
 
     proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value)
     proof_obj = getProof(grpcEndpoint, proof_input)
-    proof_json = parsePghr13Proof(proof_obj)
-
+    proof_json = parseProof(proof_obj, zksnark)
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
     return (output_note1, output_note2, proof_json)

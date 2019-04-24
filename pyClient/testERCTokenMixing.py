@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import argparse
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 from solcx import compile_standard, compile_files
@@ -15,9 +16,11 @@ import zethMock
 import zethUtils
 # Get the test scenario
 import zethTestScenario as zethTest
+# Get the zeth constants
+import zethConstants as constants
 
-w3 = Web3(HTTPProvider("http://localhost:8545"))
-test_grpc_endpoint = 'localhost:50051'
+w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+test_grpc_endpoint = constants.RPC_ENDPOINT
 
 # Compile the testing ERC20 token contract
 def compile_token():
@@ -65,6 +68,8 @@ def mint_token(token_instance, spender_address, deployer_address, token_amount):
     return token_instance.functions.mint(spender_address, w3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
 
 if __name__ == '__main__':
+    zksnark = zethUtils.parse_zksnark_arg()
+
     # Ethereum addresses
     deployer_eth_address = w3.eth.accounts[0]
     bob_eth_address = w3.eth.accounts[1]
@@ -73,25 +78,26 @@ if __name__ == '__main__':
     # Zeth addresses
     keystore = zethMock.initTestKeystore()
     # Depth of the merkle tree (need to match the one used in the cpp prover)
-    mk_tree_depth = 4
+    mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
 
     print("[INFO] 1. Fetching the verification key from the proving server")
     vk = zethGRPC.getVerificationKey(test_grpc_endpoint)
 
     print("[INFO] 2. Received VK, writing the key...")
-    zethGRPC.writeVerificationKey(vk)
+    zethGRPC.writeVerificationKey(vk, zksnark)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     token_interface = compile_token()
-    verifier_interface, mixer_interface = zethContracts.compile_pghr13_contracts()
+    (verifier_interface, mixer_interface) = zethContracts.compile_contracts(zksnark)
     token_instance = deploy_token(deployer_eth_address, 4000000)
-    mixer_instance, initial_root = zethContracts.deploy_pghr13_contracts(
+    (mixer_instance, initial_root) = zethContracts.deploy_contracts(
         mk_tree_depth,
         verifier_interface,
         mixer_interface,
         deployer_eth_address,
         4000000,
-        token_instance.address
+        token_instance.address, # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
+        zksnark
     )
 
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
@@ -114,7 +120,8 @@ if __name__ == '__main__':
             initial_root,
             bob_eth_address,
             keystore,
-            mk_tree_depth
+            mk_tree_depth,
+            zksnark
         )
     except Exception as e:
         allowance_mixer =  allowance(token_instance, bob_eth_address, mixer_instance.address)
@@ -135,7 +142,8 @@ if __name__ == '__main__':
         initial_root,
         bob_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        zksnark
     )
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
     cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]
@@ -176,7 +184,8 @@ if __name__ == '__main__':
         cm_address_bob_to_bob1,
         bob_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        zksnark
     )
     cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie[0] # Bob -> Bob (Change)
     cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie[1] # Bob -> Charlie (payment to Charlie)
@@ -195,7 +204,8 @@ if __name__ == '__main__':
             cm_address_bob_to_bob1,
             bob_eth_address,
             keystore,
-            mk_tree_depth
+            mk_tree_depth,
+            zksnark
         )
     except Exception as e:
         print("Bob's double spending successfully rejected! (msg: {})".format(e))
@@ -228,7 +238,8 @@ if __name__ == '__main__':
         cm_address_bob_to_charlie2,
         charlie_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        zksnark
     )
 
     print("- Balances after Charlie's withdrawal: ")

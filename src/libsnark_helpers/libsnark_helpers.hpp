@@ -24,7 +24,7 @@
 // Contains required interfaces and types (keypair, proof, generator, prover, verifier)
 #include "zeth.h"
 #include "snarks_alias.hpp"
-#include "snarks_import.hpp"
+#include "snarks_core_imports.hpp"
 
 #include "extended_proof.hpp"
 

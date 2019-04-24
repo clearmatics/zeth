@@ -3,7 +3,7 @@
 
 /************************ Pick a zkSNARK ****************************/
 
-#ifdef SNARK_R1CS_PPZKSNARK
+#ifdef ZKSNARK_PGHR13
 #define LIBZETH_SNARK_DEFINED
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 namespace libzeth {
@@ -18,9 +18,9 @@ using keyPairT = libsnark::r1cs_ppzksnark_keypair<ppT>;
 } // libzeth
 #endif
 
-#ifdef SNARK_R1CS_GG_PPZKSNARK
+#ifdef ZKSNARK_GROTH16
 #define LIBZETH_SNARK_DEFINED
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_gg_ppzksnark.hpp>
+#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 namespace libzeth {
 template<typename ppT>
 using provingKeyT = libsnark::r1cs_gg_ppzksnark_proving_key<ppT>;
