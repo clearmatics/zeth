@@ -121,7 +121,7 @@ if __name__ == '__main__':
             bob_eth_address,
             keystore,
             mk_tree_depth,
-            args.zksnark
+            zksnark
         )
     except Exception as e:
         allowance_mixer =  allowance(token_instance, bob_eth_address, mixer_instance.address)
@@ -205,7 +205,7 @@ if __name__ == '__main__':
             bob_eth_address,
             keystore,
             mk_tree_depth,
-            args.zksnark
+            zksnark
         )
     except Exception as e:
         print("Bob's double spending successfully rejected! (msg: {})".format(e))
