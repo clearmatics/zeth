@@ -8,7 +8,7 @@
 
 // zkSNARK specific aliases and imports
 #include "snarks_alias.hpp"
-#include "snarks_import.hpp"
+#include "snarks_core_imports.hpp"
 
 typedef libff::default_ec_pp ppT;
 

@@ -10,9 +10,10 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 // Have access to a chrono to measure the rough time of execution of a set of instructions
-#include <chrono> 
+#include <chrono>
 #include "snarks_alias.hpp"
-#include "snarks_import.hpp"
+// Import only the core components of the SNARK (not the API components)
+#include "snarks_core_imports.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "circuits/sha256/sha256_ethereum.hpp"
 #include "circuit-wrapper.hpp"
@@ -230,7 +231,7 @@ bool TestValidJS2In2Case2(
         get_bits64_from_vector(hexadecimal_str_to_binary_vector("1500000000000002")),
         rho_out_bits256,
         trap_r_out_bits384
-    ); 
+    );
     std::array<ZethNote, 2> outputs;
     outputs[0] = note_output1;
     outputs[1] = note_output2;
@@ -346,7 +347,7 @@ bool TestValidJS2In2Case3(
         get_bits64_from_vector(hexadecimal_str_to_binary_vector("1500000000000002")),
         rho_out_bits256,
         trap_r_out_bits384
-    ); 
+    );
     std::array<ZethNote, 2> outputs;
     outputs[0] = note_output1;
     outputs[1] = note_output2;
