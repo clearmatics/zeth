@@ -1,7 +1,8 @@
 #ifndef __ZETH_RESPONSE_TCC__
 #define __ZETH_RESPONSE_TCC__
 
-namespace libzeth{
+namespace libzeth {
+
 template<typename ppT>
 void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* message) {
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
@@ -39,7 +40,7 @@ void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* message
     // Note on memory safety: set_allocated deleted the allocated objects
     // See: https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
     R1csPpzksnarkExtendedProof *r1csPpzksnarkExtendedProof = message->mutable_r1csppzksnarkextendedproof();
-    
+
     r1csPpzksnarkExtendedProof->set_allocated_a(a);
     r1csPpzksnarkExtendedProof->set_allocated_ap(a_p);
     r1csPpzksnarkExtendedProof->set_allocated_b(b);
@@ -92,6 +93,7 @@ void PrepareVerifyingKeyResponse(libsnark::r1cs_ppzksnark_verification_key<ppT>&
     r1csPpzksnarkVerificationKey->set_allocated_z(z);
     r1csPpzksnarkVerificationKey->set_ic(IC_json);
 };
+
 } //libzeth
 
 #endif // __ZETH_RESPONSE_TCC__

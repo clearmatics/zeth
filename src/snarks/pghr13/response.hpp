@@ -13,7 +13,7 @@ using proverpkg::R1csPpzksnarkVerificationKey;
 using proverpkg::HexadecimalPointBaseGroup1Affine;
 using proverpkg::HexadecimalPointBaseGroup2Affine;
 
-namespace libzeth{
+namespace libzeth {
 
 template<typename ppT>
 void PrepareProofResponse(extended_proof<ppT>& ext_proof, ExtendedProof* message);
