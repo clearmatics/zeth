@@ -1,4 +1,4 @@
-# NodeJS client to interact with the prover
+# [DEPRECATED] NodeJS client to interact with the prover
 
 This folder contains some util functions and mock data to interact with the prover RPC service.
 
