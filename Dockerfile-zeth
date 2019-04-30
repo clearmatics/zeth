@@ -1,4 +1,4 @@
-FROM zeth-base
+FROM clearmatics/zeth-base
 
 # Copy the project in the docker container
 COPY . /home/zeth
