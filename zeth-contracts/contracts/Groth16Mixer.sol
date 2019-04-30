@@ -2,12 +2,9 @@ pragma solidity ^0.5.0;
 
 import "./MerkleTreeSha256.sol";
 import "./Groth16Verifier.sol";
-import "./Bytes.sol";
 import "./Mixer.sol";
 
 contract Groth16Mixer is Mixer {
-    using Bytes for *;
-
     // Smart contract responsible of on-chain verification of proofs
     Groth16Verifier public _zksnark_verifier;
 

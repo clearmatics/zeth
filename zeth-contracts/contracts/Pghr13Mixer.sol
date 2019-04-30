@@ -2,12 +2,9 @@ pragma solidity ^0.5.0;
 
 import "./MerkleTreeSha256.sol";
 import "./Pghr13Verifier.sol";
-import "./Bytes.sol";
 import "./Mixer.sol";
 
 contract Pghr13Mixer is Mixer {
-    using Bytes for *;
-
     // Smart contract responsible of on-chain verification of proofs
     Pghr13Verifier public _zksnark_verifier;
 
