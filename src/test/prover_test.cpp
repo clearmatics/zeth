@@ -1,15 +1,19 @@
 #include "gtest/gtest.h"
 
 #include <libff/common/default_types/ec_pp.hpp>
+#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
 #include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
+#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
 // Header to use the merkle tree data structure to keep a local merkle tree
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 // Have access to a chrono to measure the rough time of execution of a set of instructions
-#include <chrono> 
-
+#include <chrono>
+#include "snarks_alias.hpp"
+// Import only the core components of the SNARK (not the API components)
+#include "snarks_core_imports.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "circuits/sha256/sha256_ethereum.hpp"
 #include "circuit-wrapper.hpp"
@@ -25,7 +29,7 @@ namespace {
 
 bool TestValidJS2In2Case1(
     CircuitWrapper<2, 2> &prover,
-    libsnark::r1cs_ppzksnark_keypair<ppT> keypair
+    libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
     libff::print_header("test JS 2-2: IN => vpub_in = 0x0, note1 = 0x2F0000000000000F, note2 = 0x0 || OUT => vpub_out = 0x1700000000000007, note1 = 0x1800000000000008, note2 = 0x0");
@@ -132,8 +136,8 @@ bool TestValidJS2In2Case1(
 
     libff::enter_block("[BEGIN] Verify proof", true);
     // Get the verification key
-    libsnark::r1cs_ppzksnark_verification_key<ppT> vk = keypair.vk;
-    bool res = libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(vk, ext_proof.get_primary_input(), ext_proof.get_proof());
+    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
     return res;
@@ -141,7 +145,7 @@ bool TestValidJS2In2Case1(
 
 bool TestValidJS2In2Case2(
     CircuitWrapper<2, 2> &prover,
-    libsnark::r1cs_ppzksnark_keypair<ppT> keypair
+    libzeth::keyPairT<ppT> keypair
 ) {
     libff::print_header("Starting test: IN => v_pub = 0, note1 = 0x2F0000000000000F, note2 = 0x0 || OUT => v_pub = 0x000000000000000B, note1 = 0x1A00000000000002, note2 = 0x1500000000000002");
 
@@ -227,7 +231,7 @@ bool TestValidJS2In2Case2(
         get_bits64_from_vector(hexadecimal_str_to_binary_vector("1500000000000002")),
         rho_out_bits256,
         trap_r_out_bits384
-    ); 
+    );
     std::array<ZethNote, 2> outputs;
     outputs[0] = note_output1;
     outputs[1] = note_output2;
@@ -247,8 +251,8 @@ bool TestValidJS2In2Case2(
 
     libff::enter_block("[BEGIN] Verify proof", true);
     // Get the verification key
-    libsnark::r1cs_ppzksnark_verification_key<ppT> vk = keypair.vk;
-    bool res = libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(vk, ext_proof.get_primary_input(), ext_proof.get_proof());
+    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
     return res;
@@ -256,7 +260,7 @@ bool TestValidJS2In2Case2(
 
 bool TestValidJS2In2Case3(
     CircuitWrapper<2, 2> &prover,
-    libsnark::r1cs_ppzksnark_keypair<ppT> keypair
+    libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
     libff::print_header("Starting test: IN => v_pub = 0x0000000000000010, note1 = 0x2F0000000000000F, note2 = 0x0 || OUT => v_pub = 0x000000000000000B, note1 = 0x1A00000000000012, note2 = 0x1500000000000002");
@@ -343,7 +347,7 @@ bool TestValidJS2In2Case3(
         get_bits64_from_vector(hexadecimal_str_to_binary_vector("1500000000000002")),
         rho_out_bits256,
         trap_r_out_bits384
-    ); 
+    );
     std::array<ZethNote, 2> outputs;
     outputs[0] = note_output1;
     outputs[1] = note_output2;
@@ -363,8 +367,8 @@ bool TestValidJS2In2Case3(
 
     libff::enter_block("[BEGIN] Verify proof", true);
     // Get the verification key
-    libsnark::r1cs_ppzksnark_verification_key<ppT> vk = keypair.vk;
-    bool res = libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(vk, ext_proof.get_primary_input(), ext_proof.get_proof());
+    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
     return res;
@@ -372,7 +376,7 @@ bool TestValidJS2In2Case3(
 
 bool TestValidJS2In2Deposit(
     CircuitWrapper<2, 2> &prover,
-    libsnark::r1cs_ppzksnark_keypair<ppT> keypair
+    libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
     libff::print_header("Starting test: IN => v_pub = 0x6124FEE993BC0000, note1 = 0x0, note2 = 0x0 || OUT => v_pub = 0x0, note1 = 0x3782DACE9D900000, note2 = 0x29A2241AF62C0000");
@@ -479,11 +483,10 @@ bool TestValidJS2In2Deposit(
 
     libff::enter_block("[BEGIN] Verify proof", true);
     // Get the verification key
-    libsnark::r1cs_ppzksnark_verification_key<ppT> vk = keypair.vk;
-    bool res = libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(vk, ext_proof.get_primary_input(), ext_proof.get_proof());
+    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    bool res = libzeth::verify(ext_proof, vk);
 
-    libsnark::r1cs_ppzksnark_primary_input<ppT> primary_inputs = ext_proof.get_primary_input();
-    display_primary_input<ppT>(primary_inputs);
+    ext_proof.dump_primary_inputs();
     libff::leave_block("[END] Verify proof", true);
 
     return res;
@@ -491,7 +494,7 @@ bool TestValidJS2In2Deposit(
 
 bool TestInvalidJS2In2(
     CircuitWrapper<2, 2> &prover,
-    libsnark::r1cs_ppzksnark_keypair<ppT> keypair
+    libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
     libff::print_header("Starting test: IN => v_pub = 0xFA80001400000000, note1 = 0x0, note2 = 0x0 || OUT => v_pub = 0x0, note1 = 0x8530000A00000001, note2 = 0x7550000A00000000");
@@ -600,8 +603,8 @@ bool TestInvalidJS2In2(
 
     libff::enter_block("[BEGIN] Verify proof", true);
     // Get the verification key
-    libsnark::r1cs_ppzksnark_verification_key<ppT> vk = keypair.vk;
-    bool res = libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(vk, ext_proof.get_primary_input(), ext_proof.get_proof());
+    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
     return res;
@@ -610,7 +613,7 @@ bool TestInvalidJS2In2(
 TEST(MainTests, ProofGenAndVerifJS2to2) {
     // Run the trusted setup once for all tests, and keep the keypair in memory for the duration of the tests
     CircuitWrapper<2, 2> proverJS2to2;
-    libsnark::r1cs_ppzksnark_keypair<ppT> keypair = proverJS2to2.generate_trusted_setup();
+    libzeth::keyPairT<ppT> keypair = proverJS2to2.generate_trusted_setup();
     bool res = false;
 
     res = TestValidJS2In2Case1(proverJS2to2, keypair);

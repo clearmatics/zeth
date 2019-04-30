@@ -3,10 +3,21 @@ from Crypto.PublicKey import RSA
 import zlib
 import base64
 
+# Parse the arguments given to the script
+import argparse
+import sys
+
+import os
+import time
+
 import zethGRPC
 
+# Import the constants and standard errors defined for zeth
+import zethConstants as constants
+import zethErrors as errors
+
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
-w3 = Web3(HTTPProvider("http://localhost:8545"))
+w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
 """
 Note: In this proof of concept we encrypt the notes' data with RSA-OAEP.
@@ -107,3 +118,12 @@ def receive(ciphertext, decryption_key, username):
     except Exception as e:
         print("[ERROR] in receive. Might not be the recipient! (msg: {})".format(e))
     return recovered_plaintext
+
+# Parse the zksnark argument and return its value
+def parse_zksnark_arg():
+    parser = argparse.ArgumentParser(description="Testing Zeth transactions using the specified zkSNARK ('GROTH16' or 'PGHR13'). Note that the zkSNARK must match the one used on the prover server.")
+    parser.add_argument("zksnark", help="Set the zkSNARK to use")
+    args = parser.parse_args()
+    if (args.zksnark not in [constants.PGHR13_ZKSNARK, constants.GROTH16_ZKSNARK]):
+        return sys.exit(errors.SNARK_NOT_SUPPORTED)
+    return args.zksnark

@@ -10,7 +10,6 @@
 
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "circuits/sha256/sha256_ethereum.hpp"
-#include "circuits/computation.hpp"
 #include "circuits/notes/note.hpp" // Contains the circuits for the notes
 
 #include "types/joinsplit.hpp"

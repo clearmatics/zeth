@@ -1,6 +1,7 @@
 import json
 import time
 import os
+import sys
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 
@@ -10,13 +11,15 @@ import zethContracts
 import zethGRPC
 # Get the mock data for the test
 import zethMock
-# Get the utils to encrypt/decrypt
+# Get the zeth utils functions
 import zethUtils
 # Get the test scenario
 import zethTestScenario as zethTest
+# Get the zeth constants
+import zethConstants as constants
 
-w3 = Web3(HTTPProvider("http://localhost:8545"))
-test_grpc_endpoint = 'localhost:50051'
+w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+test_grpc_endpoint = constants.RPC_ENDPOINT
 
 def print_balances(bob, alice, charlie, mixer):
     print("Bob's ETH balance: ", w3.eth.getBalance(bob))
@@ -32,10 +35,12 @@ def get_merkle_tree(mixer_instance):
     return mk_byte_tree
 
 if __name__ == '__main__':
+    zksnark = zethUtils.parse_zksnark_arg()
+
     # Zeth addresses
     keystore = zethMock.initTestKeystore()
     # Depth of the merkle tree (need to match the one used in the cpp prover)
-    mk_tree_depth = 4
+    mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
     # Ethereum addresses
     deployer_eth_address = w3.eth.accounts[0]
     bob_eth_address = w3.eth.accounts[1]
@@ -46,17 +51,18 @@ if __name__ == '__main__':
     vk = zethGRPC.getVerificationKey(test_grpc_endpoint)
 
     print("[INFO] 2. Received VK, writing the key...")
-    zethGRPC.writeVerificationKey(vk)
+    zethGRPC.writeVerificationKey(vk, zksnark)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
-    (verifier_interface, mixer_interface) = zethContracts.compile_contracts()
-    (mixer_instance, initial_root) = zethContracts.deploy(
+    (verifier_interface, mixer_interface) = zethContracts.compile_contracts(zksnark)
+    (mixer_instance, initial_root) = zethContracts.deploy_contracts(
         mk_tree_depth,
         verifier_interface,
         mixer_interface,
         deployer_eth_address,
         4000000,
-        "0x0000000000000000000000000000000000000000" # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
+        "0x0000000000000000000000000000000000000000", # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
+        zksnark
     )
 
     print("[INFO] 4. Running tests (asset mixed: Ether)...")
@@ -75,7 +81,8 @@ if __name__ == '__main__':
         initial_root,
         bob_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        zksnark
     )
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
     cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]
@@ -116,7 +123,8 @@ if __name__ == '__main__':
         cm_address_bob_to_bob1,
         bob_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        zksnark
     )
     cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie[0] # Bob -> Bob (Change)
     cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie[1] # Bob -> Charlie (payment to Charlie)
@@ -135,7 +143,8 @@ if __name__ == '__main__':
             cm_address_bob_to_bob1,
             bob_eth_address,
             keystore,
-            mk_tree_depth
+            mk_tree_depth,
+            zksnark
         )
     except Exception as e:
         print("Bob's double spending successfully rejected! (msg: {})".format(e))
@@ -168,7 +177,8 @@ if __name__ == '__main__':
         cm_address_bob_to_charlie2,
         charlie_eth_address,
         keystore,
-        mk_tree_depth
+        mk_tree_depth,
+        zksnark
     )
 
     print("Balances after Charlie's withdrawal: ")
