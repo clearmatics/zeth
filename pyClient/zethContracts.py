@@ -67,15 +67,15 @@ def deploy_pghr13_verifier(vk, verifier, deployer_address, deployment_gas):
     verifier_address = tx_receipt['contractAddress']
     return verifier_address
 
-# Deploy the mixer contract
+# Common function to deploy a mixer contract
 # Returns the mixer and the initial merkle root of the commitment tree
 def deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address):
     # Deploy the Mixer contract once the Verifier is successfully deployed
     mixer = w3.eth.contract(abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
     tx_hash = mixer.constructor(
-        _zksnark_verify=verifier_address,
-        depth=mk_tree_depth,
-        token=token_address
+        verifier_address = verifier_address,
+        mk_depth = mk_tree_depth,
+        token_address = token_address
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Mixer contract address
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)

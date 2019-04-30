@@ -4,12 +4,12 @@ import "./Pghr13Verifier.sol";
 import "./BaseMixer.sol";
 
 contract Pghr13Mixer is BaseMixer {
-    // Smart contract responsible of on-chain verification of proofs
-    Pghr13Verifier public _zksnark_verifier;
+    // zkSNARK verifier smart contract
+    Pghr13Verifier public zksnark_verifier;
 
     // Constructor
-    constructor(address _zksnark_verify, uint depth, address token) BaseMixer(depth, token) public {
-        _zksnark_verifier = Pghr13Verifier(_zksnark_verify);
+    constructor(address verifier_address, uint mk_depth, address token_address) BaseMixer(mk_depth, token_address) public {
+        zksnark_verifier = Pghr13Verifier(verifier_address);
     }
 
     // This function allows to mix coins and execute payments in zero knowledge
@@ -31,7 +31,7 @@ contract Pghr13Mixer is BaseMixer {
 
         // 2. Verify the proof
         require(
-            _zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
+            zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
             "Invalid proof: Unable to verify the proof correctly"
         );
 

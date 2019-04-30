@@ -4,12 +4,12 @@ import "./Groth16Verifier.sol";
 import "./BaseMixer.sol";
 
 contract Groth16Mixer is BaseMixer {
-    // Smart contract responsible of on-chain verification of proofs
-    Groth16Verifier public _zksnark_verifier;
+    // zkSNARK verifier smart contract
+    Groth16Verifier public zksnark_verifier;
 
     // Constructor
-    constructor(address _zksnark_verify, uint depth, address token) BaseMixer(depth, token) public {
-        _zksnark_verifier = Groth16Verifier(_zksnark_verify);
+    constructor(address verifier_address, uint mk_depth, address token_address) BaseMixer(mk_depth, token_address) public {
+        zksnark_verifier = Groth16Verifier(verifier_address);
     }
 
     // This function allows to mix coins and execute payments in zero knowledge
@@ -26,7 +26,7 @@ contract Groth16Mixer is BaseMixer {
 
         // 2. Verify the proof
         require(
-            _zksnark_verifier.verifyTx(a, b, c, input),
+            zksnark_verifier.verifyTx(a, b, c, input),
             "Invalid proof: Unable to verify the proof correctly"
         );
 

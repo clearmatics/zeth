@@ -81,13 +81,13 @@ contract BaseMixer is MerkleTreeSha256, ERC223ReceivingContract {
     event LogDebug(string message);
 
     // Constructor
-    constructor(uint depth, address _token) MerkleTreeSha256(depth) public {
+    constructor(uint depth, address token_address) MerkleTreeSha256(depth) public {
         // We log the first root to get started
         bytes32 initialRoot = getRoot();
         roots[initialRoot] = true;
         emit LogMerkleRoot(initialRoot);
 
-        token = _token;
+        token = token_address;
     }
 
     // ============================================================================================ //
