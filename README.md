@@ -49,7 +49,9 @@ make
 # Start the proving server
 prover_server
 ```
+
 ##### Build Options
+
 By default, zeth makes use of GROTH16. To chose a different zksnark run the following:
 ```
 cmake -DZKSNARK=$ZKSNARK ..
