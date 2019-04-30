@@ -37,7 +37,10 @@ contract ERC223ReceivingContract {
     }
 }
 
-contract Mixer is MerkleTreeSha256, ERC223ReceivingContract {
+/*
+ * BaseMixer implements the functions shared across all Mixers (regardless which zkSNARK is used)
+**/
+contract BaseMixer is MerkleTreeSha256, ERC223ReceivingContract {
     using Bytes for *;
 
     // The roots of the different updated trees
@@ -46,15 +49,17 @@ contract Mixer is MerkleTreeSha256, ERC223ReceivingContract {
     // The public list of nullifiers (prevents double spend)
     mapping(bytes32 => bool) nullifiers;
 
-    // JoinSplit description, gives upper bound on number of inputs(nullifiers) and outputs(commitments/ciphertexts) to receive and process
+    // JoinSplit description, gives the number of inputs (nullifiers) and outputs (commitments/ciphertexts) to receive and process
     // IMPORTANT NOTE: We need to employ the same JS configuration than the one used in the cpp prover
-    // 2-2 JoinSplit (used as a upper bound in the array of ciphertexts) -- Need to match with the JSDesc used in the circuit
-    uint constant jsIn = 2;
-    // 2-2 JoinSplit (used as a upper bound in the array of ciphertexts) -- Need to match with the JSDesc used in the circuit
-    uint constant jsOut = 2;
+    // Here we use 2 inputs and 2 outputs (it is a 2-2 JS)
+    uint constant jsIn = 2; // Nb of nullifiers
+    uint constant jsOut = 2; // Nb of commitments/ciphertexts
+
     // We have 2 field elements for each digest (root, nullifiers, commitments) and 1 + 1 public values
     uint constant nbInputs = 2 * (1 + jsIn + jsOut) + 1 + 1;
-    // Contract variable that indicates the address of the token contract. If token = address(0) then the mixer works with ether.
+
+    // Contract variable that indicates the address of the token contract
+    // If token = address(0) then the mixer works with ether
     address public token;
 
     // Event to emit the address of a commitment in the merke tree
@@ -77,7 +82,6 @@ contract Mixer is MerkleTreeSha256, ERC223ReceivingContract {
 
     // Constructor
     constructor(uint depth, address _token) MerkleTreeSha256(depth) public {
-
         // We log the first root to get started
         bytes32 initialRoot = getRoot();
         roots[initialRoot] = true;
@@ -86,20 +90,22 @@ contract Mixer is MerkleTreeSha256, ERC223ReceivingContract {
         token = _token;
     }
 
+    // ============================================================================================ //
+    // Reminder: Remember that the primary inputs are ordered as follows:
+    // We make sure to have the primary inputs ordered as follow:
+    // [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
+    // ie, below is the index mapping of the primary input elements on the protoboard:
+    // - Index of the "Root" field elements: {0}
+    // - Index of the "NullifierS" field elements: [1, NumInputs + 1[
+    // - Index of the "CommitmentS" field elements: [NumInputs + 1, NumOutputs + NumInputs + 1[
+    // - Index of the "v_pub_in" field element: {NumOutputs + NumInputs + 1}
+    // - Index of the "v_pub_out" field element: {NumOutputs + NumInputs + 1 + 1}
+    // ============================================================================================ //
+
     // This function processes the primary inputs to append and check the root and nullifiers int he primary inputs (instance)
     // and modifies the state of the mixer contract accordingly
     // (ie: Appends the commitments to the tree, appends the nullifiers to the list and so on)
     function assemble_root_and_nullifiers_and_append_to_state(uint[] memory primary_inputs) internal {
-        // Reminder: Remember that the primary inputs are ordered as follows:
-        // We make sure to have the primary inputs ordered as follow:
-        // [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
-        // ie, below is the index mapping of the primary input elements on the protoboard:
-        // - Index of the "Root" field elements: {0}
-        // - Index of the "NullifierS" field elements: [1, NumInputs + 1[
-        // - Index of the "CommitmentS" field elements: [NumInputs + 1, NumOutputs + NumInputs + 1[
-        // - Index of the "v_pub_in" field element: {NumOutputs + NumInputs + 1}
-        // - Index of the "v_pub_out" field element: {NumOutputs + NumInputs + 1 + 1}
-        //
         // 1. We re-assemble the full root digest from the 2 field elements it was packed into
         uint256[] memory digest_inputs = new uint[](2);
         digest_inputs[0] = primary_inputs[0];
@@ -123,17 +129,7 @@ contract Mixer is MerkleTreeSha256, ERC223ReceivingContract {
     }
 
     function assemble_commitments_and_append_to_state(uint[] memory primary_inputs) internal {
-        // Reminder: Remember that the primary inputs are ordered as follows:
-        // We make sure to have the primary inputs ordered as follow:
-        // [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
-        // ie, below is the index mapping of the primary input elements on the protoboard:
-        // - Index of the "Root" field elements: {0}
-        // - Index of the "NullifierS" field elements: [1, NumInputs + 1[
-        // - Index of the "CommitmentS" field elements: [NumInputs + 1, NumOutputs + NumInputs + 1[
-        // - Index of the "v_pub_in" field element: {NumOutputs + NumInputs + 1}
-        // - Index of the "v_pub_out" field element: {NumOutputs + NumInputs + 1 + 1}
-        //
-        // 1. We re-assemble the commitments (JSOutputs)
+        // We re-assemble the commitments (JSOutputs)
         uint256[] memory digest_inputs = new uint[](2);
         for(uint i = 2 * (1 + (jsIn)); i < 2 * (1 + jsIn + jsOut); i += 2) {
             digest_inputs[0] = primary_inputs[i]; // See the way the inputs are ordered in the extended proof

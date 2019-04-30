@@ -1,15 +1,14 @@
 pragma solidity ^0.5.0;
 
-import "./MerkleTreeSha256.sol";
 import "./Groth16Verifier.sol";
-import "./Mixer.sol";
+import "./BaseMixer.sol";
 
-contract Groth16Mixer is Mixer {
+contract Groth16Mixer is BaseMixer {
     // Smart contract responsible of on-chain verification of proofs
     Groth16Verifier public _zksnark_verifier;
 
     // Constructor
-    constructor(address _zksnark_verify, uint depth, address token) Mixer(depth, token) public {
+    constructor(address _zksnark_verify, uint depth, address token) BaseMixer(depth, token) public {
         _zksnark_verifier = Groth16Verifier(_zksnark_verify);
     }
 
