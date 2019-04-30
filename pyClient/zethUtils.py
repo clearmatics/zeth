@@ -121,7 +121,7 @@ def receive(ciphertext, decryption_key, username):
 
 # Parse the zksnark argument and return its value
 def parse_zksnark_arg():
-    parser = argparse.ArgumentParser(description="Testing Zeth transactions using an ERC token using the specified zkSNARK ('GROTH16' or 'PGHR13'). Note that the zkSNARK must match the one used on the prover server.")
+    parser = argparse.ArgumentParser(description="Testing Zeth transactions using the specified zkSNARK ('GROTH16' or 'PGHR13'). Note that the zkSNARK must match the one used on the prover server.")
     parser.add_argument("zksnark", help="Set the zkSNARK to use")
     args = parser.parse_args()
     if (args.zksnark not in [constants.PGHR13_ZKSNARK, constants.GROTH16_ZKSNARK]):
