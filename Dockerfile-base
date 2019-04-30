@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install -y \
         gcc \
         libxslt-dev \
         vim \
-        cmake \
         libssl-dev \
         pkg-config \
         curl \
@@ -22,11 +21,14 @@ RUN apt-get update && apt-get install -y \
 # Install a recent version of nodejs
 RUN curl -sL https://deb.nodesource.com/setup_10.x | sudo bash - && sudo apt-get install -y nodejs
 
-# Configue the environment for gRPC
+# Configure the environment for gRPC
 RUN apt-get install -y \
         build-essential \
         autoconf \
         libtool
+
+# Install the last version of cmake
+RUN pip install cmake --upgrade
 
 RUN git clone -b v1.20.x https://github.com/grpc/grpc /var/local/git/grpc
 RUN cd /var/local/git/grpc && git submodule update --init --recursive
