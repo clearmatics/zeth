@@ -15,7 +15,6 @@ contract Groth16Mixer is Mixer {
 
     // This function allows to mix coins and execute payments in zero knowledge
     function mix (
-        //string[jsIn] memory ciphertext, // Array of strings is a 2D array and is not supported
         string memory ciphertext1,
         string memory ciphertext2, // Nb of ciphertexts depends on the JS description (Here 2 inputs)
         uint[2] memory a,
@@ -23,7 +22,7 @@ contract Groth16Mixer is Mixer {
         uint[2] memory c,
         uint[] memory input
     ) public payable {
-        // 1. Checks the root and the nullifiers
+        // 1. Check the root and the nullifiers
         assemble_root_and_nullifiers_and_append_to_state(input);
 
         // 2. Verify the proof
