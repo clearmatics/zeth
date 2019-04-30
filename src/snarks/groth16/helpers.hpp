@@ -11,20 +11,20 @@ typedef libff::default_ec_pp ppT; // We use the public parameters of the alt_bn_
 
 namespace libzeth {
 
-    template<typename ppT> 
-    void exportVerificationKey(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair);
+template<typename ppT>
+void exportVerificationKey(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair);
 
-    template<typename ppT> 
-    void displayProof(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof);
+template<typename ppT>
+void displayProof(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof);
 
-    template<typename ppT>
-    void verificationKeyToJson(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair, boost::filesystem::path path = "");
+template<typename ppT>
+void verificationKeyToJson(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair, boost::filesystem::path path = "");
 
-    template<typename ppT> 
-    void proofAndInputToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path = "");
+template<typename ppT>
+void proofAndInputToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, libsnark::r1cs_ppzksnark_primary_input<ppT> input, boost::filesystem::path path = "");
 
-    template<typename ppT> 
-    void proofToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, boost::filesystem::path path);
+template<typename ppT>
+void proofToJson(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, boost::filesystem::path path);
 
 } // libzeth
 #include "snarks/groth16/helpers.tcc"

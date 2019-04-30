@@ -16,6 +16,7 @@ template<typename ppT>
 libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(libsnark::protoboard<libff::Fr<ppT> > pb);
 template<typename ppT>
 bool verify(libzeth::extended_proof<ppT> ext_proof, libsnark::r1cs_ppzksnark_verification_key<ppT> verification_key);
+
 } // libzeth
 #include "snarks/pghr13/computation.tcc"
 
