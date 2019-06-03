@@ -256,6 +256,4 @@ def parse_mix_call(mixer_instance, tx_receipt):
     return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
 
 def mimcHash(instance, m, iv):
-    #hash = instance.functions.MiMCHash(m, iv).call()
-    print('MimCHash: {}'.format(hash))
-    return hash
+    return instance.functions.MiMCHash(m, iv).call()
