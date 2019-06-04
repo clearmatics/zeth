@@ -2,7 +2,9 @@ pragma solidity ^0.5.0;
 
 // Adapted from: https://github.com/zcash-hackworks/babyzoe
 
-contract MerkleTreeSha256 {
+import "./MiMC7.sol";
+
+contract MerkleTreeMiMCHash {
     // Index of the current node: Index to insert the next incoming commitment
     uint currentNodeIndex;
 
@@ -87,11 +89,11 @@ contract MerkleTreeSha256 {
 
         // Compute the internal nodes of the merkle tree
         for (uint i = nbLeaves - 2; i > 0; i--) {
-            tmpTree[i] = sha256(abi.encodePacked(tmpTree[i*2+1], tmpTree[2*(i+1)]));
+            tmpTree[i] = MiMCHash([tmpTree[i*2+1], tmpTree[2*(i+1)]], 0);
         }
 
         // Compute the merkle root
-        tmpTree[0] = sha256(abi.encodePacked(tmpTree[1], tmpTree[2]));
+        tmpTree[0] = MiMCHash([tmpTree[1], tmpTree[2]], 0);
 
         return tmpTree;
     }
@@ -101,8 +103,7 @@ contract MerkleTreeSha256 {
         return getTree()[0];
     }
 
-    function MiMCHash(bytes32[] memory x, bytes32 iv) public pure returns (bytes32 h_p) {
-        //uint p = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    function MiMCHash(bytes32[2] memory x, bytes32 iv) public pure returns (bytes32 h_p) {
         uint p = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
         bytes32 x_c; //current input;
         bytes32 seed = keccak256("mimc");
@@ -124,7 +125,7 @@ contract MerkleTreeSha256 {
                   h_c :=  mulmod(mulmod(mulmod(b,b,p),b,p),a,p)
               }
               //NB: merged last round of the permutation with Myjaguchi-Prenell step
-              h_p := addmod(addmod(addmod(h_c , h_p, p), x_c, p), h_p, p)//TODO: do I need to cast?
+              h_p := addmod(addmod(addmod(h_c , h_p, p), x_c, p), h_p, p)
           }
         }
     }
