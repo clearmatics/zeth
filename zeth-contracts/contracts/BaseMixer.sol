@@ -1,6 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "./MerkleTreeSha256.sol";
+import "./MerkleTreeMiMCHash.sol";
 import "./Bytes.sol";
 
 /*
@@ -40,7 +40,7 @@ contract ERC223ReceivingContract {
 /*
  * BaseMixer implements the functions shared across all Mixers (regardless which zkSNARK is used)
 **/
-contract BaseMixer is MerkleTreeSha256, ERC223ReceivingContract {
+contract BaseMixer is MerkleTreeMiMCHash, ERC223ReceivingContract {
     using Bytes for *;
 
     // The roots of the different updated trees
@@ -81,7 +81,7 @@ contract BaseMixer is MerkleTreeSha256, ERC223ReceivingContract {
     event LogDebug(string message);
 
     // Constructor
-    constructor(uint depth, address token_address) MerkleTreeSha256(depth) public {
+    constructor(uint depth, address token_address) MerkleTreeMiMCHash(depth) public {
         // We log the first root to get started
         bytes32 initialRoot = getRoot();
         roots[initialRoot] = true;

@@ -42,10 +42,11 @@ def compile_util_contracts():
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
     path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
     path_to_mimc7 = os.path.join(contracts_dir, "MiMC7.sol")
-    compiled_sol = compile_files([path_to_pairing, path_to_bytes, path_to_mimc7])
+    path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMCHash.sol")
+    compiled_sol = compile_files([path_to_pairing, path_to_bytes, path_to_mimc7, path_to_tree])
     mimc_interface = compiled_sol[path_to_mimc7 + ':' + "MiMC7"]
-
-    return mimc_interface
+    tree_interface = compiled_sol[path_to_tree + ':' + "MerkleTreeMiMCHash"]
+    return mimc_interface, tree_interface
 
 # Deploy the verifier used with PGHR13
 def deploy_pghr13_verifier(vk, verifier, deployer_address, deployment_gas):
@@ -140,10 +141,25 @@ def deploy_contracts(mk_tree_depth, verifier_interface, mixer_interface, deploye
     else:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
+#TODO: write one function that deploy contracts and parse input paremeters into the contract constructor
 # Deploy mimc contract
-def deploy_mimc(interface):
-  mimc = w3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
-  tx_hash = mimc.constructor().transact({'from':w3.eth.accounts[1]})
+def deploy_mimc_contract(interface):
+  contract = w3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
+  tx_hash = contract.constructor().transact({'from':w3.eth.accounts[1]})
+  # Get tx receipt to get Mixer contract address
+  tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+  address = tx_receipt['contractAddress']
+  # Get the mixer contract instance
+  instance = w3.eth.contract(
+      address=address,
+      abi=interface['abi']
+  )
+  return instance
+
+# Deploy tree contract
+def deploy_tree_contract(interface, depth):
+  contract = w3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
+  tx_hash = contract.constructor(depth).transact({'from':w3.eth.accounts[1]})
   # Get tx receipt to get Mixer contract address
   tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
   address = tx_receipt['contractAddress']
@@ -255,5 +271,10 @@ def parse_mix_call(mixer_instance, tx_receipt):
     ciphertext2 = event_logs_logSecretCiphers[1].args.ciphertext
     return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
 
+# Call the hash method of MiMC contract
 def mimcHash(instance, m, iv):
     return instance.functions.MiMCHash(m, iv).call()
+
+# Return MimC merklee tree
+def getTree(instance):
+  return instance.functions.getTree().call()
