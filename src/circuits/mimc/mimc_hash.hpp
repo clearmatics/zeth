@@ -19,11 +19,13 @@ public:
 	const std::vector<VariableT> m_messages;  //  vector of messages to process
 	const VariableArrayT m_outputs; // vector of round outputs variables
 	const VariableT m_IV; // initial vector variable
+  const VariableT out;
 
 	MiMC_hash_gadget(
 		ProtoboardT &in_pb,
 		const VariableT in_IV,
 		const std::vector<VariableT>& in_messages,
+    const VariableT out,
 		const std::string &in_annotation_prefix
 	);
 
