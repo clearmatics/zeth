@@ -43,7 +43,7 @@ std::vector<bool> convert_to_binary_LE(T x, int bitlen) {
 
 /*
  * This function reverses the byte endianness
- * 
+ *
  *  Example input/output:
  *
  *  Before swap (in):  After Swap (out):
@@ -93,6 +93,31 @@ libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::
     }
 
     return acc;
+}
+
+
+//TODO: add reference
+inline const VariableT make_variable( ProtoboardT &in_pb, const std::string &annotation ){
+    VariableT x;
+    x.allocate(in_pb, annotation);
+    return x;
+}
+
+//TODO: add reference
+inline const VariableT make_variable( ProtoboardT &in_pb, const FieldT value, const std::string &annotation )
+{
+    VariableT x;
+    x.allocate(in_pb, annotation);
+    in_pb.val(x) = value;
+    return x;
+}
+
+//TODO: add reference
+const VariableArrayT make_var_array( ProtoboardT &in_pb, size_t n, const std::string &annotation )
+{
+    VariableArrayT x;
+    x.allocate(in_pb, n, annotation);
+    return x;
 }
 
 } // libzeth

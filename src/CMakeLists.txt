@@ -192,6 +192,77 @@ target_include_directories(
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# Test the round circuits
+add_executable(
+    test_round
+    EXCLUDE_FROM_ALL
+
+    test/round_test.cpp
+    ${SOURCES_TEST}
+)
+target_link_libraries(
+    test_round
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_round
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+# Test the mimc circuits
+add_executable(
+    test_mimc
+    EXCLUDE_FROM_ALL
+
+    test/mimc_test.cpp
+    ${SOURCES_TEST}
+)
+target_link_libraries(
+    test_mimc
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_mimc
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+# Test the mimc hash circuits
+add_executable(
+    test_mimc_hash
+    EXCLUDE_FROM_ALL
+
+    test/mimc_hash_test.cpp
+    ${SOURCES_TEST}
+)
+target_link_libraries(
+    test_mimc_hash
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_mimc_hash
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
 # Test the joinsplit circuit
 add_executable(
     test_prover
@@ -234,6 +305,18 @@ add_test(
     COMMAND test_commitments
 )
 add_test(
+    NAME test_round
+    COMMAND test_round
+)
+add_test(
+    NAME test_mimc
+    COMMAND test_mimc
+)
+add_test(
+    NAME test_mimc_hash
+    COMMAND test_mimc_hash
+)
+add_test(
     NAME test_prover
     COMMAND test_prover
 )
@@ -243,4 +326,7 @@ add_dependencies(check test_addition)
 add_dependencies(check test_note)
 add_dependencies(check test_prfs)
 add_dependencies(check test_commitments)
+add_dependencies(check test_round)
+add_dependencies(check test_mimc)
+add_dependencies(check test_mimc_hash)
 add_dependencies(check test_prover)
