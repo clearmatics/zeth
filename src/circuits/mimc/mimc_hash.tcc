@@ -32,8 +32,7 @@ const VariableT& MiMC_hash_gadget::result() const {
 		return m_outputs[m_outputs.size() - 1];
 	}
 
-void MiMC_hash_gadget::generate_r1cs_constraints ()
-	{
+void MiMC_hash_gadget::generate_r1cs_constraints (){
 		for( size_t i = 0; i < m_ciphers.size(); i++ )
 		{
 			m_ciphers[i].generate_r1cs_constraints();
@@ -48,8 +47,7 @@ void MiMC_hash_gadget::generate_r1cs_constraints ()
 		}
 	}
 
-void MiMC_hash_gadget::generate_r1cs_witness () const
-	{
+void MiMC_hash_gadget::generate_r1cs_witness () const {
 		for( size_t i = 0; i < m_ciphers.size(); i++ )
 		{
 			m_ciphers[i].generate_r1cs_witness();

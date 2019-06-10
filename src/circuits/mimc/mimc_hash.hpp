@@ -15,10 +15,10 @@ class MiMC_hash_gadget:public GadgetT {
   MiMC_hash_gadget enforces correct computation of a MiMCHash based on a MiMC permutation with exponent 7
   */
 public:
-	std::vector<MiMCe7_permutation_gadget> m_ciphers;
-	const std::vector<VariableT> m_messages;
-	const VariableArrayT m_outputs;
-	const VariableT m_IV;
+	std::vector<MiMCe7_permutation_gadget> m_ciphers; // vector of permutation gadgets
+	const std::vector<VariableT> m_messages;  //  vector of messages to process
+	const VariableArrayT m_outputs; // vector of round outputs variables
+	const VariableT m_IV; // initial vector variable
 
 	MiMC_hash_gadget(
 		ProtoboardT &in_pb,
@@ -28,9 +28,7 @@ public:
 	);
 
 	const VariableT& result() const;
-
 	void generate_r1cs_constraints ();
-
 	void generate_r1cs_witness () const;
 };
 

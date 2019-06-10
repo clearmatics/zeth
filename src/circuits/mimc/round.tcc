@@ -24,14 +24,13 @@ MiMCe7_round_gadget::MiMCe7_round_gadget(
         d(make_variable(pb, FMT(annotation_prefix, ".d")))
     { }
 
-const VariableT& MiMCe7_round_gadget:: result() const
-    {
+const VariableT& MiMCe7_round_gadget:: result() const {
         return d;
     }
 
-void MiMCe7_round_gadget::generate_r1cs_constraints()
-    {
+void MiMCe7_round_gadget::generate_r1cs_constraints() {
         auto t = x + k + C;
+
         this->pb.add_r1cs_constraint(ConstraintT(t, t, a), ".a = t*t"); // t^2
         this->pb.add_r1cs_constraint(ConstraintT(a, a, b), ".b = a*a"); // t^4
         this->pb.add_r1cs_constraint(ConstraintT(a, b, c), ".c = a*b"); // t^6
@@ -45,8 +44,7 @@ void MiMCe7_round_gadget::generate_r1cs_constraints()
         }
     }
 
-void  MiMCe7_round_gadget::generate_r1cs_witness() const
-    {
+void  MiMCe7_round_gadget::generate_r1cs_witness() const {
         const FieldT val_k = this->pb.val(k);
         const FieldT t = this->pb.val(x) + val_k + C;
 

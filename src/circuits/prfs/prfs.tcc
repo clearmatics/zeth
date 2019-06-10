@@ -1,7 +1,7 @@
 #ifndef __ZETH_PRFS_CIRCUITS_TCC__
 #define __ZETH_PRFS_CIRCUITS_TCC__
 
-// DISCLAIMER: 
+// DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
 
@@ -13,8 +13,8 @@ PRF_gadget<FieldT>::PRF_gadget(libsnark::protoboard<FieldT>& pb,
                             libsnark::pb_variable_array<FieldT> x,
                             libsnark::pb_variable_array<FieldT> y,
                             std::shared_ptr<libsnark::digest_variable<FieldT>> result,
-                            const std::string &annotation_prefix) : 
-    libsnark::gadget<FieldT>(pb, annotation_prefix), result(result) 
+                            const std::string &annotation_prefix) :
+    libsnark::gadget<FieldT>(pb, annotation_prefix), result(result)
 {
 
     block.reset(new libsnark::block_variable<FieldT>(pb, {
@@ -48,7 +48,7 @@ libsnark::pb_variable_array<FieldT> gen256zeroes(libsnark::pb_variable<FieldT>& 
         ret.emplace_back(ZERO);
     }
 
-    // Dummy assert that double check 
+    // Dummy assert that double check
     // that we correctly built a 256-bit string
     assert(ret.size() == 256);
 
@@ -81,7 +81,7 @@ libsnark::pb_variable_array<FieldT> getRightSideNFPRF(
     return right_side;
 }
 
-// a_pk = sha256(a_sk || 0^256): See Zerocash extended paper, page 22, 
+// a_pk = sha256(a_sk || 0^256): See Zerocash extended paper, page 22,
 // paragraph "Instantiating the NP statement POUR"
 template<typename FieldT>
 PRF_addr_a_pk_gadget<FieldT>::PRF_addr_a_pk_gadget(
@@ -89,10 +89,10 @@ PRF_addr_a_pk_gadget<FieldT>::PRF_addr_a_pk_gadget(
         libsnark::pb_variable<FieldT>& ZERO,
         libsnark::pb_variable_array<FieldT>& a_sk,
         std::shared_ptr<libsnark::digest_variable<FieldT>> result,
-        const std::string &annotation_prefix) : 
+        const std::string &annotation_prefix) :
     PRF_gadget<FieldT>(pb, ZERO, a_sk, gen256zeroes(ZERO), result, annotation_prefix)
 {
-    // Nothing 
+    // Nothing
 }
 
 // PRF to generate the nullifier
@@ -104,7 +104,7 @@ PRF_nf_gadget<FieldT>::PRF_nf_gadget(
         libsnark::pb_variable_array<FieldT>& a_sk,
         libsnark::pb_variable_array<FieldT>& rho,
         std::shared_ptr<libsnark::digest_variable<FieldT>> result,
-        const std::string &annotation_prefix) : 
+        const std::string &annotation_prefix) :
     PRF_gadget<FieldT>(pb, ZERO, a_sk, getRightSideNFPRF(ZERO, rho), result, annotation_prefix)
 {
     // Nothing

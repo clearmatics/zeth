@@ -35,21 +35,18 @@ namespace libzeth {
         _setup_gadgets(in_x, in_k);
     }
 
-    const VariableT& MiMCe7_permutation_gadget::result () const
-    {
+    const VariableT& MiMCe7_permutation_gadget::result () const {
         return m_rounds.back().result();
     }
 
-    void MiMCe7_permutation_gadget::generate_r1cs_constraints()
-    {
+    void MiMCe7_permutation_gadget::generate_r1cs_constraints() {
         for( auto& gadget : m_rounds )
         {
             gadget.generate_r1cs_constraints();
         }
     }
 
-    void MiMCe7_permutation_gadget::generate_r1cs_witness() const
-    {
+    void MiMCe7_permutation_gadget::generate_r1cs_witness() const {
         for( auto& gadget : m_rounds )
         {
             gadget.generate_r1cs_witness();
@@ -57,11 +54,10 @@ namespace libzeth {
     }
 
     /**
-    * Generate a sequence of round constants from an initial seed value.
+    * Following constants correspond to the che iterative computation of sha3 hash function over an initial seed "mimc".
+    * See: https://github.com/riemann89/ethsnarks/blob/master/src/utils/mimc_hash_test_cases.cpp#L122
     */
-    void MiMCe7_permutation_gadget::_setup_sha3_constants()
-    {
-
+    void MiMCe7_permutation_gadget::_setup_sha3_constants() {
         round_constants.reserve(ROUNDS);
         round_constants.push_back(FieldT("64665447154620533900971238701180756726397234095608233354611348919746363562215"));
         round_constants.push_back(FieldT("59041611857113573183052963402443590845688484260041469403863913058904362308427"));

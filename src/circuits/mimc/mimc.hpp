@@ -14,10 +14,10 @@ namespace libzeth  {
   */
 class MiMCe7_permutation_gadget : public GadgetT {
 public:
-    std::vector<MiMCe7_round_gadget> m_rounds;
-    std::vector<FieldT> round_constants;
-    static const int ROUNDS = 91;
-    const VariableT k;
+    std::vector<MiMCe7_round_gadget> m_rounds;  // vector of round gadgets
+    std::vector<FieldT> round_constants;  //vector of round constants
+    static const int ROUNDS = 91; // nb of rounds
+    const VariableT k;  // permutation key
 
     void _setup_gadgets(
         const VariableT in_x,
@@ -33,9 +33,7 @@ public:
         const std::string& annotation_prefix);
 
     const VariableT& result() const;
-
     void generate_r1cs_constraints();
-
     void generate_r1cs_witness() const;
 
 };
