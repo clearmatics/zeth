@@ -96,14 +96,13 @@ libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::
 }
 
 
-//TODO: add reference
+// Variable maker functions: taken from https://github.com/HarryR/ethsnarks/blob/master/src/utils.hpp
 inline const VariableT make_variable( ProtoboardT &in_pb, const std::string &annotation ){
     VariableT x;
     x.allocate(in_pb, annotation);
     return x;
 }
 
-//TODO: add reference
 inline const VariableT make_variable( ProtoboardT &in_pb, const FieldT value, const std::string &annotation )
 {
     VariableT x;
@@ -112,7 +111,6 @@ inline const VariableT make_variable( ProtoboardT &in_pb, const FieldT value, co
     return x;
 }
 
-//TODO: add reference
 const VariableArrayT make_var_array( ProtoboardT &in_pb, size_t n, const std::string &annotation )
 {
     VariableArrayT x;

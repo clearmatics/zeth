@@ -124,7 +124,7 @@ contract MerkleTreeMiMCHash {
                   let b := mulmod(a, a, p)
                   h_c :=  mulmod(mulmod(mulmod(b,b,p),b,p),a,p)
               }
-              //NB: merged last round of the permutation with Myjaguchi-Prenell step
+              //NB: Last round of the permutation has been merged with the Myjaguchi-Prenell step
               h_p := addmod(addmod(addmod(h_c , h_p, p), x_c, p), h_p, p)
           }
         }
