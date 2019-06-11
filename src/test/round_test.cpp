@@ -19,7 +19,6 @@ namespace  {
 
     // Testing that (15212  + 98645 + 216319)**7 = 427778066313557225181231220812180094976
     TEST(TestRound, TestTrueNoAddKToResult) {
-        //default_r1cs_ppzksnark_pp::init_public_params();
         ppT::init_public_params();
         libsnark::protoboard<FieldT> pb;
 
@@ -32,8 +31,6 @@ namespace  {
 
         pb.val(in_x) = FieldT("15212");
         pb.val(in_k) = FieldT("98645");
-
-        pb.set_input_sizes(2);
 
         MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, false, "round_gadget");
         round_gadget.generate_r1cs_witness();
@@ -59,8 +56,6 @@ namespace  {
         pb.val(in_x) = FieldT("15212");
         pb.val(in_k) = FieldT("98645");
 
-        pb.set_input_sizes(2);
-
         MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, true, "round_gadget");
 
         round_gadget.generate_r1cs_witness();
@@ -71,4 +66,51 @@ namespace  {
         ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
     }
 
+    TEST(TestRound, TestFalseNoAddKToResult) {
+        ppT::init_public_params();
+        libsnark::protoboard<FieldT> pb;
+
+        libsnark::pb_variable<FieldT> in_x;
+        libsnark::pb_variable<FieldT> in_k;
+        FieldT in_C = FieldT("216319");
+
+        in_x.allocate(pb, "x");
+        in_k.allocate(pb, "k");
+
+        pb.val(in_x) = FieldT("15212");
+        pb.val(in_k) = FieldT("98645");
+
+        MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, false, "round_gadget");
+        round_gadget.generate_r1cs_witness();
+        round_gadget.generate_r1cs_constraints();
+
+        FieldT expected_out = FieldT("4277780663135572251");
+
+        ASSERT_FALSE(expected_out == pb.val(round_gadget.result()));
+    }
+
+    // Testing that (15212  + 98645 + 216319)**7 + 98645 = 427778066313557225181231220812180193621
+    TEST(TestRound, TestFalseAddKToResult) {
+        ppT::init_public_params();
+        libsnark::protoboard<FieldT> pb;
+
+        libsnark::pb_variable<FieldT> in_x;
+        libsnark::pb_variable<FieldT> in_k;
+        FieldT in_C = FieldT("216319");
+
+        in_x.allocate(pb, "x");
+        in_k.allocate(pb, "k");
+
+        pb.val(in_x) = FieldT("15212");
+        pb.val(in_k) = FieldT("98645");
+
+        MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, true, "round_gadget");
+
+        round_gadget.generate_r1cs_witness();
+        round_gadget.generate_r1cs_constraints();
+
+        FieldT expected_out = FieldT("42777806631355722518123");
+
+        ASSERT_FALSE(expected_out == pb.val(round_gadget.result()));
+    }
 }

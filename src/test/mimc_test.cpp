@@ -20,7 +20,6 @@ typedef libff::Fr<ppT> FieldT;
 namespace  {
 
     TEST(TestRound, TestTrue) {
-        //default_r1cs_ppzksnark_pp::init_public_params();
         ppT::init_public_params();
         libsnark::protoboard<FieldT> pb;
 
@@ -33,8 +32,6 @@ namespace  {
         pb.val(in_x) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
         pb.val(in_k) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
-        pb.set_input_sizes(2);
-
         MiMCe7_permutation_gadget<FieldT> mimc_gadget(pb, in_x, in_k, "mimc_gadget");
 
         mimc_gadget.generate_r1cs_witness();
@@ -46,7 +43,6 @@ namespace  {
     }
 
       TEST(TestRound, TestFalse) {
-        //default_r1cs_ppzksnark_pp::init_public_params();
         ppT::init_public_params();
         libsnark::protoboard<FieldT> pb;
 
@@ -58,8 +54,6 @@ namespace  {
 
         pb.val(in_x) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
         pb.val(in_k) = FieldT("13455131405143248756924738814405142");
-
-        pb.set_input_sizes(2);
 
         MiMCe7_permutation_gadget<FieldT> mimc_gadget(pb, in_x, in_k, "mimc_gadget");
 

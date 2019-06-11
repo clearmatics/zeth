@@ -9,6 +9,7 @@
 #include <libff/common/default_types/ec_pp.hpp>
 
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
+#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
 // Used to instantiate our templates
 #include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
@@ -35,7 +36,7 @@ namespace  {
         out.allocate(pb, "out");
         iv.allocate(pb, "iv");
 
-        pb.set_input_sizes(2);
+        pb.set_input_sizes(1);
 
         pb.val(out) = FieldT("15683951496311901749339509118960676303290224812129752890706581988986633412003");
         pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
@@ -83,7 +84,7 @@ namespace  {
         out.allocate(pb, "out");
         iv.allocate(pb, "iv");
 
-        pb.set_input_sizes(2);
+        pb.set_input_sizes(1);
 
         pb.val(out) = FieldT("1568395149631");
         pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
