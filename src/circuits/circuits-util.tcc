@@ -95,29 +95,6 @@ libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::
     return acc;
 }
 
-
-// Variable maker functions: taken from https://github.com/HarryR/ethsnarks/blob/master/src/utils.hpp
-inline const VariableT make_variable( ProtoboardT &in_pb, const std::string &annotation ){
-    VariableT x;
-    x.allocate(in_pb, annotation);
-    return x;
-}
-
-inline const VariableT make_variable( ProtoboardT &in_pb, const FieldT value, const std::string &annotation )
-{
-    VariableT x;
-    x.allocate(in_pb, annotation);
-    in_pb.val(x) = value;
-    return x;
-}
-
-const VariableArrayT make_var_array( ProtoboardT &in_pb, size_t n, const std::string &annotation )
-{
-    VariableArrayT x;
-    x.allocate(in_pb, n, annotation);
-    return x;
-}
-
 } // libzeth
 
 #endif // __ZETH_CIRCUITS_UTILS_TCC__

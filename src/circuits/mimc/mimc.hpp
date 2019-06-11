@@ -12,33 +12,35 @@ namespace libzeth  {
 /*
   MiMCe7_permutation enforces correct computation of a MiMC permutation with exponent 7
   */
-class MiMCe7_permutation_gadget : public GadgetT {
+template<typename FieldT>
+class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT> {
 public:
-    std::vector<MiMCe7_round_gadget> m_rounds;  // vector of round gadgets
+    std::vector<MiMCe7_round_gadget<FieldT>> m_rounds;  // vector of round gadgets
     std::vector<FieldT> round_constants;  //vector of round constants
     static const int ROUNDS = 91; // nb of rounds
-    const VariableT k;  // permutation key
+    const libsnark::pb_variable<FieldT> k;  // permutation key
 
     void _setup_gadgets(
-        const VariableT in_x,
-        const VariableT in_k);
+        const libsnark::pb_variable<FieldT> in_x,
+        const libsnark::pb_variable<FieldT> in_k);
 
     void _setup_sha3_constants();
 
 public:
     MiMCe7_permutation_gadget(
-        ProtoboardT& pb,
-        const VariableT in_x,
-        const VariableT in_k,
+        libsnark::protoboard<FieldT>& pb,
+        const libsnark::pb_variable<FieldT> in_x,
+        const libsnark::pb_variable<FieldT> in_k,
         const std::string& annotation_prefix);
 
-    const VariableT& result() const;
+    const libsnark::pb_variable<FieldT>& result() const;
     void generate_r1cs_constraints();
     void generate_r1cs_witness() const;
 
 };
 
-using MiMC_gadget = MiMCe7_permutation_gadget;
+template<typename FieldT>
+using MiMC_gadget = MiMCe7_permutation_gadget<FieldT>;
 
 } // libzeth
 

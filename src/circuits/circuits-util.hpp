@@ -17,10 +17,6 @@ void insert_bits256(std::vector<bool>& into, bits256 from);
 void insert_bits64(std::vector<bool>& into, bits64 from);
 std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const size_t wordsize);
 
-const VariableT make_variable( ProtoboardT &in_pb, const std::string &annotation );
-const VariableT make_variable( ProtoboardT &in_pb, const FieldT value, const std::string &annotation );
-const VariableArrayT make_var_array( ProtoboardT &in_pb, size_t n, const std::string &annotation );
-
 } // libzeth
 #include "circuits/circuits-util.tcc"
 

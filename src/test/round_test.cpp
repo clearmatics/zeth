@@ -8,11 +8,12 @@
 
 // Used to instantiate our templates
 #include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
-#include <libff/algebra/curves/public_params.hpp>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 using namespace libsnark;
 using namespace libzeth;
+
+typedef libff::default_ec_pp ppT;
+typedef libff::Fr<ppT> FieldT;
 
 namespace  {
 
@@ -20,36 +21,47 @@ namespace  {
     TEST(TestRound, TestTrueNoAddKToResult) {
         //default_r1cs_ppzksnark_pp::init_public_params();
         ppT::init_public_params();
-        ProtoboardT pb;
+        libsnark::protoboard<FieldT> pb;
 
-        const VariableT in_x = make_variable(pb, FieldT("15212"), "x");
-        const VariableT in_k = make_variable(pb, FieldT("98645"), "k");
-        const FieldT in_C = FieldT("216319");
+        libsnark::pb_variable<FieldT> in_x;
+        libsnark::pb_variable<FieldT> in_k;
+        FieldT in_C = FieldT("216319");
+
+        in_x.allocate(pb, "x");
+        in_k.allocate(pb, "k");
+
+        pb.val(in_x) = FieldT("15212");
+        pb.val(in_k) = FieldT("98645");
 
         pb.set_input_sizes(2);
 
-        MiMCe7_round_gadget round_gadget(pb, in_x, in_k, in_C, false, "round_gadget");
+        MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, false, "round_gadget");
         round_gadget.generate_r1cs_witness();
         round_gadget.generate_r1cs_constraints();
 
         FieldT expected_out = FieldT("427778066313557225181231220812180094976");
 
         ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
-        ASSERT_TRUE(pb.is_satisfied());
     }
 
     // Testing that (15212  + 98645 + 216319)**7 + 98645 = 427778066313557225181231220812180193621
     TEST(TestRound, TestTrueAddKToResult) {
         ppT::init_public_params();
-        ProtoboardT pb;
+        libsnark::protoboard<FieldT> pb;
 
-        const VariableT in_x = make_variable(pb, FieldT("15212"), "x");
-        const VariableT in_k = make_variable(pb, FieldT("98645"), "k");
-        const FieldT in_C = FieldT("216319");
+        libsnark::pb_variable<FieldT> in_x;
+        libsnark::pb_variable<FieldT> in_k;
+        FieldT in_C = FieldT("216319");
+
+        in_x.allocate(pb, "x");
+        in_k.allocate(pb, "k");
+
+        pb.val(in_x) = FieldT("15212");
+        pb.val(in_k) = FieldT("98645");
 
         pb.set_input_sizes(2);
 
-        MiMCe7_round_gadget round_gadget(pb, in_x, in_k, in_C, true, "round_gadget");
+        MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, true, "round_gadget");
 
         round_gadget.generate_r1cs_witness();
         round_gadget.generate_r1cs_constraints();
@@ -57,7 +69,6 @@ namespace  {
         FieldT expected_out = FieldT("427778066313557225181231220812180193621");
 
         ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
-        ASSERT_TRUE(pb.is_satisfied());
     }
 
 }

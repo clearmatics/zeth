@@ -6,10 +6,10 @@
 #define __ZETH_MIMC_PERMUTATION_TCC__
 
 namespace libzeth {
-
-    void MiMCe7_permutation_gadget::_setup_gadgets(
-        const VariableT in_x,
-        const VariableT in_k)
+    template<typename FieldT>
+    void MiMCe7_permutation_gadget<FieldT>::_setup_gadgets(
+        const libsnark::pb_variable<FieldT> in_x,
+        const libsnark::pb_variable<FieldT> in_k)
     {
         _setup_sha3_constants();
 
@@ -19,34 +19,37 @@ namespace libzeth {
 
             bool is_last = (i == (ROUNDS-1));
 
-            m_rounds.emplace_back(this->pb, round_x, in_k, round_constants[i], is_last, FMT(annotation_prefix, ".round[%d]", i));
+            m_rounds.emplace_back(this->pb, round_x, in_k, round_constants[i], is_last, FMT(this->annotation_prefix, ".round[%d]", i));
         }
     }
-
-    MiMCe7_permutation_gadget::MiMCe7_permutation_gadget(
-        ProtoboardT& pb,
-        const VariableT in_x,
-        const VariableT in_k,
+    template<typename FieldT>
+    MiMCe7_permutation_gadget<FieldT>::MiMCe7_permutation_gadget(
+        libsnark::protoboard<FieldT>& pb,
+        const libsnark::pb_variable<FieldT> in_x,
+        const libsnark::pb_variable<FieldT> in_k,
         const std::string& annotation_prefix
     ) :
-        GadgetT(pb, annotation_prefix),
+        libsnark::gadget<FieldT>(pb, annotation_prefix),
         k(in_k)
     {
         _setup_gadgets(in_x, in_k);
     }
 
-    const VariableT& MiMCe7_permutation_gadget::result () const {
+    template<typename FieldT>
+    const libsnark::pb_variable<FieldT>& MiMCe7_permutation_gadget<FieldT>::result () const {
         return m_rounds.back().result();
     }
 
-    void MiMCe7_permutation_gadget::generate_r1cs_constraints() {
+    template<typename FieldT>
+    void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_constraints() {
         for( auto& gadget : m_rounds )
         {
             gadget.generate_r1cs_constraints();
         }
     }
 
-    void MiMCe7_permutation_gadget::generate_r1cs_witness() const {
+    template<typename FieldT>
+    void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_witness() const {
         for( auto& gadget : m_rounds )
         {
             gadget.generate_r1cs_witness();
@@ -57,7 +60,8 @@ namespace libzeth {
     * Following constants correspond to the che iterative computation of sha3 hash function over an initial seed "mimc".
     * See: https://github.com/riemann89/ethsnarks/blob/master/src/utils/mimc_hash_test_cases.cpp#L122
     */
-    void MiMCe7_permutation_gadget::_setup_sha3_constants() {
+    template<typename FieldT>
+    void MiMCe7_permutation_gadget<FieldT>::_setup_sha3_constants() {
         round_constants.reserve(ROUNDS);
         round_constants.push_back(FieldT("64665447154620533900971238701180756726397234095608233354611348919746363562215"));
         round_constants.push_back(FieldT("59041611857113573183052963402443590845688484260041469403863913058904362308427"));

@@ -10,26 +10,27 @@
 
 namespace libzeth {
 
-class MiMC_hash_gadget:public GadgetT {
+template<typename FieldT>
+class MiMC_hash_gadget:public libsnark::gadget<FieldT> {
 /*
   MiMC_hash_gadget enforces correct computation of a MiMCHash based on a MiMC permutation with exponent 7
   */
 public:
-	std::vector<MiMCe7_permutation_gadget> m_ciphers; // vector of permutation gadgets
-	const std::vector<VariableT> m_messages;  //  vector of messages to process
-	const VariableArrayT m_outputs; // vector of round outputs variables
-	const VariableT m_IV; // initial vector variable
-  const VariableT out;
+	std::vector<MiMCe7_permutation_gadget<FieldT>> m_ciphers; // vector of permutation gadgets
+	std::vector<libsnark::pb_variable<FieldT>> m_messages;  //  vector of messages to process
+	libsnark::pb_variable_array<FieldT> m_outputs; // vector of round outputs variables
+	const libsnark::pb_variable<FieldT> m_IV; // initial vector variable
+  const libsnark::pb_variable<FieldT> out;
 
 	MiMC_hash_gadget(
-		ProtoboardT &in_pb,
-		const VariableT in_IV,
-		const std::vector<VariableT>& in_messages,
-    const VariableT out,
+		libsnark::protoboard<FieldT> &in_pb,
+		const libsnark::pb_variable<FieldT> in_IV,
+		const std::vector<libsnark::pb_variable<FieldT>>& in_messages,
+    const libsnark::pb_variable<FieldT> out,
 		const std::string &in_annotation_prefix
 	);
 
-	const VariableT& result() const;
+	const libsnark::pb_variable<FieldT>& result() const;
 	void generate_r1cs_constraints ();
 	void generate_r1cs_witness () const;
 };

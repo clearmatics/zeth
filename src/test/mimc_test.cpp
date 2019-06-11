@@ -14,26 +14,60 @@
 using namespace libsnark;
 using namespace libzeth;
 
+typedef libff::default_ec_pp ppT;
+typedef libff::Fr<ppT> FieldT;
+
 namespace  {
 
-    // Testing that (15212  + 98645 + 216319)**7 = 427778066313557225181231220812180094976
     TEST(TestRound, TestTrue) {
         //default_r1cs_ppzksnark_pp::init_public_params();
         ppT::init_public_params();
-        ProtoboardT pb;
+        libsnark::protoboard<FieldT> pb;
 
-        const VariableT in_x = make_variable(pb, FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651"), "x");
-        const VariableT in_k = make_variable(pb, FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557"), "k");
+        libsnark::pb_variable<FieldT> in_x;
+        libsnark::pb_variable<FieldT> in_k;
+
+        in_x.allocate(pb, "x");
+        in_k.allocate(pb, "k");
+
+        pb.val(in_x) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
+        pb.val(in_k) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
         pb.set_input_sizes(2);
 
-        MiMCe7_permutation_gadget mimc_gadget(pb, in_x, in_k, "mimc_gadget");
+        MiMCe7_permutation_gadget<FieldT> mimc_gadget(pb, in_x, in_k, "mimc_gadget");
+
         mimc_gadget.generate_r1cs_witness();
         mimc_gadget.generate_r1cs_constraints();
 
         FieldT expected_out = FieldT("11437467823393790387399137249441941313717686441929791910070352316474327319704");
 
         ASSERT_TRUE(expected_out == pb.val(mimc_gadget.result()));
-        ASSERT_TRUE(pb.is_satisfied());
+    }
+
+      TEST(TestRound, TestFalse) {
+        //default_r1cs_ppzksnark_pp::init_public_params();
+        ppT::init_public_params();
+        libsnark::protoboard<FieldT> pb;
+
+        libsnark::pb_variable<FieldT> in_x;
+        libsnark::pb_variable<FieldT> in_k;
+
+        in_x.allocate(pb, "x");
+        in_k.allocate(pb, "k");
+
+        pb.val(in_x) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
+        pb.val(in_k) = FieldT("13455131405143248756924738814405142");
+
+        pb.set_input_sizes(2);
+
+        MiMCe7_permutation_gadget<FieldT> mimc_gadget(pb, in_x, in_k, "mimc_gadget");
+
+        mimc_gadget.generate_r1cs_witness();
+        mimc_gadget.generate_r1cs_constraints();
+
+        FieldT expected_out = FieldT("11437467823393790387399137249441941313717686441929791910070352316474327319704");
+
+        ASSERT_FALSE(expected_out == pb.val(mimc_gadget.result()));
     }
 }
