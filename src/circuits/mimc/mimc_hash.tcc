@@ -13,15 +13,15 @@ MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
     const libsnark::pb_variable<FieldT> iv,
     const std::vector<libsnark::pb_variable<FieldT>>& messages,
     const libsnark::pb_variable<FieldT> out,
-    const std::string &in_annotation_prefix
+    const std::string &annotation_prefix
   ) :
-    libsnark::gadget<FieldT>(pb, in_annotation_prefix),
+    libsnark::gadget<FieldT>(pb, annotation_prefix),
     messages(messages),
     iv(iv),
     out(out)
   {
     // allocate output variables array
-    outputs.allocate(pb, messages.size(), FMT(in_annotation_prefix, ".outputs"));
+    outputs.allocate(pb, messages.size(), FMT(annotation_prefix, ".outputs"));
 
     for( size_t i = 0; i < messages.size(); i++ ) {
         const libsnark::pb_variable<FieldT>& m = messages[i];
@@ -30,7 +30,7 @@ MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
         const libsnark::pb_variable<FieldT>& round_key = (i == 0 ? iv : outputs[i-1]);
 
         // allocate a permutation gadget for each message
-        permutation_gadgets.emplace_back( pb, m, round_key, FMT(in_annotation_prefix, ".cipher[%d]", i) );
+        permutation_gadgets.emplace_back( pb, m, round_key, FMT(annotation_prefix, ".cipher[%d]", i) );
     }
   }
 

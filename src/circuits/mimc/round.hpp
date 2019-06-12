@@ -34,7 +34,7 @@ public:
         const libsnark::pb_variable<FieldT> k,
         const FieldT& c,
         const bool add_k_to_result,
-        const std::string &annotation_prefix
+        const std::string &annotation_prefix = "MiMCe7_round_gadget"
     );
 
     const libsnark::pb_variable<FieldT>& result() const;  // return output variable

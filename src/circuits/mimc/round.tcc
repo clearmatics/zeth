@@ -20,10 +20,10 @@ MiMCe7_round_gadget<FieldT>::MiMCe7_round_gadget(
         x(x), k(k), c(c),
         add_k_to_result(add_k_to_result)
     {
-      t2.allocate(pb, FMT(annotation_prefix, ".a"));
-      t4.allocate(pb, FMT(annotation_prefix, ".b"));
-      t6.allocate(pb, FMT(annotation_prefix, ".c"));
-      t7.allocate(pb, FMT(annotation_prefix, ".d"));
+      t2.allocate(pb, FMT(annotation_prefix, ".t2"));
+      t4.allocate(pb, FMT(annotation_prefix, ".t4"));
+      t6.allocate(pb, FMT(annotation_prefix, ".t6"));
+      t7.allocate(pb, FMT(annotation_prefix, ".out"));
      }
 
 template<typename FieldT>
@@ -34,17 +34,18 @@ const libsnark::pb_variable<FieldT>& MiMCe7_round_gadget<FieldT>:: result() cons
 template<typename FieldT>
 void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints() {
         libsnark::linear_combination<FieldT> t = x + k + c; // define `t` as the variable to exponentiate
+        const std::string annotation_constraint = this->annotation_prefix + std::string(".r1cs_constraint");
 
-        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t, t2), ".a = t*t"); // Add constraint `a = t^2`
-        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t2, t4), ".b = a*a"); // Add constraint `b = a^2 = t^4`
-        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t4, t6), ".c = a*b"); // Add constraint `c = a*b = t^6`
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t, t2), FMT(annotation_constraint, ".t2")); // Add constraint `a = t^2`
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t2, t4), FMT(annotation_constraint, ".t4")); // Add constraint `b = a^2 = t^4`
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t4, t6), FMT(annotation_constraint, ".t6")); // Add constraint `c = a*b = t^6`
 
         if( add_k_to_result )
         {
-            this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t6, t7 - k), ".out = (c*t) + k"); // Add constraint d = t*c + k = t^7 + k (key included)
+            this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t6, t7 - k), FMT(annotation_constraint,".out + k")); // Add constraint d = t*c + k = t^7 + k (key included)
         }
         else {
-            this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t6, t7), ".out = c*t"); // Add constraint d = t*c = t^7
+            this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t6, t7), FMT(annotation_constraint,".out")); // Add constraint d = t*c = t^7
         }
     }
 

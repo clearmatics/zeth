@@ -34,7 +34,7 @@ public:
         libsnark::protoboard<FieldT>& pb,
         const libsnark::pb_variable<FieldT> x,
         const libsnark::pb_variable<FieldT> k,
-        const std::string& annotation_prefix);
+        const std::string& annotation_prefix = "MiMCe7_permutation_gadget");
 
     const libsnark::pb_variable<FieldT>& result() const;
     void generate_r1cs_constraints();

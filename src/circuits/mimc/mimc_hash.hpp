@@ -27,7 +27,7 @@ public:
 		const libsnark::pb_variable<FieldT> iv,
 		const std::vector<libsnark::pb_variable<FieldT>>& messages,
     const libsnark::pb_variable<FieldT> out,
-    const std::string &in_annotation_prefix
+    const std::string &annotation_prefix = "MiMC_hash_gadget"
 	);
 
 	const libsnark::pb_variable<FieldT>& result() const;
