@@ -42,10 +42,10 @@ def compile_util_contracts():
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
     path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
     path_to_mimc7 = os.path.join(contracts_dir, "MiMC7.sol")
-    path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMCHash.sol")
+    path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMC7.sol")
     compiled_sol = compile_files([path_to_pairing, path_to_bytes, path_to_mimc7, path_to_tree])
     mimc_interface = compiled_sol[path_to_mimc7 + ':' + "MiMC7"]
-    tree_interface = compiled_sol[path_to_tree + ':' + "MerkleTreeMiMCHash"]
+    tree_interface = compiled_sol[path_to_tree + ':' + "MerkleTreeMiMC7"]
     return mimc_interface, tree_interface
 
 # Deploy the verifier used with PGHR13
@@ -154,12 +154,12 @@ def deploy_mimc_contract(interface):
       address=address,
       abi=interface['abi']
   )
-  return instance
+  return instance, address
 
 # Deploy tree contract
-def deploy_tree_contract(interface, depth):
+def deploy_tree_contract(interface, depth, hasher_address):
   contract = w3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
-  tx_hash = contract.constructor(depth).transact({'from':w3.eth.accounts[1]})
+  tx_hash = contract.constructor(hasher_address, depth).transact({'from':w3.eth.accounts[1]})
   # Get tx receipt to get Mixer contract address
   tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
   address = tx_receipt['contractAddress']
@@ -273,7 +273,7 @@ def parse_mix_call(mixer_instance, tx_receipt):
 
 # Call the hash method of MiMC contract
 def mimcHash(instance, m, iv):
-    return instance.functions.MiMCHash(m, iv).call()
+    return instance.functions.hash(m, iv).call()
 
 # Return MimC merklee tree
 def getTree(instance):
