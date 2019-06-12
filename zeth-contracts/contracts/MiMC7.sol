@@ -49,16 +49,16 @@ contract MiMC7 {
           outPermutation :=  mulmod(mulmod(mulmod(b, b, r), b, r), a, r)
         }
 
-        // Merged last round of the permutation with Myjaguchi-Prenell step
         // Compute H_i from H_{i-1} to generate the round key for the next entry in the input slice x
         // In MiMC the output of the last round is mixed with the round key: This corresponds to the `outMiMCCipher = addmod(outPermutation, previousH, r)`
         // And, the Myjaguchi-Prenell OWCF is ran: `addmod(addmod(outMiMCCipher, message, r), previousH, r)`
+        // Note that we have merged the key addition ( +previousH ) of the last round of MiMC with the Myjaguchi-Prenell step
         previousH := addmod(addmod(addmod(outPermutation, previousH, r), message, r), previousH, r)
       }
     }
 
     // When we exit the `for` loop, the value of the previousH is the last H_i produced
     // by the hash function. Thus, this is the final hash that we return
-    return previousH
+    return previousH;
   }
 }
