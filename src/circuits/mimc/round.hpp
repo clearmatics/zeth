@@ -18,19 +18,21 @@ class MiMCe7_round_gadget : public libsnark::gadget<FieldT> {
 public:
     const libsnark::pb_variable<FieldT> x;  // round message
     const libsnark::pb_variable<FieldT> k;  // round key
-    const FieldT C; // round constant
+    const FieldT constant; // round constant
     const bool add_k_to_result; // variable to add the key after the round
-    libsnark::pb_variable<FieldT> a;  // constraint t^2 variable
-    libsnark::pb_variable<FieldT> b;  // constraint t^4 variable
-    libsnark::pb_variable<FieldT> c;  // constraint t^6 variable
-    libsnark::pb_variable<FieldT> d;  // constraint t^7 variable
+
+    // Intermediary variables
+    libsnark::pb_variable<FieldT> a;
+    libsnark::pb_variable<FieldT> b;
+    libsnark::pb_variable<FieldT> c;
+    libsnark::pb_variable<FieldT> d;
 
 public:
     MiMCe7_round_gadget(
         libsnark::protoboard<FieldT>& pb,
         const libsnark::pb_variable<FieldT> in_x,
         const libsnark::pb_variable<FieldT> in_k,
-        const FieldT& in_C,
+        const FieldT& in_constant,
         const bool in_add_k_to_result,
         const std::string &annotation_prefix
     );
@@ -40,7 +42,7 @@ public:
     void generate_r1cs_witness() const;
 };
 
-}
+}   // libzeth
 
 #include "round.tcc"
 

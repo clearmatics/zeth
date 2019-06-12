@@ -27,7 +27,7 @@ public:
 		const libsnark::pb_variable<FieldT> in_iv,
 		const std::vector<libsnark::pb_variable<FieldT>>& in_messages,
     const libsnark::pb_variable<FieldT> in_out,
-		const std::string &in_annotation_prefix
+    const std::string &in_annotation_prefix
 	);
 
 	const libsnark::pb_variable<FieldT>& result() const;

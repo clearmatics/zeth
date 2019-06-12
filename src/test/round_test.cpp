@@ -85,7 +85,7 @@ namespace  {
         ASSERT_FALSE(expected_out == pb.val(round_gadget.result()));
     }
 
-    // Testing that (15212  + 98645 + 216319)**7 + 98645 = 427778066313557225181231220812180193621
+
     TEST(TestRound, TestFalseAddKToResult) {
         ppT::init_public_params();
         libsnark::protoboard<FieldT> pb;

@@ -12,12 +12,12 @@ MiMCe7_round_gadget<FieldT>::MiMCe7_round_gadget(
         libsnark::protoboard<FieldT>& pb,
         const libsnark::pb_variable<FieldT> in_x,
         const libsnark::pb_variable<FieldT> in_k,
-        const FieldT& in_C,
+        const FieldT& in_constant,
         const bool in_add_k_to_result,
         const std::string &annotation_prefix
     ) :
         libsnark::gadget<FieldT>(pb, annotation_prefix),
-        x(in_x), k(in_k), C(in_C),
+        x(in_x), k(in_k), constant(in_constant),
         add_k_to_result(in_add_k_to_result)
     {
       a.allocate(pb, FMT(annotation_prefix, ".a"));
@@ -33,7 +33,7 @@ const libsnark::pb_variable<FieldT>& MiMCe7_round_gadget<FieldT>:: result() cons
 
 template<typename FieldT>
 void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints() {
-        libsnark::linear_combination<FieldT> t = x + k + C; // define `t` as the variable to exponentiate
+        libsnark::linear_combination<FieldT> t = x + k + constant; // define `t` as the variable to exponentiate
 
         this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t, a), ".a = t*t"); // Add constraint `a = t^2`
         this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(a, a, b), ".b = a*a"); // Add constraint `b = a^2 = t^4`
@@ -52,7 +52,7 @@ template<typename FieldT>
 void  MiMCe7_round_gadget<FieldT>::generate_r1cs_witness() const {
         // fill key and t value
         const FieldT val_k = this->pb.val(k);
-        const FieldT t = this->pb.val(x) + val_k + C;
+        const FieldT t = this->pb.val(x) + val_k + constant;
 
         //fill intermediary values
         const FieldT val_a = t * t;

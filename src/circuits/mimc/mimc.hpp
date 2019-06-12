@@ -22,12 +22,12 @@ public:
 
     // utility functions
     // MiMC round gadgets initialization
-    void _setup_gadgets(
+    void setup_gadgets(
         const libsnark::pb_variable<FieldT> in_x,
         const libsnark::pb_variable<FieldT> in_k);
 
     //Constants vector initialization
-    void _setup_sha3_constants();
+    void setup_sha3_constants();
 
 public:
     MiMCe7_permutation_gadget(
