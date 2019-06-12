@@ -1,13 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "snarks_alias.hpp"
-#include "circuits/circuits-util.hpp"
-#include "circuits/mimc/round.hpp"
-
 #include <libff/common/default_types/ec_pp.hpp>
 
-// Used to instantiate our templates
-#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
+#include "snarks_alias.hpp"
+#include "circuits/mimc/round.hpp"
 
 using namespace libsnark;
 using namespace libzeth;

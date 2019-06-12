@@ -1,20 +1,14 @@
 #include "gtest/gtest.h"
 
-#include "snarks_alias.hpp"
-#include "circuits/circuits-util.hpp"
-#include "circuits/mimc/mimc_hash.hpp"
-#include "circuit-wrapper.hpp"
-
-
 #include <libff/common/default_types/ec_pp.hpp>
 
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
-// Used to instantiate our templates
-#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
-#include <libff/algebra/curves/public_params.hpp>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include "snarks_alias.hpp"
+#include "circuits/circuits-util.hpp"
+#include "circuits/mimc/mimc_hash.hpp"
+#include "circuit-wrapper.hpp"
 
 using namespace libsnark;
 using namespace libzeth;

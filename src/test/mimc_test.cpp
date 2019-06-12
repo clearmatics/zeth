@@ -1,15 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "snarks_alias.hpp"
-#include "circuits/circuits-util.hpp"
-#include "circuits/mimc/mimc.hpp"
-
 #include <libff/common/default_types/ec_pp.hpp>
 
-// Used to instantiate our templates
-#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
-#include <libff/algebra/curves/public_params.hpp>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include "snarks_alias.hpp"
+#include "circuits/mimc/mimc.hpp"
 
 using namespace libsnark;
 using namespace libzeth;
