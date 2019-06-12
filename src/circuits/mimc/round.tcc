@@ -10,15 +10,15 @@ namespace libzeth {
 template<typename FieldT>
 MiMCe7_round_gadget<FieldT>::MiMCe7_round_gadget(
         libsnark::protoboard<FieldT>& pb,
-        const libsnark::pb_variable<FieldT> in_x,
-        const libsnark::pb_variable<FieldT> in_k,
-        const FieldT& in_constant,
-        const bool in_add_k_to_result,
+        const libsnark::pb_variable<FieldT> x,
+        const libsnark::pb_variable<FieldT> k,
+        const FieldT& c,
+        const bool add_k_to_result,
         const std::string &annotation_prefix
     ) :
         libsnark::gadget<FieldT>(pb, annotation_prefix),
-        x(in_x), k(in_k), c(in_constant),
-        add_k_to_result(in_add_k_to_result)
+        x(x), k(k), c(c),
+        add_k_to_result(add_k_to_result)
     {
       t2.allocate(pb, FMT(annotation_prefix, ".a"));
       t4.allocate(pb, FMT(annotation_prefix, ".b"));
@@ -55,16 +55,16 @@ void  MiMCe7_round_gadget<FieldT>::generate_r1cs_witness() const {
         const FieldT t = this->pb.val(x) + val_k + c;
 
         //fill intermediary values
-        const FieldT val_a = t * t;
-        this->pb.val(t2) = val_a;
+        const FieldT val_t2 = t * t;
+        this->pb.val(t2) = val_t2;
 
-        const FieldT val_b = val_a * val_a;
-        this->pb.val(t4) = val_b;
+        const FieldT val_t4 = val_t2 * val_t2;
+        this->pb.val(t4) = val_t4;
 
-        const FieldT val_c = val_a * val_b;
-        this->pb.val(t6) = val_c;
+        const FieldT val_t6 = val_t2 * val_t4;
+        this->pb.val(t6) = val_t6;
 
-        const FieldT result = (val_c * t) + (add_k_to_result ? val_k : FieldT::zero());
+        const FieldT result = (val_t6 * t) + (add_k_to_result ? val_k : FieldT::zero());
         this->pb.val(t7) = result;
     }
 }

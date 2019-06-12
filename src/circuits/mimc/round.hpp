@@ -30,10 +30,10 @@ public:
 public:
     MiMCe7_round_gadget(
         libsnark::protoboard<FieldT>& pb,
-        const libsnark::pb_variable<FieldT> in_x,
-        const libsnark::pb_variable<FieldT> in_k,
-        const FieldT& in_constant,
-        const bool in_add_k_to_result,
+        const libsnark::pb_variable<FieldT> x,
+        const libsnark::pb_variable<FieldT> k,
+        const FieldT& c,
+        const bool add_k_to_result,
         const std::string &annotation_prefix
     );
 

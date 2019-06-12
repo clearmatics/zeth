@@ -9,34 +9,34 @@ namespace libzeth {
 
 template<typename FieldT>
 MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
-    libsnark::protoboard<FieldT> &in_pb,
-    const libsnark::pb_variable<FieldT> in_iv,
-    const std::vector<libsnark::pb_variable<FieldT>>& in_messages,
-    const libsnark::pb_variable<FieldT> in_out,
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_variable<FieldT> iv,
+    const std::vector<libsnark::pb_variable<FieldT>>& messages,
+    const libsnark::pb_variable<FieldT> out,
     const std::string &in_annotation_prefix
   ) :
-    libsnark::gadget<FieldT>(in_pb, in_annotation_prefix),
-    messages(in_messages),
-    iv(in_iv),
-    out(in_out)
+    libsnark::gadget<FieldT>(pb, in_annotation_prefix),
+    messages(messages),
+    iv(iv),
+    out(out)
   {
     // allocate output variables array
-    outputs.allocate(in_pb, in_messages.size(), FMT(in_annotation_prefix, ".outputs"));
+    outputs.allocate(pb, messages.size(), FMT(in_annotation_prefix, ".outputs"));
 
-    for( size_t i = 0; i < in_messages.size(); i++ ) {
-        const libsnark::pb_variable<FieldT>& m = in_messages[i];
+    for( size_t i = 0; i < messages.size(); i++ ) {
+        const libsnark::pb_variable<FieldT>& m = messages[i];
 
         // round key variable is set to be the output variable of the previous permutation gadget, except for round 0 where is used the initial vector
-        const libsnark::pb_variable<FieldT>& round_key = (i == 0 ? in_iv : outputs[i-1]);
+        const libsnark::pb_variable<FieldT>& round_key = (i == 0 ? iv : outputs[i-1]);
 
         // allocate a permutation gadget for each message
-        permutation_gadgets.emplace_back( in_pb, m, round_key, FMT(in_annotation_prefix, ".cipher[%d]", i) );
+        permutation_gadgets.emplace_back( pb, m, round_key, FMT(in_annotation_prefix, ".cipher[%d]", i) );
     }
   }
 
 template<typename FieldT>
 const libsnark::pb_variable<FieldT>& MiMC_hash_gadget<FieldT>::result() const {
-    return out; //TODO: review it if return out or outputs[in_messages.size()-1] and in case modify the tests
+    return out; //TODO: review it if return out or outputs[messages.size()-1] and in case modify the tests
   }
 
 template<typename FieldT>
@@ -62,7 +62,7 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_constraints (){
     const libsnark::pb_variable<FieldT>& round_key = outputs[permutation_gadgets.size()-2];
 
 
-    // Adding constraint for the Miyaguchi-Preneel equation to be equal to `in_out/out`
+    // Adding constraint for the Miyaguchi-Preneel equation to be equal to `out`
     this->pb.add_r1cs_constraint(
         libsnark::r1cs_constraint<FieldT>(
           round_key + permutation_gadgets[permutation_gadgets.size()-1].result() + messages[permutation_gadgets.size()-1],

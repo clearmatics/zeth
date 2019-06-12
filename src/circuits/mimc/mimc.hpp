@@ -23,8 +23,8 @@ public:
     // utility functions
     // MiMC round gadgets initialization
     void setup_gadgets(
-        const libsnark::pb_variable<FieldT> in_x,
-        const libsnark::pb_variable<FieldT> in_k);
+        const libsnark::pb_variable<FieldT> x,
+        const libsnark::pb_variable<FieldT> k);
 
     //Constants vector initialization
     void setup_sha3_constants();
@@ -32,8 +32,8 @@ public:
 public:
     MiMCe7_permutation_gadget(
         libsnark::protoboard<FieldT>& pb,
-        const libsnark::pb_variable<FieldT> in_x,
-        const libsnark::pb_variable<FieldT> in_k,
+        const libsnark::pb_variable<FieldT> x,
+        const libsnark::pb_variable<FieldT> k,
         const std::string& annotation_prefix);
 
     const libsnark::pb_variable<FieldT>& result() const;

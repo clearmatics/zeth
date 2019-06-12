@@ -23,10 +23,10 @@ public:
   const libsnark::pb_variable<FieldT> out; // expected output variable
 
 	MiMC_hash_gadget(
-		libsnark::protoboard<FieldT> &in_pb,
-		const libsnark::pb_variable<FieldT> in_iv,
-		const std::vector<libsnark::pb_variable<FieldT>>& in_messages,
-    const libsnark::pb_variable<FieldT> in_out,
+		libsnark::protoboard<FieldT> &pb,
+		const libsnark::pb_variable<FieldT> iv,
+		const std::vector<libsnark::pb_variable<FieldT>>& messages,
+    const libsnark::pb_variable<FieldT> out,
     const std::string &in_annotation_prefix
 	);
 

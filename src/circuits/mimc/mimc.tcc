@@ -8,34 +8,34 @@
 namespace libzeth {
 template<typename FieldT>
 void MiMCe7_permutation_gadget<FieldT>::setup_gadgets(
-    const libsnark::pb_variable<FieldT> in_x,
-    const libsnark::pb_variable<FieldT> in_k)
+    const libsnark::pb_variable<FieldT> x,
+    const libsnark::pb_variable<FieldT> k)
 {
     for( size_t i = 0; i < ROUNDS; i++ )
     {
         // setting the input of the next round with the output variable of the previous round (except for round 0)
-        const auto& round_x = (i == 0 ? in_x : round_gadgets.back().result() );
+        const auto& round_x = (i == 0 ? x : round_gadgets.back().result() );
 
         bool is_last = (i == (ROUNDS-1));
 
         // initializing and the adding the current round gadget into the rounds gadget vector, picking the relative constant
-        round_gadgets.emplace_back(this->pb, round_x, in_k, round_constants[i], is_last, FMT(this->annotation_prefix, ".round[%d]", i));
+        round_gadgets.emplace_back(this->pb, round_x, k, round_constants[i], is_last, FMT(this->annotation_prefix, ".round[%d]", i));
     }
 }
 template<typename FieldT>
 MiMCe7_permutation_gadget<FieldT>::MiMCe7_permutation_gadget(
     libsnark::protoboard<FieldT>& pb,
-    const libsnark::pb_variable<FieldT> in_x,
-    const libsnark::pb_variable<FieldT> in_k,
+    const libsnark::pb_variable<FieldT> x,
+    const libsnark::pb_variable<FieldT> k,
     const std::string& annotation_prefix
 ) :
     libsnark::gadget<FieldT>(pb, annotation_prefix),
-    k(in_k)
+    k(k)
 {
     //initializing the constants vector
     setup_sha3_constants();
     //initializing the round gadgets vector
-    setup_gadgets(in_x, in_k);
+    setup_gadgets(x, k);
 }
 
 template<typename FieldT>
