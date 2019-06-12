@@ -20,11 +20,12 @@ MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
 		iv(in_iv),
     out(in_out)
 	{
-    // allocate outputs variable vector
+    // allocate output variables array
     outputs.allocate(in_pb, in_messages.size(), FMT(in_annotation_prefix, ".outputs"));
 
 		for( size_t i = 0; i < in_messages.size(); i++ ) {
 			const libsnark::pb_variable<FieldT>& m = in_messages[i];
+
       // round key variable is set to be the output variable of the previous permutation gadget, except for round 0 where is used the initial vector
 			const libsnark::pb_variable<FieldT>& round_key = (i == 0 ? in_iv : outputs[i-1]);
 
@@ -36,20 +37,19 @@ MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
 
 template<typename FieldT>
 const libsnark::pb_variable<FieldT>& MiMC_hash_gadget<FieldT>::result() const {
-    return out;
+    return out; //TODO: review it if return out or outputs[in_messages.size()-1] and in case modify the tests
 	}
 
 template<typename FieldT>
 void MiMC_hash_gadget<FieldT>::generate_r1cs_constraints (){
-    //In the generation of the constraints we have to manage last permutation gadget differently to enforce that the Preneel-Miyaguchi equation `k + E_k(m_i) + m_i`to be equal to the given output `in_out/out`.
 
-    // Setting constraints for all permutation gadgets excepts the last one
-		for( size_t i = 0; i < permutation_gadgets.size() - 1; i++ )
-		{
+    // Setting constraints for all permutation gadgets (except the last one)
+		for( size_t i = 0; i < permutation_gadgets.size() - 1; i++ ) {
+
 			permutation_gadgets[i].generate_r1cs_constraints();
 			const libsnark::pb_variable<FieldT>& round_key = (i == 0 ? iv : outputs[i-1]);
 
-      // Adding constraint for the Preneel-Miyaguchi equation
+      // Adding constraint for the Miyaguchi-Preneel equation
 			this->pb.add_r1cs_constraint(
 				libsnark::r1cs_constraint<FieldT>(
 					round_key + permutation_gadgets[i].result() + messages[i],
@@ -63,7 +63,7 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_constraints (){
 		const libsnark::pb_variable<FieldT>& round_key = outputs[permutation_gadgets.size()-2];
 
 
-    // Adding constraint for the Preneel-Miyaguchi equation to be equal to `in_out/out`
+    // Adding constraint for the Miyaguchi-Preneel equation to be equal to `in_out/out`
 		this->pb.add_r1cs_constraint(
 			libsnark::r1cs_constraint<FieldT>(
 				round_key + permutation_gadgets[permutation_gadgets.size()-1].result() + messages[permutation_gadgets.size()-1],
@@ -82,10 +82,11 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
 
 			const FieldT round_key = i == 0 ? this->pb.val(iv) : this->pb.val(outputs[i-1]);
 
+      // Filling output variables for Miyaguchi-Preenel equation
 			this->pb.val( outputs[i] ) = round_key + this->pb.val(permutation_gadgets[i].result()) + this->pb.val(messages[i]);
 		}
 
-      // Generating witness for last one permutation gadget, Preneel-Miyaguchi out result is filled yet
+      // Generating witness for last one permutation gadget, Miyaguchi-Preneel out variable is filled yet
       permutation_gadgets[permutation_gadgets.size()-1].generate_r1cs_witness();
 	}
 }  // libzeth

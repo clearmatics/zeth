@@ -11,7 +11,7 @@
 namespace libzeth {
  /*
   * MiMCe7_round_gadget enforces correct computation of a MiMC permutation round with exponent 7.
-  * In MiMC permutation last round differs from the other since the key is added again, so we will use the boolean variable add_k_to_result to manage this case.
+  * In MiMC permutation last round differs from the others since the key is added again. We use a boolean variable `add_k_to_result` to manage this case.
   */
 template<typename FieldT>
 class MiMCe7_round_gadget : public libsnark::gadget<FieldT> {
@@ -19,7 +19,7 @@ public:
     const libsnark::pb_variable<FieldT> x;  // round message
     const libsnark::pb_variable<FieldT> k;  // round key
     const FieldT C; // round constant
-    const bool add_k_to_result; // variable to add the key after the round: this depend on the fact that in MiMC permutation the key is added at the end of the last round
+    const bool add_k_to_result; // variable to add the key after the round
     libsnark::pb_variable<FieldT> a;  // constraint t^2 variable
     libsnark::pb_variable<FieldT> b;  // constraint t^4 variable
     libsnark::pb_variable<FieldT> c;  // constraint t^6 variable

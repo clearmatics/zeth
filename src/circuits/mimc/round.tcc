@@ -33,37 +33,38 @@ const libsnark::pb_variable<FieldT>& MiMCe7_round_gadget<FieldT>:: result() cons
 
 template<typename FieldT>
 void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints() {
-        libsnark::linear_combination<FieldT> t = x + k + C; // define t as the value to exponentiate
+        libsnark::linear_combination<FieldT> t = x + k + C; // define `t` as the variable to exponentiate
 
-        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t, a), ".a = t*t"); // Add constrain a = t^2
-        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(a, a, b), ".b = a*a"); // Add constrain b = a^2 = t^4
-        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(a, b, c), ".c = a*b"); // Add constrain c = a*b = t^6
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t, a), ".a = t*t"); // Add constraint `a = t^2`
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(a, a, b), ".b = a*a"); // Add constraint `b = a^2 = t^4`
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(a, b, c), ".c = a*b"); // Add constraint `c = a*b = t^6`
 
         if( add_k_to_result )
         {
-            this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, c, d - k), ".out = (c*t) + k"); // Add constrain d = t*c + k = t^7 + k (key included)
+            this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, c, d - k), ".out = (c*t) + k"); // Add constraint d = t*c + k = t^7 + k (key included)
         }
         else {
-            this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, c, d), ".out = c*t"); // Add constrain d = t*c = t^7
+            this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, c, d), ".out = c*t"); // Add constraint d = t*c = t^7
         }
     }
 
 template<typename FieldT>
 void  MiMCe7_round_gadget<FieldT>::generate_r1cs_witness() const {
-        const FieldT val_k = this->pb.val(k); // fill key value
-        const FieldT t = this->pb.val(x) + val_k + C; // fill t value
+        // fill key and t value
+        const FieldT val_k = this->pb.val(k);
+        const FieldT t = this->pb.val(x) + val_k + C;
 
-        //intermediary values
+        //fill intermediary values
         const FieldT val_a = t * t;
-        this->pb.val(a) = val_a; //fill t^2
+        this->pb.val(a) = val_a;
 
         const FieldT val_b = val_a * val_a;
-        this->pb.val(b) = val_b;  //fill t^4
+        this->pb.val(b) = val_b;
 
         const FieldT val_c = val_a * val_b;
-        this->pb.val(c) = val_c;  //fill t^6
+        this->pb.val(c) = val_c;
 
-        const FieldT result = (val_c * t) + (add_k_to_result ? val_k : FieldT::zero()); //fill t^7 or t^7 + k
+        const FieldT result = (val_c * t) + (add_k_to_result ? val_k : FieldT::zero());
         this->pb.val(d) = result;
     }
 }

@@ -13,12 +13,12 @@ namespace libzeth {
     {
         for( size_t i = 0; i < ROUNDS; i++ )
         {
-            // setting the input of the next round with the output of the previous round (except for round 0)
+            // setting the input of the next round with the output variable of the previous round (except for round 0)
             const auto& round_x = (i == 0 ? in_x : round_gadgets.back().result() );
 
             bool is_last = (i == (ROUNDS-1));
 
-            // initializing and the adding the current round gadget into the rounds vector
+            // initializing and the adding the current round gadget into the rounds gadget vector, picking the relative constant
             round_gadgets.emplace_back(this->pb, round_x, in_k, round_constants[i], is_last, FMT(this->annotation_prefix, ".round[%d]", i));
         }
     }
@@ -63,7 +63,7 @@ namespace libzeth {
     }
 
     /**
-    * Following constants correspond to the che iterative computation of sha3 hash function over an initial seed "mimc".
+    * Following constants correspond to an iterative computation of sha3 hash function over an initial seed "mimc", i.e. `round_constants[0] = sha3(sha3("mimc"))`.
     * See: https://github.com/riemann89/ethsnarks/blob/master/src/utils/mimc_hash_test_cases.cpp#L122
     */
     template<typename FieldT>
