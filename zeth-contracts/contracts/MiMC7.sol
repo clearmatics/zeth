@@ -15,7 +15,7 @@ pragma solidity ^0.5.0;
 **/
 
 contract MiMC7 {
-  function MiMCHash(bytes32[] memory x, bytes32 iv) public pure returns (bytes32) {
+  function hash(bytes32[] memory x, bytes32 iv) public pure returns (bytes32) {
     uint r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     bytes32 seed = keccak256("mimc");
     bytes32 message; // Input message processed
