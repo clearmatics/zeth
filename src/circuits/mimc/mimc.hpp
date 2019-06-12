@@ -9,21 +9,23 @@
 #include "round.hpp"
 
 namespace libzeth  {
-/*
-  MiMCe7_permutation enforces correct computation of a MiMC permutation with exponent 7
+ /*
+  * MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation with exponent 7
   */
 template<typename FieldT>
 class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT> {
 public:
-    std::vector<MiMCe7_round_gadget<FieldT>> m_rounds;  // vector of round gadgets
+    std::vector<MiMCe7_round_gadget<FieldT>> round_gadgets;  // vector of MiMC round gadgets
     std::vector<FieldT> round_constants;  //vector of round constants
-    static const int ROUNDS = 91; // nb of rounds
+    static const int ROUNDS = 91; // nb of rounds suggested by the MiMC paper
     const libsnark::pb_variable<FieldT> k;  // permutation key
 
+    // utility function for the MiMC round gadgets initialization
     void _setup_gadgets(
         const libsnark::pb_variable<FieldT> in_x,
         const libsnark::pb_variable<FieldT> in_k);
 
+    // utility function for initialization of constants vector
     void _setup_sha3_constants();
 
 public:

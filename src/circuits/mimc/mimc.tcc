@@ -11,15 +11,15 @@ namespace libzeth {
         const libsnark::pb_variable<FieldT> in_x,
         const libsnark::pb_variable<FieldT> in_k)
     {
-        _setup_sha3_constants();
-
         for( size_t i = 0; i < ROUNDS; i++ )
         {
-            const auto& round_x = (i == 0 ? in_x : m_rounds.back().result() );
+            // setting the input of the next round with the output of the previous round (except for round 0)
+            const auto& round_x = (i == 0 ? in_x : round_gadgets.back().result() );
 
             bool is_last = (i == (ROUNDS-1));
 
-            m_rounds.emplace_back(this->pb, round_x, in_k, round_constants[i], is_last, FMT(this->annotation_prefix, ".round[%d]", i));
+            // initializing and the adding the current round gadget into the rounds vector
+            round_gadgets.emplace_back(this->pb, round_x, in_k, round_constants[i], is_last, FMT(this->annotation_prefix, ".round[%d]", i));
         }
     }
     template<typename FieldT>
@@ -32,17 +32,22 @@ namespace libzeth {
         libsnark::gadget<FieldT>(pb, annotation_prefix),
         k(in_k)
     {
+        //initializing the constants vector
+        _setup_sha3_constants();
+        //initializing the round gadgets vector
         _setup_gadgets(in_x, in_k);
     }
 
     template<typename FieldT>
     const libsnark::pb_variable<FieldT>& MiMCe7_permutation_gadget<FieldT>::result () const {
-        return m_rounds.back().result();
+        // returning result of the permutation
+        return round_gadgets.back().result();
     }
 
     template<typename FieldT>
     void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_constraints() {
-        for( auto& gadget : m_rounds )
+        //generating constraint for each round gadget
+        for( auto& gadget : round_gadgets )
         {
             gadget.generate_r1cs_constraints();
         }
@@ -50,7 +55,8 @@ namespace libzeth {
 
     template<typename FieldT>
     void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_witness() const {
-        for( auto& gadget : m_rounds )
+      //generating witness for each round gadget
+        for( auto& gadget : round_gadgets )
         {
             gadget.generate_r1cs_witness();
         }

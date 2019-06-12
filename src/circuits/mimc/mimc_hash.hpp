@@ -16,17 +16,17 @@ class MiMC_hash_gadget:public libsnark::gadget<FieldT> {
   MiMC_hash_gadget enforces correct computation of a MiMCHash based on a MiMC permutation with exponent 7
   */
 public:
-	std::vector<MiMCe7_permutation_gadget<FieldT>> m_ciphers; // vector of permutation gadgets
-	std::vector<libsnark::pb_variable<FieldT>> m_messages;  //  vector of messages to process
-	libsnark::pb_variable_array<FieldT> m_outputs; // vector of round outputs variables
-	const libsnark::pb_variable<FieldT> m_IV; // initial vector variable
-  const libsnark::pb_variable<FieldT> out;
+	std::vector<MiMCe7_permutation_gadget<FieldT>> permutation_gadgets; // vector of permutation gadgets
+	std::vector<libsnark::pb_variable<FieldT>> messages;  //  vector of messages to process
+	libsnark::pb_variable_array<FieldT> outputs; // vector of round outputs variables
+	const libsnark::pb_variable<FieldT> iv; // initial vector variable
+  const libsnark::pb_variable<FieldT> out; // expected output variable
 
 	MiMC_hash_gadget(
 		libsnark::protoboard<FieldT> &in_pb,
-		const libsnark::pb_variable<FieldT> in_IV,
+		const libsnark::pb_variable<FieldT> in_iv,
 		const std::vector<libsnark::pb_variable<FieldT>>& in_messages,
-    const libsnark::pb_variable<FieldT> out,
+    const libsnark::pb_variable<FieldT> in_out,
 		const std::string &in_annotation_prefix
 	);
 
