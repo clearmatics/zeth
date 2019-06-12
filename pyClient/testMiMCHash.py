@@ -9,10 +9,10 @@ w3 = Web3(HTTPProvider("http://localhost:8545"))
 mimc_interface, tree_interface = zethContracts.compile_util_contracts()
 
 # deploy MimC contract
-mimc_instance = zethContracts.deploy_mimc_contract(mimc_interface)
+mimc_instance, mimc_address = zethContracts.deploy_mimc_contract(mimc_interface)
 
 # deploy MerkleTreeMiMCHash contract
-tree_instance = zethContracts.deploy_tree_contract(tree_interface, 3)
+tree_instance = zethContracts.deploy_tree_contract(tree_interface, 3, mimc_address)
 
 
 # Harry code test vector:  https://github.com/HarryR/ethsnarks/blob/master/src/test/test_mimc_hash.cpp
