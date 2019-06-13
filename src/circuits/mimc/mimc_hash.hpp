@@ -20,13 +20,13 @@ public:
 	std::vector<libsnark::pb_variable<FieldT>> messages;  //  vector of messages to process
 	libsnark::pb_variable_array<FieldT> outputs; // vector of round outputs variables
 	const libsnark::pb_variable<FieldT> iv; // initial vector variable
-  const libsnark::pb_variable<FieldT> out; // expected output variable
+  libsnark::pb_variable<FieldT> out; // expected output variable
 
 	MiMC_hash_gadget(
 		libsnark::protoboard<FieldT> &pb,
 		const libsnark::pb_variable<FieldT> iv,
 		const std::vector<libsnark::pb_variable<FieldT>>& messages,
-    const libsnark::pb_variable<FieldT> out,
+    libsnark::pb_variable<FieldT>& out,
     const std::string &annotation_prefix = "MiMC_hash_gadget"
 	);
 

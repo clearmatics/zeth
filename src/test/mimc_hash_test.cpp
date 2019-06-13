@@ -32,7 +32,6 @@ namespace  {
 
         pb.set_input_sizes(1);
 
-        pb.val(out) = FieldT("15683951496311901749339509118960676303290224812129752890706581988986633412003");
         pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
 
         // Private inputs
@@ -53,17 +52,9 @@ namespace  {
         mimc_hash_gadget.generate_r1cs_witness();
         mimc_hash_gadget.generate_r1cs_constraints();
 
-        ASSERT_TRUE(pb.is_satisfied());
-
-        keyPairT<ppT> keypair = libzeth::gen_trusted_setup<ppT>(pb);
-        proofT<ppT> proof = libzeth::gen_proof<ppT>(pb, keypair.pk);
-        libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input = pb.primary_input();
-        extended_proof<ppT> ext_proof = extended_proof<ppT>(proof, primary_input);
-
-        libzeth::verificationKeyT<ppT> vk = keypair.vk;
-        bool res = libzeth::verify(ext_proof, vk);
-
-        ASSERT_TRUE(res);
+        FieldT expected_out = FieldT("15683951496311901749339509118960676303290224812129752890706581988986633412003");
+        
+        ASSERT_TRUE(expected_out == pb.val(mimc_hash_gadget.result()));
         }
 
     TEST(TestMiMCHash, TestFalse) {
@@ -80,7 +71,6 @@ namespace  {
 
         pb.set_input_sizes(1);
 
-        pb.val(out) = FieldT("1568395149631");
         pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
 
         // Private inputs
@@ -101,16 +91,7 @@ namespace  {
         mimc_hash_gadget.generate_r1cs_witness();
         mimc_hash_gadget.generate_r1cs_constraints();
 
-        ASSERT_FALSE(pb.is_satisfied());
-
-        keyPairT<ppT> keypair = libzeth::gen_trusted_setup<ppT>(pb);
-        proofT<ppT> proof = libzeth::gen_proof<ppT>(pb, keypair.pk);
-        libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input = pb.primary_input();
-        extended_proof<ppT> ext_proof = extended_proof<ppT>(proof, primary_input);
-
-        libzeth::verificationKeyT<ppT> vk = keypair.vk;
-        bool res = libzeth::verify(ext_proof, vk);
-
-        ASSERT_FALSE(res);
+        FieldT not_expected_out = FieldT("1143746782339379038739");
+        ASSERT_FALSE(not_expected_out == pb.val(mimc_hash_gadget.result()));
     }
 }
