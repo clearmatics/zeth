@@ -19,14 +19,14 @@ public:
 	std::vector<MiMCe7_permutation_gadget<FieldT>> permutation_gadgets; // vector of permutation gadgets
 	std::vector<libsnark::pb_variable<FieldT>> messages;  //  vector of messages to process
 	libsnark::pb_variable_array<FieldT> outputs; // vector of round outputs variables
-	const libsnark::pb_variable<FieldT> iv; // initial vector variable
+	libsnark::pb_variable<FieldT> iv; // initial vector variable
   	libsnark::pb_variable<FieldT> out; // expected output variable
   	const size_t block_length; // unused, needed for HashT template
 
 
 	MiMC_hash_gadget(
 		libsnark::protoboard<FieldT> &pb,
-		const size_t block_length, 
+		const size_t block_length,
 		const std::vector<libsnark::pb_variable<FieldT>>& messages,
 		libsnark::pb_variable<FieldT>& out,
 		const std::string &annotation_prefix = "MiMC_hash_gadget"
