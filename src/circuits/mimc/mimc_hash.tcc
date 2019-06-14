@@ -10,18 +10,19 @@ namespace libzeth {
 template<typename FieldT>
 MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> iv,
+    const size_t block_length,
     const std::vector<libsnark::pb_variable<FieldT>>& messages,
     libsnark::pb_variable<FieldT>& out,
     const std::string &annotation_prefix
   ) :
     libsnark::gadget<FieldT>(pb, annotation_prefix),
     messages(messages),
-    iv(iv),
+    block_length(block_length),
     out(out)
   {
     // allocate output variables array
     outputs.allocate(pb, messages.size(), FMT(annotation_prefix, ".outputs"));
+    iv.allocate(pb,  FMT(annotation_prefix, ".iv"));
 
     for( size_t i = 0; i < messages.size(); i++ ) {
         const libsnark::pb_variable<FieldT>& m = messages[i];
@@ -62,6 +63,10 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_constraints (){
 
 template<typename FieldT>
 void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
+    // TODO: change iv value with following
+    //sha3("Clearmatics"):82724731331859054037315113496710413141112897654334566532528783843265082629790
+    this->pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
+
     for( size_t i = 0; i < permutation_gadgets.size(); i++ ) {
 
         // Generating witness for each permutation gadget (except last one)

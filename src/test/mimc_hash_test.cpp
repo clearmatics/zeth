@@ -32,7 +32,7 @@ namespace  {
 
         pb.set_input_sizes(1);
 
-        pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
+        //pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
 
         // Private inputs
 
@@ -47,7 +47,7 @@ namespace  {
         pb.val(m_0) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
         pb.val(m_1) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
-        MiMC_hash_gadget<FieldT> mimc_hash_gadget(pb, iv, input, out, "gadget");
+        MiMC_hash_gadget<FieldT> mimc_hash_gadget(pb, size_t(0), input, out, "gadget");
 
         mimc_hash_gadget.generate_r1cs_witness();
         mimc_hash_gadget.generate_r1cs_constraints();
@@ -71,7 +71,7 @@ namespace  {
 
         pb.set_input_sizes(1);
 
-        pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
+        //pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
 
         // Private inputs
 
@@ -86,7 +86,7 @@ namespace  {
         pb.val(m_0) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
         pb.val(m_1) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
-        MiMC_hash_gadget<FieldT> mimc_hash_gadget(pb, iv, input, out, "gadget");
+        MiMC_hash_gadget<FieldT> mimc_hash_gadget(pb, size_t(0), input, out, "gadget");
 
         mimc_hash_gadget.generate_r1cs_witness();
         mimc_hash_gadget.generate_r1cs_constraints();
