@@ -7,109 +7,78 @@
 
 namespace libzeth {
 
-template<typename FieldT>
-PRF_gadget<FieldT>::PRF_gadget(libsnark::protoboard<FieldT>& pb,
-                            libsnark::pb_variable<FieldT>& ZERO,
-                            libsnark::pb_variable_array<FieldT> x,
-                            libsnark::pb_variable_array<FieldT> y,
-                            std::shared_ptr<libsnark::digest_variable<FieldT>> result,
-                            const std::string &annotation_prefix) :
-    libsnark::gadget<FieldT>(pb, annotation_prefix), result(result)
-{
-
-    block.reset(new libsnark::block_variable<FieldT>(pb, {
-        x,
-        y
-    }, "PRF_block"));
-
-    hasher.reset(new sha256_ethereum<FieldT>(
-        pb,
-        libsnark::SHA256_block_size,
-        *block,
-        *result,
-        "PRF_ethereum_hasher")
-    );
-}
-
-template<typename FieldT>
-void PRF_gadget<FieldT>::generate_r1cs_constraints() {
-    hasher->generate_r1cs_constraints(true);
-}
-
-template<typename FieldT>
-void PRF_gadget<FieldT>::generate_r1cs_witness() {
-    hasher->generate_r1cs_witness();
-}
-
-template<typename FieldT>
-libsnark::pb_variable_array<FieldT> gen256zeroes(libsnark::pb_variable<FieldT>& ZERO) {
-    libsnark::pb_variable_array<FieldT> ret;
-    while (ret.size() < 256) {
-        ret.emplace_back(ZERO);
-    }
-
-    // Dummy assert that double check
-    // that we correctly built a 256-bit string
-    assert(ret.size() == 256);
-
-    return ret;
-}
-
-template<typename FieldT>
-libsnark::pb_variable_array<FieldT> getRightSideNFPRF(
-    libsnark::pb_variable<FieldT>& ZERO,
-    libsnark::pb_variable_array<FieldT>& rho
-) {
-    libsnark::pb_variable_array<FieldT> right_side;
-    right_side.emplace_back(ZERO); // 0
-    right_side.emplace_back(ONE); // 01
-
-    // Should always be satisfied because rho
-    // is a 256 bit string. This is just a sanity check
-    // to make sure that the for loop doesn't
-    // go out of the bound of the rho vector
-    assert(rho.size() > 254);
-
-    for (size_t i = 0; i < 254; ++i)
-    {
-        right_side.emplace_back(rho[i]);
-    }
-
-    // Check that we correctly built a 256-bit string
-    assert(right_side.size() == 256);
-
-    return right_side;
-}
+//TODO add PRF parent class
 
 // a_pk = sha256(a_sk || 0^256): See Zerocash extended paper, page 22,
 // paragraph "Instantiating the NP statement POUR"
+// Generating public address addr from secret key a_sk
 template<typename FieldT>
 PRF_addr_a_pk_gadget<FieldT>::PRF_addr_a_pk_gadget(
         libsnark::protoboard<FieldT>& pb,
-        libsnark::pb_variable<FieldT>& ZERO,
-        libsnark::pb_variable_array<FieldT>& a_sk,
-        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+        libsnark::pb_variable<FieldT>& a_sk,
         const std::string &annotation_prefix) :
-    PRF_gadget<FieldT>(pb, ZERO, a_sk, gen256zeroes(ZERO), result, annotation_prefix)
+        libsnark::gadget(pb, annotation_prefix)
 {
-    // Nothing
+  libsnark::pb_variable zero_var, iv;
+
+  zero_var.allocate(pb, "zero var");//TODO to fix annotation
+  pb.val(zero_var) = 0;
+
+  iv.allocate(pb, "iv var");//TODO to fix annotation
+  pb.val(iv) = FieldT("7655352919458297598499032567765357605187604397960652899494713742188031353302");
+
+  hash_gadget(pb, iv, {a_sk, zero_var}, annotation_prefix);
+}
+
+
+template<typename FieldT>
+const libsnark::pb_variable<FieldT>& PRF_addr_a_pk_gadget<FieldT>::result() const {
+    return hash_gadget.result();
+}
+
+template<typename FieldT>
+void PRF_addr_a_pk_gadget<FieldT>::generate_r1cs_constraints() {
+    hash_gadget.generate_r1cs_constraints(); // ensure_output_bitness set to true
+}
+
+template<typename FieldT>
+void PRF_addr_a_pk_gadget<FieldT>::generate_r1cs_witness() {
+    hash_gadget.generate_r1cs_witness();
 }
 
 // PRF to generate the nullifier
 // nf = sha256(a_sk || 01 || [rho]_254): See Zerocash extended paper, page 22
+// TODO: add clarification
 template<typename FieldT>
 PRF_nf_gadget<FieldT>::PRF_nf_gadget(
         libsnark::protoboard<FieldT>& pb,
-        libsnark::pb_variable<FieldT>& ZERO,
-        libsnark::pb_variable_array<FieldT>& a_sk,
-        libsnark::pb_variable_array<FieldT>& rho,
-        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+        libsnark::pb_variable<FieldT>& a_sk,
+        libsnark::pb_variable<FieldT>& rho,
         const std::string &annotation_prefix) :
-    PRF_gadget<FieldT>(pb, ZERO, a_sk, getRightSideNFPRF(ZERO, rho), result, annotation_prefix)
+        libsnark::gadget(pb, annotation_prefix)
 {
-    // Nothing
+  libsnark::pb_variable<FieldT> iv;
+
+  iv.allocate(pb, "iv var");//TODO to fix annotation
+  pb.val(iv) = FieldT("38594890471543702135425523844252992926779387339253565328142220201141984377400");
+
+  hash_gadget(pb, iv, {a_sk, rho}, annotation_prefix);
 }
 
-} // libzeth
+template<typename FieldT>
+const libsnark::pb_variable<FieldT>& PRF_nf_gadget<FieldT>::result() const {
+    return hash_gadget.result();
+}
+
+template<typename FieldT>
+void PRF_nf_gadget<FieldT>::generate_r1cs_constraints() {
+    hash_gadget.generate_r1cs_constraints(); // ensure_output_bitness set to true
+}
+
+template<typename FieldT>
+void PRF_nf_gadget<FieldT>::generate_r1cs_witness() {
+    hash_gadget.generate_r1cs_witness();
+}
+
 
 #endif // __ZETH_PRFS_CIRCUITS_TCC__

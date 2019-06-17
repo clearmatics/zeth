@@ -1,43 +1,28 @@
 #ifndef __ZETH_COMMITMENT_CIRCUITS_HPP__
 #define __ZETH_COMMITMENT_CIRCUITS_HPP__
 
-// DISCLAIMER: 
+// DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/commitment.tcc
 
 #include <libsnark/gadgetlib1/gadget.hpp>
-#include "circuits/sha256/sha256_ethereum.hpp"
+#include "circuits/mimc/mimc_hash.hpp"
 
 namespace libzeth {
 
 template<typename FieldT>
 class COMM_gadget : libsnark::gadget<FieldT> {
-private:
-    std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<sha256_ethereum<FieldT>> hasher;
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result;
+  MiMC_Hash_gadget<FieldT> hash_gadget;
 
-public:
+  public:
     COMM_gadget(libsnark::protoboard<FieldT>& pb,
-                libsnark::pb_variable<FieldT>& ZERO,
                 libsnark::pb_variable_array<FieldT> x,
                 libsnark::pb_variable_array<FieldT> y,
-                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
                 const std::string &annotation_prefix = "COMM_gadget");
+    libsnark::pb_variable<FieldT>& result() const;
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
 };
-
-template<typename FieldT>
-libsnark::pb_variable_array<FieldT> get128bits(libsnark::pb_variable_array<FieldT>& inner_k);
-
-// As mentioned in Zerocash extended paper, page 22
-// Right side of the hash inputs to generate cm is: 0^192 || value_v (64 bits)
-template<typename FieldT>
-libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
-    libsnark::pb_variable<FieldT>& ZERO,
-    libsnark::pb_variable_array<FieldT>& value_v
-);
 
 // TODO: Implement the COMM_k_gadget as a 2 hash rounds in order to directly get the
 // value of the commitment_k without needing 2 distinct gadgets for this.
@@ -50,10 +35,8 @@ template<typename FieldT>
 class COMM_inner_k_gadget : public COMM_gadget<FieldT> {
 public:
     COMM_inner_k_gadget(libsnark::protoboard<FieldT>& pb,
-                        libsnark::pb_variable<FieldT>& ZERO,
-                        libsnark::pb_variable_array<FieldT>& a_pk, // 256 bits
-                        libsnark::pb_variable_array<FieldT>& rho, // 256 bits
-                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                        libsnark::pb_variable<FieldT>& a_pk,
+                        libsnark::pb_variable<FieldT>& rho,
                         const std::string &annotation_prefix = "COMM_inner_k_gadget");
 };
 
@@ -66,22 +49,19 @@ template<typename FieldT>
 class COMM_outer_k_gadget : public COMM_gadget<FieldT> {
 public:
     COMM_outer_k_gadget(libsnark::protoboard<FieldT>& pb,
-                        libsnark::pb_variable<FieldT>& ZERO,
-                        libsnark::pb_variable_array<FieldT>& trap_r, // 384 bits
-                        libsnark::pb_variable_array<FieldT>& inner_k, // 256 bits, but we only keep 128 bits our of it
+                        libsnark::pb_variable_array<FieldT>& trap_r, // trap and mask
+                        libsnark::pb_variable<FieldT>& inner_k,
                         std::shared_ptr<libsnark::digest_variable<FieldT>> result,
                         const std::string &annotation_prefix = "COMM_outer_k_gadget");
 };
 
-// cm = sha256(outer_k || 0^192 || value_v)
 template<typename FieldT>
 class COMM_cm_gadget : public COMM_gadget<FieldT> {
 public:
     COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
-                libsnark::pb_variable<FieldT>& ZERO,
-                libsnark::pb_variable_array<FieldT>& outer_k,
-                libsnark::pb_variable_array<FieldT>& value_v, // 64 bits
-                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                libsnark::pb_variable<FieldT>& outer_k,
+                libsnark::pb_variable<FieldT>& value_v, // 64 bits before, TODO we could constrain it
+                std::shared_ptr<libsnark::pb_variable<FieldT>> result,
                 const std::string &annotation_prefix = "COMM_cm_gadget");
 };
 
