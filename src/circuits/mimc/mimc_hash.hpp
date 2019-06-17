@@ -24,6 +24,7 @@ public:
 	MiMC_hash_gadget(
 		libsnark::protoboard<FieldT> &pb,
 		const std::vector<libsnark::pb_variable<FieldT>>& messages,
+    const libsnark::pb_variable<FieldT> iv,
 		const std::string &annotation_prefix = "MiMC_hash_gadget"
 	);
 

@@ -26,6 +26,10 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
         assert( in_depth > 0 );
         assert( in_address_bits.size() == in_depth );
 
+        libsnark::pb_variable<FieldT> iv;
+        iv.allocate(in_pb, FMT(this->annotation_prefix, "_iv"));
+        in_pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790");
+
         for( size_t i = 0; i < m_depth; i++ )
         {
             if( i == 0 )
@@ -45,6 +49,7 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
             auto t = HashT(
                     in_pb,
                     {m_selectors[i].left(), m_selectors[i].right()},
+                    iv,
                     FMT(this->annotation_prefix, ".hasher[%zu]", i));
             m_hashers.push_back(t);
         }

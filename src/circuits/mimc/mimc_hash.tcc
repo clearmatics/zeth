@@ -11,14 +11,15 @@ template<typename FieldT>
 MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
     libsnark::protoboard<FieldT> &pb,
     const std::vector<libsnark::pb_variable<FieldT>>& messages,
+    const libsnark::pb_variable<FieldT> iv,
     const std::string &annotation_prefix
   ) :
     libsnark::gadget<FieldT>(pb, annotation_prefix),
-    messages(messages)
+    messages(messages),
+    iv(iv)
   {
     // allocate output variables array
     outputs.allocate(pb, messages.size(), FMT(annotation_prefix, ".outputs"));
-    iv.allocate(pb,  FMT(annotation_prefix, ".iv"));
 
     for( size_t i = 0; i < messages.size(); i++ ) {
         const libsnark::pb_variable<FieldT>& m = messages[i];
@@ -59,10 +60,8 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_constraints (){
 
 template<typename FieldT>
 void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
-    // TODO: change iv value with following
     //sha3("Clearmatics"):82724731331859054037315113496710413141112897654334566532528783843265082629790
     // before 918403109389145570117360101535982733651217667914747213867238065296420114726
-    this->pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790");
 
     for( size_t i = 0; i < permutation_gadgets.size(); i++ ) {
 
