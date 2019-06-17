@@ -46,7 +46,7 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
                         FMT(this->annotation_prefix, ".selector[%zu]", i)));
             }
 
-            auto t = HashT(
+            HashT t = HashT(
                     pb,
                     {selectors[i].get_left(), selectors[i].get_right()},
                     iv,
