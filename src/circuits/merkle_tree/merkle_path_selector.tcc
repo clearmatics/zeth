@@ -10,48 +10,48 @@ namespace libzeth {
 
 template<typename FieldT>
 merkle_path_selector<FieldT>::merkle_path_selector(
-    libsnark::protoboard<FieldT> &in_pb,
-    const libsnark::pb_variable<FieldT>& in_input,
-    const libsnark::pb_variable<FieldT>& in_pathvar,
-    const libsnark::pb_variable<FieldT>& in_is_right,
-    const std::string &in_annotation_prefix
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_variable<FieldT>& input,
+    const libsnark::pb_variable<FieldT>& pathvar,
+    const libsnark::pb_variable<FieldT>& is_right,
+    const std::string &annotation_prefix
 ) :
-    libsnark::gadget<FieldT>(in_pb, in_annotation_prefix),
-    m_input(in_input),
-    m_pathvar(in_pathvar),
-    m_is_right(in_is_right)
+    libsnark::gadget<FieldT>(pb, annotation_prefix),
+    input(input),
+    pathvar(pathvar),
+    is_right(is_right)
 {
-    m_left.allocate(in_pb, FMT(this->annotation_prefix, ".left"));
+    left.allocate(pb, FMT(this->annotation_prefix, ".left"));
 
-    m_right.allocate(in_pb, FMT(this->annotation_prefix, ".right"));
+    right.allocate(pb, FMT(this->annotation_prefix, ".right"));
 }
 
 template<typename FieldT>
 void merkle_path_selector<FieldT>::generate_r1cs_constraints()
 {
-    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(m_is_right, m_pathvar - m_input, m_left - m_input),
+    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(is_right, pathvar - input, left - input),
         FMT(this->annotation_prefix, "is_right*pathvar + 1-is_right * input = left"));
 
-    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(m_is_right, m_input - m_pathvar, m_right - m_pathvar),
+    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(is_right, input - pathvar, right - pathvar),
         FMT(this->annotation_prefix, "is_right*input + 1-is_right * pathvar = right"));
 }
 
 template<typename FieldT>
 void merkle_path_selector<FieldT>::generate_r1cs_witness()
 {
-    this->pb.val(m_left) = this->pb.val(m_input) +  this->pb.val(m_is_right) * ( this->pb.val(m_pathvar) -this->pb.val(m_input)  );
+    this->pb.val(left) = this->pb.val(input) +  this->pb.val(is_right) * ( this->pb.val(pathvar) -this->pb.val(input)  );
 
-    this->pb.val(m_right) = this->pb.val(m_pathvar) +  this->pb.val(m_is_right) * ( this->pb.val(m_input) -this->pb.val(m_pathvar)  );
+    this->pb.val(right) = this->pb.val(pathvar) +  this->pb.val(is_right) * ( this->pb.val(input) -this->pb.val(pathvar)  );
 }
 
 template<typename FieldT>
-const libsnark::pb_variable<FieldT>& merkle_path_selector<FieldT>::left() {
-    return m_left;
+const libsnark::pb_variable<FieldT>& merkle_path_selector<FieldT>::get_left() {
+    return left;
 }
 
 template<typename FieldT>
-const libsnark::pb_variable<FieldT>& merkle_path_selector<FieldT>::right() {
-    return m_right;
+const libsnark::pb_variable<FieldT>& merkle_path_selector<FieldT>::get_right() {
+    return right;
 }
 
 

@@ -10,67 +10,67 @@ namespace libzeth {
 
 template<typename HashT, typename FieldT>
 merkle_path_compute<HashT, FieldT>::merkle_path_compute(
-        libsnark::protoboard<FieldT> &in_pb,
-        const size_t in_depth,
-        const libsnark::pb_variable_array<FieldT>& in_address_bits,
-        const libsnark::pb_variable<FieldT> in_leaf,
-        const libsnark::pb_variable_array<FieldT>& in_path,
-        const std::string &in_annotation_prefix
+        libsnark::protoboard<FieldT> &pb,
+        const size_t depth,
+        const libsnark::pb_variable_array<FieldT>& address_bits,
+        const libsnark::pb_variable<FieldT> leaf,
+        const libsnark::pb_variable_array<FieldT>& path,
+        const std::string &annotation_prefix
     ) :
-        libsnark::gadget<FieldT>(in_pb, in_annotation_prefix),
-        m_depth(in_depth),
-        m_address_bits(in_address_bits),
-        m_leaf(in_leaf),
-        m_path(in_path)
+        libsnark::gadget<FieldT>(pb, annotation_prefix),
+        depth(depth),
+        address_bits(address_bits),
+        leaf(leaf),
+        path(path)
     {
-        assert( in_depth > 0 );
-        assert( in_address_bits.size() == in_depth );
+        assert( depth > 0 );
+        assert( address_bits.size() == depth );
 
         libsnark::pb_variable<FieldT> iv;
-        iv.allocate(in_pb, FMT(this->annotation_prefix, "_iv"));
-        in_pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790");
+        iv.allocate(pb, FMT(this->annotation_prefix, "_iv"));
+        pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790");
 
-        for( size_t i = 0; i < m_depth; i++ )
+        for( size_t i = 0; i < depth; i++ )
         {
             if( i == 0 )
             {
-                m_selectors.push_back(
+                selectors.push_back(
                     merkle_path_selector<FieldT>(
-                        in_pb, in_leaf, in_path[i], in_address_bits[i],
+                        pb, leaf, path[i], address_bits[i],
                         FMT(this->annotation_prefix, ".selector[%zu]", i)));
             }
             else {
-                m_selectors.push_back(
+                selectors.push_back(
                     merkle_path_selector<FieldT>(
-                        in_pb, m_hashers[i-1].result(), in_path[i], in_address_bits[i],
+                        pb, hashers[i-1].result(), path[i], address_bits[i],
                         FMT(this->annotation_prefix, ".selector[%zu]", i)));
             }
 
             auto t = HashT(
-                    in_pb,
-                    {m_selectors[i].left(), m_selectors[i].right()},
+                    pb,
+                    {selectors[i].get_left(), selectors[i].get_right()},
                     iv,
                     FMT(this->annotation_prefix, ".hasher[%zu]", i));
-            m_hashers.push_back(t);
+            hashers.push_back(t);
         }
     }
 
 template<typename HashT, typename FieldT>
 const libsnark::pb_variable<FieldT> merkle_path_compute<HashT, FieldT>::result()
 {
-    assert( m_hashers.size() > 0 );
+    assert( hashers.size() > 0 );
 
-    return m_hashers.back().result();
+    return hashers.back().result();
 }
 
 template<typename HashT, typename FieldT>
 void merkle_path_compute<HashT, FieldT>::generate_r1cs_constraints()
 {
     size_t i;
-    for( i = 0; i < m_hashers.size(); i++ )
+    for( i = 0; i < hashers.size(); i++ )
     {
-        m_selectors[i].generate_r1cs_constraints();
-        m_hashers[i].generate_r1cs_constraints();
+        selectors[i].generate_r1cs_constraints();
+        hashers[i].generate_r1cs_constraints();
     }
 }
 
@@ -78,10 +78,10 @@ template<typename HashT, typename FieldT>
 void merkle_path_compute<HashT, FieldT>::generate_r1cs_witness()
 {
     size_t i;
-    for( i = 0; i < m_hashers.size(); i++ )
+    for( i = 0; i < hashers.size(); i++ )
     {
-        m_selectors[i].generate_r1cs_witness();
-        m_hashers[i].generate_r1cs_witness();
+        selectors[i].generate_r1cs_witness();
+        hashers[i].generate_r1cs_witness();
     }
 }
 

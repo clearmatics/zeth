@@ -15,21 +15,21 @@ template<typename HashT, typename FieldT>
 class merkle_path_compute : public libsnark::gadget<FieldT>
 {
 public:
-    const size_t m_depth;
-    const libsnark::pb_variable_array<FieldT> m_address_bits;
-    const libsnark::pb_variable<FieldT> m_leaf;
-    const libsnark::pb_variable_array<FieldT> m_path;
+    const size_t depth;
+    const libsnark::pb_variable_array<FieldT> address_bits;
+    const libsnark::pb_variable<FieldT> leaf;
+    const libsnark::pb_variable_array<FieldT> path;
 
-    std::vector<merkle_path_selector<FieldT>> m_selectors;
-    std::vector<HashT> m_hashers;
+    std::vector<merkle_path_selector<FieldT>> selectors;
+    std::vector<HashT> hashers;
 
     merkle_path_compute(
-        libsnark::protoboard<FieldT> &in_pb,
-        const size_t in_depth,
-        const libsnark::pb_variable_array<FieldT>& in_address_bits,
-        const libsnark::pb_variable<FieldT> in_leaf,
-        const libsnark::pb_variable_array<FieldT>& in_path,
-        const std::string &in_annotation_prefix
+        libsnark::protoboard<FieldT> &pb,
+        const size_t depth,
+        const libsnark::pb_variable_array<FieldT>& address_bits,
+        const libsnark::pb_variable<FieldT> leaf,
+        const libsnark::pb_variable_array<FieldT>& path,
+        const std::string &annotation_prefix
     );
 
     const libsnark::pb_variable<FieldT> result();

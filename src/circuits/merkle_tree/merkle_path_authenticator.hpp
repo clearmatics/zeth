@@ -21,13 +21,13 @@ public:
     const libsnark::pb_variable<FieldT> m_expected_root;
 
     merkle_path_authenticator(
-        libsnark::protoboard<FieldT> &in_pb,
-        const size_t in_depth,
-        const libsnark::pb_variable_array<FieldT> in_address_bits,
-        const libsnark::pb_variable<FieldT> in_leaf,
-        const libsnark::pb_variable<FieldT> in_expected_root,
-        const libsnark::pb_variable_array<FieldT> in_path,
-        const std::string &in_annotation_prefix
+        libsnark::protoboard<FieldT> &pb,
+        const size_t depth,
+        const libsnark::pb_variable_array<FieldT> address_bits,
+        const libsnark::pb_variable<FieldT> leaf,
+        const libsnark::pb_variable<FieldT> expected_root,
+        const libsnark::pb_variable_array<FieldT> path,
+        const std::string &annotation_prefix
     );
 
     bool is_valid();

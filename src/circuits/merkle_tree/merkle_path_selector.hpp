@@ -40,37 +40,34 @@ template<typename FieldT>
 class merkle_path_selector : public libsnark::gadget<FieldT>
 {
 public:
-    libsnark::pb_variable<FieldT> m_input;
-    const libsnark::pb_variable<FieldT> m_pathvar;
-    const libsnark::pb_variable<FieldT> m_is_right;
+    libsnark::pb_variable<FieldT> input;
+    const libsnark::pb_variable<FieldT> pathvar;
+    const libsnark::pb_variable<FieldT> is_right;
 
-    libsnark::pb_variable<FieldT> m_left_a;
-    libsnark::pb_variable<FieldT> m_left_b;
-    libsnark::pb_variable<FieldT> m_left;
+    libsnark::pb_variable<FieldT> left_a;
+    libsnark::pb_variable<FieldT> left_b;
+    libsnark::pb_variable<FieldT> left;
 
-    libsnark::pb_variable<FieldT> m_right_a;
-    libsnark::pb_variable<FieldT> m_right_b;
-    libsnark::pb_variable<FieldT> m_right;
+    libsnark::pb_variable<FieldT> right_a;
+    libsnark::pb_variable<FieldT> right_b;
+    libsnark::pb_variable<FieldT> right;
 
     merkle_path_selector(
-        libsnark::protoboard<FieldT> &in_pb,
-        const libsnark::pb_variable<FieldT>& in_input,
-        const libsnark::pb_variable<FieldT>& in_pathvar,
-        const libsnark::pb_variable<FieldT>& in_is_right,
-        const std::string &in_annotation_prefix
+        libsnark::protoboard<FieldT> &pb,
+        const libsnark::pb_variable<FieldT>& input,
+        const libsnark::pb_variable<FieldT>& pathvar,
+        const libsnark::pb_variable<FieldT>& is_right,
+        const std::string &annotation_prefix
     );
 
     void generate_r1cs_constraints();
 
     void generate_r1cs_witness();
 
-    const libsnark::pb_variable<FieldT>& left();
+    const libsnark::pb_variable<FieldT>& get_left();
 
-    const libsnark::pb_variable<FieldT>& right();
+    const libsnark::pb_variable<FieldT>& get_right();
 };
-
-template<typename FieldT>
-const libsnark::pb_variable_array<FieldT> merkle_tree_IVs (libsnark::protoboard<FieldT> &in_pb);
 
 } // libzeth
 

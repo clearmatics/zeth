@@ -39,18 +39,18 @@ bool test_merkle_path_selector(int is_right)
 	selector.generate_r1cs_constraints();
 
 	if( is_right ) {
-		if( pb.val(selector.left()) != value_B ) {
+		if( pb.val(selector.get_left()) != value_B ) {
 			return false;
 		}
-		if( pb.val(selector.right()) != value_A ) {
+		if( pb.val(selector.get_right()) != value_A ) {
 			return false;
 		}
 	}
 	else {
-		if( pb.val(selector.left()) != value_A ) {
+		if( pb.val(selector.get_left()) != value_A ) {
 			return false;
 		}
-		if( pb.val(selector.right()) != value_B ) {
+		if( pb.val(selector.get_right()) != value_B ) {
 			return false;
 		}
 	}
