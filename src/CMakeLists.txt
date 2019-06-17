@@ -263,6 +263,30 @@ target_include_directories(
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# Test merkle tree circuits
+add_executable(
+    test_merkle_tree
+    EXCLUDE_FROM_ALL
+
+    test/merkle_tree_test.cpp
+    ${SOURCES_TEST}
+)
+target_link_libraries(
+    test_merkle_tree
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_merkle_tree
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
 # Test the joinsplit circuit
 add_executable(
     test_prover
@@ -317,6 +341,10 @@ add_test(
     COMMAND test_mimc_hash
 )
 add_test(
+    NAME test_merkle_tree
+    COMMAND test_merkle_tree
+)
+add_test(
     NAME test_prover
     COMMAND test_prover
 )
@@ -329,4 +357,5 @@ add_dependencies(check test_commitments)
 add_dependencies(check test_round)
 add_dependencies(check test_mimc)
 add_dependencies(check test_mimc_hash)
+add_dependencies(check test_merkle_tree)
 add_dependencies(check test_prover)
