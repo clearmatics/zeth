@@ -10,15 +10,11 @@ namespace libzeth {
 template<typename FieldT>
 MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const size_t block_length,
     const std::vector<libsnark::pb_variable<FieldT>>& messages,
-    libsnark::pb_variable<FieldT>& out,
     const std::string &annotation_prefix
   ) :
     libsnark::gadget<FieldT>(pb, annotation_prefix),
-    messages(messages),
-    block_length(block_length),
-    out(out)
+    messages(messages)
   {
     // allocate output variables array
     outputs.allocate(pb, messages.size(), FMT(annotation_prefix, ".outputs"));
@@ -37,7 +33,7 @@ MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
 
 template<typename FieldT>
 const libsnark::pb_variable<FieldT>& MiMC_hash_gadget<FieldT>::result() const {
-    return out;
+    return outputs[messages.size()-1];
   }
 
 template<typename FieldT>
@@ -65,7 +61,8 @@ template<typename FieldT>
 void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
     // TODO: change iv value with following
     //sha3("Clearmatics"):82724731331859054037315113496710413141112897654334566532528783843265082629790
-    this->pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
+    // before 918403109389145570117360101535982733651217667914747213867238065296420114726
+    this->pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790");
 
     for( size_t i = 0; i < permutation_gadgets.size(); i++ ) {
 
@@ -77,9 +74,6 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
         // Filling output variables for Miyaguchi-Preenel equation
         this->pb.val( outputs[i] ) = round_key + this->pb.val(permutation_gadgets[i].result()) + this->pb.val(messages[i]);
         }
-
-        // Filling output variable
-        this->pb.val(out) = this->pb.val( outputs[permutation_gadgets.size()-1]);
 }
 }  // libzeth
 

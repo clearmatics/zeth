@@ -24,10 +24,8 @@ namespace  {
         libsnark::protoboard<FieldT> pb;
 
         // Public input
-        libsnark::pb_variable<FieldT> out;
         libsnark::pb_variable<FieldT> iv;
 
-        out.allocate(pb, "out");
         iv.allocate(pb, "iv");
 
         pb.set_input_sizes(1);
@@ -47,13 +45,13 @@ namespace  {
         pb.val(m_0) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
         pb.val(m_1) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
-        MiMC_hash_gadget<FieldT> mimc_hash_gadget(pb, size_t(0), input, out, "gadget");
+        MiMC_hash_gadget<FieldT> mimc_hash_gadget(pb, input, "gadget");
 
         mimc_hash_gadget.generate_r1cs_witness();
         mimc_hash_gadget.generate_r1cs_constraints();
 
-        FieldT expected_out = FieldT("15683951496311901749339509118960676303290224812129752890706581988986633412003");
-        
+        FieldT expected_out = FieldT("18800972734388876294699214493377123093998198145242382637648270767389471889403");
+
         ASSERT_TRUE(expected_out == pb.val(mimc_hash_gadget.result()));
         }
 
@@ -63,10 +61,8 @@ namespace  {
         libsnark::protoboard<FieldT> pb;
 
         // Public input
-        libsnark::pb_variable<FieldT> out;
         libsnark::pb_variable<FieldT> iv;
 
-        out.allocate(pb, "out");
         iv.allocate(pb, "iv");
 
         pb.set_input_sizes(1);
@@ -86,12 +82,12 @@ namespace  {
         pb.val(m_0) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
         pb.val(m_1) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
-        MiMC_hash_gadget<FieldT> mimc_hash_gadget(pb, size_t(0), input, out, "gadget");
+        MiMC_hash_gadget<FieldT> mimc_hash_gadget(pb, input, "gadget");
 
         mimc_hash_gadget.generate_r1cs_witness();
         mimc_hash_gadget.generate_r1cs_constraints();
 
-        FieldT not_expected_out = FieldT("1143746782339379038739");
+        FieldT not_expected_out = FieldT("15683951496311901749339509118960676303290224812129752890706581988986633412003");
         ASSERT_FALSE(not_expected_out == pb.val(mimc_hash_gadget.result()));
     }
 }
