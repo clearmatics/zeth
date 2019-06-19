@@ -15,16 +15,11 @@ namespace libzeth {
 // paragraph "Instantiating the NP statement POUR"
 
 template<typename FieldT>
-class PRF_addr_a_pk_gadget : public libsnark::gadget<FieldT> {
-    MiMC_Hash_gadget<FieldT> hash_gadget;
+class PRF_addr_a_pk_gadget : public MiMC_hash_gadget<FieldT> {
 public:
     PRF_addr_a_pk_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& a_sk,
                         const std::string &annotation_prefix = " a_pk_PRF_gadget");
-
-    libsnark::pb_variable<FieldT>& result() const;
-    void generate_r1cs_constraints();
-    void generate_r1cs_witness();
 };
 
 // PRF to generate the nullifier
@@ -32,17 +27,12 @@ public:
 // nf = mimc_hash_(iv_nf)(a_sk, rho)
 
 template<typename FieldT>
-class PRF_nf_gadget : public libsnark::gadget<FieldT> {
-    MiMC_Hash_gadget<FieldT> hash_gadget;
+class PRF_nf_gadget : public MiMC_hash_gadget<FieldT> {
 public:
     PRF_nf_gadget(libsnark::protoboard<FieldT>& pb,
-                libsnark::pb_variable_array<FieldT>& a_sk,
-                libsnark::pb_variable_array<FieldT>& rho,
+                libsnark::pb_variable<FieldT>& a_sk,
+                libsnark::pb_variable<FieldT>& rho,
                 const std::string &annotation_prefix = " nf_PRF_gadget");
-
-    libsnark::pb_variable<FieldT>& result() const;
-    void generate_r1cs_constraints();
-    void generate_r1cs_witness();
 };
 
 } // libzeth

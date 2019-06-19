@@ -28,8 +28,8 @@ namespace  {
 
         MiMCe7_permutation_gadget<FieldT> mimc_gadget(pb, in_x, in_k, "mimc_gadget");
 
-        mimc_gadget.generate_r1cs_witness();
         mimc_gadget.generate_r1cs_constraints();
+        mimc_gadget.generate_r1cs_witness();
 
         FieldT expected_out = FieldT("11437467823393790387399137249441941313717686441929791910070352316474327319704");
 
