@@ -10,20 +10,6 @@
 
 namespace libzeth {
 
-template<typename FieldT>
-class COMM_gadget : libsnark::gadget<FieldT> {
-  MiMC_Hash_gadget<FieldT> hash_gadget;
-
-  public:
-    COMM_gadget(libsnark::protoboard<FieldT>& pb,
-                libsnark::pb_variable_array<FieldT> x,
-                libsnark::pb_variable_array<FieldT> y,
-                const std::string &annotation_prefix = "COMM_gadget");
-    libsnark::pb_variable<FieldT>& result() const;
-    void generate_r1cs_constraints();
-    void generate_r1cs_witness();
-};
-
 // TODO: Implement the COMM_k_gadget as a 2 hash rounds in order to directly get the
 // value of the commitment_k without needing 2 distinct gadgets for this.
 //
@@ -32,7 +18,7 @@ class COMM_gadget : libsnark::gadget<FieldT> {
 // where we define the left part: inner_k = sha256(a_pk || rho)
 // as being the inner commitment of k
 template<typename FieldT>
-class COMM_inner_k_gadget : public COMM_gadget<FieldT> {
+class COMM_inner_k_gadget : public MiMC_hash_gadget<FieldT> {
 public:
     COMM_inner_k_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& a_pk,
@@ -46,22 +32,31 @@ public:
 // as being the outer commitment of k
 // We denote by trap_r the trapdoor r
 template<typename FieldT>
-class COMM_outer_k_gadget : public COMM_gadget<FieldT> {
+class COMM_outer_k_gadget : public libsnark::gadget<FieldT> {
+  MiMC_hash_gadget<FieldT> hasher;
+  libsnark::pb_variable<FieldT> masked;
+  libsnark::pb_variable<FieldT> r_mask;
+  libsnark::pb_variable<FieldT> k_inner;
+
 public:
     COMM_outer_k_gadget(libsnark::protoboard<FieldT>& pb,
-                        libsnark::pb_variable_array<FieldT>& trap_r, // trap and mask
-                        libsnark::pb_variable<FieldT>& inner_k,
-                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                        libsnark::pb_variable<FieldT>& r_trap, // trap and mask
+                        libsnark::pb_variable<FieldT>& r_mask, // trap and mask
+                        libsnark::pb_variable<FieldT>& masked,
+                        libsnark::pb_variable<FieldT>& k_inner,
                         const std::string &annotation_prefix = "COMM_outer_k_gadget");
+
+    void generate_r1cs_constraints ();
+	  void generate_r1cs_witness ();
+    const libsnark::pb_variable<FieldT>& result() const;
 };
 
 template<typename FieldT>
-class COMM_cm_gadget : public COMM_gadget<FieldT> {
+class COMM_cm_gadget : public MiMC_hash_gadget<FieldT> {
 public:
     COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
                 libsnark::pb_variable<FieldT>& outer_k,
                 libsnark::pb_variable<FieldT>& value_v, // 64 bits before, TODO we could constrain it
-                std::shared_ptr<libsnark::pb_variable<FieldT>> result,
                 const std::string &annotation_prefix = "COMM_cm_gadget");
 };
 
