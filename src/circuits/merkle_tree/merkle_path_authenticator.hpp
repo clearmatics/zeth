@@ -28,14 +28,14 @@ public:
         const libsnark::pb_variable<FieldT> leaf,
         const libsnark::pb_variable<FieldT> expected_root,
         const libsnark::pb_variable_array<FieldT> path,
-        const libsnark::pb_variable<FieldT> value_enforce,
-        const std::string &annotation_prefix
+        const std::string &annotation_prefix,
+        const libsnark::pb_variable<FieldT> bool_enforce = FieldT("1")
     );
 
     bool is_valid();
 
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(FieldT enforce=FieldT("1"));
+    void generate_r1cs_witness();
 };
 
 } // libzeth

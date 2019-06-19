@@ -130,13 +130,14 @@ void input_note_gadget<FieldT>::generate_r1cs_constraints() {
     commit_to_inputs_inner_k->generate_r1cs_constraints();
     commit_to_inputs_outer_k->generate_r1cs_constraints();
     commit_to_inputs_cm->generate_r1cs_constraints();
+    
     // value * (1 - enforce) = 0
     // Given `enforce` is boolean constrained:
     // If `value` is zero, `enforce` _can_ be zero.
     // If `value` is nonzero, `enforce` _must_ be one.
     libsnark::generate_boolean_r1cs_constraint<FieldT>(this->pb, value_enforce, "value_enforce");
     this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
-            packed_addition(this->value),
+            this->value,
             (1 - value_enforce),
             0
         ),

@@ -16,8 +16,8 @@ merkle_path_authenticator<HashT, FieldT>::merkle_path_authenticator(
         const libsnark::pb_variable<FieldT> leaf,
         const libsnark::pb_variable<FieldT> expected_root,
         const libsnark::pb_variable_array<FieldT> path,
-        const libsnark::pb_variable<FieldT> bool_enforce,
-        const std::string &annotation_prefix
+        const std::string &annotation_prefix,
+        const libsnark::pb_variable<FieldT> bool_enforce
     ) :
         merkle_path_compute<HashT,FieldT>(pb, depth, address_bits, leaf, path, annotation_prefix),
         m_expected_root(expected_root),
@@ -35,18 +35,19 @@ void merkle_path_authenticator<HashT, FieldT>::generate_r1cs_constraints()
 {
     merkle_path_compute<HashT, FieldT>::generate_r1cs_constraints();
 
-    if (this->value_enforce == 1) {
+    if (this->value_enforce == FieldT("1")) {
         // Ensure root matches calculated path hash
         this->pb.add_r1cs_constraint(
         libsnark::r1cs_constraint<FieldT>(this->result(), 1, m_expected_root),
         FMT(this->annotation_prefix, ".expected_root authenticator"));
     }
+
+    
 }
 
 template<typename HashT, typename FieldT>
-void merkle_path_authenticator<HashT, FieldT>::generate_r1cs_witness(FieldT enforce=FieldT("1"))
+void merkle_path_authenticator<HashT, FieldT>::generate_r1cs_witness()
 {
-    this->pb.val(value_enforce) = enforce;
 
     merkle_path_compute<HashT, FieldT>::generate_r1cs_witness();
 
