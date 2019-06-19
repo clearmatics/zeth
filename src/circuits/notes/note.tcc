@@ -46,8 +46,10 @@ input_note_gadget<FieldT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
     inner_k.reset(new libsnark::pb_variable<FieldT>);
     outer_k.reset(new libsnark::pb_variable<FieldT>);
     commitment.reset(new libsnark::pb_variable<FieldT>);
-    //TODO: allocate reset pb_variable
     (*a_pk).allocate(pb, "a_pk");
+    (*inner_k).allocate(pb, "inner_k");
+    (*outer_k).allocate(pb, "a_pk");
+    (*commitment).allocate(pb, "a_pk");
 
     // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk
     // is correctly computed from a_sk
@@ -140,12 +142,6 @@ void input_note_gadget<FieldT>::generate_r1cs_constraints() {
         ),
         FMT(this->annotation_prefix, " wrap_constraint_mkpath_dummy_inputs")
     );
-
-    //TODO ADD BOOL CONSTRAINTS ON ADDRESS BIT
-    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i)
-    {
-        generate_boolean_r1cs_constraint<FieldT>(this->pb, address_bits[i], FMT(this->annotation_prefix, " bits_%zu", i));
-    }
 
     auth_path->generate_r1cs_constraints();
 }
@@ -262,7 +258,9 @@ output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
     a_pk.reset(new libsnark::pb_variable<FieldT>);
     inner_k.reset(new libsnark::pb_variable<FieldT>);
     outer_k.reset(new libsnark::pb_variable<FieldT>);
-    //TODO: allocate reset pb_variable
+    (*a_pk).allocate(pb, "a_pk");
+    (*inner_k).allocate(pb, "inner_k");
+    (*outer_k).allocate(pb, "outer_k");
 
 
     // Commit to the output notes publicly without disclosing them.
