@@ -39,6 +39,38 @@ public:
     virtual ~ZethNote() {};
 };
 
+class FBaseNote {
+protected:
+    int value_ =0;
+public:
+    FBaseNote(){}
+    FBaseNote(int value) : value_(value) {};
+    virtual ~FBaseNote() {};
+
+    inline int value() const { return value_; };
+
+    // Test if the note is a 0-valued note
+    inline bool is_zero_valued() const {
+        return value_ == 0;
+    }
+    
+};
+
+class FZethNote : public FBaseNote {
+public:
+    int a_pk; // 256-bit vector
+    int rho; // 256-bit vector
+    int r; // 384-bit random vector
+    int r_mask;
+    //bits256 cm; // 256-bit vector
+
+    FZethNote(int a_pk, int value, int rho, int r, int r_mask/*, bits256 cm*/)
+        : FBaseNote(value), a_pk(a_pk), rho(rho), r(r), r_mask(r_mask) /*, cm(cm)*/{}
+
+    FZethNote(){};
+    virtual ~FZethNote() {};
+};
+
 } // libzeth
 
 #endif // __ZETH_NOTE_HPP__

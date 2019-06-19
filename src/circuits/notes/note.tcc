@@ -12,33 +12,20 @@ note_gadget<FieldT>::note_gadget(libsnark::protoboard<FieldT> &pb,
                                 const std::string &annotation_prefix
 ) : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
-    value.allocate(pb, ZETH_V_SIZE * 8); // ZETH_V_SIZE * 8 = 8 * 8 = 64
-    r.allocate(pb, ZETH_R_SIZE * 8); // ZETH_R_SIZE * 8 = 48 * 8 = 384
+    value.allocate(pb, "v"); 
+    r.allocate(pb, "r_trap");
+    r_mask.allocate(pb, "r_mask");
+    masked.allocate(pb, "masked");
 }
 
 template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_constraints() {
-    for (size_t i = 0; i < ZETH_V_SIZE * 8; i++) {
-        libsnark::generate_boolean_r1cs_constraint<FieldT>(
-            this->pb,
-            value[i],
-            "boolean_value"
-        );
-    }
-
-    for (size_t i = 0; i < ZETH_R_SIZE * 8; i++) {
-        libsnark::generate_boolean_r1cs_constraint<FieldT>(
-            this->pb,
-            r[i],
-            "boolean_value"
-        );
-    }
+    //
 }
 
 template<typename FieldT>
-void note_gadget<FieldT>::generate_r1cs_witness(const ZethNote& note) {
-    r.fill_with_bits(this->pb, get_vector_from_bits384(note.r));
-    value.fill_with_bits(this->pb, get_vector_from_bits64(note.value()));
+void note_gadget<FieldT>::generate_r1cs_witness(const FZethNote& note) {
+    //
 }
 
 // Gadget that makes sure that all conditions are met in order to spend a note:
@@ -47,37 +34,34 @@ void note_gadget<FieldT>::generate_r1cs_witness(const ZethNote& note) {
 // - commitment cm is in the tree of merkle root rt
 template<typename FieldT>
 input_note_gadget<FieldT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
-                                                libsnark::pb_variable<FieldT>& ZERO,
-                                                std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
-                                                libsnark::digest_variable<FieldT> rt, // merkle_root
+                                                std::shared_ptr<libsnark::pb_variable<FieldT>> nullifier,
+                                                libsnark::pb_variable<FieldT> rt, // merkle_root
                                                 const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    a_sk.allocate(pb, ZETH_A_SK_SIZE * 8); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
-    rho.allocate(pb, ZETH_RHO_SIZE * 8); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
-    address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
-    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, ""));
-    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, ""));
-    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, ""));
-    commitment.reset(new libsnark::digest_variable<FieldT>(pb, 256, ""));
+    a_sk.allocate(pb, "a_sk"); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
+    rho.allocate(pb, "rho"); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
+    address_bits.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
+    a_pk.reset(new libsnark::pb_variable<FieldT>);
+    inner_k.reset(new libsnark::pb_variable<FieldT>);
+    outer_k.reset(new libsnark::pb_variable<FieldT>);
+    commitment.reset(new libsnark::pb_variable<FieldT>);
+    //TODO: allocate reset pb_variable
+    (*a_pk).allocate(pb, "a_pk");
 
     // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk
     // is correctly computed from a_sk
     spend_authority.reset(new PRF_addr_a_pk_gadget<FieldT>(
         pb,
-        ZERO,
         a_sk,
-        a_pk
     ));
 
     // Call to the "PRF_nf_gadget" to make sure the nullifier
     // is correctly computed from a_sk and rho
     expose_nullifiers.reset(new PRF_nf_gadget<FieldT>(
         pb,
-        ZERO,
         a_sk,
         rho,
-        nullifier
     ));
     // Below this point, we need to do several calls
     // to the commitment gagdets.
@@ -102,39 +86,30 @@ input_note_gadget<FieldT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
     // affect the public state and leak data)).
     commit_to_inputs_inner_k.reset(new COMM_inner_k_gadget<FieldT>(
         pb,
-        ZERO,
-        a_pk->bits,
-        rho,
-        inner_k
+        a_pk,
+        rho
     ));
     commit_to_inputs_outer_k.reset(new COMM_outer_k_gadget<FieldT>(
         pb,
-        ZERO,
         this->r,
-        inner_k->bits,
-        outer_k
+        this->r_mask,
+        this->masked,
+        inner_k
     ));
     commit_to_inputs_cm.reset(new COMM_cm_gadget<FieldT>(
         pb,
-        ZERO,
-        outer_k->bits,
-        this->value,
-        commitment
+        outer_k,
+        this->value
     ));
     // We do not forget to allocate the `value_enforce` variable
     // since it is submitted to boolean constraints
     value_enforce.allocate(pb);
-    // These gadgets make sure that the computed
+    // This gadget maked sure that the computed
     // commitment is in the merkle tree of root rt
-    auth_path.reset(new libsnark::merkle_authentication_path_variable<FieldT, sha256_ethereum<FieldT>> (
+    auth_path.reset(new libsnark::merkle_path_authenticator<MiMC_hash_gadget<FieldT>, FieldT>(
         pb,
         ZETH_MERKLE_TREE_DEPTH,
-        "auth_path"
-    ));
-    check_membership.reset(new libsnark::merkle_tree_check_read_gadget<FieldT, sha256_ethereum<FieldT>>(
-        pb,
-        ZETH_MERKLE_TREE_DEPTH,
-        address_bits_va,
+        address_bits,
         *commitment,
         rt,
         *auth_path,
@@ -148,22 +123,6 @@ void input_note_gadget<FieldT>::generate_r1cs_constraints() {
     // Generate constraints of parent gadget
     note_gadget<FieldT>::generate_r1cs_constraints();
 
-    // Generate the constraints for the a_sk 256-bit string
-    for (size_t i = 0; i < ZETH_A_SK_SIZE * 8; i++) { // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
-        libsnark::generate_boolean_r1cs_constraint<FieldT>(
-            this->pb,
-            a_sk[i],
-            "a_sk"
-        );
-    }
-    // Generate the constraints for the rho 256-bit string
-    for (size_t i = 0; i < ZETH_RHO_SIZE * 8; i++) { // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
-        libsnark::generate_boolean_r1cs_constraint<FieldT>(
-            this->pb,
-            rho[i],
-            "rho"
-        );
-    }
     spend_authority->generate_r1cs_constraints();
     expose_nullifiers->generate_r1cs_constraints();
     commit_to_inputs_inner_k->generate_r1cs_constraints();
@@ -181,41 +140,38 @@ void input_note_gadget<FieldT>::generate_r1cs_constraints() {
         ),
         FMT(this->annotation_prefix, " wrap_constraint_mkpath_dummy_inputs")
     );
+
+    //TODO ADD BOOL CONSTRAINTS ON ADDRESS BIT
+    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i)
+    {
+        generate_boolean_r1cs_constraint<FieldT>(this->pb, address_bits[i], FMT(this->annotation_prefix, " bits_%zu", i));
+    }
+
     auth_path->generate_r1cs_constraints();
-    check_membership->generate_r1cs_constraints();
 }
 
 template<typename FieldT>
 void input_note_gadget<FieldT>::generate_r1cs_witness(
-    std::vector<libsnark::merkle_authentication_node> merkle_path,
-    size_t address,
-    libff::bit_vector address_bits,
-    const bits256 a_sk_in,
-    const ZethNote& note
+    const libsnark::pb_variable_array<FieldT> path,
+    const libsnark::pb_variable_array<FieldT> address_bits,
+    const FieldT a_sk_in,
+    const FZethNote& note
 ) {
     // Generate witness of parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
 
     // Witness a_sk for the input
-    a_sk.fill_with_bits(
-        this->pb,
-        get_vector_from_bits256(a_sk_in)
-    );
+    this->pb.val(a_sk) = a_sk_in;
 
     // Witness a_pk for a_sk with PRF_addr
     spend_authority->generate_r1cs_witness();
 
     // [SANITY CHECK] Witness a_pk with note information
-    a_pk->bits.fill_with_bits(
-        this->pb,
-        get_vector_from_bits256(note.a_pk)
-    );
+    this->pb.val(a_pk) = note.a_pk;
 
     // Witness rho for the input note
-    rho.fill_with_bits(
-        this->pb,
-        get_vector_from_bits256(note.rho)
-    );
+    this->pb.val(rho) = note.rho;
+
     // Witness the nullifier for the input note
     expose_nullifiers->generate_r1cs_witness();
 
@@ -285,51 +241,47 @@ void input_note_gadget<FieldT>::generate_r1cs_witness(
     // here, we need to be extra careful. Note that if one of the input oes not have a valid
     // auth path (is not correctly authenticated), the root (shared by all inputs)
     // will be changed and the proof should be rejected.
-    this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
 
+    this->pb.val(address_bits) = address_bits; // if doesnt work use pb_varaible_array<FielT>.fill_with_field_elements
+
+    this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
     std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
+
     // Witness merkle tree authentication path
-    address_bits_va.fill_with_bits(this->pb, address_bits);
-    // Make sure `address_bits` and `address` represent the same
-    // value encoded on different bases (binary and decimal)
-    assert(address_bits_va.get_field_element_from_bits(pb).as_ulong() == address);
-    auth_path->generate_r1cs_witness(address, merkle_path);
-    check_membership->generate_r1cs_witness();
+    auth_path->generate_r1cs_witness();
 }
 
 // Commit to the output notes of the JS
 template<typename FieldT>
 output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
-                                            libsnark::pb_variable<FieldT>& ZERO,
-                                            std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
+                                            std::shared_ptr<libsnark::pb_variable<FieldT>> commitment,
                                             const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    rho.allocate(pb, 256);
-    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, "a_pk"));
-    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, "inner_k"));
-    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, "outer_k"));
+    rho.allocate(pb, "rho");
+    a_pk.reset(new libsnark::pb_variable<FieldT>);
+    inner_k.reset(new libsnark::pb_variable<FieldT>);
+    outer_k.reset(new libsnark::pb_variable<FieldT>);
+    //TODO: allocate reset pb_variable
+
+
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_inner_k.reset(new COMM_inner_k_gadget<FieldT>(
         pb,
-        ZERO,
-        a_pk->bits,
-        rho,
-        inner_k
+        a_pk,
+        rho
     ));
     commit_to_outputs_outer_k.reset(new COMM_outer_k_gadget<FieldT>(
         pb,
-        ZERO,
         this->r,
-        inner_k->bits,
-        outer_k
+        this->r_mask,
+        this->masked,
+        inner_k
     ));
     commit_to_outputs_cm.reset(new COMM_cm_gadget<FieldT>(
         pb,
-        ZERO,
-        outer_k->bits,
-        this->value,
-        commitment
+        outer_k,
+        this->value
     ));
 }
 
@@ -346,21 +298,16 @@ void output_note_gadget<FieldT>::generate_r1cs_constraints() {
 }
 
 template<typename FieldT>
-void output_note_gadget<FieldT>::generate_r1cs_witness(const ZethNote& note) {
+void output_note_gadget<FieldT>::generate_r1cs_witness(const FZethNote& note) {
     // Generate witness of the parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
 
     // Witness rho with the note information
-    rho.fill_with_bits(
-        this->pb,
-        get_vector_from_bits256(note.rho)
-    );
+    this->pb.val(rho)=note.rho;
 
     // Witness a_pk with note information
-    a_pk->bits.fill_with_bits(
-        this->pb,
-        get_vector_from_bits256(note.a_pk)
-    );
+    this.pb(a_pk) = note.a_pk;
+
 
     commit_to_outputs_inner_k->generate_r1cs_witness();
     commit_to_outputs_outer_k->generate_r1cs_witness();

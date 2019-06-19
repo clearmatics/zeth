@@ -19,6 +19,7 @@ class merkle_path_authenticator : public merkle_path_compute<HashT, FieldT>
 {
 public:
     const libsnark::pb_variable<FieldT> m_expected_root;
+    const libsnark::pb_variable<FieldT> value_enforce;
 
     merkle_path_authenticator(
         libsnark::protoboard<FieldT> &pb,
@@ -27,12 +28,14 @@ public:
         const libsnark::pb_variable<FieldT> leaf,
         const libsnark::pb_variable<FieldT> expected_root,
         const libsnark::pb_variable_array<FieldT> path,
+        const libsnark::pb_variable<FieldT> value_enforce,
         const std::string &annotation_prefix
     );
 
     bool is_valid();
 
     void generate_r1cs_constraints();
+    void generate_r1cs_witness(FieldT enforce=FieldT("1"));
 };
 
 } // libzeth
