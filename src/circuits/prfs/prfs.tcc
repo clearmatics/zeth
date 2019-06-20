@@ -7,41 +7,7 @@
 
 namespace libzeth {
 
-//TODO put get_* in util file
-template<typename FieldT>
-libsnark::pb_variable<FieldT> get_zero(libsnark::protoboard<FieldT>& pb) {
-    libsnark::pb_variable<FieldT> zero;
-    zero.allocate(pb, "zero");
-    pb.val(zero) = FieldT("0");
-    return zero;
-}
-
-template<typename FieldT>
-libsnark::pb_variable<FieldT> get_iv_add(libsnark::protoboard<FieldT>& pb) {
-    libsnark::pb_variable<FieldT> iv;
-    iv.allocate(pb, "iv_add");
-    pb.val(iv) = FieldT("7655352919458297598499032567765357605187604397960652899494713742188031353302");
-    return iv;
-}
-
-
-template<typename FieldT>
-libsnark::pb_variable<FieldT> get_iv_sn(libsnark::protoboard<FieldT>& pb) {
-    libsnark::pb_variable<FieldT> iv;
-    iv.allocate(pb, "iv_sn");
-    pb.val(iv) = FieldT("38594890471543702135425523844252992926779387339253565328142220201141984377400");
-    return iv;
-}
-
-
-template<typename FieldT>
-libsnark::pb_variable<FieldT> get_iv_pk(libsnark::protoboard<FieldT>& pb) {
-    libsnark::pb_variable<FieldT> iv;
-    iv.allocate(pb, "iv_pk");
-    pb.val(iv) = FieldT("20715549373167656640519441333099474211916836972862576858009333815040496998894");
-    return iv;
-}
-
+//TODO add PRF parent class
 
 // a_pk = sha256(a_sk || 0^256): See Zerocash extended paper, page 22,
 // paragraph "Instantiating the NP statement POUR"
@@ -56,7 +22,6 @@ PRF_addr_a_pk_gadget<FieldT>::PRF_addr_a_pk_gadget(
 {
   //
 }
-
 
 // PRF to generate the nullifier
 // nf = sha256(a_sk || 01 || [rho]_254): See Zerocash extended paper, page 22
