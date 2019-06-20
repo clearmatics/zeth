@@ -95,11 +95,12 @@ libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::
     return acc;
 }
 
-template<typename FieldT>//TODO: change in get_var
-libsnark::pb_variable<FieldT> get_zero(libsnark::protoboard<FieldT>& pb) {
-    libsnark::pb_variable<FieldT> zero;
-    zero.allocate(pb, "zero");
-    return zero;
+template<typename FieldT>
+libsnark::pb_variable<FieldT> get_iv_mt(libsnark::protoboard<FieldT>& pb) {
+    libsnark::pb_variable<FieldT> iv;
+    iv.allocate(pb, "iv");
+    pb.val(iv) = FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451");
+    return iv;
 }
 
 template<typename FieldT>
@@ -126,6 +127,13 @@ libsnark::pb_variable<FieldT> get_iv_pk(libsnark::protoboard<FieldT>& pb) {
     iv.allocate(pb, "iv_pk");
     pb.val(iv) = FieldT("20715549373167656640519441333099474211916836972862576858009333815040496998894");
     return iv;
+}
+
+template<typename FieldT>
+libsnark::pb_variable<FieldT> get_var(libsnark::protoboard<FieldT>& pb, const std::string &annotation) {
+    libsnark::pb_variable<FieldT> var;
+    var.allocate(pb, annotation);
+    return var;
 }
 
 } // libzeth

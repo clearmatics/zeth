@@ -18,7 +18,7 @@ PRF_addr_a_pk_gadget<FieldT>::PRF_addr_a_pk_gadget(
         libsnark::pb_variable<FieldT>& a_sk,
         const std::string &annotation_prefix
       ) :
-      MiMC_hash_gadget<FieldT>(pb, {a_sk, get_zero(pb)}, get_iv_add(pb), annotation_prefix)
+      MiMC_hash_gadget<FieldT>(pb, {a_sk, get_var(pb, "zero_var")}, get_iv_add(pb), annotation_prefix)
 {
   //
 }
