@@ -34,6 +34,7 @@ bool merkle_path_authenticator<HashT, FieldT>::is_valid()
 template<typename HashT, typename FieldT>
 void merkle_path_authenticator<HashT, FieldT>::generate_r1cs_constraints()
 {
+
     merkle_path_compute<HashT, FieldT>::generate_r1cs_constraints();
 
     // Ensure root matches calculated path hash
@@ -48,9 +49,7 @@ void merkle_path_authenticator<HashT, FieldT>::generate_r1cs_constraints()
 template<typename HashT, typename FieldT>
 void merkle_path_authenticator<HashT, FieldT>::generate_r1cs_witness()
 {
-
     merkle_path_compute<HashT, FieldT>::generate_r1cs_witness();
-
 }
 
 

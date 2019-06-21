@@ -29,35 +29,37 @@ public:
     libsnark::pb_variable<FieldT> value; // Binary value of the note (64 bits)
     libsnark::pb_variable<FieldT> r; // Trapdoor r of the note (384 bits)
     libsnark::pb_variable<FieldT> r_mask; // Trapdoor r of the note (384 bits)
-    libsnark::pb_variable<FieldT> masked; // Masked inner commitment
 
 
     note_gadget(libsnark::protoboard<FieldT> &pb, 
                 const std::string &annotation_prefix = "base_note_gadget");
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(const FZethNote& note);
+    void generate_r1cs_witness(const FZethNote<FieldT>& note);
 };
 
 // Gadget that makes sure that all conditions are met in order to spend a note:
 // - The nullifier is correctly computed from a_sk and rho
 // - The commitment cm is correctly computed from the coin's data
 // - commitment cm is in the tree of merkle root rt
-template<typename FieldT>
+template<typename HashT, typename FieldT>
 class input_note_gadget : public note_gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::pb_variable<FieldT>> a_pk; // Output of a PRF
     libsnark::pb_variable<FieldT> rho; // Nullifier seed 
+    libsnark::pb_variable<FieldT> masked; // Masked inner commitment
 
-    std::shared_ptr<COMM_inner_k_gadget<FieldT>> commit_to_inputs_inner_k;
+
+    std::shared_ptr<COMM_gadget<FieldT>> commit_to_inputs_inner_k;
     std::shared_ptr<libsnark::pb_variable<FieldT>> inner_k;
     std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_inputs_outer_k;
     std::shared_ptr<libsnark::pb_variable<FieldT>> outer_k;
-    std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_inputs_cm;
+    std::shared_ptr<COMM_gadget<FieldT>> commit_to_inputs_cm;
     std::shared_ptr<libsnark::pb_variable<FieldT>> commitment; // Output of a PRF. This is the note commitment
 
     libsnark::pb_variable<FieldT> value_enforce; // Bit that checks whether the commitment (leaf) has to be found in the merkle tree (Necessary to support dummy notes of value 0)
-    libsnark::pb_variable_array<FieldT> address_bits;
-    std::shared_ptr<libsnark::merkle_path_authenticator<MiMC_hash_gadget<FieldT> , FieldT> > auth_path;
+    libsnark::pb_variable_array<FieldT> address_bits_va;
+    std::shared_ptr<libsnark::pb_variable_array<FieldT>> auth_path;
+    std::shared_ptr<merkle_path_authenticator<HashT, FieldT> >  check_membership;
 
     std::shared_ptr<PRF_addr_a_pk_gadget<FieldT>> spend_authority; // Makes sure the a_pk is computed corectly from a_sk
     std::shared_ptr<PRF_nf_gadget<FieldT>> expose_nullifiers; // Makes sure the nullifiers are computed correctly from rho and a_sk
@@ -69,10 +71,10 @@ public:
                     libsnark::pb_variable<FieldT> rt, // merkle_root
                     const std::string &annotation_prefix = "input_note_gadget");
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(const libsnark::pb_variable_array<FieldT> path,
-                            const libsnark::pb_variable_array<FieldT> address_bits,
+    void generate_r1cs_witness(const std::vector<FieldT> path,
+                            const libff::bit_vector address_bits,
                             const FieldT a_sk_in,
-                            const FZethNote& note);
+                            const FZethNote<FieldT>& note);
 };
 
 // Commit to the output notes of the JS
@@ -81,12 +83,14 @@ class output_note_gadget : public note_gadget<FieldT> {
 private:
     libsnark::pb_variable<FieldT> rho;
     std::shared_ptr<libsnark::pb_variable<FieldT>> a_pk;
+    libsnark::pb_variable<FieldT> masked; // Masked inner commitment
 
-    std::shared_ptr<COMM_inner_k_gadget<FieldT>> commit_to_outputs_inner_k;
+
+    std::shared_ptr<COMM_gadget<FieldT>> commit_to_outputs_inner_k;
     std::shared_ptr<libsnark::pb_variable<FieldT>> inner_k;
     std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_outputs_outer_k;
     std::shared_ptr<libsnark::pb_variable<FieldT>> outer_k;
-    std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_outputs_cm;
+    std::shared_ptr<COMM_gadget<FieldT>> commit_to_outputs_cm;
     //std::shared_ptr<libsnark::pb_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
 
 public:
@@ -95,7 +99,8 @@ public:
         std::shared_ptr<libsnark::pb_variable<FieldT>> commitment,
         const std::string &annotation_prefix = "output_note_gadget");
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(const FZethNote& note);
+    void generate_r1cs_witness(const FZethNote<FieldT>& note);
+    libsnark::pb_variable<FieldT> result() const;
 };
 
 } // libzeth

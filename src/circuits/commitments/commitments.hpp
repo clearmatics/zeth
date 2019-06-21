@@ -33,6 +33,7 @@ public:
 // We denote by trap_r the trapdoor r
 template<typename FieldT>
 class COMM_outer_k_gadget : public libsnark::gadget<FieldT> {
+public: //TODO remove public
   MiMC_hash_gadget<FieldT> hasher;
   libsnark::pb_variable<FieldT> masked;
   libsnark::pb_variable<FieldT> r_mask;

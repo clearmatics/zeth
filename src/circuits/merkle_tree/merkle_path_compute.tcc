@@ -28,7 +28,7 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
 
         libsnark::pb_variable<FieldT> iv;
         iv.allocate(pb, FMT(this->annotation_prefix, "_iv"));
-        pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790");
+        pb.val(iv) = FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451");
 
         for( size_t i = 0; i < depth; i++ )
         {
@@ -81,7 +81,7 @@ void merkle_path_compute<HashT, FieldT>::generate_r1cs_witness()
     for( i = 0; i < hashers.size(); i++ )
     {
         selectors[i].generate_r1cs_witness();
-        hashers[i].generate_r1cs_witness();
+        hashers[i].generate_r1cs_witness();        
     }
 }
 

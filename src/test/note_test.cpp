@@ -5,128 +5,134 @@
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
 // Header to use the merkle tree data structure
-#include <libsnark/common/data_structures/merkle_tree.hpp>
-
-// Header to use the sha256_ethereum gadget
-#include "circuits/sha256/sha256_ethereum.hpp"
-
-// Access the `from_bits` function and other utils
-#include "circuits/circuits-util.hpp"
-#include "util.hpp"
+#include "src/types/merkle_tree.hpp"
 
 // Access the defined constants
 #include "zeth.h"
 
 // Bring the types in scope
-#include "types/bits.hpp"
 #include "types/note.hpp"
 
 // Gadget to test
 #include "circuits/notes/note.hpp"
 
-using namespace libzeth;
+#include "circuits/mimc/mimc_hash.hpp"
+#include "snarks_alias.hpp"
 
+
+
+using namespace libzeth;
+using namespace libsnark;
+
+typedef MiMC_hash_gadget<FieldT> HashT;
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
-typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
 
 namespace {
 
 TEST(TestNoteCircuits, TestInputNoteGadget) {
     libsnark::protoboard<FieldT> pb;
+
+    /*
     libsnark::pb_variable<FieldT> ZERO;
     ZERO.allocate(pb);
     pb.val(ZERO) = FieldT::zero();
+    */
 
     std::ostream &stream = std::cout;
 
     libff::enter_block("[BEGIN] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
-    bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
-    bits64 value_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector("2F0000000000000F"));
-    bits256 a_sk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FF0000000000000000000000000000000000000000000000000000000000000F"));
-    bits256 rho_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000000000000000000000000000009009"));
+    // Let's choose a_sk = mimc_hash([0], sha3("Clearmatics"))
+    FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
+    // a_pk = mimc_hash([a_sk, 0], sha3("Clearmatics_add"))
+    // We could perhaps drop the "0" or consider several pk for the same sk
+    FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
 
-    // Get a_pk from a_sk (PRF)
-    //
-    // a_sk = 0xFF0000000000000000000000000000000000000000000000000000000000000F
-    // 0^256 = 0x0000000000000000000000000000000000000000000000000000000000000000
-    // a_pk = sha256(a_sk || 0^256)
-    // Generated directly from a_sk and solidity sha256 (solidity v0.5.0)
-    bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"));
+    // Let's choose r_trap = mimc_hash([1], sha3("Clearmatics")) and r_mask = mimc_hash([2], sha3("Clearmatics"))
+    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821"); 
+    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643"); 
 
-    // Get nf from a_sk and rho (PRF)
-    //
-    // nf = sha256(a_sk || 01 || [rho]_254)
-    // a_sk: 0xFF0000000000000000000000000000000000000000000000000000000000000F
-    // '01 || [rho]_254' = 0x8FFFC00000000000000000000000000000000000000000000000000000002402
-    // The test vector generated directly from a_sk and solidity sha256 (solidity v0.5.0), gives:
-    // nf = 0x69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f
-    bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f"));
+     // Let's choose rho = mimc_hash([3], sha3("Clearmatics"))
+    FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
+    // nf = mimc_hash([a_sk, rho], sha3("Clearmatics_sn"))
+    FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
 
-    // Get the coin's commitment (COMM)
-    //
-    // inner_k = sha256(a_pk || rho)
-    // outer_k = sha256(r || [inner_commitment]_128)
-    // cm = sha256(outer_k || 0^192 || value_v)
-    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
+    FieldT value = FieldT("100");
+
+    // inner_k = mimc_hash(a_pk, rho)
+    FieldT inner_k = FieldT("7525462055068850756704202737069719250735251830112288124323778368808523240623");
+    // outer_k = mimc_hash(r_trap, masked) with masked = inner_k +r_mask
+    // masked = 20472253468596875516543597077387956129294409978113725306512819140856487300266
+    FieldT outer_k = FieldT("18303545575895747902094842552645262963308975351435684613898377861780805247602");
+    // cm = mimc_hash(outer_k, value_v)
+    FieldT cm = FieldT("21075862836612025410946586494502715375244302209109240154340545056954086062438");
     libff::leave_block("[END] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
+
+
     libff::enter_block("[BEGIN] Setup a local merkle tree and append our commitment to it", true);
-    std::unique_ptr<libsnark::merkle_tree<HashT>> test_merkle_tree = std::unique_ptr<libsnark::merkle_tree<HashT>>(
-        new libsnark::merkle_tree<HashT>(
-            ZETH_MERKLE_TREE_DEPTH,
-            HashT::get_digest_len()
+
+
+    merkle_tree<FieldT, HashT> mtree = merkle_tree<FieldT, HashT>(ZETH_MERKLE_TREE_DEPTH);
+
+    std::unique_ptr<merkle_tree<FieldT, HashT>> test_merkle_tree = std::unique_ptr<merkle_tree<FieldT, HashT>>(
+        new merkle_tree<FieldT, HashT>(
+            ZETH_MERKLE_TREE_DEPTH
         )
     );
 
     // In practice the address is emitted by the mixer contract once the commitment is appended to the tree
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
-    test_merkle_tree->set_value(address_commitment, libff::bit_vector(get_vector_from_bits256(cm_bits256)));
+    test_merkle_tree->set_value(address_commitment, cm);
+
 
     // Get the root of the new/non-empty tree (after insertion)
-    libff::bit_vector updated_root_value = test_merkle_tree->get_root();
+    FieldT updated_root_value = test_merkle_tree->get_root();
     libff::leave_block("[END] Setup a local merkle tree and append our commitment to it", true);
 
-    libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
-    std::shared_ptr<libsnark::digest_variable<FieldT> > nullifier_digest;
-    nullifier_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "nullifier_digest"));
-    nullifier_digest->generate_r1cs_constraints();
-    nullifier_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(nf_bits256)));
 
-    std::shared_ptr<libsnark::digest_variable<FieldT> > root_digest;
-    root_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "root_digest"));
-    root_digest->generate_r1cs_constraints();
-    root_digest->generate_r1cs_witness(libff::bit_vector(updated_root_value));
-    std::shared_ptr<input_note_gadget<FieldT>> input_note_g  = std::shared_ptr<input_note_gadget<FieldT>>(
-        new input_note_gadget<FieldT>(
+
+    libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
+    std::shared_ptr<libsnark::pb_variable<FieldT> > nullifier_digest;
+    nullifier_digest.reset(new libsnark::pb_variable<FieldT>);
+    (*nullifier_digest).allocate(pb, "nf");
+
+    std::shared_ptr<libsnark::pb_variable<FieldT>> root_digest;
+    root_digest.reset(new libsnark::pb_variable<FieldT>);
+    (*root_digest).allocate(pb, "root");
+    pb.val(*root_digest) = updated_root_value;
+
+    std::shared_ptr<input_note_gadget<HashT, FieldT>> input_note_g  = std::shared_ptr<input_note_gadget<HashT, FieldT>>(
+        new input_note_gadget<HashT, FieldT>(
             pb,
-            ZERO,
             nullifier_digest,
             *root_digest
         )
     );
 
     // Get the merkle path to the commitment we appended
-    std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
+    std::vector<FieldT> path_values = test_merkle_tree->get_path(address_commitment);
+
 
     // Create a note from the coin's data
-    ZethNote note(
-        a_pk_bits256, 
-        value_bits64, 
-        rho_bits256, 
-        trap_r_bits384
+    FZethNote<FieldT> note(
+        a_pk, 
+        value, 
+        rho, 
+        r_trap,
+        r_mask
     );
 
     input_note_g->generate_r1cs_constraints();
     input_note_g->generate_r1cs_witness(
-        path,
-        address_commitment,
+        path_values,
         address_bits,
-        a_sk_bits256,
+        a_sk,
         note
     );
     libff::leave_block("[END] Data conversion to generate a witness of the note gadget", true);
+
 
     bool is_valid_witness = pb.is_satisfied();
     std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;
@@ -136,43 +142,57 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 
 TEST(TestNoteCircuits, TestOutputNoteGadget) {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
-    pb.val(ZERO) = FieldT::zero();
-
     std::ostream &stream = std::cout;
 
     libff::enter_block("[BEGIN] Initialize the output coins' data (a_pk, cm, rho)", true);
-    bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
-    bits64 value_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector("2F0000000000000F"));
-    bits256 rho_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000000000000000000000000000009009"));
-    bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"));
+    // Let's choose a_sk = mimc_hash([0], sha3("Clearmatics"))
+    FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
+    // a_pk = mimc_hash([a_sk, 0], sha3("Clearmatics_add"))
+    // We could perhaps drop the "0" or consider several pk for the same sk
+    FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
 
-    // Get the coin's commitment (COMM)
-    //
-    // inner_k = sha256(a_pk || rho)
-    // outer_k = sha256(r || [inner_commitment]_128)
-    // cm = sha256(outer_k || 0^192 || value_v)
-    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
+    // Let's choose r_trap = mimc_hash([1], sha3("Clearmatics")) and r_mask = mimc_hash([2], sha3("Clearmatics"))
+    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821"); 
+    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643"); 
+
+     // Let's choose rho = mimc_hash([3], sha3("Clearmatics"))
+    FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
+    // nf = mimc_hash([a_sk, rho], sha3("Clearmatics_sn"))
+    FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
+
+    FieldT value = FieldT("100");
+
+    // inner_k = mimc_hash(a_pk, rho)
+    FieldT inner_k = FieldT("7525462055068850756704202737069719250735251830112288124323778368808523240623");
+    // outer_k = mimc_hash(r_trap, masked) with masked = inner_k +r_mask
+    // masked = 20472253468596875516543597077387956129294409978113725306512819140856487300266
+    FieldT outer_k = FieldT("18303545575895747902094842552645262963308975351435684613898377861780805247602");
+    // cm = mimc_hash(outer_k, value_v)
+    FieldT cm = FieldT("21075862836612025410946586494502715375244302209109240154340545056954086062438");
     libff::leave_block("[END] Initialize the output coins' data (a_pk, cm, rho)", true);
 
+
+
+
     libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
-    std::shared_ptr<libsnark::digest_variable<FieldT> > commitment;
-    commitment.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "root_digest"));
+    std::shared_ptr<libsnark::pb_variable<FieldT> > commitment;
+    commitment.reset(new libsnark::pb_variable<FieldT>);
+    (*commitment).allocate(pb, "cm");
+
     std::shared_ptr<output_note_gadget<FieldT>> output_note_g  = std::shared_ptr<output_note_gadget<FieldT>>(
         new output_note_gadget<FieldT>(
             pb,
-            ZERO,
             commitment
         )
     );
 
     // Create a note from the coin's data
-    ZethNote note(
-        a_pk_bits256, 
-        value_bits64, 
-        rho_bits256, 
-        trap_r_bits384
+    FZethNote<FieldT> note(
+        a_pk, 
+        value, 
+        rho, 
+        r_trap,
+        r_mask
     );
 
     output_note_g->generate_r1cs_constraints();
@@ -181,14 +201,14 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     );
     libff::leave_block("[END] Data conversion to generate a witness of the note gadget", true);
 
+
     bool is_valid_witness = pb.is_satisfied();
     std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;
+
     ASSERT_TRUE(is_valid_witness);
 
     // Last check to make sure the commitment computed is the expected one
-    libff::bit_vector obtained_digest = commitment->get_digest();
-    libff::bit_vector expected_digest = libff::bit_vector(get_vector_from_bits256(cm_bits256));
-    ASSERT_EQ(obtained_digest, expected_digest);
+    ASSERT_EQ(pb.val((*output_note_g).result()), cm);
 };
 
 } // namespace

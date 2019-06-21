@@ -1,14 +1,8 @@
 #include "gtest/gtest.h"
 
 #include <libff/common/default_types/ec_pp.hpp>
-
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-
-#include "snarks_alias.hpp"
-#include "circuits/circuits-util.hpp"
 #include "circuits/mimc/mimc_hash.hpp"
-#include "circuit-wrapper.hpp"
+
 
 using namespace libsnark;
 using namespace libzeth;

@@ -39,9 +39,10 @@ public:
     virtual ~ZethNote() {};
 };
 
+template<typename FieldT>
 class FBaseNote {
 protected:
-    FieldT value_ =0;
+    FieldT value_ = FieldT("0");
 public:
     FBaseNote(){}
     FBaseNote(FieldT value) : value_(value) {};
@@ -56,7 +57,8 @@ public:
     
 };
 
-class FZethNote : public FBaseNote {
+template<typename FieldT>
+class FZethNote : public FBaseNote<FieldT> {
 public:
     FieldT a_pk; 
     FieldT rho; 
@@ -65,7 +67,7 @@ public:
     //FieldT cm; 
 
     FZethNote(FieldT a_pk, FieldT value, FieldT rho, FieldT r, FieldT r_mask/*, FieldT cm*/)
-        : FBaseNote(value), a_pk(a_pk), rho(rho), r(r), r_mask(r_mask) /*, cm(cm)*/{}
+        : FBaseNote<FieldT>(value), a_pk(a_pk), rho(rho), r(r), r_mask(r_mask) /*, cm(cm)*/{}
 
     FZethNote(){};
     virtual ~FZethNote() {};
