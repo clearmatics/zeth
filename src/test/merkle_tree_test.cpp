@@ -100,14 +100,20 @@ bool test_merkle_path_authenticator_depth1() {
 	expected_root.allocate(pb, "expected_root");
 	pb.val(expected_root) = root;
 
+	libsnark::pb_variable<FieldT> enforce_bit;
+	enforce_bit.allocate(pb, "enforce_bit");
+	pb.val(enforce_bit) = FieldT("1");
+
+
 	size_t tree_depth = 1;
 	merkle_path_authenticator<MiMC_hash_gadget<FieldT>, FieldT> auth(
 		pb, tree_depth, address_bits,
-		leaf, expected_root, path,
+		leaf, expected_root, path, enforce_bit,
 		"authenticator");
-
-	auth.generate_r1cs_witness();
+	
 	auth.generate_r1cs_constraints();
+	auth.generate_r1cs_witness();
+
 
 	if( ! auth.is_valid() ) {
 		std::cerr << "Not valid!" << std::endl;
@@ -165,10 +171,15 @@ bool test_null_merkle_path_authenticator_depth3() {
 	expected_root.allocate(pb, "expected_root");
 	pb.val(expected_root) = root;
 
+
+	libsnark::pb_variable<FieldT> enforce_bit;
+	enforce_bit.allocate(pb, "enforce_bit");
+	pb.val(enforce_bit) = FieldT("1");
+
 	size_t tree_depth = 3;
 	merkle_path_authenticator<MiMC_hash_gadget<FieldT>, FieldT> auth(
 		pb, tree_depth, address_bits,
-		leaf, expected_root, path,
+		leaf, expected_root, path, enforce_bit,
 		"authenticator");
 
 	auth.generate_r1cs_witness();
@@ -197,31 +208,33 @@ int main( int argc, char **argv )
 {
     ppT::init_public_params();
 
-    if( ! libzeth::test_merkle_path_authenticator_depth1() )
-    {
-        std::cerr << "FAIL merkle_path_authenticator\n";
-        return 1;
-    }
 
     if( ! libzeth::test_merkle_path_selector(0) )
     {
         std::cerr << "FAIL merkle_path_selector 0\n";
-        return 2;
+        return 0;
     }
 
     if( ! libzeth::test_merkle_path_selector(1) )
     {
         std::cerr << "FAIL merkle_path_selector 1\n";
-        return 2;
+        return 0;
     }
+
+	if( ! libzeth::test_merkle_path_authenticator_depth1() )
+    {
+        std::cerr << "FAIL merkle_path_authenticator\n";
+        return 1;
+    }
+
 
     if (! libzeth::test_null_merkle_path_authenticator_depth3()) {
       std::cerr << "FAIL null_merkle_path_authenticator of depth 3\n";
-      return 1;
+      return 0;
     }
 
 
     std::cout << "OK\n";
-    return 0;
+    return 1;
 }
 

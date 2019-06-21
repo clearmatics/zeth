@@ -28,8 +28,8 @@ public:
         const libsnark::pb_variable<FieldT> leaf,
         const libsnark::pb_variable<FieldT> expected_root,
         const libsnark::pb_variable_array<FieldT> path,
-        const std::string &annotation_prefix,
-        const libsnark::pb_variable<FieldT> bool_enforce = FieldT("1")
+        const libsnark::pb_variable<FieldT> bool_enforce,
+        const std::string &annotation_prefix
     );
 
     bool is_valid();

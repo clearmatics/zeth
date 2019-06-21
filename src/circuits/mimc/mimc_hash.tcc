@@ -60,7 +60,7 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_constraints (){
 
 template<typename FieldT>
 void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
-    //sha3("Clearmatics"):82724731331859054037315113496710413141112897654334566532528783843265082629790
+    //sha3("Clearmatics"):14220067918847996031108144435763672811050758065945364308986253046354060608451
     // before 918403109389145570117360101535982733651217667914747213867238065296420114726
 
     for( size_t i = 0; i < permutation_gadgets.size(); i++ ) {
@@ -74,6 +74,33 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
         this->pb.val( outputs[i] ) = round_key + this->pb.val(permutation_gadgets[i].result()) + this->pb.val(messages[i]);
         }
 }
+
+
+template<typename FieldT>
+FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv)
+{
+    libsnark::protoboard<FieldT> pb;
+
+    std::vector<libsnark::pb_variable<FieldT>> inputs;
+    for (size_t i = 0; i < messages.size(); i++)
+    {
+      libsnark::pb_variable<FieldT> input;
+      input.allocate(pb, std::to_string(i));
+      pb.val(input) = messages[i];
+      inputs.push_back(input);
+    }
+
+    libsnark::pb_variable<FieldT> init_vector;
+    init_vector.allocate(pb, "iv");
+    pb.val(init_vector) = iv;
+
+    MiMC_hash_gadget<FieldT> mimc_hasher(pb, inputs, init_vector, "mimc_hash");
+
+    mimc_hasher.generate_r1cs_witness();
+
+    return pb.val(mimc_hasher.result());
+}
+
 }  // libzeth
 
 #endif // __ZETH_MIMC_HASH_TCC__

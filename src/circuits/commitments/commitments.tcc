@@ -33,7 +33,7 @@ libsnark::pb_variable<FieldT> get_iv(libsnark::protoboard<FieldT>& pb) {
 // where we define the left part: inner_k = sha256(a_pk || rho)
 // as being the inner commitment of k
 template<typename FieldT>
-COMM_inner_k_gadget<FieldT>::COMM_inner_k_gadget(libsnark::protoboard<FieldT>& pb,
+COMM_gadget<FieldT>::COMM_gadget(libsnark::protoboard<FieldT>& pb,
                                                 libsnark::pb_variable<FieldT>& a_pk, // 256 bits
                                                 libsnark::pb_variable<FieldT>& rho, // 256 bits
                                                 const std::string &annotation_prefix
@@ -85,20 +85,9 @@ void COMM_outer_k_gadget<FieldT>::generate_r1cs_witness (){
     }
 
 template<typename FieldT>
-const libsnark::pb_variable<FieldT>& COMM_outer_k_gadget<FieldT>::result() const {
+const  libsnark::pb_variable<FieldT> COMM_outer_k_gadget<FieldT>::result() const {
     return this->hasher.result();
   }
-
-// cm = sha256(outer_k || 0^192 || value_v)
-template<typename FieldT>
-COMM_cm_gadget<FieldT>::COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
-                                    libsnark::pb_variable<FieldT>& outer_k,
-                                    libsnark::pb_variable<FieldT>& value_v, // 64 bits before, TODO perhaps constrain to 2^64
-                                    const std::string &annotation_prefix
-) : MiMC_hash_gadget<FieldT>(pb, {outer_k, value_v}, get_iv(pb), annotation_prefix)
-{
-    // Nothing
-}
 
 
 } // libzeth

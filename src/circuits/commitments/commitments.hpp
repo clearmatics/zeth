@@ -18,12 +18,12 @@ namespace libzeth {
 // where we define the left part: inner_k = sha256(a_pk || rho)
 // as being the inner commitment of k
 template<typename FieldT>
-class COMM_inner_k_gadget : public MiMC_hash_gadget<FieldT> {
+class COMM_gadget : public MiMC_hash_gadget<FieldT> {
 public:
-    COMM_inner_k_gadget(libsnark::protoboard<FieldT>& pb,
-                        libsnark::pb_variable<FieldT>& a_pk,
-                        libsnark::pb_variable<FieldT>& rho,
-                        const std::string &annotation_prefix = "COMM_inner_k_gadget");
+    COMM_gadget(libsnark::protoboard<FieldT>& pb,
+                        libsnark::pb_variable<FieldT>& left,
+                        libsnark::pb_variable<FieldT>& right,
+                        const std::string &annotation_prefix = "COMM_gadget");
 };
 
 // See Zerocash extended paper, page 22
@@ -48,16 +48,7 @@ public:
 
     void generate_r1cs_constraints ();
 	  void generate_r1cs_witness ();
-    const libsnark::pb_variable<FieldT>& result() const;
-};
-
-template<typename FieldT>
-class COMM_cm_gadget : public MiMC_hash_gadget<FieldT> {
-public:
-    COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
-                libsnark::pb_variable<FieldT>& outer_k,
-                libsnark::pb_variable<FieldT>& value_v, // 64 bits before, TODO we could constrain it
-                const std::string &annotation_prefix = "COMM_cm_gadget");
+    const  libsnark::pb_variable<FieldT> result() const;
 };
 
 } // libzeth

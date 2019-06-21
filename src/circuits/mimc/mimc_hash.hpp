@@ -33,6 +33,9 @@ public:
 	void generate_r1cs_witness () const;
 };
 
+template<typename FieldT>
+FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv=FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451"));
+
 } // libzeth
 
 #include "mimc_hash.tcc"

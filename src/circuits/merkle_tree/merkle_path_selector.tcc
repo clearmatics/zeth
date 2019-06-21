@@ -6,6 +6,8 @@
 #ifndef __ZETH_MERKLE_PATH_SELECTOR_TCC__
 #define __ZETH_MERKLE_PATH_SELECTOR_TCC__
 
+
+
 namespace libzeth {
 
 template<typename FieldT>
@@ -29,7 +31,7 @@ merkle_path_selector<FieldT>::merkle_path_selector(
 template<typename FieldT>
 void merkle_path_selector<FieldT>::generate_r1cs_constraints()
 {
-    generate_boolean_r1cs_constraint<FieldT>(this->pb, is_right, FMT(this->annotation_prefix, " is_right"));
+    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(is_right, 1-is_right, 0), FMT(this->annotation_prefix, " boolean is_right"));
 
     this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(is_right, pathvar - input, left - input),
         FMT(this->annotation_prefix, "is_right*pathvar + 1-is_right * input = left"));

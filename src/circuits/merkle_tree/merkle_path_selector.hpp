@@ -7,6 +7,7 @@
 #define __ZETH_MERKLE_PATH_SELECTOR_HPP___
 
 #include "snarks_alias.hpp"
+#include "depends/libsnark/libsnark/gadgetlib1/gadgets/basic_gadgets.hpp"
 
 /**
 * Depending on the address bit, output the correct left/right inputs

@@ -38,7 +38,7 @@ TEST(TestCOMMs, TestCOMMInnerKGadget) {
     rho.allocate(pb, "rho");
     pb.val(rho) = FieldT("6707574354230822882728245456150029507327662563672602557855634841940058902338");
 
-    COMM_inner_k_gadget<FieldT> comm_inner_test_gadget(pb, a_pk, rho, "COMM_inner_test_gadget");
+    COMM_gadget<FieldT> comm_inner_test_gadget(pb, a_pk, rho, "COMM_inner_test_gadget");
 
     comm_inner_test_gadget.generate_r1cs_constraints();
     comm_inner_test_gadget.generate_r1cs_witness();
@@ -93,12 +93,13 @@ TEST(TestCOMMs, TestCOMMCMGadget) {
   v.allocate(pb, "v");
   pb.val(v) = FieldT("100");
 
-  COMM_cm_gadget<FieldT> comm_test_gadget(pb, outer_comm, v, "COMM_test_gadget");
+  COMM_gadget<FieldT> comm_test_gadget(pb, outer_comm, v, "COMM_test_gadget");
 
   comm_test_gadget.generate_r1cs_constraints();
   comm_test_gadget.generate_r1cs_witness();
 
   FieldT expected_out = FieldT("21143498282498593887430678658261061148773654198094463922036029572048065734021");
+  std::cout << "*******" << std::endl;
 
   ASSERT_TRUE(expected_out == pb.val(comm_test_gadget.result()));
 };
