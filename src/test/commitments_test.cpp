@@ -60,7 +60,6 @@ TEST(TestCOMMs, TestCMGadget) {
   cm_gadget.generate_r1cs_witness();
 
   FieldT expected_out = FieldT("21143498282498593887430678658261061148773654198094463922036029572048065734021");
-  std::cout << "*******" << std::endl;
 
   ASSERT_TRUE(expected_out == pb.val(cm_gadget.result()));
 };
