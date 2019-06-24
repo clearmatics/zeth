@@ -110,6 +110,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
             *root_digest
         )
     );
+    std::cout << "root digest: " << updated_root_value << std::endl;
 
     // Get the merkle path to the commitment we appended
     std::vector<FieldT> path_values = test_merkle_tree->get_path(address_commitment);

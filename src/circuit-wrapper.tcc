@@ -2,8 +2,8 @@
 
 namespace libzeth {
 
-template<size_t NumInputs, size_t NumOutputs>
-keyPairT<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {
+template<typename FieldT, typename HashT, size_t NumInputs, size_t NumOutputs>
+keyPairT<ppT> CircuitWrapper<FieldT, HashT, NumInputs, NumOutputs>::generate_trusted_setup() {
     libsnark::protoboard<FieldT> pb;
     joinsplit_gadget<FieldT, HashT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
@@ -16,27 +16,27 @@ keyPairT<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {
     return keypair;
 }
 
-template<size_t NumInputs, size_t NumOutputs>
-extended_proof<ppT> CircuitWrapper<NumInputs, NumOutputs>::prove(
-    const bits256& root_bits,
-    const std::array<JSInput, NumInputs>& inputs,
-    const std::array<ZethNote, NumOutputs>& outputs,
-    bits64 vpub_in,
-    bits64 vpub_out,
+template<typename FieldT, typename HashT, size_t NumInputs, size_t NumOutputs>
+extended_proof<ppT> CircuitWrapper<FieldT, HashT, NumInputs, NumOutputs>::prove(
+    const FieldT& root_bits,
+    const std::array<FJSInput, NumInputs>& inputs,
+    const std::array<FZethNote<FieldT>, NumOutputs>& outputs,
+    FieldT vpub_in,
+    FieldT vpub_out,
     provingKeyT<ppT> proving_key
 ) {
     // left hand side and right hand side of the joinsplit
-    bits64 lhs_value = vpub_in;
-    bits64 rhs_value = vpub_out;
+    FieldT lhs_value = vpub_in;
+    FieldT rhs_value = vpub_out;
 
     // Compute the sum on the left hand side of the joinsplit
     for (size_t i = 0; i < NumInputs; i++) {
-        lhs_value = binaryAddition<64>(lhs_value, inputs[i].note.value());
+        lhs_value = lhs_value + inputs[i].note.value();
     }
 
     // Compute the sum on the right hand side of the joinsplit
     for (size_t i = 0; i < NumOutputs; i++) {
-        rhs_value = binaryAddition<64>(rhs_value, outputs[i].value());
+        rhs_value = rhs_value + outputs[i].value();
     }
 
     // [CHECK] Make sure that the balance between rhs and lfh is respected

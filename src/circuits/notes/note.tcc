@@ -184,7 +184,9 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     commit_to_inputs_inner_k->generate_r1cs_witness();
 
     this->pb.val(*inner_k) = this->pb.val(commit_to_inputs_inner_k->result());
+
     this->pb.val(masked) = this->pb.val(*inner_k) + this->pb.val(this->r_mask);
+
     commit_to_inputs_outer_k->generate_r1cs_witness();
 
     this->pb.val(*outer_k) = this->pb.val(commit_to_inputs_outer_k->result());
@@ -192,6 +194,7 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
 
 
     this->pb.val(*commitment) = this->pb.val(commit_to_inputs_cm->result());
+
     //// [SANITY CHECK] Ensure the commitment is valid.
     ////commitment->bits.fill_with_bits(
     ////    this->pb,
