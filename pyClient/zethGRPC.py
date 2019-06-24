@@ -19,6 +19,10 @@ import prover_pb2_grpc
 import zethConstants as constants
 import zethErrors as errors
 
+# Import MiMC hash and constants
+from zethMimc import MiMC7
+from zethConstants import ZETH_MIMC_IV_MT, ZETH_MIMC_IV_NF, ZETH_MIMC_IV_ADD
+
 # Fetch the verification key from the proving service
 def getVerificationKey(grpcEndpoint):
     with grpc.insecure_channel(grpcEndpoint) as channel:
@@ -44,10 +48,12 @@ def hex2int(elements):
 
 def noteRandomness():
     rand_rho = bytes(Random.get_random_bytes(32)).hex()
-    rand_trapR = bytes(Random.get_random_bytes(48)).hex()
+    rand_trapR0 = bytes(Random.get_random_bytes(32)).hex()
+    rand_trapR1 = bytes(Random.get_random_bytes(32)).hex()
     randomness = {
         "rho": rand_rho,
-        "trapR": rand_trapR
+        "trapR0": rand_trapR0,
+        "trapR1": rand_trapR1
     }
     return randomness
 
@@ -57,7 +63,8 @@ def createZethNote(randomness, recipientApk, value):
         aPK=recipientApk,
         value=value,
         rho=randomness["rho"],
-        trapR=randomness["trapR"]
+        trapR0=randomness["trapR0"],
+        trapR1=randomness["trapR1"]
     )
     return note
 
@@ -66,7 +73,8 @@ def parseZethNote(zethNoteGRPCObj):
         "aPK": zethNoteGRPCObj.aPK,
         "value": zethNoteGRPCObj.value,
         "rho": zethNoteGRPCObj.rho,
-        "trapR": zethNoteGRPCObj.trapR,
+        "trapR0": zethNoteGRPCObj.trapR0,
+        "trapR1": zethNoteGRPCObj.trapR1,
     }
     return noteJSON
 
@@ -75,7 +83,8 @@ def zethNoteObjFromParsed(parsedZethNote):
         aPK=parsedZethNote["aPK"],
         value=parsedZethNote["value"],
         rho=parsedZethNote["rho"],
-        trapR=parsedZethNote["trapR"]
+        trapR0=parsedZethNote["trapR0"],
+        trapR1=parsedZethNote["trapR1"]
     )
     return note
 
@@ -85,53 +94,78 @@ def hexFmt(string):
 # Used by the recipient of a payment to recompute the commitment and check the membership in the tree
 # to confirm the validity of a payment
 def computeCommitment(zethNoteGRPCObj):
-    # inner_k = sha256(a_pk || rho)
-    inner_k = hashlib.sha256(
-        encode_abi(['bytes32', 'bytes32'], (bytes.fromhex(zethNoteGRPCObj.aPK), bytes.fromhex(zethNoteGRPCObj.rho)))
-    ).hexdigest()
+    mimc = MiMC7()
 
-    # outer_k = sha256(r || [inner_k]_128)
-    first128InnerComm = inner_k[0:128]
-    outer_k = hashlib.sha256(
-        encode_abi(['bytes', 'bytes'], (bytes.fromhex(zethNoteGRPCObj.trapR), bytes.fromhex(first128InnerComm)))
-    ).hexdigest()
+    # inner_k = MiMC(a_pk, rho)
+    inner_k  = mimc.hash(
+      [
+        int(zethNoteGRPCObj.aPK, 16),
+        int(zethNoteGRPCObj.rho, 16),
+      ],
+      ZETH_MIMC_IV_MT
+    )
 
-    # cm = sha256(outer_k || 0^192 || value_v)
-    frontPad = "000000000000000000000000000000000000000000000000"
-    cm = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], (bytes.fromhex(outer_k), bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
-    ).hexdigest()
-    return cm
+    # outer_k = MiMC(r0, r1 + inner_k)
+
+    outer_k = mimc.hash(
+      [
+        int(zethNoteGRPCObj.trapR0, 16),
+        int(zethNoteGRPCObj.trapR1, 16) + inner_k
+      ],
+      ZETH_MIMC_IV_MT
+    )
+
+    # cm = MiMC(outer_k, value_v)
+    cm = mimc.hash(
+      [
+        outer_k,
+        int(zethNoteGRPCObj.value, 16)
+      ],
+      ZETH_MIMC_IV_MT
+    )
+
+    return hex(cm)
 
 def hexadecimalDigestToBinaryString(digest):
     binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
     return binary(digest)
 
 def computeNullifier(zethNote, spendingAuthAsk):
-    # nf = sha256(a_sk || 01 || [rho]_254)
-    binaryRho = hexadecimalDigestToBinaryString(zethNote.rho)
-    first254Rho = binaryRho[0:254]
-    rightLegBin = "01" + first254Rho
-    rightLegHex = "{0:0>4X}".format(int(rightLegBin, 2))
+    mimc = MiMC7()
+
+    # nf = MiMC([a_sk, rho], IV_NF)
     print("Compute nullifier")
-    nullifier = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(spendingAuthAsk), bytes.fromhex(rightLegHex)])
-    ).hexdigest()
+    nullifier = mimc.hash(
+      [
+        int(spendingAuthAsk, 16),
+        int(zethNote.rho, 16)
+      ],
+      ZETH_MIMC_IV_NF
+    )
+
     return nullifier
 
 def int64ToHexadecimal(number):
     return '{:016x}'.format(number)
 
 def deriveAPK(ask):
-    # a_pk = sha256(a_sk || 0^256)
-    zeroes = "0000000000000000000000000000000000000000000000000000000000000000"
-    a_pk = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(ask), bytes.fromhex(zeroes)])
-    ).hexdigest()
+    mimc = MiMC7()
+
+    # a_pk = MiMC([a_sk, 0], IV_ADD)
+    print("Compute a_pk")
+    a_pk = mimc.hash(
+      [
+        int(ask, 16),
+        0
+      ],
+      ZETH_MIMC_IV_ADD
+    )
+
     return a_pk
 
 def generateApkAskKeypair():
     a_sk = bytes(Random.get_random_bytes(32)).hex()
+
     a_pk = deriveAPK(a_sk)
     keypair = {
         "aSK": a_sk,
