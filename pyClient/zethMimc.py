@@ -9,6 +9,7 @@ except ImportError:
     from Crypto.Hash import keccak
     keccak_256 = lambda *args: keccak.new(*args, digest_bits=256)
 
+from zethConstants import ZETH_MIMC_PRIME
 
 ##### SOME HASHES
 # sha3("Clearmatics"): 14220067918847996031108144435763672811050758065945364308986253046354060608451
@@ -20,7 +21,7 @@ except ImportError:
 class MiMC7:
     iv = b"mimc"
 
-    def __init__(self, prime=21888242871839275222246405745257275088548364400416034343698204186575808495617, iv = b"mimc"):
+    def __init__(self, prime=ZETH_MIMC_PRIME, iv = b"mimc"):
         self.prime = prime
         self.iv = iv
         print("p = "+str(self.prime))
@@ -89,7 +90,7 @@ class MiMC7:
         if (self.sha3_256(b"Clearmatics") != 14220067918847996031108144435763672811050758065945364308986253046354060608451):
             print("SHA3 error:", self.sha3_256(b"Clearmatics"), "instead of", 14220067918847996031108144435763672811050758065945364308986253046354060608451)
             res += 1
-        
+
         if (self.encrypt(m1,m2) != 11437467823393790387399137249441941313717686441929791910070352316474327319704):
             print("Encrypt error:", self.encrypt(m1,m2), "instead of", 11437467823393790387399137249441941313717686441929791910070352316474327319704)
             res +=2
@@ -149,7 +150,7 @@ class MiMC7:
             return
 
         print("\n-------------------- Generate tree of depth", depth)
-        
+
         leaves = []
         print("\nLeaves")
         for i in range(2**depth):
@@ -170,7 +171,7 @@ class MiMC7:
                 print(level[j])
             nodes.append(level)
         return nodes
-         
+
 
 def test_sha3():
     m = MiMC7()
@@ -197,10 +198,8 @@ def main(depth=2, verbose=1):
     m.generate_tree(depth=depth, verbose = verbose)
 
 
-       
+
 
 if __name__ == "__main__":
     import sys
     sys.exit(main())
-
-            

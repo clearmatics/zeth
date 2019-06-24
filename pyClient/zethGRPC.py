@@ -94,35 +94,22 @@ def hexFmt(string):
 # Used by the recipient of a payment to recompute the commitment and check the membership in the tree
 # to confirm the validity of a payment
 def computeCommitment(zethNoteGRPCObj):
-    mimc = MiMC7()
+    m = MiMC7()
 
-    # inner_k = MiMC(a_pk, rho)
-    inner_k  = mimc.hash(
-      [
-        int(zethNoteGRPCObj.aPK, 16),
-        int(zethNoteGRPCObj.rho, 16),
-      ],
-      ZETH_MIMC_IV_MT
-    )
+    aPK = int(zethNoteGRPCObj.aPK, 16)
+    rho = int(zethNoteGRPCObj.rho, 16)
+    trapR0 = int(zethNoteGRPCObj.trapR0, 16)
+    trapR1 = int(zethNoteGRPCObj.trapR1, 16)
+    value = int(zethNoteGRPCObj.value, 16)
 
-    # outer_k = MiMC(r0, r1 + inner_k)
+    # inner_k = MiMCHash(a_pk || rho)
+    inner_k = m.hash([aPK, rho], ZETH_MIMC_IV_MT)
 
-    outer_k = mimc.hash(
-      [
-        int(zethNoteGRPCObj.trapR0, 16),
-        int(zethNoteGRPCObj.trapR1, 16) + inner_k
-      ],
-      ZETH_MIMC_IV_MT
-    )
+    #outer_k = MiMCHash(r_1, r_0+inner_k)
+    outer_k = m.hash([trapR1, trapR0+inner_k], ZETH_MIMC_IV_MT)
 
-    # cm = MiMC(outer_k, value_v)
-    cm = mimc.hash(
-      [
-        outer_k,
-        int(zethNoteGRPCObj.value, 16)
-      ],
-      ZETH_MIMC_IV_MT
-    )
+    #cm = MiMCHash(value, outer_k)
+    cm = m.hash([value, outer_k], ZETH_MIMC_IV_MT)
 
     return hex(cm)
 
@@ -130,46 +117,36 @@ def hexadecimalDigestToBinaryString(digest):
     binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
     return binary(digest)
 
-def computeNullifier(zethNote, spendingAuthAsk):
-    mimc = MiMC7()
+def computeNullifier(zethNote, ask):
+    m = MiMC7()
 
-    # nf = MiMC([a_sk, rho], IV_NF)
-    print("Compute nullifier")
-    nullifier = mimc.hash(
-      [
-        int(spendingAuthAsk, 16),
-        int(zethNote.rho, 16)
-      ],
-      ZETH_MIMC_IV_NF
-    )
+    rho = int(zethNote.rho, 16)
+    ask = int(ask, 16)
 
-    return nullifier
+    # nf = MiMCHash(a_sk,rho)
+    nullifier = m.hash([ask, rho], ZETH_MIMC_IV_NF)
+
+    return hex(nullifier)
 
 def int64ToHexadecimal(number):
     return '{:016x}'.format(number)
 
 def deriveAPK(ask):
-    mimc = MiMC7()
+    # apk = MiMCHash(a_sk, 0)
+    m = MiMC7()
 
-    # a_pk = MiMC([a_sk, 0], IV_ADD)
-    print("Compute a_pk")
-    a_pk = mimc.hash(
-      [
-        int(ask, 16),
-        0
-      ],
-      ZETH_MIMC_IV_ADD
-    )
+    ask = int(ask, 16)
 
-    return a_pk
+    apk = m.hash([ask,0], ZETH_MIMC_IV_ADD)
+
+    return hex(apk)
 
 def generateApkAskKeypair():
-    a_sk = bytes(Random.get_random_bytes(32)).hex()
-
-    a_pk = deriveAPK(a_sk)
+    ask = bytes(Random.get_random_bytes(32)).hex()
+    apk = deriveAPK(ask)
     keypair = {
-        "aSK": a_sk,
-        "aPK": a_pk
+        "aSK": ask,
+        "aPK": apk
     }
     return keypair
 
@@ -264,7 +241,6 @@ def parseProofGROTH16(proofObj):
     return proofJSON
 
 def parseProof(proofObj, zksnark):
-    proofJSON = {}
     if zksnark == constants.PGHR13_ZKSNARK:
         return parseProofPGHR13(proofObj)
     elif zksnark == constants.GROTH16_ZKSNARK:
