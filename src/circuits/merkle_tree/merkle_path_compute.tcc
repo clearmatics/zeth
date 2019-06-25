@@ -8,6 +8,16 @@
 
 namespace libzeth {
 
+
+template<typename FieldT>
+libsnark::pb_variable<FieldT> get_iv_clear(libsnark::protoboard<FieldT>& pb) {
+    libsnark::pb_variable<FieldT> iv;
+    iv.allocate(pb, "iv");
+    pb.val(iv) = FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451");
+    return iv;
+}
+
+
 template<typename HashT, typename FieldT>
 merkle_path_compute<HashT, FieldT>::merkle_path_compute(
         libsnark::protoboard<FieldT> &pb,
@@ -26,9 +36,7 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
         assert( depth > 0 );
         assert( address_bits.size() == depth );
 
-        libsnark::pb_variable<FieldT> iv;
-        iv.allocate(pb, FMT(this->annotation_prefix, "_iv"));
-        pb.val(iv) = FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451");
+        libsnark::pb_variable<FieldT> iv = get_iv_clear(pb);
 
         for( size_t i = 0; i < depth; i++ )
         {
@@ -81,7 +89,7 @@ void merkle_path_compute<HashT, FieldT>::generate_r1cs_witness()
     for( i = 0; i < hashers.size(); i++ )
     {
         selectors[i].generate_r1cs_witness();
-        hashers[i].generate_r1cs_witness();        
+        hashers[i].generate_r1cs_witness();    
     }
 }
 

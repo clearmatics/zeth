@@ -30,16 +30,16 @@ template<typename FieldT, typename HashT, size_t NumInputs, size_t NumOutputs>
 class joinsplit_gadget : libsnark::gadget<FieldT> {
     private:
         // ---- Primary inputs (public) ---- //
-        std::shared_ptr<pb_variable<FieldT> > merkle_root; // Merkle root
-        std::array<std::shared_ptr<pb_variable<FieldT> >, NumInputs> input_nullifiers; // List of nullifiers of the notes to spend
-        std::array<std::shared_ptr<pb_variable<FieldT> >, NumOutputs> output_commitments; // List of commitments generated for the new notes
-        pb_variable<FieldT> zk_vpub_in; // Public value that is put into the mix
-        pb_variable<FieldT> zk_vpub_out; // Value that is taken out of the mix
+        std::shared_ptr<pb_variable<FieldT> > merkle_root;                                  // Merkle root
+        std::array<std::shared_ptr<pb_variable<FieldT> >, NumInputs> input_nullifiers;      // List of nullifiers of the notes to spend
+        std::array<std::shared_ptr<pb_variable<FieldT> >, NumOutputs> output_commitments;   // List of commitments generated for the new notes
+        pb_variable<FieldT> zk_vpub_in;                                                     // Public value that is put into the mix
+        pb_variable<FieldT> zk_vpub_out;                                                    // Value that is taken out of the mix
 
         // ---- Auxiliary inputs (private) ---- //
-        pb_variable<FieldT> zk_total; // Total amount transfered in the transaction
+        //pb_variable<FieldT> zk_total;                                                       // Total amount transfered in the transaction ; needed if we want to constraint the total amount transfered
         std::array<std::shared_ptr<input_note_gadget<HashT, FieldT>>, NumInputs> input_notes; // Input note gadgets
-        std::array<std::shared_ptr<output_note_gadget<FieldT>>, NumOutputs> output_notes; // Output note gadgets
+        std::array<std::shared_ptr<output_note_gadget<FieldT>>, NumOutputs> output_notes;     // Output note gadgets
     public:
         // Make sure that we do not exceed the number of inputs/outputs
         // specified in zeth's configuration file (see: zeth.h file)
@@ -53,16 +53,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             // Block dedicated to generate the verifier inputs
             {
 
-                
-                // The inputs are: [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
-                // The root, each nullifier, and each commitment are in {0,1}^256 and thus take 2 field elements
-                // UPDATE: we now represente each of these with one field element
-                // to be represented, while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
-                int nb_inputs = NumInputs + NumOutputs + 1 + 1 + 1 ;// (2 * (NumInputs + NumOutputs + 1)) + 1 + 1;
-                pb.set_input_sizes(nb_inputs);
-                // ------------------------------------------------------------------------------ //
-
-                // Initialize the digest_variables
+                // Initialize the variables
                 merkle_root.reset(new libsnark::pb_variable<FieldT>);
                 (*merkle_root).allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
 
@@ -70,6 +61,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     input_nullifiers[i].reset(new libsnark::pb_variable<FieldT>);
                     (*input_nullifiers[i]).allocate(pb, FMT(this->annotation_prefix, " input_nullifiers_%zu", i));
                 }
+
                 for (size_t i = 0; i < NumOutputs; i++) {
                     output_commitments[i].reset(new libsnark::pb_variable<FieldT>);
                     (*output_commitments[i]).allocate(pb, FMT(this->annotation_prefix, " output_commitments_%zu", i));
@@ -83,7 +75,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             } // End of the block dedicated to generate the verifier inputs
 
-            zk_total.allocate(pb, "zk total");
+            //zk_total.allocate(pb, "zk total");
 
             // Input note gadgets for commitments, nullifiers, and spend authority
             for (size_t i = 0; i < NumInputs; i++) {
@@ -111,7 +103,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             for (size_t i = 0; i < NumInputs; i++) {
                 input_notes[i]->generate_r1cs_constraints();
             }
-
             
             // Constrain the JoinSplit outputs
             for (size_t i = 0; i < NumOutputs; i++) {
@@ -144,9 +135,10 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 );
 
                 // See: https://github.com/zcash/zcash/issues/854
-                // Ensure that `left_side` is a 64-bit integer
                 // Update add constraint on ouput values (<= v_max) for consistency with the paper
 
+                // Constraint total amount transfered (not needed so far)
+                // We need a new variable (zk_total) as left/right_side are linear combinations
                 /*
                 this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
                         1,
@@ -169,19 +161,18 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             FieldT vpub_out
         ) {
 
-
             // Witness the merkle root          
             this->pb.val(*merkle_root) = rt ;
 
-            // Witness public values
-            //
+            //// Witness public values
+            
             // Witness LHS public value
             this->pb.val(zk_vpub_in) = vpub_in;
-
 
             // Witness RHS public value
             this->pb.val(zk_vpub_out) = vpub_out;
 
+            // Compute zk_total out of left_side
             /*
             {
                 // Witness total_uint64 bits
@@ -232,7 +223,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 get_vector_from_bits256(rt)
             );
             */
-            //TODO Not sure  line before this is needed anymore
+            //TODO Not sure whether the previous line is needed anylonger, we should not overwrite the root now
 
             bool is_valid_witness = this->pb.is_satisfied();
             std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;
@@ -243,33 +234,27 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         static size_t get_input_bit_size() {
             size_t acc = 0;
 
-            // Binary length of the Merkle Root (anchor)
-            acc += 1; //256
+            // the Merkle Root (anchor)
+            acc += 1; 
 
-            // Binary length of the NullifierS
+            // the NullifierS
             for (size_t i = 0; i < NumInputs; i++) {
-                acc += 1; //256
+                acc += 1; 
             }
 
-            // Binary length of the CommitmentS
+            // the CommitmentS
             for (size_t i = 0; i < NumOutputs; i++) {
-                acc += 1; //256
+                acc += 1; 
             }
 
-            // Binary length of vpub_in
-            acc += 1; // 64
+            // the public value in
+            acc += 1; 
 
-            // Binary length of vpub_out
-            acc += 1; // 64
+            // the public value out
+            acc += 1; 
 
             return acc;
         }
-
-        /*
-        static size_t verifying_field_element_size() {
-            return div_ceil(get_input_bit_size(), FieldT::capacity());
-        }
-        */
 
         // Computes the number of field elements in the primary inputs
         static size_t verifying_field_element_size() {

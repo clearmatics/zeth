@@ -36,6 +36,7 @@ namespace  {
         ASSERT_TRUE(expected_out == pb.val(mimc_gadget.result()));
     }
 
+
       TEST(TestRound, TestFalse) {
         ppT::init_public_params();
         libsnark::protoboard<FieldT> pb;

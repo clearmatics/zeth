@@ -7,6 +7,7 @@
 
 namespace libzeth {
 
+// Function returning allocated pb_variable
 template<typename FieldT>
 libsnark::pb_variable<FieldT> get_var(libsnark::protoboard<FieldT>& pb, const std::string &annotation) {
     libsnark::pb_variable<FieldT> var;
@@ -14,6 +15,7 @@ libsnark::pb_variable<FieldT> get_var(libsnark::protoboard<FieldT>& pb, const st
     return var;
 }
 
+// Function returning allocated pb_variable iv = sha3("Clearmatics")
 template<typename FieldT>
 libsnark::pb_variable<FieldT> get_iv(libsnark::protoboard<FieldT>& pb) {
     libsnark::pb_variable<FieldT> iv;
@@ -23,70 +25,74 @@ libsnark::pb_variable<FieldT> get_iv(libsnark::protoboard<FieldT>& pb) {
 }
 
 
-// TODO: Implement the COMM_k_gadget as a 2 hash rounds in order to directly get the
-// value of the commitment_k without needing 2 distinct gadgets for this
-// Note that the value of the commitment_k needs to be accessible/retreivable as it
+// Note that the value of the commitment_k needs to be accessible/retrievable as it
 // is used as argument of the deposit function call to check the value of the commitment
-//
-// See Zerocash extended paper, page 22
-// The commitment k is computed as k = sha256(r || [sha256(a_pk || rho)]_128)
-// where we define the left part: inner_k = sha256(a_pk || rho)
-// as being the inner commitment of k
 template<typename FieldT>
-COMM_gadget<FieldT>::COMM_gadget(libsnark::protoboard<FieldT>& pb,
-                                                libsnark::pb_variable<FieldT>& a_pk, // 256 bits
-                                                libsnark::pb_variable<FieldT>& rho, // 256 bits
-                                                const std::string &annotation_prefix
-) : MiMC_hash_gadget<FieldT>(pb, {a_pk, rho}, get_iv(pb), annotation_prefix)
+cm_gadget<FieldT>::cm_gadget(libsnark::protoboard<FieldT>& pb,
+                        libsnark::pb_variable<FieldT>& a_pk,
+                        libsnark::pb_variable<FieldT>& rho,
+                        libsnark::pb_variable<FieldT>& r_trap,
+                        libsnark::pb_variable<FieldT>& r_mask,
+                        libsnark::pb_variable<FieldT>& value,
+                        const std::string &annotation_prefix
+) : libsnark::gadget<FieldT>(pb, annotation_prefix),
+    a_pk(a_pk),
+    rho(rho),
+    r_trap(r_trap),
+    r_mask(r_mask),
+    value(value)
 {
-    // Nothing
-}
-
-// See Zerocash extended paper, page 22
-// The commitment k is computed as k = sha256(r || [sha256(a_pk || rho)]_128)
-// where we define: outer_k = sha256(r || [inner_commitment]_128)
-// as being the outer commitment of k
-// We denote by trap_r the trapdoor r
-template<typename FieldT>
-COMM_outer_k_gadget<FieldT>::COMM_outer_k_gadget(libsnark::protoboard<FieldT>& pb,
-                                                libsnark::pb_variable<FieldT>& r_trap,
-                                                libsnark::pb_variable<FieldT>& r_mask,
-                                                libsnark::pb_variable<FieldT>& masked,
-                                                libsnark::pb_variable<FieldT>& k_inner,
-                                                const std::string &annotation_prefix
-) :
-  libsnark::gadget<FieldT>(pb, annotation_prefix),
-  r_mask(r_mask),
-  k_inner(k_inner),
-  masked(masked),
-  hasher(pb, {r_trap, masked}, get_iv(pb), annotation_prefix)
-{
+    masked.allocate(pb, "masked");
+    k_outer.allocate(pb, "k outer");
+    inner_hasher.reset( new MiMC_hash_gadget<FieldT>(pb, {a_pk, rho}, get_iv(pb), "inner commitment"));
+    outer_hasher.reset( new MiMC_hash_gadget<FieldT>(pb, {r_trap, masked}, get_iv(pb), "outer commitment"));
+    final_hasher.reset( new MiMC_hash_gadget<FieldT>(pb, {k_outer, value}, get_iv(pb), "final commitment"));
 }
 
 template<typename FieldT>
-void COMM_outer_k_gadget<FieldT>::generate_r1cs_constraints (){
-        // Adding constraint for the Miyaguchi-Preneel equation
-        this->pb.add_r1cs_constraint(
-            libsnark::r1cs_constraint<FieldT>(
-              r_mask + k_inner, 1,
-              masked),
-            ".masked = r_mask + inner_k");
+void cm_gadget<FieldT>::generate_r1cs_constraints (){
 
-        this->hasher.generate_r1cs_constraints();
+    (*this->inner_hasher).generate_r1cs_constraints();
+
+    // TODO I am not sure whether we need this constraint anymore as it is implied in the witness
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(
+        r_mask + (*this->inner_hasher).result(), 1,
+        masked),
+       ".masked = r_mask + inner_k");
+
+    (*this->outer_hasher).generate_r1cs_constraints();
+
+    (*this->final_hasher).generate_r1cs_constraints();
+
     }
 
 
 template<typename FieldT>
-void COMM_outer_k_gadget<FieldT>::generate_r1cs_witness (){
+void cm_gadget<FieldT>::generate_r1cs_witness (){
 
-      this->pb.val( this->masked ) = this->pb.val(r_mask) + this->pb.val(k_inner);
-      this->hasher.generate_r1cs_witness();
+    
+    (*this->inner_hasher).generate_r1cs_witness();
+
+    FieldT k_inner = this->pb.val( (*this->inner_hasher).result() );
+    this->pb.val( this->masked ) = this->pb.val(r_mask) + k_inner;
+    (*this->outer_hasher).generate_r1cs_witness();
+
+    this->pb.val( this->k_outer ) = this->pb.val( (*this->outer_hasher).result() );
+    (*this->final_hasher).generate_r1cs_witness();
 
     }
 
 template<typename FieldT>
-const  libsnark::pb_variable<FieldT> COMM_outer_k_gadget<FieldT>::result() const {
-    return this->hasher.result();
+const libsnark::pb_variable<FieldT> cm_gadget<FieldT>::result() const {
+    return (*this->final_hasher).result();
+  }
+
+// Note: In our case it can be useful to retrieve the commitment k if we want to
+// implement the mint function the same way as it is done in Zerocash.
+template<typename FieldT>
+const libsnark::pb_variable<FieldT> cm_gadget<FieldT>::k() const {
+    return this->k_outer;
   }
 
 

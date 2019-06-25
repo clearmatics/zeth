@@ -37,7 +37,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget) {
     libsnark::pb_variable<FieldT> a_sk;
 
     a_sk.allocate(pb, "a_sk");
-    pb.val(a_sk) = FieldT("589222706093357518114482131910849758992408938184976784785865710146974629697"); //TODO add
+    pb.val(a_sk) = FieldT("589222706093357518114482131910849758992408938184976784785865710146974629697"); 
 
     PRF_addr_a_pk_gadget<FieldT> prf_test_gadget(pb, a_sk, "PRF_test_gadget");
 
@@ -49,6 +49,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget) {
     ASSERT_TRUE(expected_out == pb.val(prf_test_gadget.result()));
 }
 
+
 TEST(TestPRFs, TestPRFNfGadget) {
     ppT::init_public_params();
     libsnark::protoboard<FieldT> pb;
@@ -57,10 +58,10 @@ TEST(TestPRFs, TestPRFNfGadget) {
     libsnark::pb_variable<FieldT> rho;
 
     a_sk.allocate(pb, "a_sk");
-    pb.val(a_sk) = FieldT("851493376840744413073667399677511791313475385900051386471275211952944369427"); //TODO add
+    pb.val(a_sk) = FieldT("851493376840744413073667399677511791313475385900051386471275211952944369427"); 
 
     rho.allocate(pb, "rho");
-    pb.val(rho) = FieldT("12084776370353832975670700397493400375929185577144119428008068929747409552694"); //TODO add
+    pb.val(rho) = FieldT("12084776370353832975670700397493400375929185577144119428008068929747409552694"); 
 
     PRF_nf_gadget<FieldT> prf_test_gadget(pb, a_sk, rho, "PRF_test_gadget");
 

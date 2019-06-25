@@ -10,6 +10,7 @@
 
 namespace libzeth {
 
+
 template<typename FieldT>
 class MiMC_hash_gadget:public libsnark::gadget<FieldT> {
 /*
@@ -17,14 +18,14 @@ class MiMC_hash_gadget:public libsnark::gadget<FieldT> {
   */
 public:
 	std::vector<MiMCe7_permutation_gadget<FieldT>> permutation_gadgets; // vector of permutation gadgets
-	std::vector<libsnark::pb_variable<FieldT>> messages;  //  vector of messages to process
-	libsnark::pb_variable_array<FieldT> outputs; // vector of round outputs variables
-	libsnark::pb_variable<FieldT> iv; // initial vector variable
+	std::vector<libsnark::pb_variable<FieldT>> messages; 				//  vector of messages to process
+	libsnark::pb_variable_array<FieldT> outputs; 						// vector of round outputs variables
+	libsnark::pb_variable<FieldT> iv; 									// initial vector variable
 
 	MiMC_hash_gadget(
 		libsnark::protoboard<FieldT> &pb,
 		const std::vector<libsnark::pb_variable<FieldT>>& messages,
-    const libsnark::pb_variable<FieldT> iv,
+    	const libsnark::pb_variable<FieldT> iv,
 		const std::string &annotation_prefix = "MiMC_hash_gadget"
 	);
 
@@ -34,7 +35,7 @@ public:
 };
 
 template<typename FieldT>
-FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv=FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451"));
+FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv = FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451"));
 
 } // libzeth
 

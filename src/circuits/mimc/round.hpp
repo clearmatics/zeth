@@ -18,8 +18,8 @@ class MiMCe7_round_gadget : libsnark::gadget<FieldT> {
 public:
     const libsnark::pb_variable<FieldT> x;  // round message
     const libsnark::pb_variable<FieldT> k;  // round key
-    const FieldT c; // round constant
-    const bool add_k_to_result; // variable to add the key after the round
+    const FieldT c;                         // round constant
+    const bool add_k_to_result;             // variable to add the key after the round
 
     // Intermediary variables
     libsnark::pb_variable<FieldT> t2;
@@ -37,8 +37,10 @@ public:
         const std::string &annotation_prefix = "MiMCe7_round_gadget"
     );
 
-    const libsnark::pb_variable<FieldT>& result() const;  // return output variable
+    const libsnark::pb_variable<FieldT>& result() const;  // returns output variable
+
     void generate_r1cs_constraints();
+
     void generate_r1cs_witness() const;
 };
 

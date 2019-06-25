@@ -41,9 +41,7 @@ void merkle_path_authenticator<HashT, FieldT>::generate_r1cs_constraints()
     this->pb.add_r1cs_constraint(
     libsnark::r1cs_constraint<FieldT>(this->result() - this->m_expected_root, this->value_enforce, 0),
     FMT(this->annotation_prefix, ".expected_root authenticator"));
-
-
-    
+   
 }
 
 template<typename HashT, typename FieldT>

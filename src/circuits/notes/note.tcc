@@ -13,18 +13,18 @@ note_gadget<FieldT>::note_gadget(libsnark::protoboard<FieldT> &pb,
 ) : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
     value.allocate(pb, "v"); 
-    r.allocate(pb, "r_trap");
+    r_trap.allocate(pb, "r_trap");
     r_mask.allocate(pb, "r_mask");
 }
 
 template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_constraints() {
-    //
+    // We may want here to constraint the value: value < v_max
 }
 
 template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_witness(const FZethNote<FieldT>& note) {
-    this->pb.val(r) = note.r;
+    this->pb.val(r_trap) = note.r;
     this->pb.val(r_mask) = note.r_mask;
     this->pb.val(value) = note.value();
 }
@@ -40,17 +40,17 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
                                                 const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    a_sk.allocate(pb, "a_sk"); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
-    rho.allocate(pb, "rho"); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
-    masked.allocate(pb, "allocate");
-    address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
+    std::cout << "input note constructor"  << std::endl;
+
+
+    a_sk.allocate(pb, "a_sk");
     a_pk.reset(new libsnark::pb_variable<FieldT>);
-    inner_k.reset(new libsnark::pb_variable<FieldT>);
-    outer_k.reset(new libsnark::pb_variable<FieldT>);
-    commitment.reset(new libsnark::pb_variable<FieldT>);
     (*a_pk).allocate(pb, "a_pk");
-    (*inner_k).allocate(pb, "inner_k");
-    (*outer_k).allocate(pb, "outer_k");
+
+    rho.allocate(pb, "rho");
+
+    address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
+    commitment.reset(new libsnark::pb_variable<FieldT>);
     (*commitment).allocate(pb, "cm");
 
     // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk
@@ -67,17 +67,11 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
         a_sk,
         rho
     ));
-    // Below this point, we need to do several calls
-    // to the commitment gagdets.
-    //
+
     // Call to the "note_commitment_gadget" to make sure that the
     // commitment cm is computed correctly from the coin data
     // ie: a_pk, value, rho, and trap_r#include "circuits/notes/note.tcc"
-
-    // These gadgets compute the commitment cm (coin commitment)
-    //
-    // TODO: Factorize the 2 gadgets to compute k into a single gadget
-    //
+    
     // Note: In our case it can be useful to retrieve the commitment k if we want to
     // implement the mint function the same way as it is done in Zerocash.
     // That way we only need to provide k along with the value when we deposit
@@ -88,29 +82,22 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
     // corresponding to coins of value v_i such that Sum_i coins.value = V (ie: this step provides
     // an additional layer of obfuscation and minimizes the interactions with the mixer (that we know
     // affect the public state and leak data)).
-    commit_to_inputs_inner_k.reset(new COMM_gadget<FieldT>(
+
+    // This gadget compute the commitment cm (coin commitment)
+    commit_to_inputs_cm.reset(new cm_gadget<FieldT>(
         pb,
         *a_pk,
-        rho
-    ));
-    commit_to_inputs_outer_k.reset(new COMM_outer_k_gadget<FieldT>(
-        pb,
-        this->r,
+        rho,
+        this->r_trap,
         this->r_mask,
-        this->masked,
-        *inner_k
-    ));
-    commit_to_inputs_cm.reset(new COMM_gadget<FieldT>(
-        pb,
-        *outer_k,
         this->value
     ));
+
     // We do not forget to allocate the `value_enforce` variable
     // since it is submitted to boolean constraints
     value_enforce.allocate(pb);
 
-
-    // This gadget maked sure that the computed
+    // This gadget makes sure that the computed
     // commitment is in the merkle tree of root rt
     libsnark::pb_variable_array<FieldT>* pb_auth_path = new libsnark::pb_variable_array<FieldT>();
     (*pb_auth_path).allocate(pb, ZETH_MERKLE_TREE_DEPTH, "authentication path");
@@ -129,13 +116,14 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
 
 template<typename HashT, typename FieldT>
 void input_note_gadget<HashT, FieldT>::generate_r1cs_constraints() {
+
     // Generate constraints of parent gadget
     note_gadget<FieldT>::generate_r1cs_constraints();
 
     spend_authority->generate_r1cs_constraints();
+
     expose_nullifiers->generate_r1cs_constraints();
-    commit_to_inputs_inner_k->generate_r1cs_constraints();
-    commit_to_inputs_outer_k->generate_r1cs_constraints();
+
     commit_to_inputs_cm->generate_r1cs_constraints();
     
     // value * (1 - enforce) = 0
@@ -161,14 +149,6 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     const FieldT a_sk_in,
     const FZethNote<FieldT>& note
 ) {
-    // Generate witness of parent gadget
-    note_gadget<FieldT>::generate_r1cs_witness(note);
-
-    // Witness a_sk for the input
-    this->pb.val(a_sk) = a_sk_in;
-
-    // Witness a_pk for a_sk with PRF_addr
-    spend_authority->generate_r1cs_witness();
 
     // [SANITY CHECK] Witness a_pk with note information
     this->pb.val(*a_pk) = note.a_pk;
@@ -176,30 +156,23 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     // Witness rho for the input note
     this->pb.val(rho) = note.rho;
 
+    // Witness a_sk for the input
+    this->pb.val(a_sk) = a_sk_in;
+
+    // Generate witness of parent gadget
+    note_gadget<FieldT>::generate_r1cs_witness(note);
+
+    // Witness a_pk for a_sk with PRF_addr
+    spend_authority->generate_r1cs_witness();
+
+
     // Witness the nullifier for the input note
     expose_nullifiers->generate_r1cs_witness();
 
-
     // Witness the commitment of the input note
-    commit_to_inputs_inner_k->generate_r1cs_witness();
-
-    this->pb.val(*inner_k) = this->pb.val(commit_to_inputs_inner_k->result());
-
-    this->pb.val(masked) = this->pb.val(*inner_k) + this->pb.val(this->r_mask);
-
-    commit_to_inputs_outer_k->generate_r1cs_witness();
-
-    this->pb.val(*outer_k) = this->pb.val(commit_to_inputs_outer_k->result());
     commit_to_inputs_cm->generate_r1cs_witness();
 
-
     this->pb.val(*commitment) = this->pb.val(commit_to_inputs_cm->result());
-
-    //// [SANITY CHECK] Ensure the commitment is valid.
-    ////commitment->bits.fill_with_bits(
-    ////    this->pb,
-    ////    get_vector_from_bits256(note.cm)
-    ////);
 
     // Set enforce flag for nonzero input value
     // Set the enforce flag according to the value of the note
@@ -264,7 +237,6 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
 
     auth_path->fill_with_field_elements(this->pb, path);
 
-
     // Witness merkle tree authentication path
     check_membership->generate_r1cs_witness();
 }
@@ -278,30 +250,15 @@ output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
 {
     rho.allocate(pb, "rho");
     a_pk.reset(new libsnark::pb_variable<FieldT>);
-    inner_k.reset(new libsnark::pb_variable<FieldT>);
-    masked.allocate(pb, "masked");
-    outer_k.reset(new libsnark::pb_variable<FieldT>);
     (*a_pk).allocate(pb, "a_pk");
-    (*inner_k).allocate(pb, "inner_k");
-    (*outer_k).allocate(pb, "outer_k");
-
 
     // Commit to the output notes publicly without disclosing them.
-    commit_to_outputs_inner_k.reset(new COMM_gadget<FieldT>(
+    commit_to_outputs_cm.reset(new cm_gadget<FieldT>(
         pb,
         *a_pk,
-        rho
-    ));
-    commit_to_outputs_outer_k.reset(new COMM_outer_k_gadget<FieldT>(
-        pb,
-        this->r,
+        rho,
+        this->r_trap,
         this->r_mask,
-        this->masked,
-        *inner_k
-    ));
-    commit_to_outputs_cm.reset(new COMM_gadget<FieldT>(
-        pb,
-        *outer_k,
         this->value
     ));
 }
@@ -312,8 +269,6 @@ void output_note_gadget<FieldT>::generate_r1cs_constraints() {
     // Generate constraints of the parent gadget
     note_gadget<FieldT>::generate_r1cs_constraints();
 
-    commit_to_outputs_inner_k->generate_r1cs_constraints();
-    commit_to_outputs_outer_k->generate_r1cs_constraints();
     commit_to_outputs_cm->generate_r1cs_constraints();
 }
 
@@ -323,18 +278,11 @@ void output_note_gadget<FieldT>::generate_r1cs_witness(const FZethNote<FieldT>& 
     note_gadget<FieldT>::generate_r1cs_witness(note);
 
     // Witness rho with the note information
-    this->pb.val(rho)=note.rho;
+    this->pb.val(rho) = note.rho;
 
     // Witness a_pk with note information
     this->pb.val(*a_pk) = note.a_pk;
 
-    commit_to_outputs_inner_k->generate_r1cs_witness();
-
-    this->pb.val(*inner_k) = this->pb.val(commit_to_outputs_inner_k->result());
-    this->pb.val(masked) = this->pb.val(*inner_k) + this->pb.val(this->r_mask);
-    commit_to_outputs_outer_k->generate_r1cs_witness();
-
-    this->pb.val(*outer_k) = this->pb.val(commit_to_outputs_outer_k->result());
     commit_to_outputs_cm->generate_r1cs_witness();
   
 }

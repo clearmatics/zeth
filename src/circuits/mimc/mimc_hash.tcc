@@ -42,7 +42,6 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_constraints (){
 
     // Setting constraints for all permutation gadgets (except the last one)
     for( size_t i = 0; i < permutation_gadgets.size() ; i++ ) {
-
         permutation_gadgets[i].generate_r1cs_constraints();
         const libsnark::pb_variable<FieldT>& round_key = (i == 0 ? iv : outputs[i-1]);
 
@@ -60,8 +59,6 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_constraints (){
 
 template<typename FieldT>
 void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
-    //sha3("Clearmatics"):14220067918847996031108144435763672811050758065945364308986253046354060608451
-    // before 918403109389145570117360101535982733651217667914747213867238065296420114726
 
     for( size_t i = 0; i < permutation_gadgets.size(); i++ ) {
 
@@ -72,9 +69,9 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
 
         // Filling output variables for Miyaguchi-Preenel equation
         this->pb.val( outputs[i] ) = round_key + this->pb.val(permutation_gadgets[i].result()) + this->pb.val(messages[i]);
+
         }
 }
-
 
 template<typename FieldT>
 FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv)

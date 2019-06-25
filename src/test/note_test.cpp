@@ -32,14 +32,9 @@ namespace {
 
 TEST(TestNoteCircuits, TestInputNoteGadget) {
     libsnark::protoboard<FieldT> pb;
-
-    /*
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
-    pb.val(ZERO) = FieldT::zero();
-    */
-
     std::ostream &stream = std::cout;
+
+
 
     libff::enter_block("[BEGIN] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
     // Let's choose a_sk = mimc_hash([0], sha3("Clearmatics"))
@@ -72,7 +67,6 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 
     libff::enter_block("[BEGIN] Setup a local merkle tree and append our commitment to it", true);
 
-
     merkle_tree<FieldT, HashT> mtree = merkle_tree<FieldT, HashT>(ZETH_MERKLE_TREE_DEPTH);
 
     std::unique_ptr<merkle_tree<FieldT, HashT>> test_merkle_tree = std::unique_ptr<merkle_tree<FieldT, HashT>>(
@@ -85,7 +79,6 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
     test_merkle_tree->set_value(address_commitment, cm);
-
 
     // Get the root of the new/non-empty tree (after insertion)
     FieldT updated_root_value = test_merkle_tree->get_root();
@@ -115,7 +108,6 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     // Get the merkle path to the commitment we appended
     std::vector<FieldT> path_values = test_merkle_tree->get_path(address_commitment);
 
-
     // Create a note from the coin's data
     FZethNote<FieldT> note(
         a_pk, 
@@ -134,7 +126,6 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     );
     libff::leave_block("[END] Data conversion to generate a witness of the note gadget", true);
 
-
     bool is_valid_witness = pb.is_satisfied();
     std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;
 
@@ -144,6 +135,8 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 TEST(TestNoteCircuits, TestOutputNoteGadget) {
     libsnark::protoboard<FieldT> pb;
     std::ostream &stream = std::cout;
+
+
 
     libff::enter_block("[BEGIN] Initialize the output coins' data (a_pk, cm, rho)", true);
     // Let's choose a_sk = mimc_hash([0], sha3("Clearmatics"))
@@ -171,7 +164,6 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     // cm = mimc_hash(outer_k, value_v)
     FieldT cm = FieldT("21075862836612025410946586494502715375244302209109240154340545056954086062438");
     libff::leave_block("[END] Initialize the output coins' data (a_pk, cm, rho)", true);
-
 
 
 
