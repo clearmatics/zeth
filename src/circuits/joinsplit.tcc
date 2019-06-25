@@ -50,6 +50,10 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         joinsplit_gadget(protoboard<FieldT> &pb,
                         const std::string &annotation_prefix = "joinsplit_gadget"
         ) : gadget<FieldT>(pb) {
+
+            int nb_inputs = NumInputs + NumOutputs + 1 + 1 + 1;
+            pb.set_input_sizes(nb_inputs);
+
             // Block dedicated to generate the verifier inputs
             {
 
