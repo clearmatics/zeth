@@ -20,6 +20,7 @@ public:
     PRF_addr_a_pk_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& a_sk,
                         const std::string &annotation_prefix = " a_pk_PRF_gadget");
+
 };
 
 // PRF to generate the nullifier

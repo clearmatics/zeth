@@ -207,8 +207,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     inputs[i].note
                 );
 
-                this->pb.val(*input_nullifiers[i]) = this->pb.val(input_notes[i]->get_nf());
-
             }
 
             // Witness the JoinSplit outputs
@@ -216,7 +214,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
                 output_notes[i]->generate_r1cs_witness(outputs[i]);
 
-                this->pb.val(*output_commitments[i]) = this->pb.val(output_notes[i]->result());
             }
 
             // [SANITY CHECK] Ensure that the intended root

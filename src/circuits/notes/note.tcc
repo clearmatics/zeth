@@ -48,10 +48,11 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
     (*a_pk).allocate(pb, "a_pk");
 
     rho.allocate(pb, "rho");
+    nf = nullifier;
 
     address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
-    commitment.reset(new libsnark::pb_variable<FieldT>);
-    (*commitment).allocate(pb, "cm");
+    cm.reset(new libsnark::pb_variable<FieldT>);
+    (*cm).allocate(pb, "cm");
 
     // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk
     // is correctly computed from a_sk
@@ -106,7 +107,7 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
         pb,
         ZETH_MERKLE_TREE_DEPTH,
         address_bits_va,
-        *commitment,
+        *cm,
         rt,
         *auth_path,
         value_enforce,
@@ -165,14 +166,13 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     // Witness a_pk for a_sk with PRF_addr
     spend_authority->generate_r1cs_witness();
 
-
     // Witness the nullifier for the input note
     expose_nullifiers->generate_r1cs_witness();
+    this->pb.val(*nf) = this->pb.val(expose_nullifiers->result());
 
     // Witness the commitment of the input note
     commit_to_inputs_cm->generate_r1cs_witness();
-
-    this->pb.val(*commitment) = this->pb.val(commit_to_inputs_cm->result());
+    this->pb.val(*cm) = this->pb.val(commit_to_inputs_cm->result());
 
     // Set enforce flag for nonzero input value
     // Set the enforce flag according to the value of the note
@@ -230,7 +230,7 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     // auth path (is not correctly authenticated), the root (shared by all inputs)
     // will be changed and the proof should be rejected.
 
-    address_bits_va.fill_with_bits(this->pb, address_bits); // if doesnt work use pb_varaible_array<FielT>.fill_with_field_elements
+    address_bits_va.fill_with_bits(this->pb, address_bits); 
 
     this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
     std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
@@ -239,6 +239,11 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
 
     // Witness merkle tree authentication path
     check_membership->generate_r1cs_witness();
+}
+
+template<typename HashT, typename FieldT>
+libsnark::pb_variable<FieldT> input_note_gadget<HashT, FieldT>::get_a_pk() const {
+    return (*spend_authority).result();
 }
 
 template<typename HashT, typename FieldT>
@@ -256,6 +261,7 @@ output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
     rho.allocate(pb, "rho");
     a_pk.reset(new libsnark::pb_variable<FieldT>);
     (*a_pk).allocate(pb, "a_pk");
+    cm = commitment;
 
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_cm.reset(new cm_gadget<FieldT>(
@@ -289,6 +295,7 @@ void output_note_gadget<FieldT>::generate_r1cs_witness(const FZethNote<FieldT>& 
     this->pb.val(*a_pk) = note.a_pk;
 
     commit_to_outputs_cm->generate_r1cs_witness();
+    this->pb.val(*cm) = this->pb.val(commit_to_outputs_cm->result());
   
 }
 

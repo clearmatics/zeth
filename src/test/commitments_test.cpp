@@ -54,12 +54,6 @@ TEST(TestCOMMs, TestCMGadget) {
   v.allocate(pb, "v");
   pb.val(v) = FieldT("100");
 
-  libsnark::pb_variable<FieldT> masked;
-  masked.allocate(pb, "masked");
-
-  libsnark::pb_variable<FieldT> k;
-  masked.allocate(pb, "outer k");
-
   cm_gadget<FieldT> cm_gadget(pb, a_pk, rho, r0, r1,  v, "cm_test_gadget");
 
   cm_gadget.generate_r1cs_constraints();

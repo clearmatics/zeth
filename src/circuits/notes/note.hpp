@@ -49,7 +49,7 @@ private:
     std::shared_ptr<libsnark::pb_variable<FieldT>> nf;                              // Nullifier 
 
     std::shared_ptr<cm_gadget<FieldT>> commit_to_inputs_cm;                         // Gadget computing the commitment (leaf)
-    std::shared_ptr<libsnark::pb_variable<FieldT>> commitment;                      // Note commitment ; output of a PRF
+    std::shared_ptr<libsnark::pb_variable<FieldT>> cm;                      // Note commitment ; output of a PRF
 
     libsnark::pb_variable<FieldT> value_enforce;                                    // Boolean to check whether the commitment (leaf) has to be found in the merkle tree ; necessary to support dummy notes of value 0.
     libsnark::pb_variable_array<FieldT> address_bits_va;                            // Address of the commitment (leaf) in bits
@@ -75,6 +75,8 @@ public:
                             const FieldT a_sk_in,
                             const FZethNote<FieldT>& note);
 
+    libsnark::pb_variable<FieldT> get_a_pk() const;
+
     libsnark::pb_variable<FieldT> get_nf() const;
 
 };
@@ -85,7 +87,7 @@ class output_note_gadget : public note_gadget<FieldT> {
 private:
     libsnark::pb_variable<FieldT> rho;                                              // Nullifier seed 
     std::shared_ptr<libsnark::pb_variable<FieldT>> a_pk;                            // Public address ; output of a PRF
-
+    std::shared_ptr<libsnark::pb_variable<FieldT>> cm;
     std::shared_ptr<cm_gadget<FieldT>> commit_to_outputs_cm;                        // Gadget computing the commitment (leaf)
 
     //std::shared_ptr<libsnark::pb_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment

@@ -66,6 +66,7 @@ bool TestValidJS2In2Case1(
     test_merkle_tree->set_value(address_commitment, cm);
     //libff::bit_vector updated_root_value = test_merkle_tree->get_root();
     FieldT updated_root_value = test_merkle_tree->get_root();
+    std::cout << "update root: " << updated_root_value << std::endl;
     //std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
@@ -166,6 +167,9 @@ bool TestValidJS2In2Case1(
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
+
+    std::cout << "verify?" << res << std::endl;
+    ext_proof.dump_primary_inputs();
 
     return res;
 }
@@ -308,6 +312,9 @@ bool TestValidJS2In2Case2(
     bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
+    std::cout << "verify?" << res << std::endl;
+    ext_proof.dump_primary_inputs();
+
     return res;
 }
 
@@ -446,6 +453,9 @@ bool TestValidJS2In2Case3(
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
+
+    std::cout << "verify?" << res << std::endl;
+    ext_proof.dump_primary_inputs();
 
     return res;
 }
@@ -594,6 +604,9 @@ bool TestValidJS2In2Deposit(
     ext_proof.dump_primary_inputs();
     libff::leave_block("[END] Verify proof", true);
 
+    std::cout << "verify?" << res << std::endl;
+    ext_proof.dump_primary_inputs();
+
     return res;
 }
 
@@ -732,6 +745,9 @@ bool TestInvalidJS2In2(
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
+
+    std::cout << "verify?" << res << std::endl;
+    ext_proof.dump_primary_inputs();
 
     return res;
 }

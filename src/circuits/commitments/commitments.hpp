@@ -52,6 +52,8 @@ public:
 
     const libsnark::pb_variable<FieldT> result() const;
 
+    // Note: In our case it can be useful to retrieve the commitment k if we want to
+    // implement the mint function the same way as it is done in Zerocash.
     const libsnark::pb_variable<FieldT> k() const;
 };
 
