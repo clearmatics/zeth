@@ -135,11 +135,9 @@ bool test_merkle_path_authenticator_depth1() {
 
 
 
-bool test_null_merkle_path_authenticator_depth3() {
-    // Tree depth is 1, left leaf is 3703141493535563179657531719960160174296085208671919316200479060314459804651,
-    // right leaf is 134551314051432487569247388144051420116740427803855572138106146683954151557,
-    // root is 3075442268020138823380831368198734873612490112867968717790651410945045657947. Authenticator for right leaf (`is_right` = 1)
-
+bool test_merkle_path_authenticator_depth3() {
+    // Tree depth is 3, we want to check that hash(left2, hash(left1, hash(left0, right0))) == root
+	
     FieldT left0 = FieldT("0");
     FieldT right0 = FieldT("0");
     FieldT left1 = FieldT("11714008893116939441510788599557636816518527327543193374630310875272509334396");
@@ -226,7 +224,7 @@ int main( int argc, char **argv )
     }
 
 
-    if (! libzeth::test_null_merkle_path_authenticator_depth3()) {
+    if (! libzeth::test_merkle_path_authenticator_depth3()) {
       std::cerr << "FAIL null_merkle_path_authenticator of depth 3\n";
       return 0;
     }

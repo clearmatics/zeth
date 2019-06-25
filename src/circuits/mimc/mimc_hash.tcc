@@ -71,12 +71,14 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
         this->pb.val( outputs[i] ) = round_key + this->pb.val(permutation_gadgets[i].result()) + this->pb.val(messages[i]);
 
         }
+
 }
 
 template<typename FieldT>
 FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv)
 {
     libsnark::protoboard<FieldT> pb;
+
 
     std::vector<libsnark::pb_variable<FieldT>> inputs;
     for (size_t i = 0; i < messages.size(); i++)
