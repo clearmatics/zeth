@@ -46,6 +46,7 @@ class input_note_gadget : public note_gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::pb_variable<FieldT>> a_pk;                            // Public address ; output of a PRF
     libsnark::pb_variable<FieldT> rho;                                              // Nullifier seed 
+    std::shared_ptr<libsnark::pb_variable<FieldT>> nf;                              // Nullifier 
 
     std::shared_ptr<cm_gadget<FieldT>> commit_to_inputs_cm;                         // Gadget computing the commitment (leaf)
     std::shared_ptr<libsnark::pb_variable<FieldT>> commitment;                      // Note commitment ; output of a PRF
@@ -73,6 +74,9 @@ public:
                             const libff::bit_vector address_bits,
                             const FieldT a_sk_in,
                             const FZethNote<FieldT>& note);
+
+    libsnark::pb_variable<FieldT> get_nf() const;
+
 };
 
 // Commit to the output notes of the JS
@@ -82,7 +86,7 @@ private:
     libsnark::pb_variable<FieldT> rho;                                              // Nullifier seed 
     std::shared_ptr<libsnark::pb_variable<FieldT>> a_pk;                            // Public address ; output of a PRF
 
-    std::shared_ptr<cm_gadget<FieldT>> commit_to_outputs_cm;                      // Gadget computing the commitment (leaf)
+    std::shared_ptr<cm_gadget<FieldT>> commit_to_outputs_cm;                        // Gadget computing the commitment (leaf)
 
     //std::shared_ptr<libsnark::pb_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
 

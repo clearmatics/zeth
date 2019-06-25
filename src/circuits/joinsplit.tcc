@@ -206,14 +206,18 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     inputs[i].spending_key_a_sk,
                     inputs[i].note
                 );
+
+                this->pb.val(*input_nullifiers[i]) = this->pb.val(input_notes[i]->get_nf());
+
             }
 
             // Witness the JoinSplit outputs
             for (size_t i = 0; i < NumOutputs; i++) {
 
                 output_notes[i]->generate_r1cs_witness(outputs[i]);
-            }
 
+                this->pb.val(*output_commitments[i]) = this->pb.val(output_notes[i]->result());
+            }
 
             // [SANITY CHECK] Ensure that the intended root
             // was witnessed by the inputs, even if the read

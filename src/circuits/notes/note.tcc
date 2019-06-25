@@ -241,6 +241,11 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     check_membership->generate_r1cs_witness();
 }
 
+template<typename HashT, typename FieldT>
+libsnark::pb_variable<FieldT> input_note_gadget<HashT, FieldT>::get_nf() const {
+    return (*expose_nullifiers).result();
+}
+
 // Commit to the output notes of the JS
 template<typename FieldT>
 output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
