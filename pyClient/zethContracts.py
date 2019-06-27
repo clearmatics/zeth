@@ -97,9 +97,10 @@ def deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_addr
     initialRoot = w3.toHex(event_logs_logMerkleRoot[0].args.root)
     return(mixer, initialRoot[2:])
 
-def deploy_pghr13_contracts(vk_json, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address):
+def deploy_pghr13_contracts(vk_json, mk_tree_depth, verifier, mixer_interface, hasher_interface, deployer_address, deployment_gas, token_address):
     verifier_address = deploy_pghr13_verifier(vk_json, verifier, deployer_address, deployment_gas)
-    return deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address)
+    _, hasher_address = deploy_mimc_contract(hasher_interface)
+    return deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address, hasher_address)
 
 # Deploy the verifier and the mixer used with GROTH16
 def deploy_groth16_verifier(vk, verifier, deployer_address, deployment_gas):
@@ -137,7 +138,7 @@ def deploy_contracts(mk_tree_depth, verifier_interface, mixer_interface, hasher_
     # Deploy the verifier contract with the good verification key
     verifier = w3.eth.contract(abi=verifier_interface['abi'], bytecode=verifier_interface['bin'])
     if zksnark == constants.PGHR13_ZKSNARK:
-        return deploy_pghr13_contracts(vk, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address)
+        return deploy_pghr13_contracts(vk, mk_tree_depth, verifier, mixer_interface, hasher_interface, deployer_address, deployment_gas, token_address)
     elif zksnark == constants.GROTH16_ZKSNARK:
         return deploy_groth16_contracts(vk, mk_tree_depth, verifier, mixer_interface, hasher_interface, deployer_address, deployment_gas, token_address)
     else:
