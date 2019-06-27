@@ -107,15 +107,14 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             for (size_t i = 0; i < NumInputs; i++) {
                 input_notes[i]->generate_r1cs_constraints();
             }
-            
             // Constrain the JoinSplit outputs
             for (size_t i = 0; i < NumOutputs; i++) {
                 output_notes[i]->generate_r1cs_constraints();
             }
-            
+
 
             // Generate the constraints to ensure that the condition of the joinsplit holds (ie: LHS = RHS)
-             
+
             {
                 // Compute the LHS
                 linear_combination<FieldT>* left_side = new linear_combination<FieldT>(linear_term<FieldT>(zk_vpub_in));
@@ -150,26 +149,26 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                         packed_addition(zk_total_uint64)
                     ),
                     FMT(this->annotation_prefix, " lhs_equal_zk_total_constraint")
-                
+
                 );
                 */
             }
-            
+
         }
 
         void generate_r1cs_witness(
             const FieldT& rt,
-            const std::array<JSInput, NumInputs>& inputs,
+            const std::array<JSInput<FieldT>, NumInputs>& inputs,
             const std::array<ZethNote<FieldT>, NumOutputs>& outputs,
             FieldT vpub_in,
             FieldT vpub_out
         ) {
 
-            // Witness the merkle root          
+            // Witness the merkle root
             this->pb.val(*merkle_root) = rt ;
 
             //// Witness public values
-            
+
             // Witness LHS public value
             this->pb.val(zk_vpub_in) = vpub_in;
 
@@ -196,7 +195,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             // Witness the JoinSplit inputs
             for (size_t i = 0; i < NumInputs; i++) {
-                std::vector<merkle_authentication_node> merkle_path = inputs[i].witness_merkle_path;
+                std::vector<FieldT> merkle_path = inputs[i].witness_merkle_path;
                 size_t address = inputs[i].address;
                 libff::bit_vector address_bits = get_vector_from_bitsAddr(inputs[i].address_bits);
 
@@ -240,23 +239,23 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             size_t acc = 0;
 
             // the Merkle Root (anchor)
-            acc += 1; 
+            acc += 1;
 
             // the NullifierS
             for (size_t i = 0; i < NumInputs; i++) {
-                acc += 1; 
+                acc += 1;
             }
 
             // the CommitmentS
             for (size_t i = 0; i < NumOutputs; i++) {
-                acc += 1; 
+                acc += 1;
             }
 
             // the public value in
-            acc += 1; 
+            acc += 1;
 
             // the public value out
-            acc += 1; 
+            acc += 1;
 
             return acc;
         }
