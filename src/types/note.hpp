@@ -1,9 +1,7 @@
 #ifndef __ZETH_NOTE_HPP__
 #define __ZETH_NOTE_HPP__
 
-#include <array>
-
-#include "types/bits.hpp"
+#include "snarks_alias.hpp"
 
 namespace libzeth {
 
@@ -20,19 +18,19 @@ public:
 
     // Test if the note is a 0-valued note
     inline bool is_zero_valued() const {
-        return value_ == 0;
+        return value_ == FieldT("0");
     }
-    
+
 };
 
 template<typename FieldT>
 class ZethNote : public BaseNote<FieldT> {
 public:
-    FieldT a_pk; 
-    FieldT rho; 
-    FieldT r; 
+    FieldT a_pk;
+    FieldT rho;
+    FieldT r;
     FieldT r_mask;
-    //FieldT cm; 
+    //FieldT cm;
 
     ZethNote(FieldT a_pk, FieldT value, FieldT rho, FieldT r, FieldT r_mask/*, FieldT cm*/)
         : BaseNote<FieldT>(value), a_pk(a_pk), rho(rho), r(r), r_mask(r_mask) /*, cm(cm)*/{}

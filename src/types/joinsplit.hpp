@@ -19,6 +19,7 @@ typedef FieldT merkle_authentication_node;
 // In fact, all our fields are going to be computed from another component
 // written in python or js, that will use the ethereum primitives to hash.
 
+template<typename FieldT>
 class JSInput {
 public:
     // --- Merkle tree witness (path, and address)
