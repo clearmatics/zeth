@@ -93,6 +93,35 @@ FieldT string_to_field(std::string input){
     return element;
   }
 
+// Dump a vector into an array
+template<size_t Size>
+std::array<bool, Size> dump_vector_in_array(std::vector<bool> vect) {
+    std::array<bool, Size> array;
+    if (vect.size() != Size) {
+        throw std::length_error("Invalid bit length for the given boolean vector (should be equal to the size of the vector)");
+    }
+
+    std::copy(vect.begin(), vect.end(), array.begin());
+    return array;
+};
+
+// Dump an array into a vector
+template<size_t Size>
+std::vector<bool> dump_array_in_vector(std::array<bool, Size> arr) {
+    std::vector<bool> vect(Size);
+    std::copy(arr.begin(), arr.end(), vect.begin());
+    return vect;
+}
+
+
+std::vector<bool> get_vector_from_bitsAddr(bitsAddr arr) {
+    return dump_array_in_vector<ZETH_MERKLE_TREE_DEPTH>(arr);
+}
+
+bitsAddr get_bitsAddr_from_vector(std::vector<bool> vect) {
+    return dump_vector_in_array<ZETH_MERKLE_TREE_DEPTH>(vect);
+}
+
 } // libzeth
 
 #endif // __ZETH_UTIL_TCC__

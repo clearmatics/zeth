@@ -13,8 +13,6 @@
 // Get the utils functions
 #include "circuits/circuits-util.tcc"
 
-// Get the bits typedefs and associated functions
-#include "types/bits.hpp"
 // Get the ZethNote class
 #include "types/note.hpp"
 

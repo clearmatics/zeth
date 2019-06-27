@@ -4,7 +4,6 @@
 #include <libff/common/default_types/ec_pp.hpp>
 
 #include "util.hpp"
-#include "types/bits.hpp"
 #include "util.pb.h"
 #include "types/note.hpp"
 #include "types/joinsplit.hpp"

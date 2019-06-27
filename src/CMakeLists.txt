@@ -310,6 +310,7 @@ add_test(
     NAME test_hex_to_field
     COMMAND test_hex_to_field
 )
+add_test(
     NAME test_round
     COMMAND test_round
 )
