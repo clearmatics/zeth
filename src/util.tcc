@@ -5,6 +5,8 @@
 #include<algorithm>
 #include<vector>
 #include<stdexcept>
+#include <string.h>
+#include <stdexcept>
 
 #include "zeth.h"
 
@@ -68,9 +70,11 @@ std::vector<bool> convert_int_to_binary(int x) {
 template<typename FieldT>
 FieldT string_to_field(std::string input){
 
-    //TODO: add sanity check on the type of string we pass
+    int input_len = input.length();
+
     //Sanity checks
-    if (input.length() == 0 || input.length() > 64) {
+    // lenght
+    if (input_len == 0 || input.length() > 64) {
         throw std::length_error("Invalid byte string length for the given field string");
     }
 
@@ -83,10 +87,12 @@ FieldT string_to_field(std::string input){
     mpz_init(n);
 
     int flag = mpz_set_str(n, char_array, 16);
-    assert(flag == 0 && "mpz initialization failed.");
+    if(flag != 0){
+      throw std::runtime_error(std::string("Invalid hex string"));
+    };
 
     //Construct libff::bigint from gmp integer
-    libff::bigint<4> n_big_int = libff::bigint<4>(n);//TODO check 4
+    libff::bigint<4> n_big_int = libff::bigint<4>(n);
 
     //Construct field element from a bigint
     FieldT element = FieldT(n_big_int);

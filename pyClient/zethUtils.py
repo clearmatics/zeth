@@ -99,7 +99,7 @@ def compute_merkle_path(address_commitment, tree_depth, byte_tree):
             print("append note at address: " + str(address + 1))
             merkle_path.append(w3.toHex(byte_tree[address + 1])[2:])
             address = int(address/2)
-    return merkle_path # TODO: remove comment Return the merkle tree in reverse order
+    return merkle_path # Return the merkle tree path
 
 def receive(ciphertext, decryption_key, username):
     recovered_plaintext = ""

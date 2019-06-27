@@ -68,6 +68,7 @@ void cm_gadget<FieldT>::generate_r1cs_constraints (){
 template<typename FieldT>
 void cm_gadget<FieldT>::generate_r1cs_witness (){
 
+    // We compute the the inner commitment k_inner
     (*this->inner_hasher).generate_r1cs_witness();
 
     // We retrieve the inner commitment value, compute the the masked inner commitment value

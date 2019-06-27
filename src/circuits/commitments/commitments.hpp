@@ -50,7 +50,7 @@ public:
 
     void generate_r1cs_constraints ();
 
-	  void generate_r1cs_witness ();
+    void generate_r1cs_witness ();
 
     // Returns the computed commitment cm
     const libsnark::pb_variable<FieldT> result() const;

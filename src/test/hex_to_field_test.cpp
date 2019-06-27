@@ -78,6 +78,39 @@ TEST(TestHexConvertion, TestHexToFieldSmallFalse) {
     ASSERT_FALSE(res);
 };
 
+TEST(TestHexConvertion, TestHexToFieldMixedLetters) {
+    ppT::init_public_params();
+
+    std::string sample = "1FfffFfffffffffffffffffff";
+    FieldT expected_field_element = FieldT("158456325028528675187087900671");
+
+    FieldT computed_field_element = string_to_field<FieldT>(sample);
+
+    bool res = false;
+    res = (computed_field_element == expected_field_element);
+
+    ASSERT_TRUE(res);
+};
+
+
+TEST(TestHexConvertion, TestHexToFieldBadString) {
+    ppT::init_public_params();
+
+    std::string sample = "xxx";
+    bool res = true;
+
+    try
+    {
+      FieldT computed_field_element = string_to_field<FieldT>(sample);
+    }
+    catch(const std::exception &exc)
+    {
+      res = false;
+    }
+
+    ASSERT_FALSE(res);
+};
+
 } // namespace
 
 int main(int argc, char **argv) {

@@ -1,5 +1,4 @@
 from random import randint
-#import pytest
 
 try:
     # pysha3
@@ -9,14 +8,7 @@ except ImportError:
     from Crypto.Hash import keccak
     keccak_256 = lambda *args: keccak.new(*args, digest_bits=256)
 
-from zethConstants import ZETH_MIMC_PRIME
-
-##### SOME HASHES
-# sha3("Clearmatics"): 14220067918847996031108144435763672811050758065945364308986253046354060608451
-# sha3("Clearmatics_add"): 7655352919458297598499032567765357605187604397960652899494713742188031353302
-# sha3("Clearmatics_sn"): 38594890471543702135425523844252992926779387339253565328142220201141984377400
-# sha3("Clearmatics_pk"): 20715549373167656640519441333099474211916836972862576858009333815040496998894
-
+from zethConstants import ZETH_MIMC_PRIME, ZETH_MIMC_IV_MT
 
 class MiMC7:
     iv = b"mimc"
@@ -85,8 +77,8 @@ class MiMC7:
         m2 = 134551314051432487569247388144051420116740427803855572138106146683954151557
         m3 = 918403109389145570117360101535982733651217667914747213867238065296420114726
         res  = 0
-        if (self.sha3_256(b"Clearmatics") != 14220067918847996031108144435763672811050758065945364308986253046354060608451):
-            print("SHA3 error:", self.sha3_256(b"Clearmatics"), "instead of", 14220067918847996031108144435763672811050758065945364308986253046354060608451)
+        if (self.sha3_256(b"Clearmatics") != ZETH_MIMC_IV_MT):
+            print("SHA3 error:", self.sha3_256(b"Clearmatics"), "instead of", ZETH_MIMC_IV_MT)
             res += 1
 
         if (self.encrypt(m1,m2) != 11437467823393790387399137249441941313717686441929791910070352316474327319704):
@@ -142,7 +134,7 @@ class MiMC7:
             print("h:", h2)
         return h2
 
-    def generate_tree(self, depth=2, iv = 14220067918847996031108144435763672811050758065945364308986253046354060608451, verbose = 1):
+    def generate_tree(self, depth=2, iv = ZETH_MIMC_IV_MT, verbose = 1):
         if depth >10:
             print("tree too deep")
             return
@@ -189,11 +181,9 @@ def test_hash():
     assert m.hash([m1, m2], m3) == 15683951496311901749339509118960676303290224812129752890706581988986633412003
 
 
-def main(depth=2, verbose=1):
+def main():
     m = MiMC7()
     m.all_tests()
-    m.generate_right_nested_hash()
-    m.generate_tree(depth=depth, verbose = verbose)
 
 
 if __name__ == "__main__":
