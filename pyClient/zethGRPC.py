@@ -109,9 +109,9 @@ def computeCommitment(zethNoteGRPCObj):
     outer_k = m.hash([trapR1, trapR0+inner_k], ZETH_MIMC_IV_MT)
 
     #cm = MiMCHash(value, outer_k)
-    cm = m.hash([value, outer_k], ZETH_MIMC_IV_MT)
+    cm = m.hash([outer_k, value], ZETH_MIMC_IV_MT)
 
-    return hex(cm)
+    return hex(cm)[2:]
 
 def hexadecimalDigestToBinaryString(digest):
     binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
@@ -126,8 +126,10 @@ def computeNullifier(zethNote, ask):
     # nf = MiMCHash(a_sk,rho)
     nullifier = m.hash([ask, rho], ZETH_MIMC_IV_NF)
 
-    return hex(nullifier)
 
+    return hex(nullifier)[2:]
+
+# TODO change name since it could be misleading by reading the code: it works well for any number, not only int64
 def int64ToHexadecimal(number):
     return '{:016x}'.format(number)
 
@@ -139,7 +141,7 @@ def deriveAPK(ask):
 
     apk = m.hash([ask,0], ZETH_MIMC_IV_ADD)
 
-    return hex(apk)
+    return hex(apk)[2:]
 
 def generateApkAskKeypair():
     ask = bytes(Random.get_random_bytes(32)).hex()
@@ -281,8 +283,11 @@ def get_proof_joinsplit_2by2(
     ]
 
     proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value)
+
     proof_obj = getProof(grpcEndpoint, proof_input)
+
     proof_json = parseProof(proof_obj, zksnark)
+
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
     return (output_note1, output_note2, proof_json)
