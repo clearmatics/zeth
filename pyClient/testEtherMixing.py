@@ -55,10 +55,12 @@ if __name__ == '__main__':
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     (verifier_interface, mixer_interface) = zethContracts.compile_contracts(zksnark)
+    hasher_interface, _ = zethContracts.compile_util_contracts()
     (mixer_instance, initial_root) = zethContracts.deploy_contracts(
         mk_tree_depth,
         verifier_interface,
         mixer_interface,
+        hasher_interface,
         deployer_eth_address,
         4000000,
         "0x0000000000000000000000000000000000000000", # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
@@ -73,7 +75,6 @@ if __name__ == '__main__':
         charlie_eth_address,
         mixer_instance.address
     )
-
     # Bob deposits 4ETH split in 2 notes of denominations of 2ETh and 2ETH on the mixer
     result_deposit_bob_to_bob = zethTest.bob_deposit(
         test_grpc_endpoint,
@@ -84,6 +85,7 @@ if __name__ == '__main__':
         mk_tree_depth,
         zksnark
     )
+
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
     cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]
     new_merkle_root_bob_to_bob = result_deposit_bob_to_bob[2]
@@ -113,6 +115,7 @@ if __name__ == '__main__':
     # Bob decrypts one of the note he previously received (useless here but useful if the payment came from someone else)
     input_note_json = json.loads(zethUtils.decrypt(ciphertext_bob_to_bob1, keystore["Bob"]["AddrSk"]["dk"]))
     input_note_bob_to_charlie = zethGRPC.zethNoteObjFromParsed(input_note_json)
+
     # Execution of the transfer
     result_transfer_bob_to_charlie = zethTest.bob_to_charlie(
         test_grpc_endpoint,
