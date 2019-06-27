@@ -1,5 +1,5 @@
 from random import randint
-import pytest
+#import pytest
 
 try:
     # pysha3
@@ -24,8 +24,6 @@ class MiMC7:
     def __init__(self, prime=ZETH_MIMC_PRIME, iv = b"mimc"):
         self.prime = prime
         self.iv = iv
-        print("p = "+str(self.prime))
-        print("iv = "+str(iv))
 
     def MiMCRound(self, message, key, rc):
         xored = (message + key + rc) % self.prime
@@ -196,8 +194,6 @@ def main(depth=2, verbose=1):
     m.all_tests()
     m.generate_right_nested_hash()
     m.generate_tree(depth=depth, verbose = verbose)
-
-
 
 
 if __name__ == "__main__":
