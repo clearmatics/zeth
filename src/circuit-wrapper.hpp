@@ -38,8 +38,8 @@ public:
 
     // Generate a proof and returns an extended proof
     extended_proof<ppT> prove(const FieldT& root_bits,
-                            const std::array<FJSInput, NumInputs>& inputs,
-                            const std::array<FZethNote<FieldT>, NumOutputs>& outputs,
+                            const std::array<JSInput, NumInputs>& inputs,
+                            const std::array<ZethNote<FieldT>, NumOutputs>& outputs,
                             FieldT vpub_in,
                             FieldT vpub_out,
                             provingKeyT<ppT> proving_key);

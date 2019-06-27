@@ -23,7 +23,7 @@ void note_gadget<FieldT>::generate_r1cs_constraints() {
 }
 
 template<typename FieldT>
-void note_gadget<FieldT>::generate_r1cs_witness(const FZethNote<FieldT>& note) {
+void note_gadget<FieldT>::generate_r1cs_witness(const ZethNote<FieldT>& note) {
     this->pb.val(r_trap) = note.r;
     this->pb.val(r_mask) = note.r_mask;
     this->pb.val(value) = note.value();
@@ -152,7 +152,7 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     const std::vector<FieldT> path,
     const libff::bit_vector address_bits,
     const FieldT a_sk_in,
-    const FZethNote<FieldT>& note
+    const ZethNote<FieldT>& note
 ) {
 
     // [SANITY CHECK] Witness a_pk with note information
@@ -294,7 +294,7 @@ void output_note_gadget<FieldT>::generate_r1cs_constraints() {
 }
 
 template<typename FieldT>
-void output_note_gadget<FieldT>::generate_r1cs_witness(const FZethNote<FieldT>& note) {
+void output_note_gadget<FieldT>::generate_r1cs_witness(const ZethNote<FieldT>& note) {
     // Generate witness of the parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
 

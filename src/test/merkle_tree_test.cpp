@@ -196,40 +196,38 @@ bool test_merkle_path_authenticator_depth3() {
 	return true;
 }
 
-// namespace libsnark
+
+
+TEST(MainTests, ProofGenAndVerifJS2to2) {
+    // Run the trusted setup once for all tests, and keep the keypair in memory for the duration of the tests
+
+    bool res = false;
+
+    res = libzeth::test_merkle_path_selector(0);
+    std::cout << "[test_merkle_path_selector 0] Expected (True), Obtained result: " << res << std::endl;
+    ASSERT_TRUE(res);
+
+    
+    res = libzeth::test_merkle_path_selector(1);
+    std::cout << "[test_merkle_path_selector 1] Expected (True), Obtained result: " << res << std::endl;
+    ASSERT_TRUE(res);
+    
+    res = libzeth::test_merkle_path_authenticator_depth1();
+    std::cout << "[test_merkle_path_authenticator_depth1] Expected (True), Obtained result: " << res << std::endl;
+    ASSERT_TRUE(res);
+
+    res = libzeth::test_merkle_path_authenticator_depth3();
+    std::cout << "[test_merkle_path_authenticator_depth3] Expected (True), Obtained result: " << res << std::endl;
+    ASSERT_TRUE(res);
+    
 }
 
+int main(int argc, char **argv) {
+    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not forget to do this !!!!
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
 
-int main( int argc, char **argv )
-{
-    ppT::init_public_params();
-
-
-    if( ! libzeth::test_merkle_path_selector(0) )
-    {
-        std::cerr << "FAIL merkle_path_selector 0\n";
-        return 0;
-    }
-
-    if( ! libzeth::test_merkle_path_selector(1) )
-    {
-        std::cerr << "FAIL merkle_path_selector 1\n";
-        return 0;
-    }
-
-	if( ! libzeth::test_merkle_path_authenticator_depth1() )
-    {
-        std::cerr << "FAIL merkle_path_authenticator\n";
-        return 1;
-    }
-
-    if (! libzeth::test_merkle_path_authenticator_depth3()) {
-      std::cerr << "FAIL null_merkle_path_authenticator of depth 3\n";
-      return 0;
-    }
-
-
-    std::cout << "OK\n";
-    return 1;
+// namespace libsnark
 }
 

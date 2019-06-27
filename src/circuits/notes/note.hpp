@@ -36,7 +36,7 @@ public:
 
     void generate_r1cs_constraints();
 
-    void generate_r1cs_witness(const FZethNote<FieldT>& note);
+    void generate_r1cs_witness(const ZethNote<FieldT>& note);
 };
 
 // Gadget that makes sure that all conditions are met in order to spend a note:
@@ -75,7 +75,7 @@ public:
     void generate_r1cs_witness(const std::vector<FieldT> path,
                             const libff::bit_vector address_bits,
                             const FieldT a_sk_in,
-                            const FZethNote<FieldT>& note);
+                            const ZethNote<FieldT>& note);
 
     // Returns the computed a_pk
     libsnark::pb_variable<FieldT> get_a_pk() const;
@@ -104,7 +104,7 @@ public:
 
     void generate_r1cs_constraints();
 
-    void generate_r1cs_witness(const FZethNote<FieldT>& note);
+    void generate_r1cs_witness(const ZethNote<FieldT>& note);
 
     // Returns the computed commitment cm
     libsnark::pb_variable<FieldT> get_cm() const;

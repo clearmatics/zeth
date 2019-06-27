@@ -159,8 +159,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         void generate_r1cs_witness(
             const FieldT& rt,
-            const std::array<FJSInput, NumInputs>& inputs,
-            const std::array<FZethNote<FieldT>, NumOutputs>& outputs,
+            const std::array<JSInput, NumInputs>& inputs,
+            const std::array<ZethNote<FieldT>, NumOutputs>& outputs,
             FieldT vpub_in,
             FieldT vpub_out
         ) {

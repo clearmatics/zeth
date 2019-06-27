@@ -109,7 +109,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     std::vector<FieldT> path_values = test_merkle_tree->get_path(address_commitment);
 
     // Create a note from the coin's data
-    FZethNote<FieldT> note(
+    ZethNote<FieldT> note(
         a_pk, 
         value, 
         rho, 
@@ -180,7 +180,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     );
 
     // Create a note from the coin's data
-    FZethNote<FieldT> note(
+    ZethNote<FieldT> note(
         a_pk, 
         value, 
         rho, 

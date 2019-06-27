@@ -62,15 +62,11 @@ bool TestValidJS2In2Case1(
 
 
     // We insert the commitment to the zeth note in the merkle tree
-    //test_merkle_tree->set_value(address_commitment, libff::bit_vector(get_vector_from_bits256(cm_bits256)));
     test_merkle_tree->set_value(address_commitment, cm);
-    //libff::bit_vector updated_root_value = test_merkle_tree->get_root();
     FieldT updated_root_value = test_merkle_tree->get_root();
-    std::cout << "update root: " << updated_root_value << std::endl;
-    //std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
-   FZethNote<FieldT> note_input(
+   ZethNote<FieldT> note_input(
         a_pk, 
         value, 
         rho, 
@@ -78,7 +74,7 @@ bool TestValidJS2In2Case1(
         r_mask
     );
 
-    FZethNote<FieldT> note_dummy_input(
+    ZethNote<FieldT> note_dummy_input(
         a_pk, 
         FieldT("0000000000000000"), 
         FieldT("6845108050456603036310667214894676007661663921399154479307840696887919990996"),  // rho_dummy = mimic_hash([4], sha3("Clearmatics"))
@@ -86,7 +82,7 @@ bool TestValidJS2In2Case1(
         r_mask
     );
 
-    FJSInput input(
+    JSInput input(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -98,7 +94,7 @@ bool TestValidJS2In2Case1(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    FJSInput input_dummy(
+    JSInput input_dummy(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -108,7 +104,7 @@ bool TestValidJS2In2Case1(
     );
 
 
-    std::array<FJSInput, 2> inputs;
+    std::array<JSInput, 2> inputs;
     inputs[0] = input;
     inputs[1] = input_dummy;
     libff::leave_block("[END] Create JSInput", true);
@@ -124,7 +120,7 @@ bool TestValidJS2In2Case1(
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
     FieldT value_out = FieldT("75"); 
 
-   FZethNote<FieldT> note_output(
+   ZethNote<FieldT> note_output(
         a_pk_out,
         value_out,
         rho_out,
@@ -132,7 +128,7 @@ bool TestValidJS2In2Case1(
         r_mask_out
     );
 
-    FZethNote<FieldT> note_dummy_output(
+    ZethNote<FieldT> note_dummy_output(
         a_pk_out,
         FieldT("0000000000000000"),
         rho_out,
@@ -140,7 +136,7 @@ bool TestValidJS2In2Case1(
         r_mask_out
     );
  
-    std::array<FZethNote<FieldT>, 2> outputs;
+    std::array<ZethNote<FieldT>, 2> outputs;
     outputs[0] = note_output;
     outputs[1] = note_dummy_output;
 
@@ -166,10 +162,8 @@ bool TestValidJS2In2Case1(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
-    libff::leave_block("[END] Verify proof", true);
-
     std::cout << "Does the proof verify? " << res << std::endl;
-    ext_proof.dump_primary_inputs();
+    libff::leave_block("[END] Verify proof", true);
 
     return res;
 }
@@ -217,7 +211,7 @@ bool TestValidJS2In2Case2(
     std::vector<merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
-    FZethNote<FieldT>note_input1(
+    ZethNote<FieldT>note_input1(
         a_pk,
         FieldT("100"), 
         rho,
@@ -225,7 +219,7 @@ bool TestValidJS2In2Case2(
         r_mask
     );
 
-    FZethNote<FieldT>note_input2(
+    ZethNote<FieldT>note_input2(
         a_pk,
         FieldT("0000000000000000"),
         rho,
@@ -233,7 +227,7 @@ bool TestValidJS2In2Case2(
         r_mask
     );
 
-    FJSInput input1(
+    JSInput input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -245,7 +239,7 @@ bool TestValidJS2In2Case2(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    FJSInput input2(
+    JSInput input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -254,7 +248,7 @@ bool TestValidJS2In2Case2(
         nf
     );
 
-    std::array<FJSInput, 2> inputs;
+    std::array<JSInput, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -271,7 +265,7 @@ bool TestValidJS2In2Case2(
     FieldT value_out_1 = FieldT("70"); 
     FieldT value_out_2 = FieldT("20"); 
 
-    FZethNote<FieldT>note_output1(
+    ZethNote<FieldT>note_output1(
         a_pk_out,
         value_out_1,
         rho_out,
@@ -279,7 +273,7 @@ bool TestValidJS2In2Case2(
         r_mask_out
     );
 
-    FZethNote<FieldT>note_output2(
+    ZethNote<FieldT>note_output2(
         a_pk_out,
         value_out_2,
         rho_out,
@@ -287,7 +281,7 @@ bool TestValidJS2In2Case2(
         r_mask_out
     );
 
-    std::array<FZethNote<FieldT>, 2> outputs;
+    std::array<ZethNote<FieldT>, 2> outputs;
     outputs[0] = note_output1;
     outputs[1] = note_output2;
     libff::leave_block("[END] Create JSOutput/ZethNote", true);
@@ -310,10 +304,8 @@ bool TestValidJS2In2Case2(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
-    libff::leave_block("[END] Verify proof", true);
-
     std::cout << "Does the proof verify? " << res << std::endl;
-    ext_proof.dump_primary_inputs();
+    libff::leave_block("[END] Verify proof", true);
 
     return res;
 }
@@ -363,7 +355,7 @@ bool TestValidJS2In2Case3(
     std::vector<merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
-    FZethNote<FieldT> note_input1(
+    ZethNote<FieldT> note_input1(
         a_pk,
         value, 
         rho,
@@ -371,7 +363,7 @@ bool TestValidJS2In2Case3(
         r_mask
     );
 
-    FZethNote<FieldT> note_input2(
+    ZethNote<FieldT> note_input2(
         a_pk,
         FieldT("0000000000000000"),
         rho,
@@ -379,7 +371,7 @@ bool TestValidJS2In2Case3(
         r_mask
     );
 
-    FJSInput input1(
+    JSInput input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -391,7 +383,7 @@ bool TestValidJS2In2Case3(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    FJSInput input2(
+    JSInput input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -400,7 +392,7 @@ bool TestValidJS2In2Case3(
         nf
     );
 
-    std::array<FJSInput, 2> inputs;
+    std::array<JSInput, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -416,14 +408,14 @@ bool TestValidJS2In2Case3(
     FieldT value_out_1 = FieldT("70"); 
     FieldT value_out_2 = FieldT("20"); 
 
-    FZethNote<FieldT> note_output1(
+    ZethNote<FieldT> note_output1(
         a_pk_out,
         value_out_1,
         rho_out,
         r_trap_out,
         r_mask_out
     );
-    FZethNote<FieldT> note_output2(
+    ZethNote<FieldT> note_output2(
         a_pk_out,
         value_out_2,
         rho_out,
@@ -431,7 +423,7 @@ bool TestValidJS2In2Case3(
         r_mask_out
     );
 
-    std::array<FZethNote<FieldT>, 2> outputs;
+    std::array<ZethNote<FieldT>, 2> outputs;
     outputs[0] = note_output1;
     outputs[1] = note_output2;
     libff::leave_block("[END] Create JSOutput/ZethNote", true);
@@ -452,10 +444,8 @@ bool TestValidJS2In2Case3(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
-    libff::leave_block("[END] Verify proof", true);
-
     std::cout << "Does the proof verify? " << res << std::endl;
-    ext_proof.dump_primary_inputs();
+    libff::leave_block("[END] Verify proof", true);
 
     return res;
 }
@@ -505,7 +495,7 @@ bool TestValidJS2In2Deposit(
     std::vector<merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
-    FZethNote<FieldT> note_input1(
+    ZethNote<FieldT> note_input1(
         a_pk,
         value,
         rho,
@@ -513,7 +503,7 @@ bool TestValidJS2In2Deposit(
         r_mask
     );
 
-    FZethNote<FieldT> note_input2(
+    ZethNote<FieldT> note_input2(
         a_pk,
         value,
         rho,
@@ -521,7 +511,7 @@ bool TestValidJS2In2Deposit(
         r_mask
     );
 
-    FJSInput input1(
+    JSInput input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -534,7 +524,7 @@ bool TestValidJS2In2Deposit(
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
 
-    FJSInput input2(
+    JSInput input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -543,7 +533,7 @@ bool TestValidJS2In2Deposit(
         nf
     );
 
-    std::array<FJSInput, 2> inputs;
+    std::array<JSInput, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -559,7 +549,7 @@ bool TestValidJS2In2Deposit(
     FieldT value_out_1 = FieldT("80"); 
     FieldT value_out_2 = FieldT("20"); 
 
-    FZethNote<FieldT> note_output1(
+    ZethNote<FieldT> note_output1(
         a_pk_out,
         value_out_1,
         rho_out,
@@ -567,7 +557,7 @@ bool TestValidJS2In2Deposit(
         r_mask_out
     );
 
-    FZethNote<FieldT> note_output2(
+    ZethNote<FieldT> note_output2(
         a_pk_out,
         value_out_2,
         rho_out,
@@ -575,7 +565,7 @@ bool TestValidJS2In2Deposit(
         r_mask_out
     );
 
-    std::array<FZethNote<FieldT>, 2> outputs;
+    std::array<ZethNote<FieldT>, 2> outputs;
     outputs[0] = note_output1;
     outputs[1] = note_output2;
     libff::leave_block("[END] Create JSOutput/ZethNote", true);
@@ -600,12 +590,9 @@ bool TestValidJS2In2Deposit(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
-
-    ext_proof.dump_primary_inputs();
+    std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("[END] Verify proof", true);
 
-    std::cout << "Does the proof verify? " << res << std::endl;
-    ext_proof.dump_primary_inputs();
 
     return res;
 }
@@ -652,7 +639,7 @@ bool TestInvalidJS2In2(
     std::vector<merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
-    FZethNote<FieldT> note_input1(
+    ZethNote<FieldT> note_input1(
         a_pk,
         value,
         rho,
@@ -660,7 +647,7 @@ bool TestInvalidJS2In2(
         r_mask
     );
 
-    FZethNote<FieldT> note_input2(
+    ZethNote<FieldT> note_input2(
         a_pk,
         FieldT("0000000000000000"),
         rho,
@@ -668,7 +655,7 @@ bool TestInvalidJS2In2(
         r_mask
     );
 
-    FJSInput input1(
+    JSInput input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -680,7 +667,7 @@ bool TestInvalidJS2In2(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    FJSInput input2(
+    JSInput input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -689,7 +676,7 @@ bool TestInvalidJS2In2(
         nf
     );
 
-    std::array<FJSInput, 2> inputs;
+    std::array<JSInput, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -705,21 +692,21 @@ bool TestInvalidJS2In2(
     FieldT value_out_1 = FieldT("80"); 
     FieldT value_out_2 = FieldT("70"); 
 
-    FZethNote<FieldT> note_output1(
+    ZethNote<FieldT> note_output1(
         a_pk_out,
         value_out_1, 
         rho_out,
         r_trap_out,
         r_mask_out
     );
-    FZethNote<FieldT> note_output2(
+    ZethNote<FieldT> note_output2(
         a_pk_out,
         value_out_2,
         rho_out,
         r_trap_out,
         r_mask_out
     );
-    std::array<FZethNote<FieldT>, 2> outputs;
+    std::array<ZethNote<FieldT>, 2> outputs;
     outputs[0] = note_output1;
     outputs[1] = note_output2;
     libff::leave_block("[END] Create JSOutput/ZethNote", true);
@@ -744,10 +731,8 @@ bool TestInvalidJS2In2(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
-    libff::leave_block("[END] Verify proof", true);
-
     std::cout << "Does the proof verify? " << res << std::endl;
-    ext_proof.dump_primary_inputs();
+    libff::leave_block("[END] Verify proof", true);
 
     return res;
 }
