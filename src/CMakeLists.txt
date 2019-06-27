@@ -96,30 +96,6 @@ target_include_directories(
 )
 
 ## Tests
-# Test the packed_addition used in the joinsplit
-add_executable(
-    test_addition
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    test/packed_addition_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_addition
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_addition
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
 # Test the notes circuits
 add_executable(
     test_note
@@ -313,22 +289,6 @@ target_include_directories(
 
 include(CTest)
 add_test(
-    NAME test_addition
-    COMMAND test_addition
-)
-add_test(
-    NAME test_note
-    COMMAND test_note
-)
-add_test(
-    NAME test_prfs
-    COMMAND test_prfs
-)
-add_test(
-    NAME test_commitments
-    COMMAND test_commitments
-)
-add_test(
     NAME test_round
     COMMAND test_round
 )
@@ -341,8 +301,20 @@ add_test(
     COMMAND test_mimc_hash
 )
 add_test(
+    NAME test_prfs
+    COMMAND test_prfs
+)
+add_test(
+    NAME test_commitments
+    COMMAND test_commitments
+)
+add_test(
     NAME test_merkle_tree
     COMMAND test_merkle_tree
+)
+add_test(
+    NAME test_note
+    COMMAND test_note
 )
 add_test(
     NAME test_prover
@@ -350,12 +322,11 @@ add_test(
 )
 
 # We add the test of the prover as part of the testzeth
-add_dependencies(check test_addition)
-add_dependencies(check test_note)
-add_dependencies(check test_prfs)
-add_dependencies(check test_commitments)
 add_dependencies(check test_round)
 add_dependencies(check test_mimc)
 add_dependencies(check test_mimc_hash)
+add_dependencies(check test_prfs)
+add_dependencies(check test_commitments)
 add_dependencies(check test_merkle_tree)
+add_dependencies(check test_note)
 add_dependencies(check test_prover)
