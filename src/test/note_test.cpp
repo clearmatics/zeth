@@ -44,8 +44,8 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
 
     // Let's choose r_trap = mimc_hash([1], sha3("Clearmatics")) and r_mask = mimc_hash([2], sha3("Clearmatics"))
-    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821"); 
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643"); 
+    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
+    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
 
      // Let's choose rho = mimc_hash([3], sha3("Clearmatics"))
     FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
@@ -110,9 +110,9 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 
     // Create a note from the coin's data
     ZethNote<FieldT> note(
-        a_pk, 
-        value, 
-        rho, 
+        a_pk,
+        value,
+        rho,
         r_trap,
         r_mask
     );
@@ -146,8 +146,8 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
 
     // Let's choose r_trap = mimc_hash([1], sha3("Clearmatics")) and r_mask = mimc_hash([2], sha3("Clearmatics"))
-    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821"); 
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643"); 
+    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
+    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
 
      // Let's choose rho = mimc_hash([3], sha3("Clearmatics"))
     FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
@@ -181,9 +181,9 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
 
     // Create a note from the coin's data
     ZethNote<FieldT> note(
-        a_pk, 
-        value, 
-        rho, 
+        a_pk,
+        value,
+        rho,
         r_trap,
         r_mask
     );

@@ -1,23 +1,12 @@
 #include "gtest/gtest.h"
 
 #include <libff/common/default_types/ec_pp.hpp>
-#include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-
-// Header to use the merkle tree data structure
-#include <libsnark/common/data_structures/merkle_tree.hpp>
-
-// Header to use the sha256_ethereum gadget
-#include "circuits/sha256/sha256_ethereum.hpp"
-
-// Access the `from_bits` function and other utils
-#include "circuits/circuits-util.hpp"
-#include "util.hpp"
 
 // Get the gadget to test
 #include "circuits/commitments/commitments.hpp"
 
 using namespace libzeth;
+using namespace libsnark;
 
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
@@ -26,7 +15,7 @@ namespace {
 
 TEST(TestCOMMs, TestCMGadget) {
   ppT::init_public_params();
-  libsnark::protoboard<FieldT> pb;
+  protoboard<FieldT> pb;
 
 
   libsnark::pb_variable<FieldT> a_pk;

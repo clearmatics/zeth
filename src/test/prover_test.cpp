@@ -49,13 +49,13 @@ bool TestValidJS2In2Case1(
     // --- Test 1: Generate a valid proof for commitment inserted at address 1 -- //
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
-    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821"); 
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643"); 
+    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
+    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
     FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
     FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
-    FieldT value = FieldT("100"); 
+    FieldT value = FieldT("100");
     FieldT cm = FieldT("21075862836612025410946586494502715375244302209109240154340545056954086062438");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
@@ -64,25 +64,26 @@ bool TestValidJS2In2Case1(
     // We insert the commitment to the zeth note in the merkle tree
     test_merkle_tree->set_value(address_commitment, cm);
     FieldT updated_root_value = test_merkle_tree->get_root();
+    //std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
    ZethNote<FieldT> note_input(
-        a_pk, 
-        value, 
-        rho, 
+        a_pk,
+        value,
+        rho,
         r_trap,
         r_mask
     );
 
     ZethNote<FieldT> note_dummy_input(
-        a_pk, 
-        FieldT("0000000000000000"), 
+        a_pk,
+        FieldT("0"),
         FieldT("6845108050456603036310667214894676007661663921399154479307840696887919990996"),  // rho_dummy = mimic_hash([4], sha3("Clearmatics"))
         r_trap,
         r_mask
     );
 
-    JSInput input(
+    JSInput<FieldT> input(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -94,7 +95,7 @@ bool TestValidJS2In2Case1(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    JSInput input_dummy(
+    JSInput<FieldT> input_dummy(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -104,7 +105,7 @@ bool TestValidJS2In2Case1(
     );
 
 
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input;
     inputs[1] = input_dummy;
     libff::leave_block("[END] Create JSInput", true);
@@ -118,7 +119,7 @@ bool TestValidJS2In2Case1(
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
     FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
-    FieldT value_out = FieldT("75"); 
+    FieldT value_out = FieldT("75");
 
    ZethNote<FieldT> note_output(
         a_pk_out,
@@ -130,17 +131,16 @@ bool TestValidJS2In2Case1(
 
     ZethNote<FieldT> note_dummy_output(
         a_pk_out,
-        FieldT("0000000000000000"),
+        FieldT("0"),
         rho_out,
         r_trap_out,
         r_mask_out
     );
- 
     std::array<ZethNote<FieldT>, 2> outputs;
     outputs[0] = note_output;
     outputs[1] = note_dummy_output;
 
-    FieldT value_pub_out = FieldT("25"); 
+    FieldT value_pub_out = FieldT("25");
 
     libff::leave_block("[END] Create JSOutput/ZethNote", true);
 
@@ -151,7 +151,7 @@ bool TestValidJS2In2Case1(
         updated_root_value,
         inputs,
         outputs,
-        FieldT("0000000000000000"), // vpub_in = 0
+        FieldT("0"), // vpub_in = 0
         value_pub_out,
         keypair.pk
     );
@@ -194,13 +194,13 @@ bool TestValidJS2In2Case2(
     // --- Test 1: Generate a valid proof for commitment inserted at address 1 -- //
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
-    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821"); 
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643"); 
+    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
+    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
     FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
     FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
-    FieldT value = FieldT("100"); 
+    FieldT value = FieldT("100");
     FieldT cm = FieldT("21075862836612025410946586494502715375244302209109240154340545056954086062438");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
@@ -213,7 +213,7 @@ bool TestValidJS2In2Case2(
     // JS Inputs
     ZethNote<FieldT>note_input1(
         a_pk,
-        FieldT("100"), 
+        FieldT("100"),
         rho,
         r_trap,
         r_mask
@@ -221,13 +221,13 @@ bool TestValidJS2In2Case2(
 
     ZethNote<FieldT>note_input2(
         a_pk,
-        FieldT("0000000000000000"),
+        FieldT("0"),
         rho,
         r_trap,
         r_mask
     );
 
-    JSInput input1(
+    JSInput<FieldT> input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -239,7 +239,7 @@ bool TestValidJS2In2Case2(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    JSInput input2(
+    JSInput<FieldT> input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -248,7 +248,7 @@ bool TestValidJS2In2Case2(
         nf
     );
 
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -256,14 +256,14 @@ bool TestValidJS2In2Case2(
 
 
     libff::enter_block("[BEGIN] Create JSOutput/ZethNote", true);
- 
+
     FieldT a_sk_out = FieldT("4047591473000155590199171927915978796573140621771266280705379796913645161555"); // mimic_hash([-1], sha3("Clearmatics"))
     FieldT a_pk_out = FieldT("1570964467829526078663761333427980033315285096730121923127414543972819455975");
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
     FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
-    FieldT value_out_1 = FieldT("70"); 
-    FieldT value_out_2 = FieldT("20"); 
+    FieldT value_out_1 = FieldT("70");
+    FieldT value_out_2 = FieldT("20");
 
     ZethNote<FieldT>note_output1(
         a_pk_out,
@@ -292,8 +292,8 @@ bool TestValidJS2In2Case2(
         updated_root_value,
         inputs,
         outputs,
-        FieldT("0000000000000000"),
-        FieldT("10"), 
+        FieldT("0"),
+        FieldT("10"),
         keypair.pk
     );
     libff::leave_block("[END] Generate proof", true);
@@ -338,13 +338,13 @@ bool TestValidJS2In2Case3(
     // --- Test 1: Generate a valid proof for commitment inserted at address 1 -- //
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
-    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821"); 
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643"); 
+    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
+    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
     FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
     FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
-    FieldT value = FieldT("100"); 
+    FieldT value = FieldT("100");
     FieldT cm = FieldT("21075862836612025410946586494502715375244302209109240154340545056954086062438");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
@@ -357,7 +357,7 @@ bool TestValidJS2In2Case3(
     // JS Inputs
     ZethNote<FieldT> note_input1(
         a_pk,
-        value, 
+        value,
         rho,
         r_trap,
         r_mask
@@ -365,13 +365,13 @@ bool TestValidJS2In2Case3(
 
     ZethNote<FieldT> note_input2(
         a_pk,
-        FieldT("0000000000000000"),
+        FieldT("0"),
         rho,
         r_trap,
         r_mask
     );
 
-    JSInput input1(
+    JSInput<FieldT> input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -383,7 +383,7 @@ bool TestValidJS2In2Case3(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    JSInput input2(
+    JSInput<FieldT> input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -392,7 +392,7 @@ bool TestValidJS2In2Case3(
         nf
     );
 
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -405,8 +405,8 @@ bool TestValidJS2In2Case3(
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
     FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
-    FieldT value_out_1 = FieldT("70"); 
-    FieldT value_out_2 = FieldT("20"); 
+    FieldT value_out_1 = FieldT("70");
+    FieldT value_out_2 = FieldT("20");
 
     ZethNote<FieldT> note_output1(
         a_pk_out,
@@ -434,8 +434,8 @@ bool TestValidJS2In2Case3(
         updated_root_value,
         inputs,
         outputs,
-        FieldT("10"), 
-        FieldT("20"), 
+        FieldT("10"),
+        FieldT("20"),
         keypair.pk
     );
     libff::leave_block("[END] Generate proof", true);
@@ -478,13 +478,13 @@ bool TestValidJS2In2Deposit(
     // --- Test 1: Generate a valid proof for commitment inserted at address 1 -- //
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
-    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821"); 
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643"); 
+    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
+    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
     FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
     FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
-    FieldT value = FieldT("0000000000000000"); 
+    FieldT value = FieldT("0");
     FieldT cm = FieldT("19331960042315155497530170019921951736965260654332349247509836147634461830589");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
@@ -511,7 +511,7 @@ bool TestValidJS2In2Deposit(
         r_mask
     );
 
-    JSInput input1(
+    JSInput<FieldT> input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -524,7 +524,7 @@ bool TestValidJS2In2Deposit(
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
 
-    JSInput input2(
+    JSInput<FieldT> input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -533,7 +533,7 @@ bool TestValidJS2In2Deposit(
         nf
     );
 
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -546,8 +546,8 @@ bool TestValidJS2In2Deposit(
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
     FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
-    FieldT value_out_1 = FieldT("80"); 
-    FieldT value_out_2 = FieldT("20"); 
+    FieldT value_out_1 = FieldT("80");
+    FieldT value_out_2 = FieldT("20");
 
     ZethNote<FieldT> note_output1(
         a_pk_out,
@@ -579,7 +579,7 @@ bool TestValidJS2In2Deposit(
         inputs,
         outputs,
         FieldT("100"),
-        FieldT("00"), 
+        FieldT("00"),
         keypair.pk
     );
     libff::leave_block("[END] Generate proof", true);
@@ -621,13 +621,13 @@ bool TestInvalidJS2In2(
     // --- Test 1: Generate a valid proof for commitment inserted at address 1 -- //
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
-    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821"); 
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643"); 
+    FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
+    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
     FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
     FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
-    FieldT value = FieldT("0000000000000000");
+    FieldT value = FieldT("0");
     FieldT cm = FieldT("19331960042315155497530170019921951736965260654332349247509836147634461830589");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
@@ -649,13 +649,13 @@ bool TestInvalidJS2In2(
 
     ZethNote<FieldT> note_input2(
         a_pk,
-        FieldT("0000000000000000"),
+        FieldT("0"),
         rho,
         r_trap,
         r_mask
     );
 
-    JSInput input1(
+    JSInput<FieldT> input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -667,7 +667,7 @@ bool TestInvalidJS2In2(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    JSInput input2(
+    JSInput<FieldT> input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -676,7 +676,7 @@ bool TestInvalidJS2In2(
         nf
     );
 
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -689,12 +689,12 @@ bool TestInvalidJS2In2(
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
     FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
-    FieldT value_out_1 = FieldT("80"); 
-    FieldT value_out_2 = FieldT("70"); 
+    FieldT value_out_1 = FieldT("80");
+    FieldT value_out_2 = FieldT("70");
 
     ZethNote<FieldT> note_output1(
         a_pk_out,
-        value_out_1, 
+        value_out_1,
         rho_out,
         r_trap_out,
         r_mask_out
@@ -719,8 +719,8 @@ bool TestInvalidJS2In2(
         updated_root_value,
         inputs,
         outputs,
-        FieldT("100"), 
-        FieldT("0000000000000000"), 
+        FieldT("100"),
+        FieldT("0"),
         keypair.pk
     );
     libff::leave_block("[END] Generate proof", true);
@@ -750,11 +750,11 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     std::cout << "[TestValidJS2In2Case1] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
 
-    
+
     res = TestValidJS2In2Case2(proverJS2to2, keypair);
     std::cout << "[TestValidJS2In2Case2] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
-    
+
     res = TestValidJS2In2Case3(proverJS2to2, keypair);
     std::cout << "[TestValidJS2In2Case3] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
@@ -763,7 +763,7 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     std::cout << "[TestValidJS2In2Deposit] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
 
-    
+
     // The following test is expected to throw an exception because the LHS =/= RHS
     try {
         res = TestInvalidJS2In2(proverJS2to2, keypair);
@@ -772,7 +772,7 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     } catch (const std::invalid_argument& e) {
 	  std::cerr << "Invalid argument exception: " << e.what() << '\n';
     }
-    
+
 }
 
 } // namespace
