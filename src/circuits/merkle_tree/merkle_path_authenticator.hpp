@@ -18,24 +18,27 @@ template<typename HashT, typename FieldT>
 class merkle_path_authenticator : public merkle_path_compute<HashT, FieldT>
 {
 public:
-    const libsnark::pb_variable<FieldT> m_expected_root;
-    const libsnark::pb_variable<FieldT> value_enforce;
+    const libsnark::pb_variable<FieldT> m_expected_root;            // The expected value of the Merkle Tree root
+    const libsnark::pb_variable<FieldT> value_enforce;              // Boolean enforcing the comparison between the expected and computed value of the Merkle Tree root
 
     merkle_path_authenticator(
-        libsnark::protoboard<FieldT> &pb,
-        const size_t depth,
-        const libsnark::pb_variable_array<FieldT> address_bits,
-        const libsnark::pb_variable<FieldT> leaf,
-        const libsnark::pb_variable<FieldT> expected_root,
-        const libsnark::pb_variable_array<FieldT> path,
-        const libsnark::pb_variable<FieldT> bool_enforce,
+        libsnark::protoboard<FieldT> &pb,                           
+        const size_t depth,                                         // The depth of the tree
+        const libsnark::pb_variable_array<FieldT> address_bits,     // The address of the leaf to authenticate
+        const libsnark::pb_variable<FieldT> leaf,                   // The leaf to authenticate
+        const libsnark::pb_variable<FieldT> expected_root,          // The expected root
+        const libsnark::pb_variable_array<FieldT> path,             // The Merkle Authentication path
+        const libsnark::pb_variable<FieldT> bool_enforce,           // Boolean enforcing the comparison between the expected and computed value of the Merkle Tree root
         const std::string &annotation_prefix
     );
 
-    bool is_valid();
-
     void generate_r1cs_constraints();
+    
     void generate_r1cs_witness();
+
+    // Returns boolean saying whether the expected and computed MT roots are equal
+    bool is_valid();                                                
+
 };
 
 } // libzeth

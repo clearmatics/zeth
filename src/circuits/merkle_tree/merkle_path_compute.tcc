@@ -8,7 +8,8 @@
 
 namespace libzeth {
 
-
+// Returns an allocated iv ( corresponding to sha3("Clearmatics") )
+// TODO put in util file
 template<typename FieldT>
 libsnark::pb_variable<FieldT> get_iv_clear(libsnark::protoboard<FieldT>& pb) {
     libsnark::pb_variable<FieldT> iv;
@@ -33,13 +34,20 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
         leaf(leaf),
         path(path)
     {
+        // We first assert that we are not working with an empty tree
+        // and that the leaf path is consistent with the tree size
         assert( depth > 0 );
         assert( address_bits.size() == depth );
 
+        // We retrieve the iv to use in the hashers
         libsnark::pb_variable<FieldT> iv = get_iv_clear(pb);
 
+        // For each layer of the tree
         for( size_t i = 0; i < depth; i++ )
         {
+            // We first initialize the gadget to order the computed hash and the authentication node 
+            // to know which one is the first to be hashed and which one is the second ( as in mimch_hash(left, right) )
+            // We also appendthe initialized gadget in the vector of selectors
             if( i == 0 )
             {
                 selectors.push_back(
@@ -54,29 +62,26 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
                         FMT(this->annotation_prefix, ".selector[%zu]", i)));
             }
 
+            // We initialize the gadget to compute the next level hash input 
+            // with the level's authentication node and the previously computed hash
             HashT t = HashT(
                     pb,
                     {selectors[i].get_left(), selectors[i].get_right()},
                     iv,
                     FMT(this->annotation_prefix, ".hasher[%zu]", i));
+
+            // We append the initialized hasher in the vector of hashers
             hashers.push_back(t);
         }
     }
 
 template<typename HashT, typename FieldT>
-const libsnark::pb_variable<FieldT> merkle_path_compute<HashT, FieldT>::result()
-{
-    assert( hashers.size() > 0 );
-
-    return hashers.back().result();
-}
-
-template<typename HashT, typename FieldT>
 void merkle_path_compute<HashT, FieldT>::generate_r1cs_constraints()
 {
-    size_t i;
-    for( i = 0; i < hashers.size(); i++ )
+    // For each level of the tree
+    for( size_t i = 0; i < hashers.size(); i++ )
     {
+        // We constraint the selector and hash gadgets
         selectors[i].generate_r1cs_constraints();
         hashers[i].generate_r1cs_constraints();
     }
@@ -85,13 +90,27 @@ void merkle_path_compute<HashT, FieldT>::generate_r1cs_constraints()
 template<typename HashT, typename FieldT>
 void merkle_path_compute<HashT, FieldT>::generate_r1cs_witness()
 {
-    size_t i;
-    for( i = 0; i < hashers.size(); i++ )
+    // For each level of the tree
+    for( size_t i = 0; i < hashers.size(); i++ )
     {
+        // We compute the left and right input of the hasher gadget 
+        // as well as the hash of left and right
         selectors[i].generate_r1cs_witness();
         hashers[i].generate_r1cs_witness();    
     }
 }
+
+template<typename HashT, typename FieldT>
+const libsnark::pb_variable<FieldT> merkle_path_compute<HashT, FieldT>::result()
+{
+    // We first check that we are not working with an empty tree
+    assert( hashers.size() > 0 );
+
+    // We return the last hasher result, that is to say the computed root,
+    // generated out of leaf, leaf address and merkle authentication path
+    return hashers.back().result();
+}
+
 
 } // libzeth
 

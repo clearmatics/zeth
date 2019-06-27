@@ -15,10 +15,10 @@ namespace libzeth  {
 template<typename FieldT>
 class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT> {
 public:
-    std::vector<MiMCe7_round_gadget<FieldT>> round_gadgets;  // vector of MiMC round gadgets
-    std::vector<FieldT> round_constants;  //vector of round constants
-    static const int ROUNDS = 91; // nb of rounds suggested by the MiMC paper
-    const libsnark::pb_variable<FieldT> k;  // permutation key
+    std::vector<MiMCe7_round_gadget<FieldT>> round_gadgets;     // Vector of MiMC round gadgets
+    std::vector<FieldT> round_constants;                        // Vector of round constants
+    static const int ROUNDS = 91;                               // Nb of rounds suggested by the MiMC paper 
+    const libsnark::pb_variable<FieldT> k;                      // The permutation key
 
     // utility functions
     // MiMC round gadgets initialization
@@ -32,13 +32,15 @@ public:
 public:
     MiMCe7_permutation_gadget(
         libsnark::protoboard<FieldT>& pb,
-        const libsnark::pb_variable<FieldT> x,
-        const libsnark::pb_variable<FieldT> k,
+        const libsnark::pb_variable<FieldT> x,                  // The message to encrypt
+        const libsnark::pb_variable<FieldT> k,                  // The encryption key (/permutation seed)
         const std::string& annotation_prefix = "MiMCe7_permutation_gadget");
 
-    const libsnark::pb_variable<FieldT>& result() const;
     void generate_r1cs_constraints();
+
     void generate_r1cs_witness() const;
+
+    const libsnark::pb_variable<FieldT>& result() const;
 
 };
 

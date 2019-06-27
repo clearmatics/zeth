@@ -16,32 +16,35 @@ namespace libzeth {
 template<typename FieldT>
 class MiMCe7_round_gadget : libsnark::gadget<FieldT> {
 public:
-    const libsnark::pb_variable<FieldT> x;  // round message
-    const libsnark::pb_variable<FieldT> k;  // round key
-    const FieldT c;                         // round constant
-    const bool add_k_to_result;             // variable to add the key after the round
+    const libsnark::pb_variable<FieldT> x;          // The message of the current round
+    const libsnark::pb_variable<FieldT> k;          // The key of the current round
+    const FieldT c;                                 // The round constant of the current round
+    const bool add_k_to_result;                     // Boolean variable to add the key after the round
 
     // Intermediary variables
-    libsnark::pb_variable<FieldT> t2;
-    libsnark::pb_variable<FieldT> t4;
-    libsnark::pb_variable<FieldT> t6;
-    libsnark::pb_variable<FieldT> t7;
+    // t  = x + k + c is a linear combination, as such no pb_variable is needed
+    libsnark::pb_variable<FieldT> t2;               // Intermediary var for computing t**2
+    libsnark::pb_variable<FieldT> t4;               // Intermediary var for computing t**4
+    libsnark::pb_variable<FieldT> t6;               // Intermediary var for computing t**6
+    libsnark::pb_variable<FieldT> t7;               // Intermediary result for computing t**7 (or t**7+k depending on add_k_to_result)
 
 public:
     MiMCe7_round_gadget(
         libsnark::protoboard<FieldT>& pb,
-        const libsnark::pb_variable<FieldT> x,
-        const libsnark::pb_variable<FieldT> k,
-        const FieldT& c,
-        const bool add_k_to_result,
+        const libsnark::pb_variable<FieldT> x,      // The message of the current round
+        const libsnark::pb_variable<FieldT> k,      // The key of the current round
+        const FieldT& c,                            // The round constant of the current round
+        const bool add_k_to_result,                 // Boolean variable to add the key after the round
         const std::string &annotation_prefix = "MiMCe7_round_gadget"
     );
-
-    const libsnark::pb_variable<FieldT>& result() const;  // returns output variable
 
     void generate_r1cs_constraints();
 
     void generate_r1cs_witness() const;
+
+    // Returns round result (x + k + c) **7  + add_k_to_result * k
+    const libsnark::pb_variable<FieldT>& result() const;
+
 };
 
 }   // libzeth

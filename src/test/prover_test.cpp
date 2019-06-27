@@ -168,7 +168,7 @@ bool TestValidJS2In2Case1(
     bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
-    std::cout << "verify?" << res << std::endl;
+    std::cout << "Does the proof verify? " << res << std::endl;
     ext_proof.dump_primary_inputs();
 
     return res;
@@ -312,7 +312,7 @@ bool TestValidJS2In2Case2(
     bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
-    std::cout << "verify?" << res << std::endl;
+    std::cout << "Does the proof verify? " << res << std::endl;
     ext_proof.dump_primary_inputs();
 
     return res;
@@ -454,7 +454,7 @@ bool TestValidJS2In2Case3(
     bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
-    std::cout << "verify?" << res << std::endl;
+    std::cout << "Does the proof verify? " << res << std::endl;
     ext_proof.dump_primary_inputs();
 
     return res;
@@ -604,7 +604,7 @@ bool TestValidJS2In2Deposit(
     ext_proof.dump_primary_inputs();
     libff::leave_block("[END] Verify proof", true);
 
-    std::cout << "verify?" << res << std::endl;
+    std::cout << "Does the proof verify? " << res << std::endl;
     ext_proof.dump_primary_inputs();
 
     return res;
@@ -746,7 +746,7 @@ bool TestInvalidJS2In2(
     bool res = libzeth::verify(ext_proof, vk);
     libff::leave_block("[END] Verify proof", true);
 
-    std::cout << "verify?" << res << std::endl;
+    std::cout << "Does the proof verify? " << res << std::endl;
     ext_proof.dump_primary_inputs();
 
     return res;

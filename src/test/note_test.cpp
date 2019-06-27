@@ -201,7 +201,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     ASSERT_TRUE(is_valid_witness);
 
     // Last check to make sure the commitment computed is the expected one
-    ASSERT_EQ(pb.val((*output_note_g).result()), cm);
+    ASSERT_EQ(pb.val((*output_note_g).get_cm()), cm);
 };
 
 } // namespace

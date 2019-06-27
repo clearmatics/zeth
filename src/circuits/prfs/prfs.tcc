@@ -7,10 +7,7 @@
 
 namespace libzeth {
 
-//TODO add PRF parent class
-
-
-
+//TODO put get_* in util file
 template<typename FieldT>
 libsnark::pb_variable<FieldT> get_zero(libsnark::protoboard<FieldT>& pb) {
     libsnark::pb_variable<FieldT> zero;

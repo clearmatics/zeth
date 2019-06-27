@@ -36,20 +36,20 @@ void note_gadget<FieldT>::generate_r1cs_witness(const FZethNote<FieldT>& note) {
 template<typename HashT, typename FieldT>
 input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
                                                 std::shared_ptr<libsnark::pb_variable<FieldT>> nullifier,
-                                                libsnark::pb_variable<FieldT> rt, // merkle_root
+                                                libsnark::pb_variable<FieldT> rt,                           // Expected merkle_root
                                                 const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    std::cout << "input note constructor"  << std::endl;
-
-
+    // Allocates a_sk and a_pk
     a_sk.allocate(pb, "a_sk");
     a_pk.reset(new libsnark::pb_variable<FieldT>);
     (*a_pk).allocate(pb, "a_pk");
 
+    // Allocates rho and set the nullifier   
     rho.allocate(pb, "rho");
     nf = nullifier;
 
+    // Allocates the address bits and the commitment
     address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
     cm.reset(new libsnark::pb_variable<FieldT>);
     (*cm).allocate(pb, "cm");
@@ -118,13 +118,16 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
 template<typename HashT, typename FieldT>
 void input_note_gadget<HashT, FieldT>::generate_r1cs_constraints() {
 
-    // Generate constraints of parent gadget
+    // Generates constraints of parent gadget
     note_gadget<FieldT>::generate_r1cs_constraints();
 
+    // Generates constraints of the a_pk gadget
     spend_authority->generate_r1cs_constraints();
 
+    // Generates constraints of nf gadget
     expose_nullifiers->generate_r1cs_constraints();
 
+    // Generates constraints of cm gadget
     commit_to_inputs_cm->generate_r1cs_constraints();
     
     // value * (1 - enforce) = 0
@@ -140,6 +143,7 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_constraints() {
         FMT(this->annotation_prefix, " wrap_constraint_mkpath_dummy_inputs")
     );
 
+    // Generates constraints to check membership of the commitment
     check_membership->generate_r1cs_constraints();
 }
 
@@ -166,11 +170,11 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     // Witness a_pk for a_sk with PRF_addr
     spend_authority->generate_r1cs_witness();
 
-    // Witness the nullifier for the input note
+    // Witness the nullifier for the input note and fill nf's value
     expose_nullifiers->generate_r1cs_witness();
     this->pb.val(*nf) = this->pb.val(expose_nullifiers->result());
 
-    // Witness the commitment of the input note
+    // Witness the commitment of the input note and fill cm's value
     commit_to_inputs_cm->generate_r1cs_witness();
     this->pb.val(*cm) = this->pb.val(commit_to_inputs_cm->result());
 
@@ -230,11 +234,14 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     // auth path (is not correctly authenticated), the root (shared by all inputs)
     // will be changed and the proof should be rejected.
 
+    // Set address_bits_va values
     address_bits_va.fill_with_bits(this->pb, address_bits); 
 
+    // Set value_enforce value
     this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
     std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
 
+    // Set auth_path values
     auth_path->fill_with_field_elements(this->pb, path);
 
     // Witness merkle tree authentication path
@@ -251,6 +258,7 @@ libsnark::pb_variable<FieldT> input_note_gadget<HashT, FieldT>::get_nf() const {
     return (*expose_nullifiers).result();
 }
 
+
 // Commit to the output notes of the JS
 template<typename FieldT>
 output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
@@ -258,9 +266,12 @@ output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
                                             const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
+    // Allocates rho and a_pk
     rho.allocate(pb, "rho");
     a_pk.reset(new libsnark::pb_variable<FieldT>);
     (*a_pk).allocate(pb, "a_pk");
+
+    // Set the commitment
     cm = commitment;
 
     // Commit to the output notes publicly without disclosing them.
@@ -273,7 +284,6 @@ output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
         this->value
     ));
 }
-
 
 template<typename FieldT>
 void output_note_gadget<FieldT>::generate_r1cs_constraints() {
@@ -300,7 +310,7 @@ void output_note_gadget<FieldT>::generate_r1cs_witness(const FZethNote<FieldT>& 
 }
 
 template<typename FieldT>
-libsnark::pb_variable<FieldT> output_note_gadget<FieldT>::result() const {
+libsnark::pb_variable<FieldT> output_note_gadget<FieldT>::get_cm() const {
 
     return commit_to_outputs_cm->result();
 }

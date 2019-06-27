@@ -41,23 +41,18 @@ template<typename FieldT>
 class merkle_path_selector : public libsnark::gadget<FieldT>
 {
 public:
-    libsnark::pb_variable<FieldT> input;
-    const libsnark::pb_variable<FieldT> pathvar;
-    const libsnark::pb_variable<FieldT> is_right;
+    const libsnark::pb_variable<FieldT> input;              // The hash of the previous level or the leaf
+    const libsnark::pb_variable<FieldT> pathvar;            // The authentication node of the current level
+    const libsnark::pb_variable<FieldT> is_right;           // The bit of the current level from the leaf address
 
-    libsnark::pb_variable<FieldT> left_a;
-    libsnark::pb_variable<FieldT> left_b;
-    libsnark::pb_variable<FieldT> left;
-
-    libsnark::pb_variable<FieldT> right_a;
-    libsnark::pb_variable<FieldT> right_b;
-    libsnark::pb_variable<FieldT> right;
+    libsnark::pb_variable<FieldT> left;                     // The first input of the next hash to compute
+    libsnark::pb_variable<FieldT> right;                    // The seconde input of the next hash to compute
 
     merkle_path_selector(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT>& input,
-        const libsnark::pb_variable<FieldT>& pathvar,
-        const libsnark::pb_variable<FieldT>& is_right,
+        const libsnark::pb_variable<FieldT>& input,         // The hash of the previous level or the leaf
+        const libsnark::pb_variable<FieldT>& pathvar,       // The authentication node of the current level
+        const libsnark::pb_variable<FieldT>& is_right,      // The bit of the current level from the leaf address
         const std::string &annotation_prefix
     );
 
@@ -65,8 +60,10 @@ public:
 
     void generate_r1cs_witness();
 
+    // Returns the first input (left) of the next hash to compute
     const libsnark::pb_variable<FieldT>& get_left();
 
+    // Returns the second input (right) of the next hash to compute
     const libsnark::pb_variable<FieldT>& get_right();
 };
 

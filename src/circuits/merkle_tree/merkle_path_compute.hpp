@@ -16,29 +16,29 @@ class merkle_path_compute : public libsnark::gadget<FieldT>
 {
 public:
     const size_t depth;
-    const libsnark::pb_variable_array<FieldT> address_bits;
-    const libsnark::pb_variable<FieldT> leaf;
-    const libsnark::pb_variable_array<FieldT> path;
+    const libsnark::pb_variable_array<FieldT> address_bits;         // The address of the leaf to authenticate             
+    const libsnark::pb_variable<FieldT> leaf;                       // The leaf to authenticate
+    const libsnark::pb_variable_array<FieldT> path;                 // The Merkle Authentication path
 
-    std::vector<merkle_path_selector<FieldT>> selectors;
-    std::vector<HashT> hashers;
+    std::vector<merkle_path_selector<FieldT>> selectors;            // Gadget informing the position in the three of the computed hash and authentication node
+    std::vector<HashT> hashers;                                     // Vector of hash gadgets to compute the intermediary hashes   
 
     merkle_path_compute(
         libsnark::protoboard<FieldT> &pb,
-        const size_t depth,
-        const libsnark::pb_variable_array<FieldT>& address_bits,
-        const libsnark::pb_variable<FieldT> leaf,
-        const libsnark::pb_variable_array<FieldT>& path,
+        const size_t depth,                                         // The depth of the tree
+        const libsnark::pb_variable_array<FieldT>& address_bits,    // The address of the leaf to authenticate
+        const libsnark::pb_variable<FieldT> leaf,                   // The leaf to authenticate
+        const libsnark::pb_variable_array<FieldT>& path,            // The Merkle Authentication path
         const std::string &annotation_prefix
     );
-
-    const libsnark::pb_variable<FieldT> result();
 
     void generate_r1cs_constraints();
 
     void generate_r1cs_witness();
-};
 
+    // Returns the computed root
+    const libsnark::pb_variable<FieldT> result();
+};
 
 } // libzeth
 

@@ -32,21 +32,16 @@ MiMCe7_permutation_gadget<FieldT>::MiMCe7_permutation_gadget(
     libsnark::gadget<FieldT>(pb, annotation_prefix),
     k(k)
 {
-    //initializing the constants vector
+    //We first initialize the round constants
     setup_sha3_constants();
-    //initializing the round gadgets vector
+
+    //Then we initialize the round gadgets
     setup_gadgets(x, k);
 }
 
 template<typename FieldT>
-const libsnark::pb_variable<FieldT>& MiMCe7_permutation_gadget<FieldT>::result () const {
-    // returning result of the permutation
-    return round_gadgets.back().result();
-}
-
-template<typename FieldT>
 void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_constraints() {
-    //generating constraint for each round gadget
+    //For each round, generates the constraints for each round gadget
     for( auto& gadget : round_gadgets )
     {
         gadget.generate_r1cs_constraints();
@@ -55,11 +50,18 @@ void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_constraints() {
 
 template<typename FieldT>
 void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_witness() const {
-  //generating witness for each round gadget
+    //For each round, generates the witness for each round gadget
     for( auto& gadget : round_gadgets )
     {
         gadget.generate_r1cs_witness();
     }
+    
+}
+
+template<typename FieldT>
+const libsnark::pb_variable<FieldT>& MiMCe7_permutation_gadget<FieldT>::result () const {
+    // Returns the result of the last encryption / permutation
+    return round_gadgets.back().result();
 }
 
 /**

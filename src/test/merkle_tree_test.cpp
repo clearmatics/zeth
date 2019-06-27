@@ -223,7 +223,6 @@ int main( int argc, char **argv )
         return 1;
     }
 
-
     if (! libzeth::test_merkle_path_authenticator_depth3()) {
       std::cerr << "FAIL null_merkle_path_authenticator of depth 3\n";
       return 0;
