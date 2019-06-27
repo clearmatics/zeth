@@ -8,7 +8,7 @@ contract Groth16Mixer is BaseMixer {
     Groth16Verifier public zksnark_verifier;
 
     // Constructor
-    constructor(address verifier_address, uint mk_depth, address token_address) BaseMixer(mk_depth, token_address) public {
+    constructor(address verifier_address, uint mk_depth, address token_address, address hasher_address) BaseMixer(mk_depth, token_address, hasher_address) public {
         zksnark_verifier = Groth16Verifier(verifier_address);
     }
 
