@@ -74,13 +74,14 @@ def deploy_pghr13_verifier(vk, verifier, deployer_address, deployment_gas):
 
 # Common function to deploy a mixer contract
 # Returns the mixer and the initial merkle root of the commitment tree
-def deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address):
+def deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address, hasher_address):
     # Deploy the Mixer contract once the Verifier is successfully deployed
     mixer = w3.eth.contract(abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
     tx_hash = mixer.constructor(
         verifier_address = verifier_address,
         mk_depth = mk_tree_depth,
-        token_address = token_address
+        token_address = token_address,
+        hasher_address = hasher_address
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Mixer contract address
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -119,14 +120,15 @@ def deploy_groth16_verifier(vk, verifier, deployer_address, deployment_gas):
     verifier_address = tx_receipt['contractAddress']
     return verifier_address
 
-def deploy_groth16_contracts(vk_json, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address):
+def deploy_groth16_contracts(vk_json, mk_tree_depth, verifier, mixer_interface, hasher_interface, deployer_address, deployment_gas, token_address):
     verifier_address = deploy_groth16_verifier(vk_json, verifier, deployer_address, deployment_gas)
-    return deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address)
+    _, hasher_address = deploy_mimc_contract(hasher_interface)
+    return deploy_mixer(verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address, hasher_address)
 
 # Deploy the mixer contract with the given merkle tree depth
 # and returns an instance of the mixer along with the initial merkle tree
 # root to use for the first zero knowledge payments
-def deploy_contracts(mk_tree_depth, verifier_interface, mixer_interface, deployer_address, deployment_gas, token_address, zksnark):
+def deploy_contracts(mk_tree_depth, verifier_interface, mixer_interface, hasher_interface, deployer_address, deployment_gas, token_address, zksnark):
     setup_dir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     vk_json = os.path.join(setup_dir, "vk.json")
     with open(vk_json) as json_data:
@@ -137,7 +139,7 @@ def deploy_contracts(mk_tree_depth, verifier_interface, mixer_interface, deploye
     if zksnark == constants.PGHR13_ZKSNARK:
         return deploy_pghr13_contracts(vk, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address)
     elif zksnark == constants.GROTH16_ZKSNARK:
-        return deploy_groth16_contracts(vk, mk_tree_depth, verifier, mixer_interface, deployer_address, deployment_gas, token_address)
+        return deploy_groth16_contracts(vk, mk_tree_depth, verifier, mixer_interface, hasher_interface, deployer_address, deployment_gas, token_address)
     else:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
@@ -278,3 +280,7 @@ def mimcHash(instance, m, iv):
 # Return MimC merklee tree
 def getTree(instance):
   return instance.functions.getTree().call()
+
+# Return MimC merklee tree
+def getRoot(instance):
+  return instance.functions.getRoot().call()
