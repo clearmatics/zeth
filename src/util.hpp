@@ -5,6 +5,8 @@
 #include <string>
 #include <cstdint>
 
+#include "zeth.h"
+
 namespace libzeth {
 
 typedef std::array<bool, ZETH_MERKLE_TREE_DEPTH> bitsAddr;
