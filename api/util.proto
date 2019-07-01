@@ -7,7 +7,6 @@ message ZethNote {
     string value = 2;
     string rho = 3;
     string trapR0 = 4;
-    string trapR1 = 5;
 }
 
 message JSInput {

@@ -21,7 +21,7 @@ import zethErrors as errors
 
 # Import MiMC hash and constants
 from zethMimc import MiMC7
-from zethConstants import ZETH_MIMC_IV_MT, ZETH_MIMC_IV_NF, ZETH_MIMC_IV_ADD
+from zethConstants import ZETH_MIMC_IV_MT, ZETH_MIMC_IV_CM, ZETH_MIMC_IV_NF, ZETH_MIMC_IV_ADD
 
 # Fetch the verification key from the proving service
 def getVerificationKey(grpcEndpoint):
@@ -98,7 +98,7 @@ def computeCommitment(zethNoteGRPCObj):
     trapR0 = int(zethNoteGRPCObj.trapR0, 16)
     value = int(zethNoteGRPCObj.value, 16)
 
-    cm = m.hash([aPK, rho, value, trapR0], ZETH_MIMC_IV_MT)
+    cm = m.hash([aPK, rho, value, trapR0], ZETH_MIMC_IV_CM)
 
     return hex(cm)[2:]
 

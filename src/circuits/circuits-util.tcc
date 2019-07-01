@@ -103,6 +103,16 @@ libsnark::pb_variable<FieldT> get_iv_mt(libsnark::protoboard<FieldT>& pb) {
     return iv;
 }
 
+
+template<typename FieldT>
+libsnark::pb_variable<FieldT> get_iv_cm(libsnark::protoboard<FieldT>& pb) {
+    libsnark::pb_variable<FieldT> iv;
+    iv.allocate(pb, "iv");
+    pb.val(iv) = FieldT("91858436274657200763343017909794347500533039453032596640521388943016484459476");
+    return iv;
+}
+
+
 template<typename FieldT>
 libsnark::pb_variable<FieldT> get_iv_add(libsnark::protoboard<FieldT>& pb) {
     libsnark::pb_variable<FieldT> iv;

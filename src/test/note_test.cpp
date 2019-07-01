@@ -53,7 +53,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     FieldT value = FieldT("100");
 
     // cm = mimc_hash(a_pk, rho, r_trap, value)
-    FieldT cm = FieldT("2184465399207300655223678779522654059919117172505514258336307828845688397060");
+    FieldT cm = FieldT("100385439091163442447528897111254649960402960920280101899457819072473731482");
     libff::leave_block("[END] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
 
@@ -147,7 +147,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     FieldT value = FieldT("100");
 
     // cm = mimc_hash(a_pk, rho, r_trap, value)
-    FieldT cm = FieldT("2184465399207300655223678779522654059919117172505514258336307828845688397060");
+    FieldT cm = FieldT("100385439091163442447528897111254649960402960920280101899457819072473731482");
     libff::leave_block("[END] Initialize the output coins' data (a_pk, cm, rho)", true);
 
 

@@ -40,7 +40,7 @@ TEST(TestCOMMs, TestCMGadget) {
   cm_gadget.generate_r1cs_constraints();
   cm_gadget.generate_r1cs_witness();
 
-  FieldT expected_out = FieldT("12358985269798453918570078816455146271632486474291071895597592689261027810088");
+  FieldT expected_out = FieldT("17159580111205266249882739173393847757114683980889533436236235368185830843469");
 
   ASSERT_TRUE(expected_out == pb.val(cm_gadget.result()));
 };
