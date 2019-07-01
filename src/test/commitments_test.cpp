@@ -20,7 +20,7 @@ TEST(TestCOMMs, TestCMGadget) {
 
   libsnark::pb_variable<FieldT> a_pk;
   libsnark::pb_variable<FieldT> rho;
-  libsnark::pb_variable<FieldT> r0;
+  libsnark::pb_variable<FieldT> r;
   libsnark::pb_variable<FieldT> v;
 
   a_pk.allocate(pb, "a_pk");
@@ -29,13 +29,13 @@ TEST(TestCOMMs, TestCMGadget) {
   rho.allocate(pb, "rho");
   pb.val(rho) = FieldT("6707574354230822882728245456150029507327662563672602557855634841940058902338");
 
-  r0.allocate(pb, "r trap");
-  pb.val(r0) = FieldT("2998811441792601712851203975027567775313089568844489772255494278089442886910");
+  r.allocate(pb, "r trap");
+  pb.val(r) = FieldT("2998811441792601712851203975027567775313089568844489772255494278089442886910");
 
   v.allocate(pb, "v");
   pb.val(v) = FieldT("100");
 
-  cm_gadget<FieldT> cm_gadget(pb, a_pk, rho, r0,  v, "cm_test_gadget");
+  cm_gadget<FieldT> cm_gadget(pb, a_pk, rho, r,  v, "cm_test_gadget");
 
   cm_gadget.generate_r1cs_constraints();
   cm_gadget.generate_r1cs_witness();

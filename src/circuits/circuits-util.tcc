@@ -99,6 +99,7 @@ template<typename FieldT>
 libsnark::pb_variable<FieldT> get_iv_mt(libsnark::protoboard<FieldT>& pb) {
     libsnark::pb_variable<FieldT> iv;
     iv.allocate(pb, "iv");
+    // iv = sha3("Clearmatics")
     pb.val(iv) = FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451");
     return iv;
 }
@@ -107,7 +108,8 @@ libsnark::pb_variable<FieldT> get_iv_mt(libsnark::protoboard<FieldT>& pb) {
 template<typename FieldT>
 libsnark::pb_variable<FieldT> get_iv_cm(libsnark::protoboard<FieldT>& pb) {
     libsnark::pb_variable<FieldT> iv;
-    iv.allocate(pb, "iv");
+    iv.allocate(pb, "iv_cm");
+    // iv = sha3("Clearmatics_cm")
     pb.val(iv) = FieldT("91858436274657200763343017909794347500533039453032596640521388943016484459476");
     return iv;
 }
@@ -117,6 +119,7 @@ template<typename FieldT>
 libsnark::pb_variable<FieldT> get_iv_add(libsnark::protoboard<FieldT>& pb) {
     libsnark::pb_variable<FieldT> iv;
     iv.allocate(pb, "iv_add");
+    // iv = sha3("Clearmatics_add")
     pb.val(iv) = FieldT("7655352919458297598499032567765357605187604397960652899494713742188031353302");
     return iv;
 }
@@ -126,6 +129,7 @@ template<typename FieldT>
 libsnark::pb_variable<FieldT> get_iv_sn(libsnark::protoboard<FieldT>& pb) {
     libsnark::pb_variable<FieldT> iv;
     iv.allocate(pb, "iv_sn");
+    // iv = sha3("Clearmatics_sn")
     pb.val(iv) = FieldT("38594890471543702135425523844252992926779387339253565328142220201141984377400");
     return iv;
 }
@@ -135,6 +139,7 @@ template<typename FieldT>
 libsnark::pb_variable<FieldT> get_iv_pk(libsnark::protoboard<FieldT>& pb) {
     libsnark::pb_variable<FieldT> iv;
     iv.allocate(pb, "iv_pk");
+    // iv = sha3("Clearmatics_pk")
     pb.val(iv) = FieldT("20715549373167656640519441333099474211916836972862576858009333815040496998894");
     return iv;
 }

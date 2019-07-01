@@ -20,13 +20,13 @@ libzeth::ZethNote<FieldT> ParseZethNote(const proverpkg::ZethNote& note) {
 
     FieldT noteRho = string_to_field<FieldT>(note.rho());
 
-    FieldT noteTrapR0 = string_to_field<FieldT>(note.trapr0());
+    FieldT noteTrapR = string_to_field<FieldT>(note.trapr());
 
     return libzeth::ZethNote<FieldT>(
         noteAPK,
         noteValue,
         noteRho,
-        noteTrapR0
+        noteTrapR
     );
 }
 

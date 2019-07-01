@@ -49,11 +49,10 @@ def hex2int(elements):
 
 def noteRandomness():
     rand_rho = bytes(Random.get_random_bytes(32)).hex()
-    rand_trapR0 = bytes(Random.get_random_bytes(32)).hex()
-    rand_trapR1 = bytes(Random.get_random_bytes(32)).hex()
+    rand_trapR = bytes(Random.get_random_bytes(32)).hex()
     randomness = {
         "rho": rand_rho,
-        "trapR0": rand_trapR0
+        "trapR": rand_trapR
     }
     return randomness
 
@@ -63,7 +62,7 @@ def createZethNote(randomness, recipientApk, value):
         aPK=recipientApk,
         value=value,
         rho=randomness["rho"],
-        trapR0=randomness["trapR0"]
+        trapR=randomness["trapR"]
     )
     return note
 
@@ -72,7 +71,7 @@ def parseZethNote(zethNoteGRPCObj):
         "aPK": zethNoteGRPCObj.aPK,
         "value": zethNoteGRPCObj.value,
         "rho": zethNoteGRPCObj.rho,
-        "trapR0": zethNoteGRPCObj.trapR0
+        "trapR": zethNoteGRPCObj.trapR
     }
     return noteJSON
 
@@ -81,7 +80,7 @@ def zethNoteObjFromParsed(parsedZethNote):
         aPK=parsedZethNote["aPK"],
         value=parsedZethNote["value"],
         rho=parsedZethNote["rho"],
-        trapR0=parsedZethNote["trapR0"]
+        trapR=parsedZethNote["trapR"]
     )
     return note
 
@@ -95,10 +94,10 @@ def computeCommitment(zethNoteGRPCObj):
 
     aPK = int(zethNoteGRPCObj.aPK, 16)
     rho = int(zethNoteGRPCObj.rho, 16)
-    trapR0 = int(zethNoteGRPCObj.trapR0, 16)
+    trapR = int(zethNoteGRPCObj.trapR, 16)
     value = int(zethNoteGRPCObj.value, 16)
 
-    cm = m.hash([aPK, rho, value, trapR0], ZETH_MIMC_IV_CM)
+    cm = m.hash([aPK, rho, value, trapR], ZETH_MIMC_IV_CM)
 
     return hex(cm)[2:]
 
