@@ -22,14 +22,11 @@ libzeth::ZethNote<FieldT> ParseZethNote(const proverpkg::ZethNote& note) {
 
     FieldT noteTrapR0 = string_to_field<FieldT>(note.trapr0());
 
-    FieldT noteTrapR1 = string_to_field<FieldT>(note.trapr1());
-
     return libzeth::ZethNote<FieldT>(
         noteAPK,
         noteValue,
         noteRho,
-        noteTrapR0,
-        noteTrapR1
+        noteTrapR0
     );
 }
 

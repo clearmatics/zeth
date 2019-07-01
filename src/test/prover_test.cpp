@@ -50,16 +50,14 @@ bool TestValidJS2In2Case1(
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
     FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
-    FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
-    FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
+    FieldT rho = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
+    FieldT nf = FieldT("8721627921931741499844568506580276318960817415527767680143533069722778332102");
     FieldT value = FieldT("100");
-    FieldT cm = FieldT("21075862836612025410946586494502715375244302209109240154340545056954086062438");
+    FieldT cm = FieldT("2184465399207300655223678779522654059919117172505514258336307828845688397060");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
-
 
     // We insert the commitment to the zeth note in the merkle tree
     test_merkle_tree->set_value(address_commitment, cm);
@@ -71,16 +69,14 @@ bool TestValidJS2In2Case1(
         a_pk,
         value,
         rho,
-        r_trap,
-        r_mask
+        r_trap
     );
 
     ZethNote<FieldT> note_dummy_input(
         a_pk,
         FieldT("0"),
         FieldT("6845108050456603036310667214894676007661663921399154479307840696887919990996"),  // rho_dummy = mimic_hash([4], sha3("Clearmatics"))
-        r_trap,
-        r_mask
+        r_trap
     );
 
     JSInput<FieldT> input(
@@ -117,7 +113,6 @@ bool TestValidJS2In2Case1(
     FieldT a_sk_out = FieldT("4047591473000155590199171927915978796573140621771266280705379796913645161555"); // mimic_hash([-1], sha3("Clearmatics"))
     FieldT a_pk_out = FieldT("1570964467829526078663761333427980033315285096730121923127414543972819455975");
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
-    FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
     FieldT value_out = FieldT("75");
 
@@ -125,16 +120,14 @@ bool TestValidJS2In2Case1(
         a_pk_out,
         value_out,
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
 
     ZethNote<FieldT> note_dummy_output(
         a_pk_out,
         FieldT("0"),
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
     std::array<ZethNote<FieldT>, 2> outputs;
     outputs[0] = note_output;
@@ -195,13 +188,12 @@ bool TestValidJS2In2Case2(
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
     FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
-    FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
-    FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
+    FieldT rho = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
+    FieldT nf = FieldT("8721627921931741499844568506580276318960817415527767680143533069722778332102");
     FieldT value = FieldT("100");
-    FieldT cm = FieldT("21075862836612025410946586494502715375244302209109240154340545056954086062438");
+    FieldT cm = FieldT("2184465399207300655223678779522654059919117172505514258336307828845688397060");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
@@ -215,16 +207,14 @@ bool TestValidJS2In2Case2(
         a_pk,
         FieldT("100"),
         rho,
-        r_trap,
-        r_mask
+        r_trap
     );
 
     ZethNote<FieldT>note_input2(
         a_pk,
         FieldT("0"),
         rho,
-        r_trap,
-        r_mask
+        r_trap
     );
 
     JSInput<FieldT> input1(
@@ -260,7 +250,6 @@ bool TestValidJS2In2Case2(
     FieldT a_sk_out = FieldT("4047591473000155590199171927915978796573140621771266280705379796913645161555"); // mimic_hash([-1], sha3("Clearmatics"))
     FieldT a_pk_out = FieldT("1570964467829526078663761333427980033315285096730121923127414543972819455975");
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
-    FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
     FieldT value_out_1 = FieldT("70");
     FieldT value_out_2 = FieldT("20");
@@ -269,16 +258,14 @@ bool TestValidJS2In2Case2(
         a_pk_out,
         value_out_1,
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
 
     ZethNote<FieldT>note_output2(
         a_pk_out,
         value_out_2,
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
 
     std::array<ZethNote<FieldT>, 2> outputs;
@@ -339,13 +326,12 @@ bool TestValidJS2In2Case3(
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
     FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
-    FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
-    FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
+    FieldT rho = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
+    FieldT nf = FieldT("8721627921931741499844568506580276318960817415527767680143533069722778332102");
     FieldT value = FieldT("100");
-    FieldT cm = FieldT("21075862836612025410946586494502715375244302209109240154340545056954086062438");
+    FieldT cm = FieldT("2184465399207300655223678779522654059919117172505514258336307828845688397060");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
@@ -359,16 +345,14 @@ bool TestValidJS2In2Case3(
         a_pk,
         value,
         rho,
-        r_trap,
-        r_mask
+        r_trap
     );
 
     ZethNote<FieldT> note_input2(
         a_pk,
         FieldT("0"),
         rho,
-        r_trap,
-        r_mask
+        r_trap
     );
 
     JSInput<FieldT> input1(
@@ -403,7 +387,6 @@ bool TestValidJS2In2Case3(
     FieldT a_sk_out = FieldT("4047591473000155590199171927915978796573140621771266280705379796913645161555"); // mimic_hash([-1], sha3("Clearmatics"))
     FieldT a_pk_out = FieldT("1570964467829526078663761333427980033315285096730121923127414543972819455975");
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
-    FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
     FieldT value_out_1 = FieldT("70");
     FieldT value_out_2 = FieldT("20");
@@ -412,15 +395,13 @@ bool TestValidJS2In2Case3(
         a_pk_out,
         value_out_1,
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
     ZethNote<FieldT> note_output2(
         a_pk_out,
         value_out_2,
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
 
     std::array<ZethNote<FieldT>, 2> outputs;
@@ -479,13 +460,12 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
     FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
-    FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
-    FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
+    FieldT rho = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
+    FieldT nf = FieldT("8721627921931741499844568506580276318960817415527767680143533069722778332102");
     FieldT value = FieldT("0");
-    FieldT cm = FieldT("19331960042315155497530170019921951736965260654332349247509836147634461830589");
+    FieldT cm = FieldT("19901876165488812366511593632799720711840684438354766745799860897750806259178");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
@@ -499,16 +479,14 @@ bool TestValidJS2In2Deposit(
         a_pk,
         value,
         rho,
-        r_trap,
-        r_mask
+        r_trap
     );
 
     ZethNote<FieldT> note_input2(
         a_pk,
         value,
         rho,
-        r_trap,
-        r_mask
+        r_trap
     );
 
     JSInput<FieldT> input1(
@@ -544,7 +522,6 @@ bool TestValidJS2In2Deposit(
     FieldT a_sk_out = FieldT("4047591473000155590199171927915978796573140621771266280705379796913645161555"); // mimic_hash([-1], sha3("Clearmatics"))
     FieldT a_pk_out = FieldT("1570964467829526078663761333427980033315285096730121923127414543972819455975");
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
-    FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
     FieldT value_out_1 = FieldT("80");
     FieldT value_out_2 = FieldT("20");
@@ -553,16 +530,14 @@ bool TestValidJS2In2Deposit(
         a_pk_out,
         value_out_1,
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
 
     ZethNote<FieldT> note_output2(
         a_pk_out,
         value_out_2,
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
 
     std::array<ZethNote<FieldT>, 2> outputs;
@@ -622,16 +597,14 @@ bool TestInvalidJS2In2(
     libff::enter_block("[BEGIN] Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree (commitment to spend in this test)
     FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
-    FieldT r_mask = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
-    FieldT rho = FieldT("1050857222747641138499486657636501128934992461797459043826425853190223953952");
-    FieldT nf = FieldT("16718990446402804328289195783834079890551903281540894658644001381677667818395");
+    FieldT rho = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
+    FieldT nf = FieldT("8721627921931741499844568506580276318960817415527767680143533069722778332102");
     FieldT value = FieldT("0");
-    FieldT cm = FieldT("19331960042315155497530170019921951736965260654332349247509836147634461830589");
+    FieldT cm = FieldT("19901876165488812366511593632799720711840684438354766745799860897750806259178");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
-
 
     // We insert the commitment to the zeth note in the merkle tree
     test_merkle_tree->set_value(address_commitment, cm);
@@ -643,16 +616,14 @@ bool TestInvalidJS2In2(
         a_pk,
         value,
         rho,
-        r_trap,
-        r_mask
+        r_trap
     );
 
     ZethNote<FieldT> note_input2(
         a_pk,
         FieldT("0"),
         rho,
-        r_trap,
-        r_mask
+        r_trap
     );
 
     JSInput<FieldT> input1(
@@ -687,7 +658,6 @@ bool TestInvalidJS2In2(
     FieldT a_sk_out = FieldT("4047591473000155590199171927915978796573140621771266280705379796913645161555"); // mimic_hash([-1], sha3("Clearmatics"))
     FieldT a_pk_out = FieldT("1570964467829526078663761333427980033315285096730121923127414543972819455975");
     FieldT r_trap_out = FieldT("3121287842287349864642297846963883646477840388236905026425392648441319037621"); // mimic_hash([-2], sha3("Clearmatics"))
-    FieldT r_mask_out = FieldT("19253552993580840822052270218222026004974786985939386817973146641031673406634"); // mimic_hash([-3], sha3("Clearmatics"))
     FieldT rho_out = FieldT("10448869983030339500740742410361707713409326656173533049846269061232406471931"); // mimic_hash([-4], sha3("Clearmatics"))
     FieldT value_out_1 = FieldT("80");
     FieldT value_out_2 = FieldT("70");
@@ -696,15 +666,13 @@ bool TestInvalidJS2In2(
         a_pk_out,
         value_out_1,
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
     ZethNote<FieldT> note_output2(
         a_pk_out,
         value_out_2,
         rho_out,
-        r_trap_out,
-        r_mask_out
+        r_trap_out
     );
     std::array<ZethNote<FieldT>, 2> outputs;
     outputs[0] = note_output1;

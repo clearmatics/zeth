@@ -14,7 +14,6 @@ note_gadget<FieldT>::note_gadget(libsnark::protoboard<FieldT> &pb,
 {
     value.allocate(pb, "v");
     r_trap.allocate(pb, "r_trap");
-    r_mask.allocate(pb, "r_mask");
 }
 
 template<typename FieldT>
@@ -25,7 +24,6 @@ void note_gadget<FieldT>::generate_r1cs_constraints() {
 template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_witness(const ZethNote<FieldT>& note) {
     this->pb.val(r_trap) = note.r;
-    this->pb.val(r_mask) = note.r_mask;
     this->pb.val(value) = note.value();
 }
 
@@ -90,7 +88,6 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
         *a_pk,
         rho,
         this->r_trap,
-        this->r_mask,
         this->value
     ));
 
@@ -279,7 +276,6 @@ output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
         *a_pk,
         rho,
         this->r_trap,
-        this->r_mask,
         this->value
     ));
 }

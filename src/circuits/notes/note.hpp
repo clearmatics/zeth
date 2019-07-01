@@ -20,14 +20,12 @@ namespace libzeth {
 
 // Wrapper gadget that makes sure that the note:
 // - Has a value
-// - Has a valid r trapdoor and r_mask
+// - Has a valid r trapdoor
 template<typename FieldT>
 class note_gadget : public libsnark::gadget<FieldT> {
 public:
     libsnark::pb_variable<FieldT> value;                                            // Value of the note
     libsnark::pb_variable<FieldT> r_trap;                                           // Trapdoor r of the note
-    libsnark::pb_variable<FieldT> r_mask;                                           // Mask r of the note
-
 
     note_gadget(libsnark::protoboard<FieldT> &pb,
                 const std::string &annotation_prefix = "base_note_gadget");
@@ -48,7 +46,7 @@ public:
     std::shared_ptr<libsnark::pb_variable<FieldT>> nf;                              // Nullifier
 
     std::shared_ptr<cm_gadget<FieldT>> commit_to_inputs_cm;                         // Gadget computing the commitment (leaf)
-    std::shared_ptr<libsnark::pb_variable<FieldT>> cm;                              // Note commitment ; output of a PRF
+    std::shared_ptr<libsnark::pb_variable<FieldT>> cm;                              // Note commitment 
 
     libsnark::pb_variable<FieldT> value_enforce;                                    // Boolean to check whether the commitment (leaf) has to be found in the merkle tree ; necessary to support dummy notes of value 0.
     libsnark::pb_variable_array<FieldT> address_bits_va;                            // Address of the commitment (leaf) in bits

@@ -37,6 +37,7 @@ def getProof(grpcEndpoint, proofInputs):
         stub = prover_pb2_grpc.ProverStub(channel)
         print("-------------- Get the proof --------------")
         proof = stub.Prove(proofInputs)
+
         return proof
 
 
@@ -52,8 +53,7 @@ def noteRandomness():
     rand_trapR1 = bytes(Random.get_random_bytes(32)).hex()
     randomness = {
         "rho": rand_rho,
-        "trapR0": rand_trapR0,
-        "trapR1": rand_trapR1
+        "trapR0": rand_trapR0
     }
     return randomness
 
@@ -63,8 +63,7 @@ def createZethNote(randomness, recipientApk, value):
         aPK=recipientApk,
         value=value,
         rho=randomness["rho"],
-        trapR0=randomness["trapR0"],
-        trapR1=randomness["trapR1"]
+        trapR0=randomness["trapR0"]
     )
     return note
 
@@ -73,8 +72,7 @@ def parseZethNote(zethNoteGRPCObj):
         "aPK": zethNoteGRPCObj.aPK,
         "value": zethNoteGRPCObj.value,
         "rho": zethNoteGRPCObj.rho,
-        "trapR0": zethNoteGRPCObj.trapR0,
-        "trapR1": zethNoteGRPCObj.trapR1,
+        "trapR0": zethNoteGRPCObj.trapR0
     }
     return noteJSON
 
@@ -83,8 +81,7 @@ def zethNoteObjFromParsed(parsedZethNote):
         aPK=parsedZethNote["aPK"],
         value=parsedZethNote["value"],
         rho=parsedZethNote["rho"],
-        trapR0=parsedZethNote["trapR0"],
-        trapR1=parsedZethNote["trapR1"]
+        trapR0=parsedZethNote["trapR0"]
     )
     return note
 
@@ -99,17 +96,9 @@ def computeCommitment(zethNoteGRPCObj):
     aPK = int(zethNoteGRPCObj.aPK, 16)
     rho = int(zethNoteGRPCObj.rho, 16)
     trapR0 = int(zethNoteGRPCObj.trapR0, 16)
-    trapR1 = int(zethNoteGRPCObj.trapR1, 16)
     value = int(zethNoteGRPCObj.value, 16)
 
-    # inner_k = MiMCHash(a_pk || rho)
-    inner_k = m.hash([aPK, rho], ZETH_MIMC_IV_MT)
-
-    #outer_k = MiMCHash(r_1, r_0+inner_k)
-    outer_k = m.hash([trapR1, trapR0+inner_k], ZETH_MIMC_IV_MT)
-
-    #cm = MiMCHash(value, outer_k)
-    cm = m.hash([outer_k, value], ZETH_MIMC_IV_MT)
+    cm = m.hash([aPK, rho, value, trapR0], ZETH_MIMC_IV_MT)
 
     return hex(cm)[2:]
 

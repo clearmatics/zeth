@@ -29,11 +29,10 @@ public:
     FieldT a_pk;
     FieldT rho;
     FieldT r;
-    FieldT r_mask;
     //FieldT cm;
 
-    ZethNote(FieldT a_pk, FieldT value, FieldT rho, FieldT r, FieldT r_mask/*, FieldT cm*/)
-        : BaseNote<FieldT>(value), a_pk(a_pk), rho(rho), r(r), r_mask(r_mask) /*, cm(cm)*/{}
+    ZethNote(FieldT a_pk, FieldT value, FieldT rho, FieldT r/*, FieldT cm*/)
+        : BaseNote<FieldT>(value), a_pk(a_pk), rho(rho), r(r)/*, cm(cm)*/{}
 
     ZethNote(){};
     virtual ~ZethNote() {};

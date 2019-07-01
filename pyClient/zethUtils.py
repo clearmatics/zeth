@@ -56,6 +56,9 @@ def encrypt(message, public_key):
         encrypted += rsa_key.encrypt(chunk)
         offset += chunk_size
 
+        if offset == len(blob):
+            end_loop = True
+
     return base64.b64encode(encrypted)
 
 def decrypt(encrypted_blob, private_key):
