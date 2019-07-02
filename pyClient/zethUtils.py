@@ -56,6 +56,9 @@ def encrypt(message, public_key):
         encrypted += rsa_key.encrypt(chunk)
         offset += chunk_size
 
+        if offset == len(blob):
+            end_loop = True
+
     return base64.b64encode(encrypted)
 
 def decrypt(encrypted_blob, private_key):
@@ -99,7 +102,7 @@ def compute_merkle_path(address_commitment, tree_depth, byte_tree):
             print("append note at address: " + str(address + 1))
             merkle_path.append(w3.toHex(byte_tree[address + 1])[2:])
             address = int(address/2)
-    return merkle_path[::-1] # Return the merkle tree in reverse order
+    return merkle_path # Return the merkle tree path
 
 def receive(ciphertext, decryption_key, username):
     recovered_plaintext = ""

@@ -96,7 +96,7 @@ void merkle_path_compute<HashT, FieldT>::generate_r1cs_witness()
         // We compute the left and right input of the hasher gadget 
         // as well as the hash of left and right
         selectors[i].generate_r1cs_witness();
-        hashers[i].generate_r1cs_witness();    
+        hashers[i].generate_r1cs_witness();
     }
 }
 

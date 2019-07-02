@@ -23,8 +23,8 @@ message ProofInputs {
     string root = 1;
     repeated JSInput jsInputs = 2; // List of inputs to the JS
     repeated ZethNote jsOutputs = 3; // List of output to the JS
-    string inPubValue = 4; // Hexadecimal string representing a int64
-    string outPubValue = 5; // Hexadecimal string representing a int64
+    string inPubValue = 4; // Hexadecimal string representing a 32bytes int
+    string outPubValue = 5; // Hexadecimal string representing a 32bytes int
 }
 
 // We comment this message as the primary input is passed as a json string for now

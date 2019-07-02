@@ -24,7 +24,7 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
   function getTree() public view returns (bytes32[] memory) {
     uint nbNodes = 2**(depth + 1) - 1;
     bytes32[] memory tmpTree = new bytes32[](nbNodes);
-    bytes32[] memory leftRightInput = new bytes32[](2);
+    bytes32[] memory input = new bytes32[](2);
 
     // Dump the leaves in the right indexes in the tree
     for (uint i = 0; i < nbLeaves; i++) {
@@ -33,15 +33,18 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
 
     // Compute the internal nodes of the merkle tree
     for (uint i = nbLeaves - 2; i > 0; i--) {
-      leftRightInput[0] = tmpTree[i*2+1];
-      leftRightInput[1] = tmpTree[2*(i+1)];
-      tmpTree[i] = mimc7_hasher.hash(leftRightInput, 0);
+      input[0] = tmpTree[2*i+1];
+      input[1] = tmpTree[2*(i+1)];
+
+      // IV of the hash is hardcoded and is given by the sha3('Clearmatics') see:TODO add reference to where we compute it
+      tmpTree[i] = mimc7_hasher.hash(input, 0x1f7045f1e0ba08e91b86af51c1371a9ad71a3f3164945b0b167af5bfa12583c3);
+
     }
 
     // Compute the merkle root
-    leftRightInput[0] = tmpTree[1];
-    leftRightInput[1] = tmpTree[2];
-    tmpTree[0] = mimc7_hasher.hash(leftRightInput, 0);
+    input[0] = tmpTree[1];
+    input[1] = tmpTree[2];
+    tmpTree[0] = mimc7_hasher.hash(input, 0x1f7045f1e0ba08e91b86af51c1371a9ad71a3f3164945b0b167af5bfa12583c3);
 
     return tmpTree;
   }

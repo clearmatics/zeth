@@ -19,7 +19,7 @@ keyPairT<ppT> CircuitWrapper<FieldT, HashT, NumInputs, NumOutputs>::generate_tru
 template<typename FieldT, typename HashT, size_t NumInputs, size_t NumOutputs>
 extended_proof<ppT> CircuitWrapper<FieldT, HashT, NumInputs, NumOutputs>::prove(
     const FieldT& root_bits,
-    const std::array<JSInput, NumInputs>& inputs,
+    const std::array<JSInput<FieldT>, NumInputs>& inputs,
     const std::array<ZethNote<FieldT>, NumOutputs>& outputs,
     FieldT vpub_in,
     FieldT vpub_out,

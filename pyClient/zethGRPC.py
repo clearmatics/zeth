@@ -19,6 +19,10 @@ import prover_pb2_grpc
 import zethConstants as constants
 import zethErrors as errors
 
+# Import MiMC hash and constants
+from zethMimc import MiMC7
+from zethConstants import ZETH_MIMC_IV_MT, ZETH_MIMC_IV_CM, ZETH_MIMC_IV_NF, ZETH_MIMC_IV_ADD
+
 # Fetch the verification key from the proving service
 def getVerificationKey(grpcEndpoint):
     with grpc.insecure_channel(grpcEndpoint) as channel:
@@ -33,6 +37,7 @@ def getProof(grpcEndpoint, proofInputs):
         stub = prover_pb2_grpc.ProverStub(channel)
         print("-------------- Get the proof --------------")
         proof = stub.Prove(proofInputs)
+
         return proof
 
 
@@ -44,7 +49,7 @@ def hex2int(elements):
 
 def noteRandomness():
     rand_rho = bytes(Random.get_random_bytes(32)).hex()
-    rand_trapR = bytes(Random.get_random_bytes(48)).hex()
+    rand_trapR = bytes(Random.get_random_bytes(32)).hex()
     randomness = {
         "rho": rand_rho,
         "trapR": rand_trapR
@@ -66,7 +71,7 @@ def parseZethNote(zethNoteGRPCObj):
         "aPK": zethNoteGRPCObj.aPK,
         "value": zethNoteGRPCObj.value,
         "rho": zethNoteGRPCObj.rho,
-        "trapR": zethNoteGRPCObj.trapR,
+        "trapR": zethNoteGRPCObj.trapR
     }
     return noteJSON
 
@@ -85,57 +90,53 @@ def hexFmt(string):
 # Used by the recipient of a payment to recompute the commitment and check the membership in the tree
 # to confirm the validity of a payment
 def computeCommitment(zethNoteGRPCObj):
-    # inner_k = sha256(a_pk || rho)
-    inner_k = hashlib.sha256(
-        encode_abi(['bytes32', 'bytes32'], (bytes.fromhex(zethNoteGRPCObj.aPK), bytes.fromhex(zethNoteGRPCObj.rho)))
-    ).hexdigest()
+    m = MiMC7()
 
-    # outer_k = sha256(r || [inner_k]_128)
-    first128InnerComm = inner_k[0:128]
-    outer_k = hashlib.sha256(
-        encode_abi(['bytes', 'bytes'], (bytes.fromhex(zethNoteGRPCObj.trapR), bytes.fromhex(first128InnerComm)))
-    ).hexdigest()
+    aPK = int(zethNoteGRPCObj.aPK, 16)
+    rho = int(zethNoteGRPCObj.rho, 16)
+    trapR = int(zethNoteGRPCObj.trapR, 16)
+    value = int(zethNoteGRPCObj.value, 16)
 
-    # cm = sha256(outer_k || 0^192 || value_v)
-    frontPad = "000000000000000000000000000000000000000000000000"
-    cm = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], (bytes.fromhex(outer_k), bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
-    ).hexdigest()
-    return cm
+    cm = m.hash([aPK, rho, value, trapR], ZETH_MIMC_IV_CM)
+
+    return hex(cm)[2:]
 
 def hexadecimalDigestToBinaryString(digest):
     binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
     return binary(digest)
 
-def computeNullifier(zethNote, spendingAuthAsk):
-    # nf = sha256(a_sk || 01 || [rho]_254)
-    binaryRho = hexadecimalDigestToBinaryString(zethNote.rho)
-    first254Rho = binaryRho[0:254]
-    rightLegBin = "01" + first254Rho
-    rightLegHex = "{0:0>4X}".format(int(rightLegBin, 2))
-    print("Compute nullifier")
-    nullifier = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(spendingAuthAsk), bytes.fromhex(rightLegHex)])
-    ).hexdigest()
-    return nullifier
+def computeNullifier(zethNote, ask):
+    m = MiMC7()
 
+    rho = int(zethNote.rho, 16)
+    ask = int(ask, 16)
+
+    # nf = MiMCHash(a_sk,rho)
+    nullifier = m.hash([ask, rho], ZETH_MIMC_IV_NF)
+
+
+    return hex(nullifier)[2:]
+
+# TODO change name since it could be misleading by reading the code: it works well for any number, not only int64
 def int64ToHexadecimal(number):
     return '{:016x}'.format(number)
 
 def deriveAPK(ask):
-    # a_pk = sha256(a_sk || 0^256)
-    zeroes = "0000000000000000000000000000000000000000000000000000000000000000"
-    a_pk = hashlib.sha256(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(ask), bytes.fromhex(zeroes)])
-    ).hexdigest()
-    return a_pk
+    # apk = MiMCHash(a_sk, 0)
+    m = MiMC7()
+
+    ask = int(ask, 16)
+
+    apk = m.hash([ask,0], ZETH_MIMC_IV_ADD)
+
+    return hex(apk)[2:]
 
 def generateApkAskKeypair():
-    a_sk = bytes(Random.get_random_bytes(32)).hex()
-    a_pk = deriveAPK(a_sk)
+    ask = bytes(Random.get_random_bytes(32)).hex()
+    apk = deriveAPK(ask)
     keypair = {
-        "aSK": a_sk,
-        "aPK": a_pk
+        "aSK": ask,
+        "aPK": apk
     }
     return keypair
 
@@ -230,7 +231,6 @@ def parseProofGROTH16(proofObj):
     return proofJSON
 
 def parseProof(proofObj, zksnark):
-    proofJSON = {}
     if zksnark == constants.PGHR13_ZKSNARK:
         return parseProofPGHR13(proofObj)
     elif zksnark == constants.GROTH16_ZKSNARK:
@@ -271,8 +271,11 @@ def get_proof_joinsplit_2by2(
     ]
 
     proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value)
+
     proof_obj = getProof(grpcEndpoint, proof_input)
+
     proof_json = parseProof(proof_obj, zksnark)
+
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
     return (output_note1, output_note2, proof_json)

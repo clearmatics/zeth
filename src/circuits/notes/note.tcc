@@ -12,9 +12,8 @@ note_gadget<FieldT>::note_gadget(libsnark::protoboard<FieldT> &pb,
                                 const std::string &annotation_prefix
 ) : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
-    value.allocate(pb, "v"); 
+    value.allocate(pb, "v");
     r_trap.allocate(pb, "r_trap");
-    r_mask.allocate(pb, "r_mask");
 }
 
 template<typename FieldT>
@@ -25,7 +24,6 @@ void note_gadget<FieldT>::generate_r1cs_constraints() {
 template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_witness(const ZethNote<FieldT>& note) {
     this->pb.val(r_trap) = note.r;
-    this->pb.val(r_mask) = note.r_mask;
     this->pb.val(value) = note.value();
 }
 
@@ -45,7 +43,7 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
     a_pk.reset(new libsnark::pb_variable<FieldT>);
     (*a_pk).allocate(pb, "a_pk");
 
-    // Allocates rho and set the nullifier   
+    // Allocates rho and set the nullifier
     rho.allocate(pb, "rho");
     nf = nullifier;
 
@@ -72,7 +70,7 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
     // Call to the "note_commitment_gadget" to make sure that the
     // commitment cm is computed correctly from the coin data
     // ie: a_pk, value, rho, and trap_r#include "circuits/notes/note.tcc"
-    
+
     // Note: In our case it can be useful to retrieve the commitment k if we want to
     // implement the mint function the same way as it is done in Zerocash.
     // That way we only need to provide k along with the value when we deposit
@@ -90,7 +88,6 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
         *a_pk,
         rho,
         this->r_trap,
-        this->r_mask,
         this->value
     ));
 
@@ -111,7 +108,7 @@ input_note_gadget<HashT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>
         rt,
         *auth_path,
         value_enforce,
-        "auth_path"        
+        "auth_path"
     ));
 }
 
@@ -129,7 +126,7 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_constraints() {
 
     // Generates constraints of cm gadget
     commit_to_inputs_cm->generate_r1cs_constraints();
-    
+
     // value * (1 - enforce) = 0
     // Given `enforce` is boolean constrained:
     // If `value` is zero, `enforce` _can_ be zero.
@@ -234,8 +231,7 @@ void input_note_gadget<HashT, FieldT>::generate_r1cs_witness(
     // auth path (is not correctly authenticated), the root (shared by all inputs)
     // will be changed and the proof should be rejected.
 
-    // Set address_bits_va values
-    address_bits_va.fill_with_bits(this->pb, address_bits); 
+    address_bits_va.fill_with_bits(this->pb, address_bits);
 
     // Set value_enforce value
     this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
@@ -280,7 +276,6 @@ output_note_gadget<FieldT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
         *a_pk,
         rho,
         this->r_trap,
-        this->r_mask,
         this->value
     ));
 }
@@ -306,7 +301,7 @@ void output_note_gadget<FieldT>::generate_r1cs_witness(const ZethNote<FieldT>& n
 
     commit_to_outputs_cm->generate_r1cs_witness();
     this->pb.val(*cm) = this->pb.val(commit_to_outputs_cm->result());
-  
+
 }
 
 template<typename FieldT>

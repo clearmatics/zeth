@@ -1,20 +1,28 @@
-#include "util_api.hpp"
+#ifndef __ZETH_UTIL_API_TCC__
+#define __ZETH_UTIL_API_TCC__
+
 
 // Message formatting and parsing utility
 
 namespace libzeth {
 
-libsnark::merkle_authentication_node ParseMerkleNode(std::string mk_node) {
-    return libff::bit_vector(libzeth::hexadecimal_digest_to_binary_vector(mk_node));
+template<typename FieldT>
+FieldT ParseMerkleNode(std::string mk_node) {
+    return string_to_field<FieldT>(mk_node);
 }
 
-libzeth::ZethNote ParseZethNote(const proverpkg::ZethNote& note) {
-    libzeth::bits256 noteAPK = libzeth::hexadecimal_digest_to_bits256(note.apk());
-    libzeth::bits64 noteValue = libzeth::hexadecimal_value_to_bits64(note.value());
-    libzeth::bits256 noteRho = libzeth::hexadecimal_digest_to_bits256(note.rho());
-    libzeth::bits384 noteTrapR = libzeth::get_bits384_from_vector(libzeth::hexadecimal_str_to_binary_vector(note.trapr()));
+template<typename FieldT>
+libzeth::ZethNote<FieldT> ParseZethNote(const proverpkg::ZethNote& note) {
 
-    return libzeth::ZethNote(
+    FieldT noteAPK = string_to_field<FieldT>(note.apk());
+
+    FieldT noteValue = string_to_field<FieldT>(note.value());
+
+    FieldT noteRho = string_to_field<FieldT>(note.rho());
+
+    FieldT noteTrapR = string_to_field<FieldT>(note.trapr());
+
+    return libzeth::ZethNote<FieldT>(
         noteAPK,
         noteValue,
         noteRho,
@@ -22,24 +30,27 @@ libzeth::ZethNote ParseZethNote(const proverpkg::ZethNote& note) {
     );
 }
 
-libzeth::JSInput ParseJSInput(const proverpkg::JSInput& input) {
+template<typename FieldT>
+libzeth::JSInput<FieldT> ParseJSInput(const proverpkg::JSInput& input) {
     if (ZETH_MERKLE_TREE_DEPTH != input.merklenode_size()) {
         throw std::invalid_argument("Invalid merkle path length");
     }
 
-    libzeth::ZethNote inputNote = ParseZethNote(input.note());
+    libzeth::ZethNote<FieldT> inputNote = ParseZethNote<FieldT>(input.note());
     size_t inputAddress = input.address();
-    libzeth::bitsAddr inputAddressBits = libzeth::get_bitsAddr_from_vector(libzeth::address_bits_from_address(inputAddress, ZETH_MERKLE_TREE_DEPTH));
-    libzeth::bits256 inputSpendingASK = libzeth::hexadecimal_digest_to_bits256(input.spendingask());
-    libzeth::bits256 inputNullifier = libzeth::hexadecimal_digest_to_bits256(input.nullifier());
 
-    std::vector<libsnark::merkle_authentication_node> inputMerklePath;
+    libzeth::bitsAddr inputAddressBits = libzeth::get_bitsAddr_from_vector(libzeth::address_bits_from_address(inputAddress, ZETH_MERKLE_TREE_DEPTH));
+    FieldT inputSpendingASK = string_to_field<FieldT>(input.spendingask());
+    FieldT inputNullifier = string_to_field<FieldT>(input.nullifier());
+
+    std::vector<FieldT> inputMerklePath;
+
     for(int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
-        libsnark::merkle_authentication_node mk_node = ParseMerkleNode(input.merklenode(i));
+        FieldT mk_node = ParseMerkleNode<FieldT>(input.merklenode(i));
         inputMerklePath.push_back(mk_node);
     }
 
-    return libzeth::JSInput(
+    return libzeth::JSInput<FieldT>(
         inputMerklePath,
         inputAddress,
         inputAddressBits,
@@ -80,3 +91,6 @@ proverpkg::HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affi
 }
 
 } // libzeth
+
+#endif // __ZETH_UTIL_TCC__
+

@@ -49,16 +49,10 @@ include_directories(
   libff/common/default_types
 )
 
-file(GLOB_RECURSE SOURCES_TEST
+file(GLOB_RECURSE SOURCES
     libsnark_helpers/debug_helpers.cpp
     circuits/circuits-util.cpp
     types/bits.cpp
-    util.cpp
-)
-
-file(GLOB_RECURSE SOURCES
-    ${SOURCES_TEST}
-    util_api.cpp
 )
 
 # Enable Boost for program_options
@@ -96,13 +90,37 @@ target_include_directories(
 )
 
 ## Tests
+# Test the hex converstion
+add_executable(
+    test_hex_to_field
+    EXCLUDE_FROM_ALL
+
+    test/hex_to_field_test.cpp
+    ${SOURCES}
+
+)
+target_link_libraries(
+    test_hex_to_field
+
+    snark
+    gtest_main
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_hex_to_field
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
 # Test the notes circuits
 add_executable(
     test_note
     EXCLUDE_FROM_ALL
 
     test/note_test.cpp
-    ${SOURCES_TEST}
+    ${SOURCES}
 )
 target_link_libraries(
     test_note
@@ -126,7 +144,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/prfs_test.cpp
-    ${SOURCES_TEST}
+    ${SOURCES}
 )
 target_link_libraries(
     test_prfs
@@ -150,7 +168,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/commitments_test.cpp
-    ${SOURCES_TEST}
+    ${SOURCES}
 )
 target_link_libraries(
     test_commitments
@@ -174,7 +192,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/round_test.cpp
-    ${SOURCES_TEST}
+    ${SOURCES}
 )
 target_link_libraries(
     test_round
@@ -198,7 +216,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/mimc_test.cpp
-    ${SOURCES_TEST}
+    ${SOURCES}
 )
 target_link_libraries(
     test_mimc
@@ -221,7 +239,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/mimc_hash_test.cpp
-    ${SOURCES_TEST}
+    ${SOURCES}
 )
 target_link_libraries(
     test_mimc_hash
@@ -245,7 +263,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/merkle_tree_test.cpp
-    ${SOURCES_TEST}
+    ${SOURCES}
 )
 target_link_libraries(
     test_merkle_tree
@@ -269,7 +287,7 @@ add_executable(
     EXCLUDE_FROM_ALL
 
     test/prover_test.cpp
-    ${SOURCES_TEST}
+    ${SOURCES}
 )
 target_link_libraries(
     test_prover
@@ -288,6 +306,10 @@ target_include_directories(
 )
 
 include(CTest)
+add_test(
+    NAME test_hex_to_field
+    COMMAND test_hex_to_field
+)
 add_test(
     NAME test_round
     COMMAND test_round
@@ -322,6 +344,7 @@ add_test(
 )
 
 # We add the test of the prover as part of the testzeth
+add_dependencies(check test_hex_to_field)
 add_dependencies(check test_round)
 add_dependencies(check test_mimc)
 add_dependencies(check test_mimc_hash)

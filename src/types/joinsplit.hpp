@@ -6,7 +6,7 @@
 #include <src/types/merkle_tree.hpp>
 
 #include "types/note.hpp"
-#include "types/bits.hpp"
+#include "util.hpp"
 
 namespace libzeth {
 
@@ -14,11 +14,11 @@ typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
 typedef FieldT merkle_authentication_node;
 
-
 // We simplify the interface of the JSInput object compared to what Zcash did
 // In fact, all our fields are going to be computed from another component
 // written in python or js, that will use the ethereum primitives to hash.
 
+template<typename FieldT>
 class JSInput {
 public:
     // --- Merkle tree witness (path, and address)

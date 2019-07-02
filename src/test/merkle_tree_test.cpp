@@ -1,7 +1,5 @@
 #include "gtest/gtest.h"
-
 #include <libff/common/default_types/ec_pp.hpp>
-
 #include "circuits/merkle_tree/merkle_path_selector.hpp"
 #include "circuits/merkle_tree/merkle_path_authenticator.hpp"
 #include "circuits/mimc/mimc_hash.hpp"
@@ -112,7 +110,7 @@ bool test_merkle_path_authenticator_depth1() {
 		pb, tree_depth, address_bits,
 		leaf, expected_root, path, enforce_bit,
 		"authenticator");
-	
+
 	auth.generate_r1cs_constraints();
 	auth.generate_r1cs_witness();
 
@@ -137,7 +135,7 @@ bool test_merkle_path_authenticator_depth1() {
 
 bool test_merkle_path_authenticator_depth3() {
     // Tree depth is 3, we want to check that hash(left2, hash(left1, hash(left0, right0))) == root
-	
+
     FieldT left0 = FieldT("0");
     FieldT right0 = FieldT("0");
     FieldT left1 = FieldT("11714008893116939441510788599557636816518527327543193374630310875272509334396");
@@ -230,4 +228,3 @@ int main(int argc, char **argv) {
 
 // namespace libsnark
 }
-
