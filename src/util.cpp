@@ -11,7 +11,7 @@ namespace libzeth {
 // Takes a binary string and swaps the bit endianness
 template<typename T>
 T swap_bit_endianness(T v) {
-    int len = v.size();
+    size_t len = v.size();
     if (len == 0) {
         throw std::length_error("Invalid bit length for the given boolean vector (should be > 0)");
     }
@@ -96,7 +96,7 @@ bits64 hexadecimal_value_to_bits64(std::string str) {
     return get_bits64_from_vector(hexadecimal_str_to_binary_vector(str));
 }
 
-std::vector<bool> address_bits_from_address(int address, int tree_depth) {
+std::vector<bool> address_bits_from_address(int address, size_t tree_depth) {
     std::vector<bool> binary = convert_int_to_binary(address);
     std::vector<bool> result(tree_depth, 0);
 

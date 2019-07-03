@@ -292,7 +292,7 @@ void input_note_gadget<FieldT>::generate_r1cs_witness(
     address_bits_va.fill_with_bits(this->pb, address_bits);
     // Make sure `address_bits` and `address` represent the same
     // value encoded on different bases (binary and decimal)
-    assert(address_bits_va.get_field_element_from_bits(pb).as_ulong() == address);
+    assert(address_bits_va.get_field_element_from_bits(this->pb).as_ulong() == address);
     auth_path->generate_r1cs_witness(address, merkle_path);
     check_membership->generate_r1cs_witness();
 }

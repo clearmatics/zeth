@@ -9,12 +9,12 @@ namespace libzeth {
 
 template<typename FieldT>
 PRF_gadget<FieldT>::PRF_gadget(libsnark::protoboard<FieldT>& pb,
-                            libsnark::pb_variable<FieldT>& ZERO,
-                            libsnark::pb_variable_array<FieldT> x,
-                            libsnark::pb_variable_array<FieldT> y,
-                            std::shared_ptr<libsnark::digest_variable<FieldT>> result,
-                            const std::string &annotation_prefix) : 
-    libsnark::gadget<FieldT>(pb, annotation_prefix), result(result) 
+                               libsnark::pb_variable<FieldT>& /* ZERO */,
+                               libsnark::pb_variable_array<FieldT> x,
+                               libsnark::pb_variable_array<FieldT> y,
+                               std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                               const std::string &annotation_prefix) :
+    libsnark::gadget<FieldT>(pb, annotation_prefix), result(result)
 {
 
     block.reset(new libsnark::block_variable<FieldT>(pb, {

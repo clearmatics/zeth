@@ -69,8 +69,7 @@ std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p)
 
 boost::filesystem::path getPathToSetupDir()
 {
-    char* pathToSetupFolder;
-    pathToSetupFolder = std::getenv("ZETH_TRUSTED_SETUP_DIR");
+    const char* pathToSetupFolder = std::getenv("ZETH_TRUSTED_SETUP_DIR");
     if (pathToSetupFolder == NULL)
     {
         // Fallback destination if the ZETH_TRUSTED_SETUP_DIR env var is not set
@@ -83,8 +82,7 @@ boost::filesystem::path getPathToSetupDir()
 
 boost::filesystem::path getPathToDebugDir()
 {
-    char* pathToDebugFolder;
-    pathToDebugFolder = std::getenv("ZETH_DEBUG_DIR");
+    const char* pathToDebugFolder = std::getenv("ZETH_DEBUG_DIR");
     if (pathToDebugFolder == NULL)
     {
         // Fallback destination if the ZETH_DEBUG_DIR env var is not set

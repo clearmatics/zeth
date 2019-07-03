@@ -56,8 +56,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         // Primary inputs are packed to be added to the extended proof and given to the verifier on-chain
         joinsplit_gadget(protoboard<FieldT> &pb,
-                        const std::string &annotation_prefix = "joinsplit_gadget"
-        ) : gadget<FieldT>(pb) {
+                         const std::string &annotation_prefix = "joinsplit_gadget"
+        ) : gadget<FieldT>(pb, annotation_prefix) {
             // Block dedicated to generate the verifier inputs
             {
                 // The verification inputs are all bit-strings of various
@@ -89,11 +89,11 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
                 // We allocate 1 field element to pack the value (v_pub_out)
                 packed_inputs[NumInputs + NumOutputs + 1 + 1].allocate(pb, 1);
-                
+
                 // The inputs are: [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
                 // The root, each nullifier, and each commitment are in {0,1}^256 and thus take 2 field elements
                 // to be represented, while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
-                int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1 + 1;
+                size_t nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1 + 1;
                 pb.set_input_sizes(nb_inputs);
                 // ------------------------------------------------------------------------------ //
 
