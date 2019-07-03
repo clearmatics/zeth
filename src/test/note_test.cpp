@@ -39,8 +39,6 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     ZERO.allocate(pb);
     pb.val(ZERO) = FieldT::zero();
 
-    std::ostream &stream = std::cout;
-
     libff::enter_block("[BEGIN] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
     bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
     bits64 value_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector("2F0000000000000F"));
@@ -143,8 +141,6 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     libsnark::pb_variable<FieldT> ZERO;
     ZERO.allocate(pb);
     pb.val(ZERO) = FieldT::zero();
-
-    std::ostream &stream = std::cout;
 
     libff::enter_block("[BEGIN] Initialize the output coins' data (a_pk, cm, rho)", true);
     bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));

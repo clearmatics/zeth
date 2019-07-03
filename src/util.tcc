@@ -6,7 +6,7 @@ namespace libzeth {
 // Takes a binary string and swaps the bit endianness
 template<typename T>
 T swap_bit_endianness(T v) {
-    int len = v.size();
+    size_t len = v.size();
     if (len == 0) {
         throw std::length_error("Invalid bit length for the given boolean vector (should be > 0)");
     }
@@ -27,7 +27,7 @@ FieldT string_to_field(std::string input){
     int input_len = input.length();
 
     //Sanity checks
-    // lenght
+    // length
     if (input_len == 0 || input.length() > 64) {
         throw std::length_error("Invalid byte string length for the given field string");
     }

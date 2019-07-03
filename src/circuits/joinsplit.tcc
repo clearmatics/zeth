@@ -56,8 +56,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         // Primary inputs are packed to be added to the extended proof and given to the verifier on-chain
         joinsplit_gadget(protoboard<FieldT> &pb,
-                        const std::string &annotation_prefix = "joinsplit_gadget"
-        ) : gadget<FieldT>(pb) {
+                         const std::string &annotation_prefix = "joinsplit_gadget"
+        ) : gadget<FieldT>(pb, annotation_prefix) {
             // Block dedicated to generate the verifier inputs
             {
                 // The verification inputs are, except for the root, all bit-strings of various

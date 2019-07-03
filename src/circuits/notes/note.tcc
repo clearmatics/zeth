@@ -108,14 +108,12 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
     // affect the public state and leak data)).
     commit_to_inputs_inner_k.reset(new COMM_inner_k_gadget<FieldT, HashT>(
         pb,
-        ZERO,
         a_pk->bits,
         rho,
         inner_k
     ));
     commit_to_inputs_outer_k.reset(new COMM_outer_k_gadget<FieldT, HashT>(
         pb,
-        ZERO,
         this->r,
         inner_k->bits,
         outer_k
@@ -312,7 +310,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
     address_bits_va.fill_with_bits(this->pb, address_bits);
     // Make sure `address_bits` and `address` represent the same
     // value encoded on different bases (binary and decimal)
-    assert(address_bits_va.get_field_element_from_bits(pb).as_ulong() == address);
+    assert(address_bits_va.get_field_element_from_bits(this->pb).as_ulong() == address);
     // Set auth_path values
     auth_path->fill_with_field_elements(this->pb, merkle_path);
 
@@ -335,14 +333,12 @@ output_note_gadget<FieldT, HashT>::output_note_gadget(libsnark::protoboard<Field
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_inner_k.reset(new COMM_inner_k_gadget<FieldT, HashT>(
         pb,
-        ZERO,
         a_pk->bits,
         rho,
         inner_k
     ));
     commit_to_outputs_outer_k.reset(new COMM_outer_k_gadget<FieldT, HashT>(
         pb,
-        ZERO,
         this->r,
         inner_k->bits,
         outer_k

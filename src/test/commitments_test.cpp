@@ -265,7 +265,6 @@ TEST(TestCOMMs, TestCOMMInnerKGadget) {
     std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT> > comm_inner_k_gadget;
     comm_inner_k_gadget.reset(new COMM_inner_k_gadget<FieldT, HashT>(
         pb,
-        ZERO,
         a_pk,
         rho,
         result)
@@ -406,7 +405,6 @@ TEST(TestCOMMs, TestCOMMOuterKGadget) {
     std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT> > comm_outer_k_gadget;
     comm_outer_k_gadget.reset(new COMM_outer_k_gadget<FieldT, HashT>(
         pb,
-        ZERO,
         trap_r,
         inner_k,
         result)

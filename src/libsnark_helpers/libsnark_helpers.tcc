@@ -143,7 +143,7 @@ void fillJsonConstraintsInSs(libsnark::linear_combination<libff::Fr<ppT> > const
 };
 
 template <typename ppT>
-void arrayToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint input_variables, boost::filesystem::path path) {
+void arrayToJson(libsnark::protoboard<libff::Fr<ppT> > pb, uint, boost::filesystem::path path) {
 	if (path.empty())
     {
 		boost::filesystem::path tmp_path = getPathToDebugDir(); // Used for a debug purpose

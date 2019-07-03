@@ -8,6 +8,9 @@ namespace libzeth {
 
 // This define directive is useless/redundant, as ONE is defined here:
 // libsnark/gadgetlib1/pb_variable.hpp#74
+#ifdef ONE
+# undef ONE
+#endif
 #define ONE libsnark::pb_variable<FieldT>(0)
 //
 // We know that a pb_variable takes an index in the constructor:
@@ -43,7 +46,7 @@ std::vector<bool> convert_to_binary_LE(T x, int bitlen) {
 
 /*
  * This function reverses the byte endianness
- * 
+ *
  *  Example input/output:
  *
  *  Before swap (in):  After Swap (out):

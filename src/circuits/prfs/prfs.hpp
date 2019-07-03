@@ -1,7 +1,7 @@
 #ifndef __ZETH_PRFS_CIRCUITS_HPP__
 #define __ZETH_PRFS_CIRCUITS_HPP__
 
-// DISCLAIMER: 
+// DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
 
@@ -20,11 +20,10 @@ private:
 
 public:
     PRF_gadget(libsnark::protoboard<FieldT>& pb,
-            libsnark::pb_variable<FieldT>& ZERO,    // needed in case x or y needs to be appended with 0s
-            libsnark::pb_variable_array<FieldT> x,
-            libsnark::pb_variable_array<FieldT> y,
-            std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(x || y)
-            const std::string &annotation_prefix = " base_PRF_gadget");
+               libsnark::pb_variable_array<FieldT> x,
+               libsnark::pb_variable_array<FieldT> y,
+               std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(x || y)
+               const std::string &annotation_prefix = " base_PRF_gadget");
 
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
@@ -41,7 +40,7 @@ template<typename FieldT, typename HashT> libsnark::pb_variable_array<FieldT> ge
     libsnark::pb_variable_array<FieldT>& rho
 );
 
-// a_pk = sha256(a_sk || 0^256): See Zerocash extended paper, page 22, 
+// a_pk = sha256(a_sk || 0^256): See Zerocash extended paper, page 22,
 // paragraph "Instantiating the NP statement POUR"
 template<typename FieldT, typename HashT>
 class PRF_addr_a_pk_gadget : public PRF_gadget<FieldT, HashT> {

@@ -19,7 +19,6 @@ private:
 
 public:
     COMM_gadget(libsnark::protoboard<FieldT>& pb,
-                libsnark::pb_variable<FieldT>& ZERO,
                 libsnark::pb_variable_array<FieldT> x,
                 libsnark::pb_variable_array<FieldT> y,
                 std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(x || y)
@@ -50,7 +49,6 @@ template<typename FieldT, typename HashT>
 class COMM_inner_k_gadget : public COMM_gadget<FieldT, HashT> {
 public:
     COMM_inner_k_gadget(libsnark::protoboard<FieldT>& pb,
-                        libsnark::pb_variable<FieldT>& ZERO,
                         libsnark::pb_variable_array<FieldT>& a_pk,  // public address key, 256 bits
                         libsnark::pb_variable_array<FieldT>& rho,   // 256 bits
                         std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(a_pk || rho)
@@ -66,7 +64,6 @@ template<typename FieldT, typename HashT>
 class COMM_outer_k_gadget : public COMM_gadget<FieldT, HashT> {
 public:
     COMM_outer_k_gadget(libsnark::protoboard<FieldT>& pb,
-                        libsnark::pb_variable<FieldT>& ZERO,
                         libsnark::pb_variable_array<FieldT>& trap_r,    // 384 bits
                         libsnark::pb_variable_array<FieldT>& inner_k,   // 256 bits, but we only keep 128 bits out of it
                         std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(trap_r || [inner_k]_128)
@@ -78,11 +75,11 @@ template<typename FieldT, typename HashT>
 class COMM_cm_gadget : public COMM_gadget<FieldT, HashT> {
 public:
     COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
-                libsnark::pb_variable<FieldT>& ZERO,
-                libsnark::pb_variable_array<FieldT>& outer_k,   // 256 bits
-                libsnark::pb_variable_array<FieldT>& value_v,   //  64 bits
-                std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(outer_k || 0^192 || value_v)
-                const std::string &annotation_prefix = "COMM_cm_gadget");
+                   libsnark::pb_variable<FieldT>& ZERO,
+                   libsnark::pb_variable_array<FieldT>& outer_k,   // 256 bits
+                   libsnark::pb_variable_array<FieldT>& value_v,   //  64 bits
+                   std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(outer_k || 0^192 || value_v)
+                   const std::string &annotation_prefix = "COMM_cm_gadget");
 };
 
 } // libzeth

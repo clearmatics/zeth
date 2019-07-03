@@ -1,5 +1,5 @@
 #ifndef __ZETH_DEBUG_HELPERS_HPP__
-#define __ZETH_DEBUG_HELPERS_HPP
+#define __ZETH_DEBUG_HELPERS_HPP__
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -30,4 +30,4 @@ bool replace(std::string& str, const std::string& from, const std::string& to);
 
 } // libzeth
 
-#endif
+#endif // __ZETH_DEBUG_HELPERS_HPP__
