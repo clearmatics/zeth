@@ -103,6 +103,18 @@ These scripts implement a scenario where Alice, Bob and Charlie do confidential 
 - **SCIPR LAB github:** https://github.com/scipr-lab/
 - **Zerocash-Ethereum:** https://github.com/AntoineRondelet/zerocash-ethereum
 
+## Development dependencies (for building outside of the Docker container)
+
+Immediate dependencies are provided as submodules and compiled during
+the Zeth build.  Ensure submodules are syned.
+
+The following libraries are also required to build:
+
+- grpc
+- gmp
+- boost
+- openssl
+
 ## License notices:
 
 ### Zcash
