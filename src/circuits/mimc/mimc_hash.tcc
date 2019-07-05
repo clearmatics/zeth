@@ -12,6 +12,7 @@ MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
     libsnark::protoboard<FieldT> &pb,
     const std::vector<libsnark::pb_variable<FieldT>>& messages,
     const libsnark::pb_variable<FieldT> iv,
+    const std::string& round_constant_iv,
     const std::string &annotation_prefix
   ) :
     libsnark::gadget<FieldT>(pb, annotation_prefix),
@@ -28,7 +29,7 @@ MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
         const libsnark::pb_variable<FieldT>& round_key = (i == 0 ? iv : outputs[i-1]);
 
         // allocate a permutation gadget for each message
-        permutation_gadgets.emplace_back( pb, m, round_key, FMT(annotation_prefix, ".cipher[%d]", i) );
+        permutation_gadgets.emplace_back( pb, m, round_key, round_constant_iv, FMT(annotation_prefix, ".cipher[%d]", i) );
     }
   }
 
@@ -73,7 +74,7 @@ const libsnark::pb_variable<FieldT>& MiMC_hash_gadget<FieldT>::result() const {
 }
 
 template<typename FieldT>
-FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv)
+FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv, const std::string& round_constant_iv)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -93,7 +94,7 @@ FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv)
     pb.val(init_vector) = iv;
 
     // Initialize the Hash 
-    MiMC_hash_gadget<FieldT> mimc_hasher(pb, inputs, init_vector, "mimc_hash");
+    MiMC_hash_gadget<FieldT> mimc_hasher(pb, inputs, init_vector, round_constant_iv, "mimc_hash");
 
     // Computes the hash
     mimc_hasher.generate_r1cs_witness();

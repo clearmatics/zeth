@@ -14,7 +14,7 @@ cm_gadget<FieldT>::cm_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& r_trap,
                         libsnark::pb_variable<FieldT>& value,
                         const std::string &annotation_prefix
-) : MiMC_hash_gadget<FieldT>(pb, {a_pk, rho, value, r_trap}, get_iv_cm(pb), annotation_prefix)
+) : MiMC_hash_gadget<FieldT>(pb, {a_pk, rho, value}, r_trap, "clearmatics_cm", annotation_prefix)
 {
     //
 }

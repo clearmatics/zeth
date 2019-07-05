@@ -13,7 +13,7 @@ from zethConstants import ZETH_MIMC_PRIME, ZETH_MIMC_IV_MT
 class MiMC7:
     iv = b"mimc"
 
-    def __init__(self, prime=ZETH_MIMC_PRIME, iv = b"mimc"):
+    def __init__(self, iv = b"mimc", prime=ZETH_MIMC_PRIME):
         self.prime = prime
         self.iv = iv
 

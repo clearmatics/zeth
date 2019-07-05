@@ -90,14 +90,14 @@ def hexFmt(string):
 # Used by the recipient of a payment to recompute the commitment and check the membership in the tree
 # to confirm the validity of a payment
 def computeCommitment(zethNoteGRPCObj):
-    m = MiMC7()
+    m = MiMC7(b"clearmatics_cm")
 
     aPK = int(zethNoteGRPCObj.aPK, 16)
     rho = int(zethNoteGRPCObj.rho, 16)
     trapR = int(zethNoteGRPCObj.trapR, 16)
     value = int(zethNoteGRPCObj.value, 16)
 
-    cm = m.hash([aPK, rho, value, trapR], ZETH_MIMC_IV_CM)
+    cm = m.hash([aPK, rho, value], trapR)
 
     return hex(cm)[2:]
 
@@ -106,13 +106,13 @@ def hexadecimalDigestToBinaryString(digest):
     return binary(digest)
 
 def computeNullifier(zethNote, ask):
-    m = MiMC7()
+    m = MiMC7(b"clearmatics_sn")
 
     rho = int(zethNote.rho, 16)
     ask = int(ask, 16)
 
     # nf = MiMCHash(a_sk,rho)
-    nullifier = m.hash([ask, rho], ZETH_MIMC_IV_NF)
+    nullifier = m.hash([rho], ask)
 
 
     return hex(nullifier)[2:]
@@ -123,11 +123,11 @@ def int64ToHexadecimal(number):
 
 def deriveAPK(ask):
     # apk = MiMCHash(a_sk, 0)
-    m = MiMC7()
+    m = MiMC7(b"clearmatics_add")
 
     ask = int(ask, 16)
 
-    apk = m.hash([ask,0], ZETH_MIMC_IV_ADD)
+    apk = m.hash([0], ask)
 
     return hex(apk)[2:]
 

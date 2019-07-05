@@ -37,7 +37,7 @@ merkle_tree<FieldT, HashT>::merkle_tree(const size_t depth) :
     hash_defaults.emplace_back(last);
     for (size_t i = 0; i < depth; ++i)
     {
-        last = get_hash<FieldT>({last, last});
+        last = get_hash<FieldT>({last}, last, "clearmatics_iv");
         hash_defaults.push_back(last);
     }
 
@@ -67,7 +67,7 @@ merkle_tree<FieldT, HashT>::merkle_tree(const size_t depth,
             FieldT l = hashes[idx]; // this is sound, because idx_begin is always a left child
             FieldT r = (idx + 1 < idx_end ? hashes[idx+1] : hash_defaults[layer]);
 
-            FieldT h = get_hash<FieldT>({l, r});
+            FieldT h = get_hash<FieldT>({l}, r, "clearmatics_iv");
             hashes[(idx-1)/2] = h;
         }
 
@@ -110,19 +110,19 @@ merkle_tree<FieldT, HashT>::merkle_tree(const size_t depth,
                 if (idx % 2 == 0)
                 {
                     // this is the right child of its parent and by invariant we are missing the left child
-                    hashes[(idx-1)/2] = get_hash<FieldT>({hash_defaults[layer], hash});
+                    hashes[(idx-1)/2] = get_hash<FieldT>({hash_defaults[layer]}, hash, "clearmatics_iv");
                 }
                 else
                 {
                     if (std::next(it) == last_it || std::next(it)->first != idx + 1)
                     {
                         // this is the left child of its parent and is missing its right child
-                        hashes[(idx-1)/2] = get_hash<FieldT>({hash, hash_defaults[layer]});
+                        hashes[(idx-1)/2] = get_hash<FieldT>({hash}, hash_defaults[layer], "clearmatics_iv");
                     }
                     else
                     {
                         // typical case: this is the left child of the parent and adjacent to it there is a right child
-                        hashes[(idx-1)/2] = get_hash<FieldT>({hash, std::next(it)->second});
+                        hashes[(idx-1)/2] = get_hash<FieldT>({hash}, std::next(it)->second, "clearmatics_iv");
                         ++it;
                     }
                 }
@@ -163,7 +163,7 @@ void merkle_tree<FieldT, HashT>::set_value(const size_t address, const FieldT &v
         it = hashes.find(2*idx+2);
         FieldT r = (it == hashes.end() ? hash_defaults[layer+1] : it->second);
 
-        FieldT h = get_hash<FieldT>({l, r});
+        FieldT h = get_hash<FieldT>({l}, r, "clearmatics_iv");
         hashes[idx] = h;
     }
 }

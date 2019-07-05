@@ -40,7 +40,14 @@ TEST(TestCOMMs, TestCMGadget) {
   cm_gadget.generate_r1cs_constraints();
   cm_gadget.generate_r1cs_witness();
 
-  FieldT expected_out = FieldT("17159580111205266249882739173393847757114683980889533436236235368185830843469");
+  FieldT expected_out = FieldT("6444989536700062755153715872196469032610577864215416884993993359067024300914");
+  std::cout << pb.val(a_pk) << std::endl;
+  std::cout << pb.val(rho) << std::endl;
+  std::cout << pb.val(r) << std::endl;
+  std::cout << pb.val(v) << std::endl;
+  std::cout << expected_out << std::endl;
+
+  std::cout << pb.val(cm_gadget.result()) << std::endl;
 
   ASSERT_TRUE(expected_out == pb.val(cm_gadget.result()));
 };

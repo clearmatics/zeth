@@ -151,6 +151,14 @@ libsnark::pb_variable<FieldT> get_var(libsnark::protoboard<FieldT>& pb, const st
     return var;
 }
 
+template<typename FieldT>
+libsnark::pb_variable<FieldT> get_var(libsnark::protoboard<FieldT>& pb, FieldT value, const std::string &annotation) {
+    libsnark::pb_variable<FieldT> var;
+    var.allocate(pb, annotation);
+    pb.val(var) = value;
+    return var;
+}
+
 } // libzeth
 
 #endif // __ZETH_CIRCUITS_UTILS_TCC__

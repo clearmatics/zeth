@@ -38,13 +38,17 @@ TEST(TestPRFs, TestPRFAddrApkGadget) {
 
     a_sk.allocate(pb, "a_sk");
     pb.val(a_sk) = FieldT("589222706093357518114482131910849758992408938184976784785865710146974629697"); 
+	std::cout << "a sk" << " " << pb.val(a_sk) << std::endl;
 
     PRF_addr_a_pk_gadget<FieldT> prf_test_gadget(pb, a_sk, "PRF_test_gadget");
 
     prf_test_gadget.generate_r1cs_constraints();
     prf_test_gadget.generate_r1cs_witness();
 
-    FieldT expected_out = FieldT("13165243638544743200855777182881384024599533367376684438799918940881200642733");
+    FieldT expected_out = FieldT("19504323340970479201835685154342269193214116474798849891157554964384229851117");
+	std::cout << "exp" << " " << expected_out << std::endl;
+
+	std::cout << "res" << " " << pb.val(prf_test_gadget.result()) << std::endl;
 
     ASSERT_TRUE(expected_out == pb.val(prf_test_gadget.result()));
 }
@@ -68,7 +72,7 @@ TEST(TestPRFs, TestPRFNfGadget) {
     prf_test_gadget.generate_r1cs_constraints();
     prf_test_gadget.generate_r1cs_witness();
 
-    FieldT expected_out = FieldT("5735080735459567020303688441319581555169862817047331908739318148786319978793");
+    FieldT expected_out = FieldT("21082003654379266988874215140607791153416686323485087338468105187340220318402");
 
     ASSERT_TRUE(expected_out == pb.val(prf_test_gadget.result()));
 }

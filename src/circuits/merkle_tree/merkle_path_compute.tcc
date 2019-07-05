@@ -8,17 +8,6 @@
 
 namespace libzeth {
 
-// Returns an allocated iv ( corresponding to sha3("Clearmatics") )
-// TODO put in util file
-template<typename FieldT>
-libsnark::pb_variable<FieldT> get_iv_clear(libsnark::protoboard<FieldT>& pb) {
-    libsnark::pb_variable<FieldT> iv;
-    iv.allocate(pb, "iv");
-    pb.val(iv) = FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451");
-    return iv;
-}
-
-
 template<typename HashT, typename FieldT>
 merkle_path_compute<HashT, FieldT>::merkle_path_compute(
         libsnark::protoboard<FieldT> &pb,
@@ -38,9 +27,6 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
         // and that the leaf path is consistent with the tree size
         assert( depth > 0 );
         assert( address_bits.size() == depth );
-
-        // We retrieve the iv to use in the hashers
-        libsnark::pb_variable<FieldT> iv = get_iv_clear(pb);
 
         // For each layer of the tree
         for( size_t i = 0; i < depth; i++ )
@@ -66,8 +52,8 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
             // with the level's authentication node and the previously computed hash
             HashT t = HashT(
                     pb,
-                    {selectors[i].get_left(), selectors[i].get_right()},
-                    iv,
+                    {selectors[i].get_left()}, selectors[i].get_right(),
+                    "clearmatics_iv",
                     FMT(this->annotation_prefix, ".hasher[%zu]", i));
 
             // We append the initialized hasher in the vector of hashers

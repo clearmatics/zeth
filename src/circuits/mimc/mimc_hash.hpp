@@ -26,6 +26,7 @@ public:
 		libsnark::protoboard<FieldT> &pb,
 		const std::vector<libsnark::pb_variable<FieldT>>& messages,		// Vector of messages to hash
     	const libsnark::pb_variable<FieldT> iv,							// Miyagushi-Preneel IV
+		const std::string& round_constant_iv,							// MiMC round constants iv
 		const std::string &annotation_prefix = "MiMC_hash_gadget"
 	);
 
@@ -40,7 +41,7 @@ public:
 
 // Returns the hash (not constrained) of a vector of message and iv
 template<typename FieldT>
-FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv = FieldT("14220067918847996031108144435763672811050758065945364308986253046354060608451"));//TODO move away
+FieldT get_hash(const std::vector<FieldT>& messages, FieldT iv, const std::string& round_constant_iv);
 
 } // libzeth
 

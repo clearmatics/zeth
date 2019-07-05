@@ -40,7 +40,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     // Let's choose a_sk = mimc_hash([0], sha3("Clearmatics"))
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     // a_pk = mimc_hash([a_sk, 0], sha3("Clearmatics_add"))
-    FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
+    FieldT a_pk = FieldT("6128614742405989074277153726075123944014877409086115761607014142791413540419");
 
     // Let's choose r_trap = mimc_hash([1], sha3("Clearmatics"))
     FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
@@ -48,12 +48,12 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
      // Let's choose rho = mimc_hash([2], sha3("Clearmatics"))
     FieldT rho = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     // nf = mimc_hash([a_sk, rho], sha3("Clearmatics_sn"))
-    FieldT nf = FieldT("8721627921931741499844568506580276318960817415527767680143533069722778332102");
+    FieldT nf = FieldT("11936680607858084380537967489495552519299143216151535029075478675240592155294");
 
     FieldT value = FieldT("100");
 
-    // cm = mimc_hash(a_pk, rho, r_trap, value)
-    FieldT cm = FieldT("100385439091163442447528897111254649960402960920280101899457819072473731482");
+    // cm = mimc_hash({a_pk, rho, value}, r_trap)
+    FieldT cm = FieldT("18416395087334841172449280676729148710756704299103180316338003405044212245262");
     libff::leave_block("[END] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
 
@@ -134,7 +134,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     // Let's choose a_sk = mimc_hash([0], sha3("Clearmatics"))
     FieldT a_sk = FieldT("18834251028175908666459239027856614524890385928194459012149074634190864282942");
     // a_pk = mimc_hash([a_sk, 0], sha3("Clearmatics_add"))
-    FieldT a_pk = FieldT("7557284417121959865806721773315070721481656811910187747772194493889443679515");
+    FieldT a_pk = FieldT("6128614742405989074277153726075123944014877409086115761607014142791413540419");
 
     // Let's choose r_trap = mimc_hash([1], sha3("Clearmatics"))
     FieldT r_trap = FieldT("6576838732374919021860119342200398901974877797242970520445052250557344565821");
@@ -142,12 +142,12 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
      // Let's choose rho = mimc_hash([2], sha3("Clearmatics"))
     FieldT rho = FieldT("12946791413528024759839394340318236878559158148001437182189040772047964059643");
     // nf = mimc_hash([a_sk, rho], sha3("Clearmatics_sn"))
-    FieldT nf = FieldT("8721627921931741499844568506580276318960817415527767680143533069722778332102");
+    FieldT nf = FieldT("11936680607858084380537967489495552519299143216151535029075478675240592155294");
 
     FieldT value = FieldT("100");
 
     // cm = mimc_hash(a_pk, rho, r_trap, value)
-    FieldT cm = FieldT("100385439091163442447528897111254649960402960920280101899457819072473731482");
+    FieldT cm = FieldT("18416395087334841172449280676729148710756704299103180316338003405044212245262");
     libff::leave_block("[END] Initialize the output coins' data (a_pk, cm, rho)", true);
 
 

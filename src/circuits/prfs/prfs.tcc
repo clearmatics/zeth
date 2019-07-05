@@ -18,7 +18,7 @@ PRF_addr_a_pk_gadget<FieldT>::PRF_addr_a_pk_gadget(
         libsnark::pb_variable<FieldT>& a_sk,
         const std::string &annotation_prefix
       ) :
-      MiMC_hash_gadget<FieldT>(pb, {a_sk, get_var(pb, "zero_var")}, get_iv_add(pb), annotation_prefix)
+      MiMC_hash_gadget<FieldT>(pb, {get_var(pb, FieldT("0"), "zero_var")}, a_sk, "clearmatics_add", annotation_prefix)
 {
   //
 }
@@ -32,7 +32,7 @@ PRF_nf_gadget<FieldT>::PRF_nf_gadget(
         libsnark::pb_variable<FieldT>& a_sk,
         libsnark::pb_variable<FieldT>& rho,
         const std::string &annotation_prefix) :
-      MiMC_hash_gadget<FieldT>(pb, {a_sk, rho}, get_iv_sn(pb), annotation_prefix)
+      MiMC_hash_gadget<FieldT>(pb, {rho}, a_sk, "clearmatics_sn", annotation_prefix)
 {
   //
 }
