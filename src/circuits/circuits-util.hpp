@@ -15,11 +15,6 @@ template<typename FieldT> libsnark::pb_variable_array<FieldT> from_bits(std::vec
 std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const size_t wordsize);
 
 // pb_variable utils
-template<typename FieldT> libsnark::pb_variable<FieldT> get_iv_mt(libsnark::protoboard<FieldT>& pb);
-template<typename FieldT> libsnark::pb_variable<FieldT> get_iv_cm(libsnark::protoboard<FieldT>& pb);
-template<typename FieldT> libsnark::pb_variable<FieldT> get_iv_add(libsnark::protoboard<FieldT>& pb);
-template<typename FieldT> libsnark::pb_variable<FieldT> get_iv_sn(libsnark::protoboard<FieldT>& pb);
-template<typename FieldT> libsnark::pb_variable<FieldT> get_iv_pk(libsnark::protoboard<FieldT>& pb);
 template<typename FieldT> libsnark::pb_variable<FieldT> get_var(libsnark::protoboard<FieldT>& pb, const std::string &annotation);
 template<typename FieldT> libsnark::pb_variable<FieldT> get_var(libsnark::protoboard<FieldT>& pb, FieldT value, const std::string &annotation);
 
