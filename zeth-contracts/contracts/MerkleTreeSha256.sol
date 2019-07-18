@@ -1,10 +1,10 @@
-solidity ^0.5.0;
+pragma solidity ^0.5.0;
 
 import "./BaseMerkleTree.sol";
 
 contract MerkleTreeSha256 is BaseMerkleTree {
   // Constructor
-  constructor(uint treeDepth) BaseMerkleTree(treeDepth) {
+  constructor(uint treeDepth) BaseMerkleTree(treeDepth) public {
     // Nothing
   }
 
