@@ -6,6 +6,8 @@
 #define __ZETH_MIMC_ROUND_HPP__
 
 #include "snarks_alias.hpp"
+
+#include <libsnark/gadgetlib1/gadget.hpp>
 #include "circuits/circuits-util.hpp"
 
 namespace libzeth {
@@ -14,7 +16,7 @@ namespace libzeth {
   * In MiMC permutation last round differs from the others since the key is added again. We use a boolean variable `add_k_to_result` to manage this case.
   */
 template<typename FieldT>
-class MiMCe7_round_gadget : libsnark::gadget<FieldT> {
+class MiMCe7_round_gadget : public libsnark::gadget<FieldT> {
 public:
     const libsnark::pb_variable<FieldT> x;          // The message of the current round
     const libsnark::pb_variable<FieldT> k;          // The key of the current round

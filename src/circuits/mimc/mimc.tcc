@@ -2,55 +2,74 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_MIMC_PERMUTATION_HPP__
-#define __ZETH_MIMC_PERMUTATION_HPP__
+#ifndef __ZETH_MIMC_PERMUTATION_TCC__
+#define __ZETH_MIMC_PERMUTATION_TCC__
 
-#include "snarks_alias.hpp"
-#include "round.hpp"
-
-namespace libzeth  {
- /*
-  * MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation with exponent 7. It makes use of MiMCe7_round_gadget to enforce correct computation in each of the 91 rounds.
-  */
+namespace libzeth {
 template<typename FieldT>
-class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT> {
-public:
-    std::vector<MiMCe7_round_gadget<FieldT>> round_gadgets;     // Vector of MiMC round gadgets
-    std::vector<FieldT> round_constants;                        // Current Vector of round constants
-    std::map<std::string, std::vector<FieldT> > round_constants_map; // Map of Vector of round constants
-    static const int ROUNDS = 91;                               // Nb of rounds suggested by the MiMC paper
-    const libsnark::pb_variable<FieldT> k;                      // The permutation key
+void MiMCe7_permutation_gadget<FieldT>::setup_gadgets(
+    const libsnark::pb_variable<FieldT> x,
+    const libsnark::pb_variable<FieldT> k)
+{
+    for( size_t i = 0; i < ROUNDS; i++ )
+    {
+        // setting the input of the next round with the output variable of the previous round (except for round 0)
+        const auto& round_x = (i == 0 ? x : round_gadgets.back().result() );
 
-    // utility functions
-    // MiMC round gadgets initialization
-    void setup_gadgets(
-        const libsnark::pb_variable<FieldT> x,
-        const libsnark::pb_variable<FieldT> k);
+        bool is_last = (i == (ROUNDS-1));
 
-    //Constants vector initialization
-    void setup_sha3_constants(const std::string& round_constant_iv);
+        // initializing and the adding the current round gadget into the rounds gadget vector, picking the relative constant
+        round_gadgets.emplace_back(this->pb, round_x, k, round_constants[i], is_last, FMT(this->annotation_prefix, ".round[%d]", i));
+    }
+}
+template<typename FieldT>
+MiMCe7_permutation_gadget<FieldT>::MiMCe7_permutation_gadget(
+    libsnark::protoboard<FieldT>& pb,
+    const libsnark::pb_variable<FieldT> x,
+    const libsnark::pb_variable<FieldT> k,
+    const std::string& round_constant_iv,
+    const std::string& annotation_prefix
+) :
+    libsnark::gadget<FieldT>(pb, annotation_prefix),
+    k(k)
+{
+    //We first initialize the round constants
+    setup_sha3_constants(round_constant_iv);
 
-public:
-    MiMCe7_permutation_gadget(
-        libsnark::protoboard<FieldT>& pb,
-        const libsnark::pb_variable<FieldT> x,                  // The message to encrypt
-        const libsnark::pb_variable<FieldT> k,                  // The encryption key (/permutation seed)
-        const std::string& round_constant_iv,
-        const std::string& annotation_prefix = "MiMCe7_permutation_gadget");
-
-    void generate_r1cs_constraints();
-
-    void generate_r1cs_witness() const;
-
-    const libsnark::pb_variable<FieldT>& result() const;
-
-};
+    //Then we initialize the round gadgets
+    setup_gadgets(x, k);
+}
 
 template<typename FieldT>
-using MiMC_gadget = MiMCe7_permutation_gadget<FieldT>;
+void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_constraints() {
+    //For each round, generates the constraints for each round gadget
+    for( auto& gadget : round_gadgets )
+    {
+        gadget.generate_r1cs_constraints();
+    }
+}
 
-} // libzeth
+template<typename FieldT>
+void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_witness() const {
+    //For each round, generates the witness for each round gadget
+    for( auto& gadget : round_gadgets )
+    {
+        gadget.generate_r1cs_witness();
+    }
 
-#include "mimc.tcc"
+}
 
-#endif // __ZETH_MIMC_PERMUTATION_HPP__
+template<typename FieldT>
+const libsnark::pb_variable<FieldT>& MiMCe7_permutation_gadget<FieldT>::result () const {
+    // Returns the result of the last encryption / permutation
+    return round_gadgets.back().result();
+}
+
+
+
+#include "round_constants.tcc"
+
+
+}  // namespace libzeth
+
+#endif // __ZETH_MIMC_PERMUTATION_TCC__
