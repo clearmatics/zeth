@@ -1,11 +1,15 @@
-solidity ^0.5.0;
+pragma solidity ^0.5.0;
 
 import "./BaseMerkleTree.sol";
+import "./MiMC7.sol";
 
-contract MerkleTreeSha256 is BaseMerkleTree {
+contract MerkleTreeMiMC7 is BaseMerkleTree {
+  // Custom hash smart contract
+  MiMC7 public mimc7_hasher;
+
   // Constructor
-  constructor(uint treeDepth) BaseMerkleTree(treeDepth) {
-    // Nothing
+  constructor(address hasher_address, uint treeDepth) BaseMerkleTree(treeDepth) public {
+    mimc7_hasher = MiMC7(hasher_address);
   }
 
   // This function is constrainted to be internal by the fact that we return a bytes[]
@@ -20,7 +24,8 @@ contract MerkleTreeSha256 is BaseMerkleTree {
   function getTree() public view returns (bytes32[] memory) {
     uint nbNodes = 2**(depth + 1) - 1;
     bytes32[] memory tmpTree = new bytes32[](nbNodes);
-
+    bytes32 left;
+    bytes32 right;
     // Dump the leaves in the right indexes in the tree
     for (uint i = 0; i < nbLeaves; i++) {
       tmpTree[(nbLeaves - 1) + i] = leaves[i];
@@ -28,11 +33,18 @@ contract MerkleTreeSha256 is BaseMerkleTree {
 
     // Compute the internal nodes of the merkle tree
     for (uint i = nbLeaves - 2; i > 0; i--) {
-      tmpTree[i] = sha256(abi.encodePacked(tmpTree[i*2+1], tmpTree[2*(i+1)]));
+      left = tmpTree[2*i+1];
+      right = tmpTree[2*(i+1)];
+
+      // IV of the hash is hardcoded and is given by the sha3('Clearmatics') see:TODO add reference to where we compute it
+      tmpTree[i] = mimc7_hasher.hash(left, right, "clearmatics_iv");
+
     }
 
     // Compute the merkle root
-    tmpTree[0] = sha256(abi.encodePacked(tmpTree[1], tmpTree[2]));
+    left = tmpTree[1];
+    right = tmpTree[2];
+    tmpTree[0] = mimc7_hasher.hash(left, right, "clearmatics_iv");
 
     return tmpTree;
   }
