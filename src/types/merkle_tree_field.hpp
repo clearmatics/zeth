@@ -1,5 +1,5 @@
-#ifndef MERKLE_TREE_HPP_
-#define MERKLE_TREE_HPP_
+#ifndef MERKLE_TREE_FIELD_HPP_
+#define MERKLE_TREE_FIELD_HPP_
 
 #include <map>
 #include <vector>
@@ -27,8 +27,8 @@ typedef libff::Fr<ppT> FieldT;
 typedef FieldT merkle_authentication_node;
 typedef std::vector<merkle_authentication_node> merkle_authentication_path;
 
-template<typename FieldT, typename HashT>
-class merkle_tree {
+template<typename FieldT, typename HashTreeT>
+class merkle_tree_field {
 
 public:
     std::vector<FieldT> hash_defaults;
@@ -36,9 +36,9 @@ public:
     std::map<size_t, FieldT> hashes;
     size_t depth;
 
-    merkle_tree(const size_t depth);
-    merkle_tree(const size_t depth, const std::vector<FieldT> &contents_as_vector);
-    merkle_tree(const size_t depth, const std::map<size_t, FieldT> &contents);
+    merkle_tree_field(const size_t depth);
+    merkle_tree_field(const size_t depth, const std::vector<FieldT> &contents_as_vector);
+    merkle_tree_field(const size_t depth, const std::map<size_t, FieldT> &contents);
 
     FieldT get_value(const size_t address) const;
     void set_value(const size_t address, const FieldT &value);
@@ -51,6 +51,6 @@ public:
 
 } // libsnark
 
-#include <src/types/merkle_tree.tcc>
+#include <src/types/merkle_tree_field.tcc>
 
-#endif // MERKLE_TREE_HPP_
+#endif // MERKLE_TREE_FIELD_HPP_

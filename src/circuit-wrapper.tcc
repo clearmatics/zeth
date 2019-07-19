@@ -2,10 +2,10 @@
 
 namespace libzeth {
 
-template<size_t NumInputs, size_t NumOutputs>
-keyPairT<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {
+template<typename FieldT, size_t NumInputs, size_t NumOutputs>
+keyPairT<ppT> CircuitWrapper<FieldT, NumInputs, NumOutputs>::generate_trusted_setup() {
     libsnark::protoboard<FieldT> pb;
-    joinsplit_gadget<FieldT, HashT, NumInputs, NumOutputs> g(pb);
+    joinsplit_gadget<FieldT, HashTreeT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
 
     // Generate a verification and proving key (trusted setup)
@@ -16,10 +16,10 @@ keyPairT<ppT> CircuitWrapper<NumInputs, NumOutputs>::generate_trusted_setup() {
     return keypair;
 }
 
-template<size_t NumInputs, size_t NumOutputs>
-extended_proof<ppT> CircuitWrapper<NumInputs, NumOutputs>::prove(
-    const bits256& root_bits,
-    const std::array<JSInput, NumInputs>& inputs,
+template<typename FieldT, size_t NumInputs, size_t NumOutputs>
+extended_proof<ppT> CircuitWrapper<FieldT, NumInputs, NumOutputs>::prove(
+    const FieldT& root,
+    const std::array<JSInput<FieldT>, NumInputs>& inputs,
     const std::array<ZethNote, NumOutputs>& outputs,
     bits64 vpub_in,
     bits64 vpub_out,
@@ -48,10 +48,10 @@ extended_proof<ppT> CircuitWrapper<NumInputs, NumOutputs>::prove(
     }
 
     libsnark::protoboard<FieldT> pb;
-    joinsplit_gadget<FieldT, HashT, NumInputs, NumOutputs> g(pb);
+    joinsplit_gadget<FieldT, HashTreeT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
     g.generate_r1cs_witness(
-        root_bits,
+        root,
         inputs,
         outputs,
         vpub_in,

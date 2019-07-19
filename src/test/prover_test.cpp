@@ -24,11 +24,12 @@ using namespace libzeth;
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
+typedef MiMC_hash_gadget<FieldT> HashTreeT; // We use our hash function to do the tests
 
 namespace {
 
 bool TestValidJS2In2Case1(
-    CircuitWrapper<2, 2> &prover,
+    CircuitWrapper<FieldT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
@@ -37,11 +38,10 @@ bool TestValidJS2In2Case1(
     libff::enter_block("[START] Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
-    std::unique_ptr<merkle_tree<HashT>> test_merkle_tree = std::unique_ptr<libsnark::merkle_tree<HashT>>(
-        new libsnark::merkle_tree<HashT>(
-            ZETH_MERKLE_TREE_DEPTH,
-            HashT::get_digest_len()
-        )
+    std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
+        new merkle_tree_field<FieldT, HashTreeT>(
+            ZETH_MERKLE_TREE_DEPTH
+            )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -55,13 +55,14 @@ bool TestValidJS2In2Case1(
     bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"));
     bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f"));
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
+    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
-    test_merkle_tree->set_value(address_commitment, libff::bit_vector(get_vector_from_bits256(cm_bits256)));
-    libff::bit_vector updated_root_value = test_merkle_tree->get_root();
-    std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
+    test_merkle_tree->set_value(address_commitment, cm_field);
+    FieldT updated_root_value = test_merkle_tree->get_root();
+    std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs: 1 note of value > 0 to spend, and a dummy note
     ZethNote note_input(
@@ -76,7 +77,7 @@ bool TestValidJS2In2Case1(
         get_bits256_from_vector(hexadecimal_digest_to_binary_vector("AAAA00000000000000000000000000000000000000000000000000000000EEEE")),
         trap_r_bits384
     );
-    JSInput input(
+    JSInput<FieldT> input(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -87,7 +88,7 @@ bool TestValidJS2In2Case1(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    JSInput input_dummy(
+    JSInput<FieldT> input_dummy(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -95,7 +96,7 @@ bool TestValidJS2In2Case1(
         a_sk_bits256,
         nf_bits256
     );
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input;
     inputs[1] = input_dummy;
     libff::leave_block("[END] Create JSInput", true);
@@ -125,7 +126,7 @@ bool TestValidJS2In2Case1(
 
     libff::enter_block("[BEGIN] Generate proof", true);
     extended_proof<ppT> ext_proof = prover.prove(
-        get_bits256_from_vector(updated_root_value),
+        updated_root_value,
         inputs,
         outputs,
         get_bits64_from_vector(hexadecimal_str_to_binary_vector("0000000000000000")), // vpub_in = 0
@@ -138,13 +139,15 @@ bool TestValidJS2In2Case1(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
+    std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("[END] Verify proof", true);
 
     return res;
 }
 
+
 bool TestValidJS2In2Case2(
-    CircuitWrapper<2, 2> &prover,
+    CircuitWrapper<FieldT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     libff::print_header("Starting test: IN => v_pub = 0, note1 = 0x2F0000000000000F, note2 = 0x0 || OUT => v_pub = 0x000000000000000B, note1 = 0x1A00000000000002, note2 = 0x1500000000000002");
@@ -152,11 +155,10 @@ bool TestValidJS2In2Case2(
     libff::enter_block("[START] Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
-    std::unique_ptr<merkle_tree<HashT>> test_merkle_tree = std::unique_ptr<libsnark::merkle_tree<HashT>>(
-        new libsnark::merkle_tree<HashT>(
-            ZETH_MERKLE_TREE_DEPTH,
-            HashT::get_digest_len()
-        )
+    std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
+        new merkle_tree_field<FieldT, HashTreeT>(
+            ZETH_MERKLE_TREE_DEPTH
+            )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -171,13 +173,15 @@ bool TestValidJS2In2Case2(
 
     // We compute the commitment to insert it in the merkle tree we use for the tests
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
+    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
+
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
-    test_merkle_tree->set_value(address_commitment, libff::bit_vector(get_vector_from_bits256(cm_bits256)));
-    libff::bit_vector updated_root_value = test_merkle_tree->get_root();
-    std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
+    test_merkle_tree->set_value(address_commitment, cm_field);
+    FieldT updated_root_value = test_merkle_tree->get_root();
+    std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
     ZethNote note_input1(
@@ -192,7 +196,7 @@ bool TestValidJS2In2Case2(
         rho_bits256,
         trap_r_bits384
     );
-    JSInput input1(
+    JSInput<FieldT> input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -203,7 +207,7 @@ bool TestValidJS2In2Case2(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    JSInput input2(
+    JSInput<FieldT> input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -211,7 +215,7 @@ bool TestValidJS2In2Case2(
         a_sk_bits256,
         nf_bits256
     );
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -240,7 +244,7 @@ bool TestValidJS2In2Case2(
     libff::enter_block("[BEGIN] Generate proof", true);
     // RHS = 0x1A00000000000002 + 0x1500000000000002 + 0x000000000000000B = 2F0000000000000F (LHS)
     extended_proof<ppT> ext_proof = prover.prove(
-        get_bits256_from_vector(updated_root_value),
+        updated_root_value,
         inputs,
         outputs,
         get_bits64_from_vector(hexadecimal_str_to_binary_vector("0000000000000000")), // vpub_in = 0x0
@@ -253,13 +257,15 @@ bool TestValidJS2In2Case2(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
+    std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("[END] Verify proof", true);
 
     return res;
 }
 
+
 bool TestValidJS2In2Case3(
-    CircuitWrapper<2, 2> &prover,
+    CircuitWrapper<FieldT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
@@ -268,11 +274,10 @@ bool TestValidJS2In2Case3(
     libff::enter_block("[START] Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
-    std::unique_ptr<merkle_tree<HashT>> test_merkle_tree = std::unique_ptr<libsnark::merkle_tree<HashT>>(
-        new libsnark::merkle_tree<HashT>(
-            ZETH_MERKLE_TREE_DEPTH,
-            HashT::get_digest_len()
-        )
+    std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
+        new merkle_tree_field<FieldT, HashTreeT>(
+            ZETH_MERKLE_TREE_DEPTH
+            )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -287,13 +292,14 @@ bool TestValidJS2In2Case3(
 
     // We compute the commitment to insert it in the merkle tree we use for the tests
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
+    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
-    test_merkle_tree->set_value(address_commitment, libff::bit_vector(get_vector_from_bits256(cm_bits256)));
-    libff::bit_vector updated_root_value = test_merkle_tree->get_root();
-    std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
+    test_merkle_tree->set_value(address_commitment, cm_field);
+    FieldT updated_root_value = test_merkle_tree->get_root();
+    std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
     ZethNote note_input1(
@@ -308,7 +314,7 @@ bool TestValidJS2In2Case3(
         rho_bits256,
         trap_r_bits384
     );
-    JSInput input1(
+    JSInput<FieldT> input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -319,7 +325,7 @@ bool TestValidJS2In2Case3(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    JSInput input2(
+    JSInput<FieldT> input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -327,7 +333,7 @@ bool TestValidJS2In2Case3(
         a_sk_bits256,
         nf_bits256
     );
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -356,7 +362,7 @@ bool TestValidJS2In2Case3(
     libff::enter_block("[BEGIN] Generate proof", true);
     // (RHS) 0x1A00000000000012 + 0x1500000000000002 + 0x000000000000000B = 2F0000000000000F + 0x0000000000000010 + 0x0 (LHS)
     extended_proof<ppT> ext_proof = prover.prove(
-        get_bits256_from_vector(updated_root_value),
+        updated_root_value,
         inputs,
         outputs,
         get_bits64_from_vector(hexadecimal_str_to_binary_vector("0000000000000010")), // v_pub_in = 0x0000000000000010
@@ -369,13 +375,14 @@ bool TestValidJS2In2Case3(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
+    std::cout << "Does the proof verfy? " << res << std::endl;
     libff::leave_block("[END] Verify proof", true);
 
     return res;
 }
 
 bool TestValidJS2In2Deposit(
-    CircuitWrapper<2, 2> &prover,
+    CircuitWrapper<FieldT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
@@ -384,11 +391,10 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("[START] Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
-    std::unique_ptr<merkle_tree<HashT>> test_merkle_tree = std::unique_ptr<libsnark::merkle_tree<HashT>>(
-        new libsnark::merkle_tree<HashT>(
-            ZETH_MERKLE_TREE_DEPTH,
-            HashT::get_digest_len()
-        )
+    std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
+        new merkle_tree_field<FieldT, HashTreeT>(
+            ZETH_MERKLE_TREE_DEPTH
+            )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -403,13 +409,14 @@ bool TestValidJS2In2Deposit(
 
     // We compute a commitment to insert it in the merkle tree we use for the tests
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
+    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
-    test_merkle_tree->set_value(address_commitment, libff::bit_vector(get_vector_from_bits256(cm_bits256)));
-    libff::bit_vector updated_root_value = test_merkle_tree->get_root();
-    std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
+    test_merkle_tree->set_value(address_commitment, cm_field);
+    FieldT updated_root_value = test_merkle_tree->get_root();
+    std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
     ZethNote note_input1(
@@ -424,7 +431,7 @@ bool TestValidJS2In2Deposit(
         rho_bits256,
         trap_r_bits384
     );
-    JSInput input1(
+    JSInput<FieldT> input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -435,7 +442,7 @@ bool TestValidJS2In2Deposit(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    JSInput input2(
+    JSInput<FieldT> input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -443,7 +450,7 @@ bool TestValidJS2In2Deposit(
         a_sk_bits256,
         nf_bits256
     );
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -472,7 +479,7 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("[BEGIN] Generate proof", true);
     // RHS = 0x0 + 0x3782DACE9D900000 + 0x29A2241AF62C0000 = 0x6124FEE993BC0000 (LHS)
     extended_proof<ppT> ext_proof = prover.prove(
-        get_bits256_from_vector(updated_root_value),
+        updated_root_value,
         inputs,
         outputs,
         get_bits64_from_vector(hexadecimal_str_to_binary_vector("6124FEE993BC0000")), // v_pub_in = 0x6124FEE993BC0000
@@ -487,13 +494,14 @@ bool TestValidJS2In2Deposit(
     bool res = libzeth::verify(ext_proof, vk);
 
     ext_proof.dump_primary_inputs();
+    std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("[END] Verify proof", true);
 
     return res;
 }
 
 bool TestInvalidJS2In2(
-    CircuitWrapper<2, 2> &prover,
+    CircuitWrapper<FieldT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
@@ -502,11 +510,10 @@ bool TestInvalidJS2In2(
     libff::enter_block("[START] Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
-    std::unique_ptr<merkle_tree<HashT>> test_merkle_tree = std::unique_ptr<libsnark::merkle_tree<HashT>>(
-        new libsnark::merkle_tree<HashT>(
-            ZETH_MERKLE_TREE_DEPTH,
-            HashT::get_digest_len()
-        )
+    std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
+        new merkle_tree_field<FieldT, HashTreeT>(
+            ZETH_MERKLE_TREE_DEPTH
+            )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -521,13 +528,14 @@ bool TestInvalidJS2In2(
 
     // We compute a commitment to insert it in the merkle tree we use for the tests
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
+    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
-    test_merkle_tree->set_value(address_commitment, libff::bit_vector(get_vector_from_bits256(cm_bits256)));
-    libff::bit_vector updated_root_value = test_merkle_tree->get_root();
-    std::vector<libsnark::merkle_authentication_node> path = test_merkle_tree->get_path(address_commitment);
+    test_merkle_tree->set_value(address_commitment, cm_field);
+    FieldT updated_root_value = test_merkle_tree->get_root();
+    std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
     ZethNote note_input1(
@@ -542,7 +550,7 @@ bool TestInvalidJS2In2(
         rho_bits256,
         trap_r_bits384
     );
-    JSInput input1(
+    JSInput<FieldT> input1(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -553,7 +561,7 @@ bool TestInvalidJS2In2(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path check
     // Doesn't count in such case
-    JSInput input2(
+    JSInput<FieldT> input2(
         path,
         address_commitment,
         get_bitsAddr_from_vector(address_bits),
@@ -561,7 +569,7 @@ bool TestInvalidJS2In2(
         a_sk_bits256,
         nf_bits256
     );
-    std::array<JSInput, 2> inputs;
+    std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input1;
     inputs[1] = input2;
     libff::leave_block("[END] Create JSInput", true);
@@ -592,7 +600,7 @@ bool TestInvalidJS2In2(
     // LHS = 18.050427392400293888 ETH
     // RHS = 18.050427392400293889 ETH (1 wei higher than LHS)
     extended_proof<ppT> ext_proof = prover.prove(
-        get_bits256_from_vector(updated_root_value),
+        updated_root_value,
         inputs,
         outputs,
         get_bits64_from_vector(hexadecimal_str_to_binary_vector("FA80001400000000")), // vpub_in = 0xFA80001400000000 = 18.050427392400293888 ETH
@@ -605,14 +613,16 @@ bool TestInvalidJS2In2(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
+    std::cout << "Does the proof verify ? " << res << std::endl;
     libff::leave_block("[END] Verify proof", true);
 
     return res;
 }
 
+
 TEST(MainTests, ProofGenAndVerifJS2to2) {
     // Run the trusted setup once for all tests, and keep the keypair in memory for the duration of the tests
-    CircuitWrapper<2, 2> proverJS2to2;
+    CircuitWrapper<FieldT, 2, 2> proverJS2to2;
     libzeth::keyPairT<ppT> keypair = proverJS2to2.generate_trusted_setup();
     bool res = false;
 
@@ -620,6 +630,7 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     std::cout << "[TestValidJS2In2Case1] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
 
+    
     res = TestValidJS2In2Case2(proverJS2to2, keypair);
     std::cout << "[TestValidJS2In2Case2] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
@@ -640,6 +651,7 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     } catch (const std::invalid_argument& e) {
 	  std::cerr << "Invalid argument exception: " << e.what() << '\n';
     }
+    
 }
 
 } // namespace

@@ -12,10 +12,11 @@ namespace libzeth {
 // We simplify the interface of the JSInput object compared to what Zcash did
 // In fact, all our fields are going to be computed from another component
 // written in python or js, that will use the ethereum primitives to hash.
+template<typename FieldT>
 class JSInput {
 public:
     // --- Merkle tree witness (path, and address)
-    std::vector<libsnark::merkle_authentication_node> witness_merkle_path;
+    std::vector<FieldT> witness_merkle_path;
     size_t address;
     bitsAddr address_bits; // boolean vector of length the depth of the merkle tree containing the binary encoding of the address
 
@@ -25,7 +26,7 @@ public:
 
     JSInput(){};
     JSInput(
-        std::vector<libsnark::merkle_authentication_node> witness_merkle_path,
+        std::vector<FieldT> witness_merkle_path,
         size_t address,
         bitsAddr address_bits,
         ZethNote note,

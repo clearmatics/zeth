@@ -14,16 +14,16 @@ typedef libff::default_ec_pp ppT;
 
 namespace libzeth {
 
-template<size_t NumInputs, size_t NumOutputs>
+template<typename FieldT, size_t NumInputs, size_t NumOutputs>
 class CircuitWrapper {
 public:
     typedef libff::default_ec_pp ppT; // We use the public paramaters (ppT) of the curve used in the CMakeLists.txt
-    typedef libff::Fr<ppT> FieldT; // We instantiate the field from the ppT of the curve we use
     typedef sha256_ethereum<FieldT> HashT; // We instantiate the HashT with sha256_ethereum
+    typedef MiMC_hash_gadget<FieldT> HashTreeT; // We instantiate the HashT with sha256_ethereum
 
     libsnark::protoboard<FieldT> pb;
     boost::filesystem::path setupPath;
-    std::shared_ptr<joinsplit_gadget<FieldT, HashT, NumInputs, NumOutputs>> joinsplit_g;
+    std::shared_ptr<joinsplit_gadget<FieldT, HashTreeT, NumInputs, NumOutputs>> joinsplit_g;
 
     CircuitWrapper(
         const boost::filesystem::path setupPath = ""
@@ -33,8 +33,8 @@ public:
     keyPairT<ppT> generate_trusted_setup();
 
     // Generate a proof and returns an extended proof
-    extended_proof<ppT> prove(const bits256& root_bits,
-                            const std::array<JSInput, NumInputs>& inputs,
+    extended_proof<ppT> prove(const FieldT& root,
+                            const std::array<JSInput<FieldT>, NumInputs>& inputs,
                             const std::array<ZethNote, NumOutputs>& outputs,
                             bits64 vpub_in,
                             bits64 vpub_out,

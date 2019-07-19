@@ -65,15 +65,7 @@ void MiMC_hash_gadget<FieldT>::generate_r1cs_witness () const {
         this->pb.val( outputs[i] ) = round_key + this->pb.val(permutation_gadgets[i].result()) + this->pb.val(messages[i]);
 
         }
-      std::cout << "iv:" << std::endl;
-      std::cout << this->pb.val(iv)  << std::endl;
 
-      std::cout << "messages:" << std::endl;
-      for (size_t i = 0; i < this->messages.size(); i++)
-      {
-        std::cout << this->pb.val(messages[i]) << std::endl;
-      }
-      std::cout << "hash res: " << this->pb.val( outputs[messages.size()-1]) << std::endl;
 }
 
 template<typename FieldT>

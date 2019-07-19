@@ -53,7 +53,6 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
                                                 const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    std::cout << "allocating stuff" << std::endl;
     a_sk.allocate(pb, ZETH_A_SK_SIZE * 8); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
     rho.allocate(pb, ZETH_RHO_SIZE * 8); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
     address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
@@ -66,9 +65,8 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
     libsnark::pb_variable_array<FieldT>* pb_auth_path = new libsnark::pb_variable_array<FieldT>();
     (*pb_auth_path).allocate(pb, ZETH_MERKLE_TREE_DEPTH, "authentication path");
     auth_path.reset(pb_auth_path);
-    std::cout << "finish alloc" << std::endl;
 
-    std::cout << "alloc gadgets" << std::endl;
+
     // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk
     // is correctly computed from a_sk
     spend_authority.reset(new PRF_addr_a_pk_gadget<FieldT>(
@@ -135,7 +133,6 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
     value_enforce.allocate(pb);
     // These gadgets make sure that the computed
     // commitment is in the merkle tree of root rt
-    std::cout << "alloc bit to field" << std::endl;
     bits_to_field.reset( new libsnark::packing_gadget<FieldT>(
         pb,
         commitment->bits,
@@ -143,7 +140,6 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
         "cm bits to field"
     ));
 
-    std::cout << "alloc auth" << std::endl;
     check_membership.reset(new merkle_path_authenticator<MiMC_hash_gadget<FieldT>, FieldT>(
         pb,
         ZETH_MERKLE_TREE_DEPTH,
@@ -237,11 +233,7 @@ void input_note_gadget<HashTreeT, FieldT>::generate_r1cs_witness(
     commit_to_inputs_inner_k->generate_r1cs_witness();
     commit_to_inputs_outer_k->generate_r1cs_witness();
     commit_to_inputs_cm->generate_r1cs_witness();
-    std::cout << "comp bit cm: "<< std::endl;
-    for (size_t i = 0; i < commitment->digest_size; i++)
-    {
-        std::cout << this->pb.val(commitment->bits[i]);
-    }
+
     
 
     //// [SANITY CHECK] Ensure the commitment is valid.
@@ -308,15 +300,18 @@ void input_note_gadget<HashTreeT, FieldT>::generate_r1cs_witness(
     this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
 
     std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
+
     // Witness merkle tree authentication path
     address_bits_va.fill_with_bits(this->pb, address_bits);
     // Make sure `address_bits` and `address` represent the same
     // value encoded on different bases (binary and decimal)
     assert(address_bits_va.get_field_element_from_bits(pb).as_ulong() == address);
+    // Set auth_path values 
+    auth_path->fill_with_field_elements(this->pb, merkle_path);
+
     bits_to_field->generate_r1cs_witness_from_bits();
-    std::cout << "comp field cm: " << this->pb.val(*field_cm) << std::endl;
+
     check_membership->generate_r1cs_witness();
-    std::cout << "Computed root: " << this->pb.val(check_membership->result()) << std::endl;
 }
 
 // Commit to the output notes of the JS

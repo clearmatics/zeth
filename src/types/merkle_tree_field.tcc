@@ -1,5 +1,5 @@
-#ifndef MERKLE_TREE_TCC
-#define MERKLE_TREE_TCC
+#ifndef merkle_tree_field_FIELD_TCC
+#define merkle_tree_field_FIELD_TCC
 
 #include <algorithm>
 
@@ -12,8 +12,8 @@
 namespace libzeth {
 
 
-template<typename FieldT, typename HashT>
-merkle_tree<FieldT, HashT>::merkle_tree(const size_t depth) :
+template<typename FieldT, typename HashTreeT>
+merkle_tree_field<FieldT, HashTreeT>::merkle_tree_field(const size_t depth) :
     depth(depth)
 {
 
@@ -31,10 +31,10 @@ merkle_tree<FieldT, HashT>::merkle_tree(const size_t depth) :
     std::reverse(hash_defaults.begin(), hash_defaults.end());
 }
 
-template<typename FieldT, typename HashT>
-merkle_tree<FieldT, HashT>::merkle_tree(const size_t depth,
+template<typename FieldT, typename HashTreeT>
+merkle_tree_field<FieldT, HashTreeT>::merkle_tree_field(const size_t depth,
                                 const std::vector<FieldT> &contents_as_vector) :
-    merkle_tree<FieldT, HashT>(depth)
+    merkle_tree_field<FieldT, HashTreeT>(depth)
 {
     assert(libff::log2(contents_as_vector.size()) <= depth);
     for (size_t address = 0; address < contents_as_vector.size(); ++address)
@@ -63,10 +63,10 @@ merkle_tree<FieldT, HashT>::merkle_tree(const size_t depth,
     }
 }
 
-template<typename FieldT, typename HashT>
-merkle_tree<FieldT, HashT>::merkle_tree(const size_t depth,
+template<typename FieldT, typename HashTreeT>
+merkle_tree_field<FieldT, HashTreeT>::merkle_tree_field(const size_t depth,
                                 const std::map<size_t, FieldT> &contents) :
-    merkle_tree<FieldT, HashT>(depth)
+    merkle_tree_field<FieldT, HashTreeT>(depth)
 {
 
     if (!contents.empty())
@@ -120,8 +120,8 @@ merkle_tree<FieldT, HashT>::merkle_tree(const size_t depth,
     }
 }
 
-template<typename FieldT, typename HashT>
-FieldT merkle_tree<FieldT, HashT>::get_value(const size_t address) const
+template<typename FieldT, typename HashTreeT>
+FieldT merkle_tree_field<FieldT, HashTreeT>::get_value(const size_t address) const
 {
     assert(libff::log2(address) <= depth);
 
@@ -131,8 +131,8 @@ FieldT merkle_tree<FieldT, HashT>::get_value(const size_t address) const
     return result;
 }
 
-template<typename FieldT, typename HashT>
-void merkle_tree<FieldT, HashT>::set_value(const size_t address, const FieldT &value)
+template<typename FieldT, typename HashTreeT>
+void merkle_tree_field<FieldT, HashTreeT>::set_value(const size_t address, const FieldT &value)
 {
     assert(libff::log2(address) <= depth);
     size_t idx = address + (1ul<<depth) - 1;
@@ -155,20 +155,23 @@ void merkle_tree<FieldT, HashT>::set_value(const size_t address, const FieldT &v
     }
 }
 
-template<typename FieldT, typename HashT>
-FieldT merkle_tree<FieldT, HashT>::get_root() const
+template<typename FieldT, typename HashTreeT>
+FieldT merkle_tree_field<FieldT, HashTreeT>::get_root() const
 {
     auto it = hashes.find(0);
     return (it == hashes.end() ? hash_defaults[0] : it->second);
 }
 
-template<typename FieldT, typename HashT>
-merkle_authentication_path merkle_tree<FieldT, HashT>::get_path(const size_t address) const
+template<typename FieldT, typename HashTreeT>
+merkle_authentication_path merkle_tree_field<FieldT, HashTreeT>::get_path(const size_t address) const
 {
+
     // Create empty vector of size depth
     merkle_authentication_path result(depth);
+
     // Check that the node given has address within tree range
     assert(libff::log2(address) <= depth);
+
     //Compute node address on tree
     size_t idx = address + (1ul<<depth) - 1;
 
@@ -190,29 +193,35 @@ merkle_authentication_path merkle_tree<FieldT, HashT>::get_path(const size_t add
             result[layer-1] = (it == hashes.end() ? hash_defaults[layer] : it->second);
         }
 
+
         idx = (idx-1)/2;
     }
     std::reverse(result.begin(), result.end());
     return result;
 }
 
-template<typename FieldT, typename HashT>
-void merkle_tree<FieldT, HashT>::dump() const
+template<typename FieldT, typename HashTreeT>
+void merkle_tree_field<FieldT, HashTreeT>::dump() const
 {
-    for (size_t i = 0; i < 1ul<<depth; ++i)
+    std::cout << "hash default" << std::endl; 
+    for (size_t i = 0; i <ZETH_MERKLE_TREE_DEPTH; i++)
     {
-        auto it = values.find(i);
-        printf("[%zu] -> ", i);
-        const FieldT value = (it == values.end() ? FieldT(0) : it->second);
-        for (bool b : value)
-        {
-            printf("%d", b ? 1 : 0);
-        }
-        printf("\n");
+        std::cout << hash_defaults[i] << "\n";
     }
-    printf("\n");
+    
+    std::cout << "values" << std::endl; 
+    for(auto it = values.cbegin(); it != values.cend(); ++it)
+    {
+        std::cout << it->first << " " << it->second << "\n";
+    }
+
+    std::cout << "nodes" << std::endl; 
+    for(auto it = hashes.cbegin(); it != hashes.cend(); ++it)
+    {
+        std::cout << it->first << " " << it->second<< "\n";
+    }
 }
 
 } // libsnark
 
-#endif // MERKLE_TREE_TCC
+#endif // merkle_tree_field_FIELD_TCC
