@@ -43,6 +43,13 @@ include_directories(${PROTO_SRC_DIR})
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_GROTH16} ${PROTOS_UTIL} ${PROTOS})
 grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_GROTH16} ${PROTOS_UTIL} ${PROTOS})
 
+set_property(SOURCE ${PROTO_SRCS} PROPERTY
+    COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
+)
+set_property(SOURCE ${GRPC_SRCS} PROPERTY
+    COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
+)
+
 include_directories(
   $ENV{ZETH}
   $ENV{ZETH}/src
