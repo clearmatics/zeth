@@ -9,6 +9,7 @@
 #include "snarks_alias.hpp"
 #include "merkle_path_compute.hpp"
 
+
 namespace libzeth {
 
 /**

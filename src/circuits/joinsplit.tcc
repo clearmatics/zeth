@@ -38,7 +38,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         pb_variable<FieldT> ZERO;
 
         // ---- Primary inputs (public) ---- //
-        std::shared_ptr<digest_variable<FieldT> > root_digest; // Merkle root
+        std::shared_ptr<pb_variable<FieldT> > merkle_root; // Merkle root
         std::array<std::shared_ptr<digest_variable<FieldT> >, NumInputs> input_nullifiers; // List of nullifiers of the notes to spend
         std::array<std::shared_ptr<digest_variable<FieldT> >, NumOutputs> output_commitments; // List of commitments generated for the new notes
         pb_variable_array<FieldT> zk_vpub_in; // Public value that is put into the mix
@@ -93,21 +93,21 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // The inputs are: [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
                 // The root, each nullifier, and each commitment are in {0,1}^256 and thus take 2 field elements
                 // to be represented, while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
-                int nb_inputs = (2 * (NumInputs + NumOutputs + 1)) + 1 + 1;
+                int nb_inputs = 1 + (2 * (NumInputs + NumOutputs)) + 1 + 1;
                 pb.set_input_sizes(nb_inputs);
                 // ------------------------------------------------------------------------------ //
 
+                
+                merkle_root.reset(new libsnark::pb_variable<FieldT>);
+                (*merkle_root).allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
+                
                 // Initialize the digest_variables
-                root_digest.reset(new digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " root_digest")));
                 for (size_t i = 0; i < NumInputs; i++) {
                     input_nullifiers[i].reset(new digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " input_nullifiers_%zu", i)));
                 }
                 for (size_t i = 0; i < NumOutputs; i++) {
                     output_commitments[i].reset(new digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " output_commitments_%zu", i)));
                 }
-
-                // Initialize the unpacked input corresponding to the Root
-                unpacked_inputs[0].insert(unpacked_inputs[0].end(), root_digest->bits.begin(), root_digest->bits.end());
 
                 // Initialize the unpacked input corresponding to the input NullifierS
                 for (size_t i = 1, j = 0; i < NumInputs + 1 && j < NumInputs; i++, j++) {
@@ -221,7 +221,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     pb,
                     ZERO,
                     input_nullifiers[i],
-                    *root_digest
+                    *merkle_root
                 ));
             }
 
@@ -235,7 +235,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         }
 
         void generate_r1cs_constraints() {
-            //root_digest->generate_r1cs_constraints();
 
             // The `true` passed to `generate_r1cs_constraints` ensures that all inputs are boolean strings
             for(size_t i = 0; i < packers.size(); i++) {
@@ -299,7 +298,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         }
 
         void generate_r1cs_witness(
-            const bits256& rt,
+            const FieldT& rt,
             const std::array<JSInput, NumInputs>& inputs,
             const std::array<ZethNote, NumOutputs>& outputs,
             bits64 vpub_in,
@@ -309,7 +308,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             this->pb.val(ZERO) = FieldT::zero();
 
             // Witness the merkle root          
-            root_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(rt)));
+            this->pb.val(merkle_root) = rt;
 
             // Witness public values
             //
@@ -342,7 +341,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             // Witness the JoinSplit inputs
             for (size_t i = 0; i < NumInputs; i++) {
-                std::vector<libsnark::merkle_authentication_node> merkle_path = inputs[i].witness_merkle_path;
+                std::vector<FieldT> merkle_path = inputs[i].witness_merkle_path;
                 size_t address = inputs[i].address;
                 libff::bit_vector address_bits = get_vector_from_bitsAddr(inputs[i].address_bits);
                 input_notes[i]->generate_r1cs_witness(
@@ -358,17 +357,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             for (size_t i = 0; i < NumOutputs; i++) {
                 output_notes[i]->generate_r1cs_witness(outputs[i]);
             }
-
-            // [SANITY CHECK] Ensure that the intended root
-            // was witnessed by the inputs, even if the read
-            // gadget overwrote it. This allows the prover to
-            // fail instead of the verifier, in the event that
-            // the roots of the inputs do not match the
-            // treestate provided to the proving API.
-            root_digest->bits.fill_with_bits(
-                this->pb,
-                get_vector_from_bits256(rt)
-            );
 
             // This happens last, because only by now are all the
             // verifier inputs resolved.

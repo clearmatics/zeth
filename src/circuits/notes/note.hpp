@@ -5,8 +5,8 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
 
-#include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.hpp>
-#include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
+#include <src/circuits/merkle_tree/merkle_path_authenticator.hpp>
+#include <src/circuits/mimc/mimc_hash.hpp>
 
 // Get the prfs and commitments circuits
 #include "circuits/prfs/prfs.hpp"
@@ -40,7 +40,7 @@ public:
 // - The nullifier is correctly computed from a_sk and rho
 // - The commitment cm is correctly computed from the coin's data
 // - commitment cm is in the tree of merkle root rt
-template<typename FieldT>
+template<typename HashTreeT, typename FieldT>
 class input_note_gadget : public note_gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_pk; // Output of a PRF (digest_variable)
@@ -52,11 +52,15 @@ private:
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_inputs_cm;
     std::shared_ptr<libsnark::digest_variable<FieldT>> commitment; // Output of a PRF. This is the note commitment
+    std::shared_ptr<libsnark::pb_variable<FieldT>> field_cm;       // Note commitment 
+
+    std::shared_ptr<libsnark::packing_gadget<FieldT>> bits_to_field;
 
     libsnark::pb_variable<FieldT> value_enforce; // Bit that checks whether the commitment (leaf) has to be found in the merkle tree (Necessary to support dummy notes of value 0)
     libsnark::pb_variable_array<FieldT> address_bits_va;
-    std::shared_ptr<libsnark::merkle_authentication_path_variable<FieldT, sha256_ethereum<FieldT> > > auth_path;
-    std::shared_ptr<libsnark::merkle_tree_check_read_gadget<FieldT, sha256_ethereum<FieldT> > > check_membership;
+
+    std::shared_ptr<libsnark::pb_variable_array<FieldT>> auth_path;                 // Authentication pass comprising of all the intermediary hash siblings from the leaf to root
+    std::shared_ptr<merkle_path_authenticator<HashTreeT, FieldT> > check_membership;   // Gadget computing the merkle root from a commitment and merkle path, and checking whether it is the expected (i.e. current) merkle root value if value_enforce=1,
 
     std::shared_ptr<PRF_addr_a_pk_gadget<FieldT>> spend_authority; // Makes sure the a_pk is computed corectly from a_sk
     std::shared_ptr<PRF_nf_gadget<FieldT>> expose_nullifiers; // Makes sure the nullifiers are computed correctly from rho and a_sk
@@ -66,10 +70,10 @@ public:
     input_note_gadget(libsnark::protoboard<FieldT>& pb,
                     libsnark::pb_variable<FieldT>& ZERO,
                     std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
-                    libsnark::digest_variable<FieldT> rt, // merkle_root
+                    libsnark::pb_variable<FieldT> rt, // merkle_root
                     const std::string &annotation_prefix = "input_note_gadget");
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(std::vector<libsnark::merkle_authentication_node> merkle_path,
+    void generate_r1cs_witness(const std::vector<FieldT> merkle_path,
                             size_t address,
                             libff::bit_vector address_bits,
                             const bits256 a_sk_in,

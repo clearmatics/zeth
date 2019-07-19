@@ -23,7 +23,14 @@ merkle_path_authenticator<HashT, FieldT>::merkle_path_authenticator(
         merkle_path_compute<HashT,FieldT>(pb, depth, address_bits, leaf, path, annotation_prefix),
         m_expected_root(expected_root),
         value_enforce(bool_enforce)
-    { }
+    { 
+        std::cout << "leaf" << this->pb.val(leaf) << std::endl;
+        std::cout << "auth path" << std::endl;
+        for (size_t i = 0; i < depth; i++)
+        {
+            std::cout << this->pb.val(path[i]) << std::endl;
+        }
+    }
 
 template<typename HashT, typename FieldT>
 void merkle_path_authenticator<HashT, FieldT>::generate_r1cs_constraints()

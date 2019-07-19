@@ -39,7 +39,7 @@ private:
 
 public:
     typedef libff::bit_vector hash_value_type; // Important to define the hash_value_type as it is used in the merkle tree
-    typedef libsnark::merkle_authentication_path merkle_authentication_path_type; // Same as above, this is used in the merkle tree
+    //typedef libsnark::merkle_authentication_path merkle_authentication_path_type; // Same as above, this is used in the merkle tree
 
     sha256_ethereum(libsnark::protoboard<FieldT> &pb,
                     const size_t block_length,
