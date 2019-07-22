@@ -54,7 +54,7 @@ private:
     std::shared_ptr<libsnark::digest_variable<FieldT>> commitment; // Output of a PRF. This is the note commitment
     std::shared_ptr<libsnark::pb_variable<FieldT>> field_cm;       // Note commitment 
 
-    std::shared_ptr<libsnark::packing_gadget<FieldT>> bits_to_field;
+    std::shared_ptr<reverse_packing_gadget<FieldT>> bits_to_field;
 
     libsnark::pb_variable<FieldT> value_enforce; // Bit that checks whether the commitment (leaf) has to be found in the merkle tree (Necessary to support dummy notes of value 0)
     libsnark::pb_variable_array<FieldT> address_bits_va;

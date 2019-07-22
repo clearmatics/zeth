@@ -74,6 +74,11 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // - Index of the "v_pub_out" field element: {NumOutputs + NumInputs + 1 + 1}
                 //
 
+
+
+                merkle_root.reset(new libsnark::pb_variable<FieldT>);
+                (*merkle_root).allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
+
                 // We allocate 2 field elements to pack each inputs nullifiers and each output commitments
                 for (size_t i = 0; i < NumInputs + NumOutputs; i++) {
                     packed_inputs[i].allocate(pb, 1 + 1);
@@ -84,7 +89,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
                 // We allocate 1 field element to pack the value (v_pub_out)
                 packed_inputs[NumInputs + NumOutputs + 1 ].allocate(pb, 1);
-                
+
                 // The inputs are: [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
                 // The root, each nullifier, and each commitment are in {0,1}^256 and thus take 2 field elements
                 // to be represented, while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
@@ -92,10 +97,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 pb.set_input_sizes(nb_inputs);
                 // ------------------------------------------------------------------------------ //
 
-                
-                merkle_root.reset(new libsnark::pb_variable<FieldT>);
-                (*merkle_root).allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
-                
+
                 // Initialize the digest_variables
                 for (size_t i = 0; i < NumInputs; i++) {
                     input_nullifiers[i].reset(new digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " input_nullifiers_%zu", i)));
@@ -294,7 +296,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             // Witness `zero`
             this->pb.val(ZERO) = FieldT::zero();
 
-            // Witness the merkle root          
+            // Witness the merkle root
+            std::cout << "DEBUG: MK ROOT: " << rt << std::endl;
             this->pb.val(*merkle_root) = rt;
 
             // Witness public values
@@ -350,6 +353,51 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             for(size_t i = 0; i < packers.size(); i++) {
                 packers[i]->generate_r1cs_witness_from_bits();
             }
+            std::cout << "DEBUG: MK ROOT END: " << this->pb.val(*merkle_root) << std::endl;
+
+            std::cout << "DEBUG: NF OLD 1 END: " << std::endl;
+            for (size_t i = 0; i < input_nullifiers[0]->digest_size; i++)
+            {
+              std::cout << this->pb.val(input_nullifiers[0]->bits[i]);
+            }
+            std::cout << " " << std::endl;
+
+            std::cout << "DEBUG: NF OLD 2 END: " << std::endl;
+            for (size_t i = 0; i < input_nullifiers[1]->digest_size; i++)
+            {
+              std::cout << this->pb.val(input_nullifiers[1]->bits[i]);
+            }
+            std::cout << " " << std::endl;
+
+            std::cout << "DEBUG: CM NEW 1 END: "<< std::endl;
+            for (size_t i = 0; i < output_commitments[0]->digest_size; i++)
+            {
+              std::cout << this->pb.val(output_commitments[0]->bits[i]);
+            }
+            std::cout << " " << std::endl;
+
+            std::cout << "DEBUG: CM NEW 2 END: " << std::endl;
+            for (size_t i = 0; i < output_commitments[1]->digest_size; i++)
+            {
+              std::cout << this->pb.val(output_commitments[1]->bits[i]);
+            }
+            std::cout << " " << std::endl;
+
+            std::cout << "DEBUG: VPUB IN END: " << std::endl;
+            for (size_t i = 0; i < 64; i++)
+            {
+              std::cout << this->pb.val(zk_vpub_in[i]);
+            }
+            std::cout << " " << std::endl;
+
+
+            std::cout << "DEBUG: VPUB OUT END: " << std::endl;
+            for (size_t i = 0; i < 64; i++)
+            {
+              std::cout << this->pb.val(zk_vpub_out[i]);
+            }
+            std::cout << " " << std::endl;
+
         }
 
         // Computes the binary size of the primary inputs

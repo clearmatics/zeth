@@ -110,8 +110,13 @@ if __name__ == '__main__':
     # Bob does a transfer of 1ETH to Charlie on the mixer
     #
     # Bob looks in the merkle tree and gets the merkle path to the commitment he wants to spend
+    print("- BOB to Charlie")
+    print("bob send with new merkle root", new_merkle_root_bob_to_bob)
+
     mk_byte_tree = get_merkle_tree(mixer_instance)
     mk_path = zethUtils.compute_merkle_path(cm_address_bob_to_bob1, mk_tree_depth, mk_byte_tree)
+    print("- MK PATH:", mk_path)
+
     # Bob decrypts one of the note he previously received (useless here but useful if the payment came from someone else)
     input_note_json = json.loads(zethUtils.decrypt(ciphertext_bob_to_bob1, keystore["Bob"]["AddrSk"]["dk"]))
     input_note_bob_to_charlie = zethGRPC.zethNoteObjFromParsed(input_note_json)

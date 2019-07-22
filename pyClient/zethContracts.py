@@ -208,6 +208,8 @@ def mix_groth16(
         wei_pub_value,
         call_gas
     ):
+    print("DEBUG:INPUTS")
+    print(parsed_proof["inputs"])
     tx_hash = mixer_instance.functions.mix(
         ciphertext1,
         ciphertext2,
@@ -272,6 +274,10 @@ def parse_mix_call(mixer_instance, tx_receipt):
     ciphertext1 = event_logs_logSecretCiphers[0].args.ciphertext
     ciphertext2 = event_logs_logSecretCiphers[1].args.ciphertext
     return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
+
+# Call the hash method of MiMC contract
+def mimcHash(instance, m, iv):
+    return instance.functions.hash(m, iv).call()
 
 # Return the Merkle tree
 def getTree(instance):
