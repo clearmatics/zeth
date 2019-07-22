@@ -20,7 +20,7 @@ libzeth::JSInput<FieldT> ParseJSInput(const proverpkg::JSInput& input) {
     libzeth::bits256 inputSpendingASK = libzeth::hexadecimal_digest_to_bits256(input.spendingask());
     libzeth::bits256 inputNullifier = libzeth::hexadecimal_digest_to_bits256(input.nullifier());
 
-    std::vector<libsnark::merkle_authentication_node> inputMerklePath;
+    std::vector<FieldT> inputMerklePath;
     for(int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
         FieldT mk_node = ParseMerkleNode<FieldT>(input.merklenode(i));
         inputMerklePath.push_back(mk_node);
