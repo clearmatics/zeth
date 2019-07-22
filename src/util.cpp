@@ -8,21 +8,6 @@
 
 namespace libzeth {
 
-// Takes a binary string and swaps the bit endianness
-template<typename T>
-T swap_bit_endianness(T v) {
-    int len = v.size();
-    if (len == 0) {
-        throw std::length_error("Invalid bit length for the given boolean vector (should be > 0)");
-    }
-
-    for(size_t i = 0; i < len/2; i++) {
-        std::swap(v[i], v[(len - 1)-i]);
-    }
-
-    return v;
-}
-
 // Takes an hexadecimal string and converts it into a binary vector
 std::vector<bool> hexadecimal_str_to_binary_vector(std::string hex_str) {
     std::vector<bool> result;

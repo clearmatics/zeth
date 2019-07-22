@@ -120,6 +120,32 @@ target_include_directories(
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
+# Test the hex converstion
+add_executable(
+    test_hex_to_field
+    EXCLUDE_FROM_ALL
+
+    test/hex_to_field_test.cpp
+    ${SOURCES}
+    ${PROTO_SRCS}
+)
+target_link_libraries(
+    test_hex_to_field
+
+    snark
+    gtest_main
+    protobuf::libprotobuf
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+target_include_directories(
+    test_hex_to_field
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
 # Test the notes circuits
 add_executable(
     test_note
@@ -318,6 +344,10 @@ add_test(
     COMMAND test_addition
 )
 add_test(
+    NAME test_hex_to_field
+    COMMAND test_hex_to_field
+)
+add_test(
     NAME test_round
     COMMAND test_round
 )
@@ -348,6 +378,7 @@ add_test(
 
 # We add the test of the prover as part of the testzeth
 add_dependencies(check test_addition)
+add_dependencies(check test_hex_to_field)
 add_dependencies(check test_round)
 add_dependencies(check test_mimc)
 add_dependencies(check test_mimc_hash)
