@@ -41,7 +41,12 @@ def compile_util_contracts():
     contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
     path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
-    compiled_sol = compile_files([path_to_pairing, path_to_bytes])
+    path_to_mimc7 = os.path.join(contracts_dir, "MiMC7.sol")
+    path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMC7.sol")
+    compiled_sol = compile_files([path_to_pairing, path_to_bytes, path_to_mimc7, path_to_tree])
+    mimc_interface = compiled_sol[path_to_mimc7 + ':' + "MiMC7"]
+    tree_interface = compiled_sol[path_to_tree + ':' + "MerkleTreeMiMC7"]
+    return mimc_interface, tree_interface
 
 # Deploy the verifier used with PGHR13
 def deploy_pghr13_verifier(vk, verifier, deployer_address, deployment_gas):
