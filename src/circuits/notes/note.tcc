@@ -131,15 +131,23 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
     // We do not forget to allocate the `value_enforce` variable
     // since it is submitted to boolean constraints
     value_enforce.allocate(pb);
+
+
     // These gadgets make sure that the computed
     // commitment is in the merkle tree of root rt
+
+    // This gadget cast the input commitment from bits to field element
+    // We reverse the order otherwise the resulting linear combination is built
+    // by interpreting our bit string as little endian.
     bits_to_field.reset( new libsnark::packing_gadget<FieldT>(
         pb,
-        commitment->bits,
+        libsnark::pb_variable_array<FieldT>(commitment->bits.rbegin(), commitment->bits.rend()),
         *field_cm,
         "cm bits to field"
     ));
 
+    // We finally compute a root from the (field) commitment and the authentication path
+    // We furthermore check, depending on value_enforce, if the computed root is equal to the current one
     check_membership.reset(new merkle_path_authenticator<MiMC_hash_gadget<FieldT>, FieldT>(
         pb,
         ZETH_MERKLE_TREE_DEPTH,
@@ -234,8 +242,6 @@ void input_note_gadget<HashTreeT, FieldT>::generate_r1cs_witness(
     commit_to_inputs_outer_k->generate_r1cs_witness();
     commit_to_inputs_cm->generate_r1cs_witness();
 
-    
-
     //// [SANITY CHECK] Ensure the commitment is valid.
     ////commitment->bits.fill_with_bits(
     ////    this->pb,
@@ -297,8 +303,8 @@ void input_note_gadget<HashTreeT, FieldT>::generate_r1cs_witness(
     // here, we need to be extra careful. Note that if one of the input oes not have a valid
     // auth path (is not correctly authenticated), the root (shared by all inputs)
     // will be changed and the proof should be rejected.
+    
     this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
-
     std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
 
     // Witness merkle tree authentication path

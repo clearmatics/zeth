@@ -76,8 +76,6 @@ void merkle_path_compute<HashT, FieldT>::generate_r1cs_constraints()
 template<typename HashT, typename FieldT>
 void merkle_path_compute<HashT, FieldT>::generate_r1cs_witness()
 {
-    std::cout << "Merklepath input: " << this->pb.val(selectors[0].input) << std::endl;
-
     // For each level of the tree
     for( size_t i = 0; i < hashers.size(); i++ )
     {
@@ -85,11 +83,8 @@ void merkle_path_compute<HashT, FieldT>::generate_r1cs_witness()
         // as well as the hash of left and right
         selectors[i].generate_r1cs_witness();
 
-        std::cout << "Merklepath pathvar: "<< std::to_string(i) << " " << this->pb.val(selectors[i].pathvar) << std::endl;
-
         hashers[i].generate_r1cs_witness();
     }
-    std::cout << "MerkleRoot compute: "<< std::hex << this->pb.val(hashers.back().result()) << std::endl;
 }
 
 template<typename HashT, typename FieldT>

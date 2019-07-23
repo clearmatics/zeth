@@ -95,37 +95,6 @@ libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::
     return acc;
 }
 
-
-template<typename FieldT>
-void reverse_packing_gadget<FieldT>::generate_r1cs_constraints(const bool enforce_bitness)
-/* adds constraint result = \sum  bits[i] * 2^i */
-{
-    this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(1, packed_addition<FieldT>(bits), packed), FMT(this->annotation_prefix, " packing_constraint"));
-
-    if (enforce_bitness)
-    {
-        for (size_t i = 0; i < bits.size(); ++i)
-        {
-            generate_boolean_r1cs_constraint<FieldT>(this->pb, bits[i], FMT(this->annotation_prefix, " bitness_%zu", i));
-        }
-    }
-}
-
-template<typename FieldT>
-void reverse_packing_gadget<FieldT>::generate_r1cs_witness_from_packed()
-{
-    packed.evaluate(this->pb);
-    assert(this->pb.lc_val(packed).as_bigint().num_bits() <= bits.size()); // `bits` is large enough to represent this packed value
-    bits.fill_with_bits_of_field_element(this->pb, this->pb.lc_val(packed));
-}
-
-template<typename FieldT>
-void reverse_packing_gadget<FieldT>::generate_r1cs_witness_from_bits()
-{
-    bits.evaluate(this->pb);
-    this->pb.lc_val(packed) = bits.get_field_element_from_bits(this->pb);
-}
-
 } // libzeth
 
 #endif // __ZETH_CIRCUITS_UTILS_TCC__

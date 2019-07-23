@@ -297,7 +297,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             this->pb.val(ZERO) = FieldT::zero();
 
             // Witness the merkle root
-            std::cout << "DEBUG: MK ROOT: " << rt << std::endl;
             this->pb.val(*merkle_root) = rt;
 
             // Witness public values
@@ -353,50 +352,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             for(size_t i = 0; i < packers.size(); i++) {
                 packers[i]->generate_r1cs_witness_from_bits();
             }
-            std::cout << "DEBUG: MK ROOT END: " << this->pb.val(*merkle_root) << std::endl;
-
-            std::cout << "DEBUG: NF OLD 1 END: " << std::endl;
-            for (size_t i = 0; i < input_nullifiers[0]->digest_size; i++)
-            {
-              std::cout << this->pb.val(input_nullifiers[0]->bits[i]);
-            }
-            std::cout << " " << std::endl;
-
-            std::cout << "DEBUG: NF OLD 2 END: " << std::endl;
-            for (size_t i = 0; i < input_nullifiers[1]->digest_size; i++)
-            {
-              std::cout << this->pb.val(input_nullifiers[1]->bits[i]);
-            }
-            std::cout << " " << std::endl;
-
-            std::cout << "DEBUG: CM NEW 1 END: "<< std::endl;
-            for (size_t i = 0; i < output_commitments[0]->digest_size; i++)
-            {
-              std::cout << this->pb.val(output_commitments[0]->bits[i]);
-            }
-            std::cout << " " << std::endl;
-
-            std::cout << "DEBUG: CM NEW 2 END: " << std::endl;
-            for (size_t i = 0; i < output_commitments[1]->digest_size; i++)
-            {
-              std::cout << this->pb.val(output_commitments[1]->bits[i]);
-            }
-            std::cout << " " << std::endl;
-
-            std::cout << "DEBUG: VPUB IN END: " << std::endl;
-            for (size_t i = 0; i < 64; i++)
-            {
-              std::cout << this->pb.val(zk_vpub_in[i]);
-            }
-            std::cout << " " << std::endl;
-
-
-            std::cout << "DEBUG: VPUB OUT END: " << std::endl;
-            for (size_t i = 0; i < 64; i++)
-            {
-              std::cout << this->pb.val(zk_vpub_out[i]);
-            }
-            std::cout << " " << std::endl;
 
         }
 

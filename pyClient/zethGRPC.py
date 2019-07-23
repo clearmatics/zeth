@@ -120,7 +120,7 @@ def computeNullifier(zethNote, spendingAuthAsk):
     first254Rho = binaryRho[0:254]
     rightLegBin = "01" + first254Rho
     rightLegHex = "{0:0>4X}".format(int(rightLegBin, 2))
-    print("Compute nullifier")
+
     nullifier = hashlib.sha256(
         encode_abi(["bytes32", "bytes32"], [bytes.fromhex(spendingAuthAsk), bytes.fromhex(rightLegHex)])
     ).hexdigest()

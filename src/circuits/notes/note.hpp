@@ -51,16 +51,14 @@ private:
     std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_inputs_outer_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_inputs_cm;
-    std::shared_ptr<libsnark::digest_variable<FieldT>> commitment; // Output of a PRF. This is the note commitment
-    std::shared_ptr<libsnark::pb_variable<FieldT>> field_cm;       // Note commitment 
+    std::shared_ptr<libsnark::digest_variable<FieldT>> commitment;      // Note commitment (bits), output of COMMIT gadget
+    std::shared_ptr<libsnark::packing_gadget<FieldT>> bits_to_field;    // Packing gadget to cast commitment from bits to field
+    std::shared_ptr<libsnark::pb_variable<FieldT>> field_cm;            // Note commitment (field), input of Merkle Tree gadget
 
-    std::shared_ptr<reverse_packing_gadget<FieldT>> bits_to_field;
-
-    libsnark::pb_variable<FieldT> value_enforce; // Bit that checks whether the commitment (leaf) has to be found in the merkle tree (Necessary to support dummy notes of value 0)
-    libsnark::pb_variable_array<FieldT> address_bits_va;
-
-    std::shared_ptr<libsnark::pb_variable_array<FieldT>> auth_path;                 // Authentication pass comprising of all the intermediary hash siblings from the leaf to root
-    std::shared_ptr<merkle_path_authenticator<HashTreeT, FieldT> > check_membership;   // Gadget computing the merkle root from a commitment and merkle path, and checking whether it is the expected (i.e. current) merkle root value if value_enforce=1,
+    libsnark::pb_variable<FieldT> value_enforce;                        // Bit that checks whether the commitment (leaf) has to be found in the merkle tree (Necessary to support dummy notes of value 0)
+    libsnark::pb_variable_array<FieldT> address_bits_va;                // Address of the commitment on the tree as Field
+    std::shared_ptr<libsnark::pb_variable_array<FieldT>> auth_path;                     // Authentication pass comprising of all the intermediary hash siblings from the leaf to root
+    std::shared_ptr<merkle_path_authenticator<HashTreeT, FieldT> > check_membership;    // Gadget computing the merkle root from a commitment and merkle path, and checking whether it is the expected (i.e. current) merkle root value if value_enforce=1,
 
     std::shared_ptr<PRF_addr_a_pk_gadget<FieldT>> spend_authority; // Makes sure the a_pk is computed corectly from a_sk
     std::shared_ptr<PRF_nf_gadget<FieldT>> expose_nullifiers; // Makes sure the nullifiers are computed correctly from rho and a_sk
@@ -69,8 +67,8 @@ public:
 
     input_note_gadget(libsnark::protoboard<FieldT>& pb,
                     libsnark::pb_variable<FieldT>& ZERO,
-                    std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
-                    libsnark::pb_variable<FieldT> rt, // merkle_root
+                    std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,   // Input note Nullifier
+                    libsnark::pb_variable<FieldT> rt,                               // Current Merlle root
                     const std::string &annotation_prefix = "input_note_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness(const std::vector<FieldT> merkle_path,
@@ -92,7 +90,7 @@ private:
     std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_outputs_outer_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_outputs_cm;
-    //std::shared_ptr<libsnark::digest_variable<FieldT>> commitment; // output of a PRF. This is the cm commitment
+    //std::shared_ptr<libsnark::digest_variable<FieldT>> commitment;                // output of a PRF. This is the cm commitment
 
 public:
     output_note_gadget(
