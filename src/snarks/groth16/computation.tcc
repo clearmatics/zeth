@@ -24,7 +24,7 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> gen_trusted_setup(libsnark::protoboard<
 {
     // Generate verification and proving key (Trusted setup) from the R1CS (defined in the ZoKrates/wraplibsnark.cpp file)
     // This function, basically reduces the R1CS into a QAP, and then encodes the QAP, along with a secret s and its
-    // set of powers, plus the alpha, beta, gamma, and the rest of the entries, in order to form the CRS
+    // set of powers, plus the alpha, beta, and the rest of the entries, in order to form the CRS
     // (crs_f, shortcrs_f, as denoted in [GGPR12])
 
     return libsnark::r1cs_gg_ppzksnark_generator<ppT>(pb.get_constraint_system());

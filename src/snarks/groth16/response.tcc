@@ -46,18 +46,17 @@ void PrepareVerifyingKeyResponse(libsnark::r1cs_gg_ppzksnark_verification_key<pp
 
     a->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(vk.alpha_g1)); // in G1
     b->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.beta_g2)); // in G2
-    g->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.gamma_g2)); // in G2
     d->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.delta_g2)); // in G2
 
     std::stringstream ss;
-    unsigned gammaABCLength = vk.gamma_ABC_g1.rest.indices.size() + 1;
-    ss <<  "[[" << outputPointG1AffineAsHex(vk.gamma_ABC_g1.first) << "]";
-    for (size_t i = 1; i < gammaABCLength; ++i) {
-        auto vkGammaABCi = outputPointG1AffineAsHex(vk.gamma_ABC_g1.rest.values[i - 1]);
-        ss << ",[" <<  vkGammaABCi << "]";
+    unsigned ABCLength = vk.ABC_g1.rest.indices.size() + 1;
+    ss <<  "[[" << outputPointG1AffineAsHex(vk.ABC_g1.first) << "]";
+    for (size_t i = 1; i < ABCLength; ++i) {
+        auto vkABCi = outputPointG1AffineAsHex(vk.ABC_g1.rest.values[i - 1]);
+        ss << ",[" <<  vkABCi << "]";
     }
     ss << "]";
-    std::string GammaABC_json = ss.str();
+    std::string ABC_json = ss.str();
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See: https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
@@ -65,9 +64,8 @@ void PrepareVerifyingKeyResponse(libsnark::r1cs_gg_ppzksnark_verification_key<pp
 
     r1csGgPpzksnarkVerificationKey->set_allocated_alpha_g1(a);
     r1csGgPpzksnarkVerificationKey->set_allocated_beta_g2(b);
-    r1csGgPpzksnarkVerificationKey->set_allocated_gamma_g2(g);
     r1csGgPpzksnarkVerificationKey->set_allocated_delta_g2(d);
-    r1csGgPpzksnarkVerificationKey->set_gamma_abc_g1(GammaABC_json);
+    r1csGgPpzksnarkVerificationKey->set_abc_g1(ABC_json);
 };
 
 } // libzeth
