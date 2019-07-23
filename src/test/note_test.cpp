@@ -70,13 +70,13 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     // inner_k = sha256(a_pk || rho)
     // outer_k = sha256(r || [inner_commitment]_128)
     // cm = sha256(outer_k || 0^192 || value_v)
-    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
-    // the field commitment is the cast to int of the commitment in little endian
-    FieldT cm_field = FieldT("19887018545733584132694987702455052448105722733816648703966348992317566270527"); 
+    
+    // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
+    FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
     libff::leave_block("[END] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
     libff::enter_block("[BEGIN] Setup a local merkle tree and append our commitment to it", true);
-    
+
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
             ZETH_MERKLE_TREE_DEPTH
@@ -120,9 +120,9 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 
     // Create a note from the coin's data
     ZethNote note(
-        a_pk_bits256, 
-        value_bits64, 
-        rho_bits256, 
+        a_pk_bits256,
+        value_bits64,
+        rho_bits256,
         trap_r_bits384
     );
 
@@ -178,9 +178,9 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
 
     // Create a note from the coin's data
     ZethNote note(
-        a_pk_bits256, 
-        value_bits64, 
-        rho_bits256, 
+        a_pk_bits256,
+        value_bits64,
+        rho_bits256,
         trap_r_bits384
     );
 

@@ -54,8 +54,9 @@ bool TestValidJS2In2Case1(
     bits256 rho_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000000000000000000000000000009009"));
     bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"));
     bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f"));
-    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
-    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
+
+    // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
+    FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
@@ -172,9 +173,8 @@ bool TestValidJS2In2Case2(
     bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f"));
 
     // We compute the commitment to insert it in the merkle tree we use for the tests
-    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
-    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
-
+    // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
+    FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
@@ -291,8 +291,8 @@ bool TestValidJS2In2Case3(
     bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f"));
 
     // We compute the commitment to insert it in the merkle tree we use for the tests
-    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
-    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
+    // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
+    FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
@@ -408,8 +408,8 @@ bool TestValidJS2In2Deposit(
     bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f"));
 
     // We compute a commitment to insert it in the merkle tree we use for the tests
-    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
-    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
+    // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
+    FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
@@ -527,8 +527,8 @@ bool TestInvalidJS2In2(
     bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f"));
 
     // We compute a commitment to insert it in the merkle tree we use for the tests
-    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
-    FieldT cm_field = FieldT("63663504289412134577187799192969602625202451534648717391362757365469183261761");
+    // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
+    FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
     libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
@@ -630,7 +630,7 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     std::cout << "[TestValidJS2In2Case1] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
 
-    
+
     res = TestValidJS2In2Case2(proverJS2to2, keypair);
     std::cout << "[TestValidJS2In2Case2] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
@@ -646,12 +646,12 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     // The following test is expected to throw an exception because the LHS =/= RHS
     try {
         res = TestInvalidJS2In2(proverJS2to2, keypair);
-        std::cout << "[TestValidJS2In2Deposit] Expected (False), Obtained result: " << res << std::endl;
+        std::cout << "[TestInvalidJS2In2Deposit] Expected (False), Obtained result: " << res << std::endl;
         ASSERT_TRUE(res);
     } catch (const std::invalid_argument& e) {
 	  std::cerr << "Invalid argument exception: " << e.what() << '\n';
     }
-    
+
 }
 
 } // namespace
