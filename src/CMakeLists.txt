@@ -103,6 +103,30 @@ target_include_directories(
 )
 
 ## Tests
+# Simple tests (guard against problems with changes to fundamental
+# libs).
+add_executable(
+    test_simple
+    EXCLUDE_FROM_ALL
+
+    test/simple_test.cpp
+    ${SOURCES_TEST}
+)
+target_link_libraries(
+    test_simple
+
+    snark
+    gtest_main
+)
+target_include_directories(
+    test_simple
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+    ${DEPENDS_DIR}/libsnark/depends/libff
+)
+
 # Test the packed_addition used in the joinsplit
 add_executable(
     test_addition
@@ -225,6 +249,10 @@ target_include_directories(
 
 include(CTest)
 add_test(
+    NAME test_simple
+    COMMAND test_simple
+)
+add_test(
     NAME test_addition
     COMMAND test_addition
 )
@@ -246,6 +274,7 @@ add_test(
 )
 
 # We add the test of the prover as part of the testzeth
+add_dependencies(check test_simple)
 add_dependencies(check test_addition)
 add_dependencies(check test_note)
 add_dependencies(check test_prfs)
