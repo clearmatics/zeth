@@ -30,14 +30,14 @@ class MiMC7:
             res = self.MiMCRound(res, key,  self.toInt(round_constant))
         return (res + key) % self.prime
 
-    def hash(self, messages, iv):
+    def hash(self, messages, iv, seed):
         hash = 0
         key = self.toInt(iv) % self.prime
         if len(messages) == 0:
             return
         else:
             for i in range(len(messages)):
-                hash = self.encrypt(messages[i], key) % self.prime
+                hash = self.encrypt(messages[i], key, seed) % self.prime
                 key = ( self.toInt(messages[i]) + hash + key) % self.prime
             return key
 
@@ -85,7 +85,7 @@ class MiMC7:
             print("Encrypt error:", self.encrypt(m1,m2), "instead of", 11437467823393790387399137249441941313717686441929791910070352316474327319704)
             res +=2
 
-        if (self.hash([m1, m2], m3) != 15683951496311901749339509118960676303290224812129752890706581988986633412003):
+        if (self.hash([m1, m2], m3, "mimc") != 15683951496311901749339509118960676303290224812129752890706581988986633412003):
             print("Hash error", self.hash([m1, m2], m3), "instead of", 15683951496311901749339509118960676303290224812129752890706581988986633412003)
             res +=4
         if res == 0:
@@ -176,7 +176,7 @@ def test_encrypt():
 def test_hash():
     m = MiMC7()
     m1 = 3703141493535563179657531719960160174296085208671919316200479060314459804651
-    m2 = 134551314051432487569247388144051420116740427803855572138106146683954151557
+    m2 = 3703141493535563179657531719960160174296085208671919316200479060314459804651
     m3 = 918403109389145570117360101535982733651217667914747213867238065296420114726
     assert m.hash([m1, m2], m3) == 15683951496311901749339509118960676303290224812129752890706581988986633412003
 
@@ -185,6 +185,27 @@ def main():
     m = MiMC7()
     m.all_tests()
 
+
+    # Generating test vectors for testMimcHash
+    res = m.hash(
+      [3703141493535563179657531719960160174296085208671919316200479060314459804651],15683951496311901749339509118960676303290224812129752890706581988986633412003,
+      "clearmatics_iv")
+    print(res)
+
+    res = m.hash(
+      [0],0,
+      "clearmatics_iv")
+    print(res)
+
+    res = m.hash(
+      [2369491469498662726899527952320763476550437823075807989318215132860075588063],2369491469498662726899527952320763476550437823075807989318215132860075588063,
+      "clearmatics_iv")
+    print(res)
+
+    res = m.hash(
+      [12921174256558802998502901713017001042888668132477819680769384235114593268031],12921174256558802998502901713017001042888668132477819680769384235114593268031,
+      "clearmatics_iv")
+    print(res)
 
 if __name__ == "__main__":
     import sys

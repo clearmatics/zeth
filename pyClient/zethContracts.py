@@ -276,8 +276,8 @@ def parse_mix_call(mixer_instance, tx_receipt):
     return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
 
 # Call the hash method of MiMC contract
-def mimcHash(instance, m, iv):
-    return instance.functions.hash(m, iv).call()
+def mimcHash(instance, m, k, seed):
+    return instance.functions.hash(m, k, seed).call()
 
 # Return the Merkle tree
 def getTree(instance):
