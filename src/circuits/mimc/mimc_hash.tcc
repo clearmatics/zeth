@@ -19,16 +19,16 @@ MiMC_hash_gadget<FieldT>::MiMC_hash_gadget(
     messages(messages),
     iv(iv)
   {
-    // allocate output variables array
+    // Allocates output variables array
     outputs.allocate(pb, messages.size(), FMT(annotation_prefix, ".outputs"));
 
     for( size_t i = 0; i < messages.size(); i++ ) {
         const libsnark::pb_variable<FieldT>& m = messages[i];
 
-        // round key variable is set to be the output variable of the previous permutation gadget, except for round 0 where is used the initial vector
+        // The round key variable is set to be the output variable of the previous permutation gadget, except for round 0 where is used the initial vector
         const libsnark::pb_variable<FieldT>& round_key = (i == 0 ? iv : outputs[i-1]);
 
-        // allocate a permutation gadget for each message
+        // Allocates a permutation gadget for each message
         permutation_gadgets.emplace_back( pb, m, round_key, round_constant_iv, FMT(annotation_prefix, ".cipher[%d]", i) );
     }
   }

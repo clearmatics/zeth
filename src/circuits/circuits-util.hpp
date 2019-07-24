@@ -5,7 +5,6 @@
 
 #include "types/bits.hpp"
 
-#include "depends/libsnark/libsnark/gadgetlib1/gadgets/basic_gadgets.hpp"
 
 namespace libzeth {
 

@@ -1,3 +1,7 @@
+// DISCLAIMER:
+// Content taken and adapted from:
+// https://github.com/scipr-lab/libsnark/blob/master/libsnark/common/data_structures/merkle_tree.hpp
+
 #ifndef MERKLE_TREE_FIELD_HPP_
 #define MERKLE_TREE_FIELD_HPP_
 

@@ -37,7 +37,7 @@ void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints() {
         const std::string annotation_constraint = this->annotation_prefix + std::string(".round constraint");
 
         // We constrain the intermediary variables t2 t4 and t6
-        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t, t2), FMT(annotation_constraint, ".t2")); // Add constraint `a = t^2`
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t, t2), FMT(annotation_constraint, ".t2"));   // Add constraint `a = t^2`
         this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t2, t4), FMT(annotation_constraint, ".t4")); // Add constraint `b = a^2 = t^4`
         this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t4, t6), FMT(annotation_constraint, ".t6")); // Add constraint `c = a*b = t^6`
 
@@ -57,7 +57,7 @@ void  MiMCe7_round_gadget<FieldT>::generate_r1cs_witness() const {
         const FieldT val_k = this->pb.val(k);
         const FieldT t = this->pb.val(x) + val_k + c;
 
-        //We compute the intermediary values and fill intermediary variables with them
+        // We compute the intermediary values and fill intermediary variables with them
         const FieldT val_t2 = t * t;
         this->pb.val(t2) = val_t2;
 

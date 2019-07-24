@@ -5,12 +5,12 @@
 namespace libzeth {
 
 ZethNote ParseZethNote(const proverpkg::ZethNote& note) {
-    libzeth::bits256 noteAPK = libzeth::hexadecimal_digest_to_bits256(note.apk());
-    libzeth::bits64 noteValue = libzeth::hexadecimal_value_to_bits64(note.value());
-    libzeth::bits256 noteRho = libzeth::hexadecimal_digest_to_bits256(note.rho());
-    libzeth::bits384 noteTrapR = libzeth::get_bits384_from_vector(libzeth::hexadecimal_str_to_binary_vector(note.trapr()));
+    bits256 noteAPK = hexadecimal_digest_to_bits256(note.apk());
+    bits64 noteValue = hexadecimal_value_to_bits64(note.value());
+    bits256 noteRho = hexadecimal_digest_to_bits256(note.rho());
+    bits384 noteTrapR = get_bits384_from_vector(hexadecimal_str_to_binary_vector(note.trapr()));
 
-    return libzeth::ZethNote(
+    return ZethNote(
         noteAPK,
         noteValue,
         noteRho,

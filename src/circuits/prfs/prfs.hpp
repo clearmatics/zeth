@@ -20,10 +20,10 @@ private:
 
 public:
     PRF_gadget(libsnark::protoboard<FieldT>& pb,
-            libsnark::pb_variable<FieldT>& ZERO,
+            libsnark::pb_variable<FieldT>& ZERO,    // needed in case x or y needs to be appended with 0s
             libsnark::pb_variable_array<FieldT> x,
             libsnark::pb_variable_array<FieldT> y,
-            std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+            std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(x || y)
             const std::string &annotation_prefix = " base_PRF_gadget");
 
     void generate_r1cs_constraints();
@@ -49,7 +49,7 @@ public:
     PRF_addr_a_pk_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& ZERO,
                         libsnark::pb_variable_array<FieldT>& a_sk,
-                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(a_sk || 0^256)
                         const std::string &annotation_prefix = " a_pk_PRF_gadget");
 };
 
@@ -62,7 +62,7 @@ public:
                 libsnark::pb_variable<FieldT>& ZERO,
                 libsnark::pb_variable_array<FieldT>& a_sk,
                 libsnark::pb_variable_array<FieldT>& rho,
-                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(a_sk || 01 || [rho]_254)
                 const std::string &annotation_prefix = " nf_PRF_gadget");
 };
 

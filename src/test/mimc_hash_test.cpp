@@ -24,11 +24,7 @@ namespace  {
 
         pb.set_input_sizes(1);
 
-        pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790");
-        // sha3("Clearmatics"): 14220067918847996031108144435763672811050758065945364308986253046354060608451
-        // sha3("Clearmatics_add"): 7655352919458297598499032567765357605187604397960652899494713742188031353302
-        // sha3("Clearmatics_sn"): 38594890471543702135425523844252992926779387339253565328142220201141984377400
-        // sha3("Clearmatics_pk"): 20715549373167656640519441333099474211916836972862576858009333815040496998894
+        pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790"); // sha3_256("mimc")
 
         // Private inputs
 
@@ -89,4 +85,10 @@ namespace  {
         FieldT not_expected_out = FieldT("15683951496311901749339509118960676303290224812129752890706581988986633412003");
         ASSERT_FALSE(not_expected_out == pb.val(mimc_hash_gadget.result()));
     }
+} // namespace
+
+int main(int argc, char **argv) {
+    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not forget to do this !!!!
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

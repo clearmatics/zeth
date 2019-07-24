@@ -59,4 +59,10 @@ namespace {
 
         ASSERT_FALSE(expected_out == pb.val(mimc_gadget.result()));
     }
+} // namespace
+
+int main(int argc, char **argv) {
+    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not forget to do this !!!!
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

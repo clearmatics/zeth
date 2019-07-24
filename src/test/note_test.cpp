@@ -70,13 +70,12 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     // inner_k = sha256(a_pk || rho)
     // outer_k = sha256(r || [inner_commitment]_128)
     // cm = sha256(outer_k || 0^192 || value_v)
-    
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
     libff::leave_block("[END] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
-    libff::enter_block("[BEGIN] Setup a local merkle tree and append our commitment to it", true);
 
+    libff::enter_block("[BEGIN] Setup a local merkle tree and append our commitment to it", true);
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
             ZETH_MERKLE_TREE_DEPTH
@@ -94,6 +93,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     FieldT updated_root_value = test_merkle_tree->get_root();
 
     libff::leave_block("[END] Setup a local merkle tree and append our commitment to it", true);
+
 
     libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
     std::shared_ptr<libsnark::digest_variable<FieldT> > nullifier_digest;
@@ -137,6 +137,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     );
     libff::leave_block("[END] Data conversion to generate a witness of the note gadget", true);
 
+
     bool is_valid_witness = pb.is_satisfied();
     std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;
 
@@ -164,6 +165,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     // cm = sha256(outer_k || 0^192 || value_v)
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
     libff::leave_block("[END] Initialize the output coins' data (a_pk, cm, rho)", true);
+
 
     libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
     std::shared_ptr<libsnark::digest_variable<FieldT> > commitment;

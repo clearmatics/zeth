@@ -1,5 +1,6 @@
 pragma solidity ^0.5.0;
 
+// Adapted from: https://github.com/zcash-hackworks/babyzoe
 import "./BaseMerkleTree.sol";
 
 contract MerkleTreeSha256 is BaseMerkleTree {

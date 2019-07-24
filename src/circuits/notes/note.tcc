@@ -155,7 +155,7 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
         *field_cm,
         rt,
         *auth_path,
-        value_enforce,
+        value_enforce, // boolean that is set to ONE if the cm needs to be in the tree of root rt (and if the given path needs to be correct), ZERO otherwise
         "auth_path"
     ));
 

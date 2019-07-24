@@ -646,7 +646,7 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     // The following test is expected to throw an exception because the LHS =/= RHS
     try {
         res = TestInvalidJS2In2(proverJS2to2, keypair);
-        std::cout << "[TestInvalidJS2In2Deposit] Expected (False), Obtained result: " << res << std::endl;
+        std::cout << "[TestInvalidJS2In2] Expected (False), Obtained result: " << res << std::endl;
         ASSERT_TRUE(res);
     } catch (const std::invalid_argument& e) {
 	  std::cerr << "Invalid argument exception: " << e.what() << '\n';

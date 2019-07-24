@@ -1,5 +1,9 @@
-#ifndef merkle_tree_field_FIELD_TCC
-#define merkle_tree_field_FIELD_TCC
+// DISCLAIMER:
+// Content taken and adapted from:
+// https://github.com/scipr-lab/libsnark/blob/master/libsnark/common/data_structures/merkle_tree.tcc
+
+#ifndef MERKLE_TREE_FIELD_TCC
+#define MERKLE_TREE_FIELD_TCC
 
 #include <algorithm>
 
@@ -203,25 +207,25 @@ merkle_authentication_path merkle_tree_field<FieldT, HashTreeT>::get_path(const 
 template<typename FieldT, typename HashTreeT>
 void merkle_tree_field<FieldT, HashTreeT>::dump() const
 {
-    std::cout << "hash default" << std::endl; 
+    std::cout << "hash default" << std::endl;
     for (size_t i = 0; i <ZETH_MERKLE_TREE_DEPTH; i++)
     {
         std::cout << hash_defaults[i] << "\n";
     }
-    
-    std::cout << "values" << std::endl; 
+
+    std::cout << "values" << std::endl;
     for(auto it = values.cbegin(); it != values.cend(); ++it)
     {
         std::cout << it->first << " " << it->second << "\n";
     }
 
-    std::cout << "nodes" << std::endl; 
+    std::cout << "nodes" << std::endl;
     for(auto it = hashes.cbegin(); it != hashes.cend(); ++it)
     {
         std::cout << it->first << " " << it->second<< "\n";
     }
 }
 
-} // libsnark
+} // libzeth
 
 #endif // merkle_tree_field_FIELD_TCC

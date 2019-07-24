@@ -11,10 +11,10 @@
 #include "circuits/circuits-util.hpp"
 
 namespace libzeth {
- /*
-  * MiMCe7_round_gadget enforces correct computation of a MiMC permutation round with exponent 7.
-  * In MiMC permutation last round differs from the others since the key is added again. We use a boolean variable `add_k_to_result` to manage this case.
-  */
+
+// MiMCe7_round_gadget enforces correct computation of a MiMC permutation round with exponent 7.
+// In MiMC permutation last round differs from the others since the key is added again. We use a boolean variable `add_k_to_result` to manage this case.
+
 template<typename FieldT>
 class MiMCe7_round_gadget : public libsnark::gadget<FieldT> {
 public:
@@ -45,7 +45,7 @@ public:
     void generate_r1cs_witness() const;
 
     // Returns round result (x + k + c) **7  + add_k_to_result * k
-    const libsnark::pb_variable<FieldT>& result() const;
+    const libsnark::pb_variable<FieldT>& result() const; // TODO: should we put the result as an argument of the gadget (like it is done for other gadgets) ?
 
 };
 

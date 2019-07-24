@@ -20,7 +20,7 @@ using namespace libzeth;
 template<typename FieldT, typename HashTreeT, size_t NumInputs, size_t NumOutputs>
 class joinsplit_gadget : libsnark::gadget<FieldT> {
     private:
-        // Multipacking gadgets for the inputs (root, nullifierS, commitmentS, val_pub_in, val_pub_out)
+        // Multipacking gadgets for the inputs (nullifierS, commitmentS, val_pub_in, val_pub_out) (the root now is a field element)
         // `1 + NumInputs + NumOutputs` because we pack the root (1 +), the nullifiers (Inputs of JS = NumInputs),
         // the commitments (Output of JS = NumOutputs) AND the v_pub taken out of the mix (+1)
         // AND the public value that is put into the mix (+1)
@@ -57,7 +57,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         ) : gadget<FieldT>(pb) {
             // Block dedicated to generate the verifier inputs
             {
-                // The verification inputs are all bit-strings of various
+                // The verification inputs are, except for the root, all bit-strings of various
                 // lengths (256-bit digests and 64-bit integers) and so we
                 // pack them into as few field elements as possible. (The
                 // more verification inputs you have, the more expensive
@@ -91,7 +91,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 packed_inputs[NumInputs + NumOutputs + 1 ].allocate(pb, 1);
 
                 // The inputs are: [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
-                // The root, each nullifier, and each commitment are in {0,1}^256 and thus take 2 field elements
+                // The root is a field element and thus takes 1 field element
+                // Each nullifier, and each commitment are in {0,1}^256 and thus take 2 field elements
                 // to be represented, while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
                 int nb_inputs = 1 + (2 * (NumInputs + NumOutputs)) + 1 + 1;
                 pb.set_input_sizes(nb_inputs);
@@ -107,11 +108,11 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 }
 
                 // Initialize the unpacked input corresponding to the input NullifierS
-                for (size_t i = 0, j = 0; i < NumInputs  && j < NumInputs; i++, j++) {
+                for (size_t i = 0; i < NumInputs; i++) {
                     unpacked_inputs[i].insert(
                         unpacked_inputs[i].end(),
-                        input_nullifiers[j]->bits.begin(),
-                        input_nullifiers[j]->bits.end()
+                        input_nullifiers[i]->bits.begin(),
+                        input_nullifiers[i]->bits.end()
                     );
                 }
 

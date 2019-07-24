@@ -61,8 +61,8 @@ libsnark::pb_variable_array<FieldT> getRightSideNFPRF(
     libsnark::pb_variable_array<FieldT>& rho
 ) {
     libsnark::pb_variable_array<FieldT> right_side;
-    right_side.emplace_back(ZERO); // 0
-    right_side.emplace_back(ONE); // 01
+    right_side.emplace_back(ZERO);  // 0
+    right_side.emplace_back(ONE);   // 01
 
     // Should always be satisfied because rho
     // is a 256 bit string. This is just a sanity check

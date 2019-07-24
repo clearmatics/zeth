@@ -102,8 +102,8 @@ libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
 template<typename FieldT>
 COMM_inner_k_gadget<FieldT>::COMM_inner_k_gadget(libsnark::protoboard<FieldT>& pb,
                                                 libsnark::pb_variable<FieldT>& ZERO,
-                                                libsnark::pb_variable_array<FieldT>& a_pk, // 256 bits
-                                                libsnark::pb_variable_array<FieldT>& rho, // 256 bits
+                                                libsnark::pb_variable_array<FieldT>& a_pk,  // 256 bits
+                                                libsnark::pb_variable_array<FieldT>& rho,   // 256 bits
                                                 std::shared_ptr<libsnark::digest_variable<FieldT>> result,
                                                 const std::string &annotation_prefix
 ) : COMM_gadget<FieldT>(pb, ZERO, a_pk, rho, result, annotation_prefix) 
@@ -119,8 +119,8 @@ COMM_inner_k_gadget<FieldT>::COMM_inner_k_gadget(libsnark::protoboard<FieldT>& p
 template<typename FieldT>
 COMM_outer_k_gadget<FieldT>::COMM_outer_k_gadget(libsnark::protoboard<FieldT>& pb,
                                                 libsnark::pb_variable<FieldT>& ZERO,
-                                                libsnark::pb_variable_array<FieldT>& trap_r, // 384 bits
-                                                libsnark::pb_variable_array<FieldT>& inner_k, // 256 bits, but we only keep 128 bits our of it
+                                                libsnark::pb_variable_array<FieldT>& trap_r,    // 384 bits
+                                                libsnark::pb_variable_array<FieldT>& inner_k,   // 256 bits, but we only keep 128 bits our of it
                                                 std::shared_ptr<libsnark::digest_variable<FieldT>> result,
                                                 const std::string &annotation_prefix
 ) : COMM_gadget<FieldT>(pb, ZERO, trap_r, get128bits(inner_k), result, annotation_prefix)
@@ -132,8 +132,8 @@ COMM_outer_k_gadget<FieldT>::COMM_outer_k_gadget(libsnark::protoboard<FieldT>& p
 template<typename FieldT>
 COMM_cm_gadget<FieldT>::COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
                                     libsnark::pb_variable<FieldT>& ZERO,
-                                    libsnark::pb_variable_array<FieldT>& outer_k,
-                                    libsnark::pb_variable_array<FieldT>& value_v, // 64 bits
+                                    libsnark::pb_variable_array<FieldT>& outer_k,   // 256 bits
+                                    libsnark::pb_variable_array<FieldT>& value_v,   // 64 bits
                                     std::shared_ptr<libsnark::digest_variable<FieldT>> result,
                                     const std::string &annotation_prefix
 ) : COMM_gadget<FieldT>(pb, ZERO, outer_k, getRightSideCMCOMM(ZERO, value_v), result, annotation_prefix) 

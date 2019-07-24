@@ -120,7 +120,7 @@ target_include_directories(
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
-# Test the hex converstion
+# Test the hex convertion
 add_executable(
     test_hex_to_field
     EXCLUDE_FROM_ALL

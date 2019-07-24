@@ -1,7 +1,7 @@
 #ifndef __ZETH_NOTES_CIRCUITS_HPP__
 #define __ZETH_NOTES_CIRCUITS_HPP__
 
-// DISCLAIMER: 
+// DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
 
@@ -30,7 +30,7 @@ public:
     libsnark::pb_variable_array<FieldT> value; // Binary value of the note (64 bits)
     libsnark::pb_variable_array<FieldT> r; // Trapdoor r of the note (384 bits)
 
-    note_gadget(libsnark::protoboard<FieldT> &pb, 
+    note_gadget(libsnark::protoboard<FieldT> &pb,
                 const std::string &annotation_prefix = "base_note_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness(const ZethNote& note);
@@ -90,7 +90,6 @@ private:
     std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_outputs_outer_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_outputs_cm;
-    //std::shared_ptr<libsnark::digest_variable<FieldT>> commitment;                // output of a PRF. This is the cm commitment
 
 public:
     output_note_gadget(

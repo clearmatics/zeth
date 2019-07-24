@@ -55,8 +55,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     uint constant jsIn = 2; // Nb of nullifiers
     uint constant jsOut = 2; // Nb of commitments/ciphertexts
 
-    // We have 1 field elements for each digest (root, nullifiers, commitments) and 1 + 1 public value
-    uint constant nbInputs = 1 + jsIn + jsOut + 1 + 1;
+    // We have 1 field element for the root field element, 2 field elements for each digest (nullifiers, commitments) and 1 + 1 public value
+    //uint constant nbInputs = 1 + 2 * ( jsIn + jsOut ) + 1 + 1;
 
     // Contract variable that indicates the address of the token contract
     // If token = address(0) then the mixer works with ether

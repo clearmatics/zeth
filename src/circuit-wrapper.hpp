@@ -17,9 +17,9 @@ namespace libzeth {
 template<typename FieldT, size_t NumInputs, size_t NumOutputs>
 class CircuitWrapper {
 public:
-    typedef libff::default_ec_pp ppT; // We use the public paramaters (ppT) of the curve used in the CMakeLists.txt
-    typedef sha256_ethereum<FieldT> HashT; // We instantiate the HashT with sha256_ethereum
-    typedef MiMC_hash_gadget<FieldT> HashTreeT; // We instantiate the HashT with sha256_ethereum
+    typedef libff::default_ec_pp ppT;           // We use the public paramaters (ppT) of the curve used in the CMakeLists.txt
+    typedef sha256_ethereum<FieldT> HashT;      // We instantiate the HashT with sha256_ethereum
+    typedef MiMC_hash_gadget<FieldT> HashTreeT; // We instantiate the HashT with MiMC compression function
 
     libsnark::protoboard<FieldT> pb;
     boost::filesystem::path setupPath;

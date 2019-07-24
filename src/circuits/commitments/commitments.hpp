@@ -1,7 +1,7 @@
 #ifndef __ZETH_COMMITMENT_CIRCUITS_HPP__
 #define __ZETH_COMMITMENT_CIRCUITS_HPP__
 
-// DISCLAIMER: 
+// DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/commitment.tcc
 
@@ -22,7 +22,7 @@ public:
                 libsnark::pb_variable<FieldT>& ZERO,
                 libsnark::pb_variable_array<FieldT> x,
                 libsnark::pb_variable_array<FieldT> y,
-                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(x || y)
                 const std::string &annotation_prefix = "COMM_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
@@ -51,9 +51,9 @@ class COMM_inner_k_gadget : public COMM_gadget<FieldT> {
 public:
     COMM_inner_k_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& ZERO,
-                        libsnark::pb_variable_array<FieldT>& a_pk, // 256 bits
-                        libsnark::pb_variable_array<FieldT>& rho, // 256 bits
-                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                        libsnark::pb_variable_array<FieldT>& a_pk,  // public address key, 256 bits
+                        libsnark::pb_variable_array<FieldT>& rho,   // 256 bits
+                        std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(a_pk || rho)
                         const std::string &annotation_prefix = "COMM_inner_k_gadget");
 };
 
@@ -67,9 +67,9 @@ class COMM_outer_k_gadget : public COMM_gadget<FieldT> {
 public:
     COMM_outer_k_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& ZERO,
-                        libsnark::pb_variable_array<FieldT>& trap_r, // 384 bits
-                        libsnark::pb_variable_array<FieldT>& inner_k, // 256 bits, but we only keep 128 bits our of it
-                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                        libsnark::pb_variable_array<FieldT>& trap_r,    // 384 bits
+                        libsnark::pb_variable_array<FieldT>& inner_k,   // 256 bits, but we only keep 128 bits out of it
+                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(trap_r || [inner_k]_128)
                         const std::string &annotation_prefix = "COMM_outer_k_gadget");
 };
 
@@ -79,9 +79,9 @@ class COMM_cm_gadget : public COMM_gadget<FieldT> {
 public:
     COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
                 libsnark::pb_variable<FieldT>& ZERO,
-                libsnark::pb_variable_array<FieldT>& outer_k,
-                libsnark::pb_variable_array<FieldT>& value_v, // 64 bits
-                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                libsnark::pb_variable_array<FieldT>& outer_k,   // 256 bits
+                libsnark::pb_variable_array<FieldT>& value_v,   //  64 bits
+                std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(outer_k || 0^192 || value_v)
                 const std::string &annotation_prefix = "COMM_cm_gadget");
 };
 

@@ -134,6 +134,7 @@ if __name__ == '__main__':
     new_merkle_root_bob_to_charlie = result_transfer_bob_to_charlie[2]
     ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[3]
     ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[4]
+    
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = ""
     try:

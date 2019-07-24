@@ -107,7 +107,6 @@ if __name__ == '__main__':
     # We assign 4 ETHToken to Bob
     mint_token(token_instance, bob_eth_address, deployer_eth_address, 4)
     print("- Initial balances: ")
-    get_merkle_tree(mixer_instance)
     print_token_balances(
         bob_eth_address,
         alice_eth_address,
@@ -137,7 +136,6 @@ if __name__ == '__main__':
     w3.eth.waitForTransactionReceipt(tx_hash)
     allowance_mixer = allowance(token_instance, bob_eth_address, mixer_instance.address)
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
-    print("DEBUG: Initial Root", initial_root)
     # Bob deposits 4ETH split in 2 notes of denominations of 2ETh and 2ETH on the mixer
     result_deposit_bob_to_bob = zethTest.bob_deposit(
         test_grpc_endpoint,
@@ -195,6 +193,7 @@ if __name__ == '__main__':
     new_merkle_root_bob_to_charlie = result_transfer_bob_to_charlie[2]
     ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[3]
     ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[4]
+    
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = ""
     try:

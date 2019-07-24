@@ -17,7 +17,7 @@ class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT> {
 public:
     std::vector<MiMCe7_round_gadget<FieldT>> round_gadgets;     // Vector of MiMC round gadgets
     std::vector<FieldT> round_constants;                        // Current Vector of round constants
-    std::map<std::string, std::vector<FieldT> > round_constants_map; // Map of Vector of round constants
+    std::map<std::string, std::vector<FieldT> > round_constants_map; // Map of Vector of round constants TODO: remove map and fill the vector directly, we only use 1 rc now
     static const int ROUNDS = 91;                               // Nb of rounds suggested by the MiMC paper
     const libsnark::pb_variable<FieldT> k;                      // The permutation key
 

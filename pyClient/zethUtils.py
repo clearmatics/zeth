@@ -105,8 +105,8 @@ def receive(ciphertext, decryption_key, username):
     recovered_plaintext = ""
     try:
         recovered_plaintext = decrypt(ciphertext, decryption_key)
-        print("[INFO] {} recovered one plaintext".format(username))
-        print("[INFO] {} received a payment!".format(username))
+        print("[INFO] {} recovered one plaintext".format(username.capitalize()))
+        print("[INFO] {} received a payment!".format(username.capitalize()))
         # Just as an example we write the received coin in the coinstore
         print("[INFO] Writing the received note in the coinstore")
         coinstore_dir = os.environ['ZETH_COINSTORE']

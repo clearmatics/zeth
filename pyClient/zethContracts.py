@@ -208,8 +208,6 @@ def mix_groth16(
         wei_pub_value,
         call_gas
     ):
-    print("DEBUG:INPUTS")
-    print(parsed_proof["inputs"])
     tx_hash = mixer_instance.functions.mix(
         ciphertext1,
         ciphertext2,

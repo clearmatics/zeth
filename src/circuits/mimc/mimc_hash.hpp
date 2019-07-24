@@ -13,9 +13,9 @@ namespace libzeth {
 
 template<typename FieldT>
 class MiMC_hash_gadget:public libsnark::gadget<FieldT> {
-/*
-  MiMC_hash_gadget enforces correct computation of a MiMCHash based on a MiMC permutation with exponent 7
-*/
+// MiMC_hash_gadget enforces correct computation of MiMC compression function 
+// based on a the Miyaguchi-Preneel compression construct and  MiMC permutation with exponent 7 (and 91 rounds)
+
 public:
 	std::vector<MiMCe7_permutation_gadget<FieldT>> permutation_gadgets; // Vector of permutation gadgets
 	std::vector<libsnark::pb_variable<FieldT>> messages; 				// Vector of messages to process
