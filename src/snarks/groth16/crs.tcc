@@ -297,6 +297,25 @@ r1cs_gg_ppzksnark_generator_dummy_phase3(
         B_i.push_back(knowledge_commitment<G2, G1>(crs2.B_g2[i], crs2.B_g1[i]));
     }
 
+    // [ ABC_0 ]_1,  { [ABC_i]_1 }, i = 1 .. num_inputs
+
+    G1 ABC_0 = crs2.ABC_g1[0];
+    libff::G1_vector<ppT> ABC_i(num_inputs);
+    for (size_t i = 0 ; i < num_inputs ; ++i)
+    {
+        ABC_i[i] = crs2.ABC_g1[i + 1];
+    }
+
+    // Care has been taken above to ensure nothing is used after it's
+    // moved, but to be safe, create the vk first (whose constructor
+    // does not require a move).
+
+    r1cs_gg_ppzksnark_verification_key<ppT> vk(
+        crs1.alpha_tau_powers_g1[0],
+        crs1.beta_g2,
+        delta * G2::one(),
+        accumulation_vector<G1>(std::move(ABC_0), std::move(ABC_i)));
+
     r1cs_gg_ppzksnark_proving_key<ppT> pk(
         G1(crs1.alpha_tau_powers_g1[0]),
         G1(crs1.beta_tau_powers_g1[0]),
@@ -310,20 +329,6 @@ r1cs_gg_ppzksnark_generator_dummy_phase3(
         std::move(cs)
     );
 
-    // [ ABC_0 ]_1,  { [ABC_i]_1 }, i = 1 .. num_inputs
-
-    G1 ABC_0 = crs2.ABC_g1[0];
-    libff::G1_vector<ppT> ABC_i(num_inputs);
-    for (size_t i = 0 ; i < num_inputs ; ++i)
-    {
-        ABC_i[i] = crs2.ABC_g1[i + 1];
-    }
-
-    r1cs_gg_ppzksnark_verification_key<ppT> vk(
-        crs1.alpha_tau_powers_g1[0],
-        crs1.beta_g2,
-        delta * G2::one(),
-        accumulation_vector<G1>(std::move(ABC_0), std::move(ABC_i)));
 
     return r1cs_gg_ppzksnark_keypair<ppT>(std::move(pk), std::move(vk));
 }

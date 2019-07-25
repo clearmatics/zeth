@@ -77,9 +77,6 @@ r1cs_gg_ppzksnark_crs1<ppT> dummy_phase1(size_t n)
 
 TEST(CRSTests, CRS1Validation)
 {
-    // Remove stdout noise from libff
-    libff::inhibit_profiling_counters = true;
-
     const size_t n = 16;
     const r1cs_gg_ppzksnark_crs1<ppT> crs1 = dummy_phase1(n);
 
@@ -236,8 +233,6 @@ TEST(CRSTests, Phase2)
     //
     //   [ domain.Z(tau) ]_1 = crs2.T_tau_powers_g1[0]
     //   [ beta . A_i(tau) + alpha . B_i(tau) + C_i(tau) ]_1 = crs2.ABC_g1[i]
-
-
 }
 
 
@@ -283,6 +278,11 @@ int main(int argc, char **argv)
 {
     // !!! WARNING: Do not forget to do this once for all tests !!!
     ppT::init_public_params();
+
+    // Remove stdout noise from libff
+    libff::inhibit_profiling_counters = true;
+    libff::inhibit_profiling_info = true;
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
