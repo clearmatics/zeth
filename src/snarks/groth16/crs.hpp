@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __ZETH_CRS_HPP__
+#define __ZETH_CRS_HPP__
 
 #include "include_libsnark.hpp"
 #include <vector>
@@ -58,6 +59,17 @@ public:
 };
 
 
+/// Confirm that the ratio a1:b1 in G1 equals a2:b2 in G2 by checking
+/// the pairing equality:
+///   e( a1, b2 ) == e( b1, a2 )
+template <typename ppT>
+bool same_ratio(
+    const libff::G1<ppT> &a1,
+    const libff::G1<ppT> &b1,
+    const libff::G2<ppT> &a2,
+    const libff::G2<ppT> &b2);
+
+
 ///
 template <typename ppT>
 bool r1cs_gg_ppzksnark_crs1_validate(
@@ -81,3 +93,5 @@ r1cs_gg_ppzksnark_generator_phase3(
 
 //
 #include "crs.tcc"
+
+#endif // __ZETH_CRS_HPP__

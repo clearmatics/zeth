@@ -29,7 +29,7 @@ libff::G1<ppT> multi_exp(
     const libff::G1_vector<ppT> &gs,
     const libff::Fr_vector<ppT> &fs)
 {
-    assert(gs.size() == fs.size());
+    assert(gs.size() >= fs.size());
     assert(gs.size() > 0);
 
 #if 0
@@ -49,7 +49,7 @@ libff::G1<ppT> multi_exp(
     return
         libff::multi_exp_with_mixed_addition<G1, Fr, Method>(
             gs.begin(),
-            gs.end(),
+            gs.begin() + fs.size(),
             fs.begin(),
             fs.end(),
             1);

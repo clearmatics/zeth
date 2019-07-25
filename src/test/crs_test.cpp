@@ -10,18 +10,20 @@ using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
 using namespace libsnark;
 
-namespace
+namespace zeth
+{
+namespace test
 {
 
-// Compute a dummy set of powers-of-tau, for circuits with up to
-// polynomials order-bound by `n` .
-r1cs_gg_ppzksnark_crs1<ppT> dummy_phase1(size_t n)
+// Given some secrets, compute a dummy set of powers-of-tau, for
+// circuits with polynomials A, B, C order-bound by `n` .
+r1cs_gg_ppzksnark_crs1<ppT> dummy_phase1_from_secrets(
+    const Fr &tau,
+    const Fr &alpha,
+    const Fr &beta,
+    const Fr &delta,
+    size_t n)
 {
-    Fr tau = Fr::random_element();
-    Fr alpha = Fr::random_element();
-    Fr beta = Fr::random_element();
-    Fr delta = Fr::random_element();
-
     // Compute powers.  Note zero-th power is included (alpha_g1 etc
     // are provided in this way), so to support order N polynomials,
     // N+1 entries are required.
@@ -58,6 +60,18 @@ r1cs_gg_ppzksnark_crs1<ppT> dummy_phase1(size_t n)
         beta * G2::one(),
         delta * G1::one(),
         delta * G2::one());
+}
+
+// Same as dummy_phase1_from_secrets(), where the secrets are not of
+// interest.
+r1cs_gg_ppzksnark_crs1<ppT> dummy_phase1(size_t n)
+{
+    Fr tau = Fr::random_element();
+    Fr alpha = Fr::random_element();
+    Fr beta = Fr::random_element();
+    Fr delta = Fr::random_element();
+
+    return dummy_phase1_from_secrets(tau, alpha, beta, delta, n);
 }
 
 
@@ -173,8 +187,55 @@ TEST(CRSTests, CRS1Validation)
     }
 }
 
-} // namespace
 
+TEST(CRSTests, CRS2)
+{
+    const size_t n = 16;
+
+    // dummy phase 1
+
+    Fr tau = Fr::random_element();
+    Fr alpha = Fr::random_element();
+    Fr beta = Fr::random_element();
+    Fr delta = Fr::random_element();
+    const r1cs_gg_ppzksnark_crs1<ppT> crs1 = zeth::test::dummy_phase1_from_secrets(
+        tau, alpha, beta, delta, n);
+
+    // Dummy constraint system
+
+    protoboard<Fr> pb;
+    zeth::test::simple_circuit<ppT>(pb);
+    const r1cs_constraint_system<Fr> constraint_system =
+        pb.get_constraint_system();
+
+    // phase 2
+
+    qap_instance<FieldT> qap = r1cs_to_qap_instance_map(constraint_system);
+    const r1cs_gg_ppzksnark_crs2<ppT> crs2 = r1cs_gg_ppzksnark_generator_phase2(
+        crs1,
+        qap);
+
+    // Without knowlege of tau, not many checks can be performed
+    // beyond the ratio of terms in [ t(x) . x^i ]_1.
+
+    const size_t qap_n = qap.degree();
+    ASSERT_EQ(qap_n - 1, crs2.T_tau_powers_g1.size());
+    ASSERT_EQ(qap.num_variables() + 1, crs2.ABC_g1.size());
+
+    for (size_t i = 1 ; i < qap_n - 1 ; ++i)
+    {
+        ASSERT_TRUE(::same_ratio<ppT>(
+            crs2.T_tau_powers_g1[i-1],
+            crs2.T_tau_powers_g1[i],
+            crs1.tau_powers_g2[0],
+            crs1.tau_powers_g2[1]));
+    }
+
+    // TODO: Use knowledge of secrets to confirm values.
+}
+
+} // namespace test
+} // namespace zeth
 
 int main(int argc, char **argv)
 {

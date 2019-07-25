@@ -1,3 +1,6 @@
+#ifndef __ZETH_CRS_TCC__
+#define __ZETH_CRS_TCC__
+
 #include "crs.hpp"
 #include "multi_exp.hpp"
 #include "evaluation_from_lagrange.hpp"
@@ -148,42 +151,53 @@ bool r1cs_gg_ppzksnark_crs1_validate(
 }
 
 
-///
+/// Given a circuit and a crs1, perform the correct linear
+/// combinations of elements in crs1 to get the extra from the 2nd
+/// layer of the CRS MPC.
 r1cs_gg_ppzksnark_crs2<ppT>
 r1cs_gg_ppzksnark_generator_phase2(
     const r1cs_gg_ppzksnark_crs1<ppT> &crs1,
-    const r1cs_constraint_system<Fr> &cs)
+    const qap_instance<Fr> &qap)
 {
-    // QAP
-
-    qap_instance<FieldT> qap = r1cs_to_qap_instance_map(cs);
     libfqfft::evaluation_domain<FieldT> &domain = *qap.domain;
 
-    const size_t order_L = qap.domain->m;
+    // m = number of constraints in qap / degree of t().
+    const size_t m = qap.degree();
     const size_t num_variables = qap.num_variables();
-    const size_t ABC_degree = qap.degree();
 
-    assert(crs1.tau_powers_g1.size() > order_L + order_L + 2);
-    assert(ABC_degree == order_L); (void)ABC_degree;
-    assert(ABC_degree <= crs1.tau_powers_g1.size());
-    assert(crs1.tau_powers_g1.size() > order_L + order_L + 2);
-    assert(ABC_degree == order_L);
+    printf("m: %zu\n", m);
+    printf("qap.num_inputs: %zu\n", qap.num_inputs());
+    printf("num_variables: %zu\n", num_variables);
+    printf("ABC_degree: %zu\n", qap.degree());
 
-    // Compute [ t(x) . x^i ]_1
+    // L's, and therefore A, B, C will have order (m-1).  T has order m.
+    // H.t() has order 2m-2, => H(.) has order:
+    //
+    //   2m-2 - m = m-2
+    //
+    // Therefore { t(x) . x^i } has 0 .. m-2 (m-1 of them), requiring
+    // requires powers of tau 0 ..  2.m-2 (2m-1 of them).  We should
+    // have at least this many, by definition.
 
-    std::vector<Fr> t_coefficients(order_L + 1, Fr::zero());
+    assert(crs1.tau_powers_g1.size() >= 2*m - 1);
+
+    // m+1 corefficients of t
+
+    std::vector<Fr> t_coefficients(m + 1, Fr::zero());
     qap.domain->add_poly_Z(Fr::one(), t_coefficients);
-    libff::G1_vector<ppT> t_x_pow_i;
-    for (size_t i = 0 ; i < order_L + 1 ; ++i)
+
+    // Compute [ t(x) . x^i ]_1 for i = 0 .. m-2
+
+    libff::G1_vector<ppT> t_x_pow_i(m-1);
+    for (size_t i = 0 ; i < m - 1 ; ++i)
     {
-        // Use { [x^i] , ... , [x^(i+order_L+1)] }
-        t_x_pow_i.push_back(
-            multi_exp<ppT>(
-                crs1.tau_powers_g1.begin() + i,
-                crs1.tau_powers_g1.begin() + i + order_L + 1,
-                t_coefficients.begin(),
-                t_coefficients.end())
-        );
+        // Use { [x^i] , ... , [x^(i+order_L+1)] } with coefficients
+        // of t to compute t(x).x^i.
+        t_x_pow_i[i] = multi_exp<ppT>(
+            crs1.tau_powers_g1.begin() + i,
+            crs1.tau_powers_g1.begin() + i + m + 1,
+            t_coefficients.begin(),
+            t_coefficients.end());
     }
 
     // Compute [ beta.A_i(x) + alpha.B_i(x) + C_i(x) ]_1
@@ -193,13 +207,13 @@ r1cs_gg_ppzksnark_generator_phase2(
     // coefficients, evaluate at [t]_1, multiply by the factor and
     // accumulate.
 
-    libff::G1_vector<ppT> ABC_i_g1(num_variables);
+    libff::G1_vector<ppT> ABC_i_g1(num_variables + 1);
 
     evaluation_from_lagrange<ppT> tau_eval(crs1.tau_powers_g1, domain);
     evaluation_from_lagrange<ppT> alpha_tau_eval(crs1.alpha_tau_powers_g1, domain);
     evaluation_from_lagrange<ppT> beta_tau_eval(crs1.beta_tau_powers_g1, domain);
 
-    for (size_t i = 0 ; i < num_variables ; ++i)
+    for (size_t i = 0 ; i < num_variables + 1 ; ++i)
     {
         // Compute [beta.A_i(x)], [alpha.B_i(x)] . [C_i(x)]
 
@@ -214,7 +228,7 @@ r1cs_gg_ppzksnark_generator_phase2(
         G1 C_at_t = tau_eval.evaluate_from_langrange_factors(
             C_i_in_lagrange);
 
-        ABC_i_g1.push_back(beta_A_at_t + alpha_B_at_t + C_at_t);
+        ABC_i_g1[i] = beta_A_at_t + alpha_B_at_t + C_at_t;
     }
 
     return r1cs_gg_ppzksnark_crs2<ppT>(
@@ -223,7 +237,10 @@ r1cs_gg_ppzksnark_generator_phase2(
 }
 
 
-///
+/// Given the output from the first two layers of the MPC, perform the
+/// 3rd layer computation using just local randomness.  This is not a
+/// substitute for the full MPC with an auditable log of contributions,
+/// but is useful for testing.
 r1cs_gg_ppzksnark_keypair<ppT>
 r1cs_gg_ppzksnark_generator_dummy_phase3(
     const r1cs_gg_ppzksnark_crs1<ppT> &crs1,
@@ -235,3 +252,5 @@ r1cs_gg_ppzksnark_generator_dummy_phase3(
     (void)crs2;
     return r1cs_gg_ppzksnark_keypair<ppT>();
 }
+
+#endif // __ZETH_CRS_TCC__
