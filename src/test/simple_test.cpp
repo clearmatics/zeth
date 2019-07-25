@@ -1,13 +1,5 @@
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor"
-
-# include "libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp"
-# include "libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp"
-# include "libsnark/gadgetlib1/pb_variable.hpp"
-
-#pragma GCC diagnostic pop
-
+#include "simple_test.hpp"
 #include <gtest/gtest.h>
 
 using ppT = libff::default_ec_pp;
@@ -19,50 +11,10 @@ namespace
 
 TEST(SimpleTests, SimpleCircuitProof)
 {
+    // Simple circuit
+
     protoboard<FieldT> pb;
-
-    // Circuit
-    //
-    // x^3 + 4x^2 + 2x + 5 = y
-
-    pb_variable<FieldT> x;
-    pb_variable<FieldT> y;
-    pb_variable<FieldT> g1;
-    pb_variable<FieldT> g2;
-    // pb_variable<FieldT> g_out;
-
-    // Statement
-    y.allocate(pb, "y");
-
-    // Witness
-    x.allocate(pb, "x");
-    g1.allocate(pb, "g1");
-    g2.allocate(pb, "g2");
-
-    pb.set_input_sizes(1);
-
-    // Constraints
-
-    //   g1
-    //  /  \
-    //  \  /
-    //   x
-
-    pb.add_r1cs_constraint(r1cs_constraint<FieldT>(x, x, g1), "g1");
-
-    //   g2
-    //  /  \
-    // g1   x
-
-    pb.add_r1cs_constraint(r1cs_constraint<FieldT>(g1, x, g2), "g2");
-
-    //                    g_out
-    //                   /     \
-    //                  /       \
-    // g2 + 4.g1 + 2x + 5        1
-
-    pb.add_r1cs_constraint(
-        r1cs_constraint<FieldT>(g2 + (4*g1) + (2*x) + 5, 1, y), "y");
+    zeth::test::simple_circuit<ppT>(pb);
 
     // Constraint system
 
@@ -110,6 +62,10 @@ int main(int argc, char **argv)
 {
     // !!! WARNING: Do not forget to do this once for all tests !!!
     ppT::init_public_params();
+    // Remove stdout noise from libff
+    libff::inhibit_profiling_counters = true;
+    libff::inhibit_profiling_info = true;
+    // Run
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
