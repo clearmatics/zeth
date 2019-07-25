@@ -267,11 +267,65 @@ r1cs_gg_ppzksnark_generator_dummy_phase3(
     r1cs_constraint_system<libff::Fr<ppT>> &&cs,
     const qap_instance<libff::Fr<ppT>> &qap)
 {
-    // TODO:
+    const Fr delta = Fr::random_element();
+    const Fr delta_inverse = delta.inverse();
 
-    (void)crs1;
-    (void)crs2;
-    return r1cs_gg_ppzksnark_keypair<ppT>();
+    // { [ t(x) . x^i / delta ]_1 } i = 0 .. n-1
+
+    libff::G1_vector<ppT> T_tau_powers_over_delta_g1(crs2.T_tau_powers_g1.size());
+    for (size_t i = 0 ; i < crs2.T_tau_powers_g1.size() ; ++i)
+    {
+        T_tau_powers_over_delta_g1[i] = delta_inverse * crs2.T_tau_powers_g1[i];
+    }
+
+    // [ { ABC_i / delta } ]_1, i = l+1 .. num_variables
+
+    const size_t num_orig_ABC = crs2.ABC_g1.size();
+    const size_t num_inputs = qap.num_inputs();
+    const size_t num_L_elements = num_orig_ABC - qap.num_inputs();
+    libff::G1_vector<ppT> ABC_over_delta_g1(num_L_elements);
+    for (size_t i = 0 ; i < num_L_elements ; ++i)
+    {
+        ABC_over_delta_g1[i] = delta_inverse * crs2.ABC_g1[i + num_inputs];
+    }
+
+    // { ([B_i]_2, [B_i]_1) } i = 0 .. num_orig_ABC
+
+    std::vector<knowledge_commitment<G2, G1>> B_i(num_orig_ABC);
+    for (size_t i = 0 ; i < num_orig_ABC ; ++i)
+    {
+        B_i.push_back(knowledge_commitment<G2, G1>(crs2.B_g2[i], crs2.B_g1[i]));
+    }
+
+    r1cs_gg_ppzksnark_proving_key<ppT> pk(
+        G1(crs1.alpha_tau_powers_g1[0]),
+        G1(crs1.beta_tau_powers_g1[0]),
+        G2(crs1.beta_g2),
+        delta * G1::one(),
+        delta * G2::one(),
+        std::move(crs2.A_g1),
+        knowledge_commitment_vector<G2, G1>(std::move(B_i)),
+        std::move(crs2.T_tau_powers_g1),
+        std::move(crs2.ABC_g1),
+        std::move(cs)
+    );
+
+    // [ ABC_0 ]_1,  { [ABC_i]_1 }, i = 1 .. num_inputs
+
+    G1 ABC_0 = crs2.ABC_g1[0];
+    libff::G1_vector<ppT> ABC_i(num_inputs);
+    for (size_t i = 0 ; i < num_inputs ; ++i)
+    {
+        ABC_i[i] = crs2.ABC_g1[i + 1];
+    }
+
+    r1cs_gg_ppzksnark_verification_key<ppT> vk(
+        crs1.alpha_tau_powers_g1[0],
+        crs1.beta_g2,
+        delta * G2::one(),
+        accumulation_vector<G1>(std::move(ABC_0), std::move(ABC_i)));
+
+    return r1cs_gg_ppzksnark_keypair<ppT>(std::move(pk), std::move(vk));
 }
 
 #endif // __ZETH_CRS_TCC__
