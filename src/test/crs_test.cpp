@@ -188,7 +188,7 @@ TEST(CRSTests, CRS1Validation)
 }
 
 
-TEST(CRSTests, CRS2)
+TEST(CRSTests, Phase2)
 {
     const size_t n = 16;
 
@@ -231,7 +231,49 @@ TEST(CRSTests, CRS2)
             crs1.tau_powers_g2[1]));
     }
 
-    // TODO: Use knowledge of secrets to confirm values.
+    // Use knowledge of secrets to confirm values.
+    // Check that:
+    //
+    //   [ domain.Z(tau) ]_1 = crs2.T_tau_powers_g1[0]
+    //   [ beta . A_i(tau) + alpha . B_i(tau) + C_i(tau) ]_1 = crs2.ABC_g1[i]
+
+
+}
+
+
+TEST(CRSTests, Phase3)
+{
+    const size_t n = 16;
+    const Fr tau = Fr::random_element();
+    const Fr alpha = Fr::random_element();
+    const Fr beta = Fr::random_element();
+    const Fr delta = Fr::random_element();
+
+    // dummy CRS2
+
+    r1cs_gg_ppzksnark_crs1<ppT> crs1 = zeth::test::dummy_phase1_from_secrets(
+        tau, alpha, beta, delta, n);
+
+    protoboard<Fr> pb;
+    zeth::test::simple_circuit<ppT>(pb);
+    r1cs_constraint_system<Fr> constraint_system =
+        pb.get_constraint_system();
+    qap_instance<FieldT> qap = r1cs_to_qap_instance_map(constraint_system);
+
+    r1cs_gg_ppzksnark_crs2<ppT> crs2 = r1cs_gg_ppzksnark_generator_phase2(
+        crs1,
+        qap);
+
+    // Final key pair
+
+    const r1cs_gg_ppzksnark_keypair<ppT> keypair =
+        r1cs_gg_ppzksnark_generator_dummy_phase3(
+            std::move(crs1),
+            std::move(crs2),
+            std::move(constraint_system),
+            qap);
+
+    ASSERT_EQ(alpha * G1::one(), keypair.pk.alpha_g1);
 }
 
 } // namespace test

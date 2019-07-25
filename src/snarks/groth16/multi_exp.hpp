@@ -3,18 +3,17 @@
 #include "include_libsnark.hpp"
 
 ///
-template<typename ppT> extern
-libff::G1<ppT> multi_exp(
+template<typename ppT, typename GroupT> extern
+GroupT multi_exp(
     typename std::vector<libff::G1<ppT>>::const_iterator gs_start,
     typename std::vector<libff::G1<ppT>>::const_iterator gs_end,
     typename std::vector<libff::Fr<ppT>>::const_iterator fs_start,
     typename std::vector<libff::Fr<ppT>>::const_iterator fs_end)
 {
-    using G1 = libff::G1<ppT>;
     using Fr = libff::Fr<ppT>;
     const libff::multi_exp_method Method = libff::multi_exp_method_BDLO12;
     return
-        libff::multi_exp_with_mixed_addition<G1, Fr, Method>(
+        libff::multi_exp_with_mixed_addition<GroupT, Fr, Method>(
             gs_start,
             gs_end,
             fs_start,
@@ -24,9 +23,9 @@ libff::G1<ppT> multi_exp(
 
 
 ///
-template<typename ppT> extern
-libff::G1<ppT> multi_exp(
-    const libff::G1_vector<ppT> &gs,
+template<typename ppT, typename GroupT> extern
+GroupT multi_exp(
+    const std::vector<GroupT> &gs,
     const libff::Fr_vector<ppT> &fs)
 {
     assert(gs.size() >= fs.size());
@@ -43,16 +42,14 @@ libff::G1<ppT> multi_exp(
 
 #else
 
-    using G1 = libff::G1<ppT>;
     using Fr = libff::Fr<ppT>;
     const libff::multi_exp_method Method = libff::multi_exp_method_BDLO12;
-    return
-        libff::multi_exp_with_mixed_addition<G1, Fr, Method>(
-            gs.begin(),
-            gs.begin() + fs.size(),
-            fs.begin(),
-            fs.end(),
-            1);
+    return libff::multi_exp_with_mixed_addition<GroupT, Fr, Method>(
+        gs.begin(),
+        gs.begin() + fs.size(),
+        fs.begin(),
+        fs.end(),
+        1);
 
 #endif
 }

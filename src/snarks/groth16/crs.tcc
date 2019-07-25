@@ -39,8 +39,14 @@ r1cs_gg_ppzksnark_crs1<ppT>::r1cs_gg_ppzksnark_crs1(
 template<typename ppT>
 r1cs_gg_ppzksnark_crs2<ppT>::r1cs_gg_ppzksnark_crs2(
     libff::G1_vector<ppT> &&T_tau_powers_g1,
+    libff::G1_vector<ppT> &&A_g1,
+    libff::G1_vector<ppT> &&B_g1,
+    libff::G2_vector<ppT> &&B_g2,
     libff::G1_vector<ppT> &&ABC_g1)
     : T_tau_powers_g1(std::move(T_tau_powers_g1))
+    , A_g1(std::move(A_g1))
+    , B_g1(std::move(B_g1))
+    , B_g2(std::move(B_g2))
     , ABC_g1(std::move(ABC_g1))
 {
 }
@@ -193,7 +199,7 @@ r1cs_gg_ppzksnark_generator_phase2(
     {
         // Use { [x^i] , ... , [x^(i+order_L+1)] } with coefficients
         // of t to compute t(x).x^i.
-        t_x_pow_i[i] = multi_exp<ppT>(
+        t_x_pow_i[i] = multi_exp<ppT, G1>(
             crs1.tau_powers_g1.begin() + i,
             crs1.tau_powers_g1.begin() + i + m + 1,
             t_coefficients.begin(),
@@ -207,11 +213,15 @@ r1cs_gg_ppzksnark_generator_phase2(
     // coefficients, evaluate at [t]_1, multiply by the factor and
     // accumulate.
 
+    libff::G1_vector<ppT> A_i_g1(num_variables + 1);
+    libff::G1_vector<ppT> B_i_g1(num_variables + 1);
+    libff::G2_vector<ppT> B_i_g2(num_variables + 1);
     libff::G1_vector<ppT> ABC_i_g1(num_variables + 1);
 
-    evaluation_from_lagrange<ppT> tau_eval(crs1.tau_powers_g1, domain);
-    evaluation_from_lagrange<ppT> alpha_tau_eval(crs1.alpha_tau_powers_g1, domain);
-    evaluation_from_lagrange<ppT> beta_tau_eval(crs1.beta_tau_powers_g1, domain);
+    evaluation_from_lagrange<ppT, G1> tau_eval_g1(crs1.tau_powers_g1, domain);
+    evaluation_from_lagrange<ppT, G2> tau_eval_g2(crs1.tau_powers_g2, domain);
+    evaluation_from_lagrange<ppT, G1> alpha_tau_eval(crs1.alpha_tau_powers_g1, domain);
+    evaluation_from_lagrange<ppT, G1> beta_tau_eval(crs1.beta_tau_powers_g1, domain);
 
     for (size_t i = 0 ; i < num_variables + 1 ; ++i)
     {
@@ -221,18 +231,27 @@ r1cs_gg_ppzksnark_generator_phase2(
         const std::map<size_t, Fr> &B_i_in_lagrange = qap.A_in_Lagrange_basis[i];
         const std::map<size_t, Fr> &C_i_in_lagrange = qap.A_in_Lagrange_basis[i];
 
+        A_i_g1[i] = tau_eval_g1.evaluate_from_langrange_factors(A_i_in_lagrange);
+        B_i_g1[i] = tau_eval_g1.evaluate_from_langrange_factors(B_i_in_lagrange);
+        B_i_g2[i] = tau_eval_g2.evaluate_from_langrange_factors(B_i_in_lagrange);
+
         G1 beta_A_at_t = beta_tau_eval.evaluate_from_langrange_factors(
             A_i_in_lagrange);
         G1 alpha_B_at_t = alpha_tau_eval.evaluate_from_langrange_factors(
             B_i_in_lagrange);
-        G1 C_at_t = tau_eval.evaluate_from_langrange_factors(
+        G1 C_at_t = tau_eval_g1.evaluate_from_langrange_factors(
             C_i_in_lagrange);
 
         ABC_i_g1[i] = beta_A_at_t + alpha_B_at_t + C_at_t;
     }
 
+    // TODO: Sparse B
+
     return r1cs_gg_ppzksnark_crs2<ppT>(
         std::move(t_x_pow_i),
+        std::move(A_i_g1),
+        std::move(B_i_g1),
+        std::move(B_i_g2),
         std::move(ABC_i_g1));
 }
 
@@ -243,8 +262,10 @@ r1cs_gg_ppzksnark_generator_phase2(
 /// but is useful for testing.
 r1cs_gg_ppzksnark_keypair<ppT>
 r1cs_gg_ppzksnark_generator_dummy_phase3(
-    const r1cs_gg_ppzksnark_crs1<ppT> &crs1,
-    const r1cs_gg_ppzksnark_crs2<ppT> &crs2)
+    r1cs_gg_ppzksnark_crs1<ppT> &&crs1,
+    r1cs_gg_ppzksnark_crs2<ppT> &&crs2,
+    r1cs_constraint_system<libff::Fr<ppT>> &&cs,
+    const qap_instance<libff::Fr<ppT>> &qap)
 {
     // TODO:
 

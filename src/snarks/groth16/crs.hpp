@@ -47,14 +47,28 @@ class r1cs_gg_ppzksnark_crs2
 {
 public:
 
+    // TOOD: Some of these can be sparse
+
     /// { [ t(x) . x^i ]_1 }  i = 0 .. n-1
     libff::G1_vector<ppT> T_tau_powers_g1;
 
+    /// { [ A_i(x) ]_1 }  i = 0 .. m
+    libff::G1_vector<ppT> A_g1;
+
+    /// { [ B_i(x) ]_1 }  i = 0 .. m
+    libff::G1_vector<ppT> B_g1;
+
+    /// { [ B_i(x) ]_2 }  i = 0 .. m
+    libff::G2_vector<ppT> B_g2;
+
     /// { [ beta . A_i(x) + alpha . B_i(x) + C_i(x) ]_1 }  i = l+1 ... m
-    libsnark::accumulation_vector<libff::G1<ppT> > ABC_g1;
+    libff::G1_vector<ppT> ABC_g1;
 
     r1cs_gg_ppzksnark_crs2(
         libff::G1_vector<ppT> &&T_tau_powers_g1,
+        libff::G1_vector<ppT> &&A_g1,
+        libff::G1_vector<ppT> &&B_g1,
+        libff::G2_vector<ppT> &&B_g2,
         libff::G1_vector<ppT> &&ABC_g1);
 };
 
@@ -87,9 +101,10 @@ r1cs_gg_ppzksnark_generator_phase2(
 template <typename ppT>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT>
 r1cs_gg_ppzksnark_generator_phase3(
-    const r1cs_gg_ppzksnark_crs1<ppT> &crs1,
-    const r1cs_gg_ppzksnark_crs2<ppT> &crs2,
-    const libsnark::r1cs_constraint_system<libff::Fr<ppT>> &cs);
+    const r1cs_gg_ppzksnark_crs1<ppT> &&crs1,
+    const r1cs_gg_ppzksnark_crs2<ppT> &&crs2,
+    const libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
+    const libsnark::qap_instance<ppT> &qap);
 
 //
 #include "crs.tcc"
