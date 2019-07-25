@@ -127,6 +127,52 @@ target_include_directories(
     ${DEPENDS_DIR}/libsnark/depends/libff
 )
 
+# Multiexp tests (polynomials in terms of group elements)
+add_executable(
+    test_multiexp
+    EXCLUDE_FROM_ALL
+
+    test/multiexp_test.cpp
+    ${SOURCES_TEST}
+)
+target_link_libraries(
+    test_multiexp
+
+    snark
+    gtest_main
+)
+target_include_directories(
+    test_multiexp
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+    ${DEPENDS_DIR}/libsnark/depends/libff
+)
+
+# Multiexp tests (polynomials in terms of group elements)
+add_executable(
+    test_crs
+    EXCLUDE_FROM_ALL
+
+    test/crs_test.cpp
+    ${SOURCES_TEST}
+)
+target_link_libraries(
+    test_crs
+
+    snark
+    gtest_main
+)
+target_include_directories(
+    test_crs
+
+    PUBLIC
+    ${DEPENDS_DIR}/libsnark
+    ${DEPENDS_DIR}/libsnark/depends/libfqfft
+    ${DEPENDS_DIR}/libsnark/depends/libff
+)
+
 # Test the packed_addition used in the joinsplit
 add_executable(
     test_addition
@@ -250,6 +296,14 @@ target_include_directories(
 include(CTest)
 add_test(
     NAME test_simple
+    COMMAND test_simple
+)
+add_test(
+    NAME test_multiexp
+    COMMAND test_simple
+)
+add_test(
+    NAME test_crs
     COMMAND test_simple
 )
 add_test(
