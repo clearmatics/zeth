@@ -228,8 +228,8 @@ r1cs_gg_ppzksnark_generator_phase2(
         // Compute [beta.A_i(x)], [alpha.B_i(x)] . [C_i(x)]
 
         const std::map<size_t, Fr> &A_i_in_lagrange = qap.A_in_Lagrange_basis[i];
-        const std::map<size_t, Fr> &B_i_in_lagrange = qap.A_in_Lagrange_basis[i];
-        const std::map<size_t, Fr> &C_i_in_lagrange = qap.A_in_Lagrange_basis[i];
+        const std::map<size_t, Fr> &B_i_in_lagrange = qap.B_in_Lagrange_basis[i];
+        const std::map<size_t, Fr> &C_i_in_lagrange = qap.C_in_Lagrange_basis[i];
 
         A_i_g1[i] = tau_eval_g1.evaluate_from_langrange_factors(A_i_in_lagrange);
         B_i_g1[i] = tau_eval_g1.evaluate_from_langrange_factors(B_i_in_lagrange);
