@@ -41,7 +41,6 @@ template<typename ppT>
 void PrepareVerifyingKeyResponse(libsnark::r1cs_gg_ppzksnark_verification_key<ppT>& vk, VerificationKey* message) {
     HexadecimalPointBaseGroup1Affine *a = new HexadecimalPointBaseGroup1Affine(); // in G1
     HexadecimalPointBaseGroup2Affine *b = new HexadecimalPointBaseGroup2Affine(); // in G2
-    HexadecimalPointBaseGroup2Affine *g = new HexadecimalPointBaseGroup2Affine(); // in G2
     HexadecimalPointBaseGroup2Affine *d = new HexadecimalPointBaseGroup2Affine(); // in G2
 
     a->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(vk.alpha_g1)); // in G1

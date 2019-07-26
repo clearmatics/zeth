@@ -4,7 +4,7 @@
 #include "include_libsnark.hpp"
 #include <vector>
 
-///
+/// Output from the first phase of the MPC (powersoftau).
 template<typename ppT>
 class r1cs_gg_ppzksnark_crs1
 {
@@ -25,23 +25,18 @@ public:
     /// [ beta ]_2
     const libff::G2<ppT> beta_g2;
 
-    /// [ delta ]_1
-    const libff::G1<ppT> delta_g1;
-
-    /// [ delta ]_2
-    const libff::G2<ppT> delta_g2;
-
     r1cs_gg_ppzksnark_crs1(
         libff::G1_vector<ppT> &&tau_powers_g1,
         libff::G2_vector<ppT> &&tau_powers_g2,
         libff::G1_vector<ppT> &&alpha_tau_powers_g1,
         libff::G1_vector<ppT> &&beta_tau_g1,
-        const libff::G2<ppT> &beta_g2,
-        const libff::G1<ppT> &delta_g1,
-        const libff::G2<ppT> &delta_g2);
+        const libff::G2<ppT> &beta_g2);
 };
 
-///
+
+/// Output from the second layer of the CRS computation.  Created as
+/// linear combinations of elements in r1cs_gg_ppzksnark_crs1, based
+/// on a specific circuit.
 template<typename ppT>
 class r1cs_gg_ppzksnark_crs2
 {

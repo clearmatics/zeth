@@ -21,16 +21,12 @@ r1cs_gg_ppzksnark_crs1<ppT>::r1cs_gg_ppzksnark_crs1(
         libff::G2_vector<ppT> &&tau_powers_g2,
         libff::G1_vector<ppT> &&alpha_tau_powers_g1,
         libff::G1_vector<ppT> &&beta_tau_powers_g1,
-        const libff::G2<ppT> &beta_g2,
-        const libff::G1<ppT> &delta_g1,
-        const libff::G2<ppT> &delta_g2)
+        const libff::G2<ppT> &beta_g2)
         : tau_powers_g1(std::move(tau_powers_g1))
         , tau_powers_g2(std::move(tau_powers_g2))
         , alpha_tau_powers_g1(std::move(alpha_tau_powers_g1))
         , beta_tau_powers_g1(std::move(beta_tau_powers_g1))
         , beta_g2(beta_g2)
-        , delta_g1(delta_g1)
-        , delta_g2(delta_g2)
 {
 }
 
@@ -147,8 +143,7 @@ bool r1cs_gg_ppzksnark_crs1_validate(
     // SameRatio((g1, beta_tau_powers_g1), (g2, beta_g2))
     // SameRatio((g1, delta_g1), (g2, delta_g2))
 
-    if (!same_ratio<ppT>(g1, crs1.beta_tau_powers_g1[0], g2, crs1.beta_g2) ||
-        !same_ratio<ppT>(g1, crs1.delta_g1, g2, crs1.delta_g2))
+    if (!same_ratio<ppT>(g1, crs1.beta_tau_powers_g1[0], g2, crs1.beta_g2))
     {
         return false;
     }
@@ -171,13 +166,9 @@ r1cs_gg_ppzksnark_generator_phase2(
     const size_t m = qap.degree();
     const size_t num_variables = qap.num_variables();
 
-    printf("m: %zu\n", m);
-    printf("qap.num_inputs: %zu\n", qap.num_inputs());
-    printf("num_variables: %zu\n", num_variables);
-    printf("ABC_degree: %zu\n", qap.degree());
-
-    // L's, and therefore A, B, C will have order (m-1).  T has order m.
-    // H.t() has order 2m-2, => H(.) has order:
+    // Langrange polynomials, and therefore A, B, C will have order
+    // (m-1).  T has order m.  H.t() has order 2m-2, => H(.) has
+    // order:
     //
     //   2m-2 - m = m-2
     //
@@ -245,6 +236,11 @@ r1cs_gg_ppzksnark_generator_phase2(
         ABC_i_g1[i] = beta_A_at_t + alpha_B_at_t + C_at_t;
     }
 
+    assert(num_variables + 1 == A_i_g1.size());
+    assert(num_variables + 1 == B_i_g1.size());
+    assert(num_variables + 1 == B_i_g2.size());
+    assert(num_variables + 1 == ABC_i_g1.size());
+
     // TODO: Sparse B
 
     return r1cs_gg_ppzksnark_crs2<ppT>(
@@ -264,13 +260,13 @@ r1cs_gg_ppzksnark_keypair<ppT>
 r1cs_gg_ppzksnark_generator_dummy_phase3(
     r1cs_gg_ppzksnark_crs1<ppT> &&crs1,
     r1cs_gg_ppzksnark_crs2<ppT> &&crs2,
+    const Fr &delta,
     r1cs_constraint_system<libff::Fr<ppT>> &&cs,
     const qap_instance<libff::Fr<ppT>> &qap)
 {
-    const Fr delta = Fr::random_element();
     const Fr delta_inverse = delta.inverse();
 
-    // { [ t(x) . x^i / delta ]_1 } i = 0 .. n-1
+    // { H_i } = { [ t(x) . x^i / delta ]_i } i = 0 .. m-1
 
     libff::G1_vector<ppT> T_tau_powers_over_delta_g1(crs2.T_tau_powers_g1.size());
     for (size_t i = 0 ; i < crs2.T_tau_powers_g1.size() ; ++i)
@@ -278,24 +274,35 @@ r1cs_gg_ppzksnark_generator_dummy_phase3(
         T_tau_powers_over_delta_g1[i] = delta_inverse * crs2.T_tau_powers_g1[i];
     }
 
-    // [ { ABC_i / delta } ]_1, i = l+1 .. num_variables
+    // ABC in verification key includes 1 + num_inputs terms.
+    // ABC/delta in prover key includes the remaining (num_variables -
+    // num_inputs) terms.
 
     const size_t num_orig_ABC = crs2.ABC_g1.size();
+    const size_t num_variables = qap.num_variables();
     const size_t num_inputs = qap.num_inputs();
-    const size_t num_L_elements = num_orig_ABC - qap.num_inputs();
-    libff::G1_vector<ppT> ABC_over_delta_g1(num_L_elements);
-    for (size_t i = 0 ; i < num_L_elements ; ++i)
-    {
-        ABC_over_delta_g1[i] = delta_inverse * crs2.ABC_g1[i + num_inputs];
-    }
+    const size_t num_L_elements = num_variables - num_inputs;
+
+    assert(num_orig_ABC == num_variables + 1);
 
     // { ([B_i]_2, [B_i]_1) } i = 0 .. num_orig_ABC
 
     std::vector<knowledge_commitment<G2, G1>> B_i(num_orig_ABC);
     for (size_t i = 0 ; i < num_orig_ABC ; ++i)
     {
-        B_i.push_back(knowledge_commitment<G2, G1>(crs2.B_g2[i], crs2.B_g1[i]));
+        B_i[i] = knowledge_commitment<G2, G1>(crs2.B_g2[i], crs2.B_g1[i]);
     }
+
+    assert(B_i.size() == qap.num_variables() + 1);
+
+    // { L_i } = [ { ABC_i / delta } ]_1, i = l+1 .. num_variables
+
+    libff::G1_vector<ppT> L_g1(num_L_elements);
+    for (size_t i = 0 ; i < num_L_elements ; ++i)
+    {
+        L_g1[i] = delta_inverse * crs2.ABC_g1[i + num_inputs + 1];
+    }
+    assert(L_g1.size() == qap.num_variables() - qap.num_inputs());
 
     // [ ABC_0 ]_1,  { [ABC_i]_1 }, i = 1 .. num_inputs
 
@@ -324,11 +331,10 @@ r1cs_gg_ppzksnark_generator_dummy_phase3(
         delta * G2::one(),
         std::move(crs2.A_g1),
         knowledge_commitment_vector<G2, G1>(std::move(B_i)),
-        std::move(crs2.T_tau_powers_g1),
-        std::move(crs2.ABC_g1),
+        std::move(T_tau_powers_over_delta_g1),
+        std::move(L_g1),
         std::move(cs)
     );
-
 
     return r1cs_gg_ppzksnark_keypair<ppT>(std::move(pk), std::move(vk));
 }
