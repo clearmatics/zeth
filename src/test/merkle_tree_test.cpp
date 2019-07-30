@@ -11,7 +11,6 @@ namespace libzeth {
 
 bool test_merkle_path_selector(int is_right)
 {
-	ppT::init_public_params(); //TODO fix dependency problem,
 	libsnark::protoboard<FieldT> pb;
 
 	FieldT value_A = FieldT("149674538925118052205057075966660054952481571156186698930522557832224430770");
@@ -59,7 +58,7 @@ bool test_merkle_path_selector(int is_right)
 		return false;
 	}
 
-	return true;//stub_test_proof_verify(pb); TODO
+	return true;
 }
 
 
