@@ -29,7 +29,7 @@ using namespace libzeth;
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
-typedef MiMC_hash_gadget<FieldT> HashTreeT; // We use our hash function to do the tests
+typedef MiMC_mp_gadget<FieldT> HashTreeT; // We use our hash function to do the tests
 
 
 namespace {

@@ -51,7 +51,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     // JoinSplit description, gives the number of inputs (nullifiers) and outputs (commitments/ciphertexts) to receive and process
     // IMPORTANT NOTE: We need to employ the same JS configuration than the one used in the cpp prover
-    // Here we use 2 inputs and 2 outputs (it is a 2-2 JS) TODO: how to make it dynamical throught config file
+    // Here we use 2 inputs and 2 outputs (it is a 2-2 JS)
     uint constant jsIn = 2; // Nb of nullifiers
     uint constant jsOut = 2; // Nb of commitments/ciphertexts
 

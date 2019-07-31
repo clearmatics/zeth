@@ -10,7 +10,7 @@
 #include <libff/common/profiling.hpp>
 #include <libff/common/utils.hpp>
 
-#include "circuits/mimc/mimc_hash.hpp"
+#include "circuits/mimc/mimc_mp.hpp"
 
 
 namespace libzeth {
@@ -28,7 +28,7 @@ merkle_tree_field<FieldT, HashTreeT>::merkle_tree_field(const size_t depth) :
     hash_defaults.emplace_back(last);
     for (size_t i = 0; i < depth; ++i)
     {
-        last = get_hash<FieldT>({last}, last, "clearmatics_iv");
+        last = MiMC_mp_gadget<FieldT>::get_hash(last, last);
         hash_defaults.push_back(last);
     }
 
@@ -58,7 +58,7 @@ merkle_tree_field<FieldT, HashTreeT>::merkle_tree_field(const size_t depth,
             FieldT l = hashes[idx]; // this is sound, because idx_begin is always a left child
             FieldT r = (idx + 1 < idx_end ? hashes[idx+1] : hash_defaults[layer]);
 
-            FieldT h = get_hash<FieldT>({l}, r, "clearmatics_iv");
+            FieldT h = MiMC_mp_gadget<FieldT>::get_hash(l, r);
             hashes[(idx-1)/2] = h;
         }
 
@@ -101,19 +101,19 @@ merkle_tree_field<FieldT, HashTreeT>::merkle_tree_field(const size_t depth,
                 if (idx % 2 == 0)
                 {
                     // this is the right child of its parent and by invariant we are missing the left child
-                    hashes[(idx-1)/2] = get_hash<FieldT>({hash_defaults[layer]}, hash, "clearmatics_iv");
+                    hashes[(idx-1)/2] = HashTreeT::get_hash(hash_defaults[layer], hash);
                 }
                 else
                 {
                     if (std::next(it) == last_it || std::next(it)->first != idx + 1)
                     {
                         // this is the left child of its parent and is missing its right child
-                        hashes[(idx-1)/2] = get_hash<FieldT>({hash}, hash_defaults[layer], "clearmatics_iv");
+                        hashes[(idx-1)/2] = HashTreeT::get_hash(hash, hash_defaults[layer]);
                     }
                     else
                     {
                         // typical case: this is the left child of the parent and adjacent to it there is a right child
-                        hashes[(idx-1)/2] = get_hash<FieldT>({hash}, std::next(it)->second, "clearmatics_iv");
+                        hashes[(idx-1)/2] = HashTreeT::get_hash(hash, std::next(it)->second);
                         ++it;
                     }
                 }
@@ -154,7 +154,7 @@ void merkle_tree_field<FieldT, HashTreeT>::set_value(const size_t address, const
         it = hashes.find(2*idx+2);
         FieldT r = (it == hashes.end() ? hash_defaults[layer+1] : it->second);
 
-        FieldT h = get_hash<FieldT>({l}, r, "clearmatics_iv");
+        FieldT h = HashTreeT::get_hash(l, r);
         hashes[idx] = h;
     }
 }

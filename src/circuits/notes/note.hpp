@@ -6,7 +6,7 @@
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
 
 #include <src/circuits/merkle_tree/merkle_path_authenticator.hpp>
-#include <src/circuits/mimc/mimc_hash.hpp>
+#include <src/circuits/mimc/mimc_mp.hpp>
 
 // Get the prfs and commitments circuits
 #include "circuits/prfs/prfs.hpp"

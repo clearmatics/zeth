@@ -2,7 +2,7 @@
 #include <libff/common/default_types/ec_pp.hpp>
 #include "circuits/merkle_tree/merkle_path_selector.hpp"
 #include "circuits/merkle_tree/merkle_path_authenticator.hpp"
-#include "circuits/mimc/mimc_hash.hpp"
+#include "circuits/mimc/mimc_mp.hpp"
 
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
@@ -106,7 +106,7 @@ bool test_merkle_path_authenticator_depth1() {
 
 
 	size_t tree_depth = 1;
-	merkle_path_authenticator<MiMC_hash_gadget<FieldT>, FieldT> auth(
+	merkle_path_authenticator<MiMC_mp_gadget<FieldT>, FieldT> auth(
 		pb, tree_depth, address_bits,
 		leaf, expected_root, path, enforce_bit,
 		"authenticator");
@@ -170,7 +170,7 @@ bool test_merkle_path_authenticator_depth3() {
 	pb.val(enforce_bit) = FieldT("1");
 
 	size_t tree_depth = 3;
-	merkle_path_authenticator<MiMC_hash_gadget<FieldT>, FieldT> auth(
+	merkle_path_authenticator<MiMC_mp_gadget<FieldT>, FieldT> auth(
 		pb, tree_depth, address_bits,
 		leaf, expected_root, path, enforce_bit,
 		"authenticator");

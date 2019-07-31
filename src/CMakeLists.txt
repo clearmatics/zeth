@@ -266,16 +266,16 @@ target_include_directories(
     ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
 
-# Test the mimc hash circuits
+# Test the mimc mp circuits
 add_executable(
-    test_mimc_hash
+    test_mimc_mp
     EXCLUDE_FROM_ALL
 
-    test/mimc_hash_test.cpp
+    test/mimc_mp_test.cpp
     ${SOURCES_TEST}
 )
 target_link_libraries(
-    test_mimc_hash
+    test_mimc_mp
 
     snark
     gtest_main
@@ -283,7 +283,7 @@ target_link_libraries(
     ${Boost_FILESYSTEM_LIBRARY}
 )
 target_include_directories(
-    test_mimc_hash
+    test_mimc_mp
 
     PUBLIC
     ${DEPENDS_DIR}/libsnark
@@ -356,8 +356,8 @@ add_test(
     COMMAND test_mimc
 )
 add_test(
-    NAME test_mimc_hash
-    COMMAND test_mimc_hash
+    NAME test_mimc_mp
+    COMMAND test_mimc_mp
 )
 add_test(
     NAME test_merkle_tree
@@ -385,7 +385,7 @@ add_dependencies(check test_addition)
 add_dependencies(check test_hex_to_field)
 add_dependencies(check test_round)
 add_dependencies(check test_mimc)
-add_dependencies(check test_mimc_hash)
+add_dependencies(check test_mimc_mp)
 add_dependencies(check test_merkle_tree)
 add_dependencies(check test_note)
 add_dependencies(check test_prfs)

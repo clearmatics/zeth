@@ -148,7 +148,7 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
 
     // We finally compute a root from the (field) commitment and the authentication path
     // We furthermore check, depending on value_enforce, if the computed root is equal to the current one
-    check_membership.reset(new merkle_path_authenticator<MiMC_hash_gadget<FieldT>, FieldT>(
+    check_membership.reset(new merkle_path_authenticator<MiMC_mp_gadget<FieldT>, FieldT>(
         pb,
         ZETH_MERKLE_TREE_DEPTH,
         address_bits_va,
@@ -303,7 +303,7 @@ void input_note_gadget<HashTreeT, FieldT>::generate_r1cs_witness(
     // here, we need to be extra careful. Note that if one of the input oes not have a valid
     // auth path (is not correctly authenticated), the root (shared by all inputs)
     // will be changed and the proof should be rejected.
-    
+
     this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
     std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
 
@@ -312,7 +312,7 @@ void input_note_gadget<HashTreeT, FieldT>::generate_r1cs_witness(
     // Make sure `address_bits` and `address` represent the same
     // value encoded on different bases (binary and decimal)
     assert(address_bits_va.get_field_element_from_bits(pb).as_ulong() == address);
-    // Set auth_path values 
+    // Set auth_path values
     auth_path->fill_with_field_elements(this->pb, merkle_path);
 
     bits_to_field->generate_r1cs_witness_from_bits();
