@@ -14,7 +14,10 @@ using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
 
-///
+// -----------------------------------------------------------------------------
+// r1cs_gg_ppzksnark_crs1
+// -----------------------------------------------------------------------------
+
 template<typename ppT>
 r1cs_gg_ppzksnark_crs1<ppT>::r1cs_gg_ppzksnark_crs1(
         libff::G1_vector<ppT> &&tau_powers_g1,
@@ -31,7 +34,10 @@ r1cs_gg_ppzksnark_crs1<ppT>::r1cs_gg_ppzksnark_crs1(
 }
 
 
-///
+// -----------------------------------------------------------------------------
+// r1cs_gg_ppzksnark_crs2
+// -----------------------------------------------------------------------------
+
 template<typename ppT>
 r1cs_gg_ppzksnark_crs2<ppT>::r1cs_gg_ppzksnark_crs2(
     libff::G1_vector<ppT> &&T_tau_powers_g1,
@@ -48,7 +54,6 @@ r1cs_gg_ppzksnark_crs2<ppT>::r1cs_gg_ppzksnark_crs2(
 }
 
 
-/// SameRatio( (a1, b1), (a2, b2) )
 template <typename ppT>
 bool same_ratio(
     const libff::G1<ppT> &a1,
@@ -71,7 +76,6 @@ bool same_ratio(
 }
 
 
-///
 template <typename ppT>
 bool r1cs_gg_ppzksnark_crs1_validate(
     const r1cs_gg_ppzksnark_crs1<ppT> &crs1,
@@ -152,9 +156,6 @@ bool r1cs_gg_ppzksnark_crs1_validate(
 }
 
 
-/// Given a circuit and a crs1, perform the correct linear
-/// combinations of elements in crs1 to get the extra from the 2nd
-/// layer of the CRS MPC.
 r1cs_gg_ppzksnark_crs2<ppT>
 r1cs_gg_ppzksnark_generator_phase2(
     const r1cs_gg_ppzksnark_crs1<ppT> &crs1,
@@ -162,37 +163,37 @@ r1cs_gg_ppzksnark_generator_phase2(
 {
     libfqfft::evaluation_domain<FieldT> &domain = *qap.domain;
 
-    // m = number of constraints in qap / degree of t().
-    const size_t m = qap.degree();
+    // n = number of constraints in qap / degree of t().
+    const size_t n = qap.degree();
     const size_t num_variables = qap.num_variables();
 
     // Langrange polynomials, and therefore A, B, C will have order
-    // (m-1).  T has order m.  H.t() has order 2m-2, => H(.) has
+    // (n-1).  T has order n.  H.t() has order 2n-2, => H(.) has
     // order:
     //
-    //   2m-2 - m = m-2
+    //   2n-2 - n = n-2
     //
-    // Therefore { t(x) . x^i } has 0 .. m-2 (m-1 of them), requiring
-    // requires powers of tau 0 ..  2.m-2 (2m-1 of them).  We should
+    // Therefore { t(x) . x^i } has 0 .. n-2 (n-1 of them), requiring
+    // requires powers of tau 0 ..  2.n-2 (2n-1 of them).  We should
     // have at least this many, by definition.
 
-    assert(crs1.tau_powers_g1.size() >= 2*m - 1);
+    assert(crs1.tau_powers_g1.size() >= 2*n - 1);
 
-    // m+1 corefficients of t
+    // n+1 coefficients of t
 
-    std::vector<Fr> t_coefficients(m + 1, Fr::zero());
+    std::vector<Fr> t_coefficients(n + 1, Fr::zero());
     qap.domain->add_poly_Z(Fr::one(), t_coefficients);
 
-    // Compute [ t(x) . x^i ]_1 for i = 0 .. m-2
+    // Compute [ t(x) . x^i ]_1 for i = 0 .. n-2
 
-    libff::G1_vector<ppT> t_x_pow_i(m-1);
-    for (size_t i = 0 ; i < m - 1 ; ++i)
+    libff::G1_vector<ppT> t_x_pow_i(n-1);
+    for (size_t i = 0 ; i < n - 1 ; ++i)
     {
         // Use { [x^i] , ... , [x^(i+order_L+1)] } with coefficients
         // of t to compute t(x).x^i.
         t_x_pow_i[i] = multi_exp<ppT, G1>(
             crs1.tau_powers_g1.begin() + i,
-            crs1.tau_powers_g1.begin() + i + m + 1,
+            crs1.tau_powers_g1.begin() + i + n + 1,
             t_coefficients.begin(),
             t_coefficients.end());
     }
@@ -252,17 +253,13 @@ r1cs_gg_ppzksnark_generator_phase2(
 }
 
 
-/// Given the output from the first two layers of the MPC, perform the
-/// 3rd layer computation using just local randomness.  This is not a
-/// substitute for the full MPC with an auditable log of contributions,
-/// but is useful for testing.
 r1cs_gg_ppzksnark_keypair<ppT>
 r1cs_gg_ppzksnark_generator_dummy_phase3(
     r1cs_gg_ppzksnark_crs1<ppT> &&crs1,
     r1cs_gg_ppzksnark_crs2<ppT> &&crs2,
     const Fr &delta,
-    r1cs_constraint_system<libff::Fr<ppT>> &&cs,
-    const qap_instance<libff::Fr<ppT>> &qap)
+    r1cs_constraint_system<Fr> &&cs,
+    const qap_instance<Fr> &qap)
 {
     const Fr delta_inverse = delta.inverse();
 

@@ -236,7 +236,7 @@ TEST(CRSTests, Phase3)
     const Fr alpha = Fr::random_element();
     const Fr beta = Fr::random_element();
     const Fr delta = Fr::random_element();
-    const G1 g1_generator = G1::random_element();
+    const G1 g1_generator = G1::one();
 
     // dummy CRS1
 

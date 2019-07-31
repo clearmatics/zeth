@@ -68,8 +68,7 @@ public:
 };
 
 
-/// Confirm that the ratio a1:b1 in G1 equals a2:b2 in G2 by checking
-/// the pairing equality:
+/// Confirm that the ratio a1:b1 in G1 equals a2:b2 in G2 by checking:
 ///   e( a1, b2 ) == e( b1, a2 )
 template <typename ppT>
 bool same_ratio(
@@ -79,27 +78,33 @@ bool same_ratio(
     const libff::G2<ppT> &b2);
 
 
-///
+/// Verify that a CRS1 structure is well-formed.
 template <typename ppT>
 bool r1cs_gg_ppzksnark_crs1_validate(
     const r1cs_gg_ppzksnark_crs1<ppT> &crs1,
     const size_t n);
 
-///
+/// Given a circuit and a crs1, perform the correct linear
+/// combinations of elements in crs1 to get the extra from the 2nd
+/// layer of the CRS MPC.
 template <typename ppT>
 r1cs_gg_ppzksnark_crs2<ppT>
 r1cs_gg_ppzksnark_generator_phase2(
     const r1cs_gg_ppzksnark_crs1<ppT> &crs1,
-    const libsnark::r1cs_constraint_system<libff::Fr<ppT>> &cs);
+    const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
-///
+/// Given the output from the first two layers of the MPC, perform the
+/// 3rd layer computation using just local randomness.  This is not a
+/// substitute for the full MPC with an auditable log of contributions,
+/// but is useful for testing.
 template <typename ppT>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT>
-r1cs_gg_ppzksnark_generator_phase3(
+r1cs_gg_ppzksnark_generator_dummy_phase3(
     const r1cs_gg_ppzksnark_crs1<ppT> &&crs1,
     const r1cs_gg_ppzksnark_crs2<ppT> &&crs2,
-    const libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
-    const libsnark::qap_instance<ppT> &qap);
+    const libff::Fr<ppT> &delta,
+    libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
+    const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
 //
 #include "crs.tcc"
