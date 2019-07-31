@@ -21,7 +21,6 @@ import zethErrors as errors
 
 # Import MiMC hash and constants
 from zethMimc import MiMC7
-from zethConstants import ZETH_MIMC_IV_MT
 
 # Fetch the verification key from the proving service
 def getVerificationKey(grpcEndpoint):

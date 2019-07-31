@@ -24,7 +24,7 @@ namespace  {
 
         pb.set_input_sizes(1);
 
-        pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790"); // sha3_256("mimc")
+        pb.val(iv) = FieldT("15683951496311901749339509118960676303290224812129752890706581988986633412003"); // sha3_256("mimc")
 
         // Private inputs
 
@@ -34,17 +34,16 @@ namespace  {
         m_0.allocate(pb, "m_0");
         m_1.allocate(pb, "m_1");
 
-        std::vector<libsnark::pb_variable<FieldT>> input = {m_0, m_1};
+        std::vector<libsnark::pb_variable<FieldT>> input = {m_0};
 
         pb.val(m_0) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
-        pb.val(m_1) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
         MiMC_hash_gadget<FieldT> mimc_hash_gadget(pb, input, iv, "gadget");
 
         mimc_hash_gadget.generate_r1cs_witness();
         mimc_hash_gadget.generate_r1cs_constraints();
 
-        FieldT expected_out = FieldT("18800972734388876294699214493377123093998198145242382637648270767389471889403");
+        FieldT expected_out = FieldT("16797922449555994684063104214233396200599693715764605878168345782964540311877");
 
         ASSERT_TRUE(expected_out == pb.val(mimc_hash_gadget.result()));
         }

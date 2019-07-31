@@ -24,14 +24,14 @@ namespace {
         in_k.allocate(pb, "k");
 
         pb.val(in_x) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
-        pb.val(in_k) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
+        pb.val(in_k) = FieldT("15683951496311901749339509118960676303290224812129752890706581988986633412003");
 
         MiMCe7_permutation_gadget<FieldT> mimc_gadget(pb, in_x, in_k, "mimc_gadget");
 
         mimc_gadget.generate_r1cs_constraints();
         mimc_gadget.generate_r1cs_witness();
 
-        FieldT expected_out = FieldT("11437467823393790387399137249441941313717686441929791910070352316474327319704");
+        FieldT expected_out = FieldT("19299072331547804977312469120569834811561748095378968014959488920239255590840");
 
         ASSERT_TRUE(expected_out == pb.val(mimc_gadget.result()));
     }

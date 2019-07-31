@@ -27,14 +27,13 @@ MiMCe7_permutation_gadget<FieldT>::MiMCe7_permutation_gadget(
     libsnark::protoboard<FieldT>& pb,
     const libsnark::pb_variable<FieldT> x,
     const libsnark::pb_variable<FieldT> k,
-    const std::string& round_constant_iv,
     const std::string& annotation_prefix
 ) :
     libsnark::gadget<FieldT>(pb, annotation_prefix),
     k(k)
 {
     // We first initialize the round constants
-    setup_sha3_constants(round_constant_iv);
+    setup_sha3_constants();
 
     // Then we initialize the round gadgets
     setup_gadgets(x, k);

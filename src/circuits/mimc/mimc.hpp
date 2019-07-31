@@ -17,7 +17,6 @@ class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT> {
 public:
     std::vector<MiMCe7_round_gadget<FieldT>> round_gadgets;     // Vector of MiMC round gadgets
     std::vector<FieldT> round_constants;                        // Current Vector of round constants
-    std::map<std::string, std::vector<FieldT> > round_constants_map; // Map of Vector of round constants TODO: remove map and fill the vector directly, we only use 1 rc now
     static const int ROUNDS = 91;                               // Nb of rounds suggested by the MiMC paper
     const libsnark::pb_variable<FieldT> k;                      // The permutation key
 
@@ -28,14 +27,13 @@ public:
         const libsnark::pb_variable<FieldT> k);
 
     //Constants vector initialization
-    void setup_sha3_constants(const std::string& round_constant_iv);
+    void setup_sha3_constants();
 
 public:
     MiMCe7_permutation_gadget(
         libsnark::protoboard<FieldT>& pb,
         const libsnark::pb_variable<FieldT> x,                  // The message to encrypt
         const libsnark::pb_variable<FieldT> k,                  // The encryption key (/permutation seed)
-        const std::string& round_constant_iv,
         const std::string& annotation_prefix = "MiMCe7_permutation_gadget");
 
     void generate_r1cs_constraints();

@@ -13,7 +13,7 @@ namespace libzeth {
 
 template<typename FieldT>
 class MiMC_hash_gadget:public libsnark::gadget<FieldT> {
-// MiMC_hash_gadget enforces correct computation of MiMC compression function 
+// MiMC_hash_gadget enforces correct computation of MiMC compression function
 // based on a the Miyaguchi-Preneel compression construct and  MiMC permutation with exponent 7 (and 91 rounds)
 
 public:
@@ -25,8 +25,7 @@ public:
 	MiMC_hash_gadget(
 		libsnark::protoboard<FieldT> &pb,
 		const std::vector<libsnark::pb_variable<FieldT>>& messages,		// Vector of messages to hash
-    	const libsnark::pb_variable<FieldT> iv,							// Miyagushi-Preneel IV
-		const std::string& round_constant_iv,							// MiMC round constants iv
+    const libsnark::pb_variable<FieldT> iv,							// Miyagushi-Preneel IV
 		const std::string &annotation_prefix = "MiMC_hash_gadget"
 	);
 

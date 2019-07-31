@@ -36,15 +36,15 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
       left = tmpTree[2*i+1];
       right = tmpTree[2*(i+1)];
 
-      // IV of the hash is hardcoded and is given by the sha3('Clearmatics') see:TODO add reference to where we compute it
-      tmpTree[i] = mimc7_hasher.hash(left, right, "clearmatics_iv");
+      // Seed is hardcoded and given  by "clearmatics_mt_seed"
+      tmpTree[i] = mimc7_hasher.hash(left, right, "clearmatics_mt_seed");
 
     }
 
     // Compute the merkle root
     left = tmpTree[1];
     right = tmpTree[2];
-    tmpTree[0] = mimc7_hasher.hash(left, right, "clearmatics_iv");
+    tmpTree[0] = mimc7_hasher.hash(left, right, "clearmatics_mt_seed");
 
     return tmpTree;
   }

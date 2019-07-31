@@ -53,7 +53,6 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
             HashT t = HashT(
                     pb,
                     {selectors[i].get_left()}, selectors[i].get_right(),
-                    "clearmatics_iv",
                     FMT(this->annotation_prefix, ".hasher[%zu]", i));
 
             // We append the initialized hasher in the vector of hashers
