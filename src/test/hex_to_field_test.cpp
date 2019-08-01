@@ -5,17 +5,12 @@
 #include <libff/algebra/curves/public_params.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
-
 #include "util.hpp"
 
 // Access zeth configuration constants
 #include "zeth.h"
 
 #include "assert.h"
-
-using namespace libsnark;
-using namespace libzeth;
 
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt

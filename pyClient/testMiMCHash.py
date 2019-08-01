@@ -35,9 +35,10 @@ if __name__ == "__main__":
   "Hash is NOT correct"
 
   # MerkleTreeMiMCHash of depth 3 unit test
+  
+  # Recover root and merkle tree from the contract
   tree = zethContracts.getTree(tree_instance)
-
-  root_recovered = zethContracts.getRoot(tree_instance)
+  recovered_root = zethContracts.getRoot(tree_instance)
 
   # Leaves
   for i in range(7,15):
@@ -59,7 +60,7 @@ if __name__ == "__main__":
   "MerkleTree Error Root"
 
   # Recovered root
-  assert int.from_bytes(root_recovered, byteorder="big") == root
+  assert int.from_bytes(recovered_root, byteorder="big") == root
   "MerkleTree Error Computed Root"
 
   print("All test passed")

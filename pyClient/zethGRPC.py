@@ -104,10 +104,7 @@ def computeCommitment(zethNoteGRPCObj):
     cm = hashlib.sha256(
         encode_abi(["bytes32", "bytes32"], (bytes.fromhex(outer_k), bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
     ).hexdigest()
-
-    # cm_field = Sum_i b_i 2**i where b_i is from the _reversed_ representation of cm cast as a binary
-    cm_field = int( "{0:b}".format(int(cm, 16))[::-1] , 2)
-    return cm, cm_field
+    return cm
 
 def hexadecimalDigestToBinaryString(digest):
     binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
@@ -119,7 +116,6 @@ def computeNullifier(zethNote, spendingAuthAsk):
     first254Rho = binaryRho[0:254]
     rightLegBin = "01" + first254Rho
     rightLegHex = "{0:0>4X}".format(int(rightLegBin, 2))
-
     nullifier = hashlib.sha256(
         encode_abi(["bytes32", "bytes32"], [bytes.fromhex(spendingAuthAsk), bytes.fromhex(rightLegHex)])
     ).hexdigest()

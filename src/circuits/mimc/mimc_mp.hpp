@@ -10,17 +10,20 @@
 
 namespace libzeth {
 
+/*
+ * MiMC_mp_gadget enforces correct computation of MiMC compression function
+ * based on a the Miyaguchi-Preneel compression construct and MiMC block cipher on Z_p with exponent 7 (and 91 rounds)
+ * p is given by the size(FieldT)
+*/
 
 template<typename FieldT>
 class MiMC_mp_gadget:public libsnark::gadget<FieldT> {
-// MiMC_mp_gadget enforces correct computation of MiMC compression function
-// based on a the Miyaguchi-Preneel compression construct and  MiMC permutation with exponent 7 (and 91 rounds)
 
 public:
-	libsnark::pb_variable<FieldT> x; 				                // First input
-  libsnark::pb_variable<FieldT> y; 				                // Second input
-  MiMCe7_permutation_gadget<FieldT> permutation_gadget; // Permutation gadget
-  libsnark::pb_variable<FieldT> output;                // Output variable
+	libsnark::pb_variable<FieldT> x; 						            // First input
+	libsnark::pb_variable<FieldT> y; 						            // Second input
+	MiMCe7_permutation_gadget<FieldT> permutation_gadget; 	// Permutation gadget
+  libsnark::pb_variable<FieldT> output;                	  // Output variable
 
 	MiMC_mp_gadget(
 		libsnark::protoboard<FieldT> &pb,

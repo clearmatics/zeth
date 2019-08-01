@@ -2,15 +2,16 @@
 #define __ZETH_MIMC_RC_TCC__
 
 /**
-* Following constants correspond to an iterative computation of sha3 hash function over an initial seed "mimc", i.e. `default_round_constants[0] = sha3(sha3("mimc"))`.
+* Following constants correspond to the iterative computation of sha3_256 hash function over the initial seed "mimc_mt_seed".
+* See pyClient/zethCodeConstantsGeneration
 */
 template<typename FieldT>
 void MiMCe7_permutation_gadget<FieldT>::setup_sha3_constants() {
 
     round_constants.reserve(ROUNDS);
 
-    round_constants.push_back(FieldT("0"));
-    round_constants.push_back(FieldT("22159019873790129476324495190496603411493310235845550845393361088354059025587"));
+    round_constants.push_back(FieldT("0")); // The constant is set to 0 in the first round of MiMC permutation (see https://eprint.iacr.org/2016/492.pdf).
+    round_constants.push_back(FieldT("22159019873790129476324495190496603411493310235845550845393361088354059025587")); // This is sha3_256(sha3_256("clearmatics_mt_seed"))
     round_constants.push_back(FieldT("27761654615899466766976328798614662221520122127418767386594587425934055859027"));
     round_constants.push_back(FieldT("94824950344308939111646914673652476426466554475739520071212351703914847519222"));
     round_constants.push_back(FieldT("84875755167904490740680810908425347913240786521935721949482414218097022905238"));

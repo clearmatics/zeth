@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script to run xx integration tests
+# Script to run 50 integration tests
 
 NOW=`date '+%F_%H:%M:%S'`;
 filename="test_result_$NOW"

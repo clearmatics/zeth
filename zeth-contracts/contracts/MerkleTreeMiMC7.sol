@@ -7,20 +7,11 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
   // Custom hash smart contract
   MiMC7 public mimc7_hasher;
 
-  // Constructor
   constructor(address hasher_address, uint treeDepth) BaseMerkleTree(treeDepth) public {
     mimc7_hasher = MiMC7(hasher_address);
   }
 
-  // This function is constrainted to be internal by the fact that we return a bytes[]
-  // If we want to make it public and use a stable version of the solidity compiler, we need
-  // to switch to bytes32[] (and thus only hash functions with digest of length < 256bits)
-  // would be supported in the merkle tree.
-  //
-  // Note: This function diverges a little bit from the standard implementations
-  // because we usually affect the node index 1 to the root and follow the convention
-  // to append 0 if we go left or 1 if we go right in the merkle tree
-  // However, here we start at the index 0 for the merkle tree
+  // Returns the current merkle tree
   function getTree() public view returns (bytes32[] memory) {
     uint nbNodes = 2**(depth + 1) - 1;
     bytes32[] memory tmpTree = new bytes32[](nbNodes);

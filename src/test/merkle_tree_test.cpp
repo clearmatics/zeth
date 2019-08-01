@@ -7,7 +7,9 @@
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
 
-namespace libzeth {
+using namespace libzeth;
+
+namespace {
 
 bool test_merkle_path_selector(int is_right)
 {
@@ -60,9 +62,6 @@ bool test_merkle_path_selector(int is_right)
 
 	return true;
 }
-
-
-
 
 bool test_merkle_path_authenticator_depth1() {
     // Tree depth is 1, left leaf is 3703141493535563179657531719960160174296085208671919316200479060314459804651,
@@ -128,9 +127,6 @@ bool test_merkle_path_authenticator_depth1() {
 
 	return true;
 }
-
-
-
 
 bool test_merkle_path_authenticator_depth3() {
     // Tree depth is 3, we want to check that hash(left2, hash(left1, hash(left0, right0))) == root
@@ -200,20 +196,20 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
 
     bool res = false;
 
-    res = libzeth::test_merkle_path_selector(0);
+    res = test_merkle_path_selector(0);
     std::cout << "[test_merkle_path_selector 0] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
 
 
-    res = libzeth::test_merkle_path_selector(1);
+    res = test_merkle_path_selector(1);
     std::cout << "[test_merkle_path_selector 1] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
 
-    res = libzeth::test_merkle_path_authenticator_depth1();
+    res = test_merkle_path_authenticator_depth1();
     std::cout << "[test_merkle_path_authenticator_depth1] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
 
-    res = libzeth::test_merkle_path_authenticator_depth3();
+    res = test_merkle_path_authenticator_depth3();
     std::cout << "[test_merkle_path_authenticator_depth3] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
 
@@ -225,5 +221,4 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-// namespace libsnark
 }

@@ -32,8 +32,8 @@ merkle_path_compute<HashT, FieldT>::merkle_path_compute(
         for( size_t i = 0; i < depth; i++ )
         {
             // We first initialize the gadget to order the computed hash and the authentication node
-            // to know which one is the first to be hashed and which one is the second ( as in mimch_hash(left, right) )
-            // We also appendthe initialized gadget in the vector of selectors
+            // to know which one is the first to be hashed and which one is the second ( as in mimc_hash(left, right) )
+            // We also append the initialized gadget in the vector of selectors
             if( i == 0 )
             {
                 selectors.push_back(

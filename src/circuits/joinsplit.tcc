@@ -75,7 +75,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 //
 
 
-
+                // We first allocate the root
                 merkle_root.reset(new libsnark::pb_variable<FieldT>);
                 (*merkle_root).allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
 
@@ -144,6 +144,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 );
 
                 // [SANITY CHECK]
+                // the -1 comes from the fact that the root is no more (un)packed but still is a primary input
                 assert(unpacked_inputs.size() == nb_inputs - 1 );
                 assert(packed_inputs.size() == nb_inputs - 1);
 

@@ -24,7 +24,7 @@ public:
     const bool add_k_to_result;                     // Boolean variable to add the key after the round
 
     // Intermediary variables
-    // t  = x + k + c is a linear combination, as such no pb_variable is needed
+    // Given t  = x + k + c
     libsnark::pb_variable<FieldT> t2;               // Intermediary var for computing t**2
     libsnark::pb_variable<FieldT> t4;               // Intermediary var for computing t**4
     libsnark::pb_variable<FieldT> t6;               // Intermediary var for computing t**6
@@ -45,7 +45,7 @@ public:
     void generate_r1cs_witness() const;
 
     // Returns round result (x + k + c) **7  + add_k_to_result * k
-    const libsnark::pb_variable<FieldT>& result() const; // TODO: should we put the result as an argument of the gadget (like it is done for other gadgets) ?
+    const libsnark::pb_variable<FieldT>& result() const;
 
 };
 

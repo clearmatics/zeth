@@ -10,7 +10,7 @@
 
 namespace libzeth  {
  /*
-  * MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation with exponent 7. It makes use of MiMCe7_round_gadget to enforce correct computation in each of the 91 rounds.
+  * MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation with exponent 7 and rounds 91. It makes use of MiMCe7_round_gadget to enforce correct computation in each round.
   */
 template<typename FieldT>
 class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT> {

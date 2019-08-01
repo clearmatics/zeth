@@ -41,7 +41,7 @@ MiMCe7_permutation_gadget<FieldT>::MiMCe7_permutation_gadget(
 
 template<typename FieldT>
 void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_constraints() {
-    // For each round, generates the constraints for each round gadget
+    // For each round, generates the constraints for the corresponding round gadget
     for( auto& gadget : round_gadgets )
     {
         gadget.generate_r1cs_constraints();
@@ -50,7 +50,7 @@ void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_constraints() {
 
 template<typename FieldT>
 void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_witness() const {
-    // For each round, generates the witness for each round gadget
+    // For each round, generates the witness for the corresponding round gadget
     for( auto& gadget : round_gadgets )
     {
         gadget.generate_r1cs_witness();

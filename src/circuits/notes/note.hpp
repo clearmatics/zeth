@@ -68,7 +68,7 @@ public:
     input_note_gadget(libsnark::protoboard<FieldT>& pb,
                     libsnark::pb_variable<FieldT>& ZERO,
                     std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,   // Input note Nullifier
-                    libsnark::pb_variable<FieldT> rt,                               // Current Merlle root
+                    libsnark::pb_variable<FieldT> rt,                               // Current Merkle root
                     const std::string &annotation_prefix = "input_note_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness(const std::vector<FieldT> merkle_path,

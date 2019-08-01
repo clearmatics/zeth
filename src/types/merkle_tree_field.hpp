@@ -15,6 +15,8 @@
 namespace libzeth {
 
 /**
+ * Merklee Tree whose nodes are field elements
+ *
  * A Merkle tree is maintained as two maps:
  * - a map from addresses to values, and
  * - a map from addresses to hashes.

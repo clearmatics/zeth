@@ -19,7 +19,7 @@ MiMC_mp_gadget<FieldT>::MiMC_mp_gadget(
     y(y),
     permutation_gadget(pb, x, y, FMT(annotation_prefix, ".cipher"))
   {
-    // Allocates output variables array
+    // Allocates output variable
     output.allocate(pb, FMT(annotation_prefix, ".output"));
 
     const libsnark::pb_variable<FieldT>& m = x;
@@ -47,13 +47,11 @@ void MiMC_mp_gadget<FieldT>::generate_r1cs_constraints (){
 template<typename FieldT>
 void MiMC_mp_gadget<FieldT>::generate_r1cs_witness () const {
 
-    // Generating witness for each permutation gadget (except last one)
+    // Generating witness for the gadget
     permutation_gadget.generate_r1cs_witness();
 
-    const FieldT round_key = this->pb.val(y);
-
     // Filling output variables for Miyaguchi-Preenel equation
-    this->pb.val(output) = round_key + this->pb.val(permutation_gadget.result()) + this->pb.val(x);
+    this->pb.val(output) = this->pb.val(y) + this->pb.val(permutation_gadget.result()) + this->pb.val(x);
 
 }
 
@@ -68,13 +66,12 @@ template<typename FieldT>
 FieldT MiMC_mp_gadget<FieldT>::get_hash(const FieldT x, FieldT y){
     libsnark::protoboard<FieldT> pb;
 
-    // Allocates and fill with the x and y
     libsnark::pb_variable<FieldT> pb_x;
+    libsnark::pb_variable<FieldT> pb_y;
 
+    // Allocates and fill with the x and y
     pb_x.allocate(pb, "x");
     pb.val(pb_x) = x;
-
-    libsnark::pb_variable<FieldT> pb_y;
 
     pb_y.allocate(pb, "y");
     pb.val(pb_y) = y;
