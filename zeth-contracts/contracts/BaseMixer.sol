@@ -76,7 +76,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     event LogMerkleRoot(bytes32 root);
 
     // Event to emit the ciphertexts of the coins' data to be sent to the recipient of the payment
-    // This event is key to obfuscate the tranaction graph while enabling on-chain storage of the coins' data
+    // This event is key to obfuscate the transaction graph while enabling on-chain storage of the coins' data
     // (useful to ease backup of user's wallets)
     event LogSecretCiphers(string ciphertext);
 
@@ -105,7 +105,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // - Index of the "v_pub_out" field element: {NumOutputs + NumInputs + 1 + 1}
     // ============================================================================================ //
 
-    // This function processes the primary inputs to append and check the root and nullifiers int he primary inputs (instance)
+    // This function processes the primary inputs to append and check the root and nullifiers in the primary inputs (instance)
     // and modifies the state of the mixer contract accordingly
     // (ie: Appends the commitments to the tree, appends the nullifiers to the list and so on)
     function assemble_root_and_nullifiers_and_append_to_state(uint[] memory primary_inputs) internal {

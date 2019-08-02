@@ -21,7 +21,6 @@ typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 
 namespace {
-
 TEST(TestHexConvertion, TestHexToFieldTrue) {
     ppT::init_public_params();
 

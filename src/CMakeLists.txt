@@ -360,6 +360,10 @@ add_test(
     COMMAND test_mimc_hash
 )
 add_test(
+    NAME test_merkle_tree
+    COMMAND test_merkle_tree
+)
+add_test(
     NAME test_note
     COMMAND test_note
 )
