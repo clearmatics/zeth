@@ -10,11 +10,11 @@
 
 namespace libzeth {
 
-template<typename FieldT>
+template<typename FieldT, typename HashT>
 class COMM_gadget : libsnark::gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<sha256_ethereum<FieldT>> hasher;
+    std::shared_ptr<HashT> hasher;
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
 
 public:
@@ -22,18 +22,18 @@ public:
                 libsnark::pb_variable<FieldT>& ZERO,
                 libsnark::pb_variable_array<FieldT> x,
                 libsnark::pb_variable_array<FieldT> y,
-                std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(x || y)
+                std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(x || y)
                 const std::string &annotation_prefix = "COMM_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
 };
 
-template<typename FieldT>
+template<typename FieldT, typename HashT>
 libsnark::pb_variable_array<FieldT> get128bits(libsnark::pb_variable_array<FieldT>& inner_k);
 
 // As mentioned in Zerocash extended paper, page 22
 // Right side of the hash inputs to generate cm is: 0^192 || value_v (64 bits)
-template<typename FieldT>
+template<typename FieldT, typename HashT>
 libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
     libsnark::pb_variable<FieldT>& ZERO,
     libsnark::pb_variable_array<FieldT>& value_v
@@ -46,8 +46,8 @@ libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
 // The commitment k is computed as k = sha256(r || [sha256(a_pk || rho)]_128)
 // where we define the left part: inner_k = sha256(a_pk || rho)
 // as being the inner commitment of k
-template<typename FieldT>
-class COMM_inner_k_gadget : public COMM_gadget<FieldT> {
+template<typename FieldT, typename HashT>
+class COMM_inner_k_gadget : public COMM_gadget<FieldT, HashT> {
 public:
     COMM_inner_k_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& ZERO,
@@ -62,8 +62,8 @@ public:
 // where we define: outer_k = sha256(r || [inner_commitment]_128)
 // as being the outer commitment of k
 // We denote by trap_r the trapdoor r
-template<typename FieldT>
-class COMM_outer_k_gadget : public COMM_gadget<FieldT> {
+template<typename FieldT, typename HashT>
+class COMM_outer_k_gadget : public COMM_gadget<FieldT, HashT> {
 public:
     COMM_outer_k_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& ZERO,
@@ -74,8 +74,8 @@ public:
 };
 
 // cm = sha256(outer_k || 0^192 || value_v)
-template<typename FieldT>
-class COMM_cm_gadget : public COMM_gadget<FieldT> {
+template<typename FieldT, typename HashT>
+class COMM_cm_gadget : public COMM_gadget<FieldT, HashT> {
 public:
     COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
                 libsnark::pb_variable<FieldT>& ZERO,

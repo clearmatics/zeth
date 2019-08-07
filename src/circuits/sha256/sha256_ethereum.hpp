@@ -5,6 +5,10 @@
 // Content taken and adapted from:
 // https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
 
+/*
+ * This gadget implements the interface of the HashT template
+**/
+
 #include <iostream>
 
 #include "libsnark/gadgetlib1/gadget.hpp"

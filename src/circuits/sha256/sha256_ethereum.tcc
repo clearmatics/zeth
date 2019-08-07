@@ -8,6 +8,10 @@
 // Get the from_bits function
 #include "circuits/circuits-util.hpp"
 
+/*
+ * This gadget implements the interface of the HashT template
+**/
+
 namespace libzeth {
 
 // See: https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L115

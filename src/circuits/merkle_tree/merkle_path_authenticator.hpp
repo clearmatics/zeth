@@ -14,8 +14,8 @@ namespace libzeth {
 /*
  * Merkle path authenticator, verifies computed root matches expected result
 **/
-template<typename HashTreeT, typename FieldT>
-class merkle_path_authenticator : public merkle_path_compute<HashTreeT, FieldT> {
+template<typename FieldT, typename HashTreeT>
+class merkle_path_authenticator : public merkle_path_compute<FieldT, HashTreeT> {
 public:
     const libsnark::pb_variable<FieldT> m_expected_root; // Expected value of the Merkle Tree root
     const libsnark::pb_variable<FieldT> value_enforce; // Boolean enforcing the comparison between the expected and computed value of the Merkle Tree root

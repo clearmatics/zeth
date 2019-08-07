@@ -11,11 +11,11 @@
 
 namespace libzeth {
 
-template<typename FieldT>
+template<typename FieldT, typename HashT>
 class PRF_gadget : public libsnark::gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<sha256_ethereum<FieldT>> hasher;
+    std::shared_ptr<HashT> hasher;
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
 
 public:
@@ -32,19 +32,19 @@ public:
 
 // This function is useful as the generation of a_pk is done via a_pk = sha256(a_sk || 0^256)
 // See Zerocash extended paper, page 22, paragraph "Instantiating the NP statement POUR"
-template<typename FieldT> libsnark::pb_variable_array<FieldT> gen256zeroes(libsnark::pb_variable<FieldT>& ZERO);
+template<typename FieldT, typename HashT> libsnark::pb_variable_array<FieldT> gen256zeroes(libsnark::pb_variable<FieldT>& ZERO);
 
 // As mentioned in Zerocash extended paper, page 22, the left side of the PRF that computes the nf, is equal to
 // 01 || [rho]_254. This function takes rho, keep only 254 bits form it and preprend '01' to the result
-template<typename FieldT> libsnark::pb_variable_array<FieldT> getRightSideNFPRF(
+template<typename FieldT, typename HashT> libsnark::pb_variable_array<FieldT> getRightSideNFPRF(
     libsnark::pb_variable<FieldT>& ZERO,
     libsnark::pb_variable_array<FieldT>& rho
 );
 
 // a_pk = sha256(a_sk || 0^256): See Zerocash extended paper, page 22, 
 // paragraph "Instantiating the NP statement POUR"
-template<typename FieldT>
-class PRF_addr_a_pk_gadget : public PRF_gadget<FieldT> {
+template<typename FieldT, typename HashT>
+class PRF_addr_a_pk_gadget : public PRF_gadget<FieldT, HashT> {
 public:
     PRF_addr_a_pk_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& ZERO,
@@ -55,8 +55,8 @@ public:
 
 // PRF to generate the nullifier
 // nf = sha256(a_sk || 01 || [rho]_254): See Zerocash extended paper, page 22
-template<typename FieldT>
-class PRF_nf_gadget : public PRF_gadget<FieldT> {
+template<typename FieldT, typename HashT>
+class PRF_nf_gadget : public PRF_gadget<FieldT, HashT> {
 public:
     PRF_nf_gadget(libsnark::protoboard<FieldT>& pb,
                 libsnark::pb_variable<FieldT>& ZERO,

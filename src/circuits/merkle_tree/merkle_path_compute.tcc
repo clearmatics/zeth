@@ -8,8 +8,8 @@
 
 namespace libzeth {
 
-template<typename HashTreeT, typename FieldT>
-merkle_path_compute<HashTreeT, FieldT>::merkle_path_compute(
+template<typename FieldT, typename HashTreeT>
+merkle_path_compute<FieldT, HashTreeT>::merkle_path_compute(
     libsnark::protoboard<FieldT> &pb,
     const size_t depth,
     const libsnark::pb_variable_array<FieldT>& address_bits,
@@ -69,8 +69,8 @@ merkle_path_compute<HashTreeT, FieldT>::merkle_path_compute(
     }
 };
 
-template<typename HashTreeT, typename FieldT>
-void merkle_path_compute<HashTreeT, FieldT>::generate_r1cs_constraints() {
+template<typename FieldT, typename HashTreeT>
+void merkle_path_compute<FieldT, HashTreeT>::generate_r1cs_constraints() {
     // For each level of the tree
     for(size_t i = 0; i < hashers.size(); i++) {
         // We constraint the selector and hash gadgets
@@ -79,8 +79,8 @@ void merkle_path_compute<HashTreeT, FieldT>::generate_r1cs_constraints() {
     }
 };
 
-template<typename HashTreeT, typename FieldT>
-void merkle_path_compute<HashTreeT, FieldT>::generate_r1cs_witness() {
+template<typename FieldT, typename HashTreeT>
+void merkle_path_compute<FieldT, HashTreeT>::generate_r1cs_witness() {
     // For each level of the tree
     for( size_t i = 0; i < hashers.size(); i++ ) {
         // We compute the left and right input of the hasher gadget
@@ -90,8 +90,8 @@ void merkle_path_compute<HashTreeT, FieldT>::generate_r1cs_witness() {
     }
 };
 
-template<typename HashTreeT, typename FieldT>
-const libsnark::pb_variable<FieldT> merkle_path_compute<HashTreeT, FieldT>::result() {
+template<typename FieldT, typename HashTreeT>
+const libsnark::pb_variable<FieldT> merkle_path_compute<FieldT, HashTreeT>::result() {
     // We first check that we are not working with an empty tree
     assert( hashers.size() > 0 );
 

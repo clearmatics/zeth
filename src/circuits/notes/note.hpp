@@ -44,17 +44,17 @@ public:
  * - The commitment cm is correctly computed from the coin's data
  * - commitment cm is in the tree of merkle root rt
 **/
-template<typename HashTreeT, typename FieldT>
+template<typename FieldT, typename HashT, typename HashTreeT>
 class input_note_gadget : public note_gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_pk; // Output of a PRF (digest_variable)
     libsnark::pb_variable_array<FieldT> rho; // Nullifier seed (256 bits)
 
-    std::shared_ptr<COMM_inner_k_gadget<FieldT>> commit_to_inputs_inner_k;
+    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT>> commit_to_inputs_inner_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> inner_k;
-    std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_inputs_outer_k;
+    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT>> commit_to_inputs_outer_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
-    std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_inputs_cm;
+    std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> commit_to_inputs_cm;
     std::shared_ptr<libsnark::digest_variable<FieldT>> commitment; // Note commitment (bits), output of COMMIT gadget
     std::shared_ptr<libsnark::packing_gadget<FieldT>> bits_to_field; // Packing gadget to pack commitment from bits to field elements
     std::shared_ptr<libsnark::pb_variable<FieldT>> field_cm; // Note commitment (field), input of Merkle Tree gadget
@@ -64,8 +64,8 @@ private:
     std::shared_ptr<libsnark::pb_variable_array<FieldT>> auth_path; // Authentication pass comprising of all the intermediary hash siblings from the leaf to root
     std::shared_ptr<merkle_path_authenticator<HashTreeT, FieldT> > check_membership; // Gadget computing the merkle root from a commitment and merkle path, and checking whether it is the expected (i.e. current) merkle root value if value_enforce=1,
 
-    std::shared_ptr<PRF_addr_a_pk_gadget<FieldT>> spend_authority; // Makes sure the a_pk is computed corectly from a_sk
-    std::shared_ptr<PRF_nf_gadget<FieldT>> expose_nullifiers; // Makes sure the nullifiers are computed correctly from rho and a_sk
+    std::shared_ptr<PRF_addr_a_pk_gadget<FieldT, HashT>> spend_authority; // Makes sure the a_pk is computed corectly from a_sk
+    std::shared_ptr<PRF_nf_gadget<FieldT, HashT>> expose_nullifiers; // Makes sure the nullifiers are computed correctly from rho and a_sk
 public:
     libsnark::pb_variable_array<FieldT> a_sk; // a_sk is assumed to be a random uint256
 
@@ -83,17 +83,17 @@ public:
 };
 
 // Commit to the output notes of the JS
-template<typename FieldT>
+template<typename FieldT, typename HashT>
 class output_note_gadget : public note_gadget<FieldT> {
 private:
     libsnark::pb_variable_array<FieldT> rho;
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_pk;
 
-    std::shared_ptr<COMM_inner_k_gadget<FieldT>> commit_to_outputs_inner_k;
+    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT>> commit_to_outputs_inner_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> inner_k;
-    std::shared_ptr<COMM_outer_k_gadget<FieldT>> commit_to_outputs_outer_k;
+    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT>> commit_to_outputs_outer_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
-    std::shared_ptr<COMM_cm_gadget<FieldT>> commit_to_outputs_cm;
+    std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> commit_to_outputs_cm;
 
 public:
     output_note_gadget(

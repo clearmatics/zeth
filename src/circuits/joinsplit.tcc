@@ -17,7 +17,7 @@ using namespace libsnark;
 using namespace libff;
 using namespace libzeth;
 
-template<typename FieldT, typename HashTreeT, size_t NumInputs, size_t NumOutputs>
+template<typename FieldT, typename HashT, typename HashTreeT, size_t NumInputs, size_t NumOutputs>
 class joinsplit_gadget : libsnark::gadget<FieldT> {
     private:
         /*
@@ -46,8 +46,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         // ---- Auxiliary inputs (private) ---- //
         pb_variable_array<FieldT> zk_total_uint64; // Total amount transfered in the transaction
-        std::array<std::shared_ptr<input_note_gadget<HashTreeT, FieldT>>, NumInputs> input_notes; // Input note gadgets
-        std::array<std::shared_ptr<output_note_gadget<FieldT>>, NumOutputs> output_notes; // Output note gadgets
+        std::array<std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT>>, NumInputs> input_notes; // Input note gadgets
+        std::array<std::shared_ptr<output_note_gadget<FieldT, HashT>>, NumOutputs> output_notes; // Output note gadgets
     public:
         // Make sure that we do not exceed the number of inputs/outputs
         // specified in zeth's configuration file (see: zeth.h file)
@@ -103,10 +103,10 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
                 // Initialize the digest_variables
                 for (size_t i = 0; i < NumInputs; i++) {
-                    input_nullifiers[i].reset(new digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " input_nullifiers_%zu", i)));
+                    input_nullifiers[i].reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " input_nullifiers_%zu", i)));
                 }
                 for (size_t i = 0; i < NumOutputs; i++) {
-                    output_commitments[i].reset(new digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " output_commitments_%zu", i)));
+                    output_commitments[i].reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " output_commitments_%zu", i)));
                 }
 
                 // Initialize the unpacked input corresponding to the input NullifierS
@@ -145,6 +145,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     zk_vpub_out.end()
                 );
 
+                // TODO remove these bugus assert
                 // [SANITY CHECK]
                 // the -1 comes from the fact that the root is no more (un)packed but still is a primary input
                 assert(unpacked_inputs.size() == nb_inputs - 1 );
@@ -209,7 +210,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             // Input note gadgets for commitments, nullifiers, and spend authority
             for (size_t i = 0; i < NumInputs; i++) {
-                input_notes[i].reset(new input_note_gadget<HashTreeT, FieldT>(
+                input_notes[i].reset(new input_note_gadget<FieldT, HashT, HashTreeT>(
                     pb,
                     ZERO,
                     input_nullifiers[i],
@@ -218,7 +219,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             }
 
             for (size_t i = 0; i < NumOutputs; i++) {
-                output_notes[i].reset(new output_note_gadget<FieldT>(
+                output_notes[i].reset(new output_note_gadget<FieldT, HashT>(
                     pb,
                     ZERO,
                     output_commitments[i]

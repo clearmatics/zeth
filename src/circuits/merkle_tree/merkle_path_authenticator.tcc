@@ -8,8 +8,8 @@
 
 namespace libzeth {
 
-template<typename HashTreeT, typename FieldT>
-merkle_path_authenticator<HashTreeT, FieldT>::merkle_path_authenticator(
+template<typename FieldT, typename HashTreeT>
+merkle_path_authenticator<FieldT, HashTreeT>::merkle_path_authenticator(
     libsnark::protoboard<FieldT> &pb,
     const size_t depth,
     const libsnark::pb_variable_array<FieldT> address_bits,
@@ -24,8 +24,8 @@ merkle_path_authenticator<HashTreeT, FieldT>::merkle_path_authenticator(
     value_enforce(bool_enforce)
 {}
 
-template<typename HashTreeT, typename FieldT>
-void merkle_path_authenticator<HashTreeT, FieldT>::generate_r1cs_constraints() {
+template<typename FieldT, typename HashTreeT>
+void merkle_path_authenticator<FieldT, HashTreeT>::generate_r1cs_constraints() {
     // We ensure the computed root is constrained
     merkle_path_compute<HashTreeT, FieldT>::generate_r1cs_constraints();
 
@@ -36,13 +36,13 @@ void merkle_path_authenticator<HashTreeT, FieldT>::generate_r1cs_constraints() {
     );
 }
 
-template<typename HashTreeT, typename FieldT>
-void merkle_path_authenticator<HashTreeT, FieldT>::generate_r1cs_witness() {
-    merkle_path_compute<HashTreeT, FieldT>::generate_r1cs_witness();
+template<typename FieldT, typename HashTreeT>
+void merkle_path_authenticator<FieldT, HashTreeT>::generate_r1cs_witness() {
+    merkle_path_compute<FieldT, HashTreeT>::generate_r1cs_witness();
 }
 
-template<typename HashTreeT, typename FieldT>
-bool merkle_path_authenticator<HashTreeT, FieldT>::is_valid() {
+template<typename FieldT, typename HashTreeT>
+bool merkle_path_authenticator<FieldT, HashTreeT>::is_valid() {
     return this->pb.val(this->result()) == this->pb.val(m_expected_root);
 }
 

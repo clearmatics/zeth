@@ -11,7 +11,7 @@
 
 namespace libzeth {
 
-template<typename HashTreeT, typename FieldT>
+template<typename FieldT, typename HashTreeT>
 class merkle_path_compute : public libsnark::gadget<FieldT> {
 public:
     const size_t depth;
