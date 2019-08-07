@@ -45,9 +45,6 @@ public:
     void setup_sha3_constants();
 };
 
-template<typename FieldT>
-using MiMC_gadget = MiMCe7_permutation_gadget<FieldT>;
-
 } // libzeth
 #include "mimc.tcc"
 
