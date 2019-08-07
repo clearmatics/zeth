@@ -12,9 +12,7 @@
 
 #include "circuits/mimc/mimc_mp.hpp"
 
-
 namespace libzeth {
-
 
 template<typename FieldT, typename HashTreeT>
 merkle_tree_field<FieldT, HashTreeT>::merkle_tree_field(const size_t depth) :

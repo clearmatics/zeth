@@ -11,10 +11,9 @@
 #include <libff/common/utils.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
 
-
 namespace libzeth {
 
-/**
+/*
  * Merkle Tree whose nodes are field elements
  *
  * A Merkle tree is maintained as two maps:
@@ -27,7 +26,7 @@ namespace libzeth {
  * trees). Besides offering methods to load and store values, the
  * class offers methods to retrieve the root of the Merkle tree and to
  * obtain the authentication paths for (the value at) a given address.
- */
+**/
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
 typedef FieldT merkle_authentication_node;

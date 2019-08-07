@@ -32,7 +32,7 @@ void merkle_path_authenticator<HashTreeT, FieldT>::generate_r1cs_constraints() {
     // We ensure, if bool_enforce is 1, that the expected root matches the computed one
     this->pb.add_r1cs_constraint(
         libsnark::r1cs_constraint<FieldT>(this->result() - this->m_expected_root, this->value_enforce, 0),
-        FMT(this->annotation_prefix, ".expected_root authenticator")
+            FMT(this->annotation_prefix, ".expected_root authenticator")
     );
 }
 

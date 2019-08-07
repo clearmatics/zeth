@@ -41,10 +41,12 @@ void note_gadget<FieldT>::generate_r1cs_witness(const ZethNote& note) {
     value.fill_with_bits(this->pb, get_vector_from_bits64(note.value()));
 }
 
-// Gadget that makes sure that all conditions are met in order to spend a note:
-// - The nullifier is correctly computed from a_sk and rho
-// - The commitment cm is correctly computed from the coin's data
-// - commitment cm is in the tree of merkle root rt
+/*
+ * Gadget that makes sure that all conditions are met in order to spend a note:
+ * - The nullifier is correctly computed from a_sk and rho
+ * - The commitment cm is correctly computed from the coin's data
+ * - commitment cm is in the tree of merkle root rt
+**/
 template<typename HashTreeT, typename FieldT>
 input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
                                                 libsnark::pb_variable<FieldT>& ZERO,
@@ -67,8 +69,7 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
     auth_path.reset(pb_auth_path);
 
 
-    // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk
-    // is correctly computed from a_sk
+    // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk is correctly computed from a_sk
     spend_authority.reset(new PRF_addr_a_pk_gadget<FieldT>(
         pb,
         ZERO,
@@ -76,8 +77,7 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
         a_pk
     ));
 
-    // Call to the "PRF_nf_gadget" to make sure the nullifier
-    // is correctly computed from a_sk and rho
+    // Call to the "PRF_nf_gadget" to make sure the nullifier is correctly computed from a_sk and rho
     expose_nullifiers.reset(new PRF_nf_gadget<FieldT>(
         pb,
         ZERO,
@@ -131,7 +131,6 @@ input_note_gadget<HashTreeT, FieldT>::input_note_gadget(libsnark::protoboard<Fie
     // We do not forget to allocate the `value_enforce` variable
     // since it is submitted to boolean constraints
     value_enforce.allocate(pb);
-
 
     // These gadgets make sure that the computed
     // commitment is in the merkle tree of root rt
