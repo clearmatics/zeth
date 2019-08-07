@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/scipr-lab/libsnark/blob/master/libsnark/common/data_structures/merkle_tree.hpp
 
-#ifndef MERKLE_TREE_FIELD_HPP_
-#define MERKLE_TREE_FIELD_HPP_
+#ifndef __ZETH_MERKLE_TREE_FIELD_HPP__
+#define __ZETH_MERKLE_TREE_FIELD_HPP__
 
 #include <map>
 #include <vector>
@@ -15,7 +15,7 @@
 namespace libzeth {
 
 /**
- * Merklee Tree whose nodes are field elements
+ * Merkle Tree whose nodes are field elements
  *
  * A Merkle tree is maintained as two maps:
  * - a map from addresses to values, and
@@ -55,8 +55,7 @@ public:
     void dump() const;
 };
 
-} // libsnark
+} // libzeth
+#include "merkle_tree_field.tcc"
 
-#include <src/types/merkle_tree_field.tcc>
-
-#endif // MERKLE_TREE_FIELD_HPP_
+#endif // __ZETH_MERKLE_TREE_FIELD_HPP__

@@ -1,3 +1,6 @@
+#ifndef __ZETH_CIRCUIT_WRAPPER_TCC__
+#define __ZETH_CIRCUIT_WRAPPER_TCC__
+
 #include "zeth.h"
 
 namespace libzeth {
@@ -73,3 +76,5 @@ extended_proof<ppT> CircuitWrapper<FieldT, NumInputs, NumOutputs>::prove(
 }
 
 } // libzeth
+
+#endif // __ZETH_CIRCUIT_WRAPPER_TCC__

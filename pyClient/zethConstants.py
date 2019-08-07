@@ -18,4 +18,5 @@ WEB3_HTTP_PROVIDER = "http://localhost:8545"
 ZETH_MERKLE_TREE_DEPTH = 4
 
 # MiMC constants
+# See: https://github.com/ethereum/go-ethereum/blob/master/crypto/bn256/cloudflare/constants.go#L23
 ZETH_MIMC_PRIME = 21888242871839275222246405745257275088548364400416034343698204186575808495617
