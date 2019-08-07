@@ -73,11 +73,9 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // - Index of the "v_pub_in" field element: {NumOutputs + NumInputs + 1}
                 // - Index of the "v_pub_out" field element: {NumOutputs + NumInputs + 1 + 1}
                 //
-
-
                 // We first allocate the root
                 merkle_root.reset(new libsnark::pb_variable<FieldT>);
-                (*merkle_root).allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
+                merkle_root->allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
 
                 // We allocate 2 field elements to pack each inputs nullifiers and each output commitments
                 for (size_t i = 0; i < NumInputs + NumOutputs; i++) {
