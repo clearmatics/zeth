@@ -19,7 +19,7 @@ merkle_path_authenticator<FieldT, HashTreeT>::merkle_path_authenticator(
     const libsnark::pb_variable<FieldT> bool_enforce,
     const std::string &annotation_prefix
 ) :
-    merkle_path_compute<HashTreeT,FieldT>(pb, depth, address_bits, leaf, path, annotation_prefix),
+    merkle_path_compute<FieldT, HashTreeT>(pb, depth, address_bits, leaf, path, annotation_prefix),
     m_expected_root(expected_root),
     value_enforce(bool_enforce)
 {}
@@ -27,7 +27,7 @@ merkle_path_authenticator<FieldT, HashTreeT>::merkle_path_authenticator(
 template<typename FieldT, typename HashTreeT>
 void merkle_path_authenticator<FieldT, HashTreeT>::generate_r1cs_constraints() {
     // We ensure the computed root is constrained
-    merkle_path_compute<HashTreeT, FieldT>::generate_r1cs_constraints();
+    merkle_path_compute<FieldT, HashTreeT>::generate_r1cs_constraints();
 
     // We ensure, if bool_enforce is 1, that the expected root matches the computed one
     this->pb.add_r1cs_constraint(

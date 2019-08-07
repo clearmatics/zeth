@@ -62,7 +62,7 @@ private:
     libsnark::pb_variable<FieldT> value_enforce; // Bit that checks whether the commitment (leaf) has to be found in the merkle tree (Necessary to support dummy notes of value 0)
     libsnark::pb_variable_array<FieldT> address_bits_va; // Address of the commitment on the tree as Field
     std::shared_ptr<libsnark::pb_variable_array<FieldT>> auth_path; // Authentication pass comprising of all the intermediary hash siblings from the leaf to root
-    std::shared_ptr<merkle_path_authenticator<HashTreeT, FieldT> > check_membership; // Gadget computing the merkle root from a commitment and merkle path, and checking whether it is the expected (i.e. current) merkle root value if value_enforce=1,
+    std::shared_ptr<merkle_path_authenticator<FieldT, HashTreeT> > check_membership; // Gadget computing the merkle root from a commitment and merkle path, and checking whether it is the expected (i.e. current) merkle root value if value_enforce=1,
 
     std::shared_ptr<PRF_addr_a_pk_gadget<FieldT, HashT>> spend_authority; // Makes sure the a_pk is computed corectly from a_sk
     std::shared_ptr<PRF_nf_gadget<FieldT, HashT>> expose_nullifiers; // Makes sure the nullifiers are computed correctly from rho and a_sk

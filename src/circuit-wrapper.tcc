@@ -5,10 +5,10 @@
 
 namespace libzeth {
 
-template<typename FieldT, size_t NumInputs, size_t NumOutputs>
-keyPairT<ppT> CircuitWrapper<FieldT, NumInputs, NumOutputs>::generate_trusted_setup() {
+template<typename FieldT, typename HashT, typename HashTreeT, typename ppT, size_t NumInputs, size_t NumOutputs>
+keyPairT<ppT> CircuitWrapper<FieldT, HashT, HashTreeT, ppT, NumInputs, NumOutputs>::generate_trusted_setup() {
     libsnark::protoboard<FieldT> pb;
-    joinsplit_gadget<FieldT, HashTreeT, NumInputs, NumOutputs> g(pb);
+    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
 
     // Generate a verification and proving key (trusted setup)
@@ -19,8 +19,8 @@ keyPairT<ppT> CircuitWrapper<FieldT, NumInputs, NumOutputs>::generate_trusted_se
     return keypair;
 }
 
-template<typename FieldT, size_t NumInputs, size_t NumOutputs>
-extended_proof<ppT> CircuitWrapper<FieldT, NumInputs, NumOutputs>::prove(
+template<typename FieldT, typename HashT, typename HashTreeT, typename ppT, size_t NumInputs, size_t NumOutputs>
+extended_proof<ppT> CircuitWrapper<FieldT, HashT, HashTreeT, ppT, NumInputs, NumOutputs>::prove(
     const FieldT& root,
     const std::array<JSInput<FieldT>, NumInputs>& inputs,
     const std::array<ZethNote, NumOutputs>& outputs,
@@ -51,7 +51,7 @@ extended_proof<ppT> CircuitWrapper<FieldT, NumInputs, NumOutputs>::prove(
     }
 
     libsnark::protoboard<FieldT> pb;
-    joinsplit_gadget<FieldT, HashTreeT, NumInputs, NumOutputs> g(pb);
+    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
     g.generate_r1cs_witness(
         root,
