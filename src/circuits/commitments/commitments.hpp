@@ -28,12 +28,12 @@ public:
     void generate_r1cs_witness();
 };
 
-template<typename FieldT, typename HashT>
+template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get128bits(libsnark::pb_variable_array<FieldT>& inner_k);
 
 // As mentioned in Zerocash extended paper, page 22
 // Right side of the hash inputs to generate cm is: 0^192 || value_v (64 bits)
-template<typename FieldT, typename HashT>
+template<typename FieldT>
 libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
     libsnark::pb_variable<FieldT>& ZERO,
     libsnark::pb_variable_array<FieldT>& value_v
