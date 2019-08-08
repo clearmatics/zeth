@@ -21,7 +21,6 @@ namespace libzeth {
 
 template<typename FieldT>
 sha256_ethereum<FieldT>::sha256_ethereum(libsnark::protoboard<FieldT> &pb,
-                                         const size_t /* block_length */,
                                          const libsnark::block_variable<FieldT> &input_block,
                                          const libsnark::digest_variable<FieldT> &output,
                                          const std::string &annotation_prefix) :

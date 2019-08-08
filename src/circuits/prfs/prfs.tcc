@@ -23,7 +23,6 @@ PRF_gadget<FieldT, HashT>::PRF_gadget(libsnark::protoboard<FieldT>& pb,
 
     hasher.reset(new HashT(
         pb,
-        HashT::get_block_len(),
         *block,
         *result,
         "PRF_hasher")

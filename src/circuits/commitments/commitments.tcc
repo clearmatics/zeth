@@ -25,7 +25,6 @@ COMM_gadget<FieldT, HashT>::COMM_gadget(libsnark::protoboard<FieldT>& pb,
 
     hasher.reset(new HashT(
         pb,
-        HashT::get_block_len(),
         *block,
         *result,
         annotation_hasher
