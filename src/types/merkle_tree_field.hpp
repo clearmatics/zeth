@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/scipr-lab/libsnark/blob/master/libsnark/common/data_structures/merkle_tree.hpp
 
-#ifndef MERKLE_TREE_FIELD_HPP_
-#define MERKLE_TREE_FIELD_HPP_
+#ifndef __ZETH_MERKLE_TREE_FIELD_HPP__
+#define __ZETH_MERKLE_TREE_FIELD_HPP__
 
 #include <map>
 #include <vector>
@@ -11,15 +11,14 @@
 #include <libff/common/utils.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
 
-
 namespace libzeth {
 
-/**
- * Merklee Tree whose nodes are field elements
+/*
+ * Merkle Tree whose nodes are field elements
  *
  * A Merkle tree is maintained as two maps:
- * - a map from addresses to values, and
- * - a map from addresses to hashes.
+ * - `values` = Map from addresses to values, and
+ * - `hashes` = Map from addresses to hashes.
  *
  * The second map maintains the intermediate hashes of a Merkle tree
  * built atop the values currently stored in the tree (the
@@ -27,11 +26,9 @@ namespace libzeth {
  * trees). Besides offering methods to load and store values, the
  * class offers methods to retrieve the root of the Merkle tree and to
  * obtain the authentication paths for (the value at) a given address.
- */
-typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT;
-typedef FieldT merkle_authentication_node;
-typedef std::vector<merkle_authentication_node> merkle_authentication_path;
+**/
+//typedef FieldT merkle_authentication_node;
+//typedef std::vector<merkle_authentication_node> merkle_authentication_path;
 
 template<typename FieldT, typename HashTreeT>
 class merkle_tree_field {
@@ -50,13 +47,12 @@ public:
     void set_value(const size_t address, const FieldT &value);
 
     FieldT get_root() const;
-    merkle_authentication_path get_path(const size_t address) const;
+    std::vector<FieldT> get_path(const size_t address) const;
 
     void dump() const;
 };
 
-} // libsnark
+} // libzeth
+#include "merkle_tree_field.tcc"
 
-#include <src/types/merkle_tree_field.tcc>
-
-#endif // MERKLE_TREE_FIELD_HPP_
+#endif // __ZETH_MERKLE_TREE_FIELD_HPP__

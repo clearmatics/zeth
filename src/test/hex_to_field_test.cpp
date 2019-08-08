@@ -12,6 +12,7 @@
 
 #include "assert.h"
 
+// Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 
@@ -21,7 +22,6 @@ TEST(TestHexConvertion, TestHexToFieldTrue) {
 
     std::string sample = "1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
     FieldT expected_field_element = FieldT("14474011154664524427946373126085988481658748083205070504932198000989141204991");
-
     FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
 
     bool res = false;
@@ -35,7 +35,6 @@ TEST(TestHexConvertion, TestHexToFieldFalse) {
 
     std::string sample = "1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1";
     FieldT expected_field_element = FieldT("14474011154664524427946373126085988481658748083205070504932198000989141204991");
-
     FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
 
     bool res = false;
@@ -49,7 +48,6 @@ TEST(TestHexConvertion, TestHexToFieldSmallTrue) {
 
     std::string sample = "1ffffffffffffffffffffffff";
     FieldT expected_field_element = FieldT("158456325028528675187087900671");
-
     FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
 
     bool res = false;
@@ -63,7 +61,6 @@ TEST(TestHexConvertion, TestHexToFieldSmallFalse) {
 
     std::string sample = "1fffffffffffffffffffffff1";
     FieldT expected_field_element = FieldT("158456325028528675187087900671");
-
     FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
 
     bool res = false;
@@ -77,7 +74,6 @@ TEST(TestHexConvertion, TestHexToFieldMixedLetters) {
 
     std::string sample = "1FfffFfffffffffffffffffff";
     FieldT expected_field_element = FieldT("158456325028528675187087900671");
-
     FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
 
     bool res = false;
@@ -93,12 +89,9 @@ TEST(TestHexConvertion, TestHexToFieldBadString) {
     std::string sample = "xxx";
     bool res = true;
 
-    try
-    {
+    try {
       FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
-    }
-    catch(const std::exception &exc)
-    {
+    } catch(const std::exception &exc) {
       res = false;
     }
 

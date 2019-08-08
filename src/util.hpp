@@ -26,7 +26,6 @@ template<typename FieldT>
 FieldT string_to_field(std::string input);
 
 } // libzeth
-
 #include "util.tcc"
 
 #endif

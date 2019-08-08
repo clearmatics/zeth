@@ -38,4 +38,4 @@ bits64 sum_bits64(bits64 a, bits64 b);
 } // libzeth
 #include "bits.tcc"
 
-#endif // __ZETH_BITS_TCC__
+#endif // __ZETH_BITS_HPP__

@@ -21,15 +21,16 @@
 
 using namespace libzeth;
 
+// Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
-typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
-typedef MiMC_mp_gadget<FieldT> HashTreeT; // We use our hash function to do the tests
+typedef sha256_ethereum<FieldT> HashT;
+typedef MiMC_mp_gadget<FieldT> HashTreeT;
 
 namespace {
 
 bool TestValidJS2In2Case1(
-    CircuitWrapper<FieldT, 2, 2> &prover,
+    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
@@ -40,8 +41,8 @@ bool TestValidJS2In2Case1(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
-            )
+            ZETH_MERKLE_TREE_DEPTH_TEST
+        )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -57,7 +58,7 @@ bool TestValidJS2In2Case1(
 
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -148,7 +149,7 @@ bool TestValidJS2In2Case1(
 
 
 bool TestValidJS2In2Case2(
-    CircuitWrapper<FieldT, 2, 2> &prover,
+    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     libff::print_header("Starting test: IN => v_pub = 0, note1 = 0x2F0000000000000F, note2 = 0x0 || OUT => v_pub = 0x000000000000000B, note1 = 0x1A00000000000002, note2 = 0x1500000000000002");
@@ -158,8 +159,8 @@ bool TestValidJS2In2Case2(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
-            )
+            ZETH_MERKLE_TREE_DEPTH_TEST
+        )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -175,7 +176,7 @@ bool TestValidJS2In2Case2(
     // We compute the commitment to insert it in the merkle tree we use for the tests
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -265,7 +266,7 @@ bool TestValidJS2In2Case2(
 
 
 bool TestValidJS2In2Case3(
-    CircuitWrapper<FieldT, 2, 2> &prover,
+    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
@@ -276,8 +277,8 @@ bool TestValidJS2In2Case3(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
-            )
+            ZETH_MERKLE_TREE_DEPTH_TEST
+        )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -293,7 +294,7 @@ bool TestValidJS2In2Case3(
     // We compute the commitment to insert it in the merkle tree we use for the tests
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -382,7 +383,7 @@ bool TestValidJS2In2Case3(
 }
 
 bool TestValidJS2In2Deposit(
-    CircuitWrapper<FieldT, 2, 2> &prover,
+    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
@@ -393,8 +394,8 @@ bool TestValidJS2In2Deposit(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
-            )
+            ZETH_MERKLE_TREE_DEPTH_TEST
+        )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -410,7 +411,7 @@ bool TestValidJS2In2Deposit(
     // We compute a commitment to insert it in the merkle tree we use for the tests
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -501,7 +502,7 @@ bool TestValidJS2In2Deposit(
 }
 
 bool TestInvalidJS2In2(
-    CircuitWrapper<FieldT, 2, 2> &prover,
+    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair
 ) {
     // --- General setup for the tests --- //
@@ -512,8 +513,8 @@ bool TestInvalidJS2In2(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
-            )
+            ZETH_MERKLE_TREE_DEPTH_TEST
+        )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
 
@@ -529,7 +530,7 @@ bool TestInvalidJS2In2(
     // We compute a commitment to insert it in the merkle tree we use for the tests
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -622,7 +623,7 @@ bool TestInvalidJS2In2(
 
 TEST(MainTests, ProofGenAndVerifJS2to2) {
     // Run the trusted setup once for all tests, and keep the keypair in memory for the duration of the tests
-    CircuitWrapper<FieldT, 2, 2> proverJS2to2;
+    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> proverJS2to2;
     libzeth::keyPairT<ppT> keypair = proverJS2to2.generate_trusted_setup();
     bool res = false;
 
@@ -651,7 +652,6 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     } catch (const std::invalid_argument& e) {
 	  std::cerr << "Invalid argument exception: " << e.what() << '\n';
     }
-
 }
 
 } // namespace

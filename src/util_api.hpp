@@ -26,7 +26,6 @@ proverpkg::HexadecimalPointBaseGroup1Affine FormatHexadecimalPointBaseGroup1Affi
 proverpkg::HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affine(libff::alt_bn128_G2 point);
 
 } // libzeth
-
 #include "util_api.tcc"
 
 #endif // __ZETH_UTIL_API_HPP__

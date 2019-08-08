@@ -45,18 +45,20 @@ using proverpkg::Prover;
 using proverpkg::PackedDigest;
 using proverpkg::ProofInputs;
 
-typedef libff::default_ec_pp ppT;
+// Instantiate the templates with the right types
+typedef libff::default_ec_pp ppT; // Instantiated from the curve specified in the CMakelists.txt
 typedef libff::Fr<ppT> FieldT;
-typedef sha256_ethereum<FieldT> HashT;
+typedef MiMC_mp_gadget<FieldT> HashTreeT; // Hash used in the merkle tree
+typedef sha256_ethereum<FieldT> HashT; // Hash used for the commitments and PRFs
 
 class ProverImpl final : public Prover::Service {
 private:
-  libzeth::CircuitWrapper<FieldT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS> prover;
+  libzeth::CircuitWrapper<FieldT, HashT, HashTreeT, ppT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS> prover;
   keyPairT<ppT> keypair; // Result of the setup
 
 public:
   explicit ProverImpl(
-    libzeth::CircuitWrapper<FieldT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS>& prover,
+    libzeth::CircuitWrapper<FieldT, HashT, HashTreeT, ppT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS>& prover,
     keyPairT<ppT>& keypair
   ) : prover(prover), keypair(keypair) {}
 
@@ -175,7 +177,7 @@ void ServerStartMessage() {
 }
 
 void RunServer(
-  libzeth::CircuitWrapper<FieldT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS>& prover,
+  libzeth::CircuitWrapper<FieldT, HashT, HashTreeT, ppT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS>& prover,
   keyPairT<ppT>& keypair
 ) {
   // Listen for incoming connections on 0.0.0.0:50051
@@ -208,7 +210,7 @@ int main(int argc, char** argv) {
   ppT::init_public_params();
 
   std::cout << "[DEBUG] Run setup" << std::endl;
-  libzeth::CircuitWrapper<FieldT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS> prover;
+  libzeth::CircuitWrapper<FieldT, HashT, HashTreeT, ppT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS> prover;
   keyPairT<ppT> keypair = prover.generate_trusted_setup();
 
   std::cout << "[DEBUG] Setup successful, starting the server..." << std::endl;

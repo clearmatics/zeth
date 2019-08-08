@@ -4,15 +4,16 @@
 #include "circuits/merkle_tree/merkle_path_authenticator.hpp"
 #include "circuits/mimc/mimc_mp.hpp"
 
+using namespace libzeth;
+
+// Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
-
-using namespace libzeth;
+typedef MiMC_mp_gadget<FieldT> HashTreeT;
 
 namespace {
 
-bool test_merkle_path_selector(int is_right)
-{
+bool test_merkle_path_selector(int is_right) {
 	libsnark::protoboard<FieldT> pb;
 
 	FieldT value_A = FieldT("149674538925118052205057075966660054952481571156186698930522557832224430770");
@@ -38,24 +39,23 @@ bool test_merkle_path_selector(int is_right)
 	selector.generate_r1cs_witness();
 	selector.generate_r1cs_constraints();
 
-	if( is_right ) {
-		if( pb.val(selector.get_left()) != value_B ) {
+	if (is_right) {
+		if (pb.val(selector.get_left()) != value_B) {
 			return false;
 		}
-		if( pb.val(selector.get_right()) != value_A ) {
+		if (pb.val(selector.get_right()) != value_A) {
 			return false;
 		}
-	}
-	else {
-		if( pb.val(selector.get_left()) != value_A ) {
+	} else {
+		if (pb.val(selector.get_left()) != value_A) {
 			return false;
 		}
-		if( pb.val(selector.get_right()) != value_B ) {
+		if (pb.val(selector.get_right()) != value_B) {
 			return false;
 		}
 	}
 
-	if( ! pb.is_satisfied() ) {
+	if (!pb.is_satisfied()) {
 		std::cerr << "FAIL merkle_path_authenticator is_satisfied\n";
 		return false;
 	}
@@ -69,11 +69,9 @@ bool test_merkle_path_authenticator_depth1() {
     // root is 3075442268020138823380831368198734873612490112867968717790651410945045657947. Authenticator for right leaf (`is_right` = 1)
 
 	libsnark::protoboard<FieldT> pb;
-
 	libsnark::pb_variable<FieldT> iv;
 
 	iv.allocate(pb, "iv");
-
 	pb.set_input_sizes(1);
 
 	pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790");
@@ -105,22 +103,28 @@ bool test_merkle_path_authenticator_depth1() {
 
 
 	size_t tree_depth = 1;
-	merkle_path_authenticator<MiMC_mp_gadget<FieldT>, FieldT> auth(
-		pb, tree_depth, address_bits,
-		leaf, expected_root, path, enforce_bit,
-		"authenticator");
+	merkle_path_authenticator<FieldT, HashTreeT> auth(
+		pb,
+		tree_depth,
+		address_bits,
+		leaf,
+		expected_root,
+		path,
+		enforce_bit,
+		"authenticator"
+	);
 
 	auth.generate_r1cs_constraints();
 	auth.generate_r1cs_witness();
 
-	if( ! auth.is_valid() ) {
+	if(!auth.is_valid()) {
 		std::cerr << "Not valid!" << std::endl;
 		std::cerr << "Expected "; pb.val(expected_root).print();
 		std::cerr << "Actual "; pb.val(auth.result()).print();
 		return false;
 	}
 
-	if( ! pb.is_satisfied() ) {
+	if(!pb.is_satisfied()) {
 		std::cerr << "Not satisfied!" << std::endl;
 		return false;
 	}
@@ -166,22 +170,28 @@ bool test_merkle_path_authenticator_depth3() {
 	pb.val(enforce_bit) = FieldT("1");
 
 	size_t tree_depth = 3;
-	merkle_path_authenticator<MiMC_mp_gadget<FieldT>, FieldT> auth(
-		pb, tree_depth, address_bits,
-		leaf, expected_root, path, enforce_bit,
-		"authenticator");
+	merkle_path_authenticator<FieldT, HashTreeT> auth(
+		pb,
+		tree_depth,
+		address_bits,
+		leaf,
+		expected_root,
+		path,
+		enforce_bit,
+		"authenticator"
+	);
 
 	auth.generate_r1cs_constraints();
 	auth.generate_r1cs_witness();
 
-	if( ! auth.is_valid() ) {
+	if(!auth.is_valid()) {
 		std::cerr << "Not valid!" << std::endl;
 		std::cerr << "Expected "; pb.val(expected_root).print();
 		std::cerr << "Actual "; pb.val(auth.result()).print();
 		return false;
 	}
 
-	if( ! pb.is_satisfied() ) {
+	if(!pb.is_satisfied()) {
 		std::cerr << "Not satisfied!" << std::endl;
 		return false;
 	}
@@ -189,17 +199,12 @@ bool test_merkle_path_authenticator_depth3() {
 	return true;
 }
 
-
-
-TEST(MainTests, ProofGenAndVerifJS2to2) {
-    // Run the trusted setup once for all tests, and keep the keypair in memory for the duration of the tests
-
+TEST(MainTests, TestMerkleTreeField) {
     bool res = false;
 
     res = test_merkle_path_selector(0);
     std::cout << "[test_merkle_path_selector 0] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
-
 
     res = test_merkle_path_selector(1);
     std::cout << "[test_merkle_path_selector 1] Expected (True), Obtained result: " << res << std::endl;
@@ -212,7 +217,6 @@ TEST(MainTests, ProofGenAndVerifJS2to2) {
     res = test_merkle_path_authenticator_depth3();
     std::cout << "[test_merkle_path_authenticator_depth3] Expected (True), Obtained result: " << res << std::endl;
     ASSERT_TRUE(res);
-
 }
 
 int main(int argc, char **argv) {

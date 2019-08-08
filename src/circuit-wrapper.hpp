@@ -10,19 +10,14 @@
 #include "snarks_alias.hpp"
 #include "snarks_core_imports.hpp"
 
-typedef libff::default_ec_pp ppT;
-
 namespace libzeth {
 
-template<typename FieldT, size_t NumInputs, size_t NumOutputs>
+template<typename FieldT, typename HashT, typename HashTreeT, typename ppT, size_t NumInputs, size_t NumOutputs>
 class CircuitWrapper {
 public:
-    typedef libff::default_ec_pp ppT; // We use the public paramaters (ppT) of the curve used in the CMakeLists.txt
-    typedef MiMC_mp_gadget<FieldT> HashTreeT; // We instantiate the HashTreeT with MiMC compression function
-
     libsnark::protoboard<FieldT> pb;
     boost::filesystem::path setupPath;
-    std::shared_ptr<joinsplit_gadget<FieldT, HashTreeT, NumInputs, NumOutputs>> joinsplit_g;
+    std::shared_ptr<joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs>> joinsplit_g;
 
     CircuitWrapper(
         const boost::filesystem::path setupPath = ""

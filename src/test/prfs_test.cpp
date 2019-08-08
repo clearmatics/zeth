@@ -29,7 +29,6 @@ typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
 
-
 namespace {
 
 TEST(TestPRFs, TestGenZeroes) {
@@ -75,7 +74,7 @@ TEST(TestPRFs, TestGenZeroes) {
         }, ZERO
     );
 
-    libsnark::pb_variable_array<FieldT> result = gen256zeroes<FieldT>(ZERO);
+    libsnark::pb_variable_array<FieldT> result = gen256zeroes<FieldT, HashT>(ZERO);
     ASSERT_EQ(result.get_bits(pb), zeroes256.get_bits(pb));
 };
 
@@ -161,7 +160,7 @@ TEST(TestPRFs, TestGetRightSideNFPRF) {
         }, ZERO
     );
 
-    libsnark::pb_variable_array<FieldT> result = getRightSideNFPRF(ZERO, rho);
+    libsnark::pb_variable_array<FieldT> result = getRightSideNFPRF<FieldT, HashT>(ZERO, rho);
     ASSERT_EQ(result.get_bits(pb), expected.get_bits(pb));
 };
 
@@ -224,8 +223,8 @@ TEST(TestPRFs, TestPRFAddrApkGadget) {
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<PRF_addr_a_pk_gadget<FieldT> > prf_apk_gadget;
-    prf_apk_gadget.reset(new PRF_addr_a_pk_gadget<FieldT>(
+    std::shared_ptr<PRF_addr_a_pk_gadget<FieldT, HashT> > prf_apk_gadget;
+    prf_apk_gadget.reset(new PRF_addr_a_pk_gadget<FieldT, HashT>(
         pb,
         ZERO,
         a_sk,
@@ -339,8 +338,8 @@ TEST(TestPRFs, TestPRFNFGadget) {
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<PRF_nf_gadget<FieldT> > prf_nf_gadget;
-    prf_nf_gadget.reset(new PRF_nf_gadget<FieldT>(
+    std::shared_ptr<PRF_nf_gadget<FieldT, HashT>> prf_nf_gadget;
+    prf_nf_gadget.reset(new PRF_nf_gadget<FieldT, HashT>(
         pb,
         ZERO,
         a_sk,
