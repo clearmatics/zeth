@@ -99,14 +99,14 @@ def compute_merkle_path(address_commitment, tree_depth, byte_tree):
             print("append note at address: " + str(address + 1))
             merkle_path.append(w3.toHex(byte_tree[address + 1])[2:])
             address = int(address/2)
-    return merkle_path[::-1] # Return the merkle tree in reverse order
+    return merkle_path
 
 def receive(ciphertext, decryption_key, username):
     recovered_plaintext = ""
     try:
         recovered_plaintext = decrypt(ciphertext, decryption_key)
-        print("[INFO] {} recovered one plaintext".format(username))
-        print("[INFO] {} received a payment!".format(username))
+        print("[INFO] {} recovered one plaintext".format(username.capitalize()))
+        print("[INFO] {} received a payment!".format(username.capitalize()))
         # Just as an example we write the received coin in the coinstore
         print("[INFO] Writing the received note in the coinstore")
         coinstore_dir = os.environ['ZETH_COINSTORE']

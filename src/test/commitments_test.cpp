@@ -19,6 +19,7 @@
 
 using namespace libzeth;
 
+// Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 typedef sha256_ethereum<FieldT> HashT; // We use our hash function to do the tests
@@ -261,8 +262,8 @@ TEST(TestCOMMs, TestCOMMInnerKGadget) {
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<COMM_inner_k_gadget<FieldT> > comm_inner_k_gadget;
-    comm_inner_k_gadget.reset(new COMM_inner_k_gadget<FieldT>(
+    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT> > comm_inner_k_gadget;
+    comm_inner_k_gadget.reset(new COMM_inner_k_gadget<FieldT, HashT>(
         pb,
         ZERO,
         a_pk,
@@ -402,8 +403,8 @@ TEST(TestCOMMs, TestCOMMOuterKGadget) {
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<COMM_outer_k_gadget<FieldT> > comm_outer_k_gadget;
-    comm_outer_k_gadget.reset(new COMM_outer_k_gadget<FieldT>(
+    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT> > comm_outer_k_gadget;
+    comm_outer_k_gadget.reset(new COMM_outer_k_gadget<FieldT, HashT>(
         pb,
         ZERO,
         trap_r,
@@ -496,8 +497,8 @@ TEST(TestCOMMs, TestCOMMCMGadget) {
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<COMM_cm_gadget<FieldT> > comm_cm_gadget;
-    comm_cm_gadget.reset(new COMM_cm_gadget<FieldT>(
+    std::shared_ptr<COMM_cm_gadget<FieldT, HashT> > comm_cm_gadget;
+    comm_cm_gadget.reset(new COMM_cm_gadget<FieldT, HashT>(
         pb,
         ZERO,
         outer_k,

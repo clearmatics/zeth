@@ -55,10 +55,12 @@ if __name__ == '__main__':
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     (verifier_interface, mixer_interface) = zethContracts.compile_contracts(zksnark)
+    hasher_interface, _ = zethContracts.compile_util_contracts()
     (mixer_instance, initial_root) = zethContracts.deploy_contracts(
         mk_tree_depth,
         verifier_interface,
         mixer_interface,
+        hasher_interface,
         deployer_eth_address,
         4000000,
         "0x0000000000000000000000000000000000000000", # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
@@ -110,6 +112,7 @@ if __name__ == '__main__':
     # Bob looks in the merkle tree and gets the merkle path to the commitment he wants to spend
     mk_byte_tree = get_merkle_tree(mixer_instance)
     mk_path = zethUtils.compute_merkle_path(cm_address_bob_to_bob1, mk_tree_depth, mk_byte_tree)
+
     # Bob decrypts one of the note he previously received (useless here but useful if the payment came from someone else)
     input_note_json = json.loads(zethUtils.decrypt(ciphertext_bob_to_bob1, keystore["Bob"]["AddrSk"]["dk"]))
     input_note_bob_to_charlie = zethGRPC.zethNoteObjFromParsed(input_note_json)
@@ -131,6 +134,7 @@ if __name__ == '__main__':
     new_merkle_root_bob_to_charlie = result_transfer_bob_to_charlie[2]
     ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[3]
     ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[4]
+    
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = ""
     try:

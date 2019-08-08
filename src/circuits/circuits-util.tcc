@@ -93,7 +93,7 @@ libsnark::pb_variable_array<FieldT> from_bits(std::vector<bool> bits, libsnark::
     }
 
     return acc;
-}
+};
 
 } // libzeth
 

@@ -4,48 +4,17 @@
 
 namespace libzeth {
 
-libsnark::merkle_authentication_node ParseMerkleNode(std::string mk_node) {
-    return libff::bit_vector(libzeth::hexadecimal_digest_to_binary_vector(mk_node));
-}
+ZethNote ParseZethNote(const proverpkg::ZethNote& note) {
+    bits256 noteAPK = hexadecimal_digest_to_bits256(note.apk());
+    bits64 noteValue = hexadecimal_value_to_bits64(note.value());
+    bits256 noteRho = hexadecimal_digest_to_bits256(note.rho());
+    bits384 noteTrapR = get_bits384_from_vector(hexadecimal_str_to_binary_vector(note.trapr()));
 
-libzeth::ZethNote ParseZethNote(const proverpkg::ZethNote& note) {
-    libzeth::bits256 noteAPK = libzeth::hexadecimal_digest_to_bits256(note.apk());
-    libzeth::bits64 noteValue = libzeth::hexadecimal_value_to_bits64(note.value());
-    libzeth::bits256 noteRho = libzeth::hexadecimal_digest_to_bits256(note.rho());
-    libzeth::bits384 noteTrapR = libzeth::get_bits384_from_vector(libzeth::hexadecimal_str_to_binary_vector(note.trapr()));
-
-    return libzeth::ZethNote(
+    return ZethNote(
         noteAPK,
         noteValue,
         noteRho,
         noteTrapR
-    );
-}
-
-libzeth::JSInput ParseJSInput(const proverpkg::JSInput& input) {
-    if (ZETH_MERKLE_TREE_DEPTH != input.merklenode_size()) {
-        throw std::invalid_argument("Invalid merkle path length");
-    }
-
-    libzeth::ZethNote inputNote = ParseZethNote(input.note());
-    size_t inputAddress = input.address();
-    libzeth::bitsAddr inputAddressBits = libzeth::get_bitsAddr_from_vector(libzeth::address_bits_from_address(inputAddress, ZETH_MERKLE_TREE_DEPTH));
-    libzeth::bits256 inputSpendingASK = libzeth::hexadecimal_digest_to_bits256(input.spendingask());
-    libzeth::bits256 inputNullifier = libzeth::hexadecimal_digest_to_bits256(input.nullifier());
-
-    std::vector<libsnark::merkle_authentication_node> inputMerklePath;
-    for(int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
-        libsnark::merkle_authentication_node mk_node = ParseMerkleNode(input.merklenode(i));
-        inputMerklePath.push_back(mk_node);
-    }
-
-    return libzeth::JSInput(
-        inputMerklePath,
-        inputAddress,
-        inputAddressBits,
-        inputNote,
-        inputSpendingASK,
-        inputNullifier
     );
 }
 

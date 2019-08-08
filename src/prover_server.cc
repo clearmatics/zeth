@@ -45,18 +45,20 @@ using proverpkg::Prover;
 using proverpkg::PackedDigest;
 using proverpkg::ProofInputs;
 
-typedef libff::default_ec_pp ppT;
+// Instantiate the templates with the right types
+typedef libff::default_ec_pp ppT; // Instantiated from the curve specified in the CMakelists.txt
 typedef libff::Fr<ppT> FieldT;
-typedef sha256_ethereum<FieldT> HashT;
+typedef MiMC_mp_gadget<FieldT> HashTreeT; // Hash used in the merkle tree
+typedef sha256_ethereum<FieldT> HashT; // Hash used for the commitments and PRFs
 
 class ProverImpl final : public Prover::Service {
 private:
-  libzeth::CircuitWrapper<ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS> prover;
+  libzeth::CircuitWrapper<FieldT, HashT, HashTreeT, ppT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS> prover;
   keyPairT<ppT> keypair; // Result of the setup
 
 public:
   explicit ProverImpl(
-    libzeth::CircuitWrapper<ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS>& prover,
+    libzeth::CircuitWrapper<FieldT, HashT, HashTreeT, ppT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS>& prover,
     keyPairT<ppT>& keypair
   ) : prover(prover), keypair(keypair) {}
 
@@ -90,7 +92,7 @@ public:
 
     // Parse received message to feed to the prover
     try {
-      libzeth::bits256 root_bits = libzeth::hexadecimal_digest_to_bits256(proofInputs->root());
+      FieldT root = libzeth::string_to_field<FieldT>(proofInputs->root());
       libzeth::bits64 vpub_in = libzeth::hexadecimal_value_to_bits64(proofInputs->inpubvalue());
       libzeth::bits64 vpub_out = libzeth::hexadecimal_value_to_bits64(proofInputs->outpubvalue());
 
@@ -102,10 +104,10 @@ public:
       }
 
       std::cout << "[DEBUG] Process every inputs of the JoinSplit" << std::endl;
-      std::array<libzeth::JSInput, ZETH_NUM_JS_INPUTS> jsInputs;
+      std::array<libzeth::JSInput<FieldT>, ZETH_NUM_JS_INPUTS> jsInputs;
       for(int i = 0; i < ZETH_NUM_JS_INPUTS; i++) {
         proverpkg::JSInput receivedInput = proofInputs->jsinputs(i);
-        libzeth::JSInput parsedInput = ParseJSInput(receivedInput);
+        libzeth::JSInput<FieldT> parsedInput = ParseJSInput<FieldT>(receivedInput);
         jsInputs[i] = parsedInput;
       }
 
@@ -120,7 +122,7 @@ public:
       std::cout << "[DEBUG] Data parsed successfully" << std::endl;
       std::cout << "[DEBUG] Generating the proof..." << std::endl;
       extended_proof<ppT> ext_proof = this->prover.prove(
-        root_bits,
+        root,
         jsInputs,
         jsOutputs,
         vpub_in,
@@ -175,7 +177,7 @@ void ServerStartMessage() {
 }
 
 void RunServer(
-  libzeth::CircuitWrapper<ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS>& prover,
+  libzeth::CircuitWrapper<FieldT, HashT, HashTreeT, ppT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS>& prover,
   keyPairT<ppT>& keypair
 ) {
   // Listen for incoming connections on 0.0.0.0:50051
@@ -208,7 +210,7 @@ int main(int argc, char** argv) {
   ppT::init_public_params();
 
   std::cout << "[DEBUG] Run setup" << std::endl;
-  libzeth::CircuitWrapper<ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS> prover;
+  libzeth::CircuitWrapper<FieldT, HashT, HashTreeT, ppT, ZETH_NUM_JS_INPUTS, ZETH_NUM_JS_OUTPUTS> prover;
   keyPairT<ppT> keypair = prover.generate_trusted_setup();
 
   std::cout << "[DEBUG] Setup successful, starting the server..." << std::endl;

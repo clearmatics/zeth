@@ -8,7 +8,7 @@ contract Pghr13Mixer is BaseMixer {
     Pghr13Verifier public zksnark_verifier;
 
     // Constructor
-    constructor(address verifier_address, uint mk_depth, address token_address) BaseMixer(mk_depth, token_address) public {
+    constructor(address verifier_address, uint mk_depth, address token_address, address hasher_address) BaseMixer(mk_depth, token_address, hasher_address) public {
         zksnark_verifier = Pghr13Verifier(verifier_address);
     }
 

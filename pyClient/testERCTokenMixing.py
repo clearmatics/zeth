@@ -89,11 +89,13 @@ if __name__ == '__main__':
     print("[INFO] 3. VK written, deploying the smart contracts...")
     token_interface = compile_token()
     (verifier_interface, mixer_interface) = zethContracts.compile_contracts(zksnark)
+    hasher_interface, _ = zethContracts.compile_util_contracts()
     token_instance = deploy_token(deployer_eth_address, 4000000)
     (mixer_instance, initial_root) = zethContracts.deploy_contracts(
         mk_tree_depth,
         verifier_interface,
         mixer_interface,
+        hasher_interface,
         deployer_eth_address,
         4000000,
         token_instance.address, # We mix Ether in this test, so we set the addr of the ERC20 contract to be 0x0
@@ -134,7 +136,6 @@ if __name__ == '__main__':
     w3.eth.waitForTransactionReceipt(tx_hash)
     allowance_mixer = allowance(token_instance, bob_eth_address, mixer_instance.address)
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
-
     # Bob deposits 4ETH split in 2 notes of denominations of 2ETh and 2ETH on the mixer
     result_deposit_bob_to_bob = zethTest.bob_deposit(
         test_grpc_endpoint,
@@ -192,6 +193,7 @@ if __name__ == '__main__':
     new_merkle_root_bob_to_charlie = result_transfer_bob_to_charlie[2]
     ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[3]
     ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[4]
+    
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = ""
     try:
