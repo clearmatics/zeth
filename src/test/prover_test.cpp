@@ -41,7 +41,7 @@ bool TestValidJS2In2Case1(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
+            ZETH_MERKLE_TREE_DEPTH_TEST
         )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
@@ -58,7 +58,7 @@ bool TestValidJS2In2Case1(
 
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -159,7 +159,7 @@ bool TestValidJS2In2Case2(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
+            ZETH_MERKLE_TREE_DEPTH_TEST
         )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
@@ -176,7 +176,7 @@ bool TestValidJS2In2Case2(
     // We compute the commitment to insert it in the merkle tree we use for the tests
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -277,7 +277,7 @@ bool TestValidJS2In2Case3(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
+            ZETH_MERKLE_TREE_DEPTH_TEST
         )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
@@ -294,7 +294,7 @@ bool TestValidJS2In2Case3(
     // We compute the commitment to insert it in the merkle tree we use for the tests
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -394,7 +394,7 @@ bool TestValidJS2In2Deposit(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
+            ZETH_MERKLE_TREE_DEPTH_TEST
         )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
@@ -411,7 +411,7 @@ bool TestValidJS2In2Deposit(
     // We compute a commitment to insert it in the merkle tree we use for the tests
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -513,7 +513,7 @@ bool TestInvalidJS2In2(
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
-            ZETH_MERKLE_TREE_DEPTH
+            ZETH_MERKLE_TREE_DEPTH_TEST
         )
     );
     libff::leave_block("[END] Instantiate merkle tree for the tests", true);
@@ -530,7 +530,7 @@ bool TestInvalidJS2In2(
     // We compute a commitment to insert it in the merkle tree we use for the tests
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // 4 being the value of ZETH_MERKLE_TREE_DEPTH_TEST
     const size_t address_commitment = 1;
 
     // We insert the commitment to the zeth note in the merkle tree
