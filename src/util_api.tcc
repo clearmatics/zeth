@@ -28,7 +28,6 @@ libzeth::JSInput<FieldT> ParseJSInput(const proverpkg::JSInput& input) {
 
     return libzeth::JSInput<FieldT>(
         inputMerklePath,
-        inputAddress,
         inputAddressBits,
         inputNote,
         inputSpendingASK,

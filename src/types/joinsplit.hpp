@@ -17,7 +17,6 @@ class JSInput {
 public:
     // --- Merkle tree witness (path, and address)
     std::vector<FieldT> witness_merkle_path;
-    size_t address;
     bitsAddr address_bits; // boolean vector of length the depth of the merkle tree containing the binary encoding of the address
 
     ZethNote note;
@@ -27,12 +26,11 @@ public:
     JSInput(){};
     JSInput(
         std::vector<FieldT> witness_merkle_path,
-        size_t address,
         bitsAddr address_bits,
         ZethNote note,
         bits256 key,
         bits256 nullifier
-    ) : witness_merkle_path(witness_merkle_path), address(address), address_bits(address_bits), note(note), spending_key_a_sk(key), nullifier(nullifier){}
+    ) : witness_merkle_path(witness_merkle_path), address_bits(address_bits), note(note), spending_key_a_sk(key), nullifier(nullifier){}
 };
 
 } // libzeth

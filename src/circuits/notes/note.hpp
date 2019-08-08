@@ -76,7 +76,6 @@ public:
                     const std::string &annotation_prefix = "input_note_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness(const std::vector<FieldT> merkle_path,
-                            size_t address,
                             libff::bit_vector address_bits,
                             const bits256 a_sk_in,
                             const ZethNote& note);

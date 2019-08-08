@@ -123,7 +123,6 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     input_note_g->generate_r1cs_constraints();
     input_note_g->generate_r1cs_witness(
         path,
-        address_commitment,
         address_bits,
         a_sk_bits256,
         note

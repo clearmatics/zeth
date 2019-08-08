@@ -203,7 +203,6 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_constraints() {
 template<typename FieldT, typename HashT, typename HashTreeT>
 void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
     std::vector<FieldT> merkle_path,
-    size_t address,
     libff::bit_vector address_bits,
     const bits256 a_sk_in,
     const ZethNote& note
@@ -308,9 +307,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
 
     // Witness merkle tree authentication path
     address_bits_va.fill_with_bits(this->pb, address_bits);
-    // Make sure `address_bits` and `address` represent the same
-    // value encoded on different bases (binary and decimal)
-    assert(address_bits_va.get_field_element_from_bits(this->pb).as_ulong() == address);
+
     // Set auth_path values
     auth_path->fill_with_field_elements(this->pb, merkle_path);
 

@@ -334,11 +334,9 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             // Witness the JoinSplit inputs
             for (size_t i = 0; i < NumInputs; i++) {
                 std::vector<FieldT> merkle_path = inputs[i].witness_merkle_path;
-                size_t address = inputs[i].address;
                 libff::bit_vector address_bits = get_vector_from_bitsAddr(inputs[i].address_bits);
                 input_notes[i]->generate_r1cs_witness(
                     merkle_path,
-                    address,
                     address_bits,
                     inputs[i].spending_key_a_sk,
                     inputs[i].note
