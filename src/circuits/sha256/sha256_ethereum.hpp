@@ -46,7 +46,6 @@ public:
     typedef libsnark::merkle_authentication_path merkle_authentication_path_type; // Same as above, this is used in the merkle tree
 
     sha256_ethereum(libsnark::protoboard<FieldT> &pb,
-                    const size_t block_length,
                     const libsnark::block_variable<FieldT> &input_block,
                     const libsnark::digest_variable<FieldT> &output,
                     const std::string &annotation_prefix = "sha256_ethereum");

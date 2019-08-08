@@ -56,8 +56,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         // Primary inputs are packed to be added to the extended proof and given to the verifier on-chain
         joinsplit_gadget(protoboard<FieldT> &pb,
-                        const std::string &annotation_prefix = "joinsplit_gadget"
-        ) : gadget<FieldT>(pb) {
+                         const std::string &annotation_prefix = "joinsplit_gadget"
+        ) : gadget<FieldT>(pb, annotation_prefix) {
             // Block dedicated to generate the verifier inputs
             {
                 // The verification inputs are, except for the root, all bit-strings of various
@@ -334,11 +334,9 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             // Witness the JoinSplit inputs
             for (size_t i = 0; i < NumInputs; i++) {
                 std::vector<FieldT> merkle_path = inputs[i].witness_merkle_path;
-                size_t address = inputs[i].address;
                 libff::bit_vector address_bits = get_vector_from_bitsAddr(inputs[i].address_bits);
                 input_notes[i]->generate_r1cs_witness(
                     merkle_path,
-                    address,
                     address_bits,
                     inputs[i].spending_key_a_sk,
                     inputs[i].note

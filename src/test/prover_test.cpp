@@ -81,7 +81,6 @@ bool TestValidJS2In2Case1(
     );
     JSInput<FieldT> input(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_input,
         a_sk_bits256,
@@ -92,7 +91,6 @@ bool TestValidJS2In2Case1(
     // Doesn't count in such case
     JSInput<FieldT> input_dummy(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_dummy_input,
         a_sk_bits256,
@@ -199,7 +197,6 @@ bool TestValidJS2In2Case2(
     );
     JSInput<FieldT> input1(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_input1,
         a_sk_bits256,
@@ -210,7 +207,6 @@ bool TestValidJS2In2Case2(
     // Doesn't count in such case
     JSInput<FieldT> input2(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_input2,
         a_sk_bits256,
@@ -317,7 +313,6 @@ bool TestValidJS2In2Case3(
     );
     JSInput<FieldT> input1(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_input1,
         a_sk_bits256,
@@ -328,7 +323,6 @@ bool TestValidJS2In2Case3(
     // Doesn't count in such case
     JSInput<FieldT> input2(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_input2,
         a_sk_bits256,
@@ -434,7 +428,6 @@ bool TestValidJS2In2Deposit(
     );
     JSInput<FieldT> input1(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_input1,
         a_sk_bits256,
@@ -445,7 +438,6 @@ bool TestValidJS2In2Deposit(
     // Doesn't count in such case
     JSInput<FieldT> input2(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_input2,
         a_sk_bits256,
@@ -553,7 +545,6 @@ bool TestInvalidJS2In2(
     );
     JSInput<FieldT> input1(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_input1,
         a_sk_bits256,
@@ -564,7 +555,6 @@ bool TestInvalidJS2In2(
     // Doesn't count in such case
     JSInput<FieldT> input2(
         path,
-        address_commitment,
         get_bitsAddr_from_vector(address_bits),
         note_input2,
         a_sk_bits256,

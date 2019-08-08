@@ -1,7 +1,7 @@
 #ifndef __ZETH_COMMITMENT_CIRCUITS_TCC__
 #define __ZETH_COMMITMENT_CIRCUITS_TCC__
 
-// DISCLAIMER: 
+// DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/commitment.tcc
 
@@ -9,12 +9,11 @@ namespace libzeth {
 
 template<typename FieldT, typename HashT>
 COMM_gadget<FieldT, HashT>::COMM_gadget(libsnark::protoboard<FieldT>& pb,
-                                libsnark::pb_variable<FieldT>& ZERO,
-                                libsnark::pb_variable_array<FieldT> x,
-                                libsnark::pb_variable_array<FieldT> y,
-                                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
-                                const std::string &annotation_prefix
-) : libsnark::gadget<FieldT>(pb), result(result) 
+                                        libsnark::pb_variable_array<FieldT> x,
+                                        libsnark::pb_variable_array<FieldT> y,
+                                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                                        const std::string &annotation_prefix
+) : libsnark::gadget<FieldT>(pb), result(result)
 {
     const std::string annotation_block = std::string(" COMM_block-") + annotation_prefix;
     const std::string annotation_hasher = std::string(" COMM_hasher-") + annotation_prefix;
@@ -26,7 +25,6 @@ COMM_gadget<FieldT, HashT>::COMM_gadget(libsnark::protoboard<FieldT>& pb,
 
     hasher.reset(new HashT(
         pb,
-        HashT::get_block_len(),
         *block,
         *result,
         annotation_hasher
@@ -101,12 +99,11 @@ libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
 // as being the inner commitment of k
 template<typename FieldT, typename HashT>
 COMM_inner_k_gadget<FieldT, HashT>::COMM_inner_k_gadget(libsnark::protoboard<FieldT>& pb,
-                                                libsnark::pb_variable<FieldT>& ZERO,
-                                                libsnark::pb_variable_array<FieldT>& a_pk,  // 256 bits
-                                                libsnark::pb_variable_array<FieldT>& rho,   // 256 bits
-                                                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
-                                                const std::string &annotation_prefix
-) : COMM_gadget<FieldT, HashT>(pb, ZERO, a_pk, rho, result, annotation_prefix) 
+                                                        libsnark::pb_variable_array<FieldT>& a_pk,  // 256 bits
+                                                        libsnark::pb_variable_array<FieldT>& rho,   // 256 bits
+                                                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                                                        const std::string &annotation_prefix
+) : COMM_gadget<FieldT, HashT>(pb, a_pk, rho, result, annotation_prefix)
 {
     // Nothing
 }
@@ -118,12 +115,11 @@ COMM_inner_k_gadget<FieldT, HashT>::COMM_inner_k_gadget(libsnark::protoboard<Fie
 // We denote by trap_r the trapdoor r
 template<typename FieldT, typename HashT>
 COMM_outer_k_gadget<FieldT, HashT>::COMM_outer_k_gadget(libsnark::protoboard<FieldT>& pb,
-                                                libsnark::pb_variable<FieldT>& ZERO,
-                                                libsnark::pb_variable_array<FieldT>& trap_r,    // 384 bits
-                                                libsnark::pb_variable_array<FieldT>& inner_k,   // 256 bits, but we only keep 128 bits our of it
-                                                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
-                                                const std::string &annotation_prefix
-) : COMM_gadget<FieldT, HashT>(pb, ZERO, trap_r, get128bits(inner_k), result, annotation_prefix)
+                                                        libsnark::pb_variable_array<FieldT>& trap_r,    // 384 bits
+                                                        libsnark::pb_variable_array<FieldT>& inner_k,   // 256 bits, but we only keep 128 bits our of it
+                                                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                                                        const std::string &annotation_prefix
+) : COMM_gadget<FieldT, HashT>(pb, trap_r, get128bits(inner_k), result, annotation_prefix)
 {
     // Nothing
 }
@@ -131,12 +127,12 @@ COMM_outer_k_gadget<FieldT, HashT>::COMM_outer_k_gadget(libsnark::protoboard<Fie
 // cm = sha256(outer_k || 0^192 || value_v)
 template<typename FieldT, typename HashT>
 COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
-                                    libsnark::pb_variable<FieldT>& ZERO,
-                                    libsnark::pb_variable_array<FieldT>& outer_k,   // 256 bits
-                                    libsnark::pb_variable_array<FieldT>& value_v,   // 64 bits
-                                    std::shared_ptr<libsnark::digest_variable<FieldT>> result,
-                                    const std::string &annotation_prefix
-) : COMM_gadget<FieldT, HashT>(pb, ZERO, outer_k, getRightSideCMCOMM(ZERO, value_v), result, annotation_prefix) 
+                                              libsnark::pb_variable<FieldT>& ZERO,
+                                              libsnark::pb_variable_array<FieldT>& outer_k,   // 256 bits
+                                              libsnark::pb_variable_array<FieldT>& value_v,   // 64 bits
+                                              std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                                              const std::string &annotation_prefix
+) : COMM_gadget<FieldT, HashT>(pb, outer_k, getRightSideCMCOMM(ZERO, value_v), result, annotation_prefix)
 {
     // Nothing
 }
