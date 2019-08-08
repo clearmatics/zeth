@@ -21,9 +21,6 @@ MiMC_mp_gadget<FieldT>::MiMC_mp_gadget(
   {
     // Allocates output variable
     output.allocate(pb, FMT(annotation_prefix, ".output"));
-
-    const libsnark::pb_variable<FieldT>& m = x;
-    const libsnark::pb_variable<FieldT>& round_key = y;
   }
 
 template<typename FieldT>
