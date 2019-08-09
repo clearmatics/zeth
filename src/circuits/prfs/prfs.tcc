@@ -17,15 +17,16 @@ PRF_gadget<FieldT, HashT>::PRF_gadget(libsnark::protoboard<FieldT>& pb,
 {
 
     block.reset(new libsnark::block_variable<FieldT>(pb, {
-        x,
-        y
-    }, "PRF_block"));
+            x,
+            y
+        }, FMT(this->annotation_prefix, " block"))
+    );
 
     hasher.reset(new HashT(
         pb,
         *block,
         *result,
-        "PRF_hasher")
+        FMT(this->annotation_prefix, " hasher_gadget"))
     );
 }
 
@@ -70,8 +71,7 @@ libsnark::pb_variable_array<FieldT> getRightSideNFPRF(
     assert(HashT::get_block_len()/2 - 2 == 254);
     assert(rho.size() > 254);
 
-    for (size_t i = 0; i < 254; ++i)
-    {
+    for (size_t i = 0; i < 254; ++i) {
         right_side.emplace_back(rho[i]);
     }
 

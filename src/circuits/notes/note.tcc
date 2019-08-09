@@ -12,8 +12,8 @@ note_gadget<FieldT>::note_gadget(libsnark::protoboard<FieldT> &pb,
                                 const std::string &annotation_prefix
 ) : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
-    value.allocate(pb, ZETH_V_SIZE * 8); // ZETH_V_SIZE * 8 = 8 * 8 = 64
-    r.allocate(pb, ZETH_R_SIZE * 8); // ZETH_R_SIZE * 8 = 48 * 8 = 384
+    value.allocate(pb, ZETH_V_SIZE * 8, FMT(this->annotation_prefix, " value")); // ZETH_V_SIZE * 8 = 8 * 8 = 64
+    r.allocate(pb, ZETH_R_SIZE * 8, FMT(this->annotation_prefix, " r")); // ZETH_R_SIZE * 8 = 48 * 8 = 384
 }
 
 template<typename FieldT>
@@ -22,7 +22,7 @@ void note_gadget<FieldT>::generate_r1cs_constraints() {
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
             this->pb,
             value[i],
-            "boolean_value"
+            FMT(this->annotation_prefix, " value[%zu]", i)
         );
     }
 
@@ -30,7 +30,7 @@ void note_gadget<FieldT>::generate_r1cs_constraints() {
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
             this->pb,
             r[i],
-            "boolean_value"
+            FMT(this->annotation_prefix, " r[%zu]", i)
         );
     }
 }
@@ -55,19 +55,18 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
                                                 const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    a_sk.allocate(pb, ZETH_A_SK_SIZE * 8); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
-    rho.allocate(pb, ZETH_RHO_SIZE * 8); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
-    address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH);
-    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, ""));
-    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, ""));
-    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, ""));
-    commitment.reset(new libsnark::digest_variable<FieldT>(pb, 256, ""));
+    a_sk.allocate(pb, ZETH_A_SK_SIZE * 8, FMT(this->annotation_prefix, " a_sk")); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
+    rho.allocate(pb, ZETH_RHO_SIZE * 8, " rho"); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
+    address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH, FMT(this->annotation_prefix, " merkle_tree_depth"));
+    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " a_pk")));
+    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " inner_k")));
+    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " outer_k")));
+    commitment.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " commitment")));
     field_cm.reset(new libsnark::pb_variable<FieldT>);
-    (*field_cm).allocate(pb, "cm");
+    (*field_cm).allocate(pb, FMT(this->annotation_prefix, " field_cm"));
     libsnark::pb_variable_array<FieldT>* pb_auth_path = new libsnark::pb_variable_array<FieldT>();
-    (*pb_auth_path).allocate(pb, ZETH_MERKLE_TREE_DEPTH, "authentication path");
+    (*pb_auth_path).allocate(pb, ZETH_MERKLE_TREE_DEPTH, FMT(this->annotation_prefix, " authentication_path"));
     auth_path.reset(pb_auth_path);
-
 
     // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk is correctly computed from a_sk
     spend_authority.reset(new PRF_addr_a_pk_gadget<FieldT, HashT>(
@@ -128,7 +127,7 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
 
     // We do not forget to allocate the `value_enforce` variable
     // since it is submitted to boolean constraints
-    value_enforce.allocate(pb);
+    value_enforce.allocate(pb, FMT(this->annotation_prefix, " value_enforce"));
 
     // These gadgets make sure that the computed
     // commitment is in the merkle tree of root rt
@@ -140,7 +139,7 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
         pb,
         libsnark::pb_variable_array<FieldT>(commitment->bits.rbegin(), commitment->bits.rend()),
         *field_cm,
-        "cm bits to field"
+        FMT(this->annotation_prefix, " cm_bits_to_field")
     ));
 
     // We finally compute a root from the (field) commitment and the authentication path
@@ -153,7 +152,7 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
         rt,
         *auth_path,
         value_enforce, // boolean that is set to ONE if the cm needs to be in the tree of root rt (and if the given path needs to be correct), ZERO otherwise
-        "auth_path"
+        FMT(this->annotation_prefix, " auth_path")
     ));
 
 }
@@ -168,7 +167,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_constraints() {
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
             this->pb,
             a_sk[i],
-            "a_sk"
+            FMT(this->annotation_prefix, " a_sk")
         );
     }
     // Generate the constraints for the rho 256-bit string
@@ -176,7 +175,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_constraints() {
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
             this->pb,
             rho[i],
-            "rho"
+            FMT(this->annotation_prefix, " rho")
         );
     }
     spend_authority->generate_r1cs_constraints();
@@ -188,7 +187,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_constraints() {
     // Given `enforce` is boolean constrained:
     // If `value` is zero, `enforce` _can_ be zero.
     // If `value` is nonzero, `enforce` _must_ be one.
-    libsnark::generate_boolean_r1cs_constraint<FieldT>(this->pb, value_enforce, "value_enforce");
+    libsnark::generate_boolean_r1cs_constraint<FieldT>(this->pb, value_enforce, FMT(this->annotation_prefix, " value_enforce"));
     this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
             packed_addition(this->value),
             (1 - value_enforce),
@@ -301,7 +300,6 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
     // here, we need to be extra careful. Note that if one of the input oes not have a valid
     // auth path (is not correctly authenticated), the root (shared by all inputs)
     // will be changed and the proof should be rejected.
-
     this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
     std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
 
@@ -323,10 +321,10 @@ output_note_gadget<FieldT, HashT>::output_note_gadget(libsnark::protoboard<Field
                                             const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    rho.allocate(pb, 256);
-    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, "a_pk"));
-    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, "inner_k"));
-    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, "outer_k"));
+    rho.allocate(pb, 256, FMT(this->annotation_prefix, " rho_unpacked"));
+    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " a_pk")));
+    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " inner_k")));
+    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " outer_k")));
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_inner_k.reset(new COMM_inner_k_gadget<FieldT, HashT>(
         pb,

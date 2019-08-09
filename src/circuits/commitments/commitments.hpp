@@ -14,7 +14,7 @@ template<typename FieldT, typename HashT>
 class COMM_gadget : libsnark::gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<HashT> hasher;
+    std::shared_ptr<HashT> hasher; // Hash gadget used as a commitment
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
 
 public:

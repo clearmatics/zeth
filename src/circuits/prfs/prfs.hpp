@@ -15,7 +15,7 @@ template<typename FieldT, typename HashT>
 class PRF_gadget : public libsnark::gadget<FieldT> {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<HashT> hasher;
+    std::shared_ptr<HashT> hasher; // Hash gadget used as a prf
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
 
 public:
@@ -23,7 +23,7 @@ public:
                libsnark::pb_variable_array<FieldT> x,
                libsnark::pb_variable_array<FieldT> y,
                std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(x || y)
-               const std::string &annotation_prefix = " base_PRF_gadget");
+               const std::string &annotation_prefix = "PRF_gadget");
 
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
@@ -49,7 +49,7 @@ public:
                         libsnark::pb_variable<FieldT>& ZERO,
                         libsnark::pb_variable_array<FieldT>& a_sk,
                         std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(a_sk || 0^256)
-                        const std::string &annotation_prefix = " a_pk_PRF_gadget");
+                        const std::string &annotation_prefix = "PRF_addr_a_pk_gadget");
 };
 
 // PRF to generate the nullifier
@@ -62,7 +62,7 @@ public:
                 libsnark::pb_variable_array<FieldT>& a_sk,
                 libsnark::pb_variable_array<FieldT>& rho,
                 std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(a_sk || 01 || [rho]_254)
-                const std::string &annotation_prefix = " nf_PRF_gadget");
+                const std::string &annotation_prefix = "PRF_nf_gadget");
 };
 
 } // libzeth

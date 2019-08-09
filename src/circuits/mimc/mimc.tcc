@@ -61,7 +61,7 @@ void MiMCe7_permutation_gadget<FieldT>::setup_gadgets(
             k,
             round_constants[i],
             is_last,
-            FMT(this->annotation_prefix, ".round[%d]", i)
+            FMT(this->annotation_prefix, " round[%zu]", i)
         );
     }
 };

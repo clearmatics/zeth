@@ -40,7 +40,7 @@ merkle_path_compute<FieldT, HashTreeT>::merkle_path_compute(
                     leaf,
                     path[i],
                     address_bits[i],
-                    FMT(this->annotation_prefix, ".selector[%zu]", i)
+                    FMT(this->annotation_prefix, " selector[%zu]", i)
                 )
             );
         } else {
@@ -50,7 +50,7 @@ merkle_path_compute<FieldT, HashTreeT>::merkle_path_compute(
                     hashers[i-1].result(),
                     path[i],
                     address_bits[i],
-                    FMT(this->annotation_prefix, ".selector[%zu]", i)
+                    FMT(this->annotation_prefix, " selector[%zu]", i)
                 )
             );
         }
@@ -61,7 +61,7 @@ merkle_path_compute<FieldT, HashTreeT>::merkle_path_compute(
             pb,
             {selectors[i].get_left()},
             selectors[i].get_right(),
-            FMT(this->annotation_prefix, ".hasher[%zu]", i)
+            FMT(this->annotation_prefix, " hasher[%zu]", i)
         );
 
         // We append the initialized hasher in the vector of hashers

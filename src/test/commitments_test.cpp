@@ -29,7 +29,7 @@ namespace {
 TEST(TestCOMMs, TestGet128bits) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // hex: 0xF00000000000000000000000000000000000000000000000000000000000000F
@@ -99,7 +99,7 @@ TEST(TestCOMMs, TestGet128bits) {
 TEST(TestCOMMs, TestGetRightSideCMCOMM) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // 64 bits
@@ -166,7 +166,7 @@ TEST(TestCOMMs, TestGetRightSideCMCOMM) {
 TEST(TestCOMMs, TestCOMMInnerKGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
@@ -282,7 +282,7 @@ TEST(TestCOMMs, TestCOMMInnerKGadget) {
 TEST(TestCOMMs, TestCOMMOuterKGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // 384 bits
@@ -422,7 +422,7 @@ TEST(TestCOMMs, TestCOMMOuterKGadget) {
 TEST(TestCOMMs, TestCOMMCMGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // hex: 0xAF000000000000FF00000000000000FF00000000000000FF00000000000000FF
