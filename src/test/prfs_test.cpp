@@ -34,7 +34,7 @@ namespace {
 TEST(TestPRFs, TestGenZeroes) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     libsnark::pb_variable_array<FieldT> zeroes256 = from_bits(
@@ -81,7 +81,7 @@ TEST(TestPRFs, TestGenZeroes) {
 TEST(TestPRFs, TestGetRightSideNFPRF) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
@@ -167,7 +167,7 @@ TEST(TestPRFs, TestGetRightSideNFPRF) {
 TEST(TestPRFs, TestPRFAddrApkGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // a_sk corresponds to the number: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
@@ -242,7 +242,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget) {
 TEST(TestPRFs, TestPRFNFGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // a_sk corresponds to the number: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF

@@ -22,7 +22,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
     private:
         /*
          * Multipacking gadgets for the inputs (nullifierS, commitmentS, val_pub_in, val_pub_out) (the root is a field element)
-         * `NumInputs + NumOutputs` because we pack the nullifiers (Inputs of JS = NumInputs), the commitments (Output of JS = NumOutputs) 
+         * `NumInputs + NumOutputs` because we pack the nullifiers (Inputs of JS = NumInputs), the commitments (Output of JS = NumOutputs)
          * AND the v_pub_out taken out of the mix (+1) AND the public value v_pub_in that is put into the mix (+1)
         **/
         std::array<pb_variable_array<FieldT>, NumInputs + NumOutputs + 1 + 1> packed_inputs;
@@ -128,7 +128,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 }
 
                 // Allocate the zk_vpub_in
-                zk_vpub_in.allocate(pb, 64);
+                zk_vpub_in.allocate(pb, 64, "zk_vpub_in");
                 // Initialize the unpacked input corresponding to the vpub_in (public value added to the mix)
                 unpacked_inputs[NumOutputs + NumInputs ].insert(
                     unpacked_inputs[NumOutputs + NumInputs ].end(),
@@ -137,7 +137,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 );
 
                 // Allocate the zk_vpub_out
-                zk_vpub_out.allocate(pb, 64);
+                zk_vpub_out.allocate(pb, 64, "zk_vpub_out");
                 // Initialize the unpacked input corresponding to the vpub_out (public value taken out of the mix)
                 unpacked_inputs[NumOutputs + NumInputs + 1 ].insert(
                     unpacked_inputs[NumOutputs + NumInputs + 1].end(),
@@ -145,11 +145,17 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     zk_vpub_out.end()
                 );
 
-                // TODO remove these bugus assert
                 // [SANITY CHECK]
-                // the -1 comes from the fact that the root is no more (un)packed but still is a primary input
-                assert(unpacked_inputs.size() == nb_inputs - 1 );
-                assert(packed_inputs.size() == nb_inputs - 1);
+                // The root is a FieldT, hence is not packed
+                // The size of the packed inputs should be
+                // NumInputs + NumOutputs + 1 + 1 since we are packing all the inputs nullifiers
+                // + all the output commitments + the two public values v_pub_in and v_pub_out
+                assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1);
+                assert(nb_inputs == [&packed_inputs]() {
+                    size_t sum = 0;
+                    for (const auto &i : packed_inputs) { sum = sum + i.size(); }
+                    return sum;
+                });
 
                 // [SANITY CHECK] Total size of unpacked inputs
                 size_t total_size_unpacked_inputs = 0;
@@ -205,8 +211,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 ));
             } // End of the block dedicated to generate the verifier inputs
 
-            ZERO.allocate(pb);
-            zk_total_uint64.allocate(pb, 64);
+            ZERO.allocate(pb, "zero");
+            zk_total_uint64.allocate(pb, 64, "zk_total");
 
             // Input note gadgets for commitments, nullifiers, and spend authority
             for (size_t i = 0; i < NumInputs; i++) {

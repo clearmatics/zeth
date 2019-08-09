@@ -36,10 +36,10 @@ namespace {
 TEST(TestNoteCircuits, TestInputNoteGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
-    libff::enter_block("[BEGIN] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
+    libff::enter_block("Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
     bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
     bits64 value_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector("2F0000000000000F"));
     bits256 a_sk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FF0000000000000000000000000000000000000000000000000000000000000F"));
@@ -69,9 +69,9 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     // cm = sha256(outer_k || 0^192 || value_v)
     // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
     FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
-    libff::leave_block("[END] Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
+    libff::leave_block("Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
-    libff::enter_block("[BEGIN] Setup a local merkle tree and append our commitment to it", true);
+    libff::enter_block("Setup a local merkle tree and append our commitment to it", true);
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
         new merkle_tree_field<FieldT, HashTreeT>(
             ZETH_MERKLE_TREE_DEPTH
@@ -87,9 +87,9 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     // Get the root of the new/non-empty tree (after insertion)
     FieldT updated_root_value = test_merkle_tree->get_root();
 
-    libff::leave_block("[END] Setup a local merkle tree and append our commitment to it", true);
+    libff::leave_block("Setup a local merkle tree and append our commitment to it", true);
 
-    libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
+    libff::enter_block("Data conversion to generate a witness of the note gadget", true);
     std::shared_ptr<libsnark::digest_variable<FieldT> > nullifier_digest;
     nullifier_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "nullifier_digest"));
     nullifier_digest->generate_r1cs_constraints();
@@ -127,7 +127,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
         a_sk_bits256,
         note
     );
-    libff::leave_block("[END] Data conversion to generate a witness of the note gadget", true);
+    libff::leave_block("Data conversion to generate a witness of the note gadget", true);
 
     bool is_valid_witness = pb.is_satisfied();
     std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;
@@ -138,10 +138,10 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 TEST(TestNoteCircuits, TestOutputNoteGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
-    libff::enter_block("[BEGIN] Initialize the output coins' data (a_pk, cm, rho)", true);
+    libff::enter_block("Initialize the output coins' data (a_pk, cm, rho)", true);
     bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
     bits64 value_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector("2F0000000000000F"));
     bits256 rho_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000000000000000000000000000009009"));
@@ -153,9 +153,9 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     // outer_k = sha256(r || [inner_commitment]_128)
     // cm = sha256(outer_k || 0^192 || value_v)
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
-    libff::leave_block("[END] Initialize the output coins' data (a_pk, cm, rho)", true);
+    libff::leave_block("Initialize the output coins' data (a_pk, cm, rho)", true);
 
-    libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
+    libff::enter_block("Data conversion to generate a witness of the note gadget", true);
     std::shared_ptr<libsnark::digest_variable<FieldT> > commitment;
     commitment.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "root_digest"));
     std::shared_ptr<output_note_gadget<FieldT, HashT>> output_note_g  = std::shared_ptr<output_note_gadget<FieldT, HashT>>(
@@ -176,7 +176,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
 
     output_note_g->generate_r1cs_constraints();
     output_note_g->generate_r1cs_witness(note);
-    libff::leave_block("[END] Data conversion to generate a witness of the note gadget", true);
+    libff::leave_block("Data conversion to generate a witness of the note gadget", true);
 
     bool is_valid_witness = pb.is_satisfied();
     std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;

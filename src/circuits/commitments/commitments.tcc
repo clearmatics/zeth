@@ -13,7 +13,7 @@ COMM_gadget<FieldT, HashT>::COMM_gadget(libsnark::protoboard<FieldT>& pb,
                                         libsnark::pb_variable_array<FieldT> y,
                                         std::shared_ptr<libsnark::digest_variable<FieldT>> result,
                                         const std::string &annotation_prefix
-) : libsnark::gadget<FieldT>(pb), result(result)
+) : libsnark::gadget<FieldT>(pb, annotation_prefix), result(result)
 {
     const std::string annotation_block = std::string(" COMM_block-") + annotation_prefix;
     const std::string annotation_hasher = std::string(" COMM_hasher-") + annotation_prefix;
