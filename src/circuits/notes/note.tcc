@@ -12,8 +12,8 @@ note_gadget<FieldT>::note_gadget(libsnark::protoboard<FieldT> &pb,
                                 const std::string &annotation_prefix
 ) : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
-    value.allocate(pb, ZETH_V_SIZE * 8, "value"); // ZETH_V_SIZE * 8 = 8 * 8 = 64
-    r.allocate(pb, ZETH_R_SIZE * 8, "r"); // ZETH_R_SIZE * 8 = 48 * 8 = 384
+    value.allocate(pb, ZETH_V_SIZE * 8, " value"); // ZETH_V_SIZE * 8 = 8 * 8 = 64
+    r.allocate(pb, ZETH_R_SIZE * 8, " r"); // ZETH_R_SIZE * 8 = 48 * 8 = 384
 }
 
 template<typename FieldT>
@@ -55,17 +55,17 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
                                                 const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    a_sk.allocate(pb, ZETH_A_SK_SIZE * 8, "a_sk"); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
-    rho.allocate(pb, ZETH_RHO_SIZE * 8, "rho"); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
-    address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH, "merkle_tree_depth");
-    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, "a_pk"));
-    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, "inner_k"));
-    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, "outer_k"));
-    commitment.reset(new libsnark::digest_variable<FieldT>(pb, 256, "commitment"));
+    a_sk.allocate(pb, ZETH_A_SK_SIZE * 8, " a_sk"); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
+    rho.allocate(pb, ZETH_RHO_SIZE * 8, " rho"); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
+    address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH, " merkle_tree_depth");
+    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, " a_pk"));
+    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, " inner_k"));
+    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, " outer_k"));
+    commitment.reset(new libsnark::digest_variable<FieldT>(pb, 256, " commitment"));
     field_cm.reset(new libsnark::pb_variable<FieldT>);
     (*field_cm).allocate(pb, "cm");
     libsnark::pb_variable_array<FieldT>* pb_auth_path = new libsnark::pb_variable_array<FieldT>();
-    (*pb_auth_path).allocate(pb, ZETH_MERKLE_TREE_DEPTH, "authentication path");
+    (*pb_auth_path).allocate(pb, ZETH_MERKLE_TREE_DEPTH, " authentication path");
     auth_path.reset(pb_auth_path);
 
     // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk is correctly computed from a_sk
@@ -127,7 +127,7 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
 
     // We do not forget to allocate the `value_enforce` variable
     // since it is submitted to boolean constraints
-    value_enforce.allocate(pb, "value_enforce");
+    value_enforce.allocate(pb, " value_enforce");
 
     // These gadgets make sure that the computed
     // commitment is in the merkle tree of root rt
@@ -139,7 +139,7 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
         pb,
         libsnark::pb_variable_array<FieldT>(commitment->bits.rbegin(), commitment->bits.rend()),
         *field_cm,
-        "cm bits to field"
+        "cm_bits_to_field"
     ));
 
     // We finally compute a root from the (field) commitment and the authentication path
@@ -300,7 +300,6 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
     // here, we need to be extra careful. Note that if one of the input oes not have a valid
     // auth path (is not correctly authenticated), the root (shared by all inputs)
     // will be changed and the proof should be rejected.
-
     this->pb.val(value_enforce) = (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
     std::cout << "[DEBUG] Value of `value_enforce`: " << this->pb.val(value_enforce) << std::endl;
 
@@ -322,10 +321,10 @@ output_note_gadget<FieldT, HashT>::output_note_gadget(libsnark::protoboard<Field
                                             const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    rho.allocate(pb, 256, "rho_unpacked");
-    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, "a_pk"));
-    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, "inner_k"));
-    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, "outer_k"));
+    rho.allocate(pb, 256, " rho_unpacked");
+    a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, " a_pk"));
+    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, " inner_k"));
+    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, " outer_k"));
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_inner_k.reset(new COMM_inner_k_gadget<FieldT, HashT>(
         pb,

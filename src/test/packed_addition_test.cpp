@@ -34,25 +34,24 @@ TEST(TestPackedAddition, TestPackedAddition1) {
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> value_left1;
     value_left1.allocate(pb, 64, "value_left1");
-    libsnark::pb_variable_array<FieldT> value_left_2;
-    value_left_2.allocate(pb, 64, "value_left_2");
+    libsnark::pb_variable_array<FieldT> value_left2;
+    value_left2.allocate(pb, 64, "value_left2");
 
     libsnark::pb_variable_array<FieldT> value_right1;
     value_right1.allocate(pb, 64, "value_right1");
 
-    libsnark::linear_combination<FieldT> left_side = packed_addition(value_left1) + packed_addition(value_left_2);
+    libsnark::linear_combination<FieldT> left_side = packed_addition(value_left1) + packed_addition(value_left2);
     libsnark::linear_combination<FieldT> right_side = packed_addition(value_right1);
 
     // Constraint to ensure that both sides are equal
-    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
-        1,
-        left_side,
-        right_side),
-        "equality");
+    pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(1, left_side,right_side),
+        "equality"
+    );
 
     // === Witness
     value_left1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("000000000000000A")));
-    value_left_2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("000000000000000A")));
+    value_left2.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("000000000000000A")));
 
     // 0A + 0A = 14 in hexa
     value_right1.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000014")));
@@ -138,11 +137,10 @@ TEST(TestPackedAddition, TestPackedAddition3) {
     right_side = right_side + packed_addition(out_val_note2);
 
     // Constraint to ensure that both sides are equal
-    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
-        1,
-        left_side,
-        right_side),
-        "equality");
+    pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
+        "equality"
+    );
 
     // === Witness
     v_pub_in.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("0000000000000010")));
@@ -195,11 +193,10 @@ TEST(TestPackedAddition, TestPackedAddition4) {
 
     // Constraint to ensure that both sides are equal
     std::cout << "[DEBUG] Defining constraint" << std::endl;
-    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
-        1,
-        left_side,
-        right_side),
-        "equality");
+    pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
+        "equality"
+    );
 
     // === Witness
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
@@ -249,11 +246,10 @@ TEST(TestPackedAddition, TestPackedAddition5) {
     right_side = right_side + packed_addition(out_val_note2);
 
     // Constraint to ensure that both sides are equal
-    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
-        1,
-        left_side,
-        right_side),
-        "equality");
+    pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
+        "equality"
+    );
 
     // === Witness
     v_pub_in.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("6124FEE993BC0000"))); // 0x6124FEE993BC0000 = 7ETH
@@ -302,11 +298,10 @@ TEST(TestPackedAddition, TestPackedAddition6) {
     right_side = right_side + packed_addition(out_val_note2);
 
     // Constraint to ensure that both sides are equal
-    pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(
-        1,
-        left_side,
-        right_side),
-        "equality");
+    pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
+        "equality"
+    );
 
     // === Witness
     v_pub_in.fill_with_bits(pb, libff::bit_vector(hexadecimal_str_to_binary_vector("6124FEE993BC0000"))); // 0x6124FEE993BC0000 = 7ETH

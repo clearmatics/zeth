@@ -87,10 +87,10 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 }
 
                 // We allocate 1 field element to pack the value (v_pub_in)
-                packed_inputs[NumInputs + NumOutputs ].allocate(pb, 1);
+                packed_inputs[NumInputs + NumOutputs].allocate(pb, 1, " v_pub_in");
 
                 // We allocate 1 field element to pack the value (v_pub_out)
-                packed_inputs[NumInputs + NumOutputs + 1 ].allocate(pb, 1);
+                packed_inputs[NumInputs + NumOutputs + 1].allocate(pb, 1, " v_pub_out");
 
                 // The inputs are: [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
                 // The root is represented on a single field element
@@ -99,7 +99,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 int nb_inputs = 1 + (2 * (NumInputs + NumOutputs)) + 1 + 1;
                 pb.set_input_sizes(nb_inputs);
                 // ------------------------------------------------------------------------------ //
-
 
                 // Initialize the digest_variables
                 for (size_t i = 0; i < NumInputs; i++) {
@@ -128,7 +127,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 }
 
                 // Allocate the zk_vpub_in
-                zk_vpub_in.allocate(pb, 64, "zk_vpub_in");
+                zk_vpub_in.allocate(pb, 64, " zk_vpub_in");
                 // Initialize the unpacked input corresponding to the vpub_in (public value added to the mix)
                 unpacked_inputs[NumOutputs + NumInputs ].insert(
                     unpacked_inputs[NumOutputs + NumInputs ].end(),
@@ -137,7 +136,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 );
 
                 // Allocate the zk_vpub_out
-                zk_vpub_out.allocate(pb, 64, "zk_vpub_out");
+                zk_vpub_out.allocate(pb, 64, " zk_vpub_out");
                 // Initialize the unpacked input corresponding to the vpub_out (public value taken out of the mix)
                 unpacked_inputs[NumOutputs + NumInputs + 1 ].insert(
                     unpacked_inputs[NumOutputs + NumInputs + 1].end(),
@@ -211,8 +210,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 ));
             } // End of the block dedicated to generate the verifier inputs
 
-            ZERO.allocate(pb, "zero");
-            zk_total_uint64.allocate(pb, 64, "zk_total");
+            ZERO.allocate(pb, " zero");
+            zk_total_uint64.allocate(pb, 64, " zk_total");
 
             // Input note gadgets for commitments, nullifiers, and spend authority
             for (size_t i = 0; i < NumInputs; i++) {
