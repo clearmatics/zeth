@@ -22,8 +22,8 @@ merkle_path_selector<FieldT>::merkle_path_selector(
     is_right(is_right)
 {
     // We allocate the selector's outputs left and right
-    left.allocate(pb, FMT(this->annotation_prefix, ".left"));
-    right.allocate(pb, FMT(this->annotation_prefix, ".right"));
+    left.allocate(pb, FMT(this->annotation_prefix, " left"));
+    right.allocate(pb, FMT(this->annotation_prefix, " right"));
 };
 
 template<typename FieldT>
@@ -34,11 +34,11 @@ void merkle_path_selector<FieldT>::generate_r1cs_constraints() {
 
     // We then constrain left to be the authentication node if is_right = 1, input otherwise
     this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(is_right, pathvar - input, left - input),
-        FMT(this->annotation_prefix, " is_right * pathvar + (1-is_right) * input = left"));
+        FMT(this->annotation_prefix, " is_right*pathvar+(1-is_right)*input=left"));
 
     // Inversely, we constrain right to be the input if is_right = 1, the authentication node otherwise
     this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(is_right, input - pathvar, right - pathvar),
-        FMT(this->annotation_prefix, " is_right * input + (1-is_right) * pathvar = right"));
+        FMT(this->annotation_prefix, " is_right*input+(1-is_right)*pathvar=right"));
 };
 
 template<typename FieldT>

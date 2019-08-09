@@ -26,7 +26,7 @@ sha256_ethereum<FieldT>::sha256_ethereum(libsnark::protoboard<FieldT> &pb,
                                          const std::string &annotation_prefix) :
     libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
-    intermediate_hash.reset(new libsnark::digest_variable<FieldT>(pb, 256, "intermediate"));
+    intermediate_hash.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " intermediate_hash")));
 
     // Set the zero variable to the zero of our field, to later transform
     // boolean vectors into vectors of ONE and ZERO intemplate<typename FieldT>
@@ -34,7 +34,7 @@ sha256_ethereum<FieldT>::sha256_ethereum(libsnark::protoboard<FieldT> &pb,
     // TODO: pass ZERO as argument and delete these instructions. 
     // It should alredy be allocated on the protoboard which is given as argument of this function
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "ZERO");
+    ZERO.allocate(pb, FMT(this->annotation_prefix, " ZERO"));
     pb.val(ZERO) = FieldT::zero(); // Here we want pb.val(ZERO) = 0;
 
     // Padding
@@ -149,16 +149,13 @@ sha256_ethereum<FieldT>::sha256_ethereum(libsnark::protoboard<FieldT> &pb,
     // Then looking into https://github.com/golang/go/blob/master/src/crypto/sha256/sha256.go#L236
     // We see that d.checkSum() calls d.Write() again, but this time, with the padding!
     // Thus, this corresponds to the second round of hashing we do here with the hasher2.
-    const std::string annotation_hasher1 = std::string("hasher1-") + annotation_prefix;
-    const std::string annotation_hasher2 = std::string("hasher2-") + annotation_prefix;
     hasher1.reset(new libsnark::sha256_compression_function_gadget<FieldT>(
-                pb, // protoboard
-                IV, // previous output - Here the IV
-                input_block.bits, // new block
-                *intermediate_hash, // output
-                annotation_hasher1 // annotation
-                )
-            );
+        pb, // protoboard
+        IV, // previous output - Here the IV
+        input_block.bits, // new block
+        *intermediate_hash, // output
+        FMT(this->annotation_prefix, " hasher1_gadget")
+    ));
 
     // The intermediate hash obtained as a result of the first hashing round is then used
     // as IV for the second hashing round
@@ -166,13 +163,12 @@ sha256_ethereum<FieldT>::sha256_ethereum(libsnark::protoboard<FieldT> &pb,
 
     // We hash the intermediate hash wiht the padding.
     hasher2.reset(new libsnark::sha256_compression_function_gadget<FieldT>(
-                pb,
-                IV2,
-                length_padding,
-                output,
-                annotation_hasher2
-                )
-            );
+        pb,
+        IV2,
+        length_padding,
+        output,
+        FMT(this->annotation_prefix, " hasher2_gadget")
+    ));
 }
 
 template<typename FieldT>
@@ -214,11 +210,11 @@ libff::bit_vector sha256_ethereum<FieldT>::get_hash(const libff::bit_vector &inp
 {
     libsnark::protoboard<FieldT> pb;
 
-    libsnark::block_variable<FieldT> input_variable(pb, libsnark::SHA256_block_size, "input");
-    libsnark::digest_variable<FieldT> output_variable(pb, libsnark::SHA256_digest_size, "output");
-    sha256_ethereum<FieldT> eth_hasher(pb, libsnark::SHA256_block_size, input_variable, output_variable, "eth_hasher_gadget");
+    libsnark::block_variable<FieldT> input_block(pb, libsnark::SHA256_block_size, "input_block");
+    libsnark::digest_variable<FieldT> output_variable(pb, libsnark::SHA256_digest_size, "output_variable");
+    sha256_ethereum<FieldT> eth_hasher(pb, input_block, output_variable, "eth_hasher_gadget");
 
-    input_variable.generate_r1cs_witness(input);
+    input_block.generate_r1cs_witness(input);
     eth_hasher.generate_r1cs_witness();
 
     return output_variable.get_digest();

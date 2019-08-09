@@ -23,10 +23,10 @@ MiMCe7_round_gadget<FieldT>::MiMCe7_round_gadget(
     add_k_to_result(add_k_to_result)
 {
     // Allocate the intermediary variables
-    t2.allocate(pb, FMT(annotation_prefix, ".t2"));
-    t4.allocate(pb, FMT(annotation_prefix, ".t4"));
-    t6.allocate(pb, FMT(annotation_prefix, ".t6"));
-    t7.allocate(pb, FMT(annotation_prefix, ".out"));
+    t2.allocate(pb, FMT(this->annotation_prefix, " t2"));
+    t4.allocate(pb, FMT(this->annotation_prefix, " t4"));
+    t6.allocate(pb, FMT(this->annotation_prefix, " t6"));
+    t7.allocate(pb, FMT(this->annotation_prefix, " out"));
 };
 
 template<typename FieldT>
@@ -34,25 +34,22 @@ void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints() {
     // First define the temporary variable t as a linear combination of x, k and c
     libsnark::linear_combination<FieldT> t = x + k + c;
 
-    // Define a common annotation for round constraints
-    const std::string annotation_constraint = this->annotation_prefix + std::string(".round constraint");
-
     // Constrain the intermediary variables t2 t4 and t6
     //
     // Add contraint `a = t^2`
-    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t, t2), FMT(annotation_constraint, ".t2"));
+    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t, t2), FMT(this->annotation_prefix, " round_constraint_t2"));
     // Add contraint `b = a^2 = t^4`
-    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t2, t4), FMT(annotation_constraint, ".t4"));
+    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t2, t4), FMT(this->annotation_prefix, " round_constraint_t4"));
     // Add contraint `c = a*b = t^6`
-    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t4, t6), FMT(annotation_constraint, ".t6"));
+    this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t2, t4, t6), FMT(this->annotation_prefix, " round_constraint_t6"));
 
     // Constrain t7 depending on the value of `add_k_to_result`
     if(add_k_to_result) {
         // Add constraint d = t*c + k = t^7 + k (key included)
-        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t6, t7 - k), FMT(annotation_constraint,".out + k"));
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t6, t7 - k), FMT(this->annotation_prefix," round_constraint_t7+k"));
     } else {
         // Add constraint d = t*c = t^7
-        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t6, t7), FMT(annotation_constraint,".out"));
+        this->pb.add_r1cs_constraint(libsnark::r1cs_constraint<FieldT>(t, t6, t7), FMT(this->annotation_prefix," round_constraint_t7"));
     }
 };
 

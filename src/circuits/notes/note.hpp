@@ -33,7 +33,7 @@ public:
     libsnark::pb_variable_array<FieldT> r; // Trapdoor r of the note (384 bits)
 
     note_gadget(libsnark::protoboard<FieldT> &pb,
-                const std::string &annotation_prefix = "base_note_gadget");
+                const std::string &annotation_prefix = "note_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness(const ZethNote& note);
 };
