@@ -56,17 +56,6 @@ include_directories(
   libff/common/default_types
 )
 
-file(GLOB_RECURSE SOURCES_TEST
-    libsnark_helpers/debug_helpers.cpp
-    circuits/circuits-util.cpp
-    types/bits.cpp
-    util.cpp
-)
-
-file(GLOB_RECURSE SOURCES
-    ${SOURCES_TEST}
-    util_api.cpp
-)
 
 # Enable Boost for program_options
 find_package( Boost REQUIRED COMPONENTS system filesystem )
@@ -76,325 +65,78 @@ include_directories( ${Boost_INCLUDE_DIR} )
 # so that we will find zethConfig.h
 include_directories( ${PROJECT_BINARY_DIR} )
 
+# zeth library
+
+file(
+  GLOB_RECURSE
+  ZETH_SOURCE
+  types/**.cpp types/**.hpp types/**.tcc
+  circuits/**.cpp circuits/**.hpp circuits/**.tcc circuit-wrapper.???
+  commitments/**.?pp commitments/**.tcc
+  libsnark_helpers/**.?pp libsnark_helpers/**.tcc
+  snarks/**.?pp snarks/**.tcc
+  snarks_alias.hpp snarks/**.tcc
+  include_libsnark.hpp
+  util.?pp util.tcc
+  zeth.h
+)
+
+add_library(
+  zeth
+  ${ZETH_SOURCE})
+target_include_directories(
+  zeth
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libff
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+target_link_libraries(
+  zeth
+  snark)
+
 # Building the server
 add_executable(
     prover_server
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/prover_server.cc
+    prover_server.cc util_api.hpp util_api.cpp util_api.tcc
     ${PROTO_SRCS}
     ${GRPC_SRCS}
-    ${SOURCES}
 )
 target_link_libraries(
     prover_server
 
-    snark
+    zeth
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     gRPC::grpc++_reflection
     protobuf::libprotobuf
 )
-target_include_directories(
-    prover_server
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
 
 ## Tests
-# Test the packed_addition used in the joinsplit
-add_executable(
-    test_addition
-    EXCLUDE_FROM_ALL # Exclude this target from the default build target. Typing "make" will NOT cause this target to be built.
-
-    test/packed_addition_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_addition
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_addition
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Test the hex convertion
-add_executable(
-    test_hex_to_field
-    EXCLUDE_FROM_ALL
-
-    test/hex_to_field_test.cpp
-    ${SOURCES}
-    ${PROTO_SRCS}
-)
-target_link_libraries(
-    test_hex_to_field
-
-    snark
-    gtest_main
-    protobuf::libprotobuf
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_hex_to_field
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Test the notes circuits
-add_executable(
-    test_note
-    EXCLUDE_FROM_ALL
-
-    test/note_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_note
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_note
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Test the prfs circuits
-add_executable(
-    test_prfs
-    EXCLUDE_FROM_ALL
-
-    test/prfs_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_prfs
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_prfs
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Test the commitments circuits
-add_executable(
-    test_commitments
-    EXCLUDE_FROM_ALL
-
-    test/commitments_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_commitments
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_commitments
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Test the round circuits
-add_executable(
-    test_round
-    EXCLUDE_FROM_ALL
-
-    test/round_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_round
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_round
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Test the mimc circuits
-add_executable(
-    test_mimc
-    EXCLUDE_FROM_ALL
-
-    test/mimc_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_mimc
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_mimc
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Test the mimc mp circuits
-add_executable(
-    test_mimc_mp
-    EXCLUDE_FROM_ALL
-
-    test/mimc_mp_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_mimc_mp
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_mimc_mp
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Test merkle tree circuits
-add_executable(
-    test_merkle_tree
-    EXCLUDE_FROM_ALL
-
-    test/merkle_tree_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_merkle_tree
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_merkle_tree
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
-# Test the joinsplit circuit
-add_executable(
-    test_prover
-    EXCLUDE_FROM_ALL
-
-    test/prover_test.cpp
-    ${SOURCES_TEST}
-)
-target_link_libraries(
-    test_prover
-
-    snark
-    gtest_main
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
-target_include_directories(
-    test_prover
-
-    PUBLIC
-    ${DEPENDS_DIR}/libsnark
-    ${DEPENDS_DIR}/libsnark/depends/libfqfft
-)
-
 include(CTest)
-add_test(
-    NAME test_addition
-    COMMAND test_addition
-)
-add_test(
-    NAME test_hex_to_field
-    COMMAND test_hex_to_field
-)
-add_test(
-    NAME test_round
-    COMMAND test_round
-)
-add_test(
-    NAME test_mimc
-    COMMAND test_mimc
-)
-add_test(
-    NAME test_mimc_mp
-    COMMAND test_mimc_mp
-)
-add_test(
-    NAME test_merkle_tree
-    COMMAND test_merkle_tree
-)
-add_test(
-    NAME test_note
-    COMMAND test_note
-)
-add_test(
-    NAME test_prfs
-    COMMAND test_prfs
-)
-add_test(
-    NAME test_commitments
-    COMMAND test_commitments
-)
-add_test(
-    NAME test_prover
-    COMMAND test_prover
-)
 
-# We add the test of the prover as part of the testzeth
-add_dependencies(check test_addition)
-add_dependencies(check test_hex_to_field)
-add_dependencies(check test_round)
-add_dependencies(check test_mimc)
-add_dependencies(check test_mimc_mp)
-add_dependencies(check test_merkle_tree)
-add_dependencies(check test_note)
-add_dependencies(check test_prfs)
-add_dependencies(check test_commitments)
-add_dependencies(check test_prover)
+function(zeth_test TEST_NAME TEST_SOURCE)
+  add_executable(
+    ${TEST_NAME}
+    EXCLUDE_FROM_ALL
+    ${TEST_SOURCE}
+  )
+  target_link_libraries(${TEST_NAME} zeth gtest_main)
+  add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+  add_dependencies(check ${TEST_NAME})
+endfunction(zeth_test)
+
+zeth_test(test_addition test/packed_addition_test.cpp)
+zeth_test(test_hex_to_field test/hex_to_field_test.cpp)
+zeth_test(test_note test/note_test.cpp)
+zeth_test(test_prfs test/prfs_test.cpp)
+zeth_test(test_commitments test/commitments_test.cpp)
+zeth_test(test_round test/round_test.cpp)
+zeth_test(test_mimc test/mimc_test.cpp)
+zeth_test(test_mimc_mp test/mimc_mp_test.cpp)
+zeth_test(test_merkle_tree test/merkle_tree_test.cpp)
+zeth_test(test_prover test/prover_test.cpp)
+
+# prover test has an extra dependency
+target_link_libraries(test_prover ${Boost_FILESYSTEM_LIBRARY})
