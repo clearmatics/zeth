@@ -99,7 +99,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // The root is represented on a single field element
                 // Each nullifier, and each commitment are in {0,1}^256 and thus take 2 field elements to be represented,
                 // while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
-                size_t nb_inputs = (2 * (NumInputs + NumOutputs)) + 1 + 1;
+                const size_t nb_packed_inputs = (2 * (NumInputs + NumOutputs)) + 1 + 1;
+                const size_t nb_inputs = 1 + nb_packed_inputs;
                 pb.set_input_sizes(nb_inputs);
                 // ------------------------------------------------------------------------------ //
 
@@ -153,7 +154,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // NumInputs + NumOutputs + 1 + 1 since we are packing all the inputs nullifiers
                 // + all the output commitments + the two public values v_pub_in and v_pub_out
                 assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1);
-                assert(nb_inputs == [this]() {
+                assert(nb_packed_inputs == [this]() {
                     size_t sum = 0;
                     for (const auto &i : packed_inputs) { sum = sum + i.size(); }
                     return sum;
