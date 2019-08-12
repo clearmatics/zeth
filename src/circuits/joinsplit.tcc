@@ -80,8 +80,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 merkle_root->allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
 
                 // We allocate 2 field elements to pack each inputs nullifiers and each output commitments
-                for (size_t i = 0; i < NumInputs + NumOutputs; i++) {
-                    packed_inputs[i].allocate(pb, 1 + 1);
+                for (size_t i = 0 ; i < NumInputs ; i++) {
+                    packed_inputs[i].allocate(
+                        pb, 1 + 1, FMT(this->annotation_prefix, " in_nullifier"));
+                }
+                for (size_t i = NumInputs ; i < NumInputs + NumOutputs ; i++) {
+                    packed_inputs[i].allocate(
+                        pb, 1 + 1, FMT(this->annotation_prefix, " out_commitment"));
                 }
 
                 // We allocate 1 field element to pack the value (v_pub_in)
