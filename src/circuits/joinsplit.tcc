@@ -99,7 +99,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // The root is represented on a single field element
                 // Each nullifier, and each commitment are in {0,1}^256 and thus take 2 field elements to be represented,
                 // while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
-                int nb_inputs = 1 + (2 * (NumInputs + NumOutputs)) + 1 + 1;
+                size_t nb_inputs = (2 * (NumInputs + NumOutputs)) + 1 + 1;
                 pb.set_input_sizes(nb_inputs);
                 // ------------------------------------------------------------------------------ //
 
@@ -153,11 +153,11 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // NumInputs + NumOutputs + 1 + 1 since we are packing all the inputs nullifiers
                 // + all the output commitments + the two public values v_pub_in and v_pub_out
                 assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1);
-                assert(nb_inputs == [&packed_inputs]() {
+                assert(nb_inputs == [this]() {
                     size_t sum = 0;
                     for (const auto &i : packed_inputs) { sum = sum + i.size(); }
                     return sum;
-                });
+                }());
 
                 // [SANITY CHECK] Total size of unpacked inputs
                 size_t total_size_unpacked_inputs = 0;
@@ -368,9 +368,6 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         // Computes the binary size of the primary inputs
         static size_t get_input_bit_size() {
             size_t acc = 0;
-
-            // Binary length of the Merkle Root (anchor)
-            acc += 256;
 
             // Binary length of the NullifierS
             for (size_t i = 0; i < NumInputs; i++) {
