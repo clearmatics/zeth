@@ -167,7 +167,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 }
                 total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs ].size(); // for the v_pub_in
                 total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs + 1].size(); // for the v_pub_out
-                assert(total_size_unpacked_inputs == get_input_bit_size());
+                assert(total_size_unpacked_inputs == get_unpacked_inputs_bit_size());
 
                 // These gadgets will ensure that all of the inputs we provide are
                 // boolean constrained, and and correctly packed into field elements
@@ -366,32 +366,42 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         }
 
-        // Computes the binary size of the primary inputs
-        static size_t get_input_bit_size() {
+        // Computes the total bit-length of the primary inputs
+        static size_t get_inputs_bit_size() {
             size_t acc = 0;
 
-            // Binary length of the NullifierS
+            // Bit-length of the Merkle Root
+            acc += FieldT::capacity();
+
+            // Bit-length of the NullifierS
             for (size_t i = 0; i < NumInputs; i++) {
                 acc += 256;
             }
 
-            // Binary length of the CommitmentS
+            // Bit-length of the CommitmentS
             for (size_t i = 0; i < NumOutputs; i++) {
                 acc += 256;
             }
 
-            // Binary length of vpub_in
+            // Bit-length of vpub_in
             acc += 64;
 
-            // Binary length of vpub_out
+            // Bit-length of vpub_out
             acc += 64;
 
             return acc;
         }
 
+        // Compute the total bit-length of the unpacked primary inputs
+        static size_t get_unpacked_inputs_bit_size() {
+          // The Merkle root is not in the `unpacked_inputs` so we subtract its
+          // bit-length to get the total bit-length of the primary inputs in `unpacked_inputs`
+          return get_inputs_bit_size() - FieldT::capacity();
+        }
+
         // Computes the number of field elements in the primary inputs
         static size_t verifying_field_element_size() {
-            return div_ceil(get_input_bit_size(), FieldT::capacity()) + 1; // adding the root
+            return div_ceil(get_inputs_bit_size(), FieldT::capacity());
         }
 };
 
