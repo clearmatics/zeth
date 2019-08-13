@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+platform=`uname`
+echo platform=${platform}
+echo "running against commit: "`git log --oneline --no-decorate -n 1`
+
+set -x
+set -e
+
+function build() {
+    if [ "Darwin" == "${platform}" ] ; then
+        export PATH="/usr/local/opt/llvm/bin:/usr/local/bin:${PATH}"
+        export PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig"
+        export LIBRARY_PATH="/usr/local/opt/openssl/lib"
+        export LDFLAGS="-L/usr/local/opt/llvm/lib -L-L/usr/local/lib"
+        export CPPFLAGS="-I/usr/local/opt/llvm/include -I/usr/local/include"
+    fi
+
+    dir_name=$1
+    build_type=$2
+
+    . setup_env.sh
+    mkdir -p build
+    cd build
+    cmake -DFAST_TESTS_ONLY=ON -DCMAKE_BUILD_TYPE=${build_type} ..
+
+    make -j 2 all build_tests
+    make -j 2 check
+}
+
+function build_release() {
+    build build-release Release
+}
+
+function build_debug() {
+    build build-debug Debug
+}
+
+# The CI_EXECTUTE_IN_DOCKER variable determines whether we should
+# re-execute in the docker container.
+
+if [ "1" == "${CI_USE_DOCKER}" ] ; then
+    docker pull clearmatics/zeth-base:latest
+    docker build -f Dockerfile-zeth -t zeth-dev .
+    docker run -t -p 50051:50051 --name zeth zeth-dev:latest $0 $@
+else
+    eval $@
+fi

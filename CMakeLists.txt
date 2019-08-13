@@ -98,7 +98,7 @@ if(APPLE)
   set(WITH_SUPERCOP OFF CACHE BOOL "Build libff with supercop")
 
   # (Currently) OpenMP only available with custom llvm compilers
-  if(${CMAKE_C_COMPILER} MATCHES "/cc$")
+  if(${CMAKE_C_COMPILER} MATCHES ".*cc$")
     set(MULTICORE OFF)
   endif()
 endif()

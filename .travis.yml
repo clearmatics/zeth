@@ -1,0 +1,30 @@
+addons:
+    apt:
+        packages:
+            - docker.io
+    homebrew:
+        packages:
+            - gmp
+            - grpc
+            - protobuf
+            - boost
+            - openssl
+            - cmake
+            # - llvm
+
+matrix:
+    include:
+        - env: CI_TASK=build_release CI_USE_DOCKER=1
+          os: linux
+          language: minimal
+        - env: CI_TASK=build_debug CI_USE_DOCKER=1
+          os: linux
+          language: minimal
+        - env: CI_TASK=build_release
+          os: osx
+          osx_image: xcode11
+        - env: CI_TASK=build_debug
+          os: osx
+          osx_image: xcode11
+
+script: CI_USE_DOCKER=${CI_USE_DOCKER} scripts/ci ${CI_TASK}
