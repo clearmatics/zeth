@@ -69,17 +69,17 @@ bool test_merkle_path_authenticator_depth1() {
     // root is 3075442268020138823380831368198734873612490112867968717790651410945045657947. Authenticator for right leaf (`is_right` = 1)
 
 	libsnark::protoboard<FieldT> pb;
-	libsnark::pb_variable<FieldT> iv;
-
-	iv.allocate(pb, "iv");
-	pb.set_input_sizes(1);
-
-	pb.val(iv) = FieldT("82724731331859054037315113496710413141112897654334566532528783843265082629790");
 
 	FieldT left = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
 	FieldT right = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
-	FieldT root = FieldT("15111851447014879833050233394183206021293104970044755574134456851342505158717");
+	FieldT root = FieldT("7121700468981037559893852455893095765125417767594185027454590493596569372187");
 	FieldT is_right = 1;
+
+	libsnark::pb_variable<FieldT> expected_root;
+	expected_root.allocate(pb, "expected_root");
+	pb.val(expected_root) = root;
+
+	pb.set_input_sizes(1);
 
 	libsnark::pb_variable_array<FieldT> address_bits;
 	address_bits.allocate(pb, 1, "address_bits");
@@ -92,10 +92,6 @@ bool test_merkle_path_authenticator_depth1() {
 	libsnark::pb_variable<FieldT> leaf;
 	leaf.allocate(pb, "leaf");
 	pb.val(leaf) = right;
-
-	libsnark::pb_variable<FieldT> expected_root;
-	expected_root.allocate(pb, "expected_root");
-	pb.val(expected_root) = root;
 
 	libsnark::pb_variable<FieldT> enforce_bit;
 	enforce_bit.allocate(pb, "enforce_bit");
@@ -116,7 +112,6 @@ bool test_merkle_path_authenticator_depth1() {
 
 	auth.generate_r1cs_constraints();
 	auth.generate_r1cs_witness();
-
 	if(!auth.is_valid()) {
 		std::cerr << "Not valid!" << std::endl;
 		std::cerr << "Expected "; pb.val(expected_root).print();
@@ -139,7 +134,7 @@ bool test_merkle_path_authenticator_depth3() {
     FieldT right0 = FieldT("0");
     FieldT left1 = FieldT("11714008893116939441510788599557636816518527327543193374630310875272509334396");
     FieldT left2 = FieldT("9881790034808292405036271961589462686158587796044671417688221824074647491645");
-    FieldT root = FieldT("9595857972030877320006292774266777975489795872080908840946050038220242513239");
+    FieldT root = FieldT("13476730430097836153970274382710787532919044453117948373701924629587143655224");
     FieldT is_right = 1;
 
 	libsnark::protoboard<FieldT> pb;
@@ -219,7 +214,7 @@ TEST(MainTests, TestMerkleTreeField) {
     ASSERT_TRUE(res);
 }
 
-}
+} // namespace
 
 int main(int argc, char **argv) {
     ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not forget to do this !!!!
