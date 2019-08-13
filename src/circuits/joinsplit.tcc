@@ -80,8 +80,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 merkle_root->allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
 
                 // We allocate 2 field elements to pack each inputs nullifiers and each output commitments
-                for (size_t i = 0; i < NumInputs + NumOutputs; i++) {
-                    packed_inputs[i].allocate(pb, 1 + 1);
+                for (size_t i = 0 ; i < NumInputs ; i++) {
+                    packed_inputs[i].allocate(
+                        pb, 1 + 1, FMT(this->annotation_prefix, " in_nullifier"));
+                }
+                for (size_t i = NumInputs ; i < NumInputs + NumOutputs ; i++) {
+                    packed_inputs[i].allocate(
+                        pb, 1 + 1, FMT(this->annotation_prefix, " out_commitment"));
                 }
 
                 // We allocate 1 field element to pack the value (v_pub_in)
@@ -94,7 +99,8 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // The root is represented on a single field element
                 // Each nullifier, and each commitment are in {0,1}^256 and thus take 2 field elements to be represented,
                 // while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
-                int nb_inputs = 1 + (2 * (NumInputs + NumOutputs)) + 1 + 1;
+                const size_t nb_packed_inputs = (2 * (NumInputs + NumOutputs)) + 1 + 1;
+                const size_t nb_inputs = 1 + nb_packed_inputs;
                 pb.set_input_sizes(nb_inputs);
                 // ------------------------------------------------------------------------------ //
 
@@ -148,11 +154,11 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // NumInputs + NumOutputs + 1 + 1 since we are packing all the inputs nullifiers
                 // + all the output commitments + the two public values v_pub_in and v_pub_out
                 assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1);
-                assert(nb_inputs == [&packed_inputs]() {
+                assert(nb_packed_inputs == [this]() {
                     size_t sum = 0;
                     for (const auto &i : packed_inputs) { sum = sum + i.size(); }
                     return sum;
-                });
+                }());
 
                 // [SANITY CHECK] Total size of unpacked inputs
                 size_t total_size_unpacked_inputs = 0;
@@ -161,7 +167,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 }
                 total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs ].size(); // for the v_pub_in
                 total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs + 1].size(); // for the v_pub_out
-                assert(total_size_unpacked_inputs == get_input_bit_size());
+                assert(total_size_unpacked_inputs == get_unpacked_inputs_bit_size());
 
                 // These gadgets will ensure that all of the inputs we provide are
                 // boolean constrained, and and correctly packed into field elements
@@ -360,35 +366,42 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         }
 
-        // Computes the binary size of the primary inputs
-        static size_t get_input_bit_size() {
+        // Computes the total bit-length of the primary inputs
+        static size_t get_inputs_bit_size() {
             size_t acc = 0;
 
-            // Binary length of the Merkle Root (anchor)
-            acc += 256;
+            // Bit-length of the Merkle Root
+            acc += FieldT::capacity();
 
-            // Binary length of the NullifierS
+            // Bit-length of the NullifierS
             for (size_t i = 0; i < NumInputs; i++) {
                 acc += 256;
             }
 
-            // Binary length of the CommitmentS
+            // Bit-length of the CommitmentS
             for (size_t i = 0; i < NumOutputs; i++) {
                 acc += 256;
             }
 
-            // Binary length of vpub_in
+            // Bit-length of vpub_in
             acc += 64;
 
-            // Binary length of vpub_out
+            // Bit-length of vpub_out
             acc += 64;
 
             return acc;
         }
 
+        // Compute the total bit-length of the unpacked primary inputs
+        static size_t get_unpacked_inputs_bit_size() {
+          // The Merkle root is not in the `unpacked_inputs` so we subtract its
+          // bit-length to get the total bit-length of the primary inputs in `unpacked_inputs`
+          return get_inputs_bit_size() - FieldT::capacity();
+        }
+
         // Computes the number of field elements in the primary inputs
         static size_t verifying_field_element_size() {
-            return div_ceil(get_input_bit_size(), FieldT::capacity());
+            return div_ceil(get_inputs_bit_size(), FieldT::capacity());
         }
 };
 
