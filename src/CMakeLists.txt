@@ -122,7 +122,12 @@ function(zeth_test TEST_NAME TEST_SOURCE)
     EXCLUDE_FROM_ALL
     ${TEST_SOURCE}
   )
-  target_link_libraries(${TEST_NAME} zeth gtest_main)
+  if(${TEST_NAME} STREQUAL "test_prover")
+    # To test the prover, we also need to link libboost_system
+    target_link_libraries(${TEST_NAME} zeth gtest_main ${Boost_SYSTEM_LIBRARY})
+  else()
+    target_link_libraries(${TEST_NAME} zeth gtest_main)
+  endif()
   add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
   add_dependencies(check ${TEST_NAME})
 endfunction(zeth_test)
