@@ -391,7 +391,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         // Computes the number of field elements in the primary inputs
         static size_t verifying_field_element_size() {
-            return div_ceil(get_input_bit_size(), FieldT::capacity());
+            return div_ceil(get_input_bit_size(), FieldT::capacity()) + 1; // adding the root
         }
 };
 
