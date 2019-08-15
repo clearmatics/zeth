@@ -31,29 +31,46 @@ public:
 
 // This function is useful as the generation of a_pk is done via a_pk = sha256(a_sk || 0^256)
 // See Zerocash extended paper, page 22, paragraph "Instantiating the NP statement POUR"
-template<typename FieldT, typename HashT> libsnark::pb_variable_array<FieldT> gen256zeroes(libsnark::pb_variable<FieldT>& ZERO);
-
-// As mentioned in Zerocash extended paper, page 22, the left side of the PRF that computes the nf, is equal to
-// 01 || [rho]_254. This function takes rho, keep only 254 bits form it and preprend '01' to the result
-template<typename FieldT, typename HashT> libsnark::pb_variable_array<FieldT> getRightSideNFPRF(
-    libsnark::pb_variable<FieldT>& ZERO,
-    libsnark::pb_variable_array<FieldT>& rho
+template<typename FieldT, typename HashT> libsnark::pb_variable_array<FieldT> gen256zeroes(
+    libsnark::pb_variable<FieldT>& ZERO
 );
 
-// a_pk = sha256(a_sk || 0^256): See Zerocash extended paper, page 22,
-// paragraph "Instantiating the NP statement POUR"
+template<typename FieldT> libsnark::pb_variable_array<FieldT> getTagAddr(
+    libsnark::pb_variable<FieldT>& ZERO,
+    libsnark::pb_variable_array<FieldT>& x
+);
+
+template<typename FieldT> libsnark::pb_variable_array<FieldT> getTagNf(
+    libsnark::pb_variable<FieldT>& ZERO,
+    libsnark::pb_variable_array<FieldT>& ask
+);
+
+template<typename FieldT> libsnark::pb_variable_array<FieldT> getTagPk(
+    libsnark::pb_variable<FieldT>& ZERO,
+    libsnark::pb_variable_array<FieldT>& ask,
+    size_t index
+);
+
+template<typename FieldT> libsnark::pb_variable_array<FieldT> getTagRho(
+    libsnark::pb_variable<FieldT>& ZERO,
+    libsnark::pb_variable_array<FieldT>& phi,
+    size_t index
+);
+
+// PRF to generate the public addresses
+// a_pk = sha256("1100" || [a_sk]_252 || 0^256): See ZCash protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_addr_a_pk_gadget : public PRF_gadget<FieldT, HashT> {
 public:
     PRF_addr_a_pk_gadget(libsnark::protoboard<FieldT>& pb,
                         libsnark::pb_variable<FieldT>& ZERO,
                         libsnark::pb_variable_array<FieldT>& a_sk,
-                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,  // sha256(a_sk || 0^256)
-                        const std::string &annotation_prefix = "PRF_addr_a_pk_gadget");
+                        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                        const std::string &annotation_prefix = " add_PRF_gadget");
 };
 
 // PRF to generate the nullifier
-// nf = sha256(a_sk || 01 || [rho]_254): See Zerocash extended paper, page 22
+// nf = sha256("1110" || [a_sk]_252 || rho): See ZCash protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_nf_gadget : public PRF_gadget<FieldT, HashT> {
 public:
@@ -63,6 +80,34 @@ public:
                 libsnark::pb_variable_array<FieldT>& rho,
                 std::shared_ptr<libsnark::digest_variable<FieldT>> result, // sha256(a_sk || 01 || [rho]_254)
                 const std::string &annotation_prefix = "PRF_nf_gadget");
+};
+
+// PRF to generate the h_i
+// h_i = sha256("0" || index || "00" || [a_sk]_252 || h_sig): See ZCash protocol specification paper, page 57
+template<typename FieldT, typename HashT>
+class PRF_pk_gadget : public PRF_gadget<FieldT, HashT> {
+public:
+    PRF_pk_gadget(libsnark::protoboard<FieldT>& pb,
+                libsnark::pb_variable<FieldT>& ZERO,
+                libsnark::pb_variable_array<FieldT>& a_sk,
+                libsnark::pb_variable_array<FieldT>& h_sig,
+                size_t index,
+                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                const std::string &annotation_prefix = " pk_PRF_gadget");
+};
+
+// PRF to generate rho
+// rho_i = sha256( "0" || index || "10" || [phi]_252 || h_sig): See ZCash protocol specification paper, page 57
+template<typename FieldT, typename HashT>
+class PRF_rho_gadget : public PRF_gadget<FieldT, HashT> {
+public:
+    PRF_rho_gadget(libsnark::protoboard<FieldT>& pb,
+                libsnark::pb_variable<FieldT>& ZERO,
+                libsnark::pb_variable_array<FieldT>& phi,
+                libsnark::pb_variable_array<FieldT>& h_sig,
+                size_t index,
+                std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+                const std::string &annotation_prefix = " rho_PRF_gadget");
 };
 
 } // libzeth

@@ -39,37 +39,37 @@ TEST(TestPRFs, TestGenZeroes) {
 
     libsnark::pb_variable_array<FieldT> zeroes256 = from_bits(
         {
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0
         }, ZERO
     );
@@ -78,98 +78,11 @@ TEST(TestPRFs, TestGenZeroes) {
     ASSERT_EQ(result.get_bits(pb), zeroes256.get_bits(pb));
 };
 
-TEST(TestPRFs, TestGetRightSideNFPRF) {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
-
-    // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<FieldT> rho = from_bits(
-        {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0, 0, 0, 0, 1, 1, 1, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1
-        }, ZERO
-    );
-
-    // hex: 0x43C000000000003FC00000000000003FC00000000000003FC00000000000003F
-    libsnark::pb_variable_array<FieldT> expected = from_bits(
-        {
-            0, 1, 0, 0, 0, 0, 1, 1, //  (0, 1 is the right prefix here)
-            1, 1, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 1, 1, 1, 1, 1, 1, 
-            1, 1, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 1, 1, 1, 1, 1, 1, 
-            1, 1, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 1, 1, 1, 1, 1, 1, 
-            1, 1, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 1, 1, 1, 1, 1, 1
-        }, ZERO
-    );
-
-    libsnark::pb_variable_array<FieldT> result = getRightSideNFPRF<FieldT, HashT>(ZERO, rho);
-    ASSERT_EQ(result.get_bits(pb), expected.get_bits(pb));
-};
-
 TEST(TestPRFs, TestPRFAddrApkGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
     ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
-
     // a_sk corresponds to the number: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_sk = from_bits(
         {
@@ -208,15 +121,16 @@ TEST(TestPRFs, TestPRFAddrApkGadget) {
         }, ZERO
     );
 
-    // a_pk should equal: 0xa8bdcd1403ea97e088094d7c085c843b4f5895487f5827b3046b2e0328f5f58e
-    // Since a_pk = sha256(a_sk || 0^256), where:
-    // - a_sk = 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    // - 0^256 = 0x0000000000000000000000000000000000000000000000000000000000000000
-    // 
-    // Note: This test vector has been generated by using the solidity sha256 function
-    // (we want to make sure that we generate the same digests both on-chain and off-chain)
+    /* 
+     * a_pk should equal: 0x208f95ee37621c3c2d9c74be39bf687c47e84c679b88df270858067c08a16daf
+     * Since a_pk = sha256( 1100 || [a_sk]_252 || 0^256), where:
+     * - a_sk = 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+     * - 0^256 = 0x0000000000000000000000000000000000000000000000000000000000000000
+     * Note: This test vector has been generated by using the solidity sha256 function
+     * Note: (we want to make sure that we generate the same digests both on-chain and off-chain)
+     */
     libsnark::pb_variable_array<FieldT> a_pk_expected = from_bits(
-        hexadecimal_digest_to_binary_vector("a8bdcd1403ea97e088094d7c085c843b4f5895487f5827b3046b2e0328f5f58e"), 
+        hexadecimal_digest_to_binary_vector("208f95ee37621c3c2d9c74be39bf687c47e84c679b88df270858067c08a16daf"),
         ZERO
     );
 
@@ -286,52 +200,51 @@ TEST(TestPRFs, TestPRFNFGadget) {
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> rho = from_bits(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0, 0, 0, 0, 1, 1, 1, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 1, 1, 1, 1, 1, 1, 1, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
-            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
             1, 1, 1, 1, 1, 1, 1, 1
         }, ZERO
     );
 
-    // nf should equal: 
-    // nf = sha256(a_sk || 01 || [rho]_254)
-    // 
-    // a_sk: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    // rho:  0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    // '01 || [rho]_254': 0x43C000000000003FC00000000000003FC00000000000003FC00000000000003F
-    // 
-    // Note: This test vector has been generated by using the solidity sha256 function
-    // (we want to make sure that we generate the same digests both on-chain and off-chain)
+    /*
+     * nf should equal: 4a5f4f585dda39cc597366f9172bae924d22e832487e12e76742dbab9393b620
+     * nf = sha256( 1110 || [a_sk]_252 || rho)
+     * a_sk: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+     * rho:  0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+     * Note: This test vector has been generated by using the solidity sha256 function
+     * (we want to make sure that we generate the same digests both on-chain and off-chain)
+     */
     libsnark::pb_variable_array<FieldT> nf_expected = from_bits(
-        hexadecimal_digest_to_binary_vector("a4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3"), 
+        hexadecimal_digest_to_binary_vector("4a5f4f585dda39cc597366f9172bae924d22e832487e12e76742dbab9393b620"),
         ZERO
     );
 
@@ -353,6 +266,283 @@ TEST(TestPRFs, TestPRFNFGadget) {
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
     ASSERT_EQ(result->get_digest(), nf_expected.get_bits(pb));
+};
+
+TEST(TestPRFs, TestPRFPKGadget) {
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+
+    // a_sk corresponds to the number: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+    libsnark::pb_variable_array<FieldT> a_sk = from_bits(
+        {
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            1, 1, 1, 1, 1, 1, 1, 1, // FF
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            1, 1, 1, 1, 1, 1, 1, 1, // FF
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            1, 1, 1, 1, 1, 1, 1, 1, // FF
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            1, 1, 1, 1, 1, 1, 1, 1  // FF
+        }, ZERO
+    );
+
+    // h_sig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+    libsnark::pb_variable_array<FieldT> hsig = from_bits(
+        {
+            0, 0, 0, 0, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1
+        }, ZERO
+    );
+
+    /*
+     * h_i should equal: 7ea1525fdbf9462c5144796937e1f80b9dad42369f7d4987c436b2f79257f9ac
+     * h_i = sha256( 0i00 || [a_sk]_252 || h_sig)
+     * a_sk: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+     * h_sig:  0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+     * Note: This test vector has been generated by using the solidity sha256 function
+     * (we want to make sure that we generate the same digests both on-chain and off-chain))
+     */
+    libsnark::pb_variable_array<FieldT> h_expected0 = from_bits(
+        hexadecimal_digest_to_binary_vector("7ea1525fdbf9462c5144796937e1f80b9dad42369f7d4987c436b2f79257f9ac"),
+        ZERO
+    );
+
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result0;
+    result0.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+
+    std::shared_ptr<PRF_pk_gadget<FieldT, HashT> > prf_pk_gadget0;
+    prf_pk_gadget0.reset(new PRF_pk_gadget<FieldT, HashT>(
+        pb,
+        ZERO,
+        a_sk,
+        hsig,
+        size_t(0),
+        result0)
+    );
+
+    prf_pk_gadget0->generate_r1cs_constraints();
+    prf_pk_gadget0->generate_r1cs_witness();
+
+    libsnark::pb_variable_array<FieldT> h_expected1 = from_bits(
+        hexadecimal_digest_to_binary_vector("33fcc4f4ccdbe0854d633eb3b0889a4a54146ff4bde1ec73c0c87329a3728c4e"),
+        ZERO
+    );
+
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result1;
+    result1.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+
+    std::shared_ptr<PRF_pk_gadget<FieldT, HashT> > prf_pk_gadget1;
+    prf_pk_gadget1.reset(new PRF_pk_gadget<FieldT, HashT>(
+        pb,
+        ZERO,
+        a_sk,
+        hsig,
+        size_t(1),
+        result1)
+    );
+
+    prf_pk_gadget1->generate_r1cs_constraints();
+    prf_pk_gadget1->generate_r1cs_witness();
+
+    bool is_valid_witness = pb.is_satisfied();
+    ASSERT_TRUE(is_valid_witness);
+    ASSERT_EQ(result0->get_digest(), h_expected0.get_bits(pb));
+    ASSERT_EQ(result1->get_digest(), h_expected1.get_bits(pb));
+};
+
+
+TEST(TestPRFs, TestPRFRhoGadget) {
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+
+    // phi corresponds to the number: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+    libsnark::pb_variable_array<FieldT> phi = from_bits(
+        {
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            1, 1, 1, 1, 1, 1, 1, 1, // FF
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            1, 1, 1, 1, 1, 1, 1, 1, // FF
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            1, 1, 1, 1, 1, 1, 1, 1, // FF
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            0, 0, 0, 0, 0, 0, 0, 0, // 00
+            1, 1, 1, 1, 1, 1, 1, 1  // FF
+        }, ZERO
+    );
+
+    // hsig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+    libsnark::pb_variable_array<FieldT> hsig = from_bits(
+        {
+            0, 0, 0, 0, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1
+        }, ZERO
+    );
+
+    /*
+     * rho should equal: a87c47a6c721bdbbb4aa8875c2aa72d4db31b9526aa920656049e00786f7f8a4
+     * rho = sha256( 0i10 || [phi]_252 || h_sig)
+     * phi: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+     * hsig:  0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
+     * Note: This test vector has been generated by using the solidity sha256 function
+     * (we want to make sure that we generate the same digests both on-chain and off-chain)
+     */
+    libsnark::pb_variable_array<FieldT> rho_expected0 = from_bits(
+        hexadecimal_digest_to_binary_vector("a87c47a6c721bdbbb4aa8875c2aa72d4db31b9526aa920656049e00786f7f8a4"),
+        ZERO
+    );
+
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result0;
+    result0.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+
+    std::shared_ptr<PRF_rho_gadget<FieldT> > prf_rho_gadget0;
+    prf_rho_gadget0.reset(new PRF_rho_gadget<FieldT>(
+        pb,
+        ZERO,
+        phi,
+        hsig,
+        size_t(0),
+        result0)
+    );
+
+    prf_rho_gadget0->generate_r1cs_constraints();
+    prf_rho_gadget0->generate_r1cs_witness();
+
+    libsnark::pb_variable_array<FieldT> rho_expected1 = from_bits(
+        hexadecimal_digest_to_binary_vector("6da328efaf4ccdea318d086c0e30be4b7cf61accc37a3e760e46f367d811a3e3"),
+        ZERO
+    );
+
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result1;
+    result1.reset(new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+
+    std::shared_ptr<PRF_rho_gadget<FieldT> > prf_rho_gadget1;
+    prf_rho_gadget1.reset(new PRF_rho_gadget<FieldT>(
+        pb,
+        ZERO,
+        phi,
+        hsig,
+        size_t(1),
+        result1)
+    );
+
+    prf_rho_gadget1->generate_r1cs_constraints();
+    prf_rho_gadget1->generate_r1cs_witness();
+
+    bool is_valid_witness = pb.is_satisfied();
+    ASSERT_TRUE(is_valid_witness); 
+    ASSERT_EQ(result0->get_digest(), rho_expected0.get_bits(pb));
+    ASSERT_EQ(result1->get_digest(), rho_expected1.get_bits(pb));
 };
 
 } // namespace

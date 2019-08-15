@@ -8,6 +8,9 @@ PGHR13_ZKSNARK = "PGHR13"
 PGHR13_VERIFIER_CONTRACT = "Pghr13Verifier"
 PGHR13_MIXER_CONTRACT = "Pghr13Mixer"
 
+# OTSCHNORR constants
+SCHNORR_VERIFIER_CONTRACT = "OTSchnorrVerifier"
+
 # RPC endpoint
 RPC_ENDPOINT = "localhost:50051"
 
@@ -17,6 +20,12 @@ WEB3_HTTP_PROVIDER = "http://localhost:8545"
 # Merkle tree depth
 ZETH_MERKLE_TREE_DEPTH = 4
 
-# MiMC constants
+# Nb of input notes
+JS_INPUTS = 2
+
+# Nb of output notes
+JS_OUTPUTS = 2
+
+# Curve prime
 # See: https://github.com/ethereum/go-ethereum/blob/master/crypto/bn256/cloudflare/constants.go#L23
-ZETH_MIMC_PRIME = 21888242871839275222246405745257275088548364400416034343698204186575808495617
+ZETH_PRIME = 21888242871839275222246405745257275088548364400416034343698204186575808495617

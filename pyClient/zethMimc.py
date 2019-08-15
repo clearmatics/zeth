@@ -8,10 +8,10 @@ except ImportError:
     from Crypto.Hash import keccak
     keccak_256 = lambda *args: keccak.new(digest_bits=256)
 
-from zethConstants import ZETH_MIMC_PRIME
+from zethConstants import ZETH_PRIME
 
 class MiMC7:
-    def __init__(self, seed="clearmatics_mt_seed", prime=ZETH_MIMC_PRIME):
+    def __init__(self, seed="clearmatics_mt_seed", prime=ZETH_PRIME):
         self.prime = prime
         self.seed = seed
 

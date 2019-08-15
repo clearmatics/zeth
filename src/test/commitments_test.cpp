@@ -513,6 +513,91 @@ TEST(TestCOMMs, TestCOMMCMGadget) {
     ASSERT_EQ(result->get_digest(), cm_expected.get_bits(pb));
 };
 
+
+
+TEST(TestCOMMs, TestCOMMALLCMGadget) {
+    libsnark::protoboard<FieldT> pb;
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb);
+    pb.val(ZERO) = FieldT::zero();
+
+    bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
+    bits64 value_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector("2F0000000000000F"));
+    bits256 a_sk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FF0000000000000000000000000000000000000000000000000000000000000F"));
+    bits256 rho_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000000000000000000000000000009009"));
+    bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("5c36fea42b82800d74304aa4f875142b421b4f2847e7c41c1077fbbcfd63f886"));
+    bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("d7b310c2179ffb1561870e7783ef812f49b86c368ec1688da6973490530ad731"));
+
+    bits256 inner_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("940de4dff75b94ec57867fefe16bfa9dca5ef2b4d649a407377b42ce23a9de83"));
+    bits256 outer_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("a4f1c177d2a414e08c02ea86381a4a5c6fc512f4bac4808fd015b20c56bf07cd"));
+    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("a8ab7c0cccb5d4cc8680b8d542d6745ab28d588e4dd6d40ee4d22cd7a544e74c"));
+
+
+    // hex: 0xAF000000000000FF00000000000000FF00000000000000FF00000000000000FF
+    libsnark::pb_variable_array<FieldT> apk ;
+    apk.allocate(pb, 256);
+    apk.fill_with_bits(pb, get_vector_from_bits256(a_pk_bits256));
+
+    libsnark::pb_variable_array<FieldT> rho ;
+    rho.allocate(pb, 256);
+    rho.fill_with_bits(pb, get_vector_from_bits256(rho_bits256));
+    
+    libsnark::pb_variable_array<FieldT> r ;
+    r.allocate(pb, 384);
+    r.fill_with_bits(pb, get_vector_from_bits384(trap_r_bits384));
+
+    libsnark::pb_variable_array<FieldT> v ;
+    v.allocate(pb, 64);
+    v.fill_with_bits(pb, get_vector_from_bits64(value_bits64));
+
+    std::shared_ptr<libsnark::digest_variable<FieldT>> inner ;
+    inner.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "inner"));
+    std::shared_ptr<libsnark::digest_variable<FieldT>> outer ;
+    outer.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "outer"));
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result;
+    result.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+
+
+    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT> > comm_inner_k_gadget;
+    comm_inner_k_gadget.reset(new COMM_inner_k_gadget<FieldT, HashT>(
+        pb,
+        apk,
+        rho,
+        inner)
+    );
+    comm_inner_k_gadget->generate_r1cs_constraints();
+    comm_inner_k_gadget->generate_r1cs_witness();
+
+    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT> > comm_outer_k_gadget;
+    comm_outer_k_gadget.reset(new COMM_outer_k_gadget<FieldT, HashT>(
+        pb,
+        r,
+        inner->bits,
+        outer)
+    );
+    comm_outer_k_gadget->generate_r1cs_constraints();
+    comm_outer_k_gadget->generate_r1cs_witness();
+
+    std::shared_ptr<COMM_cm_gadget<FieldT, HashT> > comm_cm_gadget;
+    comm_cm_gadget.reset(new COMM_cm_gadget<FieldT, HashT>(
+        pb,
+        ZERO,
+        outer->bits,
+        v,
+        result)
+    );
+    comm_cm_gadget->generate_r1cs_constraints();
+    comm_cm_gadget->generate_r1cs_witness();
+
+    bool is_valid_witness = pb.is_satisfied();
+    ASSERT_TRUE(is_valid_witness);
+
+    ASSERT_EQ(inner->get_digest(), get_vector_from_bits256(inner_bits256));
+    ASSERT_EQ(outer->get_digest(), get_vector_from_bits256(outer_bits256));
+    ASSERT_EQ(result->get_digest(), get_vector_from_bits256(cm_bits256));
+};
+
+
 } // namespace
 
 int main(int argc, char **argv) {
