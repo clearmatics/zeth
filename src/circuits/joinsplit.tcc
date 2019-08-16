@@ -91,8 +91,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 merkle_root->allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
 
                 // We allocate 2 field elements to pack each inputs nullifiers and each output commitments
-                for (size_t i = 0; i < NumInputs + NumOutputs; i++) {
-                    packed_inputs[i].allocate(pb, 1 + 1);
+                for (size_t i = 0 ; i < NumInputs ; i++) {
+                    packed_inputs[i].allocate(
+                        pb, 1 + 1, FMT(this->annotation_prefix, " in_nullifier"));
+                }
+                for (size_t i = NumInputs ; i < NumInputs + NumOutputs ; i++) {
+                    packed_inputs[i].allocate(
+                        pb, 1 + 1, FMT(this->annotation_prefix, " out_commitment"));
                 }
 
                 // We allocate 1 field element to pack the value (v_pub_in)
@@ -192,13 +197,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                  * + the two public values v_pub_in and v_pub_out + the h_sig + the h_iS.
                  */
                 assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1);
-                assert(nb_inputs == [&packed_inputs]() {
+                assert(nb_packed_inputs == [this]() {
                     size_t sum = 0;
                     for (const auto &i : packed_inputs) {
                          sum = sum + i.size(); 
                     }
                     return sum;
-                });
+                }());
 
                 // [SANITY CHECK] Total size of unpacked inputs
                 size_t total_size_unpacked_inputs = 0;
@@ -474,32 +479,31 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         }
 
-        // Computes the binary size of the primary inputs
+        // Computes the total bit-length of the primary inputs
         static size_t get_inputs_bit_size() {
             size_t acc = 0;
 
             // Bit-length of the Merkle Root
             acc += FieldT::capacity();
 
-            // Binary length of the NullifierS
+            // Bit-length of the NullifierS
             for (size_t i = 0; i < NumInputs; i++) {
                 acc += 256;
             }
 
-            // Binary length of the CommitmentS
+            // Bit-length of the CommitmentS
             for (size_t i = 0; i < NumOutputs; i++) {
                 acc += 256;
             }
 
-            // Binary length of vpub_in
+            // Bit-length of vpub_in
             acc += 64;
 
-            // Binary length of vpub_out
+            // Bit-length of vpub_out
             acc += 64;
 
             return acc;
         }
-
 
         // Compute the total bit-length of the unpacked primary inputs
         static size_t get_unpacked_inputs_bit_size() {
