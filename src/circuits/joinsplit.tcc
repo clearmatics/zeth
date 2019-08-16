@@ -159,6 +159,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     for (const auto &i : packed_inputs) { sum = sum + i.size(); }
                     return sum;
                 }());
+                assert(nb_inputs == get_inputs_field_element_size());
 
                 // [SANITY CHECK] Total size of unpacked inputs
                 size_t total_size_unpacked_inputs = 0;
@@ -375,12 +376,12 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             // Bit-length of the NullifierS
             for (size_t i = 0; i < NumInputs; i++) {
-                acc += 256;
+                acc += HashT::get_digest_len();
             }
 
             // Bit-length of the CommitmentS
             for (size_t i = 0; i < NumOutputs; i++) {
-                acc += 256;
+                acc += HashT::get_digest_len();
             }
 
             // Bit-length of vpub_in
@@ -392,7 +393,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             return acc;
         }
 
-        // Compute the total bit-length of the unpacked primary inputs
+        // Computes the total bit-length of the unpacked primary inputs
         static size_t get_unpacked_inputs_bit_size() {
           // The Merkle root is not in the `unpacked_inputs` so we subtract its
           // bit-length to get the total bit-length of the primary inputs in `unpacked_inputs`
@@ -400,8 +401,29 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         }
 
         // Computes the number of field elements in the primary inputs
-        static size_t verifying_field_element_size() {
-            return div_ceil(get_inputs_bit_size(), FieldT::capacity());
+        static size_t get_inputs_field_element_size() {
+            size_t nb_elements = 0;
+
+            // The merkle root is represented by 1 field element (bit_length(root) = FieldT::capacity())
+            nb_elements += 1;
+
+            // Each nullifier is represented by 2 field elements (if we consider a digest_len of 256 bits)
+            for (size_t i = 0; i < NumInputs; i++) {
+                nb_elements += libff::div_ceil(HashT::get_digest_len(), FieldT::capacity());
+            }
+
+            // Each commitment is represented by 2 field elements (if we consider a digest_len of 256 bits)
+            for (size_t i = 0; i < NumOutputs; i++) {
+                nb_elements += libff::div_ceil(HashT::get_digest_len(), FieldT::capacity());
+            }
+
+            // vpub_in is represented by 1 field element since bit_length(vpub_in) < FieldT::capacity()
+            nb_elements += 1;
+
+            // vpub_out is represented by 1 field element since bit_length(vpub_out) < FieldT::capacity()
+            nb_elements += 1;
+
+            return nb_elements;
         }
 };
 
