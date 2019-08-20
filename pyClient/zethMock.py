@@ -4,47 +4,47 @@ import zethGRPC
 def initTestKeystore():
     # Alice credentials in the zeth abstraction
     AliceOwnershipKeys = zethGRPC.generateApkAskKeypair()
-    Alice25519PublicKey = b'97aa1d5ffc8322ea87c88de17440ed8feb1ea20e00e6d1a93cafcb2e83da5b0e'
-    Alice25519PrivateKey = b'82578283b14d7a3391139957e04aa16fcb498cabf4e8fb85d54a8b2526c28e42'
+    Alice25519EncPublicKey = b'97aa1d5ffc8322ea87c88de17440ed8feb1ea20e00e6d1a93cafcb2e83da5b0e'
+    Alice25519EncPrivateKey = b'82578283b14d7a3391139957e04aa16fcb498cabf4e8fb85d54a8b2526c28e42'
 
     # Bob credentials in the zeth abstraction
     BobOwnershipKeys = zethGRPC.generateApkAskKeypair()
-    Bob25519PublicKey = b'2cb62682cb3f12bc320c7fa37caf14da344383bc980de3ac43c635237b725b2a'
-    Bob25519PrivateKey = b'ec6e45c26de33403c9e4059efdc940939b85f3b340dd95b7a9e32e24601960b6'
+    Bob25519EncPublicKey = b'2cb62682cb3f12bc320c7fa37caf14da344383bc980de3ac43c635237b725b2a'
+    Bob25519EncPrivateKey = b'ec6e45c26de33403c9e4059efdc940939b85f3b340dd95b7a9e32e24601960b6'
 
     # Charlie credentials in the zeth abstraction
     CharlieOwnershipKeys = zethGRPC.generateApkAskKeypair()
-    Charlie25519PublicKey = b'a3058cdc22e4600de1b925ed02743a4310cb3011ec6a953abd9c9b859c9cec6d'
-    Charlie25519PrivateKey = b'bce6da6eda2bfe127dc1f3b7406d4f9f36d0747d04daa14b5a296fef54e0f56e'
+    Charlie25519EncPublicKey = b'a3058cdc22e4600de1b925ed02743a4310cb3011ec6a953abd9c9b859c9cec6d'
+    Charlie25519EncPrivateKey = b'bce6da6eda2bfe127dc1f3b7406d4f9f36d0747d04daa14b5a296fef54e0f56e'
 
     keystore = {
         "Alice": {
             "AddrPk": {
-                "pubkey": Alice25519PublicKey,
+                "encPK": Alice25519EncPublicKey,
                 "aPK": AliceOwnershipKeys["aPK"]
             },
             "AddrSk": {
-                "privkey": Alice25519PrivateKey,
+                "encSK": Alice25519EncPrivateKey,
                 "aSK": AliceOwnershipKeys["aSK"]
             }
         },
         "Bob": {
             "AddrPk": {
-                "pubkey": Bob25519PublicKey,
+                "encPK": Bob25519EncPublicKey,
                 "aPK": BobOwnershipKeys["aPK"]
             },
             "AddrSk": {
-                "privkey": Bob25519PrivateKey,
+                "encSK": Bob25519EncPrivateKey,
                 "aSK": BobOwnershipKeys["aSK"]
             }
         },
         "Charlie": {
             "AddrPk": {
-                "pubkey": Charlie25519PublicKey,
+                "encPK": Charlie25519EncPublicKey,
                 "aPK": CharlieOwnershipKeys["aPK"]
             },
             "AddrSk": {
-                "privkey": Charlie25519PrivateKey,
+                "encSK": Charlie25519EncPrivateKey,
                 "aSK": CharlieOwnershipKeys["aSK"]
             }
         }
