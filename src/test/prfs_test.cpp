@@ -272,7 +272,7 @@ TEST(TestPRFs, TestPRFNFGadget) {
 TEST(TestPRFs, TestPRFPKGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // a_sk corresponds to the number: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
@@ -411,7 +411,7 @@ TEST(TestPRFs, TestPRFPKGadget) {
 TEST(TestPRFs, TestPRFRhoGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     // phi corresponds to the number: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF

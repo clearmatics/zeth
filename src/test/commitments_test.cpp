@@ -518,7 +518,7 @@ TEST(TestCOMMs, TestCOMMCMGadget) {
 TEST(TestCOMMs, TestCOMMALLCMGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb);
+    ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
     bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
@@ -534,20 +534,20 @@ TEST(TestCOMMs, TestCOMMALLCMGadget) {
 
 
     // hex: 0xAF000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<FieldT> apk ;
-    apk.allocate(pb, 256);
-    apk.fill_with_bits(pb, get_vector_from_bits256(a_pk_bits256));
+    libsnark::pb_variable_array<FieldT> a_pk ;
+    a_pk.allocate(pb, 256, "a_pk");
+    a_pk.fill_with_bits(pb, get_vector_from_bits256(a_pk_bits256));
 
     libsnark::pb_variable_array<FieldT> rho ;
-    rho.allocate(pb, 256);
+    rho.allocate(pb, 256, "rho");
     rho.fill_with_bits(pb, get_vector_from_bits256(rho_bits256));
 
     libsnark::pb_variable_array<FieldT> r ;
-    r.allocate(pb, 384);
+    r.allocate(pb, 384, "r");
     r.fill_with_bits(pb, get_vector_from_bits384(trap_r_bits384));
 
     libsnark::pb_variable_array<FieldT> v ;
-    v.allocate(pb, 64);
+    v.allocate(pb, 64, "v");
     v.fill_with_bits(pb, get_vector_from_bits64(value_bits64));
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> inner ;
@@ -560,7 +560,7 @@ TEST(TestCOMMs, TestCOMMALLCMGadget) {
     std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT> > comm_inner_k_gadget;
     comm_inner_k_gadget.reset(new COMM_inner_k_gadget<FieldT, HashT>(
         pb,
-        apk,
+        a_pk,
         rho,
         inner)
     );

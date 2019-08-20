@@ -194,7 +194,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                  * since we are packing all the inputs nullifiers + all the output commitments
                  * + the two public values v_pub_in and v_pub_out + the h_sig + the h_iS.
                 **/
-                assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1);
+                assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs);
                 assert(nb_packed_inputs == [this]() {
                     size_t sum = 0;
                     for (const auto &i : packed_inputs) {
@@ -493,6 +493,14 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             // Bit-length of vpub_out
             acc += 64;
+
+            // Bit-length of h_sig
+            acc += 256;
+
+            // Bit-length of the h_iS
+            for (size_t i = 0; i < NumInputs; i++) {
+                acc += 256;
+            }
 
             return acc;
         }
