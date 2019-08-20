@@ -36,6 +36,13 @@ set(
   "Default snark: one of PGHR13, GROTH16"
 )
 
+# Run only fast test (e.g. on CI machine)
+option(
+  FAST_TESTS_ONLY
+  "Include only fast-running tests"
+  OFF
+)
+
 # Flags and compilation options for use with libsnark
 set(
   CURVE # Variable name
