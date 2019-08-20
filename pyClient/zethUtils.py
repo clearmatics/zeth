@@ -1,7 +1,5 @@
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
-import zlib
-import base64
+import nacl.utils
+from nacl.public import PrivateKey, PublicKey, Box
 
 # Parse the arguments given to the script
 import argparse
@@ -15,65 +13,44 @@ import zethGRPC
 # Import the constants and standard errors defined for zeth
 import zethConstants as constants
 import zethErrors as errors
+import zethMock
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
-"""
-Note: In this proof of concept we encrypt the notes' data with RSA-OAEP.
-This scheme is known not to be IK-CCA. As a consequence, it is fundamental
-to switch to an encryption scheme that is IK-CCA to fully meet the privacy
-promises of ZETH.
+# get PrivateKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
+def get_private_key_from_hex(private_key_hex):
+  return PrivateKey(private_key_hex, encoder=nacl.encoding.HexEncoder)
 
-Reference:
- - [BBDP01]:
-   "Key-Privacy in Public-Key Encryption",
-   M. Bellare, A. Boldyreva, A. Desai, and D. Pointcheval,
-   Asiacrypt 2001,
-   <https://iacr.org/archive/asiacrypt2001/22480568.pdf>
-"""
-def encrypt(message, public_key):
-    rsa_key = RSA.importKey(public_key)
-    rsa_key = PKCS1_OAEP.new(rsa_key)
+# get PublicKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
+def get_public_key_from_hex(public_key_hex):
+  return PublicKey(public_key_hex, encoder=nacl.encoding.HexEncoder)
 
-    blob = zlib.compress(message.encode())
+def encrypt(message, public_key_hex, private_key_hex):
+  # Decode hex representation to keys objects
+  private_key = get_private_key_from_hex(private_key_hex)
+  public_key = get_public_key_from_hex(public_key_hex)
 
-    # Refer to: https://pycryptodome.readthedocs.io/en/latest/src/cipher/oaep.html#Crypto.Cipher.PKCS1_OAEP.PKCS1OAEP_Cipher.encrypt
-    # to define the chunk size
-    chunk_size = 62 # (128 - 2 - 2*32) since we use RSA modulus of 1024 bits (128 bytes) in the keystore
-    offset = 0
-    end_loop = False
-    encrypted =  "".encode()
+  # Init encryption box instance
+  encryption_box = Box(private_key, public_key)
 
-    while not end_loop:
-        chunk = blob[offset:offset + chunk_size]
+  # Nonce is chosen randomly
+  encrypted = encryption_box.encrypt(message, encoder=nacl.encoding.HexEncoder)
 
-        # Padding
-        if len(chunk) % chunk_size != 0:
-            end_loop = True
-            chunk += " ".encode() * (chunk_size - len(chunk))
+  return str(encrypted, encoding = 'utf-8')
 
-        encrypted += rsa_key.encrypt(chunk)
-        offset += chunk_size
+def decrypt(encrypted_message, public_key_hex, private_key_hex):
 
-    return base64.b64encode(encrypted)
+  # Decode hex to keys objects
+  private_key = get_private_key_from_hex(private_key_hex)
+  public_key = get_public_key_from_hex(public_key_hex)
 
-def decrypt(encrypted_blob, private_key):
-    rsakey = RSA.importKey(private_key)
-    rsakey = PKCS1_OAEP.new(rsakey)
+  # Init encryption box instance
+  decryption_box = Box(private_key, public_key)
 
-    encrypted_blob = base64.b64decode(encrypted_blob)
+  message = decryption_box.decrypt(bytes(encrypted_message, encoding ='utf-8'), encoder=nacl.encoding.HexEncoder)
 
-    chunk_size = 128 # Size of the modulus we use here
-    offset = 0
-    decrypted = "".encode()
-
-    # Loop over our chunks
-    while offset < len(encrypted_blob):
-        chunk = encrypted_blob[offset: offset + chunk_size]
-        decrypted += rsakey.decrypt(chunk)
-        offset += chunk_size
-    return str(zlib.decompress(decrypted), 'utf-8')
+  return str(message, encoding = 'utf-8')
 
 # Converts the realtive address of a leaf to an absolute address in the tree
 # Important note: The merkle root index 0 (not 1!)
@@ -101,7 +78,7 @@ def compute_merkle_path(address_commitment, tree_depth, byte_tree):
             address = int(address/2)
     return merkle_path
 
-def receive(ciphertext, decryption_key, username):
+def receive(ciphertext, public_key_hex, private_key_hex, username):
     recovered_plaintext = ""
     try:
         recovered_plaintext = decrypt(ciphertext, decryption_key)
@@ -127,3 +104,41 @@ def parse_zksnark_arg():
     if (args.zksnark not in [constants.PGHR13_ZKSNARK, constants.GROTH16_ZKSNARK]):
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
     return args.zksnark
+
+# Generate private/public keys (kP, k) over Curve25519 for Alice, Bob and Charlie
+def gen_keys_utility(to_print=False):
+  # Alice
+  skalice = PrivateKey.generate()
+  skalice_hex = skalice.encode(encoder=nacl.encoding.HexEncoder)
+  pkalice_hex = skalice.public_key.encode(encoder=nacl.encoding.HexEncoder)
+
+  alice_keys_hex = [pkalice_hex, skalice_hex]
+
+  # Bob
+  skbob = PrivateKey.generate()
+  skbob_hex = skbob.encode(encoder=nacl.encoding.HexEncoder)
+  pkbob_hex = skbob.public_key.encode(encoder=nacl.encoding.HexEncoder)
+
+  bob_keys_hex = [pkbob_hex, skbob_hex]
+
+  # Charlie
+  skcharlie = PrivateKey.generate()
+  skcharlie_hex = skcharlie.encode(encoder=nacl.encoding.HexEncoder)
+  pkcharlie_hex = skcharlie.public_key.encode(encoder=nacl.encoding.HexEncoder)
+
+  charlie_keys_hex = [pkcharlie_hex, skcharlie_hex]
+
+  if to_print:
+    print("Alice")
+    print(pkalice_hex)
+    print(skalice_hex)
+
+    print("Bob")
+    print(pkbob_hex)
+    print(skbob_hex)
+
+    print("Charlie")
+    print(pkcharlie_hex)
+    print(skcharlie_hex)
+
+  return alice_keys_hex, bob_keys_hex, charlie_keys_hex
