@@ -31,21 +31,13 @@ template<typename FieldT> void simple_circuit(libsnark::protoboard<FieldT> &pb)
 
     pb.set_input_sizes(1);
 
-    //   g1
-    //  /  \
-    //  \  /
-    //   x
+    // g1 == x * x
     pb.add_r1cs_constraint(r1cs_constraint<FieldT>(x, x, g1), "g1");
 
-    //    g2
-    //   /  \
-    //  g1   x
+    // g2 == g1 * x
     pb.add_r1cs_constraint(r1cs_constraint<FieldT>(g1, x, g2), "g2");
 
-    //                      y
-    //                    /   \
-    //                   /     \
-    //  g2 + 4.g1 + 2x + 5      1
+    // y == (g2 + 4.g1 + 2x + 5) * 1
     pb.add_r1cs_constraint(
         r1cs_constraint<FieldT>(g2 + (4 * g1) + (2 * x) + 5, 1, y), "y");
 }

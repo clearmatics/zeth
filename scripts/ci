@@ -8,23 +8,34 @@ set -x
 set -e
 
 function build() {
+    dir_name=$1
+    build_type=$2
+
+    # Enable warnings-as-errors
+
+    cxx_flags="-Werror"
+
     if [ "Darwin" == "${platform}" ] ; then
         export PATH="/usr/local/opt/llvm/bin:/usr/local/bin:${PATH}"
         export PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig"
         export LIBRARY_PATH="/usr/local/opt/openssl/lib"
         export LDFLAGS="-L/usr/local/opt/llvm/lib -L-L/usr/local/lib"
         export CPPFLAGS="-I/usr/local/opt/llvm/include -I/usr/local/include"
+
+        cxx_flags="${cxx_flags} -Wno-deprecated-declarations"
     fi
 
-    dir_name=$1
-    build_type=$2
+    cmake_flags="-DFAST_TESTS_ONLY=ON -DCMAKE_BUILD_TYPE=${build_type}"
 
     . setup_env.sh
     mkdir -p build
     cd build
-    cmake -DFAST_TESTS_ONLY=ON -DCMAKE_BUILD_TYPE=${build_type} ..
+    cmake                                    \
+        ${cmake_flags}                       \
+        -DCMAKE_CXX_FLAGS="${cxx_flags}"     \
+        ..
 
-    make -j 2 all build_tests
+    make -j 2 VERBOSE=1 all build_tests
     make -j 2 check
 }
 
