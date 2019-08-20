@@ -62,10 +62,6 @@ bool TestValidJS2In2Case1(
     bits256 h_sig = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b"));
 
-    bits256 h0 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("fd50e7d159159529144311785b554cb76788fc280d3b3bed50d47e31e5f936d9"));
-    bits256 h1 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("ece22988ec5c997c7ab83178dee2d42577c22b42c6f303311d40f04055558432"));
-
-
     // We insert the commitment to the zeth note in the merkle tree
     test_merkle_tree->set_value(address_commitment, cm_field);
     FieldT updated_root_value = test_merkle_tree->get_root();
@@ -190,9 +186,6 @@ bool TestValidJS2In2Case2(
     bits256 h_sig = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b"));
 
-    bits256 h0 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("fd50e7d159159529144311785b554cb76788fc280d3b3bed50d47e31e5f936d9"));
-    bits256 h1 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("ece22988ec5c997c7ab83178dee2d42577c22b42c6f303311d40f04055558432"));
-
     // We insert the commitment to the zeth note in the merkle tree
     test_merkle_tree->set_value(address_commitment, cm_field);
     FieldT updated_root_value = test_merkle_tree->get_root();
@@ -312,10 +305,6 @@ bool TestValidJS2In2Case3(
     bits256 h_sig = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b"));
 
-    bits256 h0 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("fd50e7d159159529144311785b554cb76788fc280d3b3bed50d47e31e5f936d9"));
-    bits256 h1 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("ece22988ec5c997c7ab83178dee2d42577c22b42c6f303311d40f04055558432"));
-
-
     // We insert the commitment to the zeth note in the merkle tree
     test_merkle_tree->set_value(address_commitment, cm_field);
     FieldT updated_root_value = test_merkle_tree->get_root();
@@ -432,10 +421,6 @@ bool TestValidJS2In2Deposit(
     const size_t address_commitment = 1;
     bits256 h_sig = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b"));
-
-    bits256 h0 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("fd50e7d159159529144311785b554cb76788fc280d3b3bed50d47e31e5f936d9"));
-    bits256 h1 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("ece22988ec5c997c7ab83178dee2d42577c22b42c6f303311d40f04055558432"));
-
 
     // We insert the commitment to the zeth note in the merkle tree
     test_merkle_tree->set_value(address_commitment, cm_field);
@@ -555,9 +540,6 @@ bool TestInvalidJS2In2(
     const size_t address_commitment = 1;
     bits256 h_sig = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b"));
-
-    bits256 h0 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("fd50e7d159159529144311785b554cb76788fc280d3b3bed50d47e31e5f936d9"));
-    bits256 h1 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("ece22988ec5c997c7ab83178dee2d42577c22b42c6f303311d40f04055558432"));
 
     // We insert the commitment to the zeth note in the merkle tree
     test_merkle_tree->set_value(address_commitment, cm_field);

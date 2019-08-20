@@ -523,10 +523,8 @@ TEST(TestCOMMs, TestCOMMALLCMGadget) {
 
     bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
     bits64 value_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector("2F0000000000000F"));
-    bits256 a_sk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FF0000000000000000000000000000000000000000000000000000000000000F"));
     bits256 rho_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000000000000000000000000000009009"));
     bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("5c36fea42b82800d74304aa4f875142b421b4f2847e7c41c1077fbbcfd63f886"));
-    bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("d7b310c2179ffb1561870e7783ef812f49b86c368ec1688da6973490530ad731"));
 
     bits256 inner_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("940de4dff75b94ec57867fefe16bfa9dca5ef2b4d649a407377b42ce23a9de83"));
     bits256 outer_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("a4f1c177d2a414e08c02ea86381a4a5c6fc512f4bac4808fd015b20c56bf07cd"));
