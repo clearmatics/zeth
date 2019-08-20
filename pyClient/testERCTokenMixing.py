@@ -163,8 +163,8 @@ if __name__ == '__main__':
 
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she was the recipient
     # But she wasn't the recipient (Bob was), so she fails to decrypt
-    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_bob1, keystore["Alice"]["AddrSk"]["dk"], "alice")
-    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_bob2, keystore["Alice"]["AddrSk"]["dk"], "alice")
+    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_bob1, keystore["Bob"]["AddrPk"]["pubkey"], keystore["Alice"]["AddrSk"]["privkey"], "alice")
+    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_bob2, keystore["Bob"]["AddrPk"]["pubkey"], keystore["Alice"]["AddrSk"]["privkey"], "alice")
     assert (recovered_plaintext1 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
     assert (recovered_plaintext2 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
 
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     mk_byte_tree = get_merkle_tree(mixer_instance)
     mk_path = zethUtils.compute_merkle_path(cm_address_bob_to_bob1, mk_tree_depth, mk_byte_tree)
     # Bob decrypts one of the note he previously received (useless here but useful if the payment came from someone else)
-    input_note_json = json.loads(zethUtils.decrypt(ciphertext_bob_to_bob1, keystore["Bob"]["AddrSk"]["dk"]))
+    input_note_json = json.loads(zethUtils.decrypt(ciphertext_bob_to_bob1, keystore["Bob"]["AddrPk"]["pubkey"], keystore["Bob"]["AddrSk"]["privkey"]))
     input_note_bob_to_charlie = zethGRPC.zethNoteObjFromParsed(input_note_json)
     # Execution of the transfer
     result_transfer_bob_to_charlie = zethTest.bob_to_charlie(
@@ -223,8 +223,8 @@ if __name__ == '__main__':
     )
 
     # Charlie tries to decrypt the ciphertexts from Bob's previous transaction
-    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_charlie1, keystore["Charlie"]["AddrSk"]["dk"], "charlie")
-    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_charlie2, keystore["Charlie"]["AddrSk"]["dk"], "charlie")
+    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_charlie1, keystore["Bob"]["AddrPk"]["pubkey"], keystore["Charlie"]["AddrSk"]["privkey"], "charlie")
+    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_charlie2, keystore["Bob"]["AddrPk"]["pubkey"], keystore["Charlie"]["AddrSk"]["privkey"], "charlie")
     assert (recovered_plaintext1 == ""),"Charlie managed to decrypt a ciphertext that was not encrypted with his key!"
     assert (recovered_plaintext2 != ""),"Charlie should have been able to decrypt the ciphertext that was obtained with his key!"
 
