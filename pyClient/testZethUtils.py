@@ -1,11 +1,10 @@
-# Set of tests for zethUtils.py
-
 import zethMock
 import zethUtils
 
 from nacl.public import PrivateKey, PublicKey
 from nacl.encoding import HexEncoder
 
+# Test we get the correct PrivateKey object from the hexadecimal encoding
 def test_get_private_key_from_hex():
   private_key_obj = zethUtils.get_private_key_from_hex(keystore["Alice"]["AddrSk"]["privkey"])
 
@@ -14,6 +13,7 @@ def test_get_private_key_from_hex():
   assert private_key_obj == private_key, "private key not correct"
   print("Test get_private_key_from_hex passed")
 
+# Test we get the correct PublicKey object from the hexadecimal encoding
 def test_get_public_key_from_hex():
   public_key_obj = zethUtils.get_public_key_from_hex(keystore["Alice"]["AddrPk"]["pubkey"])
 
@@ -22,9 +22,10 @@ def test_get_public_key_from_hex():
   assert public_key_obj == public_key, "public key not correct"
   print("Test get_public_key_from_hex passed")
 
+# Test correct encrypt-decrypt flow: decrypt(encrypt(m)) == m
 def test_encrypt_decrypt():
 
-  message = b"Kill all humans"
+  message = "Kill all humans"
 
   alice_keys_hex, bob_keys_hex, _ = zethUtils.gen_keys_utility()
 
@@ -36,17 +37,18 @@ def test_encrypt_decrypt():
 
   # Subtest 1: Alice to Alice
   ciphertext_alice_alice = zethUtils.encrypt(message, pkalice_hex, skalice_hex)
-  plaintext = zethUtils.decrypt(ciphertext_alice_alice, pkalice_hex, skalice_hex)
 
-  assert plaintext == str(message, encoding='utf-8'), "error in Alice to Alice test"
+  plaintext_alice_alice = zethUtils.decrypt(ciphertext_alice_alice, pkalice_hex, skalice_hex)
+  assert plaintext_alice_alice == message, "error in Alice to Alice test"
 
-  # Subest 2: Alice to Bob
-  ciphertext_alice_bob = zethUtils.encrypt(message, pkalice_hex, skbob_hex)
-  plaintext2 = zethUtils.decrypt(ciphertext_alice_bob, pkalice_hex, skbob_hex)
-  assert plaintext == str(message, encoding='utf-8'), "error in Bob to Alice test"
+  # Subest 2: Bob to Alice
+  ciphertext_bob_alice = zethUtils.encrypt(message, pkalice_hex, skbob_hex)
 
-  plaintext2 = zethUtils.decrypt(ciphertext_alice_bob, pkbob_hex, skalice_hex)
-  assert plaintext == str(message, encoding='utf-8'), "error in Bob to Alice test"
+  plaintext_bob_alice = zethUtils.decrypt(ciphertext_bob_alice, pkalice_hex, skbob_hex)
+  assert plaintext_bob_alice == message, "error in Bob to Alice test: pkalice,skbob"
+
+  plaintext_bob_alice = zethUtils.decrypt(ciphertext_bob_alice, pkbob_hex, skalice_hex)
+  assert plaintext_bob_alice == message, "error in Bob to Alice test: pkbob,skalice"
 
   print("Tests encrypt_decrypt passed")
 

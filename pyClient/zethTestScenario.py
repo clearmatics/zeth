@@ -41,8 +41,8 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
 
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
-    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"])
-    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["ek"])
+    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["pubkey"], keystore["Bob"]["AddrSk"]["privkey"])
+    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["pubkey"], keystore["Bob"]["AddrSk"]["privkey"])
 
     # Hash the cipher-texts
     ciphers = ciphertext1 + ciphertext2
@@ -107,8 +107,8 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
 
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
-    ciphertext1 = zethUtils.encrypt(output_note1_str.encode('utf-8'), keystore["Bob"]["AddrPk"]["pubkey"], keystore["Bob"]["AddrSk"]["privkey"]) # Bob is the recipient
-    ciphertext2 = zethUtils.encrypt(output_note2_str.encode('utf-8'), keystore["Charlie"]["AddrPk"]["pubkey"], keystore["Bob"]["AddrSk"]["privkey"]) # Charlie is the recipient
+    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["pubkey"], keystore["Bob"]["AddrSk"]["privkey"]) # Bob is the recipient
+    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["pubkey"], keystore["Bob"]["AddrSk"]["privkey"]) # Charlie is the recipient
 
     # Hash the cipher-texts
     ciphers = ciphertext1 + ciphertext2
@@ -172,8 +172,8 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
 
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
-    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
-    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
+    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["pubkey"], keystore["Charlie"]["AddrSk"]["privkey"]) # Charlie is the recipient
+    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["pubkey"], keystore["Charlie"]["AddrSk"]["privkey"]) # Charlie is the recipient
     ciphers = [ciphertext1, ciphertext2]
 
     # Hash the cipher-texts

@@ -1,12 +1,13 @@
-import nacl.utils
-from nacl.public import PrivateKey, PublicKey, Box
-
 # Parse the arguments given to the script
 import argparse
 import sys
 
 import os
 import time
+
+# Import Pynacl required modules
+import nacl.utils
+from nacl.public import PrivateKey, PublicKey, Box
 
 import zethGRPC
 
@@ -34,8 +35,11 @@ def encrypt(message, public_key_hex, private_key_hex):
   # Init encryption box instance
   encryption_box = Box(private_key, public_key)
 
-  # Nonce is chosen randomly
-  encrypted = encryption_box.encrypt(message, encoder=nacl.encoding.HexEncoder)
+  # str message encoding to bytes
+  message_bytes = message.encode('utf-8')
+
+  # Encrypt the message. The nonce is chosen randomly
+  encrypted = encryption_box.encrypt(message_bytes, encoder=nacl.encoding.HexEncoder)
 
   return str(encrypted, encoding = 'utf-8')
 
