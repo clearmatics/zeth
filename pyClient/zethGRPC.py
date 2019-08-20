@@ -56,7 +56,7 @@ def hex32bytes(element):
     return res
 
 # Compute h_sig = sha256(randomSeed, nf0, nf1, vk_sign)
-def computeH_sig(randomSeed, nf0, nf1, JSPubKey):
+def computeHSig(randomSeed, nf0, nf1, JSPubKey):
     # Flatten the verification key
     JSPubKeyHex = [item for sublist in JSPubKey["vk"] for item in sublist]
 
@@ -64,7 +64,7 @@ def computeH_sig(randomSeed, nf0, nf1, JSPubKey):
     for item in JSPubKeyHex:
         # For each element of the list, convert it to an hex and append it
         vk_hex += hex32bytes( "{0:0>4X}".format(int(item)) )
-        
+
     h_sig = hashlib.sha256(
         encode_abi(['bytes32', 'bytes32', 'bytes32', 'bytes'], (bytes.fromhex(randomSeed), bytes.fromhex(nf0), bytes.fromhex(nf1), bytes.fromhex(vk_hex)) )
     ).hexdigest()
@@ -82,7 +82,7 @@ def transactionRandomness():
     return rand_phi
 
 # Compute the note randomness: the trapdoor trapR and rho.
-# Starting the Non-Maleability update, rho is computed from phi (see above), 
+# Starting the Non-Maleability update, rho is computed from phi (see above),
 # the rho generated in this function is thus obsolete except for dummy input notes.
 def noteRandomness():
     rand_rho = bytes(Random.get_random_bytes(32)).hex()
@@ -108,12 +108,12 @@ def createZethNote(randomness, recipientApk, value):
 
 # Create two ordered ZethNotes.
 # This function is used to generate new output notes.
-def createZethNotes(phi, hsig, recipientApk1, value1, recipientApk2, value2):
+def createZethNotes(phi, hsig, recipientApk0, value0, recipientApk1, value1):
     rho0 = computeRho_i(phi, hsig, 0)
     randomness0 = noteRandomness()
     note0 = util_pb2.ZethNote(
-        aPK=recipientApk1,
-        value=value1,
+        aPK=recipientApk0,
+        value=value0,
         rho=rho0,
         trapR=randomness0["trapR"]
     )
@@ -121,8 +121,8 @@ def createZethNotes(phi, hsig, recipientApk1, value1, recipientApk2, value2):
     rho1 = computeRho_i(phi, hsig, 1)
     randomness1 = noteRandomness()
     note1 = util_pb2.ZethNote(
-        aPK=recipientApk2,
-        value=value2,
+        aPK=recipientApk1,
+        value=value1,
         rho=rho1,
         trapR=randomness1["trapR"]
     )
@@ -175,7 +175,7 @@ def hexadecimalDigestToBinaryString(digest):
     binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
     return binary(digest)
 
-# Returns nf = sha256( 1110  || [a_sk]_252 || rho)
+# Returns nf = sha256(1110 || [a_sk]_252 || rho)
 def computeNullifier(zethNote, spendingAuthAsk):
     binaryAsk = hexadecimalDigestToBinaryString(spendingAuthAsk)
     first252Ask = binaryAsk[:252]
@@ -186,9 +186,11 @@ def computeNullifier(zethNote, spendingAuthAsk):
     ).hexdigest()
     return nullifier
 
-# Returns h_i = sha256( 0i00  || [a_sk]_252 || hsig)
+# Returns h_i = sha256(0 || i || 00 || [a_sk]_252 || hsig)
+# See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
 def computeH_i(ask, hsig, i):
-    # [SANITY CHECK] make sure i is equal to 0 or 1
+    # [SANITY CHECK] make sure i is in the interval [0, 1]
+    # Since we only allow for 2 input notes in the joinsplit
     if i not in [0, 1]:
         return -1
 
@@ -204,9 +206,11 @@ def computeH_i(ask, hsig, i):
     ).hexdigest()
     return h_i
 
-# Returns rho_i = sha256( 0i10  || [phi]_252 || hsig)
+# Returns rho_i = sha256(0 || i || 10 || [phi]_252 || hsig)
+# See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
 def computeRho_i(phi, hsig, i):
-    # [SANITY CHECK] make sure i is equal to 0 or 1
+    # [SANITY CHECK] make sure i is in the interval [0, 1]
+    # Since we only allow for 2 input notes in the joinsplit
     if i not in [0, 1]:
         return -1
 
@@ -279,19 +283,17 @@ def encodeToHash(messages):
             else:
                 new_list.append(el)
         messages = new_list
-        
 
     for m in messages:
         # For each element
         m_hex = m
-        
+
         # Convert it into a hex
         if type(m) == int:
             m_hex = "{0:0>4X}".format(m)
-        elif type(m) == str:
-            if m[1] == "x":
-                m_hex = m[2:]
-        
+        elif (type(m) == str) and (m[1] == "x"):
+            m_hex = m[2:]
+
         # [SANITY CHECK] Make sure the hex is 32 byte long
         m_hex = hex32bytes(m_hex)
 
@@ -304,7 +306,7 @@ def encodeToHash(messages):
 # (https://github.com/zcash/zips/blob/master/protocol/protocol.pdf)
 # The root, nullifierS, commitmentS, h_sig and h_iS are encoded over two field elements
 # The public values are encoded over one field element
-def encodeInputToHash(messages):  
+def encodeInputToHash(messages):
     input_sha = bytearray()
     print(messages)
 
@@ -328,7 +330,7 @@ def encodeInputToHash(messages):
         nf = fields_to_hex(messages[i], messages[i+1])
         nf_encoded = encode_single("bytes32", bytes.fromhex(nf))
         input_sha  += nf_encoded
-    
+
     # Encode the given output commitments
     for i in range(1 + 2*(constants.JS_INPUTS), 1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS), 2):
         cm = fields_to_hex(messages[i], messages[i+1])
@@ -356,9 +358,10 @@ def encodeInputToHash(messages):
 
     # Encode the h_iS
     for i in range(
-         1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS +1 + 1),
-         1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS +1 + 1 + constants.JS_INPUTS),
-         2):
+        1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS +1 + 1),
+        1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS +1 + 1 + constants.JS_INPUTS),
+        2
+    ):
         hi = fields_to_hex(messages[i], messages[i+1])
         hi_encoded = encode_single("bytes32", bytes.fromhex(hi))
         input_sha  += hi_encoded
@@ -387,11 +390,11 @@ def fields_to_hex(longfield, shortfield):
     res = reversed_long[:253]
     res += reversed_short[:3]
     res = hex32bytes("{0:0>4X}".format( int(res,2) ))
-    
+
     return res
 
 # Generate a Schnorr one-time signature of the ciphertexts, proofs and primary inputs
-# We chose to sign the hash of the proof for modularity 
+# We chose to sign the hash of the proof for modularity
 # (to use the same code regardless of whether GROTH16 or PGHR13 proof system is chosen),
 # and sign the hash of the ciphers and inputs for consistency.
 def sign(keypair, hash_ciphers, hash_proof, hash_inputs):
@@ -477,7 +480,7 @@ def makeProofInputs(root, jsInputs, jsOutputs, inPubValue, outPubValue, hsig, ph
         jsOutputs=jsOutputs,
         inPubValue=inPubValue,
         outPubValue=outPubValue,
-        h_sig=hsig,
+        hSig=hsig,
         phi=phi
     )
 
@@ -514,45 +517,45 @@ def parseProof(proofObj, zksnark):
 def get_proof_joinsplit_2by2(
         grpcEndpoint,
         mk_root,
+        input_note0,
+        input_address0,
+        mk_path0,
         input_note1,
         input_address1,
         mk_path1,
-        input_note2,
-        input_address2,
-        mk_path2,
         sender_ask,
+        recipient0_apk,
         recipient1_apk,
-        recipient2_apk,
+        output_note_value0,
         output_note_value1,
-        output_note_value2,
         public_in_value,
         public_out_value,
         zksnark
     ):
+    input_nullifier0 = computeNullifier(input_note0, sender_ask)
     input_nullifier1 = computeNullifier(input_note1, sender_ask)
-    input_nullifier2 = computeNullifier(input_note2, sender_ask)
     js_inputs = [
-        createJSInput(mk_path1, input_address1, input_note1, sender_ask, input_nullifier1),
-        createJSInput(mk_path2, input_address2, input_note2, sender_ask, input_nullifier2)
+        createJSInput(mk_path0, input_address0, input_note0, sender_ask, input_nullifier0),
+        createJSInput(mk_path1, input_address1, input_note1, sender_ask, input_nullifier1)
     ]
 
     randomSeed = signatureRandomness()
     sig_keys = generateOTSchnorrVkSkpair()
-    h_sig = computeH_sig(randomSeed, input_nullifier1, input_nullifier2, sig_keys)
+    h_sig = computeHSig(randomSeed, input_nullifier0, input_nullifier1, sig_keys)
     phi = transactionRandomness()
 
-    output_note1, output_note2 = createZethNotes(
+    output_note0, output_note1 = createZethNotes(
         phi,
         h_sig,
+        recipient0_apk,
+        output_note_value0,
         recipient1_apk,
-        output_note_value1,
-        recipient2_apk,
-        output_note_value2
+        output_note_value1
     )
 
     js_outputs = [
-        output_note1,
-        output_note2
+        output_note0,
+        output_note1
     ]
 
     proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value, h_sig, phi)
@@ -561,4 +564,4 @@ def get_proof_joinsplit_2by2(
 
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
-    return (output_note1, output_note2, proof_json, sig_keys)
+    return (output_note0, output_note1, proof_json, sig_keys)

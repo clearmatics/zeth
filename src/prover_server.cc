@@ -98,7 +98,7 @@ public:
       FieldT root = libzeth::string_to_field<FieldT>(proofInputs->root());
       libzeth::bits64 vpub_in = libzeth::hexadecimal_value_to_bits64(proofInputs->inpubvalue());
       libzeth::bits64 vpub_out = libzeth::hexadecimal_value_to_bits64(proofInputs->outpubvalue());
-      libzeth::bits256 h_sig_in = libzeth::hexadecimal_digest_to_bits256(proofInputs->h_sig());
+      libzeth::bits256 h_sig_in = libzeth::hexadecimal_digest_to_bits256(proofInputs->hsig());
       libzeth::bits256 phi_in = libzeth::hexadecimal_digest_to_bits256(proofInputs->phi());
 
       if (ZETH_NUM_JS_INPUTS != proofInputs->jsinputs_size()) {

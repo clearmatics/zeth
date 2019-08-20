@@ -64,7 +64,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 
     // Get the coin's commitment (COMM)
     //
-    // inner_k = sha256(a_pk || rho) 
+    // inner_k = sha256(a_pk || rho)
     // outer_k = sha256(r || [inner_commitment]_128)
     // cm = sha256(outer_k || 0^192 || value_v)
     // Converted from old hex string "a8ab7c0cccb5d4cc8680b8d542d6745ab28d588e4dd6d40ee4d22cd7a544e74c" (big-endian)
@@ -91,10 +91,10 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 
     libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT> > ask_digest;
-    ask_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "ask_digest"));
-    ask_digest->generate_r1cs_constraints();
-    ask_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(a_sk_bits256)));
+    std::shared_ptr<libsnark::digest_variable<FieldT> > a_sk_digest;
+    a_sk_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "a_sk_digest"));
+    a_sk_digest->generate_r1cs_constraints();
+    a_sk_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(a_sk_bits256)));
 
     std::shared_ptr<libsnark::digest_variable<FieldT> > nullifier_digest;
     nullifier_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "nullifier_digest"));
@@ -110,7 +110,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
         new input_note_gadget<FieldT, HashT, HashTreeT>(
             pb,
             ZERO,
-            ask_digest,
+            a_sk_digest,
             nullifier_digest,
             *merkle_root
         )

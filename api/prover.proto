@@ -25,20 +25,9 @@ message ProofInputs {
     repeated ZethNote jsOutputs = 3; // List of output to the JS
     string inPubValue = 4; // Hexadecimal string representing a int64
     string outPubValue = 5; // Hexadecimal string representing a int64
-    string h_sig = 6;
+    string hSig = 6;
     string phi = 7;
 }
-
-// We comment this message as the primary input is passed as a json string for now
-/*
-   message ProofPublicInputs {
-   PackedDigest root = 1;
-   repeated PackedDigest inNullifiers = 2;
-   repeated PackedDigest outCommitments = 3;
-   string inPubValue = 4; // Hexadecimal string representing a int64
-   string outPubValue = 5; // Hexadecimal string representing a int64
-   }
- */
 
 message VerificationKey {
     oneof VK {

@@ -56,7 +56,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     uint constant jsIn = 2; // Nb of nullifiers
     uint constant jsOut = 2; // Nb of commitments/ciphertexts
 
-    // We have 2 field elements for each digest (root, nullifiers, commitments, his and hsig) and 1 + 1 public values
+    // We have 2 field elements for each digest (nullifierS (jsIn), commitmentS (jsOut), h_iS (jsIn) and h_sig)
+    // The root, v_pub_in and v_pub_out are all represented by one field element, so we have 1 + 1 + 1 extra public values
     uint constant nbInputs = 1 + 2 * (jsIn + jsOut) + 1 + 1 + 2 * (1 + jsIn);
 
     // Contract variable that indicates the address of the token contract
@@ -237,8 +238,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         emit LogMerkleRoot(root);
     }
 
-    function emit_ciphertexts(string memory ciphertext1, string memory ciphertext2) internal {
+    function emit_ciphertexts(string memory ciphertext0, string memory ciphertext1) internal {
+        emit LogSecretCiphers(ciphertext0);
         emit LogSecretCiphers(ciphertext1);
-        emit LogSecretCiphers(ciphertext2);
     }
 }

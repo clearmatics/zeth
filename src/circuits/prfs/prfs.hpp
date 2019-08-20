@@ -31,27 +31,27 @@ public:
 
 // This function is useful as the generation of a_pk is done via a_pk = sha256(a_sk || 0^256)
 // See Zerocash extended paper, page 22, paragraph "Instantiating the NP statement POUR"
-template<typename FieldT, typename HashT> libsnark::pb_variable_array<FieldT> gen256zeroes(
+template<typename FieldT, typename HashT> libsnark::pb_variable_array<FieldT> gen_256_zeroes(
     libsnark::pb_variable<FieldT>& ZERO
 );
 
-template<typename FieldT> libsnark::pb_variable_array<FieldT> getTagAddr(
+template<typename FieldT> libsnark::pb_variable_array<FieldT> get_tag_addr(
     libsnark::pb_variable<FieldT>& ZERO,
     libsnark::pb_variable_array<FieldT>& x
 );
 
-template<typename FieldT> libsnark::pb_variable_array<FieldT> getTagNf(
+template<typename FieldT> libsnark::pb_variable_array<FieldT> get_tag_nf(
     libsnark::pb_variable<FieldT>& ZERO,
     libsnark::pb_variable_array<FieldT>& ask
 );
 
-template<typename FieldT> libsnark::pb_variable_array<FieldT> getTagPk(
+template<typename FieldT> libsnark::pb_variable_array<FieldT> get_tag_pk(
     libsnark::pb_variable<FieldT>& ZERO,
     libsnark::pb_variable_array<FieldT>& ask,
     size_t index
 );
 
-template<typename FieldT> libsnark::pb_variable_array<FieldT> getTagRho(
+template<typename FieldT> libsnark::pb_variable_array<FieldT> get_tag_rho(
     libsnark::pb_variable<FieldT>& ZERO,
     libsnark::pb_variable_array<FieldT>& phi,
     size_t index
