@@ -14,44 +14,45 @@ import zethGRPC
 # Import the constants and standard errors defined for zeth
 import zethConstants as constants
 import zethErrors as errors
-import zethMock
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
-# get PrivateKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
+# Gets PrivateKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
 def get_private_key_from_hex(private_key_hex):
   return PrivateKey(private_key_hex, encoder=nacl.encoding.HexEncoder)
 
-# get PublicKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
+# Gets PublicKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
 def get_public_key_from_hex(public_key_hex):
   return PublicKey(public_key_hex, encoder=nacl.encoding.HexEncoder)
 
+# Encrypts a string message by using valid hexadecimal ec25519 public and private keys. See: https://pynacl.readthedocs.io/en/stable/public/
 def encrypt(message, public_key_hex, private_key_hex):
-  # Decode hex representation to keys objects
+  # Decodes hex representation to keys objects
   private_key = get_private_key_from_hex(private_key_hex)
   public_key = get_public_key_from_hex(public_key_hex)
 
-  # Init encryption box instance
+  # Inits encryption box instance
   encryption_box = Box(private_key, public_key)
 
-  # str message encoding to bytes
+  # Encods str message to bytes
   message_bytes = message.encode('utf-8')
 
-  # Encrypt the message. The nonce is chosen randomly
+  # Encrypts the message. The nonce is chosen randomly.
   encrypted = encryption_box.encrypt(message_bytes, encoder=nacl.encoding.HexEncoder)
 
   return str(encrypted, encoding = 'utf-8')
 
+# Decrypts a string ciphertext by using valid hexadecimal ec25519 public and private keys. See: https://pynacl.readthedocs.io/en/stable/public/
 def decrypt(encrypted_message, public_key_hex, private_key_hex):
-
   # Decode hex to keys objects
   private_key = get_private_key_from_hex(private_key_hex)
   public_key = get_public_key_from_hex(public_key_hex)
 
-  # Init encryption box instance
+  # Inits encryption box instance
   decryption_box = Box(private_key, public_key)
 
+  # Checks integrity of the ciphertext and decrypts it
   message = decryption_box.decrypt(bytes(encrypted_message, encoding ='utf-8'), encoder=nacl.encoding.HexEncoder)
 
   return str(message, encoding = 'utf-8')
@@ -109,7 +110,7 @@ def parse_zksnark_arg():
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
     return args.zksnark
 
-# Generate private/public keys (kP, k) over Curve25519 for Alice, Bob and Charlie
+# Generates private/public keys (kP, k) over Curve25519 for Alice, Bob and Charlie
 def gen_keys_utility(to_print=False):
   # Alice
   skalice = PrivateKey.generate()

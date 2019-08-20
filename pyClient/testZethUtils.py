@@ -4,7 +4,7 @@ import zethUtils
 from nacl.public import PrivateKey, PublicKey
 from nacl.encoding import HexEncoder
 
-# Test we get the correct PrivateKey object from the hexadecimal encoding
+# Tests that we get the correct PrivateKey object from the hexadecimal encoding
 def test_get_private_key_from_hex():
   private_key_obj = zethUtils.get_private_key_from_hex(keystore["Alice"]["AddrSk"]["privkey"])
 
@@ -13,7 +13,7 @@ def test_get_private_key_from_hex():
   assert private_key_obj == private_key, "private key not correct"
   print("Test get_private_key_from_hex passed")
 
-# Test we get the correct PublicKey object from the hexadecimal encoding
+# Tests that we get the correct PublicKey object from the hexadecimal encoding
 def test_get_public_key_from_hex():
   public_key_obj = zethUtils.get_public_key_from_hex(keystore["Alice"]["AddrPk"]["pubkey"])
 
@@ -22,7 +22,7 @@ def test_get_public_key_from_hex():
   assert public_key_obj == public_key, "public key not correct"
   print("Test get_public_key_from_hex passed")
 
-# Test correct encrypt-decrypt flow: decrypt(encrypt(m)) == m
+# Tests the correct encrypt-decrypt flow: decrypt(encrypt(m)) == m
 def test_encrypt_decrypt():
 
   message = "Kill all humans"
