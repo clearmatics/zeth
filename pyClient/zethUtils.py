@@ -81,7 +81,7 @@ def compute_merkle_path(address_commitment, tree_depth, byte_tree):
 def receive(ciphertext, public_key_hex, private_key_hex, username):
     recovered_plaintext = ""
     try:
-        recovered_plaintext = decrypt(ciphertext, decryption_key)
+        recovered_plaintext = decrypt(ciphertext, public_key_hex, private_key_hex)
         print("[INFO] {} recovered one plaintext".format(username.capitalize()))
         print("[INFO] {} received a payment!".format(username.capitalize()))
         # Just as an example we write the received coin in the coinstore
