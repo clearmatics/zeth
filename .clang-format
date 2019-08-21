@@ -7,7 +7,8 @@
     #
     #   scripts/format
 
-    # llvm style seems closest to the majority of code
+    # llvm coding standard is used as a starting point
+    # https://llvm.org/docs/CodingStandards.html
     BasedOnStyle: llvm,
 
     # BASICS
@@ -20,15 +21,18 @@
     IncludeBlocks: Regroup,
     MaxEmptyLinesToKeep: 1,
     BreakBeforeTernaryOperators: "true",
-    SpaceBeforeCpp11BracedList: "true",
-    Cpp11BracedListStyle: "false",
-    KeepEmptyLinesAtTheStartOfBlocks: "true",
-    AllowShortIfStatementsOnASingleLine: "true",
+    SpaceBeforeCpp11BracedList: "false",
+    Cpp11BracedListStyle: "true",
+    KeepEmptyLinesAtTheStartOfBlocks: "false",
+    AllowShortIfStatementsOnASingleLine: Never,
     SpaceAfterTemplateKeyword: "false",
     AlwaysBreakAfterReturnType: None,
     PenaltyReturnTypeOnItsOwnLine: 10000000,
+    SpaceAfterCStyleCast: "false",
+    SpaceAfterLogicalNot: "false",
+    SpaceBeforeAssignmentOperators: "true",
 
-    # ARG PACKING
+    # ARGUMENTS AND PARAMETERS PACKING
     # Aligning arguments and parameters to brackets is hard to
     # maintain.  If arguments span multiple lines, more than one
     # argument per line is difficult to parse.
@@ -65,14 +69,11 @@
     #   occasionally pay to avoid ambiguity)
 
     AlignAfterOpenBracket: AlwaysBreak,
-    # If params of multi-line declaration don't fit on one line, allow
-    # them all on the next line.
-    # AllowAllParametersOfDeclarationOnNextLine: "true",
+    AllowAllParametersOfDeclarationOnNextLine: "true",
     BinPackArguments: "false",
     BinPackParameters: "false",
 
-    # AlwaysBreakTemplateDeclarations: MultiLine,
-    # AlwaysBreakTemplateDeclarations: No,
+    AlwaysBreakTemplateDeclarations: MultiLine,
 
     # BRACE POSITIONING
     # Braces at end of line:
@@ -106,6 +107,7 @@
 
     BreakBeforeBraces: Linux,
 
+    # CONSTRUCTOR INITIALIZERS
     # Constructor initializer packed similarly to function parameters,
     # with separators before the member names.
     #
@@ -125,6 +127,7 @@
     #       member2(y)
     #   {
     #   }
+    #
     #   // Annoying to reorder
     #   my_class::my_class() :
     #     parent(),
@@ -138,15 +141,27 @@
     ConstructorInitializerAllOnOneLineOrOnePerLine: "true",
     # AllowAllConstructorInitializersOnNextLine: "false",
 
-    # NOTES
+    # ADDITIONAL NOTES
     #
     #  - Long comments at the end of lines cause unnecessary line
-    #    breaks.  Better to comment above the line
+    #    breaks. Better to comment above the line (do not add
+    #    add empty line between the comment and the line).
     #
-    #  - Doesn't enforce braces, so:
-    #      if (condition)
-    #          x = 0;
-    #      else
-    #          x = 1;
-    #    is not fixed.  Must catch with review.
+    #  - Do not pollute namespaces with `using`.
+    #
+    #  - Use `auto` when it is strictly necessary, avoid otherwise.
+    #
+    #  - Always use braces with control flow statements (if, for, while...)
+    #  GOOD:
+    #     if (condition) {
+    #       x = 0;
+    #     } else {
+    #       x = 1;
+    #     }
+    #
+    #  BAD:
+    #     if (condition)
+    #       x = 0;
+    #     else
+    #       x = 1;
 }
