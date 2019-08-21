@@ -157,8 +157,8 @@ def deploy_contracts(mk_tree_depth, proof_verifier_interface, otsig_verifier_int
 
     # Deploy MiMC contract
     _, hasher_address = deploy_mimc_contract(hasher_interface)
-    
-    # Deploy the one-time signature verifier contract 
+
+    # Deploy the one-time signature verifier contract
     otsig_verifier = w3.eth.contract(abi=otsig_verifier_interface['abi'], bytecode=otsig_verifier_interface['bin'])
     otsig_verifier_address = deploy_otschnorr_contracts(otsig_verifier, deployer_address, deployment_gas)
 
@@ -219,7 +219,7 @@ def mix_pghr13(
         [ [int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])] ],
         int(sigma),
         zethGRPC.hex2int(parsed_proof["inputs"])
-        ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
+    ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
 
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
     return parse_mix_call(mixer_instance, tx_receipt)

@@ -92,34 +92,32 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
                 // We allocate 2 field elements to pack each inputs nullifiers and each output commitments
                 for (size_t i = 0 ; i < NumInputs ; i++) {
-                    packed_inputs[i].allocate(
-                        pb, 1 + 1, FMT(this->annotation_prefix, " in_nullifier"));
+                    packed_inputs[i].allocate(pb, 1 + 1, FMT(this->annotation_prefix, " in_nullifier[%zu]", i));
                 }
                 for (size_t i = NumInputs ; i < NumInputs + NumOutputs ; i++) {
-                    packed_inputs[i].allocate(
-                        pb, 1 + 1, FMT(this->annotation_prefix, " out_commitment"));
+                    packed_inputs[i].allocate(pb, 1 + 1, FMT(this->annotation_prefix, " out_commitment[%zu]", i));
                 }
 
                 // We allocate 1 field element to pack the value (v_pub_in)
                 packed_inputs[NumInputs + NumOutputs].allocate(pb, 1, FMT(this->annotation_prefix, " v_pub_in"));
 
                 // We allocate 1 field element to pack the value (v_pub_out)
-                packed_inputs[NumInputs + NumOutputs + 1 ].allocate(pb, 1);
+                packed_inputs[NumInputs + NumOutputs + 1].allocate(pb, 1, FMT(this->annotation_prefix, " v_pub_out"));
 
                 // We allocate 2 field elements to pack the value of h_sig
-                packed_inputs[NumInputs + NumOutputs + 1 + 1 ].allocate(pb, 1 + 1);
+                packed_inputs[NumInputs + NumOutputs + 1 + 1].allocate(pb, 1 + 1, FMT(this->annotation_prefix, " h_sig"));
 
                 // We allocate 2 field elements to pack each malleability tags h_iS
                 for (size_t i = NumInputs + NumOutputs + 1 + 1 + 1 ; i < NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs; i++) {
-                    packed_inputs[i].allocate(pb, 1 + 1);
+                    packed_inputs[i].allocate(pb, 1 + 1, FMT(this->annotation_prefix," h_i[%zu]", i));
                 }
 
                 /*
-                 * The inputs are: [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
+                 * The primary inputs are: [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out, h_sig, h_iS]
                  * The root is represented on a single field element
                  * H_sig, as well as each nullifier, commitment and h_i are in {0,1}^256 and thus take 2 field elements to be represented,
                  * while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
-                 */
+                **/
                 const size_t nb_packed_inputs = (2 * (NumInputs + NumOutputs)) + 1 + 1 + (2 * (1 + NumInputs));
                 const size_t nb_inputs = 1 + nb_packed_inputs;
                 pb.set_input_sizes(nb_inputs);
@@ -130,11 +128,11 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 h_sig.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " h_sig")));
                 for (size_t i = 0; i < NumInputs; i++) {
                     input_nullifiers[i].reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " input_nullifiers[%zu]", i)));
-                    a_sks[i].reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " a_sk_%zu", i)));
-                    h_is[i].reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " h_i_%zu", i)));
+                    a_sks[i].reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " a_sks[%zu]", i)));
+                    h_is[i].reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " h_is[%zu]", i)));
                 }
                 for (size_t i = 0; i < NumOutputs; i++) {
-                    rho_is[i].reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " rho_i_%zu", i)));
+                    rho_is[i].reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " rho_is[%zu]", i)));
                     output_commitments[i].reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " output_commitments[%zu]", i)));
                 }
 
@@ -195,25 +193,19 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                  * The size of the packed inputs should be NumInputs + NumOutputs + 1 + 1
                  * since we are packing all the inputs nullifiers + all the output commitments
                  * + the two public values v_pub_in and v_pub_out + the h_sig + the h_iS.
-                 */
-                assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1);
+                **/
+                assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs);
                 assert(nb_packed_inputs == [this]() {
                     size_t sum = 0;
                     for (const auto &i : packed_inputs) {
-                         sum = sum + i.size(); 
+                         sum = sum + i.size();
                     }
                     return sum;
                 }());
 
                 // [SANITY CHECK] Total size of unpacked inputs
                 size_t total_size_unpacked_inputs = 0;
-                for(size_t i = 0; i < NumOutputs + NumInputs ; i++) {
-                    total_size_unpacked_inputs += unpacked_inputs[i].size();
-                }
-                total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs].size(); // for the v_pub_in
-                total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs + 1].size(); // for the v_pub_out
-                total_size_unpacked_inputs += unpacked_inputs[NumOutputs + NumInputs + 1 + 1].size(); // for the h_sig
-                for(size_t i = NumOutputs + NumInputs + 1 + 1 + 1; i < NumOutputs + NumInputs + 1 + 1 + 1 + NumInputs; i++) {
+                for(size_t i = 0; i < NumOutputs + NumInputs + 1 + 1 + 1 + NumInputs; i++) {
                     total_size_unpacked_inputs += unpacked_inputs[i].size();
                 }
                 assert(total_size_unpacked_inputs == get_unpacked_inputs_bit_size());
@@ -272,13 +264,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 ));
 
                 // 7. Pack the h_iS
-                for (size_t i = NumInputs + NumOutputs + 1 + 1 + 1; i < NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs ; i++) {
+                for (size_t i = NumInputs + NumOutputs + 1 + 1 + 1; i < NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs; i++) {
                     packers[i].reset(new libsnark::multipacking_gadget<FieldT>(
                         pb,
                         unpacked_inputs[i],
                         packed_inputs[i],
                         FieldT::capacity(),
-                        FMT(this->annotation_prefix, " packer_h_i_%zu", i)
+                        FMT(this->annotation_prefix, " packer_h_i[%zu]", i)
                     ));
                 }
 
@@ -307,7 +299,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 ));
             }
 
-            // Ouput note gadgets for commitmnets as well as PRF gadgets for the rho_is
+            // Ouput note gadgets for commitments as well as PRF gadgets for the rho_is
             for (size_t i = 0; i < NumOutputs; i++) {
                 rho_is_gadgets[i].reset(new PRF_rho_gadget<FieldT, HashT>(
                     pb,
@@ -436,7 +428,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             // Witness phi
             phi->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(phi_in)));
-            
+
             {
                 // Witness total_uint64 bits
                 // We add binary numbers here
@@ -501,6 +493,14 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             // Bit-length of vpub_out
             acc += 64;
+
+            // Bit-length of h_sig
+            acc += 256;
+
+            // Bit-length of the h_iS
+            for (size_t i = 0; i < NumInputs; i++) {
+                acc += 256;
+            }
 
             return acc;
         }
