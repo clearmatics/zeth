@@ -20,7 +20,7 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json, sig_keys) = zethGRPC.getProofJoinsplit2By2(
+    (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
         input_note1,
@@ -59,16 +59,16 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     encoded_inputs = zethGRPC.encodeInputToHash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
-    # Compute the transaction signature
-    sigma = zethGRPC.sign(sig_keys, hash_ciphers, hash_proof, hash_inputs)
+    # Compute the joinSplit signature
+    joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return zethContracts.mix(
         mixer_instance,
         ciphertext1,
         ciphertext2,
         proof_json,
-        sig_keys["vk"],
-        sigma,
+        joinsplit_keypair["vk"],
+        joinsplit_sig,
         bob_eth_address,
         w3.toWei(4, 'ether'),
         4000000,
@@ -86,7 +86,7 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json, sig_keys) = zethGRPC.getProofJoinsplit2By2(
+    (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
         input_note1,
@@ -125,16 +125,16 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     encoded_inputs = zethGRPC.encodeInputToHash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
-    # Compute the transaction signature
-    sigma = zethGRPC.sign(sig_keys, hash_ciphers, hash_proof, hash_inputs)
+    # Compute the joinSplit signature
+    joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return zethContracts.mix(
         mixer_instance,
         ciphertext1,
         ciphertext2,
         proof_json,
-        sig_keys["vk"],
-        sigma,
+        joinsplit_keypair["vk"],
+        joinsplit_sig,
         bob_eth_address,
         w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
         4000000,
@@ -151,7 +151,7 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(charlie_apk, charlie_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json, sig_keys) = zethGRPC.getProofJoinsplit2By2(
+    (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
         input_note1,
@@ -191,16 +191,16 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     encoded_inputs = zethGRPC.encodeInputToHash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
-    # Compute the transaction signature
-    sigma = zethGRPC.sign(sig_keys, hash_ciphers, hash_proof, hash_inputs)
+    # Compute the joinSplit signature
+    joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return zethContracts.mix(
         mixer_instance,
         ciphertext1,
         ciphertext2,
         proof_json,
-        sig_keys["vk"],
-        sigma,
+        joinsplit_keypair["vk"],
+        joinsplit_sig,
         charlie_eth_address,
         w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
         4000000,

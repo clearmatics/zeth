@@ -9,16 +9,13 @@ pragma solidity ^0.5.0;
  * International Workshop on Public Key Cryptography, 2007,
  * <https://eprint.iacr.org/2007/273.pdf>
 **/
-
 import "./Pairing.sol";
-import "./Bytes.sol";
 
 contract OTSchnorrVerifier {
     using Pairing for *;
-    using Bytes for *;
 
-    constructor(
-    ) public {
+    constructor() public {
+        // Nothing
     }
 
     function verify(
@@ -28,16 +25,20 @@ contract OTSchnorrVerifier {
         bytes32 hash_proof,
         bytes32 hash_inputs
     ) public returns (bool) {
-
         bytes32 h_bytes = sha256(abi.encodePacked(vk[1][0], vk[1][1], hash_ciphers, hash_proof, hash_inputs));
         uint h = uint(h_bytes);
 
+        // X = g^{x}, where g represents a generator of the cyclic group G
         Pairing.G1Point memory X = Pairing.G1Point(vk[0][0], vk[0][1]);
+        // Y = g^{y}
         Pairing.G1Point memory Y = Pairing.G1Point(vk[1][0], vk[1][1]);
-        Pairing.G1Point memory S = Pairing.mul(Pairing.P1(), sigma);
 
+        // S = g^{sigma}
+        Pairing.G1Point memory S = Pairing.mul(Pairing.P1(), sigma);
+        // S_comp = g^{y + xh}
         Pairing.G1Point memory S_comp = Pairing.add(Y, Pairing.mul(X, h));
 
+        // Check that g^{sigma} == g^{y + xh}
         return (S.X == S_comp.X && S.Y == S_comp.Y);
     }
 }
