@@ -41,12 +41,10 @@ void note_gadget<FieldT>::generate_r1cs_witness(const ZethNote& note) {
     value.fill_with_bits(this->pb, get_vector_from_bits64(note.value()));
 }
 
-/*
- * Gadget that makes sure that all conditions are met in order to spend a note:
- * - The nullifier is correctly computed from a_sk and rho
- * - The commitment cm is correctly computed from the coin's data
- * - commitment cm is in the tree of merkle root rt
-**/
+// Gadget that makes sure that all conditions are met in order to spend a note:
+// - The nullifier is correctly computed from a_sk and rho
+// - The commitment cm is correctly computed from the coin's data
+// - commitment cm is in the tree of merkle root rt
 template<typename FieldT, typename HashT, typename HashTreeT>
 input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
                                                 libsnark::pb_variable<FieldT>& ZERO,
@@ -56,7 +54,8 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
                                                 const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    rho.allocate(pb, ZETH_RHO_SIZE * 8, " rho"); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
+    // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
+    rho.allocate(pb, ZETH_RHO_SIZE * 8, " rho");
     address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH, FMT(this->annotation_prefix, " merkle_tree_depth"));
     a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " a_pk")));
 

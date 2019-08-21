@@ -18,9 +18,8 @@ T swap_bit_endianness(T v) {
     return v;
 }
 
-/*
- * string_to_field(std::string input) converts a string ob bytes of size <=32 to a FieldT element.
- */
+// string_to_field(std::string input) converts a string ob bytes of size <=32 to
+// a FieldT element.
 template<typename FieldT>
 FieldT string_to_field(std::string input){
 

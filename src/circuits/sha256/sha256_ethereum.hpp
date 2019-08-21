@@ -5,9 +5,7 @@
 // Content taken and adapted from:
 // https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
 
-/*
- * This gadget implements the interface of the HashT template
-**/
+// This gadget implements the interface of the HashT template
 
 #include <iostream>
 
@@ -42,8 +40,11 @@ private:
     std::shared_ptr<libsnark::sha256_compression_function_gadget<FieldT>> hasher2;
 
 public:
-    typedef libff::bit_vector hash_value_type; // Important to define the hash_value_type as it is used in the merkle tree
-    typedef libsnark::merkle_authentication_path merkle_authentication_path_type; // Same as above, this is used in the merkle tree
+    // Important to define the hash_value_type as it is used in the merkle tree
+    typedef libff::bit_vector hash_value_type;
+    // Same as above, this is used in the merkle tree
+    typedef libsnark::merkle_authentication_path
+        merkle_authentication_path_type;
 
     sha256_ethereum(libsnark::protoboard<FieldT> &pb,
                     const libsnark::block_variable<FieldT> &input_block,

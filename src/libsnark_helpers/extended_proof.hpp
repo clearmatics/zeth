@@ -8,11 +8,9 @@
 
 namespace libzeth {
 
-/*
- * An extended_proof is a data structure containing a proof and the corresponding primary inputs
- * It corresponds to the data needed for the verifier to be able to run the verifying
- * algorithm.
- **/
+// An extended_proof is a data structure containing a proof and the
+// corresponding primary inputs It corresponds to the data needed for the
+// verifier to be able to run the verifying algorithm.
 template<typename ppT>
 class extended_proof {
 private:

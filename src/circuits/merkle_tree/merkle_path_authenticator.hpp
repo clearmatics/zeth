@@ -11,25 +11,33 @@
 
 namespace libzeth {
 
-/*
- * Merkle path authenticator, verifies computed root matches expected result
-**/
+// Merkle path authenticator, verifies computed root matches expected result
 template<typename FieldT, typename HashTreeT>
 class merkle_path_authenticator : public merkle_path_compute<FieldT, HashTreeT> {
 public:
-    const libsnark::pb_variable<FieldT> m_expected_root; // Expected value of the Merkle Tree root
-    const libsnark::pb_variable<FieldT> value_enforce; // Boolean enforcing the comparison between the expected and computed value of the Merkle Tree root
+    // Expected value of the Merkle Tree root
+    const libsnark::pb_variable<FieldT> m_expected_root;
+
+    // Boolean enforcing the comparison between the expected and
+    // computed value of the Merkle Tree root
+    const libsnark::pb_variable<FieldT> value_enforce;
 
     merkle_path_authenticator(
         libsnark::protoboard<FieldT> &pb,
-        const size_t depth, // The depth of the tree
-        const libsnark::pb_variable_array<FieldT> address_bits, // Address of the leaf to authenticate
-        const libsnark::pb_variable<FieldT> leaf, // Leaf to authenticate
-        const libsnark::pb_variable<FieldT> expected_root, // Expected root
-        const libsnark::pb_variable_array<FieldT> path, // Merkle Authentication path
-        const libsnark::pb_variable<FieldT> bool_enforce, // Boolean enforcing the comparison between the expected and computed value of the Merkle Tree root
-        const std::string &annotation_prefix
-    );
+        // The depth of the tree
+        const size_t depth,
+        // Address of the leaf to authenticate
+        const libsnark::pb_variable_array<FieldT> address_bits,
+        // Leaf to authenticate
+        const libsnark::pb_variable<FieldT> leaf,
+        // Expected root
+        const libsnark::pb_variable<FieldT> expected_root,
+        // Merkle Authentication path
+        const libsnark::pb_variable_array<FieldT> path,
+        // Boolean enforcing the comparison between the expected and
+        // computed value of the Merkle Tree root
+        const libsnark::pb_variable<FieldT> bool_enforce,
+        const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
