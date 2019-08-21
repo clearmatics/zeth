@@ -20,7 +20,7 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json, sig_keys) = zethGRPC.get_proof_joinsplit_2by2(
+    (output_note1, output_note2, proof_json, sig_keys) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
         input_note1,
@@ -86,7 +86,7 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json, sig_keys) = zethGRPC.get_proof_joinsplit_2by2(
+    (output_note1, output_note2, proof_json, sig_keys) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
         input_note1,
@@ -151,7 +151,7 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(charlie_apk, charlie_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json, sig_keys) = zethGRPC.get_proof_joinsplit_2by2(
+    (output_note1, output_note2, proof_json, sig_keys) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
         input_note1,

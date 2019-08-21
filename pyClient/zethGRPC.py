@@ -30,7 +30,7 @@ def getVerificationKey(grpcEndpoint):
     with grpc.insecure_channel(grpcEndpoint) as channel:
         stub = prover_pb2_grpc.ProverStub(channel)
         print("-------------- Get the verification key --------------")
-        verificationkey = stub.GetVerificationKey(make_empty_message())
+        verificationkey = stub.GetVerificationKey(makeEmptyMessage())
         return verificationkey
 
 # Request a proof generation to the proving service
@@ -109,7 +109,7 @@ def createZethNote(randomness, recipientApk, value):
 # Create two ordered ZethNotes.
 # This function is used to generate new output notes.
 def createZethNotes(phi, hsig, recipientApk0, value0, recipientApk1, value1):
-    rho0 = computeRho_i(phi, hsig, 0)
+    rho0 = computeRhoi(phi, hsig, 0)
     randomness0 = noteRandomness()
     note0 = util_pb2.ZethNote(
         aPK=recipientApk0,
@@ -118,7 +118,7 @@ def createZethNotes(phi, hsig, recipientApk0, value0, recipientApk1, value1):
         trapR=randomness0["trapR"]
     )
 
-    rho1 = computeRho_i(phi, hsig, 1)
+    rho1 = computeRhoi(phi, hsig, 1)
     randomness1 = noteRandomness()
     note1 = util_pb2.ZethNote(
         aPK=recipientApk1,
@@ -188,7 +188,7 @@ def computeNullifier(zethNote, spendingAuthAsk):
 
 # Returns h_i = sha256(0 || i || 00 || [a_sk]_252 || hsig)
 # See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
-def computeH_i(ask, hsig, i):
+def computeHi(ask, hsig, i):
     # [SANITY CHECK] make sure i is in the interval [0, 1]
     # Since we only allow for 2 input notes in the joinsplit
     if i not in [0, 1]:
@@ -208,7 +208,7 @@ def computeH_i(ask, hsig, i):
 
 # Returns rho_i = sha256(0 || i || 10 || [phi]_252 || hsig)
 # See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
-def computeRho_i(phi, hsig, i):
+def computeRhoi(phi, hsig, i):
     # [SANITY CHECK] make sure i is in the interval [0, 1]
     # Since we only allow for 2 input notes in the joinsplit
     if i not in [0, 1]:
@@ -327,13 +327,13 @@ def encodeInputToHash(messages):
 
     # Encode the given input nullifiers
     for i in range(1, 1 + 2*(constants.JS_INPUTS), 2):
-        nf = fields_to_hex(messages[i], messages[i+1])
+        nf = fieldsToThex(messages[i], messages[i+1])
         nf_encoded = encode_single("bytes32", bytes.fromhex(nf))
         input_sha  += nf_encoded
 
     # Encode the given output commitments
     for i in range(1 + 2*(constants.JS_INPUTS), 1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS), 2):
-        cm = fields_to_hex(messages[i], messages[i+1])
+        cm = fieldsToThex(messages[i], messages[i+1])
         cm_encoded = encode_single("bytes32", bytes.fromhex(cm))
         input_sha  += cm_encoded
 
@@ -350,7 +350,7 @@ def encodeInputToHash(messages):
     input_sha  += vout_encoded
 
     # Encode the h_sig
-    hsig = fields_to_hex(
+    hsig = fieldsToThex(
         messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1],
         messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1 + 1])
     hsig_encoded = encode_single("bytes32", bytes.fromhex(hsig))
@@ -362,7 +362,7 @@ def encodeInputToHash(messages):
         1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS +1 + 1 + constants.JS_INPUTS),
         2
     ):
-        hi = fields_to_hex(messages[i], messages[i+1])
+        hi = fieldsToThex(messages[i], messages[i+1])
         hi_encoded = encode_single("bytes32", bytes.fromhex(hi))
         input_sha  += hi_encoded
 
@@ -370,7 +370,7 @@ def encodeInputToHash(messages):
 
 # Encode a 256 bit array written over two field elements into a single 32 byte long hex
 # if A= x0 ... x255 and B = y0 ... y7, returns R = hex(x255 ... x3 || y7 y6 y5)
-def fields_to_hex(longfield, shortfield):
+def fieldsToThex(longfield, shortfield):
     # Convert longfield into a 253 bit long array
     long_bit = "{0:b}".format(int(longfield, 16))
     if len(long_bit) > 253:
@@ -433,7 +433,7 @@ def parseHexadecimalPointBaseGroup2Affine(point):
     [point.yC1Coord, point.yC0Coord]
   ]
 
-def make_empty_message():
+def makeEmptyMessage():
     return empty_pb2.Empty()
 
 def parseVerificationKeyPGHR13(vkObj):
@@ -514,7 +514,7 @@ def parseProof(proofObj, zksnark):
     else:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
-def get_proof_joinsplit_2by2(
+def getProofJoinsplit2By2(
         grpcEndpoint,
         mk_root,
         input_note0,
