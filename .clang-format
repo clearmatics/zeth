@@ -1,11 +1,11 @@
 {
     # .clang-format in root of repository.  To run on single file:
     #
-    #   clang-format -style=file -i <file path>
+    #   $ clang-format -style=file -i <file path>
     #
     # To run on whole repo:
     #
-    #   scripts/format
+    #   $ scripts/format
 
     # llvm coding standard is used as a starting point
     # https://llvm.org/docs/CodingStandards.html
@@ -23,13 +23,12 @@
     BreakBeforeTernaryOperators: "true",
     SpaceBeforeCpp11BracedList: "false",
     Cpp11BracedListStyle: "true",
-    KeepEmptyLinesAtTheStartOfBlocks: "false",
-    AllowShortIfStatementsOnASingleLine: Never,
+    KeepEmptyLinesAtTheStartOfBlocks: "true",
+    AllowShortIfStatementsOnASingleLine: "false",
     SpaceAfterTemplateKeyword: "false",
     AlwaysBreakAfterReturnType: None,
     PenaltyReturnTypeOnItsOwnLine: 10000000,
     SpaceAfterCStyleCast: "false",
-    SpaceAfterLogicalNot: "false",
     SpaceBeforeAssignmentOperators: "true",
 
     # ARGUMENTS AND PARAMETERS PACKING
@@ -79,31 +78,13 @@
     # Braces at end of line:
     #
     #   if (cond) {
-    #       // Do something
+    #       x = 0;
     #   } else {
-    #       // Do something else
+    #       x = 1;
     #   }
     #
-    # with exceptions are for namespaces, functions, classes, (where
-    # indentation often does not give us good visual cues):
-    #
-    # UNCLEAR (indentation does not clearly deliminate):
-    #   namespace {
-    #
-    #   class some_class {       // <--- Same indentation as namespace
-    #   public:                  // <--- Same indentation as class
-    #       size_t member_1;
-    #       ...
-    #
-    # CLEARER:
-    #   namespace
-    #   {
-    #
-    #   class some_class
-    #   {
-    #   public:
-    #       size_t member_1;
-    #       ...
+    # except for namespaces, functions, classes, (where indentation
+    # often does not give us good visual cues):
 
     BreakBeforeBraces: Linux,
 
@@ -147,21 +128,32 @@
     #    breaks. Better to comment above the line (do not add
     #    add empty line between the comment and the line).
     #
-    #  - Do not pollute namespaces with `using`.
+    #  - Multi-line comments should use `/*` style
+    #    GOOD:
+    #      /*
+    #       * Your comment here line 1
+    #       * line 2
+    #      **/
     #
-    #  - Use `auto` when it is strictly necessary, avoid otherwise.
+    #    BAD:
+    #      // Your comment here line 1
+    #      // line 2
+    #
+    #  - Avoid `using namespace`, even in .cpp files.
+    #
+    #  - Use `auto` only when it is strictly necessary, avoid otherwise.
     #
     #  - Always use braces with control flow statements (if, for, while...)
-    #  GOOD:
-    #     if (condition) {
-    #       x = 0;
-    #     } else {
-    #       x = 1;
-    #     }
+    #    GOOD:
+    #      if (condition) {
+    #          x = 0;
+    #      } else {
+    #          x = 1;
+    #      }
     #
-    #  BAD:
-    #     if (condition)
-    #       x = 0;
-    #     else
-    #       x = 1;
+    #    BAD:
+    #       if (condition)
+    #           x = 0;
+    #       else
+    #           x = 1;
 }
