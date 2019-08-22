@@ -56,6 +56,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     uint constant jsIn = 2; // Nb of nullifiers
     uint constant jsOut = 2; // Nb of commitments/ciphertexts
 
+    // We have 2 field elements for each digest (nullifierS (jsIn), commitmentS (jsOut), h_iS (jsIn) and h_sig)
+    // The root, v_pub_in and v_pub_out are all represented by one field element, so we have 1 + 1 + 1 extra public values
+    uint constant nbInputs = 1 + 2 * (jsIn + jsOut) + 1 + 1 + 2 * (1 + jsIn);
+
     // Contract variable that indicates the address of the token contract
     // If token = address(0) then the mixer works with ether
     address public token;
@@ -129,6 +133,58 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
     }
 
+    function assemble_primary_inputs_and_hash(uint[] memory primary_inputs) public returns (bytes32) {
+        bytes32[1 + jsIn + jsOut + 1 + 1 + 1 + jsIn] memory formatted_inputs;
+        uint256[] memory digest_inputs = new uint[](2);
+
+        //Format and append the root
+        bytes32 formatted = bytes32(primary_inputs[0]);
+        formatted_inputs[0] = formatted;
+
+        //Format and append the nullifiers
+        for(uint i = 1; i < 1 + 2 * (jsIn); i += 2) {
+            digest_inputs[0] = primary_inputs[i];
+            digest_inputs[1] = primary_inputs[i+1];
+            formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+            formatted_inputs[(i-1)/2 + 1] = formatted;
+        }
+
+        //Format and append the commitments
+        for(uint i = 1 + 2 * (jsIn); i < 1 + 2 * (jsIn + jsOut); i += 2) {
+            digest_inputs[0] = primary_inputs[i];
+            digest_inputs[1] = primary_inputs[i+1];
+            formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+            formatted_inputs[(i-1)/2 + 1] = formatted;
+        }
+
+        //Format and append the v_pub_in
+        formatted = bytes32(primary_inputs[1 + 2 * (jsIn + jsOut)]);
+        formatted_inputs[1 + jsIn + jsOut] = formatted;
+
+        //Format and append the v_pub_out
+        formatted = bytes32(primary_inputs[1 + 2 * (jsIn + jsOut) + 1]);
+        formatted_inputs[1 + jsIn + jsOut + 1] = formatted;
+
+        //Format and append h_sig
+        digest_inputs[0] = primary_inputs[1 + 2 * (jsIn + jsOut) + 1 + 1];
+        digest_inputs[1] = primary_inputs[1 + 2 * (jsIn + jsOut + 1) + 1];
+        formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+        formatted_inputs[1 + jsIn + jsOut + 1 + 1] = formatted;
+
+        //Format and append the h_iS
+        for(uint i = 1 + 2 * (jsIn + jsOut + 1) + 1 + 1; i < 1 + 2 * (jsIn + jsOut + 1 + jsIn) + 1 + 1; i += 2) {
+            digest_inputs[0] = primary_inputs[i];
+            digest_inputs[1] = primary_inputs[i+1];
+            formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+            formatted_inputs[(i-1)/2 + 2] = formatted;
+        }
+
+        bytes32 hash_inputs = sha256(abi.encodePacked(formatted_inputs));
+
+        return hash_inputs;
+    }
+
+
     function assemble_commitments_and_append_to_state(uint[] memory primary_inputs) internal {
         // We re-assemble the commitments (JSOutputs)
         uint256[] memory digest_inputs = new uint[](2);
@@ -182,8 +238,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         emit LogMerkleRoot(root);
     }
 
-    function emit_ciphertexts(string memory ciphertext1, string memory ciphertext2) internal {
+    function emit_ciphertexts(string memory ciphertext0, string memory ciphertext1) internal {
+        emit LogSecretCiphers(ciphertext0);
         emit LogSecretCiphers(ciphertext1);
-        emit LogSecretCiphers(ciphertext2);
     }
 }

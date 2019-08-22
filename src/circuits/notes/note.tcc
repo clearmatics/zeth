@@ -50,29 +50,31 @@ void note_gadget<FieldT>::generate_r1cs_witness(const ZethNote& note) {
 template<typename FieldT, typename HashT, typename HashTreeT>
 input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protoboard<FieldT>& pb,
                                                 libsnark::pb_variable<FieldT>& ZERO,
+                                                std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk,
                                                 std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
                                                 libsnark::pb_variable<FieldT> rt, // merkle_root
                                                 const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    a_sk.allocate(pb, ZETH_A_SK_SIZE * 8, FMT(this->annotation_prefix, " a_sk")); // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
     rho.allocate(pb, ZETH_RHO_SIZE * 8, " rho"); // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
     address_bits_va.allocate(pb, ZETH_MERKLE_TREE_DEPTH, FMT(this->annotation_prefix, " merkle_tree_depth"));
     a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " a_pk")));
+
     inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " inner_k")));
     outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " outer_k")));
     commitment.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " commitment")));
     field_cm.reset(new libsnark::pb_variable<FieldT>);
-    (*field_cm).allocate(pb, FMT(this->annotation_prefix, " field_cm"));
+    field_cm->allocate(pb, FMT(this->annotation_prefix, " field_cm"));
+
     libsnark::pb_variable_array<FieldT>* pb_auth_path = new libsnark::pb_variable_array<FieldT>();
-    (*pb_auth_path).allocate(pb, ZETH_MERKLE_TREE_DEPTH, FMT(this->annotation_prefix, " authentication_path"));
+    pb_auth_path->allocate(pb, ZETH_MERKLE_TREE_DEPTH, FMT(this->annotation_prefix, " authentication_path"));
     auth_path.reset(pb_auth_path);
 
     // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk is correctly computed from a_sk
     spend_authority.reset(new PRF_addr_a_pk_gadget<FieldT, HashT>(
         pb,
         ZERO,
-        a_sk,
+        a_sk->bits,
         a_pk
     ));
 
@@ -80,10 +82,11 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(libsnark::protobo
     expose_nullifiers.reset(new PRF_nf_gadget<FieldT, HashT>(
         pb,
         ZERO,
-        a_sk,
+        a_sk->bits,
         rho,
         nullifier
     ));
+
     // Below this point, we need to do several calls
     // to the commitment gagdets.
     //
@@ -162,14 +165,6 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_constraints() {
     // Generate constraints of parent gadget
     note_gadget<FieldT>::generate_r1cs_constraints();
 
-    // Generate the constraints for the a_sk 256-bit string
-    for (size_t i = 0; i < ZETH_A_SK_SIZE * 8; i++) { // ZETH_A_SK_SIZE * 8 = 32 * 8 = 256
-        libsnark::generate_boolean_r1cs_constraint<FieldT>(
-            this->pb,
-            a_sk[i],
-            FMT(this->annotation_prefix, " a_sk")
-        );
-    }
     // Generate the constraints for the rho 256-bit string
     for (size_t i = 0; i < ZETH_RHO_SIZE * 8; i++) { // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
@@ -203,27 +198,13 @@ template<typename FieldT, typename HashT, typename HashTreeT>
 void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
     std::vector<FieldT> merkle_path,
     libff::bit_vector address_bits,
-    const bits256 a_sk_in,
     const ZethNote& note
 ) {
     // Generate witness of parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
 
-    // Witness a_sk for the input
-    a_sk.fill_with_bits(
-        this->pb,
-        get_vector_from_bits256(a_sk_in)
-    );
-
     // Witness a_pk for a_sk with PRF_addr
     spend_authority->generate_r1cs_witness();
-
-    // TODO: Remove
-    // [SANITY CHECK] Witness a_pk with note information
-    // a_pk->bits.fill_with_bits(
-    //    this->pb,
-    //    get_vector_from_bits256(note.a_pk)
-    // );
 
     // Witness rho for the input note
     rho.fill_with_bits(
@@ -237,13 +218,6 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
     commit_to_inputs_inner_k->generate_r1cs_witness();
     commit_to_inputs_outer_k->generate_r1cs_witness();
     commit_to_inputs_cm->generate_r1cs_witness();
-
-    // TODO: Remove
-    //// [SANITY CHECK] Ensure the commitment is valid.
-    ////commitment->bits.fill_with_bits(
-    ////    this->pb,
-    ////    get_vector_from_bits256(note.cm)
-    ////);
 
     // Set enforce flag for nonzero input value
     // Set the enforce flag according to the value of the note
@@ -317,19 +291,20 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
 template<typename FieldT, typename HashT>
 output_note_gadget<FieldT, HashT>::output_note_gadget(libsnark::protoboard<FieldT>& pb,
                                             libsnark::pb_variable<FieldT>& ZERO,
+                                            std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
                                             std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
                                             const std::string &annotation_prefix
 ) : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    rho.allocate(pb, 256, FMT(this->annotation_prefix, " rho_unpacked"));
     a_pk.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " a_pk")));
     inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " inner_k")));
     outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " outer_k")));
+
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_inner_k.reset(new COMM_inner_k_gadget<FieldT, HashT>(
         pb,
         a_pk->bits,
-        rho,
+        rho->bits,
         inner_k
     ));
     commit_to_outputs_outer_k.reset(new COMM_outer_k_gadget<FieldT, HashT>(
@@ -363,12 +338,6 @@ template<typename FieldT, typename HashT>
 void output_note_gadget<FieldT, HashT>::generate_r1cs_witness(const ZethNote& note) {
     // Generate witness of the parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
-
-    // Witness rho with the note information
-    rho.fill_with_bits(
-        this->pb,
-        get_vector_from_bits256(note.rho)
-    );
 
     // Witness a_pk with note information
     a_pk->bits.fill_with_bits(

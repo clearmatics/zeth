@@ -66,18 +66,19 @@ private:
 
     std::shared_ptr<PRF_addr_a_pk_gadget<FieldT, HashT>> spend_authority; // Makes sure the a_pk is computed corectly from a_sk
     std::shared_ptr<PRF_nf_gadget<FieldT, HashT>> expose_nullifiers; // Makes sure the nullifiers are computed correctly from rho and a_sk
-public:
-    libsnark::pb_variable_array<FieldT> a_sk; // a_sk is assumed to be a random uint256
 
+
+    std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier;
+public:
     input_note_gadget(libsnark::protoboard<FieldT>& pb,
                     libsnark::pb_variable<FieldT>& ZERO,
-                    std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier, // Input note Nullifier
+                    std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk,
+                    std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
                     libsnark::pb_variable<FieldT> rt, // Current Merkle root
                     const std::string &annotation_prefix = "input_note_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness(const std::vector<FieldT> merkle_path,
                             libff::bit_vector address_bits,
-                            const bits256 a_sk_in,
                             const ZethNote& note);
 };
 
@@ -85,7 +86,6 @@ public:
 template<typename FieldT, typename HashT>
 class output_note_gadget : public note_gadget<FieldT> {
 private:
-    libsnark::pb_variable_array<FieldT> rho;
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_pk;
 
     std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT>> commit_to_outputs_inner_k;
@@ -98,6 +98,7 @@ public:
     output_note_gadget(
         libsnark::protoboard<FieldT>& pb,
         libsnark::pb_variable<FieldT>& ZERO,
+        std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
         std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
         const std::string &annotation_prefix = "output_note_gadget");
     void generate_r1cs_constraints();

@@ -4,6 +4,7 @@ import zethMock
 import zethContracts
 
 import json
+from hashlib import sha256
 
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider("http://localhost:8545"))
@@ -19,7 +20,7 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json) = zethGRPC.get_proof_joinsplit_2by2(
+    (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
         input_note1,
@@ -42,11 +43,32 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"])
     ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["ek"])
+
+    # Hash the cipher-texts
+    ciphers = ciphertext1 + ciphertext2
+    hash_ciphers = sha256(ciphers).hexdigest()
+
+    # Hash the proof
+    proof = []
+    for key in proof_json.keys():
+        if key != "inputs":
+            proof.extend(proof_json[key])
+    hash_proof = sha256(zethGRPC.encodeToHash(proof)).hexdigest()
+
+    # Encode and hash the primary inputs
+    encoded_inputs = zethGRPC.encodeInputToHash(proof_json["inputs"])
+    hash_inputs = sha256(encoded_inputs).hexdigest()
+
+    # Compute the joinSplit signature
+    joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+
     return zethContracts.mix(
         mixer_instance,
         ciphertext1,
         ciphertext2,
         proof_json,
+        joinsplit_keypair["vk"],
+        joinsplit_sig,
         bob_eth_address,
         w3.toWei(4, 'ether'),
         4000000,
@@ -64,7 +86,7 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json) = zethGRPC.get_proof_joinsplit_2by2(
+    (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
         input_note1,
@@ -88,11 +110,31 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["ek"]) # Bob is the recipient
     ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
 
+    # Hash the cipher-texts
+    ciphers = ciphertext1 + ciphertext2
+    hash_ciphers = sha256(ciphers).hexdigest()
+
+    # Hash the proof
+    proof = []
+    for key in proof_json.keys():
+        if key != "inputs":
+            proof.extend(proof_json[key])
+    hash_proof = sha256(zethGRPC.encodeToHash(proof)).hexdigest()
+
+    # Encode and hash the primary inputs
+    encoded_inputs = zethGRPC.encodeInputToHash(proof_json["inputs"])
+    hash_inputs = sha256(encoded_inputs).hexdigest()
+
+    # Compute the joinSplit signature
+    joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+
     return zethContracts.mix(
         mixer_instance,
         ciphertext1,
         ciphertext2,
         proof_json,
+        joinsplit_keypair["vk"],
+        joinsplit_sig,
         bob_eth_address,
         w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
         4000000,
@@ -109,7 +151,7 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(charlie_apk, charlie_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json) = zethGRPC.get_proof_joinsplit_2by2(
+    (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
         input_note1,
@@ -132,11 +174,33 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
     ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
     ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["ek"]) # Charlie is the recipient
+    ciphers = [ciphertext1, ciphertext2]
+
+    # Hash the cipher-texts
+    ciphers = ciphertext1 + ciphertext2
+    hash_ciphers = sha256(ciphers).hexdigest()
+
+    # Hash the proof
+    proof = []
+    for key in proof_json.keys():
+        if key != "inputs":
+            proof.extend(proof_json[key])
+    hash_proof = sha256(zethGRPC.encodeToHash(proof)).hexdigest()
+
+    # Encode and hash the primary inputs
+    encoded_inputs = zethGRPC.encodeInputToHash(proof_json["inputs"])
+    hash_inputs = sha256(encoded_inputs).hexdigest()
+
+    # Compute the joinSplit signature
+    joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+
     return zethContracts.mix(
         mixer_instance,
         ciphertext1,
         ciphertext2,
         proof_json,
+        joinsplit_keypair["vk"],
+        joinsplit_sig,
         charlie_eth_address,
         w3.toWei(1, 'wei'), # Pay an arbitrary amount (1 wei here) that will be refunded since the `mix` function is payable
         4000000,

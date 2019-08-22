@@ -49,26 +49,26 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     //
     // a_sk = 0xFF0000000000000000000000000000000000000000000000000000000000000F
     // 0^256 = 0x0000000000000000000000000000000000000000000000000000000000000000
-    // a_pk = sha256(a_sk || 0^256)
+    // a_pk = sha256( 1100 || [a_sk]_252 || 0^256)
     // Generated directly from a_sk and solidity sha256 (solidity v0.5.0)
-    bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"));
+    bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("5c36fea42b82800d74304aa4f875142b421b4f2847e7c41c1077fbbcfd63f886"));
 
     // Get nf from a_sk and rho (PRF)
     //
-    // nf = sha256(a_sk || 01 || [rho]_254)
+    // nf = sha256( 1110 || [a_sk]_252 || rho)
     // a_sk: 0xFF0000000000000000000000000000000000000000000000000000000000000F
     // '01 || [rho]_254' = 0x8FFFC00000000000000000000000000000000000000000000000000000002402
     // The test vector generated directly from a_sk and solidity sha256 (solidity v0.5.0), gives:
     // nf = 0x69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f
-    bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f"));
+    bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("d7b310c2179ffb1561870e7783ef812f49b86c368ec1688da6973490530ad731"));
 
     // Get the coin's commitment (COMM)
     //
     // inner_k = sha256(a_pk || rho)
     // outer_k = sha256(r || [inner_commitment]_128)
     // cm = sha256(outer_k || 0^192 || value_v)
-    // Converted from old hex string "823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331" (big-endian)
-    FieldT cm_field = FieldT("58908622481300953619931625205032657328696563920286427818865722362743092282161");
+    // Converted from old hex string "a8ab7c0cccb5d4cc8680b8d542d6745ab28d588e4dd6d40ee4d22cd7a544e74c" (big-endian)
+    FieldT cm_field = FieldT("76291545571690727539091109373111605007506026177032131593675024857191760062284");
     libff::leave_block("Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
     libff::enter_block("Setup a local merkle tree and append our commitment to it", true);
@@ -89,7 +89,13 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
 
     libff::leave_block("Setup a local merkle tree and append our commitment to it", true);
 
-    libff::enter_block("Data conversion to generate a witness of the note gadget", true);
+    libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
+
+    std::shared_ptr<libsnark::digest_variable<FieldT> > a_sk_digest;
+    a_sk_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "a_sk_digest"));
+    a_sk_digest->generate_r1cs_constraints();
+    a_sk_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(a_sk_bits256)));
+
     std::shared_ptr<libsnark::digest_variable<FieldT> > nullifier_digest;
     nullifier_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "nullifier_digest"));
     nullifier_digest->generate_r1cs_constraints();
@@ -104,6 +110,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
         new input_note_gadget<FieldT, HashT, HashTreeT>(
             pb,
             ZERO,
+            a_sk_digest,
             nullifier_digest,
             *merkle_root
         )
@@ -124,7 +131,6 @@ TEST(TestNoteCircuits, TestInputNoteGadget) {
     input_note_g->generate_r1cs_witness(
         path,
         address_bits,
-        a_sk_bits256,
         note
     );
     libff::leave_block("Data conversion to generate a witness of the note gadget", true);
@@ -155,13 +161,20 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b434693086a996fa2e8d1438a91b1c220331"));
     libff::leave_block("Initialize the output coins' data (a_pk, cm, rho)", true);
 
-    libff::enter_block("Data conversion to generate a witness of the note gadget", true);
+    libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
+
+    std::shared_ptr<libsnark::digest_variable<FieldT> > rho_digest;
+    rho_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "rho_digest"));
+    rho_digest->generate_r1cs_constraints();
+    rho_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(rho_bits256)));
+
     std::shared_ptr<libsnark::digest_variable<FieldT> > commitment;
     commitment.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "root_digest"));
     std::shared_ptr<output_note_gadget<FieldT, HashT>> output_note_g  = std::shared_ptr<output_note_gadget<FieldT, HashT>>(
         new output_note_gadget<FieldT, HashT>(
             pb,
             ZERO,
+            rho_digest,
             commitment
         )
     );

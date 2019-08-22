@@ -26,6 +26,8 @@ extended_proof<ppT> CircuitWrapper<FieldT, HashT, HashTreeT, ppT, NumInputs, Num
     const std::array<ZethNote, NumOutputs>& outputs,
     bits64 vpub_in,
     bits64 vpub_out,
+    const bits256 h_sig_in,
+    const bits256 phi_in,
     provingKeyT<ppT> proving_key
 ) {
     // left hand side and right hand side of the joinsplit
@@ -58,7 +60,9 @@ extended_proof<ppT> CircuitWrapper<FieldT, HashT, HashTreeT, ppT, NumInputs, Num
         inputs,
         outputs,
         vpub_in,
-        vpub_out
+        vpub_out,
+        h_sig_in,
+        phi_in
     );
 
     bool is_valid_witness = pb.is_satisfied();

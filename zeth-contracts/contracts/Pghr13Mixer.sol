@@ -1,15 +1,19 @@
 pragma solidity ^0.5.0;
 
+import "./OTSchnorrVerifier.sol";
 import "./Pghr13Verifier.sol";
 import "./BaseMixer.sol";
 
 contract Pghr13Mixer is BaseMixer {
     // zkSNARK verifier smart contract
     Pghr13Verifier public zksnark_verifier;
+    // OT-Signature verifier smart contract
+    OTSchnorrVerifier public otsig_verifier;
 
     // Constructor
-    constructor(address verifier_address, uint mk_depth, address token_address, address hasher_address) BaseMixer(mk_depth, token_address, hasher_address) public {
-        zksnark_verifier = Pghr13Verifier(verifier_address);
+    constructor(address snark_ver, address sig_ver, uint mk_depth, address token, address hasher) BaseMixer(mk_depth, token, hasher) public {
+        zksnark_verifier = Pghr13Verifier(snark_ver);
+        otsig_verifier = OTSchnorrVerifier(sig_ver);
     }
 
     // This function allows to mix coins and execute payments in zero knowledge
@@ -24,15 +28,31 @@ contract Pghr13Mixer is BaseMixer {
         uint[2] memory c_p,
         uint[2] memory h,
         uint[2] memory k,
+        uint[2][2] memory vk,
+        uint sigma,
         uint[] memory input
-    ) public payable {
+        ) public payable {
         // 1. Check the root and the nullifiers
         assemble_root_and_nullifiers_and_append_to_state(input);
 
-        // 2. Verify the proof
+        // 2.a Verify the proof
         require(
             zksnark_verifier.verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
             "Invalid proof: Unable to verify the proof correctly"
+        );
+
+        // 2.b Verify the signature
+        bytes32 hash_proof = sha256(abi.encodePacked(a, a_p, b, b_p, c, c_p, h, k));
+        bytes32 hash_ciphers = sha256(abi.encodePacked(ciphertext1, ciphertext2));
+        require(
+            otsig_verifier.verify(
+                vk,
+                sigma,
+                hash_ciphers,
+                hash_proof,
+                assemble_primary_inputs_and_hash(input)
+                ),
+            "Invalid signature: Unable to verify the signature correctly"
         );
 
         // 3. Append the commitments to the tree
@@ -42,8 +62,7 @@ contract Pghr13Mixer is BaseMixer {
         process_public_values(input);
 
         // 5. Add the new root to the list of existing roots and emit it
-        bytes32 currentRoot = getRoot();
-        add_and_emit_merkle_root(currentRoot);
+        add_and_emit_merkle_root(getRoot());
 
         // Emit the all the coins' secret data encrypted with the recipients' respective keys
         emit_ciphertexts(ciphertext1, ciphertext2);
