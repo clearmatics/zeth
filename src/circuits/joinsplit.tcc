@@ -51,15 +51,13 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         std::array<std::shared_ptr<libsnark::digest_variable<FieldT> >, NumOutputs> rho_is; // List of all output rhos
         std::shared_ptr<libsnark::digest_variable<FieldT> > phi; // random seed for uniqueness of the new rho
 
-
         // Input note gadgets
-        std::array<std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT> >, NumInputs> input_notes; // Input note gadgets
-        std::array<std::shared_ptr<PRF_pk_gadget<FieldT, HashT>>, NumInputs> h_i_gadgets; // Input note gadgets
+        std::array<std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT> >, NumInputs> input_notes;
+        std::array<std::shared_ptr<PRF_pk_gadget<FieldT, HashT>>, NumInputs> h_i_gadgets;
 
         // Output note gadgets
-        std::array<std::shared_ptr<PRF_rho_gadget<FieldT, HashT> >, NumOutputs> rho_i_gadgets; // Output note gadgets
-        std::array<std::shared_ptr<output_note_gadget<FieldT, HashT> >, NumOutputs> output_notes; // Output note gadgets
-
+        std::array<std::shared_ptr<PRF_rho_gadget<FieldT, HashT> >, NumOutputs> rho_i_gadgets;
+        std::array<std::shared_ptr<output_note_gadget<FieldT, HashT> >, NumOutputs> output_notes;
 
     public:
         // Make sure that we do not exceed the number of inputs/outputs
