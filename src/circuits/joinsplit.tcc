@@ -47,13 +47,19 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
         // ---- Auxiliary inputs (private) ---- //
         libsnark::pb_variable_array<FieldT> zk_total_uint64; // Total amount transfered in the transaction
-        std::array<std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT> >, NumInputs> input_notes; // Input note gadgets
-        std::array<std::shared_ptr<output_note_gadget<FieldT, HashT> >, NumOutputs> output_notes; // Output note gadgets
-        std::array<std::shared_ptr<PRF_pk_gadget<FieldT, HashT>>, NumInputs> h_is_gadgets; // Input note gadgets
-        std::array<std::shared_ptr<PRF_rho_gadget<FieldT, HashT> >, NumOutputs> rho_is_gadgets; // Output note gadgets
-        std::shared_ptr<libsnark::digest_variable<FieldT> > phi; // random seed for uniqueness of the new rho
         std::array<std::shared_ptr<libsnark::digest_variable<FieldT> >, NumInputs> a_sks; // List of all spending keys
         std::array<std::shared_ptr<libsnark::digest_variable<FieldT> >, NumOutputs> rho_is; // List of all output rhos
+        std::shared_ptr<libsnark::digest_variable<FieldT> > phi; // random seed for uniqueness of the new rho
+
+
+        // Input note gadgets
+        std::array<std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT> >, NumInputs> input_notes; // Input note gadgets
+        std::array<std::shared_ptr<PRF_pk_gadget<FieldT, HashT>>, NumInputs> h_i_gadgets; // Input note gadgets
+
+        // Output note gadgets
+        std::array<std::shared_ptr<PRF_rho_gadget<FieldT, HashT> >, NumOutputs> rho_i_gadgets; // Output note gadgets
+        std::array<std::shared_ptr<output_note_gadget<FieldT, HashT> >, NumOutputs> output_notes; // Output note gadgets
+
 
     public:
         // Make sure that we do not exceed the number of inputs/outputs
@@ -289,7 +295,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     *merkle_root
                 ));
 
-                h_is_gadgets[i].reset(new PRF_pk_gadget<FieldT, HashT>(
+                h_i_gadgets[i].reset(new PRF_pk_gadget<FieldT, HashT>(
                     pb,
                     ZERO,
                     a_sks[i]->bits,
@@ -301,7 +307,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
 
             // Ouput note gadgets for commitments as well as PRF gadgets for the rho_is
             for (size_t i = 0; i < NumOutputs; i++) {
-                rho_is_gadgets[i].reset(new PRF_rho_gadget<FieldT, HashT>(
+                rho_i_gadgets[i].reset(new PRF_rho_gadget<FieldT, HashT>(
                     pb,
                     ZERO,
                     phi->bits,
@@ -337,12 +343,12 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
             // Constrain the JoinSplit inputs and the h_iS
             for (size_t i = 0; i < NumInputs; i++) {
                 input_notes[i]->generate_r1cs_constraints();
-                h_is_gadgets[i]->generate_r1cs_constraints();
+                h_i_gadgets[i]->generate_r1cs_constraints();
             }
 
             // Constrain the JoinSplit outputs and the output rho_iS
             for (size_t i = 0; i < NumOutputs; i++) {
-                rho_is_gadgets[i]->generate_r1cs_constraints();
+                rho_i_gadgets[i]->generate_r1cs_constraints();
                 output_notes[i]->generate_r1cs_constraints();
             }
 
@@ -454,12 +460,12 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     inputs[i].note
                 );
 
-                h_is_gadgets[i]->generate_r1cs_witness();
+                h_i_gadgets[i]->generate_r1cs_witness();
             }
 
             // Witness the JoinSplit outputs
             for (size_t i = 0; i < NumOutputs; i++) {
-                rho_is_gadgets[i]->generate_r1cs_witness();
+                rho_i_gadgets[i]->generate_r1cs_witness();
                 output_notes[i]->generate_r1cs_witness(outputs[i]);
             }
 

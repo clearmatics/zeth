@@ -42,12 +42,12 @@ template<typename FieldT> libsnark::pb_variable_array<FieldT> get_tag_addr(
 
 template<typename FieldT> libsnark::pb_variable_array<FieldT> get_tag_nf(
     libsnark::pb_variable<FieldT>& ZERO,
-    libsnark::pb_variable_array<FieldT>& ask
+    libsnark::pb_variable_array<FieldT>& a_sk
 );
 
 template<typename FieldT> libsnark::pb_variable_array<FieldT> get_tag_pk(
     libsnark::pb_variable<FieldT>& ZERO,
-    libsnark::pb_variable_array<FieldT>& ask,
+    libsnark::pb_variable_array<FieldT>& a_sk,
     size_t index
 );
 
