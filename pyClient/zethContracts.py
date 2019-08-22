@@ -82,9 +82,19 @@ def deploy_pghr13_verifier(vk, verifier, deployer_address, deployment_gas):
 
 # Common function to deploy a mixer contract
 # Returns the mixer and the initial merkle root of the commitment tree
-def deploy_mixer(proof_verifier_address, otsig_verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address, hasher_address):
+def deploy_mixer(
+        proof_verifier_address,
+        otsig_verifier_address,
+        mixer_interface,
+        mk_tree_depth,
+        deployer_address,
+        deployment_gas,
+        token_address,
+        hasher_address
+    ):
     # Deploy the Mixer contract once the Verifier is successfully deployed
-    mixer = w3.eth.contract(abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
+    mixer = w3.eth.contract(
+            abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
     tx_hash = mixer.constructor(
         snark_ver = proof_verifier_address,
         sig_ver = otsig_verifier_address,
@@ -128,8 +138,8 @@ def deploy_groth16_verifier(vk, verifier, deployer_address, deployment_gas):
 # Deploy the verifier used with OTSCHNORR
 def deploy_otschnorr_contracts(verifier, deployer_address, deployment_gas):
     # Deploy the verifier contract with the good verification key
-    tx_hash = verifier.constructor(
-        ).transact({'from': deployer_address, 'gas': deployment_gas})
+    tx_hash = verifier.constructor().transact(
+            {'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -139,19 +149,34 @@ def deploy_otschnorr_contracts(verifier, deployer_address, deployment_gas):
 # Deploy the mixer contract with the given merkle tree depth
 # and returns an instance of the mixer along with the initial merkle tree
 # root to use for the first zero knowledge payments
-def deploy_contracts(mk_tree_depth, proof_verifier_interface, otsig_verifier_interface, mixer_interface, hasher_interface, deployer_address, deployment_gas, token_address, zksnark):
+def deploy_contracts(
+        mk_tree_depth,
+        proof_verifier_interface,
+        otsig_verifier_interface,
+        mixer_interface,
+        hasher_interface,
+        deployer_address,
+        deployment_gas,
+        token_address,
+        zksnark
+    ):
     setup_dir = os.environ['ZETH_TRUSTED_SETUP_DIR']
     vk_json = os.path.join(setup_dir, "vk.json")
     with open(vk_json) as json_data:
         vk = json.load(json_data)
 
     # Deploy the proof verifier contract with the good verification key
-    proof_verifier = w3.eth.contract(abi=proof_verifier_interface['abi'], bytecode=proof_verifier_interface['bin'])
+    proof_verifier = w3.eth.contract(
+        abi=proof_verifier_interface['abi'],
+        bytecode=proof_verifier_interface['bin']
+    )
     proof_verifier_address = ""
     if zksnark == constants.PGHR13_ZKSNARK:
-        proof_verifier_address = deploy_pghr13_verifier(vk, proof_verifier, deployer_address, deployment_gas)
+        proof_verifier_address = deploy_pghr13_verifier(
+            vk, proof_verifier, deployer_address, deployment_gas)
     elif zksnark == constants.GROTH16_ZKSNARK:
-        proof_verifier_address = deploy_groth16_verifier(vk, proof_verifier, deployer_address, deployment_gas)
+        proof_verifier_address = deploy_groth16_verifier(
+                vk, proof_verifier, deployer_address, deployment_gas)
     else:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
@@ -159,11 +184,20 @@ def deploy_contracts(mk_tree_depth, proof_verifier_interface, otsig_verifier_int
     _, hasher_address = deploy_mimc_contract(hasher_interface)
 
     # Deploy the one-time signature verifier contract
-    otsig_verifier = w3.eth.contract(abi=otsig_verifier_interface['abi'], bytecode=otsig_verifier_interface['bin'])
-    otsig_verifier_address = deploy_otschnorr_contracts(otsig_verifier, deployer_address, deployment_gas)
+    otsig_verifier = w3.eth.contract(
+            abi=otsig_verifier_interface['abi'], bytecode=otsig_verifier_interface['bin'])
+    otsig_verifier_address = deploy_otschnorr_contracts(
+            otsig_verifier, deployer_address, deployment_gas)
 
-    return deploy_mixer(proof_verifier_address, otsig_verifier_address, mixer_interface, mk_tree_depth, deployer_address, deployment_gas, token_address, hasher_address)
-
+    return deploy_mixer(
+            proof_verifier_address,
+            otsig_verifier_address,
+            mixer_interface,
+            mk_tree_depth,
+            deployer_address,
+            deployment_gas,
+            token_address,
+            hasher_address)
 
 # Deploy mimc contract
 def deploy_mimc_contract(interface):

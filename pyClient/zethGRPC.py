@@ -55,10 +55,10 @@ def hex32bytes(element):
     res = "00"*int((64-len(res))/2) + res
     return res
 
-# Compute h_sig = sha256(randomSeed, nf0, nf1, vk_sign)
-def computeHSig(randomSeed, nf0, nf1, JSPubKey):
+# Compute h_sig = sha256(randomSeed, nf0, nf1, joinSplitPubKey)
+def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
     # Flatten the verification key
-    JSPubKeyHex = [item for sublist in JSPubKey["vk"] for item in sublist]
+    JSPubKeyHex = [item for sublist in joinSplitPubKey for item in sublist]
 
     vk_hex = ""
     for item in JSPubKeyHex:
@@ -407,21 +407,21 @@ def sign(keypair, hash_ciphers, hash_proof, hash_inputs):
     y1_hex = hex32bytes( "{0:0>4X}".format(int(vk[1][1])) )
 
     # Encode and hash the verifying key and input hashes
-    input_sha = encode_abi(["bytes32", "bytes32", "bytes32", "bytes32", "bytes32"],
+    data_to_sign = encode_abi(["bytes32", "bytes32", "bytes32", "bytes32", "bytes32"],
         [bytes.fromhex(y0_hex),
         bytes.fromhex(y1_hex),
         bytes.fromhex(hash_ciphers),
         bytes.fromhex(hash_proof),
         bytes.fromhex(hash_inputs)])
-    h_hex = hashlib.sha256(input_sha).hexdigest()
+    data_hex = hashlib.sha256(data_to_sign).hexdigest()
 
     # Convert the hex digest into a field element
-    h = int(h_hex, 16) % constants.ZETH_PRIME
+    h = int(data_hex, 16) % constants.ZETH_PRIME
 
-    # Compute the signature
-    s = sk[1] + h * sk[0] % constants.ZETH_PRIME
+    # Compute the signature sigma
+    sigma = sk[1] + h * sk[0] % constants.ZETH_PRIME
 
-    return s
+    return sigma
 
 
 def parseHexadecimalPointBaseGroup1Affine(point):
@@ -540,8 +540,9 @@ def getProofJoinsplit2By2(
     ]
 
     randomSeed = signatureRandomness()
-    sig_keys = generateOTSchnorrVkSkpair()
-    h_sig = computeHSig(randomSeed, input_nullifier0, input_nullifier1, sig_keys)
+    # Generate (joinSplitPubKey, joinSplitPrivKey) key pair
+    joinsplit_keypair = generateOTSchnorrVkSkpair()
+    h_sig = computeHSig(randomSeed, input_nullifier0, input_nullifier1, joinsplit_keypair["vk"])
     phi = transactionRandomness()
 
     output_note0, output_note1 = createZethNotes(
@@ -564,4 +565,4 @@ def getProofJoinsplit2By2(
 
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
-    return (output_note0, output_note1, proof_json, sig_keys)
+    return (output_note0, output_note1, proof_json, joinsplit_keypair)
