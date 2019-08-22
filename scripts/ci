@@ -7,6 +7,17 @@ echo "running against commit: "`git log --oneline --no-decorate -n 1`
 set -x
 set -e
 
+function format_check() {
+    scripts/format
+    git diff --no-ext-diff | head -n 20 > format_errors
+    num_lines=`cat format_errors | wc -l`
+    if [ "0" != "${num_lines}" ] ; then
+        echo CODE FORMATTING ERRORS:
+        cat format_errors
+        exit 1
+    fi
+}
+
 function build() {
     dir_name=$1
     build_type=$2
@@ -49,6 +60,10 @@ function build_debug() {
 
 # The CI_EXECTUTE_IN_DOCKER variable determines whether we should
 # re-execute in the docker container.
+
+if [ "1" == "${CI_CHECK_FORMAT}" ] ; then
+    format_check
+fi
 
 if [ "1" == "${CI_USE_DOCKER}" ] ; then
     docker pull clearmatics/zeth-base:latest

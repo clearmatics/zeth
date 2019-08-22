@@ -2,6 +2,7 @@ addons:
     apt:
         packages:
             - docker.io
+            - clang-format
     homebrew:
         packages:
             - gmp
@@ -17,7 +18,7 @@ matrix:
         - env: CI_TASK=build_release CI_USE_DOCKER=1
           os: linux
           language: minimal
-        - env: CI_TASK=build_debug CI_USE_DOCKER=1
+        - env: CI_CHECK_FORMAT=1 CI_TASK=build_debug CI_USE_DOCKER=1
           os: linux
           language: minimal
         - env: CI_TASK=build_release
