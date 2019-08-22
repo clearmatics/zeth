@@ -228,6 +228,7 @@ def deploy_tree_contract(interface, depth, hasher_address):
 # Call to the mixer's mix function to do zero knowledge payments
 def mix_pghr13(
         mixer_instance,
+        pk_sender,
         ciphertext1,
         ciphertext2,
         parsed_proof,
@@ -238,6 +239,7 @@ def mix_pghr13(
         call_gas
     ):
     tx_hash = mixer_instance.functions.mix(
+        pk_sender,
         ciphertext1,
         ciphertext2,
         zethGRPC.hex2int(parsed_proof["a"]),
@@ -258,6 +260,7 @@ def mix_pghr13(
 
 def mix_groth16(
         mixer_instance,
+        pk_sender,
         ciphertext1,
         ciphertext2,
         parsed_proof,
@@ -268,6 +271,7 @@ def mix_groth16(
         call_gas
     ):
     tx_hash = mixer_instance.functions.mix(
+        pk_sender,
         ciphertext1,
         ciphertext2,
         zethGRPC.hex2int(parsed_proof["a"]),
@@ -283,6 +287,7 @@ def mix_groth16(
 
 def mix(
         mixer_instance,
+        pk_sender,
         ciphertext1,
         ciphertext2,
         parsed_proof,
@@ -296,6 +301,7 @@ def mix(
     if zksnark == constants.PGHR13_ZKSNARK:
         return mix_pghr13(
             mixer_instance,
+            pk_sender,
             ciphertext1,
             ciphertext2,
             parsed_proof,
@@ -308,6 +314,7 @@ def mix(
     elif zksnark == constants.GROTH16_ZKSNARK:
         return mix_groth16(
             mixer_instance,
+            pk_sender,
             ciphertext1,
             ciphertext2,
             parsed_proof,
@@ -338,7 +345,9 @@ def parse_mix_call(mixer_instance, tx_receipt):
     new_mk_root = w3.toHex(event_logs_logMerkleRoot[0].args.root)[2:] # [2:] to strip the '0x' prefix
     ciphertext1 = event_logs_logSecretCiphers[0].args.ciphertext
     ciphertext2 = event_logs_logSecretCiphers[1].args.ciphertext
-    return (commitment_address1, commitment_address2, new_mk_root, ciphertext1, ciphertext2)
+    pk_sender = event_logs_logSecretCiphers[0].args.pk_sender
+
+    return (commitment_address1, commitment_address2, new_mk_root, pk_sender, ciphertext1, ciphertext2)
 
 # Call the hash method of MiMC contract
 def mimcHash(instance, m, k, seed):

@@ -77,10 +77,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // Event to emit the root of a the merkle tree
     event LogMerkleRoot(bytes32 root);
 
-    // Event to emit the ciphertexts of the coins' data to be sent to the recipient of the payment
+    // Event to emit the encryption public key of the sender and ciphertexts of the coins' data to be sent to the recipient of the payment
     // This event is key to obfuscate the transaction graph while enabling on-chain storage of the coins' data
     // (useful to ease backup of user's wallets)
-    event LogSecretCiphers(string ciphertext);
+    event LogSecretCiphers(bytes32 pk_sender, bytes ciphertext);
 
     // Debug only
     event LogDebug(string message);
@@ -238,8 +238,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         emit LogMerkleRoot(root);
     }
 
-    function emit_ciphertexts(string memory ciphertext0, string memory ciphertext1) internal {
-        emit LogSecretCiphers(ciphertext0);
-        emit LogSecretCiphers(ciphertext1);
+    function emit_ciphertexts(bytes32 pk_sender, bytes memory ciphertext0, bytes memory ciphertext1) internal {
+        emit LogSecretCiphers(pk_sender, ciphertext0);
+        emit LogSecretCiphers(pk_sender, ciphertext1);
     }
 }

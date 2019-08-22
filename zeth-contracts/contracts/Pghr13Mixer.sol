@@ -18,8 +18,9 @@ contract Pghr13Mixer is BaseMixer {
 
     // This function allows to mix coins and execute payments in zero knowledge
     function mix (
-        string memory ciphertext1,
-        string memory ciphertext2, // Nb of ciphertexts depends on the JS description (Here 2 inputs)
+        bytes32 pk_sender,
+        bytes memory ciphertext0,
+        bytes memory ciphertext1, // Nb of ciphertexts depends on the JS description (Here 2 inputs)
         uint[2] memory a,
         uint[2] memory a_p,
         uint[2][2] memory b,
@@ -43,7 +44,7 @@ contract Pghr13Mixer is BaseMixer {
 
         // 2.b Verify the signature
         bytes32 hash_proof = sha256(abi.encodePacked(a, a_p, b, b_p, c, c_p, h, k));
-        bytes32 hash_ciphers = sha256(abi.encodePacked(ciphertext1, ciphertext2));
+        bytes32 hash_ciphers = sha256(abi.encodePacked(ciphertext0, ciphertext1));
         require(
             otsig_verifier.verify(
                 vk,
@@ -65,6 +66,6 @@ contract Pghr13Mixer is BaseMixer {
         add_and_emit_merkle_root(getRoot());
 
         // Emit the all the coins' secret data encrypted with the recipients' respective keys
-        emit_ciphertexts(ciphertext1, ciphertext2);
+        emit_ciphertexts(pk_sender, ciphertext0, ciphertext1);
     }
 }

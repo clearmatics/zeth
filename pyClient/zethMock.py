@@ -4,18 +4,18 @@ import zethGRPC
 def initTestKeystore():
     # Alice credentials in the zeth abstraction
     AliceOwnershipKeys = zethGRPC.generateApkAskKeypair()
-    Alice25519EncPublicKey = b'97aa1d5ffc8322ea87c88de17440ed8feb1ea20e00e6d1a93cafcb2e83da5b0e'
-    Alice25519EncPrivateKey = b'82578283b14d7a3391139957e04aa16fcb498cabf4e8fb85d54a8b2526c28e42'
+    Alice25519EncPublicKey = b'\x1eO"\n\xdaWnU+\xf5\xaa\x8a#\xd2*\xd3\x11\x9fc\xe52 \xd8^\xbc-\xb6\xf1\xeej\xf41'
+    Alice25519EncPrivateKey = b'\xde\xa2\xc1\x0b\xd1\xf7\x13\xf8J\xa4:\xa4\xb6\xfa\xbd\xd5\xc9\x8a\xd9\xb6\xb4\xc4\xc4I\x88\xa4\xd9\xe2\xee\x9e\x9a\xff'
 
     # Bob credentials in the zeth abstraction
     BobOwnershipKeys = zethGRPC.generateApkAskKeypair()
-    Bob25519EncPublicKey = b'2cb62682cb3f12bc320c7fa37caf14da344383bc980de3ac43c635237b725b2a'
-    Bob25519EncPrivateKey = b'ec6e45c26de33403c9e4059efdc940939b85f3b340dd95b7a9e32e24601960b6'
+    Bob25519EncPublicKey = b't\xc5{5j\xb5\x8a\xd3n\xb3\xab9\xe8s^13\xba\xa2\x91x\xb01(\xf9\xbb\xf9@r_\x91}'
+    Bob25519EncPrivateKey = b'\xd3\xf0\x8f ,\x1d#\xdc\xac,\x93\xbd\xd0\xd9\xed\x8c\x92\x822\xef\xd6\x97^\x86\xf7\xe4/\x85\xb6\x10\xe6o'
 
     # Charlie credentials in the zeth abstraction
     CharlieOwnershipKeys = zethGRPC.generateApkAskKeypair()
-    Charlie25519EncPublicKey = b'a3058cdc22e4600de1b925ed02743a4310cb3011ec6a953abd9c9b859c9cec6d'
-    Charlie25519EncPrivateKey = b'bce6da6eda2bfe127dc1f3b7406d4f9f36d0747d04daa14b5a296fef54e0f56e'
+    Charlie25519EncPublicKey = b'u\xe7\x88\x9c\xbfE(\xf8\x99\xca<\xa8[<\xa2\x88m\xad\rN"\xf0}\xec\xfcB\x89\xe6\x96\xcf\x19U'
+    Charlie25519EncPrivateKey = b'zH\xb66q\x97\x0bO\xcb\xb9q\x9b\xbd-1`I\xae\x00-\x11\xb9\xed}\x18\x9f\xf6\x8dr\xaa\xd4R'
 
     keystore = {
         "Alice": {

@@ -18,8 +18,9 @@ contract Groth16Mixer is BaseMixer {
 
     // This function allows to mix coins and execute payments in zero knowledge
     function mix (
-        string memory ciphertext0,
-        string memory ciphertext1, // The nb of ciphertexts depends on the JS description (Here 2 inputs)
+        bytes32 pk_sender,
+        bytes memory ciphertext0,
+        bytes memory ciphertext1, // The nb of ciphertexts depends on the JS description (Here 2 inputs)
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
@@ -60,6 +61,6 @@ contract Groth16Mixer is BaseMixer {
         add_and_emit_merkle_root(getRoot());
 
         // Emit the all the coins' secret data encrypted with the recipients' respective keys
-        emit_ciphertexts(ciphertext0, ciphertext1);
+        emit_ciphertexts(pk_sender, ciphertext0, ciphertext1);
     }
 }

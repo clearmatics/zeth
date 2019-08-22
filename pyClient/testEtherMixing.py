@@ -90,8 +90,9 @@ if __name__ == '__main__':
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
     cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]
     new_merkle_root_bob_to_bob = result_deposit_bob_to_bob[2]
-    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob[3]
-    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob[4]
+    pk_sender_ciphertext_bob_to_bob = result_deposit_bob_to_bob[3]
+    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob[4]
+    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob[5]
 
     print("- Balances after Bob's deposit: ")
     print_balances(
@@ -103,8 +104,8 @@ if __name__ == '__main__':
 
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she was the recipient
     # But she wasn't the recipient (Bob was), so she fails to decrypt
-    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_bob1, keystore["Bob"]["AddrPk"]["encPK"], keystore["Alice"]["AddrSk"]["encSK"], "alice")
-    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_bob2, keystore["Bob"]["AddrPk"]["encPK"], keystore["Alice"]["AddrSk"]["encSK"], "alice")
+    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_bob1, pk_sender_ciphertext_bob_to_bob, keystore["Alice"]["AddrSk"]["encSK"], "alice")
+    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_bob2, pk_sender_ciphertext_bob_to_bob, keystore["Alice"]["AddrSk"]["encSK"], "alice")
     assert (recovered_plaintext1 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
     assert (recovered_plaintext2 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
 
@@ -133,8 +134,9 @@ if __name__ == '__main__':
     cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie[0] # Bob -> Bob (Change)
     cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie[1] # Bob -> Charlie (payment to Charlie)
     new_merkle_root_bob_to_charlie = result_transfer_bob_to_charlie[2]
-    ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[3]
-    ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[4]
+    pk_sender_ciphertext_bob_to_charlie = result_transfer_bob_to_charlie[3]
+    ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[4]
+    ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[5]
 
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = ""
@@ -164,8 +166,8 @@ if __name__ == '__main__':
     )
 
     # Charlie tries to decrypt the ciphertexts from Bob's previous transaction
-    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_charlie1, keystore["Bob"]["AddrPk"]["encPK"], keystore["Charlie"]["AddrSk"]["encSK"], "charlie")
-    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_charlie2, keystore["Bob"]["AddrPk"]["encPK"], keystore["Charlie"]["AddrSk"]["encSK"], "charlie")
+    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_charlie1, pk_sender_ciphertext_bob_to_charlie, keystore["Charlie"]["AddrSk"]["encSK"], "charlie")
+    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_charlie2, pk_sender_ciphertext_bob_to_charlie, keystore["Charlie"]["AddrSk"]["encSK"], "charlie")
     assert (recovered_plaintext1 == ""),"Charlie managed to decrypt a ciphertext that was not encrypted with his key!"
     assert (recovered_plaintext2 != ""),"Charlie should have been able to decrypt the ciphertext that was obtained with his key!"
 
