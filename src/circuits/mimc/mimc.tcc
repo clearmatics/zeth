@@ -66,10 +66,8 @@ void MiMCe7_permutation_gadget<FieldT>::setup_gadgets(
     }
 };
 
-/*
- * The following constants correspond to the iterative computation of sha3_256 hash function over the initial seed "clearmatics_mt_seed".
- * See: pyClient/zethCodeConstantsGeneration.py for more details
-**/
+// The following constants correspond to the iterative computation of sha3_256 hash function over the initial seed "clearmatics_mt_seed".
+// See: pyClient/zethCodeConstantsGeneration.py for more details
 template<typename FieldT>
 void MiMCe7_permutation_gadget<FieldT>::setup_sha3_constants() {
     round_constants.reserve(ROUNDS);

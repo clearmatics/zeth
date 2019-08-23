@@ -1,7 +1,7 @@
 #ifndef __ZETH_SNARKS_ALIAS_HPP__
 #define __ZETH_SNARKS_ALIAS_HPP__
 
-/************************ Pick a zkSNARK ****************************/
+// ------------------------- Pick a zkSNARK -------------------------
 
 #ifdef ZKSNARK_PGHR13
 #define LIBZETH_SNARK_DEFINED

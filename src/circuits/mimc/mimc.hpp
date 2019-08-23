@@ -8,10 +8,8 @@
 #include "snarks_alias.hpp"
 #include "round.hpp"
 
-/*
- * MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation with exponent 7 and rounds 91. 
- * It makes use of MiMCe7_round_gadget to enforce correct computation in each round.
-**/
+// MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation with exponent 7 and rounds 91. 
+// It makes use of MiMCe7_round_gadget to enforce correct computation in each round.
 
 namespace libzeth  {
 

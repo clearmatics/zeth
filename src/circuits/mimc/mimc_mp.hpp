@@ -8,13 +8,11 @@
 #include "snarks_alias.hpp"
 #include "mimc.hpp"
 
-/*
- * This gadget implements the interface of the HashTreeT template
- *
- * MiMC_mp_gadget enforces correct computation of MiMC compression function
- * based on a the Miyaguchi-Preneel compression construct and MiMC block cipher on Z_p with exponent 7 (and 91 rounds)
- * p is given by the size(FieldT)
-**/
+// This gadget implements the interface of the HashTreeT template
+//
+// MiMC_mp_gadget enforces correct computation of MiMC compression function
+// based on a the Miyaguchi-Preneel compression construct and MiMC block cipher
+// on Z_p with exponent 7 (and 91 rounds) p is given by the size(FieldT)
 
 namespace libzeth {
 

@@ -128,14 +128,9 @@
     #    breaks. Better to comment above the line (do not add
     #    add empty line between the comment and the line).
     #
-    #  - Multi-line comments should use `/*` style
-    #    GOOD:
-    #      /*
-    #       * Your comment here line 1
-    #       * line 2
-    #      **/
-    #
-    #    BAD:
+
+    #  - Multi-line comments should use `//` style (clang-format
+    #    does not cope well with other styles).
     #      // Your comment here line 1
     #      // line 2
     #

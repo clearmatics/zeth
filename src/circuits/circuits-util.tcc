@@ -44,21 +44,19 @@ std::vector<bool> convert_to_binary_LE(T x, int bitlen) {
     return ret;
 };
 
-/*
- * This function reverses the byte endianness
- *
- *  Example input/output:
- *
- *  Before swap (in):  After Swap (out):
- *    0011 0111         0000 0000
- *    1000 0010         0000 0000
- *    1101 1010         1001 0000
- *    1100 1110         1001 1101
- *    1001 1101         1100 1110
- *    1001 0000         1101 1010
- *    0000 0000         1000 0010
- *    0000 0000         0011 0111
-**/
+// This function reverses the byte endianness
+//
+//  Example input/output:
+//
+//  Before swap (in):  After Swap (out):
+//    0011 0111         0000 0000
+//    1000 0010         0000 0000
+//    1101 1010         1001 0000
+//    1100 1110         1001 1101
+//    1001 1101         1100 1110
+//    1001 0000         1101 1010
+//    0000 0000         1000 0010
+//    0000 0000         0011 0111
 template<typename T>
 T swap_endianness_u64(T v) {
     if (v.size() != 64) {

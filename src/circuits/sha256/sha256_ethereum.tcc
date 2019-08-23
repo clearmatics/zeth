@@ -8,9 +8,7 @@
 // Get the from_bits function
 #include "circuits/circuits-util.hpp"
 
-/*
- * This gadget implements the interface of the HashT template
-**/
+// This gadget implements the interface of the HashT template
 
 namespace libzeth {
 
