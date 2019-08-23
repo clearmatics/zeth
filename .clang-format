@@ -128,7 +128,6 @@
     #    breaks. Better to comment above the line (do not add
     #    add empty line between the comment and the line).
     #
-
     #  - Multi-line comments should use `//` style (clang-format
     #    does not cope well with other styles).
     #      // Your comment here line 1
@@ -151,4 +150,16 @@
     #           x = 0;
     #       else
     #           x = 1;
+    #
+    #  - `//` can be used at the end of a line in an initializer to retain
+    #    formatting:
+    #      libsnark::pb_variable_array<FieldT> value = from_bits(
+    #          {
+    #              0, 0, 1, 0, 1, 1, 1, 1, //    <--- these breaks will remain
+    #              0, 0, 0, 0, 0, 0, 0, 0, //
+    #              0, 0, 0, 0, 0, 0, 0, 0, //
+    #              0, 0, 0, 0, 0, 0, 0, 0, //
+    #              ...
+    #
+    #  - Do not leave whitespace at the end of lines
 }
