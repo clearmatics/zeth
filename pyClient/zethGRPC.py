@@ -308,7 +308,6 @@ def encodeToHash(messages):
 # The public values are encoded over one field element
 def encodeInputToHash(messages):
     input_sha = bytearray()
-    print(messages)
 
     # Flatten the input list
     if any(isinstance(el, list) for el in messages):

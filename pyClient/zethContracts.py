@@ -95,6 +95,7 @@ def deploy_mixer(
     # Deploy the Mixer contract once the Verifier is successfully deployed
     mixer = w3.eth.contract(
             abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
+
     tx_hash = mixer.constructor(
         snark_ver = proof_verifier_address,
         sig_ver = otsig_verifier_address,
@@ -239,9 +240,6 @@ def mix_pghr13(
         call_gas
     ):
     tx_hash = mixer_instance.functions.mix(
-        pk_sender,
-        ciphertext1,
-        ciphertext2,
         zethGRPC.hex2int(parsed_proof["a"]),
         zethGRPC.hex2int(parsed_proof["a_p"]),
         [zethGRPC.hex2int(parsed_proof["b"][0]), zethGRPC.hex2int(parsed_proof["b"][1])],
@@ -252,7 +250,10 @@ def mix_pghr13(
         zethGRPC.hex2int(parsed_proof["k"]),
         [ [int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])] ],
         int(sigma),
-        zethGRPC.hex2int(parsed_proof["inputs"])
+        zethGRPC.hex2int(parsed_proof["inputs"]),
+        pk_sender,
+        ciphertext1,
+        ciphertext2,
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
 
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -271,15 +272,15 @@ def mix_groth16(
         call_gas
     ):
     tx_hash = mixer_instance.functions.mix(
-        pk_sender,
-        ciphertext1,
-        ciphertext2,
         zethGRPC.hex2int(parsed_proof["a"]),
         [zethGRPC.hex2int(parsed_proof["b"][0]), zethGRPC.hex2int(parsed_proof["b"][1])],
         zethGRPC.hex2int(parsed_proof["c"]),
         [ [int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])] ],
         int(sigma),
-        zethGRPC.hex2int(parsed_proof["inputs"])
+        zethGRPC.hex2int(parsed_proof["inputs"]),
+        pk_sender,
+        ciphertext1,
+        ciphertext2,
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
 
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)

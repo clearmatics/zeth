@@ -18,15 +18,15 @@ contract Groth16Mixer is BaseMixer {
 
     // This function allows to mix coins and execute payments in zero knowledge
     function mix (
-        bytes32 pk_sender,
-        bytes memory ciphertext0,
-        bytes memory ciphertext1, // The nb of ciphertexts depends on the JS description (Here 2 inputs)
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
         uint[2][2] memory vk,
         uint sigma,
-        uint[] memory input
+        uint[] memory input,
+        bytes32 pk_sender,
+        bytes memory ciphertext0,
+        bytes memory ciphertext1 // The nb of ciphertexts depends on the JS description (Here 2 inputs)
     ) public payable {
         // 1. Check the root and the nullifiers
         assemble_root_and_nullifiers_and_append_to_state(input);
@@ -39,7 +39,7 @@ contract Groth16Mixer is BaseMixer {
 
         // 2.b Verify the signature
         bytes32 hash_proof = sha256(abi.encodePacked(a, b, c));
-        bytes32 hash_ciphers = sha256(abi.encodePacked(ciphertext0, ciphertext1));
+        bytes32 hash_ciphers = sha256(abi.encodePacked(pk_sender,ciphertext0, ciphertext1));
         require(
             otsig_verifier.verify(
                 vk,

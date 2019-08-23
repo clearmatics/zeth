@@ -64,9 +64,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // If token = address(0) then the mixer works with ether
     address public token;
 
-    // Contract variable that indicates the address of the hasher contract
-    address public hasher;
-
     // Event to emit the address of a commitment in the merke tree
     // Allows for faster execution of the "Receive" functions on the receiver side.
     // The ciphertext of a note is emitted along the address of insertion in the tree
