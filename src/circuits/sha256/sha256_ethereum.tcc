@@ -117,7 +117,7 @@ sha256_ethereum<FieldT>::sha256_ethereum(
     };
 
     libsnark::pb_variable_array<FieldT> length_padding =
-        from_bits(bit_list), ZERO);
+        from_bits(bit_list, ZERO);
 
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc#L35
     // Note: The IV defined in libsnark is made of:
