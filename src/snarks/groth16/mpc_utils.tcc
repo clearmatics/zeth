@@ -28,6 +28,11 @@ srs_mpc_layer_L1<ppT>::srs_mpc_layer_L1(
 {
 }
 
+template<typename ppT> size_t srs_mpc_layer_L1<ppT>::degree() const
+{
+    return T_tau_powers_g1.size() + 1;
+}
+
 template<typename ppT>
 void srs_mpc_layer_L1<ppT>::write(std::ostream &out) const
 {
