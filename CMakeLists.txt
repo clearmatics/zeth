@@ -92,6 +92,20 @@ option(
   ON
 )
 
+option(
+  BINARY_OUTPUT
+  "Binary stream reading and writing"
+  ON
+)
+
+option(
+  USE_PT_COMPRESSION
+  "Use point compression"
+  OFF
+)
+
+set(USE_PT_COMPRESSION OFF)
+
 if(APPLE)
   # These must be disabled to make dependencies build on macos
   set(WITH_PROCPS OFF)
@@ -134,6 +148,14 @@ endif()
 
 if("${MULTICORE}")
   add_definitions(-DMULTICORE=1)
+endif()
+
+if("${BINARY_OUTPUT}")
+  add_definitions(-DBINARY_OUTPUT)
+endif()
+
+if(NOT "${USE_PT_COMPRESSION}")
+  add_definitions(-DNO_PT_COMPRESSION=1)
 endif()
 
 if("${DEBUG}")
