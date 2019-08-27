@@ -62,6 +62,9 @@ public:
         std::vector<libff::G2<ppT>> &&lagrange_g2,
         std::vector<libff::G1<ppT>> &&alpha_lagrange_g1,
         std::vector<libff::G1<ppT>> &&beta_lagrange_g1);
+
+    void write(std::ostream &out) const;
+    static srs_lagrange_evaluations read(std::istream &in);
 };
 
 /// Given some secrets, compute a dummy set of powersoftau, for
