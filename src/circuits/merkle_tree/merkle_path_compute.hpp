@@ -6,13 +6,15 @@
 #ifndef __ZETH_MERKLE_PATH_COMPUTE_HPP__
 #define __ZETH_MERKLE_PATH_COMPUTE_HPP__
 
-#include "snarks_alias.hpp"
 #include "merkle_path_selector.hpp"
+#include "snarks_alias.hpp"
 
-namespace libzeth {
+namespace libzeth
+{
 
 template<typename FieldT, typename HashTreeT>
-class merkle_path_compute : public libsnark::gadget<FieldT> {
+class merkle_path_compute : public libsnark::gadget<FieldT>
+{
 public:
     const size_t depth;
     // Address of the leaf to authenticate
@@ -47,7 +49,7 @@ public:
     const libsnark::pb_variable<FieldT> result();
 };
 
-} // libzeth
+} // namespace libzeth
 #include "merkle_path_compute.tcc"
 
 #endif // __ZETH_MERKLE_PATH_COMPUTE_HPP__

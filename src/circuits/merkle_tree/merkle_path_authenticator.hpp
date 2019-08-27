@@ -6,14 +6,16 @@
 #ifndef __ZETH_MERKLE_PATH_AUTHENTICATOR_HPP__
 #define __ZETH_MERKLE_PATH_AUTHENTICATOR_HPP__
 
-#include "snarks_alias.hpp"
 #include "merkle_path_compute.hpp"
+#include "snarks_alias.hpp"
 
-namespace libzeth {
+namespace libzeth
+{
 
 // Merkle path authenticator, verifies computed root matches expected result
 template<typename FieldT, typename HashTreeT>
-class merkle_path_authenticator : public merkle_path_compute<FieldT, HashTreeT> {
+class merkle_path_authenticator : public merkle_path_compute<FieldT, HashTreeT>
+{
 public:
     // Expected value of the Merkle Tree root
     const libsnark::pb_variable<FieldT> m_expected_root;
@@ -42,11 +44,12 @@ public:
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
 
-    // Returns boolean saying whether the expected and computed MT roots are equal
+    // Returns boolean saying whether the expected and computed MT roots are
+    // equal
     bool is_valid();
 };
 
-} // libzeth
+} // namespace libzeth
 #include "merkle_path_authenticator.tcc"
 
 #endif // __ZETH_MERKLE_PATH_AUTHENTICATOR_HPP__

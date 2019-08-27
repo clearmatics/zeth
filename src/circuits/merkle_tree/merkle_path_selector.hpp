@@ -6,8 +6,8 @@
 #ifndef __ZETH_MERKLE_PATH_SELECTOR_HPP___
 #define __ZETH_MERKLE_PATH_SELECTOR_HPP___
 
-#include "snarks_alias.hpp"
 #include "depends/libsnark/libsnark/gadgetlib1/gadgets/basic_gadgets.hpp"
+#include "snarks_alias.hpp"
 
 // Depending on the address bit, output the correct left/right inputs
 // for the merkle path authentication hash
@@ -30,7 +30,8 @@
 // Each component is split into a & b sides, then added together
 // so the correct variable ends up in the right or left hand side.
 
-namespace libzeth {
+namespace libzeth
+{
 
 template<typename FieldT>
 class merkle_path_selector : public libsnark::gadget<FieldT>
@@ -62,13 +63,13 @@ public:
     void generate_r1cs_witness();
 
     // Returns the first input (left) of the next hash to compute
-    const libsnark::pb_variable<FieldT>& get_left();
+    const libsnark::pb_variable<FieldT> &get_left();
 
     // Returns the second input (right) of the next hash to compute
-    const libsnark::pb_variable<FieldT>& get_right();
+    const libsnark::pb_variable<FieldT> &get_right();
 };
 
-} // libzeth
+} // namespace libzeth
 #include "merkle_path_selector.tcc"
 
 #endif // __ZETH_MERKLE_PATH_SELECTOR_HPP___

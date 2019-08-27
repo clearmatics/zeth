@@ -5,16 +5,19 @@
 #ifndef __ZETH_MIMC_PERMUTATION_HPP__
 #define __ZETH_MIMC_PERMUTATION_HPP__
 
-#include "snarks_alias.hpp"
 #include "round.hpp"
+#include "snarks_alias.hpp"
 
-// MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation with exponent 7 and rounds 91. 
-// It makes use of MiMCe7_round_gadget to enforce correct computation in each round.
+// MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation
+// with exponent 7 and rounds 91. It makes use of MiMCe7_round_gadget to enforce
+// correct computation in each round.
 
-namespace libzeth  {
+namespace libzeth
+{
 
 template<typename FieldT>
-class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT> {
+class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT>
+{
 private:
     // Vector of MiMC round_gadgets
     std::vector<MiMCe7_round_gadget<FieldT>> round_gadgets;
@@ -28,7 +31,7 @@ public:
     static const int ROUNDS = 91;
 
     MiMCe7_permutation_gadget(
-        libsnark::protoboard<FieldT>& pb,
+        libsnark::protoboard<FieldT> &pb,
         // Message to encrypt
         const libsnark::pb_variable<FieldT> x,
         // Encryption key (/permutation seed)
@@ -38,17 +41,19 @@ public:
     void generate_r1cs_constraints();
     void generate_r1cs_witness() const;
 
-    const libsnark::pb_variable<FieldT>& result() const;
+    const libsnark::pb_variable<FieldT> &result() const;
 
     // Utils functions
     //
     // MiMC round gadgets initialization
-    void setup_gadgets(const libsnark::pb_variable<FieldT> x, const libsnark::pb_variable<FieldT> k);
+    void setup_gadgets(
+        const libsnark::pb_variable<FieldT> x,
+        const libsnark::pb_variable<FieldT> k);
     // Constants vector initialization
     void setup_sha3_constants();
 };
 
-} // libzeth
+} // namespace libzeth
 #include "mimc.tcc"
 
 #endif // __ZETH_MIMC_PERMUTATION_HPP__

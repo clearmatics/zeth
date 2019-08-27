@@ -7,37 +7,41 @@
 
 // This gadget implements the interface of the HashT template
 
-#include <iostream>
-
+#include "libff/common/default_types/ec_pp.hpp"
 #include "libsnark/gadgetlib1/gadget.hpp"
 #include "libsnark/gadgetlib1/protoboard.hpp"
-#include "libff/common/default_types/ec_pp.hpp"
 #include "libsnark/reductions/r1cs_to_qap/r1cs_to_qap.hpp"
 
+#include <iostream>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
 
-// See: https://github.com/scipr-lab/libff/blob/master/libff/common/default_types/ec_pp.hpp
-// We need to set the right curve as a flag during the compilation, and the right curve is going to be picked
-// if we use the default_ec_pp as a FieldT`
+// See:
+// https://github.com/scipr-lab/libff/blob/master/libff/common/default_types/ec_pp.hpp
+// We need to set the right curve as a flag during the compilation, and the
+// right curve is going to be picked if we use the default_ec_pp as a FieldT`
 // typedef libff::Fr<libff::default_ec_pp> FieldT;
 
-namespace libzeth {
+namespace libzeth
+{
 
 const size_t SHA256_ETH_digest_size = 256;
 const size_t SHA256_ETH_block_size = 512;
 
 template<typename FieldT>
-class sha256_ethereum: public libsnark::gadget<FieldT> {
+class sha256_ethereum : public libsnark::gadget<FieldT>
+{
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block1;
     std::shared_ptr<libsnark::block_variable<FieldT>> block2;
-    std::shared_ptr<libsnark::sha256_compression_function_gadget<FieldT>> hasher1;
+    std::shared_ptr<libsnark::sha256_compression_function_gadget<FieldT>>
+        hasher1;
     std::shared_ptr<libsnark::digest_variable<FieldT>> intermediate_hash;
-    std::shared_ptr<libsnark::sha256_compression_function_gadget<FieldT>> hasher2;
+    std::shared_ptr<libsnark::sha256_compression_function_gadget<FieldT>>
+        hasher2;
 
 public:
     // Important to define the hash_value_type as it is used in the merkle tree
@@ -46,12 +50,13 @@ public:
     typedef libsnark::merkle_authentication_path
         merkle_authentication_path_type;
 
-    sha256_ethereum(libsnark::protoboard<FieldT> &pb,
-                    const libsnark::block_variable<FieldT> &input_block,
-                    const libsnark::digest_variable<FieldT> &output,
-                    const std::string &annotation_prefix = "sha256_ethereum");
+    sha256_ethereum(
+        libsnark::protoboard<FieldT> &pb,
+        const libsnark::block_variable<FieldT> &input_block,
+        const libsnark::digest_variable<FieldT> &output,
+        const std::string &annotation_prefix = "sha256_ethereum");
 
-    void generate_r1cs_constraints(const bool ensure_output_bitness=true);
+    void generate_r1cs_constraints(const bool ensure_output_bitness = true);
     void generate_r1cs_witness();
 
     static size_t get_block_len();
@@ -61,7 +66,7 @@ public:
     static size_t expected_constraints(const bool ensure_output_bitness);
 };
 
-} // libzeth
+} // namespace libzeth
 #include "circuits/sha256/sha256_ethereum.tcc"
 
 #endif

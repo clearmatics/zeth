@@ -9,8 +9,8 @@
 #include <src/circuits/mimc/mimc_mp.hpp>
 
 // Get the prfs and commitments circuits
-#include "circuits/prfs/prfs.hpp"
 #include "circuits/commitments/commitments.hpp"
+#include "circuits/prfs/prfs.hpp"
 // Get the utils functions
 #include "circuits/circuits-util.tcc"
 
@@ -19,13 +19,13 @@
 // Get the ZethNote class
 #include "types/note.hpp"
 
-namespace libzeth {
+namespace libzeth
+{
 
 // Gadget that makes sure that the note:
 // - Has a value < 2^64
 // - Has a valid r trapdoor which is a 384-bit string
-template<typename FieldT>
-class note_gadget : public libsnark::gadget<FieldT>
+template<typename FieldT> class note_gadget : public libsnark::gadget<FieldT>
 {
 public:
     // Binary value of the note (64 bits)
@@ -33,10 +33,11 @@ public:
     // Trapdoor r of the note (384 bits)
     libsnark::pb_variable_array<FieldT> r;
 
-    note_gadget(libsnark::protoboard<FieldT> &pb,
-                const std::string &annotation_prefix = "note_gadget");
+    note_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const std::string &annotation_prefix = "note_gadget");
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(const ZethNote& note);
+    void generate_r1cs_witness(const ZethNote &note);
 };
 
 // Gadget that makes sure that all conditions are met in order to spend a note:
@@ -44,16 +45,19 @@ public:
 // - The commitment cm is correctly computed from the coin's data
 // - commitment cm is in the tree of merkle root rt
 template<typename FieldT, typename HashT, typename HashTreeT>
-class input_note_gadget : public note_gadget<FieldT> {
+class input_note_gadget : public note_gadget<FieldT>
+{
 private:
     // Output of a PRF (digest_variable)
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_pk;
     // Nullifier seed (256 bits)
     libsnark::pb_variable_array<FieldT> rho;
 
-    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT>> commit_to_inputs_inner_k;
+    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT>>
+        commit_to_inputs_inner_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> inner_k;
-    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT>> commit_to_inputs_outer_k;
+    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT>>
+        commit_to_inputs_outer_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> commit_to_inputs_cm;
     // Note commitment (bits), output of COMMIT gadget
@@ -82,8 +86,8 @@ private:
     // Makes sure the nullifiers are computed correctly from rho and a_sk
     std::shared_ptr<PRF_nf_gadget<FieldT, HashT>> expose_nullifiers;
 
-
     std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier;
+
 public:
     input_note_gadget(
         libsnark::protoboard<FieldT> &pb,
@@ -95,35 +99,39 @@ public:
         libsnark::pb_variable<FieldT> rt,
         const std::string &annotation_prefix = "input_note_gadget");
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(const std::vector<FieldT> merkle_path,
-                            libff::bit_vector address_bits,
-                            const ZethNote& note);
+    void generate_r1cs_witness(
+        const std::vector<FieldT> merkle_path,
+        libff::bit_vector address_bits,
+        const ZethNote &note);
 };
 
 // Commit to the output notes of the JS
 template<typename FieldT, typename HashT>
-class output_note_gadget : public note_gadget<FieldT> {
+class output_note_gadget : public note_gadget<FieldT>
+{
 private:
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_pk;
 
-    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT>> commit_to_outputs_inner_k;
+    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT>>
+        commit_to_outputs_inner_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> inner_k;
-    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT>> commit_to_outputs_outer_k;
+    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT>>
+        commit_to_outputs_outer_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> commit_to_outputs_cm;
 
 public:
     output_note_gadget(
-        libsnark::protoboard<FieldT>& pb,
-        libsnark::pb_variable<FieldT>& ZERO,
+        libsnark::protoboard<FieldT> &pb,
+        libsnark::pb_variable<FieldT> &ZERO,
         std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
         std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
         const std::string &annotation_prefix = "output_note_gadget");
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(const ZethNote& note);
+    void generate_r1cs_witness(const ZethNote &note);
 };
 
-} // libzeth
+} // namespace libzeth
 #include "circuits/notes/note.tcc"
 
 #endif // __ZETH_NOTES_CIRCUITS_HPP__

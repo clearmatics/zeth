@@ -1,9 +1,8 @@
-#include "gtest/gtest.h"
-
-#include <libff/common/default_types/ec_pp.hpp>
-
-#include "snarks_alias.hpp"
 #include "circuits/mimc/round.hpp"
+#include "snarks_alias.hpp"
+
+#include "gtest/gtest.h"
+#include <libff/common/default_types/ec_pp.hpp>
 
 using namespace libsnark;
 using namespace libzeth;
@@ -11,10 +10,13 @@ using namespace libzeth;
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
 
-namespace  {
+namespace
+{
 
-// Testing that (15212  + 98645 + 216319)**7 = 427778066313557225181231220812180094976
-TEST(TestRound, TestTrueNoAddKToResult) {
+// Testing that (15212  + 98645 + 216319)**7 =
+// 427778066313557225181231220812180094976
+TEST(TestRound, TestTrueNoAddKToResult)
+{
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
     libsnark::pb_variable<FieldT> in_k;
@@ -25,7 +27,8 @@ TEST(TestRound, TestTrueNoAddKToResult) {
     pb.val(in_x) = FieldT("15212");
     pb.val(in_k) = FieldT("98645");
 
-    MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, false, "round_gadget");
+    MiMCe7_round_gadget<FieldT> round_gadget(
+        pb, in_x, in_k, in_C, false, "round_gadget");
     round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
 
@@ -33,8 +36,10 @@ TEST(TestRound, TestTrueNoAddKToResult) {
     ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
 }
 
-// Testing that (15212  + 98645 + 216319)**7 + 98645 = 427778066313557225181231220812180193621
-TEST(TestRound, TestTrueAddKToResult) {
+// Testing that (15212  + 98645 + 216319)**7 + 98645 =
+// 427778066313557225181231220812180193621
+TEST(TestRound, TestTrueAddKToResult)
+{
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
     libsnark::pb_variable<FieldT> in_k;
@@ -45,7 +50,8 @@ TEST(TestRound, TestTrueAddKToResult) {
     pb.val(in_x) = FieldT("15212");
     pb.val(in_k) = FieldT("98645");
 
-    MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, true, "round_gadget");
+    MiMCe7_round_gadget<FieldT> round_gadget(
+        pb, in_x, in_k, in_C, true, "round_gadget");
     round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
 
@@ -53,7 +59,8 @@ TEST(TestRound, TestTrueAddKToResult) {
     ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
 }
 
-TEST(TestRound, TestFalseNoAddKToResult) {
+TEST(TestRound, TestFalseNoAddKToResult)
+{
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
     libsnark::pb_variable<FieldT> in_k;
@@ -64,7 +71,8 @@ TEST(TestRound, TestFalseNoAddKToResult) {
     pb.val(in_x) = FieldT("15212");
     pb.val(in_k) = FieldT("98645");
 
-    MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, false, "round_gadget");
+    MiMCe7_round_gadget<FieldT> round_gadget(
+        pb, in_x, in_k, in_C, false, "round_gadget");
     round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
 
@@ -72,8 +80,8 @@ TEST(TestRound, TestFalseNoAddKToResult) {
     ASSERT_FALSE(expected_out == pb.val(round_gadget.result()));
 }
 
-
-TEST(TestRound, TestFalseAddKToResult) {
+TEST(TestRound, TestFalseAddKToResult)
+{
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
     libsnark::pb_variable<FieldT> in_k;
@@ -84,7 +92,8 @@ TEST(TestRound, TestFalseAddKToResult) {
     pb.val(in_x) = FieldT("15212");
     pb.val(in_k) = FieldT("98645");
 
-    MiMCe7_round_gadget<FieldT> round_gadget(pb, in_x, in_k, in_C, true, "round_gadget");
+    MiMCe7_round_gadget<FieldT> round_gadget(
+        pb, in_x, in_k, in_C, true, "round_gadget");
     round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
 
@@ -94,8 +103,10 @@ TEST(TestRound, TestFalseAddKToResult) {
 
 } // namespace
 
-int main(int argc, char **argv) {
-    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not forget to do this !!!!
+int main(int argc, char **argv)
+{
+    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not
+                               // forget to do this !!!!
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
