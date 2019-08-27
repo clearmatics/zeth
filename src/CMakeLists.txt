@@ -132,7 +132,8 @@ target_link_libraries(
 )
 
 # mpc utility executable
-add_executable(mpc mpc/mpc.cpp mpc/mpc_new.cpp)
+file(GLOB MPC_SOURCE mpc/*.?pp mpc/*.tcc)
+add_executable(mpc ${MPC_SOURCE})
 target_link_libraries(
   mpc
   zeth
