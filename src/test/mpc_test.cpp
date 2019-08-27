@@ -10,12 +10,11 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-using ppT = libff::default_ec_pp;
+using namespace libsnark;
+
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
-using namespace libsnark;
-using namespace libzeth;
 
 namespace
 {
@@ -288,6 +287,41 @@ TEST(MPCTests, Layer2)
         ASSERT_TRUE(
             r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
     }
+}
+
+TEST(MPCTests, LayerC2ReadWrite)
+{
+    const r1cs_constraint_system<Fr> constraint_system =
+        get_simple_constraint_system();
+    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
+    const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(qap.degree());
+    const srs_lagrange_evaluations<ppT> lagrange =
+        powersoftau_compute_lagrange_evaluations(pot, qap.degree());
+    const srs_mpc_layer_L1<ppT> layer1 =
+        mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
+    const Fr delta = Fr::random_element();
+    const srs_mpc_layer_C2<ppT> layer2 =
+        mpc_dummy_layer_C2(layer1, delta, qap.num_inputs());
+
+    std::string layer2_serialized;
+    {
+        std::ostringstream out;
+        layer2.write(out);
+        layer2_serialized = out.str();
+    }
+
+    srs_mpc_layer_C2<ppT> layer2_deserialized = [layer2_serialized]() {
+        std::istringstream in(layer2_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return srs_mpc_layer_C2<ppT>::read(in);
+    }();
+
+    ASSERT_EQ(layer2.delta_g1, layer2_deserialized.delta_g1);
+    ASSERT_EQ(layer2.delta_g2, layer2_deserialized.delta_g2);
+    ASSERT_EQ(layer2.H_g1, layer2_deserialized.H_g1);
+    ASSERT_EQ(layer2.L_g1, layer2_deserialized.L_g1);
 }
 
 } // namespace
