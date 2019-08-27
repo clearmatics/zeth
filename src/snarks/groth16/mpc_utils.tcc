@@ -300,7 +300,8 @@ srs_mpc_layer_C2<ppT> srs_mpc_layer_C2<ppT>::read(std::istream &in)
         in >> l;
     }
 
-    return mpc_layer2(delta_g1, delta_g2, std::move(H_g1), std::move(L_g1));
+    return srs_mpc_layer_C2<ppT>(
+        delta_g1, delta_g2, std::move(H_g1), std::move(L_g1));
 }
 
 template<typename ppT>
