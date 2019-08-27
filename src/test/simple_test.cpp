@@ -1,14 +1,27 @@
 
 #include "simple_test.hpp"
 
+#include "util.hpp"
+
 #include <gtest/gtest.h>
 
 using ppT = libff::default_ec_pp;
 using FieldT = libff::Fr<ppT>;
 using namespace libsnark;
+using namespace libzeth;
 
 namespace
 {
+
+TEST(UtilTest, BinaryHexConversion)
+{
+    const std::string string_bytes{
+        (char)0xff, (char)0xaa, (char)0xba, 0x70, 0x00};
+    const std::string hex = "ffaaba7000";
+
+    ASSERT_EQ(hex, binary_str_to_hexadecimal_str(string_bytes));
+    ASSERT_EQ(string_bytes, hexadecimal_str_to_binary_str(hex));
+}
 
 TEST(SimpleTests, SimpleCircuitProof)
 {
