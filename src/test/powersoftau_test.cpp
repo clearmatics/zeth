@@ -357,6 +357,28 @@ TEST(PowersOfTauTests, ComputeLagrangeEvaluation)
     }
 }
 
+TEST(PowersOfTauTests, SerializeLagrangeEvaluation)
+{
+    const size_t n = 16;
+    const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(n);
+    const srs_lagrange_evaluations<ppT> lagrange =
+        powersoftau_compute_lagrange_evaluations(pot, n);
+
+    std::ostringstream out;
+    lagrange.write(out);
+    std::string lagrange_ser = out.str();
+
+    std::istringstream in(lagrange_ser);
+    const srs_lagrange_evaluations<ppT> lagrange_deser =
+        srs_lagrange_evaluations<ppT>::read(in);
+
+    ASSERT_EQ(lagrange.degree, lagrange_deser.degree);
+    ASSERT_EQ(lagrange.lagrange_g1, lagrange_deser.lagrange_g1);
+    ASSERT_EQ(lagrange.lagrange_g2, lagrange_deser.lagrange_g2);
+    ASSERT_EQ(lagrange.alpha_lagrange_g1, lagrange_deser.alpha_lagrange_g1);
+    ASSERT_EQ(lagrange.beta_lagrange_g1, lagrange_deser.beta_lagrange_g1);
+}
+
 } // namespace
 
 int main(int argc, char **argv)

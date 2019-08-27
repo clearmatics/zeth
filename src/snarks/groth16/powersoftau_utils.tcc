@@ -287,6 +287,57 @@ srs_lagrange_evaluations<ppT>::srs_lagrange_evaluations(
 }
 
 template<typename ppT>
+void srs_lagrange_evaluations<ppT>::write(std::ostream &out) const
+{
+    out.write((const char *)&degree, sizeof(degree));
+    for (const libff::G1<ppT> &l_g1 : lagrange_g1) {
+        out << l_g1;
+    }
+    for (const libff::G2<ppT> &l_g2 : lagrange_g2) {
+        out << l_g2;
+    }
+    for (const libff::G1<ppT> &alpha_l_g1 : alpha_lagrange_g1) {
+        out << alpha_l_g1;
+    }
+    for (const libff::G1<ppT> &beta_l_g1 : beta_lagrange_g1) {
+        out << beta_l_g1;
+    }
+}
+
+template<typename ppT>
+srs_lagrange_evaluations<ppT> srs_lagrange_evaluations<ppT>::read(
+    std::istream &in)
+{
+    size_t degree;
+    in.read((char *)&degree, sizeof(degree));
+
+    std::vector<libff::G1<ppT>> lagrange_g1(degree);
+    std::vector<libff::G2<ppT>> lagrange_g2(degree);
+    std::vector<libff::G1<ppT>> alpha_lagrange_g1(degree);
+    std::vector<libff::G1<ppT>> beta_lagrange_g1(degree);
+
+    for (libff::G1<ppT> &l_g1 : lagrange_g1) {
+        in >> l_g1;
+    }
+    for (libff::G2<ppT> &l_g2 : lagrange_g2) {
+        in >> l_g2;
+    }
+    for (libff::G1<ppT> &alpha_l_g1 : alpha_lagrange_g1) {
+        in >> alpha_l_g1;
+    }
+    for (libff::G1<ppT> &beta_l_g1 : beta_lagrange_g1) {
+        in >> beta_l_g1;
+    }
+
+    return srs_lagrange_evaluations<ppT>(
+        degree,
+        std::move(lagrange_g1),
+        std::move(lagrange_g2),
+        std::move(alpha_lagrange_g1),
+        std::move(beta_lagrange_g1));
+}
+
+template<typename ppT>
 srs_lagrange_evaluations<ppT> powersoftau_compute_lagrange_evaluations(
     const srs_powersoftau<ppT> &pot, const size_t n)
 {
