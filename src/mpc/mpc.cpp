@@ -8,8 +8,7 @@ using ppT = libff::default_ec_pp;
 using command_t = std::function<int(const std::vector<std::string> &)>;
 
 int zeth_mpc_new(const std::vector<std::string> &);
-
-int zeth_mpc_dummy_layer2(const std::vector<std::string> &) { return 1; }
+int zeth_mpc_dummy_layer2(const std::vector<std::string> &);
 
 int main(int argc, char **argv)
 {
