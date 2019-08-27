@@ -99,6 +99,9 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     libff::G2_vector<ppT> Bs_g2(num_variables + 1);
     libff::G1_vector<ppT> Cs_g1(num_variables + 1);
     libff::G1_vector<ppT> ABCs_g1(num_variables + 1);
+#ifdef MULTICORE
+#pragma omp parallel for
+#endif
     for (size_t j = 0; j < num_variables + 1; ++j) {
         G1 ABC_j_at_x = G1::zero();
 
