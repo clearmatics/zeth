@@ -55,7 +55,6 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     using G2 = libff::G2<ppT>;
     libff::enter_block("Call to mpc_compute_linearcombination");
 
-    libfqfft::evaluation_domain<Fr> &domain = *qap.domain;
     // n = number of constraints in r1cs, or equivalently, n = deg(t(x))
     // t(x) being the target polynomial of the QAP
     // Note: In the code-base the target polynomial is also denoted Z
@@ -85,13 +84,15 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     // in the set of powers of tau
     assert(pot.tau_powers_g1.size() >= 2 * n - 1);
 
-    const size_t scalar_size = libff::Fr<ppT>::size_in_bits();
-
-    // n+1 coefficients of t
-    libff::enter_block("computing coefficients of t()");
-    std::vector<Fr> t_coefficients(n + 1, Fr::zero());
-    domain.add_poly_Z(Fr::one(), t_coefficients);
-    libff::leave_block("computing coefficients of t()");
+    // Domain uses n-roots of unity, so
+    //      t(x)       = x^n - 1
+    //  =>  t(x) . x^i = x^(n+i) - x^i
+    libff::G1_vector<ppT> t_x_pow_i(n - 1, G1::zero());
+    libff::enter_block("computing [t(x) . x^i]_1");
+    for (size_t i = 0; i < n - 1; ++i) {
+        t_x_pow_i[i] = pot.tau_powers_g1[n + i] - pot.tau_powers_g1[i];
+    }
+    libff::leave_block("computing [t(x) . x^i]_1");
 
     libff::enter_block("computing A_i, B_i, C_i, ABC_i at x");
     libff::G1_vector<ppT> As_g1(num_variables + 1);
@@ -156,48 +157,6 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
         ABCs_g1[j] = ABC_j_at_x;
     }
     libff::leave_block("computing A_i, B_i, C_i, ABC_i at x");
-
-    // For each $i$ in turn, compute the exp table for $[x^i]$ and
-    // apply it everywhere, before moving on to the next power.
-    libff::enter_block("computing [t(x) . x^i]_1");
-    libff::G1_vector<ppT> t_x_pow_i(n - 1, G1::zero());
-    for (size_t i = 0; i < 2 * n - 1; ++i) {
-        std::cout << "\r(" << std::to_string(i) << "/"
-                  << std::to_string(2 * n - 1) << ")";
-
-        // Compute [ t(x) . x^j ]_1 for j = 0 .. n-2
-        // Using { [x^j] , ... , [x^(j+n)] } with coefficients
-        //                |   t_0   |   t_1   | ..... | t_n
-        //   ----------------------------------------------------
-        //   t(x).x^0     |   x^0   |   x^1   | ..... | x^n
-        //   t(x).x^1     |   x^1   |   x^2   | ..... | x^(n+1)
-        //      ...       |    .    |    .    | ..... |  .
-        //   t(x).x^(n-2) | x^(n-2) | x^(n-1) | ..... | x^(2n-2)
-        //
-        // Thereby, $t(x).x^j$ uses $x^i$ with the (i-j)-th coefficient.
-        // Or, $x^i$ is used by $t(x).x^j$ for $j =max(i-n, 0), ..., min(n-2,
-        // i)$
-        const size_t begin_T = (size_t)std::max<ssize_t>((ssize_t)i - n, 0);
-        const size_t end_T = std::min<size_t>(n - 1, i + 1);
-
-        // Compute parameters for window table.
-        // Number of coefficients = end_t - begin_T.
-        const size_t num_scalars = end_T - begin_T;
-        const size_t window_size = libff::get_exp_window_size<G1>(num_scalars);
-        libff::window_table<libff::G1<ppT>> tau_pow_i_table =
-            libff::get_window_table(
-                scalar_size, window_size, pot.tau_powers_g1[i]);
-
-        for (size_t j = begin_T; j < end_T; ++j) {
-            const G1 T_j_contrib = windowed_exp(
-                scalar_size,
-                window_size,
-                tau_pow_i_table,
-                t_coefficients[i - j]);
-            t_x_pow_i[j] = t_x_pow_i[j] + T_j_contrib;
-        }
-    }
-    libff::enter_block("computing [t(x) . x^i]_1");
 
     // TODO: Consider dropping those entries we know will not be used
     // by this circuit and using sparse vectors where it makes sense
