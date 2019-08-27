@@ -13,7 +13,7 @@ using namespace libzeth;
 namespace
 {
 
-TEST(UtilTest, BinaryHexConversion)
+TEST(SimpleTests, BinaryHexConversion)
 {
     const std::string string_bytes{
         (char)0xff, (char)0xaa, (char)0xba, 0x70, 0x00};
@@ -56,6 +56,25 @@ TEST(SimpleTests, SimpleCircuitProof)
     const r1cs_gg_ppzksnark_proof<ppT> proof =
         r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary);
 
+    ASSERT_TRUE(
+        r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
+}
+
+TEST(SimpleTests, SimpleCircuitProofPow2Domain)
+{
+    // Simple circuit
+    protoboard<FieldT> pb;
+    test::simple_circuit<FieldT>(pb);
+
+    const r1cs_constraint_system<FieldT> constraint_system =
+        pb.get_constraint_system();
+    const r1cs_gg_ppzksnark_keypair<ppT> keypair =
+        r1cs_gg_ppzksnark_generator<ppT>(constraint_system, true);
+
+    const r1cs_primary_input<FieldT> primary{12};
+    const r1cs_auxiliary_input<FieldT> auxiliary{1, 1, 1};
+    const r1cs_gg_ppzksnark_proof<ppT> proof =
+        r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary, true);
     ASSERT_TRUE(
         r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
 }

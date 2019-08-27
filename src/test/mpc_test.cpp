@@ -26,7 +26,7 @@ TEST(MPCTests, LinearCombination)
         cs.swap_AB_if_beneficial();
         return cs;
     })();
-    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system);
+    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
 
     // dummy powersoftau
     Fr tau = Fr::random_element();
@@ -67,7 +67,7 @@ TEST(MPCTests, LinearCombination)
                 pb.get_constraint_system();
             constraint_system.swap_AB_if_beneficial();
             return r1cs_to_qap_instance_map_with_evaluation(
-                constraint_system, tau);
+                constraint_system, tau, true);
         })();
 
         ASSERT_EQ(
@@ -111,7 +111,7 @@ TEST(MPCTests, Layer2)
     libzeth::test::simple_circuit<Fr>(pb);
     r1cs_constraint_system<Fr> constraint_system = pb.get_constraint_system();
     constraint_system.swap_AB_if_beneficial();
-    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system);
+    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
     ASSERT_TRUE(qap.degree() <= n) << "Test QAP has degree too high";
 
     size_t num_variables = qap.num_variables();
@@ -136,7 +136,7 @@ TEST(MPCTests, Layer2)
                 pb.get_constraint_system();
             constraint_system.swap_AB_if_beneficial();
             return r1cs_to_qap_instance_map_with_evaluation(
-                constraint_system, tau);
+                constraint_system, tau, true);
         })();
 
         const Fr delta_inverse = delta.inverse();
@@ -211,7 +211,8 @@ TEST(MPCTests, Layer2)
                 beta,
                 delta,
                 g1_generator,
-                g2_generator);
+                g2_generator,
+                true);
 
         ASSERT_EQ(keypair2.pk.alpha_g1, keypair.pk.alpha_g1);
         ASSERT_EQ(keypair2.pk.beta_g1, keypair.pk.beta_g1);
@@ -231,7 +232,7 @@ TEST(MPCTests, Layer2)
         const r1cs_primary_input<Fr> primary{12};
         const r1cs_auxiliary_input<Fr> auxiliary{1, 1, 1};
         const r1cs_gg_ppzksnark_proof<ppT> proof =
-            r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary);
+            r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary, true);
         ASSERT_TRUE(
             r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
     }
