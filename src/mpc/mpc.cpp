@@ -7,17 +7,13 @@ namespace po = boost::program_options;
 using ppT = libff::default_ec_pp;
 using command_t = std::function<int(const std::vector<std::string> &)>;
 
-int zeth_mpc_new(const std::vector<std::string> &) { return 1; }
+int zeth_mpc_new(const std::vector<std::string> &);
 
 int zeth_mpc_dummy_layer2(const std::vector<std::string> &) { return 1; }
 
 int main(int argc, char **argv)
 {
     ppT::init_public_params();
-
-    // Remove stdout noise from libff
-    // libff::inhibit_profiling_counters = true;
-    // libff::inhibit_profiling_info = true;
 
     po::options_description global("");
     global.add_options()("help,h", "This help")("verbose,v", "Verbose output");
@@ -65,6 +61,11 @@ int main(int argc, char **argv)
         }
 
         const bool verbose = (bool)vm.count("verbose");
+        if (!verbose) {
+            libff::inhibit_profiling_info = true;
+            libff::inhibit_profiling_counters = true;
+        }
+
         if (0 == vm.count("command")) {
             std::cerr << "error: no command specified\n";
             usage();
