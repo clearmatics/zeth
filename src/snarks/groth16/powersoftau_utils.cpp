@@ -256,10 +256,16 @@ srs_powersoftau<ppT> powersoftau_load(std::istream &in, size_t n)
     for (size_t i = 0; i < num_powers_of_tau; ++i) {
         read_powersoftau_g1(in, tau_powers_g1[i]);
     }
+    if (tau_powers_g1[0] != G1::one()) {
+        throw std::invalid_argument("invalid powersoftau file?");
+    }
 
     std::vector<G2> tau_powers_g2(n);
     for (size_t i = 0; i < n; ++i) {
         read_powersoftau_g2(in, tau_powers_g2[i]);
+    }
+    if (tau_powers_g2[0] != G2::one()) {
+        throw std::invalid_argument("invalid powersoftau file?");
     }
 
     std::vector<G1> alpha_tau_powers_g1(n);
