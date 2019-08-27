@@ -43,6 +43,8 @@ contract ERC223ReceivingContract {
 contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     using Bytes for *;
 
+    uint r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
     // The roots of the different updated trees
     mapping(bytes32 => bool) roots;
 
@@ -122,6 +124,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
             digest_inputs[0] = primary_inputs[i];
             digest_inputs[1] = primary_inputs[i+1];
             bytes32 current_nullifier = Bytes.sha256_digest_from_field_elements(digest_inputs);
+            require(
+                uint256(current_nullifier) < r,
+                "invalid nullifier: This nullifier is not within range"
+            );
             require(
                 !nullifiers[current_nullifier],
                 "Invalid nullifier: This nullifier has already been used"
