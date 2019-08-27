@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <exception>
-#include <libff/algebra/scalar_multiplication/multiexp.hpp>
 #include <libfqfft/evaluation_domain/domains/basic_radix2_domain_aux.tcc>
 
 namespace libzeth
@@ -258,14 +257,23 @@ srs_mpc_layer_C2<ppT> mpc_dummy_layer_C2(
     using Fr = libff::Fr<ppT>;
     using G1 = libff::G1<ppT>;
     using G2 = libff::G2<ppT>;
+    libff::enter_block("call to mpc_dummy_layer2");
 
     const Fr delta_inverse = delta.inverse();
-
     // { H_i } = { [ t(x) . x^i / delta ]_1 } i = 0 .. n-2 (n-1 entries)
-    libff::G1_vector<ppT> H_g1(layer1.T_tau_powers_g1.size());
-    for (size_t i = 0; i < layer1.T_tau_powers_g1.size(); ++i) {
+    libff::enter_block("computing H_g1");
+    const size_t H_size = layer1.T_tau_powers_g1.size();
+    libff::print_indent();
+    printf("%zu entries\n", H_size);
+    libff::G1_vector<ppT> H_g1(H_size);
+
+#ifdef MULTICORE
+#pragma omp parallel for
+#endif
+    for (size_t i = 0; i < H_size; ++i) {
         H_g1[i] = delta_inverse * layer1.T_tau_powers_g1[i];
     }
+    libff::leave_block("computing H_g1");
 
     // In layer1 output, there should be num_variables+1 entries in
     // ABC_g1.  Of these:
@@ -278,10 +286,19 @@ srs_mpc_layer_C2<ppT> mpc_dummy_layer_C2(
     const size_t num_variables = layer1.ABC_g1.size() - 1;
     const size_t num_L_elements = num_variables - num_inputs;
     // { L_i } = { [ ABC_i / delta ]_1 }, i = l+1 .. num_variables
+    libff::enter_block("computing L_g1");
+    libff::print_indent();
+    printf("%zu entries\n", num_L_elements);
     libff::G1_vector<ppT> L_g1(num_L_elements);
+#ifdef MULTICORE
+#pragma omp parallel for
+#endif
     for (size_t i = 0; i < num_L_elements; ++i) {
         L_g1[i] = delta_inverse * layer1.ABC_g1[i + num_inputs + 1];
     }
+    libff::leave_block("computing L_g1");
+
+    libff::leave_block("call to mpc_dummy_layer2");
 
     return srs_mpc_layer_C2<ppT>(
         delta * G1::one(), delta * G2::one(), std::move(H_g1), std::move(L_g1));
