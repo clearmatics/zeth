@@ -80,6 +80,9 @@ public:
         const libff::G2<ppT> &delta_g2,
         libff::G1_vector<ppT> &&H_g1,
         libff::G1_vector<ppT> &&L_g1);
+
+    void write(std::ostream &out) const;
+    static srs_mpc_layer_C2 read(std::istream &in);
 };
 
 /// Given the output from the first layer of the MPC, perform the 2nd
