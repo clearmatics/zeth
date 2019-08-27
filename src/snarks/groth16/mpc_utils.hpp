@@ -51,6 +51,8 @@ public:
         libff::G2_vector<ppT> &&B_g2,
         libff::G1_vector<ppT> &&ABC_g1);
 
+    size_t degree() const;
+
     void write(std::ostream &out) const;
     static srs_mpc_layer_L1 read(std::istream &in);
 };
