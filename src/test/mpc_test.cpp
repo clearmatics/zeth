@@ -15,17 +15,21 @@ using namespace libzeth;
 namespace
 {
 
+static r1cs_constraint_system<Fr> get_simple_constraint_system()
+{
+    protoboard<Fr> pb;
+    libzeth::test::simple_circuit<Fr>(pb);
+    r1cs_constraint_system<Fr> cs = pb.get_constraint_system();
+    cs.swap_AB_if_beneficial();
+    return cs;
+}
+
 TEST(MPCTests, LinearCombination)
 {
     // Compute the small test qap first, in order to extract the
     // degree.
-    const r1cs_constraint_system<Fr> constraint_system = ([] {
-        protoboard<Fr> pb;
-        libzeth::test::simple_circuit<Fr>(pb);
-        r1cs_constraint_system<Fr> cs = pb.get_constraint_system();
-        cs.swap_AB_if_beneficial();
-        return cs;
-    })();
+    const r1cs_constraint_system<Fr> constraint_system =
+        get_simple_constraint_system();
     qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
 
     // dummy powersoftau
@@ -92,6 +96,39 @@ TEST(MPCTests, LinearCombination)
             ASSERT_EQ(ABC_i * G1::one(), layer1.ABC_g1[i]);
         }
     }
+}
+
+TEST(MPCTests, LinearCombinationReadWrite)
+{
+    const r1cs_constraint_system<Fr> constraint_system =
+        get_simple_constraint_system();
+    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
+    const srs_powersoftau pot = dummy_powersoftau(qap.degree());
+    const srs_lagrange_evaluations lagrange =
+        powersoftau_compute_lagrange_evaluations(pot, qap.degree());
+    const srs_mpc_layer_L1<ppT> layer1 =
+        mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
+
+    std::string layer1_serialized;
+    {
+        std::ostringstream out;
+        layer1.write(out);
+        layer1_serialized = out.str();
+    }
+
+    srs_mpc_layer_L1<ppT> layer1_deserialized = [layer1_serialized]() {
+        std::istringstream in(layer1_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return srs_mpc_layer_L1<ppT>::read(in);
+    }();
+
+    ASSERT_EQ(layer1.T_tau_powers_g1, layer1_deserialized.T_tau_powers_g1);
+    ASSERT_EQ(layer1.A_g1, layer1_deserialized.A_g1);
+    ASSERT_EQ(layer1.B_g1, layer1_deserialized.B_g1);
+    ASSERT_EQ(layer1.B_g2, layer1_deserialized.B_g2);
+    ASSERT_EQ(layer1.ABC_g1, layer1_deserialized.ABC_g1);
 }
 
 TEST(MPCTests, Layer2)
