@@ -61,6 +61,17 @@ srs_mpc_layer_L1 mpc_compute_linearcombination(
     const srs_powersoftau &pot,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
+/// Given the output from the first layer of the MPC, perform the 2nd
+/// layer computation using just local randomness.  This is not a
+/// substitute for the full MPC with an auditable log of
+/// contributions, but is useful for testing.
+libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
+    powersoftau &&pot,
+    srs_mpc_layer_L1 &&layer1,
+    const libff::Fr<ppT> &delta,
+    libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
+    const libsnark::qap_instance<libff::Fr<ppT>> &qap);
+
 } // namespace libzeth
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
