@@ -9,6 +9,7 @@ using command_t = std::function<int(const std::vector<std::string> &)>;
 
 int zeth_mpc_new(const std::vector<std::string> &);
 int zeth_mpc_dummy_layer2(const std::vector<std::string> &);
+int zeth_mpc_create_keypair(const std::vector<std::string> &);
 
 int main(int argc, char **argv)
 {
@@ -30,6 +31,7 @@ int main(int argc, char **argv)
     const std::map<std::string, command_t> commands{
         {"new", zeth_mpc_new},
         {"dummy-layer2", zeth_mpc_dummy_layer2},
+        {"create-keypair", zeth_mpc_create_keypair},
     };
 
     auto usage = [&argv, &global, &commands]() {
