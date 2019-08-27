@@ -1,0 +1,4 @@
+{
+    # Prevent formatting of dependencies
+    DisableFormat: "true",
+}
