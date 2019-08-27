@@ -49,16 +49,13 @@ srs_mpc_layer_L1 mpc_compute_linearcombination(
     // Therefore { t(x) . x^i } has 0 .. n-2 (n-1 of them), requiring
     // requires powers of tau 0 ..  2.n-2 (2n-1 of them).  We should
     // have at least this many, by definition.
-
     assert(pot.tau_powers_g1.size() >= 2 * n - 1);
 
     // n+1 coefficients of t
-
     std::vector<Fr> t_coefficients(n + 1, Fr::zero());
     qap.domain->add_poly_Z(Fr::one(), t_coefficients);
 
     // Compute [ t(x) . x^i ]_1 for i = 0 .. n-2
-
     libff::G1_vector<ppT> t_x_pow_i(n - 1);
     for (size_t i = 0; i < n - 1; ++i) {
         // Use { [x^i] , ... , [x^(i+order_L+1)] } with coefficients
@@ -76,7 +73,6 @@ srs_mpc_layer_L1 mpc_compute_linearcombination(
     // each j, if A, B or C has a non-zero factor, grab the Lagrange
     // coefficients, evaluate at [t]_1, multiply by the factor and
     // accumulate.
-
     libff::G1_vector<ppT> A_i_g1(num_variables + 1);
     libff::G1_vector<ppT> B_i_g1(num_variables + 1);
     libff::G2_vector<ppT> B_i_g2(num_variables + 1);
@@ -91,7 +87,6 @@ srs_mpc_layer_L1 mpc_compute_linearcombination(
 
     for (size_t i = 0; i < num_variables + 1; ++i) {
         // Compute [beta.A_i(x)], [alpha.B_i(x)] . [C_i(x)]
-
         const std::map<size_t, Fr> &A_i_in_lagrange =
             qap.A_in_Lagrange_basis[i];
         const std::map<size_t, Fr> &B_i_in_lagrange =
@@ -127,6 +122,81 @@ srs_mpc_layer_L1 mpc_compute_linearcombination(
         std::move(B_i_g1),
         std::move(B_i_g2),
         std::move(ABC_i_g1));
+}
+
+libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
+    srs_powersoftau &&pot,
+    srs_mpc_layer_L1 &&layer1,
+    const Fr &delta,
+    libsnark::r1cs_constraint_system<Fr> &&cs,
+    const libsnark::qap_instance<Fr> &qap)
+{
+    const Fr delta_inverse = delta.inverse();
+
+    // { H_i } = { [ t(x) . x^i / delta ]_i } i = 0 .. m-1
+    libff::G1_vector<ppT> T_tau_powers_over_delta_g1(
+        layer1.T_tau_powers_g1.size());
+    for (size_t i = 0; i < layer1.T_tau_powers_g1.size(); ++i) {
+        T_tau_powers_over_delta_g1[i] =
+            delta_inverse * layer1.T_tau_powers_g1[i];
+    }
+
+    // ABC in verification key includes 1 + num_inputs terms.
+    // ABC/delta in prover key includes the remaining (num_variables -
+    // num_inputs) terms.
+    const size_t num_orig_ABC = layer1.ABC_g1.size();
+    const size_t num_variables = qap.num_variables();
+    const size_t num_inputs = qap.num_inputs();
+    const size_t num_L_elements = num_variables - num_inputs;
+
+    assert(num_orig_ABC == num_variables + 1);
+
+    // { ([B_i]_2, [B_i]_1) } i = 0 .. num_orig_ABC
+    std::vector<libsnark::knowledge_commitment<G2, G1>> B_i(num_orig_ABC);
+    for (size_t i = 0; i < num_orig_ABC; ++i) {
+        B_i[i] = libsnark::knowledge_commitment<G2, G1>(
+            layer1.B_g2[i], layer1.B_g1[i]);
+    }
+
+    assert(B_i.size() == qap.num_variables() + 1);
+
+    // { L_i } = [ { ABC_i / delta } ]_1, i = l+1 .. num_variables
+    libff::G1_vector<ppT> L_g1(num_L_elements);
+    for (size_t i = 0; i < num_L_elements; ++i) {
+        L_g1[i] = delta_inverse * layer1.ABC_g1[i + num_inputs + 1];
+    }
+    assert(L_g1.size() == qap.num_variables() - qap.num_inputs());
+
+    // [ ABC_0 ]_1,  { [ABC_i]_1 }, i = 1 .. num_inputs
+    G1 ABC_0 = layer1.ABC_g1[0];
+    libff::G1_vector<ppT> ABC_i(num_inputs);
+    for (size_t i = 0; i < num_inputs; ++i) {
+        ABC_i[i] = layer1.ABC_g1[i + 1];
+    }
+
+    // Care has been taken above to ensure nothing is used after it's
+    // moved, but to be safe, create the vk first (whose constructor
+    // does not require a move).
+    libsnark::r1cs_gg_ppzksnark_verification_key<ppT> vk(
+        pot.alpha_tau_powers_g1[0],
+        pot.beta_g2,
+        delta * G2::one(),
+        libsnark::accumulation_vector<G1>(std::move(ABC_0), std::move(ABC_i)));
+
+    libsnark::r1cs_gg_ppzksnark_proving_key<ppT> pk(
+        G1(pot.alpha_tau_powers_g1[0]),
+        G1(pot.beta_tau_powers_g1[0]),
+        G2(pot.beta_g2),
+        delta * G1::one(),
+        delta * G2::one(),
+        std::move(layer1.A_g1),
+        libsnark::knowledge_commitment_vector<G2, G1>(std::move(B_i)),
+        std::move(T_tau_powers_over_delta_g1),
+        std::move(L_g1),
+        std::move(cs));
+
+    return libsnark::r1cs_gg_ppzksnark_keypair<ppT>(
+        std::move(pk), std::move(vk));
 }
 
 } // namespace libzeth
