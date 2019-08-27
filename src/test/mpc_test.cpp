@@ -110,6 +110,7 @@ TEST(MPCTests, Layer2)
     protoboard<Fr> pb;
     libzeth::test::simple_circuit<Fr>(pb);
     r1cs_constraint_system<Fr> constraint_system = pb.get_constraint_system();
+    constraint_system.swap_AB_if_beneficial();
     qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system);
     ASSERT_TRUE(qap.degree() <= n) << "Test QAP has degree too high";
 
@@ -131,8 +132,9 @@ TEST(MPCTests, Layer2)
         const qap_instance_evaluation<Fr> qap_evaluation = ([&tau] {
             protoboard<Fr> pb;
             libzeth::test::simple_circuit<Fr>(pb);
-            const r1cs_constraint_system<Fr> constraint_system =
+            r1cs_constraint_system<Fr> constraint_system =
                 pb.get_constraint_system();
+            constraint_system.swap_AB_if_beneficial();
             return r1cs_to_qap_instance_map_with_evaluation(
                 constraint_system, tau);
         })();

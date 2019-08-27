@@ -50,6 +50,7 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     using Fr = libff::Fr<ppT>;
     using G1 = libff::G1<ppT>;
     using G2 = libff::G2<ppT>;
+    libff::enter_block("Call to mpc_compute_linearcombination");
 
     libfqfft::evaluation_domain<Fr> &domain = *qap.domain;
 
@@ -75,13 +76,16 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     //      num A's + num B's + num C's + (end_t - begin_T)
     //  ~=~ 3 * num A's + (end_t - begin_T)
     const size_t num_scalars_ABC = 3 * num_variables;
-    const size_t g1_scalar_size = libff::Fr<ppT>::size_in_bits();
+    const size_t scalar_size = libff::Fr<ppT>::size_in_bits();
 
-    // n+1 coefficients of t
+    // n+1 coefficients of
+    libff::enter_block("computing coefficients of t()");
     std::vector<Fr> t_coefficients(n + 1, Fr::zero());
     qap.domain->add_poly_Z(Fr::one(), t_coefficients);
+    libff::leave_block("computing coefficients of t()");
 
     // A_coefficients[j][i] is the i-th coefficient of A_j
+    libff::enter_block("computing coefficients of QAP polynomials");
     std::vector<std::vector<libff::Fr<ppT>>> A_coefficients(num_variables + 1);
     std::vector<std::vector<libff::Fr<ppT>>> B_coefficients(num_variables + 1);
     std::vector<std::vector<libff::Fr<ppT>>> C_coefficients(num_variables + 1);
@@ -95,9 +99,11 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
         fill_vector_from_map(C_coefficients[j], qap.C_in_Lagrange_basis[j], n);
         domain.iFFT(C_coefficients[j]);
     }
+    libff::leave_block("computing coefficients of QAP polynomials");
 
     // For each $i$ in turn, compute the exp table for $[x^i]$ and
     // apply it everywhere, before moving on to the next power.
+    libff::enter_block("computing terms for exponentiated powers");
     libff::G1_vector<ppT> t_x_pow_i(n - 1, G1::zero());
     libff::G1_vector<ppT> As_g1(num_variables + 1);
     libff::G1_vector<ppT> Bs_g1(num_variables + 1);
@@ -112,11 +118,14 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
         // Number of coefficients to be applied to each power:
         //        num A's + num B's + num C's + (end_t - begin_T)
         //      ~ 3 * num A's + (end_t - begin_T)
-        const size_t num_scalars = num_scalars_ABC + end_T - begin_T;
+        // For powers i = n, ... there is no coefficient for A, B, C.
+        const bool ABC_contributions = i < n;
+        const size_t num_scalars =
+            (ABC_contributions ? num_scalars_ABC : 0) + end_T - begin_T;
         const size_t window_size = libff::get_exp_window_size<G1>(num_scalars);
         libff::window_table<libff::G1<ppT>> tau_pow_i_table =
             libff::get_window_table(
-                g1_scalar_size, window_size, pot.tau_powers_g1[i]);
+                scalar_size, window_size, pot.tau_powers_g1[i]);
 
         // Compute [ t(x) . x^j ]_1 for j = 0 .. n-2
         // Using { [x^j] , ... , [x^(j+n)] } with coefficients
@@ -131,22 +140,30 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
         // Or, $x^i$ is used by $t(x).x^j$ for $j =max(i-n, 0), ..., min(n-2,
         // i)$
         for (size_t j = begin_T; j < end_T; ++j) {
-            // const G1 T_j_contrib = windowed_exp(
-            //     g1_scalar_size, window_size, tau_pow_i_table,
-            //     t_coefficients[i - j]);
-            const G1 T_j_contrib = t_coefficients[i - j] * pot.tau_powers_g1[i];
+            const G1 T_j_contrib = windowed_exp(
+                scalar_size,
+                window_size,
+                tau_pow_i_table,
+                t_coefficients[i - j]);
             t_x_pow_i[j] = t_x_pow_i[j] + T_j_contrib;
         }
 
-        // For powers i = 0, ..., n-1
-        if (i > n - 1) {
+        if (!ABC_contributions) {
             continue;
         }
 
-        const G1 &tau_pow_i_g1 = pot.tau_powers_g1[i];
-        const G2 &tau_pow_i_g2 = pot.tau_powers_g2[i];
-        const G1 &alpha_tau_pow_i_g1 = pot.alpha_tau_powers_g1[i];
-        const G1 &beta_tau_pow_i_g1 = pot.beta_tau_powers_g1[i];
+        // A, B, C terms (if we are processing a relevant power)
+        const size_t ABC_window_size =
+            libff::get_exp_window_size<G1>(num_variables);
+        libff::window_table<libff::G2<ppT>> tau_pow_i_g2_table =
+            libff::get_window_table(
+                scalar_size, ABC_window_size, pot.tau_powers_g2[i]);
+        libff::window_table<libff::G1<ppT>> alpha_tau_pow_i_g1_table =
+            libff::get_window_table(
+                scalar_size, ABC_window_size, pot.alpha_tau_powers_g1[i]);
+        libff::window_table<libff::G1<ppT>> beta_tau_pow_i_g1_table =
+            libff::get_window_table(
+                scalar_size, ABC_window_size, pot.beta_tau_powers_g1[i]);
 
         // Compute i-th term coefficient of each of:
         //   [ A_j(x) ]_1
@@ -158,32 +175,41 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
             const Fr B_j_coeff_i = B_coefficients[j][i];
             const Fr C_j_coeff_i = C_coefficients[j][i];
 
-            const G1 A_j_contrib = A_j_coeff_i * tau_pow_i_g1;
+            const G1 A_j_contrib = windowed_exp(
+                scalar_size, window_size, tau_pow_i_table, A_j_coeff_i);
             As_g1[j] = As_g1[j] + A_j_contrib;
 
-            const G1 B_j_contrib_g1 = B_j_coeff_i * tau_pow_i_g1;
+            const G1 B_j_contrib_g1 = windowed_exp(
+                scalar_size, window_size, tau_pow_i_table, B_j_coeff_i);
             Bs_g1[j] = Bs_g1[j] + B_j_contrib_g1;
 
-            const G2 B_j_contrib_g2 = B_j_coeff_i * tau_pow_i_g2;
+            const G2 B_j_contrib_g2 = windowed_exp(
+                scalar_size, ABC_window_size, tau_pow_i_g2_table, B_j_coeff_i);
             Bs_g2[j] = Bs_g2[j] + B_j_contrib_g2;
 
-            const G1 C_j_contrib = C_j_coeff_i * tau_pow_i_g1;
-            const G1 beta_A_j_contrib = A_j_coeff_i * beta_tau_pow_i_g1;
-            const G1 alpha_B_j_contrib = B_j_coeff_i * alpha_tau_pow_i_g1;
+            const G1 C_j_contrib = windowed_exp(
+                scalar_size, window_size, tau_pow_i_table, C_j_coeff_i);
+            const G1 beta_A_j_contrib = windowed_exp(
+                scalar_size,
+                ABC_window_size,
+                beta_tau_pow_i_g1_table,
+                A_j_coeff_i);
+            const G1 alpha_B_j_contrib = windowed_exp(
+                scalar_size,
+                ABC_window_size,
+                alpha_tau_pow_i_g1_table,
+                B_j_coeff_i);
             const G1 ABC_j_contrib =
                 beta_A_j_contrib + alpha_B_j_contrib + C_j_contrib;
             ABCs_g1[j] = ABCs_g1[j] + ABC_j_contrib;
         }
     }
-
-    assert(num_variables + 1 == As_g1.size());
-    assert(num_variables + 1 == Bs_g1.size());
-    assert(num_variables + 1 == Bs_g2.size());
-    assert(num_variables + 1 == ABCs_g1.size());
+    libff::leave_block("computing terms for exponentiated powers");
 
     // TODO: Consider dropping those entries we know will not be used
     // by this circuit and using sparse vectors where it makes sense
     // (as is done for B_i's in r1cs_gg_ppzksnark_proving_key).
+    libff::leave_block("Call to mpc_compute_linearcombination");
 
     return srs_mpc_layer_L1<ppT>(
         std::move(t_x_pow_i),
