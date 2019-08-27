@@ -123,11 +123,9 @@ def deploy_groth16_verifier(vk, verifier, deployer_address, deployment_gas):
         Alpha=zethGRPC.hex2int(vk["alpha_g1"]),
         Beta1=zethGRPC.hex2int(vk["beta_g2"][0]),
         Beta2=zethGRPC.hex2int(vk["beta_g2"][1]),
-        Gamma1=zethGRPC.hex2int(vk["gamma_g2"][0]),
-        Gamma2=zethGRPC.hex2int(vk["gamma_g2"][1]),
         Delta1=zethGRPC.hex2int(vk["delta_g2"][0]),
         Delta2=zethGRPC.hex2int(vk["delta_g2"][1]),
-        Gamma_ABC_coords=zethGRPC.hex2int(sum(vk["gamma_abc_g1"], []))
+        ABC_coords=zethGRPC.hex2int(sum(vk["abc_g1"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address

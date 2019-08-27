@@ -101,6 +101,7 @@ TEST(TestHexConvertion, TestHexToFieldBadString)
     try {
         FieldT computed_field_element =
             libzeth::string_to_field<FieldT>(sample);
+        libff::UNUSED(computed_field_element);
     } catch (const std::exception &exc) {
         res = false;
     }

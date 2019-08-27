@@ -7,7 +7,7 @@ namespace libzeth
 template<typename ppT>
 void exportVerificationKey(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair)
 {
-    unsigned gammaABCLength = keypair.vk.gamma_ABC_g1.rest.indices.size() + 1;
+    unsigned ABCLength = keypair.vk.ABC_g1.rest.indices.size() + 1;
 
     std::cout << "\tVerification key in Solidity compliant format:{"
               << std::endl;
@@ -17,22 +17,19 @@ void exportVerificationKey(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair)
     std::cout << "\t\tvk.beta = Pairing.G2Point("
               << outputPointG2AffineAsHex(keypair.vk.beta_g2) << ");"
               << std::endl;
-    std::cout << "\t\tvk.gamma = Pairing.G2Point("
-              << outputPointG2AffineAsHex(keypair.vk.gamma_g2) << ");"
-              << std::endl;
     std::cout << "\t\tvk.delta = Pairing.G2Point("
               << outputPointG2AffineAsHex(keypair.vk.delta_g2) << ");"
               << std::endl;
-    std::cout << "\t\tvk.GammaABC = new Pairing.G1Point[](" << gammaABCLength
-              << ");" << std::endl;
-    std::cout << "\t\tvk.GammaABC[0] = Pairing.G1Point("
-              << outputPointG1AffineAsHex(keypair.vk.gamma_ABC_g1.first) << ");"
+    std::cout << "\t\tvk.ABC = new Pairing.G1Point[](" << ABCLength << ");"
               << std::endl;
-    for (size_t i = 1; i < gammaABCLength; ++i) {
-        auto vkGammaABCi = outputPointG1AffineAsHex(
-            keypair.vk.gamma_ABC_g1.rest.values[i - 1]);
-        std::cout << "\t\tvk.gammaABC[" << i << "] = Pairing.G1Point("
-                  << vkGammaABCi << ");" << std::endl;
+    std::cout << "\t\tvk.ABC[0] = Pairing.G1Point("
+              << outputPointG1AffineAsHex(keypair.vk.ABC_g1.first) << ");"
+              << std::endl;
+    for (size_t i = 1; i < ABCLength; ++i) {
+        auto vkABCi =
+            outputPointG1AffineAsHex(keypair.vk.ABC_g1.rest.values[i - 1]);
+        std::cout << "\t\tvk.ABC[" << i << "] = Pairing.G1Point(" << vkABCi
+                  << ");" << std::endl;
     }
 
     std::cout << "\t\t}" << std::endl;
@@ -66,21 +63,18 @@ void verificationKeyToJson(
     std::stringstream ss;
     std::ofstream fh;
     fh.open(str_path, std::ios::binary);
-    unsigned gammaABCLength = vk.gamma_ABC_g1.rest.indices.size() + 1;
+    unsigned ABCLength = vk.ABC_g1.rest.indices.size() + 1;
 
     ss << "{\n";
     ss << " \"alpha\"  :[" << outputPointG1AffineAsHex(vk.alpha_g1) << "],\n";
     ss << " \"beta\"  :[" << outputPointG2AffineAsHex(vk.beta_g2) << "],\n";
-    ss << " \"gamma\"  :[" << outputPointG2AffineAsHex(vk.gamma_g2) << "],\n";
     ss << " \"delta\" :[" << outputPointG2AffineAsHex(vk.delta_g2) << "],\n";
 
-    ss << "\"gammaABC\" :[[" << outputPointG1AffineAsHex(vk.gamma_ABC_g1.first)
-       << "]";
+    ss << "\"ABC\" :[[" << outputPointG1AffineAsHex(vk.ABC_g1.first) << "]";
 
-    for (size_t i = 1; i < gammaABCLength; ++i) {
-        auto vkGammaABCi =
-            outputPointG1AffineAsHex(vk.gamma_ABC_g1.rest.values[i - 1]);
-        ss << ",[" << vkGammaABCi << "]";
+    for (size_t i = 1; i < ABCLength; ++i) {
+        auto vkABCi = outputPointG1AffineAsHex(vk.ABC_g1.rest.values[i - 1]);
+        ss << ",[" << vkABCi << "]";
     }
 
     ss << "]";

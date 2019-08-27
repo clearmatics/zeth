@@ -127,6 +127,7 @@ function(zeth_test TEST_NAME TEST_SOURCE)
   add_dependencies(check ${TEST_NAME})
 endfunction(zeth_test)
 
+zeth_test(test_simple test/simple_test.cpp)
 zeth_test(test_addition test/packed_addition_test.cpp)
 zeth_test(test_hex_to_field test/hex_to_field_test.cpp)
 zeth_test(test_note test/note_test.cpp)
