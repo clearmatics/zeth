@@ -54,6 +54,13 @@ public:
         libff::G1_vector<ppT> &&ABC_g1);
 };
 
+/// Given a circuit and a powersoftau with pre-computed lagrange
+/// polynomials, perform the correct linear combination for the CRS
+/// MPC.
+srs_mpc_layer_L1 mpc_compute_linearcombination(
+    const srs_powersoftau &pot,
+    const libsnark::qap_instance<libff::Fr<ppT>> &qap);
+
 } // namespace libzeth
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
