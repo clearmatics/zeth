@@ -5,15 +5,16 @@
 #ifndef __ZETH_MIMC_PERMUTATION_TCC__
 #define __ZETH_MIMC_PERMUTATION_TCC__
 
-namespace libzeth {
+namespace libzeth
+{
 
 template<typename FieldT>
 MiMCe7_permutation_gadget<FieldT>::MiMCe7_permutation_gadget(
-    libsnark::protoboard<FieldT>& pb,
+    libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> x,
     const libsnark::pb_variable<FieldT> k,
-    const std::string& annotation_prefix
-) : libsnark::gadget<FieldT>(pb, annotation_prefix), k(k)
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix), k(k)
 {
     // First we initialize the round constants
     setup_sha3_constants();
@@ -23,23 +24,28 @@ MiMCe7_permutation_gadget<FieldT>::MiMCe7_permutation_gadget(
 };
 
 template<typename FieldT>
-void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_constraints() {
-    // For each round, generates the constraints for the corresponding round gadget
-    for (auto& gadget : round_gadgets) {
+void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_constraints()
+{
+    // For each round, generates the constraints for the corresponding round
+    // gadget
+    for (auto &gadget : round_gadgets) {
         gadget.generate_r1cs_constraints();
     }
 };
 
 template<typename FieldT>
-void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_witness() const {
+void MiMCe7_permutation_gadget<FieldT>::generate_r1cs_witness() const
+{
     // For each round, generates the witness for the corresponding round gadget
-    for (auto& gadget : round_gadgets) {
+    for (auto &gadget : round_gadgets) {
         gadget.generate_r1cs_witness();
     }
 };
 
 template<typename FieldT>
-const libsnark::pb_variable<FieldT>& MiMCe7_permutation_gadget<FieldT>::result() const {
+const libsnark::pb_variable<FieldT> &MiMCe7_permutation_gadget<FieldT>::result()
+    const
+{
     // Returns the result of the last encryption/permutation
     return round_gadgets.back().result();
 };
@@ -47,32 +53,36 @@ const libsnark::pb_variable<FieldT>& MiMCe7_permutation_gadget<FieldT>::result()
 template<typename FieldT>
 void MiMCe7_permutation_gadget<FieldT>::setup_gadgets(
     const libsnark::pb_variable<FieldT> x,
-    const libsnark::pb_variable<FieldT> k
-) {
+    const libsnark::pb_variable<FieldT> k)
+{
     for (size_t i = 0; i < ROUNDS; i++) {
-        // Set the input of the next round with the output variable of the previous round (except for round 0)
-        const auto& round_x = (i == 0 ? x : round_gadgets.back().result() );
-        bool is_last = (i == (ROUNDS-1));
+        // Set the input of the next round with the output variable of the
+        // previous round (except for round 0)
+        const auto &round_x = (i == 0 ? x : round_gadgets.back().result());
+        bool is_last = (i == (ROUNDS - 1));
 
-        // Initialize and add the current round gadget into the rounds gadget vector, picking the relative constant
+        // Initialize and add the current round gadget into the rounds gadget
+        // vector, picking the relative constant
         round_gadgets.emplace_back(
             this->pb,
             round_x,
             k,
             round_constants[i],
             is_last,
-            FMT(this->annotation_prefix, " round[%zu]", i)
-        );
+            FMT(this->annotation_prefix, " round[%zu]", i));
     }
 };
 
-// The following constants correspond to the iterative computation of sha3_256 hash function over the initial seed "clearmatics_mt_seed".
-// See: pyClient/zethCodeConstantsGeneration.py for more details
+// The following constants correspond to the iterative computation of sha3_256
+// hash function over the initial seed "clearmatics_mt_seed". See:
+// pyClient/zethCodeConstantsGeneration.py for more details
 template<typename FieldT>
-void MiMCe7_permutation_gadget<FieldT>::setup_sha3_constants() {
+void MiMCe7_permutation_gadget<FieldT>::setup_sha3_constants()
+{
     round_constants.reserve(ROUNDS);
 
-    // The constant is set to "0" in the first round of MiMC permutation (see: https://eprint.iacr.org/2016/492.pdf)
+    // The constant is set to "0" in the first round of MiMC permutation (see:
+    // https://eprint.iacr.org/2016/492.pdf)
     round_constants.push_back(FieldT("0"));
 
     // clang-format off
@@ -263,6 +273,6 @@ void MiMCe7_permutation_gadget<FieldT>::setup_sha3_constants() {
     // clang-format on
 };
 
-} // libzeth
+} // namespace libzeth
 
 #endif // __ZETH_MIMC_PERMUTATION_TCC__

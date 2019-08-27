@@ -5,20 +5,22 @@
 #ifndef __ZETH_MIMC_ROUND_HPP__
 #define __ZETH_MIMC_ROUND_HPP__
 
+#include "circuits/circuits-util.hpp"
 #include "snarks_alias.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
-#include "circuits/circuits-util.hpp"
 
 // MiMCe7_round_gadget enforces correct computation of a MiMC permutation round
 // with exponent 7. In MiMC permutation last round differs from the others since
 // the key is added again. We use a boolean variable `add_k_to_result` to manage
 // this case.
 
-namespace libzeth {
+namespace libzeth
+{
 
 template<typename FieldT>
-class MiMCe7_round_gadget : public libsnark::gadget<FieldT> {
+class MiMCe7_round_gadget : public libsnark::gadget<FieldT>
+{
 private:
     // Message of the current round
     const libsnark::pb_variable<FieldT> x;
@@ -35,7 +37,8 @@ private:
     libsnark::pb_variable<FieldT> t4;
     // Intermediary var for computing t**6
     libsnark::pb_variable<FieldT> t6;
-    // Intermediary result for computing t**7 (or t ** 7 + k depending on	 add_k_to_result)
+    // Intermediary result for computing t**7 (or t ** 7 + k depending on
+    // add_k_to_result)
     libsnark::pb_variable<FieldT> t7;
 
 public:
@@ -56,10 +59,10 @@ public:
 
     // Returns round result t ** 7 + add_k_to_result * k
     // where t = (x + k + c)
-    const libsnark::pb_variable<FieldT>& result() const;
+    const libsnark::pb_variable<FieldT> &result() const;
 };
 
-} // libzeth
+} // namespace libzeth
 #include "round.tcc"
 
 #endif // __ZETH_MIMC_ROUND_HPP__

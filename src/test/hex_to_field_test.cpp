@@ -1,27 +1,29 @@
-#include "gtest/gtest.h"
-
-#include <libff/common/default_types/ec_pp.hpp>
-
-#include <libff/algebra/curves/public_params.hpp>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-
 #include "util.hpp"
 
-// Access zeth configuration constants
-#include "zeth.h"
+#include "gtest/gtest.h"
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/public_params.hpp>
+#include <libff/common/default_types/ec_pp.hpp>
 
+// Access zeth configuration constants
 #include "assert.h"
+#include "zeth.h"
 
 // Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
 
-namespace {
-TEST(TestHexConvertion, TestHexToFieldTrue) {
+namespace
+{
+TEST(TestHexConvertion, TestHexToFieldTrue)
+{
     ppT::init_public_params();
 
-    std::string sample = "1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-    FieldT expected_field_element = FieldT("14474011154664524427946373126085988481658748083205070504932198000989141204991");
+    std::string sample =
+        "1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+    FieldT expected_field_element =
+        FieldT("144740111546645244279463731260859884816587480832050705049321980"
+               "00989141204991");
     FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
 
     bool res = false;
@@ -30,11 +32,15 @@ TEST(TestHexConvertion, TestHexToFieldTrue) {
     ASSERT_TRUE(res);
 };
 
-TEST(TestHexConvertion, TestHexToFieldFalse) {
+TEST(TestHexConvertion, TestHexToFieldFalse)
+{
     ppT::init_public_params();
 
-    std::string sample = "1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1";
-    FieldT expected_field_element = FieldT("14474011154664524427946373126085988481658748083205070504932198000989141204991");
+    std::string sample =
+        "1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1";
+    FieldT expected_field_element =
+        FieldT("144740111546645244279463731260859884816587480832050705049321980"
+               "00989141204991");
     FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
 
     bool res = false;
@@ -43,7 +49,8 @@ TEST(TestHexConvertion, TestHexToFieldFalse) {
     ASSERT_FALSE(res);
 };
 
-TEST(TestHexConvertion, TestHexToFieldSmallTrue) {
+TEST(TestHexConvertion, TestHexToFieldSmallTrue)
+{
     ppT::init_public_params();
 
     std::string sample = "1ffffffffffffffffffffffff";
@@ -56,7 +63,8 @@ TEST(TestHexConvertion, TestHexToFieldSmallTrue) {
     ASSERT_TRUE(res);
 };
 
-TEST(TestHexConvertion, TestHexToFieldSmallFalse) {
+TEST(TestHexConvertion, TestHexToFieldSmallFalse)
+{
     ppT::init_public_params();
 
     std::string sample = "1fffffffffffffffffffffff1";
@@ -69,7 +77,8 @@ TEST(TestHexConvertion, TestHexToFieldSmallFalse) {
     ASSERT_FALSE(res);
 };
 
-TEST(TestHexConvertion, TestHexToFieldMixedLetters) {
+TEST(TestHexConvertion, TestHexToFieldMixedLetters)
+{
     ppT::init_public_params();
 
     std::string sample = "1FfffFfffffffffffffffffff";
@@ -82,17 +91,18 @@ TEST(TestHexConvertion, TestHexToFieldMixedLetters) {
     ASSERT_TRUE(res);
 };
 
-
-TEST(TestHexConvertion, TestHexToFieldBadString) {
+TEST(TestHexConvertion, TestHexToFieldBadString)
+{
     ppT::init_public_params();
 
     std::string sample = "xxx";
     bool res = true;
 
     try {
-      FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
-    } catch(const std::exception &exc) {
-      res = false;
+        FieldT computed_field_element =
+            libzeth::string_to_field<FieldT>(sample);
+    } catch (const std::exception &exc) {
+        res = false;
     }
 
     ASSERT_FALSE(res);
@@ -100,8 +110,10 @@ TEST(TestHexConvertion, TestHexToFieldBadString) {
 
 } // namespace
 
-int main(int argc, char **argv) {
-    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not forget to do this !!!!
+int main(int argc, char **argv)
+{
+    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not
+                               // forget to do this !!!!
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
