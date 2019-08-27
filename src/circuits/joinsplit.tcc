@@ -30,23 +30,40 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
         // but this makes easier to retrieve the root and each nullifiers from the public inputs
         std::array<std::shared_ptr<libsnark::multipacking_gadget<FieldT>>, NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs> packers;
 
-        // TODO: Remove ZERO and pass it in the constructor
         libsnark::pb_variable<FieldT> ZERO;
 
         // ---- Primary inputs (public) ---- //
-        std::shared_ptr<libsnark::pb_variable<FieldT> > merkle_root; // Merkle root
-        std::array<std::shared_ptr<libsnark::digest_variable<FieldT> >, NumInputs> input_nullifiers; // List of nullifiers of the notes to spend
-        std::array<std::shared_ptr<libsnark::digest_variable<FieldT> >, NumOutputs> output_commitments; // List of commitments generated for the new notes
-        libsnark::pb_variable_array<FieldT> zk_vpub_in; // Public value that is put into the mix
-        libsnark::pb_variable_array<FieldT> zk_vpub_out; // Value that is taken out of the mix
-        std::shared_ptr<libsnark::digest_variable<FieldT> > h_sig;    // sighash h Sig := hSigCRH(randomSeed, {nf_old} , joinSplitPubKey ) (p.53 ZCash proto. spec.)
-        std::array<std::shared_ptr<libsnark::digest_variable<FieldT> >, NumInputs> h_is; // List of malleability tags
+        // Merkle root
+        std::shared_ptr<libsnark::pb_variable<FieldT>> merkle_root;
+        // List of nullifiers of the notes to spend
+        std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumInputs>
+        input_nullifiers;
+        // List of commitments generated for the new notes
+        std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumOutputs>
+        output_commitments;
+        // Public value that is put into the mix
+        libsnark::pb_variable_array<FieldT> zk_vpub_in;
+        // Value that is taken out of the mix
+        libsnark::pb_variable_array<FieldT> zk_vpub_out;
+        // Sighash h_sig := hSigCRH(randomSeed, {nf_old},
+        // joinSplitPubKey) (p.53 ZCash proto. spec.)
+        std::shared_ptr<libsnark::digest_variable<FieldT>> h_sig;
+        // List of malleability tags
+        std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumInputs>
+        h_is;
 
         // ---- Auxiliary inputs (private) ---- //
-        libsnark::pb_variable_array<FieldT> zk_total_uint64; // Total amount transfered in the transaction
-        std::array<std::shared_ptr<libsnark::digest_variable<FieldT> >, NumInputs> a_sks; // List of all spending keys
-        std::array<std::shared_ptr<libsnark::digest_variable<FieldT> >, NumOutputs> rho_is; // List of all output rhos
-        std::shared_ptr<libsnark::digest_variable<FieldT> > phi; // random seed for uniqueness of the new rho
+        // Total amount transfered in the transaction
+        libsnark::pb_variable_array<FieldT> zk_total_uint64;
+        // List of all spending keys
+        std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumInputs>
+            a_sks;
+        // List of all output rhos
+        std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumOutputs>
+            rho_is;
+        // random seed for uniqueness of the new rho
+        std::shared_ptr<libsnark::digest_variable<FieldT>>
+            phi;
 
         // Input note gadgets
         std::array<std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT> >, NumInputs> input_notes;
@@ -74,20 +91,27 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 // more verification inputs you have, the more expensive
                 // verification is.)
 
-                // ------------------------- ALLOCATION OF PRIMARY INPUTS ------------------------- //
+                // --------- ALLOCATION OF PRIMARY INPUTS -------- //
                 // We make sure to have the primary inputs ordered as follow:
                 // [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
-                // ie, below is the index mapping of the primary input elements on the protoboard:
+                // ie, below is the index mapping of the primary input elements
+                // on the protoboard:
                 // - Index of the "Root" field elements: {0}
                 // - Index of the "NullifierS" field elements: [1, NumInputs + 1[
-                // - Index of the "CommitmentS" field elements: [NumInputs + 1, NumOutputs + NumInputs + 1[
-                // - Index of the "v_pub_in" field element: {NumOutputs + NumInputs + 1}
-                // - Index of the "v_pub_out" field element: {NumOutputs + NumInputs + 1 + 1}
-                // - Index of the "h_sig" field element: {NumOutputs + NumInputs + 1 + 1 + 1}
-                // - Index of the "h_iS" field elements: [NumOutputs + NumInputs + 1 + 1 + 1 + 1,  NumOutputs + NumInputs + 1 + 1 + 1 + 1 + NumInputs[
+                // - Index of the "CommitmentS" field elements: [NumInputs + 1,
+                // NumOutputs + NumInputs + 1[
+                // - Index of the "v_pub_in" field element: {NumOutputs + NumInputs
+                // + 1}
+                // - Index of the "v_pub_out" field element: {NumOutputs + NumInputs
+                // + 1 + 1}
+                // - Index of the "h_sig" field element: {NumOutputs + NumInputs + 1
+                // + 1 + 1}
+                // - Index of the "h_iS" field elements: [NumOutputs + NumInputs + 1
+                // + 1 + 1 + 1,  NumOutputs + NumInputs + 1 + 1 + 1 + 1 + NumInputs[
                 // We first allocate the root
                 merkle_root.reset(new libsnark::pb_variable<FieldT>);
-                merkle_root->allocate(pb, FMT(this->annotation_prefix, " merkle_root"));
+                merkle_root->allocate(
+                pb, FMT(this->annotation_prefix, " merkle_root"));
 
                 // We allocate 2 field elements to pack each inputs nullifiers and each output commitments
                 for (size_t i = 0 ; i < NumInputs ; i++) {
@@ -111,16 +135,17 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                     packed_inputs[i].allocate(pb, 1 + 1, FMT(this->annotation_prefix," h_i[%zu]", i));
                 }
 
-                /*
-                 * The primary inputs are: [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out, h_sig, h_iS]
-                 * The root is represented on a single field element
-                 * H_sig, as well as each nullifier, commitment and h_i are in {0,1}^256 and thus take 2 field elements to be represented,
-                 * while value_pub_in, and value_pub_out are in {0,1}^64, and thus take a single field element to be represented
-                **/
-                const size_t nb_packed_inputs = (2 * (NumInputs + NumOutputs)) + 1 + 1 + (2 * (1 + NumInputs));
+                // The primary inputs are: [Root, NullifierS, CommitmentS,
+                // value_pub_in, value_pub_out, h_sig, h_iS] The root is represented
+                // on a single field element H_sig, as well as each nullifier,
+                // commitment and h_i are in {0,1}^256 and thus take 2 field elements
+                // to be represented, while value_pub_in, and value_pub_out are in
+                // {0,1}^64, and thus take a single field element to be represented
+                const size_t nb_packed_inputs =
+                    (2 * (NumInputs + NumOutputs)) + 1 + 1 + (2 * (1 + NumInputs));
                 const size_t nb_inputs = 1 + nb_packed_inputs;
                 pb.set_input_sizes(nb_inputs);
-                // ------------------------------------------------------------------------------ //
+                // --------------------------------------------------------------- //
 
                 // Initialize the digest_variables
                 phi.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " phi")));
@@ -179,25 +204,30 @@ class joinsplit_gadget : libsnark::gadget<FieldT> {
                 );
 
                 // Initialize the unpacked input corresponding to the h_is
-                for (size_t i = NumOutputs + NumInputs + 1 + 1 + 1, j = 0; i < NumOutputs + NumInputs + 1 + 1 + 1 + NumInputs && j < NumInputs; i++, j++) {
+                for (size_t i = NumOutputs + NumInputs + 1 + 1 + 1, j = 0;
+                     i < NumOutputs + NumInputs + 1 + 1 + 1 + NumInputs &&
+                         j < NumInputs;
+                     i++, j++) {
                     unpacked_inputs[i].insert(
                         unpacked_inputs[i].end(),
                         h_is[j]->bits.begin(),
-                        h_is[j]->bits.end()
-                    );
+                        h_is[j]->bits.end());
                 }
 
-                /* [SANITY CHECK]
-                 * The root is a FieldT, hence is not packed
-                 * The size of the packed inputs should be NumInputs + NumOutputs + 1 + 1
-                 * since we are packing all the inputs nullifiers + all the output commitments
-                 * + the two public values v_pub_in and v_pub_out + the h_sig + the h_iS.
-                **/
-                assert(packed_inputs.size() == NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs);
+                // [SANITY CHECK]
+                // The root is a FieldT, hence is not packed
+                // The size of the packed inputs should be NumInputs + NumOutputs +
+                // 1 + 1 since we are packing all the inputs nullifiers + all the
+                // output commitments
+                // + the two public values v_pub_in and v_pub_out + the h_sig + the
+                // h_iS.
+                assert(
+                    packed_inputs.size() ==
+                    NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs);
                 assert(nb_packed_inputs == [this]() {
                     size_t sum = 0;
                     for (const auto &i : packed_inputs) {
-                         sum = sum + i.size();
+                        sum = sum + i.size();
                     }
                     return sum;
                 }());

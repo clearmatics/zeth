@@ -4,7 +4,6 @@
 #include "debug_helpers.hpp"
 #include "zeth.h"
 #include "snarks_alias.hpp" // Snark dependent alias for keyPairT, provingKeyT, verificationKeyT, and proofT
-#include "snarks_core_imports.hpp" // Snark dependent implementation for generate_trusted_setup() and prove() functions
 
 namespace libzeth {
 

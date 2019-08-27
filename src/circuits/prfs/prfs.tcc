@@ -44,7 +44,8 @@ void PRF_gadget<FieldT, HashT>::generate_r1cs_witness() {
 template<typename FieldT, typename HashT>
 libsnark::pb_variable_array<FieldT> gen_256_zeroes(libsnark::pb_variable<FieldT>& ZERO) {
     libsnark::pb_variable_array<FieldT> ret;
-    while (ret.size() < HashT::get_block_len()/2) { // We generate half a block of zeroes
+    // We generate half a block of zeroes
+    while (ret.size() < HashT::get_block_len() / 2) {
         ret.emplace_back(ZERO);
     }
 

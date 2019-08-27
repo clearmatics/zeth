@@ -1,6 +1,9 @@
 #ifndef __ZETH_EXTENDED_PROOF_TCC__
 #define __ZETH_EXTENDED_PROOF_TCC__
 
+// Snark dependent implementation for generate_trusted_setup() and prove() functions
+#include "snarks_core_imports.hpp"
+
 namespace libzeth {
 
 template<typename ppT>

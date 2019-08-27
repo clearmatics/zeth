@@ -19,10 +19,14 @@ namespace libzeth {
 template<typename FieldT>
 class MiMC_mp_gadget : public libsnark::gadget<FieldT> {
 private:
-    libsnark::pb_variable<FieldT> x; // First input
-    libsnark::pb_variable<FieldT> y; // Second input
-    MiMCe7_permutation_gadget<FieldT> permutation_gadget; // Permutation gadget
-    libsnark::pb_variable<FieldT> output; // Output variable
+    // First input
+    libsnark::pb_variable<FieldT> x;
+    // Second input
+    libsnark::pb_variable<FieldT> y;
+    // Permutation gadget
+    MiMCe7_permutation_gadget<FieldT> permutation_gadget;
+    // Output variable
+    libsnark::pb_variable<FieldT> output;
 
 public:
     MiMC_mp_gadget(

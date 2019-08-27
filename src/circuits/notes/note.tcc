@@ -234,8 +234,15 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
     // void field_vector_copy_gadget<FieldT>::generate_r1cs_constraints(){
     //      for (size_t i = 0; i < source.size(); ++i)
     //      {
-    //          this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(do_copy, source[i] - target[i], 0),
-    //                                 FMT(this->annotation_prefix, " copying_check_%zu", i));
+    //          this->pb.add_r1cs_constraint(
+    //              r1cs_constraint<FieldT>(
+    //                  do_copy,
+    //                  source[i] - target[i],
+    //                  0
+    //              ),
+    //              FMT(
+    //                  this->annotation_prefix, "
+    //                  copying_check_%zu", i));
     //      }
     //  }
     // ```
