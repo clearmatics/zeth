@@ -27,8 +27,8 @@ COMM_gadget<FieldT, HashT>::COMM_gadget(
 template<typename FieldT, typename HashT>
 void COMM_gadget<FieldT, HashT>::generate_r1cs_constraints()
 {
-    hasher->generate_r1cs_constraints(
-        true); // ensure_output_bitness set to true
+    // ensure_output_bitness set to true
+    hasher->generate_r1cs_constraints(true);
 }
 
 template<typename FieldT, typename HashT>
