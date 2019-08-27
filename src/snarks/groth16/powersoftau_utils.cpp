@@ -1,5 +1,7 @@
 #include "powersoftau_utils.hpp"
 
+#include <thread>
+
 namespace libzeth
 {
 
@@ -109,31 +111,101 @@ srs_powersoftau::srs_powersoftau(
 srs_powersoftau dummy_powersoftau_from_secrets(
     const Fr &tau, const Fr &alpha, const Fr &beta, size_t n)
 {
-    // Compute powers. Note zero-th power is included (alpha_g1 etc
+    libff::enter_block("dummy_phase1_from_secrets");
+
+    // Compute powers.  Note zero-th power is included (alpha_g1 etc
     // are provided in this way), so to support order N polynomials,
     // N+1 entries are required.
     const size_t num_tau_powers_g1 = 2 * n - 2 + 1;
-    libff::G1_vector<ppT> tau_powers_g1(num_tau_powers_g1);
-    libff::G2_vector<ppT> tau_powers_g2(n);
-    libff::G1_vector<ppT> alpha_tau_powers_g1(n);
-    libff::G1_vector<ppT> beta_tau_powers_g1(n);
+    libff::G1_vector<ppT> tau_powers_g1;
+    libff::G2_vector<ppT> tau_powers_g2;
+    libff::G1_vector<ppT> alpha_tau_powers_g1;
+    libff::G1_vector<ppT> beta_tau_powers_g1;
 
-    tau_powers_g1[0] = G1::one();
-    tau_powers_g2[0] = G2::one();
-    alpha_tau_powers_g1[0] = alpha * G1::one();
-    beta_tau_powers_g1[0] = beta * G1::one();
-
-    for (size_t i = 1; i < n; ++i) {
-        tau_powers_g1[i] = tau * tau_powers_g1[i - 1];
-        tau_powers_g2[i] = tau * tau_powers_g2[i - 1];
-        alpha_tau_powers_g1[i] = tau * alpha_tau_powers_g1[i - 1];
-        beta_tau_powers_g1[i] = tau * beta_tau_powers_g1[i - 1];
+    libff::enter_block("tau powers");
+    std::vector<Fr> tau_powers(num_tau_powers_g1);
+    tau_powers[0] = Fr::one();
+    for (size_t i = 1; i < num_tau_powers_g1; ++i) {
+        tau_powers[i] = tau * tau_powers[i - 1];
     }
+    libff::leave_block("tau powers");
 
-    for (size_t i = n; i < num_tau_powers_g1; ++i) {
-        tau_powers_g1[i] = tau * tau_powers_g1[i - 1];
+    libff::enter_block("window tables");
+    const size_t window_size = libff::get_exp_window_size<G1>(n);
+    const size_t window_size_tau_g1 = libff::get_exp_window_size<G1>(2 * n - 1);
+
+    libff::window_table<libff::G1<ppT>> tau_g1_table;
+    libff::window_table<libff::G2<ppT>> tau_g2_table;
+    libff::window_table<libff::G1<ppT>> alpha_tau_g1_table;
+    libff::window_table<libff::G1<ppT>> beta_tau_g1_table;
+    {
+        std::thread tau_g1_table_thread([&tau_g1_table, window_size_tau_g1]() {
+            tau_g1_table = libff::get_window_table(
+                libff::G1<ppT>::size_in_bits(), window_size_tau_g1, G1::one());
+        });
+
+        std::thread tau_g2_table_thread([&tau_g2_table, window_size]() {
+            tau_g2_table = libff::get_window_table(
+                libff::G2<ppT>::size_in_bits(), window_size, G2::one());
+        });
+
+        std::thread alpha_tau_g1_table_thread([&alpha_tau_g1_table,
+                                               window_size,
+                                               alpha]() {
+            alpha_tau_g1_table = libff::get_window_table(
+                libff::G1<ppT>::size_in_bits(), window_size, alpha * G1::one());
+        });
+
+        std::thread beta_tau_g1_table_thread([&beta_tau_g1_table,
+                                              window_size,
+                                              beta]() {
+            beta_tau_g1_table = libff::get_window_table(
+                libff::G1<ppT>::size_in_bits(), window_size, beta * G1::one());
+        });
+
+        tau_g1_table_thread.join();
+        tau_g2_table_thread.join();
+        alpha_tau_g1_table_thread.join();
+        beta_tau_g1_table_thread.join();
     }
+    libff::leave_block("window tables");
 
+    libff::enter_block("tau_g1 powers");
+    tau_powers_g1 = libff::batch_exp(
+        libff::G1<ppT>::size_in_bits(),
+        window_size_tau_g1,
+        tau_g1_table,
+        tau_powers);
+    libff::leave_block("tau_g1 powers");
+
+    libff::enter_block("tau_g2 powers");
+    tau_powers_g2 = libff::batch_exp(
+        libff::G2<ppT>::size_in_bits(),
+        window_size,
+        tau_g2_table,
+        tau_powers,
+        n);
+    libff::leave_block("tau_g2 powers");
+
+    libff::enter_block("alpha_tau_g1 powers");
+    alpha_tau_powers_g1 = libff::batch_exp(
+        libff::G1<ppT>::size_in_bits(),
+        window_size,
+        alpha_tau_g1_table,
+        tau_powers,
+        n);
+    libff::leave_block("alpha_tau_g1 powers");
+
+    libff::enter_block("beta_tau_g1 powers");
+    beta_tau_powers_g1 = libff::batch_exp(
+        libff::G1<ppT>::size_in_bits(),
+        window_size,
+        beta_tau_g1_table,
+        tau_powers,
+        n);
+    libff::leave_block("beta_tau_g1 powers");
+
+    libff::leave_block("dummy_phase1_from_secrets");
     return srs_powersoftau(
         std::move(tau_powers_g1),
         std::move(tau_powers_g2),
