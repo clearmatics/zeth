@@ -13,22 +13,6 @@
 namespace libzeth
 {
 
-template<typename T>
-static void fill_vector_from_map(
-    std::vector<T> &out_vector,
-    const std::map<size_t, T> index_map,
-    const size_t index_bound)
-{
-    out_vector.resize(index_bound);
-    for (auto &it : index_map) {
-        const size_t out_idx = it.first;
-        const T &value = it.second;
-        if (!value.is_zero()) {
-            out_vector[out_idx] = value;
-        }
-    }
-}
-
 template<typename ppT>
 srs_mpc_layer_L1<ppT>::srs_mpc_layer_L1(
     libff::G1_vector<ppT> &&T_tau_powers_g1,
