@@ -240,12 +240,20 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
 }
 
 template<typename ppT>
-libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
-    srs_powersoftau<ppT> &&pot,
-    srs_mpc_layer_L1<ppT> &&layer1,
+srs_mpc_layer_C2<ppT>::srs_mpc_layer_C2(
+    const libff::G1<ppT> &delta_g1,
+    const libff::G2<ppT> &delta_g2,
+    libff::G1_vector<ppT> &&H_g1,
+    libff::G1_vector<ppT> &&L_g1)
+    : delta_g1(delta_g1), delta_g2(delta_g2), H_g1(H_g1), L_g1(L_g1)
+{
+}
+
+template<typename ppT>
+srs_mpc_layer_C2<ppT> mpc_dummy_layer_C2(
+    const srs_mpc_layer_L1<ppT> &layer1,
     const libff::Fr<ppT> &delta,
-    libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
-    const libsnark::qap_instance<libff::Fr<ppT>> &qap)
+    const size_t num_inputs)
 {
     using Fr = libff::Fr<ppT>;
     using G1 = libff::G1<ppT>;
@@ -253,39 +261,69 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
 
     const Fr delta_inverse = delta.inverse();
 
-    // { H_i } = { [ t(x) . x^i / delta ]_1 } i = 0 .. n-2
-    libff::G1_vector<ppT> T_tau_powers_over_delta_g1(
-        layer1.T_tau_powers_g1.size());
+    // { H_i } = { [ t(x) . x^i / delta ]_1 } i = 0 .. n-2 (n-1 entries)
+    libff::G1_vector<ppT> H_g1(layer1.T_tau_powers_g1.size());
     for (size_t i = 0; i < layer1.T_tau_powers_g1.size(); ++i) {
-        T_tau_powers_over_delta_g1[i] =
-            delta_inverse * layer1.T_tau_powers_g1[i];
+        H_g1[i] = delta_inverse * layer1.T_tau_powers_g1[i];
     }
 
-    // ABC in verification key includes 1 + num_inputs terms.
-    // ABC/delta in prover key includes the remaining (num_variables -
-    // num_inputs) terms.
-    const size_t num_orig_ABC = layer1.ABC_g1.size();
+    // In layer1 output, there should be num_variables+1 entries in
+    // ABC_g1.  Of these:
+    //
+    //  - The first 1+num_inputs entries are used directly in the
+    //    verification key.
+    //
+    //  - The remaining num_variables-num_inputs entries will be
+    //    divided by delta to create layer2.
+    const size_t num_variables = layer1.ABC_g1.size() - 1;
+    const size_t num_L_elements = num_variables - num_inputs;
+    // { L_i } = { [ ABC_i / delta ]_1 }, i = l+1 .. num_variables
+    libff::G1_vector<ppT> L_g1(num_L_elements);
+    for (size_t i = 0; i < num_L_elements; ++i) {
+        L_g1[i] = delta_inverse * layer1.ABC_g1[i + num_inputs + 1];
+    }
+
+    return srs_mpc_layer_C2<ppT>(
+        delta * G1::one(), delta * G2::one(), std::move(H_g1), std::move(L_g1));
+}
+
+template<typename ppT>
+libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
+    srs_powersoftau<ppT> &&pot,
+    srs_mpc_layer_L1<ppT> &&layer1,
+    srs_mpc_layer_C2<ppT> &&layer2,
+    libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
+    const libsnark::qap_instance<libff::Fr<ppT>> &qap)
+{
+    using G1 = libff::G1<ppT>;
+    using G2 = libff::G2<ppT>;
+
+    const size_t n = qap.degree();
     const size_t num_variables = qap.num_variables();
     const size_t num_inputs = qap.num_inputs();
 
-    assert(num_orig_ABC == num_variables + 1);
+    // Some sanity checks.
+    //   layer1.A, B, C, ABC should all have num_variables+1 entries.
+    //   layer2.H should have n-1 entries.
+    //   layer2.L should have num_variables-num_inputs entries.
+    //   pot should have degree >= n
+    if ((num_variables + 1 != layer1.A_g1.size()) ||
+        (num_variables + 1 != layer1.B_g1.size()) ||
+        (num_variables + 1 != layer1.B_g2.size()) ||
+        (num_variables + 1 != layer1.ABC_g1.size()) ||
+        (n - 1 != layer2.H_g1.size()) ||
+        (num_variables - num_inputs != layer2.L_g1.size()) ||
+        (pot.tau_powers_g2.size() < n)) {
+        throw std::invalid_argument("mismatch in degrees of layers");
+    }
 
-    // { ([B_i]_2, [B_i]_1) } i = 0 .. num_orig_ABC
-    std::vector<libsnark::knowledge_commitment<G2, G1>> B_i(num_orig_ABC);
-    for (size_t i = 0; i < num_orig_ABC; ++i) {
+    // { ( [B_i]_2, [B_i]_1 ) } i = 0 .. num_variables
+    std::vector<libsnark::knowledge_commitment<G2, G1>> B_i(num_variables + 1);
+    for (size_t i = 0; i < num_variables + 1; ++i) {
         B_i[i] = libsnark::knowledge_commitment<G2, G1>(
             layer1.B_g2[i], layer1.B_g1[i]);
     }
-
-    assert(B_i.size() == qap.num_variables() + 1);
-
-    // { L_i } = [ { ABC_i / delta } ]_1, i = l+1 .. num_variables
-    const size_t num_L_elements = num_variables - num_inputs;
-    libff::G1_vector<ppT> L_g1(num_L_elements);
-    for (size_t i = num_inputs + 1; i < num_variables + 1; ++i) {
-        L_g1[i - num_inputs - 1] = delta_inverse * layer1.ABC_g1[i];
-    }
-    assert(L_g1.size() == qap.num_variables() - qap.num_inputs());
+    assert(B_i.size() == num_variables + 1);
 
     // [ ABC_0 ]_1,  { [ABC_i]_1 }, i = 1 .. num_inputs
     G1 ABC_0 = layer1.ABC_g1[0];
@@ -294,25 +332,22 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
         ABC_i[i] = layer1.ABC_g1[i + 1];
     }
 
-    // Care has been taken above to ensure nothing is used after it's
-    // moved, but to be safe, create the vk first (whose constructor
-    // does not require a move).
     libsnark::r1cs_gg_ppzksnark_verification_key<ppT> vk(
         pot.alpha_tau_powers_g1[0],
         pot.beta_g2,
-        delta * G2::one(),
+        layer2.delta_g2,
         libsnark::accumulation_vector<G1>(std::move(ABC_0), std::move(ABC_i)));
 
     libsnark::r1cs_gg_ppzksnark_proving_key<ppT> pk(
         G1(pot.alpha_tau_powers_g1[0]),
         G1(pot.beta_tau_powers_g1[0]),
         G2(pot.beta_g2),
-        delta * G1::one(),
-        delta * G2::one(),
+        G1(layer2.delta_g1),
+        G2(layer2.delta_g2),
         std::move(layer1.A_g1),
         libsnark::knowledge_commitment_vector<G2, G1>(std::move(B_i)),
-        std::move(T_tau_powers_over_delta_g1),
-        std::move(L_g1),
+        std::move(layer2.H_g1),
+        std::move(layer2.L_g1),
         std::move(cs));
 
     return libsnark::r1cs_gg_ppzksnark_keypair<ppT>(
