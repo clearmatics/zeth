@@ -123,7 +123,7 @@ target_link_libraries(
 )
 
 # mpc utility executable
-add_executable(mpc mpc/mpc.cpp)
+add_executable(mpc mpc/mpc.cpp mpc/mpc_new.cpp)
 target_link_libraries(
   mpc
   zeth
