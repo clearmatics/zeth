@@ -13,16 +13,6 @@
 namespace libzeth
 {
 
-template<typename Fr, typename Gr>
-static void basic_radix2_iFFT(std::vector<Gr> &as, const Fr &omega_inv)
-{
-    libfqfft::_basic_radix2_FFT<Fr, Gr>(as, omega_inv);
-    const Fr n_inv = Fr(as.size()).inverse();
-    for (auto &a : as) {
-        a = n_inv * a;
-    }
-}
-
 template<typename T>
 static void fill_vector_from_map(
     std::vector<T> &out_vector,
@@ -57,6 +47,7 @@ srs_mpc_layer_L1<ppT>::srs_mpc_layer_L1(
 template<typename ppT>
 srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     const srs_powersoftau &pot,
+    const srs_lagrange_evaluations &lagrange,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap)
 {
     using Fr = libff::Fr<ppT>;
@@ -71,14 +62,18 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     // as refered to as "the vanishing polynomial", and t is also used
     // to represent the query point (aka "tau").
     const size_t n = qap.degree();
-    libff::print_indent();
-    printf("n=%zu\n", n);
+    const size_t num_variables = qap.num_variables();
 
     if (n != 1ull << libff::log2(n)) {
         throw std::invalid_argument("non-pow-2 domain");
     }
+    if (n != lagrange.degree) {
+        throw std::invalid_argument(
+            "domain size differs from Lagrange evaluation");
+    }
 
-    const size_t num_variables = qap.num_variables();
+    libff::print_indent();
+    printf("n=%zu\n", n);
 
     // The QAP polynomials A, B, C are of degree (n-1) as we know they
     // are created by interpolation of an r1cs of n constraints.
@@ -90,51 +85,13 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     // in the set of powers of tau
     assert(pot.tau_powers_g1.size() >= 2 * n - 1);
 
-    // Number of coefficients to be applied to each power:
-    //      num A's + num B's + num C's + (end_t - begin_T)
-    //  ~=~ 3 * num A's + (end_t - begin_T)
     const size_t scalar_size = libff::Fr<ppT>::size_in_bits();
 
     // n+1 coefficients of t
     libff::enter_block("computing coefficients of t()");
     std::vector<Fr> t_coefficients(n + 1, Fr::zero());
-    qap.domain->add_poly_Z(Fr::one(), t_coefficients);
+    domain.add_poly_Z(Fr::one(), t_coefficients);
     libff::leave_block("computing coefficients of t()");
-
-    const Fr omega = domain.get_domain_element(1);
-    const Fr omega_inv = omega.inverse();
-
-    // Compute [ L_j(t) ]_1 from { [x^i] } i=0..n-1
-
-    libff::enter_block("computing [Lagrange_i(x)]_1");
-    std::vector<G1> Lagrange_g1(
-        pot.tau_powers_g1.begin(), pot.tau_powers_g1.begin() + n);
-    assert(Lagrange_g1[0] == G1::one());
-    assert(Lagrange_g1.size() == n);
-    basic_radix2_iFFT(Lagrange_g1, omega_inv);
-    libff::leave_block("computing [Lagrange_i(x)]_1");
-
-    libff::enter_block("computing [Lagrange_i(x)]_2");
-    std::vector<G2> Lagrange_g2(
-        pot.tau_powers_g2.begin(), pot.tau_powers_g2.begin() + n);
-    assert(Lagrange_g2[0] == G2::one());
-    assert(Lagrange_g2.size() == n);
-    basic_radix2_iFFT(Lagrange_g2, omega_inv);
-    libff::leave_block("computing [Lagrange_i(x)]_2");
-
-    libff::enter_block("computing [alpha . Lagrange_i(x)]_1");
-    std::vector<G1> alpha_lagrange_g1(
-        pot.alpha_tau_powers_g1.begin(), pot.alpha_tau_powers_g1.begin() + n);
-    assert(alpha_lagrange_g1.size() == n);
-    basic_radix2_iFFT(alpha_lagrange_g1, omega_inv);
-    libff::leave_block("computing [alpha . Lagrange_i(x)]_1");
-
-    libff::enter_block("computing [beta . Lagrange_i(x)]_1");
-    std::vector<G1> beta_lagrange_g1(
-        pot.beta_tau_powers_g1.begin(), pot.beta_tau_powers_g1.begin() + n);
-    assert(beta_lagrange_g1.size() == n);
-    basic_radix2_iFFT(beta_lagrange_g1, omega_inv);
-    libff::leave_block("computing [beta . Lagrange_i(x)]_1");
 
     libff::enter_block("computing A_i, B_i, C_i, ABC_i at x");
     libff::G1_vector<ppT> As_g1(num_variables + 1);
@@ -150,9 +107,11 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
             const std::map<size_t, Fr> &A_j_lagrange =
                 qap.A_in_Lagrange_basis[j];
             for (const auto &entry : A_j_lagrange) {
-                A_j_at_x = A_j_at_x + (entry.second * Lagrange_g1[entry.first]);
+                A_j_at_x = A_j_at_x +
+                           (entry.second * lagrange.lagrange_g1[entry.first]);
                 ABC_j_at_x =
-                    ABC_j_at_x + (entry.second * beta_lagrange_g1[entry.first]);
+                    ABC_j_at_x +
+                    (entry.second * lagrange.beta_lagrange_g1[entry.first]);
             }
 
             As_g1[j] = A_j_at_x;
@@ -165,12 +124,13 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
             const std::map<size_t, Fr> &B_j_lagrange =
                 qap.B_in_Lagrange_basis[j];
             for (const auto &entry : B_j_lagrange) {
-                B_j_at_x_g1 =
-                    B_j_at_x_g1 + (entry.second * Lagrange_g1[entry.first]);
-                B_j_at_x_g2 =
-                    B_j_at_x_g2 + (entry.second * Lagrange_g2[entry.first]);
-                ABC_j_at_x = ABC_j_at_x +
-                             (entry.second * alpha_lagrange_g1[entry.first]);
+                B_j_at_x_g1 = B_j_at_x_g1 + (entry.second *
+                                             lagrange.lagrange_g1[entry.first]);
+                B_j_at_x_g2 = B_j_at_x_g2 + (entry.second *
+                                             lagrange.lagrange_g2[entry.first]);
+                ABC_j_at_x =
+                    ABC_j_at_x +
+                    (entry.second * lagrange.alpha_lagrange_g1[entry.first]);
             }
 
             Bs_g1[j] = B_j_at_x_g1;
@@ -182,7 +142,8 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
             const std::map<size_t, Fr> &C_j_lagrange =
                 qap.C_in_Lagrange_basis[j];
             for (const auto &entry : C_j_lagrange) {
-                C_j_at_x = C_j_at_x + entry.second * Lagrange_g1[entry.first];
+                C_j_at_x =
+                    C_j_at_x + entry.second * lagrange.lagrange_g1[entry.first];
             }
 
             Cs_g1[j] = C_j_at_x;
