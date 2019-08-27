@@ -34,10 +34,12 @@ TEST(MPCTests, LinearCombination)
     Fr beta = Fr::random_element();
     const srs_powersoftau pot =
         dummy_powersoftau_from_secrets(tau, alpha, beta, qap.degree());
+    const srs_lagrange_evaluations lagrange =
+        powersoftau_compute_lagrange_evaluations(pot, qap.degree());
 
     // linear combination
     const srs_mpc_layer_L1<ppT> layer1 =
-        mpc_compute_linearcombination<ppT>(pot, qap);
+        mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
 
     // Without knowlege of tau, not many checks can be performed
     // beyond the ratio of terms in [ t(x) . x^i ]_1.
@@ -94,8 +96,14 @@ TEST(MPCTests, LinearCombination)
 
 TEST(MPCTests, Layer2)
 {
-    // Choose n to be a power of 2 greater than degree of the QAP.
-    const size_t n = 16;
+    // Small test circuit and QAP
+    protoboard<Fr> pb;
+    libzeth::test::simple_circuit<Fr>(pb);
+    r1cs_constraint_system<Fr> constraint_system = pb.get_constraint_system();
+    constraint_system.swap_AB_if_beneficial();
+    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
+
+    const size_t n = qap.degree();
     const Fr tau = Fr::random_element();
     const Fr alpha = Fr::random_element();
     const Fr beta = Fr::random_element();
@@ -103,21 +111,17 @@ TEST(MPCTests, Layer2)
     const G1 g1_generator = G1::one();
     const G2 g2_generator = G2::one();
 
-    // dummy CRS1
+    // dummy POT and pre-compute lagrange evaluations
     srs_powersoftau pot = dummy_powersoftau_from_secrets(tau, alpha, beta, n);
+    const srs_lagrange_evaluations lagrange =
+        powersoftau_compute_lagrange_evaluations(pot, n);
 
-    // dummy circuit and Layer1
-    protoboard<Fr> pb;
-    libzeth::test::simple_circuit<Fr>(pb);
-    r1cs_constraint_system<Fr> constraint_system = pb.get_constraint_system();
-    constraint_system.swap_AB_if_beneficial();
-    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
-    ASSERT_TRUE(qap.degree() <= n) << "Test QAP has degree too high";
-
+    // dummy circuit and CRS2
     size_t num_variables = qap.num_variables();
     size_t num_inputs = qap.num_inputs();
 
-    srs_mpc_layer_L1<ppT> layer1 = mpc_compute_linearcombination<ppT>(pot, qap);
+    srs_mpc_layer_L1<ppT> layer1 =
+        mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
 
     // Final key pair
     const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_dummy_layer2(

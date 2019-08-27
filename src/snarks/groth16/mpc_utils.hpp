@@ -57,6 +57,7 @@ public:
 template<typename ppT>
 srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     const srs_powersoftau &pot,
+    const srs_lagrange_evaluations &lagrange,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
 /// Given the output from the first layer of the MPC, perform the 2nd

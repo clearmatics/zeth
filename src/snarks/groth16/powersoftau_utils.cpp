@@ -10,6 +10,21 @@ namespace
 
 // Utility functions
 
+// Use the technique described in Section 3 of "A multi-party protocol
+// for constructing the public parameters of the Pinocchio zk-SNARK"
+// to efficiently evaluate Lagrange polynomials ${L_i(x)}_i$ for the
+// $d=2^n$-roots of unity, given powers ${x^i}_i$ for $i=0..d-1$.
+template<typename Fr, typename Gr>
+static void compute_lagrange_from_powers(
+    std::vector<Gr> &powers, const Fr &omega_inv)
+{
+    libfqfft::_basic_radix2_FFT<Fr, Gr>(powers, omega_inv);
+    const Fr n_inv = Fr(powers.size()).inverse();
+    for (auto &a : powers) {
+        a = n_inv * a;
+    }
+}
+
 class membuf : public std::streambuf
 {
 public:
@@ -415,6 +430,87 @@ bool powersoftau_validate(const srs_powersoftau &pot, const size_t n)
     }
 
     return true;
+}
+
+// -----------------------------------------------------------------------------
+// powersoftau_lagrange_evaluations
+// -----------------------------------------------------------------------------
+
+srs_lagrange_evaluations::srs_lagrange_evaluations(
+    size_t degree,
+    std::vector<G1> &&lagrange_g1,
+    std::vector<G2> &&lagrange_g2,
+    std::vector<G1> &&alpha_lagrange_g1,
+    std::vector<G1> &&beta_lagrange_g1)
+    : degree(degree)
+    , lagrange_g1(std::move(lagrange_g1))
+    , lagrange_g2(std::move(lagrange_g2))
+    , alpha_lagrange_g1(std::move(alpha_lagrange_g1))
+    , beta_lagrange_g1(std::move(beta_lagrange_g1))
+{
+}
+
+srs_lagrange_evaluations powersoftau_compute_lagrange_evaluations(
+    const srs_powersoftau &pot, const size_t n)
+{
+    using Fr = libff::Fr<ppT>;
+    using G1 = libff::G1<ppT>;
+    using G2 = libff::G2<ppT>;
+
+    if (n != 1ull << libff::log2(n)) {
+        throw std::invalid_argument("non-pow-2 domain");
+    }
+    if (pot.tau_powers_g1.size() < n) {
+        throw std::invalid_argument("insufficient powers of tau");
+    }
+
+    libff::enter_block("r1cs_gg_ppzksnark_compute_lagrange_evaluations");
+    libff::print_indent();
+    printf("n=%zu\n", n);
+
+    libfqfft::basic_radix2_domain<Fr> domain(n);
+    const Fr omega = domain.get_domain_element(1);
+    const Fr omega_inv = omega.inverse();
+
+    // Compute [ L_j(t) ]_1 from { [x^i] } i=0..n-1
+    libff::enter_block("computing [Lagrange_i(x)]_1");
+    std::vector<G1> lagrange_g1(
+        pot.tau_powers_g1.begin(), pot.tau_powers_g1.begin() + n);
+    assert(lagrange_g1[0] == G1::one());
+    assert(lagrange_g1.size() == n);
+    compute_lagrange_from_powers(lagrange_g1, omega_inv);
+    libff::leave_block("computing [Lagrange_i(x)]_1");
+
+    libff::enter_block("computing [Lagrange_i(x)]_2");
+    std::vector<G2> lagrange_g2(
+        pot.tau_powers_g2.begin(), pot.tau_powers_g2.begin() + n);
+    assert(lagrange_g2[0] == G2::one());
+    assert(lagrange_g2.size() == n);
+    compute_lagrange_from_powers(lagrange_g2, omega_inv);
+    libff::leave_block("computing [Lagrange_i(x)]_2");
+
+    libff::enter_block("computing [alpha . Lagrange_i(x)]_1");
+    std::vector<G1> alpha_lagrange_g1(
+        pot.alpha_tau_powers_g1.begin(), pot.alpha_tau_powers_g1.begin() + n);
+    assert(alpha_lagrange_g1.size() == n);
+    compute_lagrange_from_powers(alpha_lagrange_g1, omega_inv);
+    libff::leave_block("computing [alpha . Lagrange_i(x)]_1");
+
+    libff::enter_block("computing [beta . Lagrange_i(x)]_1");
+    std::vector<G1> beta_lagrange_g1(
+        pot.beta_tau_powers_g1.begin(), pot.beta_tau_powers_g1.begin() + n);
+    assert(beta_lagrange_g1.size() == n);
+    compute_lagrange_from_powers(beta_lagrange_g1, omega_inv);
+    libff::leave_block("computing [beta . Lagrange_i(x)]_1");
+
+    libff::leave_block("r1cs_gg_ppzksnark_compute_lagrange_evaluations");
+
+    return srs_lagrange_evaluations(
+        n,
+        std::move(lagrange_g1),
+        std::move(lagrange_g2),
+        std::move(alpha_lagrange_g1),
+        std::move(beta_lagrange_g1));
 }
 
 } // namespace libzeth
