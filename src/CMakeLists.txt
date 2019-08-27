@@ -58,7 +58,7 @@ include_directories(
 
 
 # Enable Boost for program_options
-find_package( Boost REQUIRED COMPONENTS system filesystem )
+find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
 include_directories( ${Boost_INCLUDE_DIR} )
 
 # Add the binary tree to the search path for include files
@@ -111,6 +111,15 @@ target_link_libraries(
   ${Boost_FILESYSTEM_LIBRARY}
   gRPC::grpc++_reflection
   protobuf::libprotobuf
+)
+
+# powersoftau utility
+add_executable(powersoftau powersoftau/powersoftau.cpp)
+target_link_libraries(
+  powersoftau
+  zeth
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
 
 ## Tests
