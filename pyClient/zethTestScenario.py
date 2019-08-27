@@ -6,6 +6,9 @@ import zethContracts
 import json
 from hashlib import sha256
 
+import nacl.utils
+from nacl.public import PrivateKey
+
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 
 w3 = Web3(HTTPProvider("http://localhost:8545"))
@@ -42,12 +45,18 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
 
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
-    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["encPK"], keystore["Bob"]["AddrSk"]["encSK"])
-    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["encPK"], keystore["Bob"]["AddrSk"]["encSK"])
-    pk_sender = keystore["Bob"]["AddrPk"]["encPK"]
+
+    # generate ephemeral ec25519 key
+    eph_sk_bob = PrivateKey.generate()
+
+    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["encPK"], eph_sk_bob)
+    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["encPK"], eph_sk_bob)
+
+    # get the ephemeral public key of the sender in bytes
+    eph_pk_sender_bytes = eph_sk_bob.public_key.encode(encoder=nacl.encoding.RawEncoder)
 
     # Hash the pk_sender and cipher-texts
-    ciphers = pk_sender + ciphertext1 + ciphertext2
+    ciphers = eph_pk_sender_bytes + ciphertext1 + ciphertext2
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
@@ -66,7 +75,7 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
 
     return zethContracts.mix(
         mixer_instance,
-        pk_sender,
+        eph_pk_sender_bytes,
         ciphertext1,
         ciphertext2,
         proof_json,
@@ -110,9 +119,13 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
 
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
-    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["encPK"], keystore["Bob"]["AddrSk"]["encSK"]) # Bob is the recipient
-    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["encPK"], keystore["Bob"]["AddrSk"]["encSK"]) # Charlie is the recipient
-    pk_sender = keystore["Bob"]["AddrPk"]["encPK"]
+
+    # generate ephemeral ec25519 key
+    eph_sk_bob = PrivateKey.generate()
+
+    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["encPK"], eph_sk_bob) # Bob is the recipient
+    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["encPK"], eph_sk_bob) # Charlie is the recipient
+    pk_sender = eph_sk_bob.public_key.encode(encoder=nacl.encoding.RawEncoder)
 
     # Hash the pk_sender and cipher-texts
     ciphers = pk_sender + ciphertext1 + ciphertext2
@@ -177,9 +190,13 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
 
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
     output_note2_str = json.dumps(zethGRPC.parseZethNote(output_note2))
-    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["encPK"], keystore["Charlie"]["AddrSk"]["encSK"]) # Charlie is the recipient
-    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["encPK"], keystore["Charlie"]["AddrSk"]["encSK"]) # Charlie is the recipient
-    pk_sender = keystore["Charlie"]["AddrPk"]["encPK"]
+
+    # generate ephemeral ec25519 key
+    eph_sk_charlie = PrivateKey.generate()
+
+    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["encPK"], eph_sk_charlie) # Charlie is the recipient
+    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["encPK"], eph_sk_charlie) # Charlie is the recipient
+    pk_sender = eph_sk_charlie.public_key.encode(encoder=nacl.encoding.RawEncoder)
 
     # Hash the pk_sender and cipher-texts
     ciphers = pk_sender + ciphertext1 + ciphertext2

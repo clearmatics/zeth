@@ -26,10 +26,9 @@ def get_private_key_from_bytes(private_key_bytes):
 def get_public_key_from_bytes(public_key_bytes):
   return PublicKey(public_key_bytes, encoder=nacl.encoding.RawEncoder)
 
-# Encrypts a string message by using valid hexadecimal ec25519 public and private keys. See: https://pynacl.readthedocs.io/en/stable/public/
-def encrypt(message, public_key_bytes, private_key_bytes):
+# Encrypts a string message by using valid ec25519 public key (bytes) and a private key object. See: https://pynacl.readthedocs.io/en/stable/public/
+def encrypt(message, public_key_bytes, private_key):
   # Decodes hex representation to keys objects
-  private_key = get_private_key_from_bytes(private_key_bytes)
   public_key = get_public_key_from_bytes(public_key_bytes)
 
   # Inits encryption box instance
@@ -44,10 +43,9 @@ def encrypt(message, public_key_bytes, private_key_bytes):
   # Need to cast to the parent class Bytes of nacl.utils.EncryptedMessage to make it accepted from mix solidity function
   return bytes(encrypted)
 
-# Decrypts a string ciphertext by using valid hexadecimal ec25519 public and private keys. See: https://pynacl.readthedocs.io/en/stable/public/
-def decrypt(encrypted_message, public_key_bytes, private_key_bytes):
+# Decrypts a string ciphertext by using valid ec25519 public key (bytes) and a private key object. See: https://pynacl.readthedocs.io/en/stable/public/
+def decrypt(encrypted_message, public_key_bytes, private_key):
   # Decode hex to keys objects
-  private_key = get_private_key_from_bytes(private_key_bytes)
   public_key = get_public_key_from_bytes(public_key_bytes)
 
   # Inits encryption box instance
