@@ -39,6 +39,33 @@ public:
         const libff::G2<ppT> &beta_g2);
 };
 
+/// Encodings of lagrange polynomials at tau, computed from
+/// powersoftau, on some domain of degree n.
+class srs_lagrange_evaluations
+{
+public:
+    const size_t degree;
+
+    /// ${ [ L_i(x) ]_1 }_i$
+    std::vector<libff::G1<ppT>> lagrange_g1;
+
+    /// ${ [ L_i(x) ]_2 }_i$
+    std::vector<libff::G2<ppT>> lagrange_g2;
+
+    /// ${ [ alpha . L_i(x) ]_1 }"$
+    std::vector<libff::G1<ppT>> alpha_lagrange_g1;
+
+    /// ${ [ beta . L_i(x) ]_1 }"$
+    std::vector<libff::G1<ppT>> beta_lagrange_g1;
+
+    srs_lagrange_evaluations(
+        size_t degree,
+        std::vector<libff::G1<ppT>> &&lagrange_g1,
+        std::vector<libff::G2<ppT>> &&lagrange_g2,
+        std::vector<libff::G1<ppT>> &&alpha_lagrange_g1,
+        std::vector<libff::G1<ppT>> &&beta_lagrange_g1);
+};
+
 /// Given some secrets, compute a dummy set of powersoftau, for
 /// circuits with polynomials A, B, C order-bound by `n` .
 srs_powersoftau dummy_powersoftau_from_secrets(
@@ -78,6 +105,12 @@ bool same_ratio(
 
 /// Verify that the pot data is well formed.
 bool powersoftau_validate(const srs_powersoftau &pot, const size_t n);
+
+/// Compute the evaluation of the lagrange polynomials in G1 and G2,
+/// along with some useful factors.  The results can be cached and
+/// used against any QAP, provided its domain size matched.
+srs_lagrange_evaluations powersoftau_compute_lagrange_evaluations(
+    const srs_powersoftau &pot, const size_t n);
 
 } // namespace libzeth
 
