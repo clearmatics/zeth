@@ -45,9 +45,10 @@ TEST(MPCTests, LinearCombination)
     const srs_mpc_layer_L1<ppT> layer1 =
         mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
 
-    // Without knowlege of tau, not many checks can be performed
-    // beyond the ratio of terms in [ t(x) . x^i ]_1.
+    // Checks that can be performed without knowledge of tau. (ratio
+    // of terms in [ t(x) . x^i ]_1, etc).
     const size_t qap_n = qap.degree();
+    ASSERT_EQ(qap_n, layer1.degree());
     ASSERT_EQ(qap_n - 1, layer1.T_tau_powers_g1.size());
     ASSERT_EQ(qap.num_variables() + 1, layer1.ABC_g1.size());
 
