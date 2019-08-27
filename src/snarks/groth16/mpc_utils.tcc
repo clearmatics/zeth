@@ -13,6 +13,16 @@
 namespace libzeth
 {
 
+template<typename Fr, typename Gr>
+static void basic_radix2_iFFT(std::vector<Gr> &as, const Fr &omega_inv)
+{
+    libfqfft::_basic_radix2_FFT<Fr, Gr>(as, omega_inv);
+    const Fr n_inv = Fr(as.size()).inverse();
+    for (auto &a : as) {
+        a = n_inv * a;
+    }
+}
+
 template<typename T>
 static void fill_vector_from_map(
     std::vector<T> &out_vector,
@@ -83,7 +93,6 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     // Number of coefficients to be applied to each power:
     //      num A's + num B's + num C's + (end_t - begin_T)
     //  ~=~ 3 * num A's + (end_t - begin_T)
-    const size_t num_scalars_ABC = 3 * num_variables;
     const size_t scalar_size = libff::Fr<ppT>::size_in_bits();
 
     // n+1 coefficients of t
@@ -92,81 +101,105 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     qap.domain->add_poly_Z(Fr::one(), t_coefficients);
     libff::leave_block("computing coefficients of t()");
 
-    // Compute [ L_j(t) ] from { [x^i] } i=0..n-1
+    const Fr omega = domain.get_domain_element(1);
+    const Fr omega_inv = omega.inverse();
 
-    libff::enter_block("computing [L_i(x)]");
-    {
-        std::vector<G1> L_g1(
-            pot.tau_powers_g1.begin(), pot.tau_powers_g1.begin() + n);
-        assert(L_g1[0] == G1::one());
-        assert(L_g1.size() == n);
+    // Compute [ L_j(t) ]_1 from { [x^i] } i=0..n-1
 
-        const Fr omega = domain.get_domain_element(1);
-        const Fr omega_inv = omega.inverse();
-        libfqfft::_basic_radix2_FFT<Fr, G1>(L_g1, omega_inv);
+    libff::enter_block("computing [Lagrange_i(x)]_1");
+    std::vector<G1> Lagrange_g1(
+        pot.tau_powers_g1.begin(), pot.tau_powers_g1.begin() + n);
+    assert(Lagrange_g1[0] == G1::one());
+    assert(Lagrange_g1.size() == n);
+    basic_radix2_iFFT(Lagrange_g1, omega_inv);
+    libff::leave_block("computing [Lagrange_i(x)]_1");
 
-        const Fr n_inv = Fr(n).inverse();
-        for (auto &L_j_at_t_g1 : L_g1) {
-            L_j_at_t_g1 = n_inv * L_j_at_t_g1;
-        }
+    libff::enter_block("computing [Lagrange_i(x)]_2");
+    std::vector<G2> Lagrange_g2(
+        pot.tau_powers_g2.begin(), pot.tau_powers_g2.begin() + n);
+    assert(Lagrange_g2[0] == G2::one());
+    assert(Lagrange_g2.size() == n);
+    basic_radix2_iFFT(Lagrange_g2, omega_inv);
+    libff::leave_block("computing [Lagrange_i(x)]_2");
 
-        evaluator_from_lagrange<ppT, G1> eval(pot.tau_powers_g1, domain);
+    libff::enter_block("computing [alpha . Lagrange_i(x)]_1");
+    std::vector<G1> alpha_lagrange_g1(
+        pot.alpha_tau_powers_g1.begin(), pot.alpha_tau_powers_g1.begin() + n);
+    assert(alpha_lagrange_g1.size() == n);
+    basic_radix2_iFFT(alpha_lagrange_g1, omega_inv);
+    libff::leave_block("computing [alpha . Lagrange_i(x)]_1");
 
-        for (size_t j = 0; j < n; ++j) {
-            printf("j=%zu\n", j);
-            std::map<size_t, Fr> l_factors;
-            l_factors[j] = Fr::one();
-#if defined(DEBUG) and !defined(NDEBUG)
-            G1 L_j_g1 = eval.evaluate_from_lagrange_factors(l_factors);
-            assert(L_j_g1 == L_g1[j]);
-#endif
-        }
-    }
-    libff::leave_block("computing [L_i(x)]");
+    libff::enter_block("computing [beta . Lagrange_i(x)]_1");
+    std::vector<G1> beta_lagrange_g1(
+        pot.beta_tau_powers_g1.begin(), pot.beta_tau_powers_g1.begin() + n);
+    assert(beta_lagrange_g1.size() == n);
+    basic_radix2_iFFT(beta_lagrange_g1, omega_inv);
+    libff::leave_block("computing [beta . Lagrange_i(x)]_1");
 
-    // Compute [A_j(t)] from { [x^i] } and A_i in point-representation.
-    // A_coefficients[j][i] is the i-th coefficient of A_j
-    libff::enter_block("computing coefficients of QAP polynomials");
-    std::vector<std::vector<libff::Fr<ppT>>> A_coefficients(num_variables + 1);
-    std::vector<std::vector<libff::Fr<ppT>>> B_coefficients(num_variables + 1);
-    std::vector<std::vector<libff::Fr<ppT>>> C_coefficients(num_variables + 1);
-    for (size_t j = 0; j < num_variables + 1; ++j) {
-        fill_vector_from_map(A_coefficients[j], qap.A_in_Lagrange_basis[j], n);
-        domain.iFFT(A_coefficients[j]);
-
-        fill_vector_from_map(B_coefficients[j], qap.B_in_Lagrange_basis[j], n);
-        domain.iFFT(B_coefficients[j]);
-
-        fill_vector_from_map(C_coefficients[j], qap.C_in_Lagrange_basis[j], n);
-        domain.iFFT(C_coefficients[j]);
-    }
-    libff::leave_block("computing coefficients of QAP polynomials");
-
-    // For each $i$ in turn, compute the exp table for $[x^i]$ and
-    // apply it everywhere, before moving on to the next power.
-    libff::enter_block("computing terms for exponentiated powers");
-    libff::G1_vector<ppT> t_x_pow_i(n - 1, G1::zero());
+    libff::enter_block("computing A_i, B_i, C_i, ABC_i at x");
     libff::G1_vector<ppT> As_g1(num_variables + 1);
     libff::G1_vector<ppT> Bs_g1(num_variables + 1);
     libff::G2_vector<ppT> Bs_g2(num_variables + 1);
+    libff::G1_vector<ppT> Cs_g1(num_variables + 1);
     libff::G1_vector<ppT> ABCs_g1(num_variables + 1);
+    for (size_t j = 0; j < num_variables + 1; ++j) {
+        G1 ABC_j_at_x = G1::zero();
 
+        {
+            G1 A_j_at_x = G1::zero();
+            const std::map<size_t, Fr> &A_j_lagrange =
+                qap.A_in_Lagrange_basis[j];
+            for (const auto &entry : A_j_lagrange) {
+                A_j_at_x = A_j_at_x + (entry.second * Lagrange_g1[entry.first]);
+                ABC_j_at_x =
+                    ABC_j_at_x + (entry.second * beta_lagrange_g1[entry.first]);
+            }
+
+            As_g1[j] = A_j_at_x;
+        }
+
+        {
+            G1 B_j_at_x_g1 = G1::zero();
+            G2 B_j_at_x_g2 = G2::zero();
+
+            const std::map<size_t, Fr> &B_j_lagrange =
+                qap.B_in_Lagrange_basis[j];
+            for (const auto &entry : B_j_lagrange) {
+                B_j_at_x_g1 =
+                    B_j_at_x_g1 + (entry.second * Lagrange_g1[entry.first]);
+                B_j_at_x_g2 =
+                    B_j_at_x_g2 + (entry.second * Lagrange_g2[entry.first]);
+                ABC_j_at_x = ABC_j_at_x +
+                             (entry.second * alpha_lagrange_g1[entry.first]);
+            }
+
+            Bs_g1[j] = B_j_at_x_g1;
+            Bs_g2[j] = B_j_at_x_g2;
+        }
+
+        {
+            G1 C_j_at_x = G1::zero();
+            const std::map<size_t, Fr> &C_j_lagrange =
+                qap.C_in_Lagrange_basis[j];
+            for (const auto &entry : C_j_lagrange) {
+                C_j_at_x = C_j_at_x + entry.second * Lagrange_g1[entry.first];
+            }
+
+            Cs_g1[j] = C_j_at_x;
+            ABC_j_at_x = ABC_j_at_x + C_j_at_x;
+        }
+
+        ABCs_g1[j] = ABC_j_at_x;
+    }
+    libff::leave_block("computing A_i, B_i, C_i, ABC_i at x");
+
+    // For each $i$ in turn, compute the exp table for $[x^i]$ and
+    // apply it everywhere, before moving on to the next power.
+    libff::enter_block("computing [t(x) . x^i]_1");
+    libff::G1_vector<ppT> t_x_pow_i(n - 1, G1::zero());
     for (size_t i = 0; i < 2 * n - 1; ++i) {
-        // Compute parameters for window table (see below)
-        const size_t begin_T = (size_t)std::max<ssize_t>((ssize_t)i - n, 0);
-        const size_t end_T = std::min<size_t>(n - 1, i + 1);
-
-        // Number of coefficients to be applied to each power:
-        //        num A's + num B's + num C's + (end_t - begin_T)
-        //      ~ 3 * num A's + (end_t - begin_T)
-        // For powers i = n, ... there is no coefficient for A, B, C.
-        const bool ABC_contributions = i < n;
-        const size_t num_scalars =
-            (ABC_contributions ? num_scalars_ABC : 0) + end_T - begin_T;
-        const size_t window_size = libff::get_exp_window_size<G1>(num_scalars);
-        libff::window_table<libff::G1<ppT>> tau_pow_i_table =
-            libff::get_window_table(
-                scalar_size, window_size, pot.tau_powers_g1[i]);
+        std::cout << "\r(" << std::to_string(i) << "/"
+                  << std::to_string(2 * n - 1) << ")";
 
         // Compute [ t(x) . x^j ]_1 for j = 0 .. n-2
         // Using { [x^j] , ... , [x^(j+n)] } with coefficients
@@ -180,6 +213,17 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
         // Thereby, $t(x).x^j$ uses $x^i$ with the (i-j)-th coefficient.
         // Or, $x^i$ is used by $t(x).x^j$ for $j =max(i-n, 0), ..., min(n-2,
         // i)$
+        const size_t begin_T = (size_t)std::max<ssize_t>((ssize_t)i - n, 0);
+        const size_t end_T = std::min<size_t>(n - 1, i + 1);
+
+        // Compute parameters for window table.
+        // Number of coefficients = end_t - begin_T.
+        const size_t num_scalars = end_T - begin_T;
+        const size_t window_size = libff::get_exp_window_size<G1>(num_scalars);
+        libff::window_table<libff::G1<ppT>> tau_pow_i_table =
+            libff::get_window_table(
+                scalar_size, window_size, pot.tau_powers_g1[i]);
+
         for (size_t j = begin_T; j < end_T; ++j) {
             const G1 T_j_contrib = windowed_exp(
                 scalar_size,
@@ -188,64 +232,8 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
                 t_coefficients[i - j]);
             t_x_pow_i[j] = t_x_pow_i[j] + T_j_contrib;
         }
-
-        if (!ABC_contributions) {
-            continue;
-        }
-
-        // A, B, C terms (if we are processing a relevant power)
-        const size_t ABC_window_size =
-            libff::get_exp_window_size<G1>(num_variables);
-        libff::window_table<libff::G2<ppT>> tau_pow_i_g2_table =
-            libff::get_window_table(
-                scalar_size, ABC_window_size, pot.tau_powers_g2[i]);
-        libff::window_table<libff::G1<ppT>> alpha_tau_pow_i_g1_table =
-            libff::get_window_table(
-                scalar_size, ABC_window_size, pot.alpha_tau_powers_g1[i]);
-        libff::window_table<libff::G1<ppT>> beta_tau_pow_i_g1_table =
-            libff::get_window_table(
-                scalar_size, ABC_window_size, pot.beta_tau_powers_g1[i]);
-
-        // Compute i-th term coefficient of each of:
-        //   [ A_j(x) ]_1
-        //   [ B_n(x) ]_1
-        //   [ beta.A_j(x) + alpha.B_j(x) + C_j(x) ]_1
-        // for j = 0 ... num_variables
-        for (size_t j = 0; j < num_variables + 1; ++j) {
-            const Fr A_j_coeff_i = A_coefficients[j][i];
-            const Fr B_j_coeff_i = B_coefficients[j][i];
-            const Fr C_j_coeff_i = C_coefficients[j][i];
-
-            const G1 A_j_contrib = windowed_exp(
-                scalar_size, window_size, tau_pow_i_table, A_j_coeff_i);
-            As_g1[j] = As_g1[j] + A_j_contrib;
-
-            const G1 B_j_contrib_g1 = windowed_exp(
-                scalar_size, window_size, tau_pow_i_table, B_j_coeff_i);
-            Bs_g1[j] = Bs_g1[j] + B_j_contrib_g1;
-
-            const G2 B_j_contrib_g2 = windowed_exp(
-                scalar_size, ABC_window_size, tau_pow_i_g2_table, B_j_coeff_i);
-            Bs_g2[j] = Bs_g2[j] + B_j_contrib_g2;
-
-            const G1 C_j_contrib = windowed_exp(
-                scalar_size, window_size, tau_pow_i_table, C_j_coeff_i);
-            const G1 beta_A_j_contrib = windowed_exp(
-                scalar_size,
-                ABC_window_size,
-                beta_tau_pow_i_g1_table,
-                A_j_coeff_i);
-            const G1 alpha_B_j_contrib = windowed_exp(
-                scalar_size,
-                ABC_window_size,
-                alpha_tau_pow_i_g1_table,
-                B_j_coeff_i);
-            const G1 ABC_j_contrib =
-                beta_A_j_contrib + alpha_B_j_contrib + C_j_contrib;
-            ABCs_g1[j] = ABCs_g1[j] + ABC_j_contrib;
-        }
     }
-    libff::leave_block("computing terms for exponentiated powers");
+    libff::enter_block("computing [t(x) . x^i]_1");
 
     // TODO: Consider dropping those entries we know will not be used
     // by this circuit and using sparse vectors where it makes sense
