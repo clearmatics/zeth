@@ -52,12 +52,6 @@ private:
     // Nullifier seed (256 bits)
     libsnark::pb_variable_array<FieldT> rho;
 
-    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT>>
-        commit_to_inputs_inner_k;
-    std::shared_ptr<libsnark::digest_variable<FieldT>> inner_k;
-    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT>>
-        commit_to_inputs_outer_k;
-    std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> commit_to_inputs_cm;
     // Note commitment (bits), output of COMMIT gadget
     std::shared_ptr<libsnark::digest_variable<FieldT>> commitment;
@@ -110,13 +104,6 @@ class output_note_gadget : public note_gadget<FieldT>
 {
 private:
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_pk;
-
-    std::shared_ptr<COMM_inner_k_gadget<FieldT, HashT>>
-        commit_to_outputs_inner_k;
-    std::shared_ptr<libsnark::digest_variable<FieldT>> inner_k;
-    std::shared_ptr<COMM_outer_k_gadget<FieldT, HashT>>
-        commit_to_outputs_outer_k;
-    std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
     std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> commit_to_outputs_cm;
 
 public:
