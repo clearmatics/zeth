@@ -29,6 +29,85 @@ srs_mpc_layer_L1<ppT>::srs_mpc_layer_L1(
 }
 
 template<typename ppT>
+void srs_mpc_layer_L1<ppT>::write(std::ostream &out) const
+{
+    using G1 = libff::G1<ppT>;
+    using G2 = libff::G2<ppT>;
+
+    // Write the sizes first, then stream out the values.
+    const size_t num_T_tau_powers = T_tau_powers_g1.size();
+    const size_t num_polynomials = A_g1.size();
+    out.write((const char *)&num_T_tau_powers, sizeof(num_T_tau_powers));
+    out.write((const char *)&num_polynomials, sizeof(num_polynomials));
+
+    for (const G1 &v : T_tau_powers_g1) {
+        out << v;
+    }
+
+    for (const G1 &v : A_g1) {
+        out << v;
+    }
+
+    for (const G1 &v : B_g1) {
+        out << v;
+    }
+
+    for (const G2 &v : B_g2) {
+        out << v;
+    }
+
+    for (const G1 &v : ABC_g1) {
+        out << v;
+    }
+}
+
+template<typename ppT>
+srs_mpc_layer_L1<ppT> srs_mpc_layer_L1<ppT>::read(std::istream &in)
+{
+    using G1 = libff::G1<ppT>;
+    using G2 = libff::G2<ppT>;
+
+    size_t num_T_tau_powers;
+    size_t num_polynomials;
+
+    in.read((char *)&num_T_tau_powers, sizeof(num_T_tau_powers));
+    in.read((char *)&num_polynomials, sizeof(num_polynomials));
+
+    libff::G1_vector<ppT> T_tau_powers_g1(num_T_tau_powers);
+    libff::G1_vector<ppT> A_g1(num_polynomials);
+    libff::G1_vector<ppT> B_g1(num_polynomials);
+    libff::G2_vector<ppT> B_g2(num_polynomials);
+    libff::G1_vector<ppT> ABC_g1(num_polynomials);
+
+    for (G1 &v : T_tau_powers_g1) {
+        in >> v;
+    }
+
+    for (G1 &v : A_g1) {
+        in >> v;
+    }
+
+    for (G1 &v : B_g1) {
+        in >> v;
+    }
+
+    for (G2 &v : B_g2) {
+        in >> v;
+    }
+
+    for (G1 &v : ABC_g1) {
+        in >> v;
+    }
+
+    return srs_mpc_layer_L1<ppT>(
+        std::move(T_tau_powers_g1),
+        std::move(A_g1),
+        std::move(B_g1),
+        std::move(B_g2),
+        std::move(ABC_g1));
+}
+
+template<typename ppT>
 srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     const srs_powersoftau<ppT> &pot,
     const srs_lagrange_evaluations<ppT> &lagrange,
