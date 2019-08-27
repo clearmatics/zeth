@@ -41,7 +41,7 @@ bool TestValidJS2In2Case1(
         "0x0 || OUT => vpub_out = 0x1700000000000007, note0 = "
         "0x1800000000000008, note1 = 0x0");
 
-    libff::enter_block("[START] Instantiate merkle tree for the tests", true);
+    libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so
     // we instantiate our unique_ptr manually
@@ -49,11 +49,11 @@ bool TestValidJS2In2Case1(
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
             new merkle_tree_field<FieldT, HashTreeT>(
                 ZETH_MERKLE_TREE_DEPTH_TEST));
-    libff::leave_block("[END] Instantiate merkle tree for the tests", true);
+    libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("[BEGIN] Create JSInput", true);
+    libff::enter_block("Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -118,9 +118,9 @@ bool TestValidJS2In2Case1(
     std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input;
     inputs[1] = input_dummy;
-    libff::leave_block("[END] Create JSInput", true);
+    libff::leave_block("Create JSInput", true);
 
-    libff::enter_block("[BEGIN] Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/ZethNote", true);
     bits64 value_out_bits64 = get_bits64_from_vector(
         hexadecimal_str_to_binary_vector("1800000000000008"));
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
@@ -152,9 +152,9 @@ bool TestValidJS2In2Case1(
     std::array<ZethNote, 2> outputs;
     outputs[0] = note_output;
     outputs[1] = note_dummy_output;
-    libff::leave_block("[END] Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/ZethNote", true);
 
-    libff::enter_block("[BEGIN] Generate proof", true);
+    libff::enter_block("Generate proof", true);
     extended_proof<ppT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
@@ -165,14 +165,14 @@ bool TestValidJS2In2Case1(
         h_sig,
         phi,
         keypair.pk);
-    libff::leave_block("[END] Generate proof", true);
+    libff::leave_block("Generate proof", true);
 
-    libff::enter_block("[BEGIN] Verify proof", true);
+    libff::enter_block("Verify proof", true);
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify? " << res << std::endl;
-    libff::leave_block("[END] Verify proof", true);
+    libff::leave_block("Verify proof", true);
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
     ext_proof.dump_proof();
@@ -190,7 +190,7 @@ bool TestValidJS2In2Case2(
         "0x0 || OUT => v_pub = 0x000000000000000B, note0 = 0x1A00000000000002, "
         "note1 = 0x1500000000000002");
 
-    libff::enter_block("[START] Instantiate merkle tree for the tests", true);
+    libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so
     // we instantiate our unique_ptr manually
@@ -198,11 +198,11 @@ bool TestValidJS2In2Case2(
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
             new merkle_tree_field<FieldT, HashTreeT>(
                 ZETH_MERKLE_TREE_DEPTH_TEST));
-    libff::leave_block("[END] Instantiate merkle tree for the tests", true);
+    libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("[BEGIN] Create JSInput", true);
+    libff::enter_block("Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -268,9 +268,9 @@ bool TestValidJS2In2Case2(
     std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
-    libff::leave_block("[END] Create JSInput", true);
+    libff::leave_block("Create JSInput", true);
 
-    libff::enter_block("[BEGIN] Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/ZethNote", true);
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("7777f753bfe21ba2219ced74875b8dbd8c"
                                             "114c3c79d7e41306dd82118de1895b"));
@@ -296,9 +296,9 @@ bool TestValidJS2In2Case2(
     std::array<ZethNote, 2> outputs;
     outputs[0] = note_output0;
     outputs[1] = note_output1;
-    libff::leave_block("[END] Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/ZethNote", true);
 
-    libff::enter_block("[BEGIN] Generate proof", true);
+    libff::enter_block("Generate proof", true);
     // RHS = 0x1A00000000000002 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F (LHS)
     extended_proof<ppT> ext_proof = prover.prove(
@@ -312,14 +312,14 @@ bool TestValidJS2In2Case2(
         h_sig,
         phi,
         keypair.pk);
-    libff::leave_block("[END] Generate proof", true);
+    libff::leave_block("Generate proof", true);
 
-    libff::enter_block("[BEGIN] Verify proof", true);
+    libff::enter_block("Verify proof", true);
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify? " << res << std::endl;
-    libff::leave_block("[END] Verify proof", true);
+    libff::leave_block("Verify proof", true);
 
     return res;
 }
@@ -334,7 +334,7 @@ bool TestValidJS2In2Case3(
         "0x2F0000000000000F, note1 = 0x0 || OUT => v_pub = 0x000000000000000B, "
         "note0 = 0x1A00000000000012, note1 = 0x1500000000000002");
 
-    libff::enter_block("[START] Instantiate merkle tree for the tests", true);
+    libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so
     // we instantiate our unique_ptr manually
@@ -342,11 +342,11 @@ bool TestValidJS2In2Case3(
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
             new merkle_tree_field<FieldT, HashTreeT>(
                 ZETH_MERKLE_TREE_DEPTH_TEST));
-    libff::leave_block("[END] Instantiate merkle tree for the tests", true);
+    libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("[BEGIN] Create JSInput", true);
+    libff::enter_block("Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -412,9 +412,9 @@ bool TestValidJS2In2Case3(
     std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
-    libff::leave_block("[END] Create JSInput", true);
+    libff::leave_block("Create JSInput", true);
 
-    libff::enter_block("[BEGIN] Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/ZethNote", true);
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("7777f753bfe21ba2219ced74875b8dbd8c"
                                             "114c3c79d7e41306dd82118de1895b"));
@@ -440,9 +440,9 @@ bool TestValidJS2In2Case3(
     std::array<ZethNote, 2> outputs;
     outputs[0] = note_output0;
     outputs[1] = note_output1;
-    libff::leave_block("[END] Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/ZethNote", true);
 
-    libff::enter_block("[BEGIN] Generate proof", true);
+    libff::enter_block("Generate proof", true);
     // (RHS) 0x1A00000000000012 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F + 0x0000000000000010 + 0x0 (LHS)
     extended_proof<ppT> ext_proof = prover.prove(
@@ -456,14 +456,14 @@ bool TestValidJS2In2Case3(
         h_sig,
         phi,
         keypair.pk);
-    libff::leave_block("[END] Generate proof", true);
+    libff::leave_block("Generate proof", true);
 
-    libff::enter_block("[BEGIN] Verify proof", true);
+    libff::enter_block("Verify proof", true);
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verfy? " << res << std::endl;
-    libff::leave_block("[END] Verify proof", true);
+    libff::leave_block("Verify proof", true);
 
     return res;
 }
@@ -477,7 +477,7 @@ bool TestValidJS2In2Deposit(
                         "note0 = 0x0, note1 = 0x0 || OUT => v_pub = 0x0, note0 "
                         "= 0x3782DACE9D900000, note1 = 0x29A2241AF62C0000");
 
-    libff::enter_block("[START] Instantiate merkle tree for the tests", true);
+    libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so
     // we instantiate our unique_ptr manually
@@ -485,11 +485,11 @@ bool TestValidJS2In2Deposit(
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
             new merkle_tree_field<FieldT, HashTreeT>(
                 ZETH_MERKLE_TREE_DEPTH_TEST));
-    libff::leave_block("[END] Instantiate merkle tree for the tests", true);
+    libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("[BEGIN] Create JSInput", true);
+    libff::enter_block("Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -554,9 +554,9 @@ bool TestValidJS2In2Deposit(
     std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
-    libff::leave_block("[END] Create JSInput", true);
+    libff::leave_block("Create JSInput", true);
 
-    libff::enter_block("[BEGIN] Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/ZethNote", true);
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("7777f753bfe21ba2219ced74875b8dbd8c"
                                             "114c3c79d7e41306dd82118de1895b"));
@@ -582,9 +582,9 @@ bool TestValidJS2In2Deposit(
     std::array<ZethNote, 2> outputs;
     outputs[0] = note_output0;
     outputs[1] = note_output1;
-    libff::leave_block("[END] Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/ZethNote", true);
 
-    libff::enter_block("[BEGIN] Generate proof", true);
+    libff::enter_block("Generate proof", true);
     // RHS = 0x0 + 0x3782DACE9D900000 + 0x29A2241AF62C0000 = 0x6124FEE993BC0000
     // (LHS)
     extended_proof<ppT> ext_proof = prover.prove(
@@ -598,16 +598,16 @@ bool TestValidJS2In2Deposit(
         h_sig,
         phi,
         keypair.pk);
-    libff::leave_block("[END] Generate proof", true);
+    libff::leave_block("Generate proof", true);
 
-    libff::enter_block("[BEGIN] Verify proof", true);
+    libff::enter_block("Verify proof", true);
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
 
     ext_proof.dump_primary_inputs();
     std::cout << "Does the proof verify? " << res << std::endl;
-    libff::leave_block("[END] Verify proof", true);
+    libff::leave_block("Verify proof", true);
 
     return res;
 }
@@ -621,7 +621,7 @@ bool TestInvalidJS2In2(
                         "note0 = 0x0, note1 = 0x0 || OUT => v_pub = 0x0, note0 "
                         "= 0x8530000A00000001, note1 = 0x7550000A00000000");
 
-    libff::enter_block("[START] Instantiate merkle tree for the tests", true);
+    libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
     // Note: `make_unique` should be C++14 compliant, but here we use c++11, so
     // we instantiate our unique_ptr manually
@@ -629,11 +629,11 @@ bool TestInvalidJS2In2(
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
             new merkle_tree_field<FieldT, HashTreeT>(
                 ZETH_MERKLE_TREE_DEPTH_TEST));
-    libff::leave_block("[END] Instantiate merkle tree for the tests", true);
+    libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("[BEGIN] Create JSInput", true);
+    libff::enter_block("Create JSInput", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -698,9 +698,9 @@ bool TestInvalidJS2In2(
     std::array<JSInput<FieldT>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
-    libff::leave_block("[END] Create JSInput", true);
+    libff::leave_block("Create JSInput", true);
 
-    libff::enter_block("[BEGIN] Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/ZethNote", true);
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("7777f753bfe21ba2219ced74875b8dbd8c"
                                             "114c3c79d7e41306dd82118de1895b"));
@@ -728,9 +728,9 @@ bool TestInvalidJS2In2(
     std::array<ZethNote, 2> outputs;
     outputs[0] = note_output0;
     outputs[1] = note_output1;
-    libff::leave_block("[END] Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/ZethNote", true);
 
-    libff::enter_block("[BEGIN] Generate proof", true);
+    libff::enter_block("Generate proof", true);
     // LHS = 0xFA80001400000000 (18.050427392400293888 ETH) =/=
     // 0x8530000A00000001 (9.597170848876199937 ETH) + 0x7550000A00000000
     // (8.453256543524093952 ETH) = RHS LHS = 18.050427392400293888 ETH RHS
@@ -747,14 +747,14 @@ bool TestInvalidJS2In2(
         h_sig,
         phi,
         keypair.pk);
-    libff::leave_block("[END] Generate proof", true);
+    libff::leave_block("Generate proof", true);
 
-    libff::enter_block("[BEGIN] Verify proof", true);
+    libff::enter_block("Verify proof", true);
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify ? " << res << std::endl;
-    libff::leave_block("[END] Verify proof", true);
+    libff::leave_block("Verify proof", true);
 
     return res;
 }

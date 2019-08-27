@@ -115,8 +115,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
         "Setup a local merkle tree and append our commitment to it", true);
 
     libff::enter_block(
-        "[BEGIN] Data conversion to generate a witness of the note gadget",
-        true);
+        "Data conversion to generate a witness of the note gadget", true);
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk_digest;
     a_sk_digest.reset(new libsnark::digest_variable<FieldT>(
@@ -194,8 +193,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
         "Initialize the output coins' data (a_pk, cm, rho)", true);
 
     libff::enter_block(
-        "[BEGIN] Data conversion to generate a witness of the note gadget",
-        true);
+        "Data conversion to generate a witness of the note gadget", true);
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> rho_digest;
     rho_digest.reset(new libsnark::digest_variable<FieldT>(
