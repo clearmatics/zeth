@@ -1,9 +1,14 @@
+#include "circuit-wrapper.hpp"
+#include "circuits/sha256/sha256_ethereum.hpp"
+#include "snarks/groth16/evaluator_from_lagrange.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "snarks/groth16/multi_exp.hpp"
 #include "test/simple_test.hpp"
 #include "util.hpp"
 
+#include <fstream>
 #include <gtest/gtest.h>
+#include <thread>
 
 using ppT = libff::default_ec_pp;
 using Fr = libff::Fr<ppT>;
@@ -104,9 +109,9 @@ TEST(MPCTests, LinearCombinationReadWrite)
     const r1cs_constraint_system<Fr> constraint_system =
         get_simple_constraint_system();
     qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
-    const srs_powersoftau pot = dummy_powersoftau(qap.degree());
-    const srs_lagrange_evaluations lagrange =
-        powersoftau_compute_lagrange_evaluations(pot, qap.degree());
+    const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(qap.degree());
+    const srs_lagrange_evaluations<ppT> lagrange =
+        powersoftau_compute_lagrange_evaluations<ppT>(pot, qap.degree());
     const srs_mpc_layer_L1<ppT> layer1 =
         mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
 
@@ -155,18 +160,22 @@ TEST(MPCTests, Layer2)
     const srs_lagrange_evaluations<ppT> lagrange =
         powersoftau_compute_lagrange_evaluations(pot, n);
 
-    // dummy circuit and CRS2
+    // dummy circuit and layer L1
     size_t num_variables = qap.num_variables();
     size_t num_inputs = qap.num_inputs();
 
     srs_mpc_layer_L1<ppT> layer1 =
         mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
 
-    // Final key pair
-    const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_dummy_layer2(
+    // layer C2
+    srs_mpc_layer_C2<ppT> layer2 =
+        mpc_dummy_layer_C2<ppT>(layer1, delta, num_inputs);
+
+    // final keypair
+    const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_create_key_pair(
         std::move(pot),
         std::move(layer1),
-        delta,
+        std::move(layer2),
         std::move(constraint_system),
         qap);
 
