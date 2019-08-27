@@ -131,6 +131,15 @@ target_link_libraries(
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
 
+# mpc utility executable
+add_executable(mpc mpc/mpc.cpp)
+target_link_libraries(
+  mpc
+  zeth
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+)
+
 ## Tests
 include(CTest)
 
