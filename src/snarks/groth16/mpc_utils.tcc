@@ -6,7 +6,9 @@
 #include "multi_exp.hpp"
 
 #include <algorithm>
+#include <exception>
 #include <libff/algebra/scalar_multiplication/multiexp.hpp>
+#include <libfqfft/evaluation_domain/domains/basic_radix2_domain_aux.tcc>
 
 namespace libzeth
 {
@@ -53,13 +55,19 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     libff::enter_block("Call to mpc_compute_linearcombination");
 
     libfqfft::evaluation_domain<Fr> &domain = *qap.domain;
-
     // n = number of constraints in r1cs, or equivalently, n = deg(t(x))
     // t(x) being the target polynomial of the QAP
     // Note: In the code-base the target polynomial is also denoted Z
     // as refered to as "the vanishing polynomial", and t is also used
     // to represent the query point (aka "tau").
     const size_t n = qap.degree();
+    libff::print_indent();
+    printf("n=%zu\n", n);
+
+    if (n != 1ull << libff::log2(n)) {
+        throw std::invalid_argument("non-pow-2 domain");
+    }
+
     const size_t num_variables = qap.num_variables();
 
     // The QAP polynomials A, B, C are of degree (n-1) as we know they
@@ -68,7 +76,7 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     // while the target polynomial t is of degree n.
     // Thus, we need to have access (in the SRS) to powers up to 2n-2.
     // To represent such polynomials we need {x^i} for in {0, ... n-2}
-    // hence why we check below that we have at least n-1 elements
+    // hence we check below that we have at least n-1 elements
     // in the set of powers of tau
     assert(pot.tau_powers_g1.size() >= 2 * n - 1);
 
@@ -78,12 +86,45 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     const size_t num_scalars_ABC = 3 * num_variables;
     const size_t scalar_size = libff::Fr<ppT>::size_in_bits();
 
-    // n+1 coefficients of
+    // n+1 coefficients of t
     libff::enter_block("computing coefficients of t()");
     std::vector<Fr> t_coefficients(n + 1, Fr::zero());
     qap.domain->add_poly_Z(Fr::one(), t_coefficients);
     libff::leave_block("computing coefficients of t()");
 
+    // Compute [ L_j(t) ] from { [x^i] } i=0..n-1
+
+    libff::enter_block("computing [L_i(x)]");
+    {
+        std::vector<G1> L_g1(
+            pot.tau_powers_g1.begin(), pot.tau_powers_g1.begin() + n);
+        assert(L_g1[0] == G1::one());
+        assert(L_g1.size() == n);
+
+        const Fr omega = domain.get_domain_element(1);
+        const Fr omega_inv = omega.inverse();
+        libfqfft::_basic_radix2_FFT<Fr, G1>(L_g1, omega_inv);
+
+        const Fr n_inv = Fr(n).inverse();
+        for (auto &L_j_at_t_g1 : L_g1) {
+            L_j_at_t_g1 = n_inv * L_j_at_t_g1;
+        }
+
+        evaluator_from_lagrange<ppT, G1> eval(pot.tau_powers_g1, domain);
+
+        for (size_t j = 0; j < n; ++j) {
+            printf("j=%zu\n", j);
+            std::map<size_t, Fr> l_factors;
+            l_factors[j] = Fr::one();
+#if defined(DEBUG) and !defined(NDEBUG)
+            G1 L_j_g1 = eval.evaluate_from_lagrange_factors(l_factors);
+            assert(L_j_g1 == L_g1[j]);
+#endif
+        }
+    }
+    libff::leave_block("computing [L_i(x)]");
+
+    // Compute [A_j(t)] from { [x^i] } and A_i in point-representation.
     // A_coefficients[j][i] is the i-th coefficient of A_j
     libff::enter_block("computing coefficients of QAP polynomials");
     std::vector<std::vector<libff::Fr<ppT>>> A_coefficients(num_variables + 1);
