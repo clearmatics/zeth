@@ -619,6 +619,12 @@ public:
         // < FieldT::capacity()
         nb_elements += 1;
 
+        // We allocate 2 field elements to pack the value of h_sig
+        nb_elements += 2;
+
+        // We allocate 2 field elements to pack each malleability tags h_iS
+        nb_elements += NumInputs * 2;
+
         return nb_elements;
     }
 };
