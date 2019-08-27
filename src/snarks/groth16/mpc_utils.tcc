@@ -249,6 +249,61 @@ srs_mpc_layer_C2<ppT>::srs_mpc_layer_C2(
 }
 
 template<typename ppT>
+void srs_mpc_layer_C2<ppT>::write(std::ostream &out) const
+{
+    using G1 = libff::G1<ppT>;
+
+    // Write the sizes first.
+    const size_t H_size = H_g1.size();
+    const size_t L_size = L_g1.size();
+    out.write((const char *)&H_size, sizeof(H_size));
+    out.write((const char *)&L_size, sizeof(L_size));
+
+    out << delta_g1;
+
+    out << delta_g2;
+
+    for (const G1 h : H_g1) {
+        out << h;
+    }
+
+    for (const G1 l : L_g1) {
+        out << l;
+    }
+}
+
+template<typename ppT>
+srs_mpc_layer_C2<ppT> srs_mpc_layer_C2<ppT>::read(std::istream &in)
+{
+    using G1 = libff::G1<ppT>;
+
+    size_t H_size;
+    size_t L_size;
+
+    in.read((char *)&H_size, sizeof(H_size));
+    in.read((char *)&L_size, sizeof(L_size));
+
+    libff::G1<ppT> delta_g1;
+    libff::G2<ppT> delta_g2;
+    libff::G1_vector<ppT> H_g1(H_size);
+    libff::G1_vector<ppT> L_g1(L_size);
+
+    in >> delta_g1;
+
+    in >> delta_g2;
+
+    for (G1 &h : H_g1) {
+        in >> h;
+    }
+
+    for (G1 &l : L_g1) {
+        in >> l;
+    }
+
+    return mpc_layer2(delta_g1, delta_g2, std::move(H_g1), std::move(L_g1));
+}
+
+template<typename ppT>
 srs_mpc_layer_C2<ppT> mpc_dummy_layer_C2(
     const srs_mpc_layer_L1<ppT> &layer1,
     const libff::Fr<ppT> &delta,
