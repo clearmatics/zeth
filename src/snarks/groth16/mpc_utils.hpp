@@ -50,6 +50,9 @@ public:
         libff::G1_vector<ppT> &&B_g1,
         libff::G2_vector<ppT> &&B_g2,
         libff::G1_vector<ppT> &&ABC_g1);
+
+    void write(std::ostream &out) const;
+    static srs_mpc_layer_L1 read(std::istream &in);
 };
 
 /// Given a circuit and a powersoftau with pre-computed lagrange
