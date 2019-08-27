@@ -39,6 +39,31 @@ public:
         const libff::G2<ppT> &beta_g2);
 };
 
+/// Given some secrets, compute a dummy set of powersoftau, for
+/// circuits with polynomials A, B, C order-bound by `n` .
+srs_powersoftau dummy_powersoftau_from_secrets(
+    const libff::Fr<ppT> &tau,
+    const libff::Fr<ppT> &alpha,
+    const libff::Fr<ppT> &beta,
+    size_t n);
+
+/// Same as dummy_powersoftau_from_secrets(), where the secrets are not
+/// of interest.
+srs_powersoftau dummy_powersoftau(size_t n);
+
+/// Implements the SameRatio described in "Scalable Multi-party
+/// Computation for zk-SNARK Parameters in the Random Beacon Model"
+/// http://eprint.iacr.org/2017/1050
+template<typename ppT>
+bool same_ratio(
+    const libff::G1<ppT> &a1,
+    const libff::G1<ppT> &b1,
+    const libff::G2<ppT> &a2,
+    const libff::G2<ppT> &b2);
+
+/// Verify that the pot data is well formed.
+bool powersoftau_validate(const srs_powersoftau &pot, const size_t n);
+
 } // namespace libzeth
 
 #endif // __ZETH_SNARKS_GROTH_POWERSOFTAU_UTILS_HPP__

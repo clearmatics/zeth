@@ -144,6 +144,7 @@ function(zeth_test TEST_NAME TEST_SOURCE IS_FAST_TEST)
 endfunction(zeth_test)
 
 zeth_test(test_simple test/simple_test.cpp TRUE)
+zeth_test(test_powersoftau test/powersoftau_test.cpp TRUE)
 zeth_test(test_addition test/packed_addition_test.cpp TRUE)
 zeth_test(test_hex_to_field test/hex_to_field_test.cpp TRUE)
 zeth_test(test_binary_operation test/binary_operation_test.cpp TRUE)
