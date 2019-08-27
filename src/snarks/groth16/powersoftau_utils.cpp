@@ -4,6 +4,63 @@
 namespace libzeth
 {
 
+namespace
+{
+
+// Utility functions
+
+class membuf : public std::streambuf
+{
+public:
+    membuf(char *begin, char *end) { this->setg(begin, begin, end); }
+};
+
+template<mp_size_t n, const libff::bigint<n> &modulus>
+std::istream &read_powersoftau_fp(
+    std::istream &in, libff::Fp_model<n, modulus> &out)
+{
+    const size_t data_size = sizeof(libff::bigint<n>);
+    char tmp[data_size];
+    in.read(tmp, data_size);
+    std::reverse(&tmp[0], &tmp[data_size]);
+    membuf fq_stream(tmp, &tmp[data_size]);
+    std::istream(&fq_stream) >> out;
+    return in;
+}
+
+template<mp_size_t n, const libff::bigint<n> &modulus>
+std::istream &read_powersoftau_fp2(
+    std::istream &in, libff::Fp2_model<n, modulus> &el)
+{
+    // Fq2 data is packed into a single 512 bit integer as:
+    //
+    //   c1 * modulus + c0
+    libff::bigint<2 * n> packed;
+    in >> packed;
+    std::reverse((uint8_t *)&packed, (uint8_t *)((&packed) + 1));
+
+    libff::bigint<n + 1> c1;
+
+    mpn_tdiv_qr(
+        c1.data,              // quotient
+        el.c0.mont_repr.data, // remainder
+        0,
+        packed.data,
+        n * 2,
+        modulus.data,
+        n);
+
+    for (size_t i = 0; i < n; ++i) {
+        el.c1.mont_repr.data[i] = c1.data[i];
+    }
+    el.c0.mul_reduce(libff::Fp_model<n, modulus>::Rsquared);
+    el.c1.mul_reduce(libff::Fp_model<n, modulus>::Rsquared);
+
+    return in;
+}
+
+} // namespace
+
 using ppT = libff::default_ec_pp;
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
@@ -93,6 +150,129 @@ srs_powersoftau dummy_powersoftau(size_t n)
     Fr beta = Fr::random_element();
 
     return dummy_powersoftau_from_secrets(tau, alpha, beta, n);
+}
+
+void read_powersoftau_fr(std::istream &in, libff::Fr<ppT> &out)
+{
+    read_powersoftau_fp(in, out);
+}
+
+void read_powersoftau_g1(std::istream &in, libff::G1<ppT> &out)
+{
+    uint8_t marker;
+    in.read((char *)&marker, 1);
+
+    switch (marker) {
+    case 0x00:
+        // zero
+        out = libff::G1<ppT>::zero();
+        break;
+    case 0x04: {
+        // Uncompressed
+        libff::Fq<ppT> x;
+        libff::Fq<ppT> y;
+        read_powersoftau_fp(in, x);
+        read_powersoftau_fp(in, y);
+        out = libff::G1<ppT>(x, y, libff::Fq<ppT>::one());
+        break;
+    }
+    default:
+        assert(false);
+        break;
+    }
+}
+
+void read_powersoftau_fq2(std::istream &in, libff::alt_bn128_Fq2 &out)
+{
+    read_powersoftau_fp2(in, out);
+}
+
+void read_powersoftau_g2(std::istream &in, libff::G2<ppT> &out)
+{
+    uint8_t marker;
+    in.read((char *)&marker, 1);
+
+    switch (marker) {
+    case 0x00:
+        // zero
+        out = libff::G2<ppT>::zero();
+        break;
+
+    case 0x04:
+        read_powersoftau_fp2(in, out.X);
+        read_powersoftau_fp2(in, out.Y);
+        out.Z = libff::alt_bn128_Fq2::one();
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
+}
+
+srs_powersoftau powersoftau_load(std::istream &in, size_t n)
+{
+    // From:
+    //
+    //   https://github.com/clearmatics/powersoftau
+    //
+    // Assume the stream is the final response file from the
+    // powersoftau protocol.  Load the Accumulator object.
+    //
+    // File is structured:
+    //
+    //   [prev_hash    : uint8_t[64]]
+    //   [accumulator  : Accumulator]
+    //   [contribution : Public Key ]
+    //
+    // From src/lib.rs:
+    //
+    //   pub struct Accumulator {
+    //     /// tau^0, tau^1, tau^2, ..., tau^{TAU_POWERS_G1_LENGTH - 1}
+    //     pub tau_powers_g1: Vec<G1>,
+    //     /// tau^0, tau^1, tau^2, ..., tau^{TAU_POWERS_LENGTH - 1}
+    //     pub tau_powers_g2: Vec<G2>,
+    //     /// alpha * tau^0, alpha * tau^1, alpha * tau^2, ..., alpha *
+    //     tau^{TAU_POWERS_LENGTH - 1} pub alpha_tau_powers_g1: Vec<G1>,
+    //     /// beta * tau^0, beta * tau^1, beta * tau^2, ..., beta *
+    //     tau^{TAU_POWERS_LENGTH - 1} pub beta_tau_powers_g1: Vec<G1>,
+    //     /// beta
+    //     pub beta_g2: G2
+    //   }
+    uint8_t hash[64];
+    in.read((char *)(&hash[0]), sizeof(hash));
+
+    const size_t num_powers_of_tau = 2 * n - 1;
+
+    std::vector<G1> tau_powers_g1(num_powers_of_tau);
+    for (size_t i = 0; i < num_powers_of_tau; ++i) {
+        read_powersoftau_g1(in, tau_powers_g1[i]);
+    }
+
+    std::vector<G2> tau_powers_g2(n);
+    for (size_t i = 0; i < n; ++i) {
+        read_powersoftau_g2(in, tau_powers_g2[i]);
+    }
+
+    std::vector<G1> alpha_tau_powers_g1(n);
+    for (size_t i = 0; i < n; ++i) {
+        read_powersoftau_g1(in, alpha_tau_powers_g1[i]);
+    }
+
+    std::vector<G1> beta_tau_powers_g1(n);
+    for (size_t i = 0; i < n; ++i) {
+        read_powersoftau_g1(in, beta_tau_powers_g1[i]);
+    }
+
+    G2 beta_g2;
+    read_powersoftau_g2(in, beta_g2);
+
+    return srs_powersoftau(
+        std::move(tau_powers_g1),
+        std::move(tau_powers_g2),
+        std::move(alpha_tau_powers_g1),
+        std::move(beta_tau_powers_g1),
+        beta_g2);
 }
 
 bool powersoftau_validate(const srs_powersoftau &pot, const size_t n)
