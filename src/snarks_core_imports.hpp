@@ -7,6 +7,7 @@
 #elif ZKSNARK_GROTH16
 #include "snarks/groth16/computation.hpp"
 #include "snarks/groth16/helpers.hpp"
+#include "snarks/groth16/mpc_utils.hpp"
 #else
 #error You must define one of the SNARK_* symbols indicated into the CMakelists.txt file.
 #endif
