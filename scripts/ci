@@ -36,7 +36,7 @@ function build() {
         cxx_flags="${cxx_flags} -Wno-deprecated-declarations"
     fi
 
-    cmake_flags="-DFAST_TESTS_ONLY=ON -DCMAKE_BUILD_TYPE=${build_type}"
+    cmake_flags="-DCMAKE_BUILD_TYPE=${build_type}"
 
     . setup_env.sh
     mkdir -p build
