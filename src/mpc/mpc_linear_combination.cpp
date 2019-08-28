@@ -1,4 +1,5 @@
 #include "circuit-wrapper.hpp"
+#include "circuits/blake2s/blake2s_comp.hpp"
 #include "mpc_common.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "snarks/groth16/powersoftau_utils.hpp"
@@ -16,7 +17,7 @@ namespace
 
 using FieldT = libff::Fr<ppT>;
 using HashTreeT = MiMC_mp_gadget<FieldT>;
-using HashT = sha256_ethereum<FieldT>;
+using HashT = BLAKE2s_256_comp<FieldT>;
 
 // Usage:
 //     mpc linear-combination [<option>] <powersoftau file> <lagrange file>
