@@ -22,7 +22,6 @@ template<
 class circuit_wrapper
 {
 public:
-    libsnark::protoboard<FieldT> pb;
     boost::filesystem::path setup_path;
     std::shared_ptr<
         joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs>>
@@ -32,7 +31,7 @@ public:
         : setup_path(setup_path){};
 
     // Generate the trusted setup
-    keyPairT<ppT> generate_trusted_setup();
+    keyPairT<ppT> generate_trusted_setup() const;
 
     // Generate a proof and returns an extended proof
     extended_proof<ppT> prove(
@@ -43,7 +42,7 @@ public:
         bits64 vpub_out,
         const bits256 h_sig_in,
         const bits256 phi_in,
-        provingKeyT<ppT> proving_key);
+        provingKeyT<ppT> proving_key) const;
 };
 
 } // namespace libzeth
