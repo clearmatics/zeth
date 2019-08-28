@@ -66,7 +66,6 @@ include_directories( ${Boost_INCLUDE_DIR} )
 include_directories( ${PROJECT_BINARY_DIR} )
 
 # zeth library
-
 file(
   GLOB_RECURSE
   ZETH_SOURCE
@@ -78,12 +77,10 @@ file(
   snarks_alias.hpp snarks/**.tcc
   include_libsnark.hpp
   util.?pp util.tcc
+  util_api.?pp util_api.tcc
   zeth.h
 )
-
-add_library(
-  zeth
-  ${ZETH_SOURCE})
+add_library(zeth ${ZETH_SOURCE} ${PROTO_SRCS})
 target_include_directories(
   zeth
   PUBLIC
@@ -91,18 +88,15 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libff
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
-target_link_libraries(
-  zeth
-  snark)
+target_link_libraries(zeth snark)
 
-# Building the server
-add_executable(
-  prover_server
-
-  prover_server.cc util_api.hpp util_api.cpp util_api.tcc
-  ${PROTO_SRCS}
-  ${GRPC_SRCS}
+# prover_server executable
+file(
+  GLOB_RECURSE
+  PROVER_SERVER_SOURCE
+  prover_server/*.?pp prover_server/*.tcc
 )
+add_executable(prover_server ${PROVER_SERVER_SOURCE} ${GRPC_SRCS})
 target_link_libraries(
   prover_server
 
