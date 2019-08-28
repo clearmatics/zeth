@@ -49,8 +49,12 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     # generate ephemeral ec25519 key
     eph_sk_bob = PrivateKey.generate()
 
-    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["encPK"], eph_sk_bob)
-    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Bob"]["AddrPk"]["encPK"], eph_sk_bob)
+    # construct pk object from bytes
+    pk_bob = zethUtils.get_public_key_from_bytes(keystore["Bob"]["AddrPk"]["encPK"])
+
+    # encrypt the coins
+    ciphertext1 = zethUtils.encrypt(output_note1_str, pk_bob, eph_sk_bob)
+    ciphertext2 = zethUtils.encrypt(output_note2_str, pk_bob, eph_sk_bob)
 
     # get the ephemeral public key of the sender in bytes
     eph_pk_sender_bytes = eph_sk_bob.public_key.encode(encoder=nacl.encoding.RawEncoder)
@@ -123,8 +127,13 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     # generate ephemeral ec25519 key
     eph_sk_bob = PrivateKey.generate()
 
-    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Bob"]["AddrPk"]["encPK"], eph_sk_bob) # Bob is the recipient
-    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["encPK"], eph_sk_bob) # Charlie is the recipient
+    # construct pk objects from bytes
+    pk_bob = zethUtils.get_public_key_from_bytes(keystore["Bob"]["AddrPk"]["encPK"])
+    pk_charlie = zethUtils.get_public_key_from_bytes(keystore["Charlie"]["AddrPk"]["encPK"])
+
+    # encrypt the coins
+    ciphertext1 = zethUtils.encrypt(output_note1_str, pk_bob, eph_sk_bob) # Bob is the recipient
+    ciphertext2 = zethUtils.encrypt(output_note2_str, pk_charlie, eph_sk_bob) # Charlie is the recipient
     pk_sender = eph_sk_bob.public_key.encode(encoder=nacl.encoding.RawEncoder)
 
     # Hash the pk_sender and cipher-texts
@@ -194,8 +203,12 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     # generate ephemeral ec25519 key
     eph_sk_charlie = PrivateKey.generate()
 
-    ciphertext1 = zethUtils.encrypt(output_note1_str, keystore["Charlie"]["AddrPk"]["encPK"], eph_sk_charlie) # Charlie is the recipient
-    ciphertext2 = zethUtils.encrypt(output_note2_str, keystore["Charlie"]["AddrPk"]["encPK"], eph_sk_charlie) # Charlie is the recipient
+    # construct pk object from bytes
+    pk_charlie = zethUtils.get_public_key_from_bytes(keystore["Charlie"]["AddrPk"]["encPK"])
+
+    # encrypt the coins
+    ciphertext1 = zethUtils.encrypt(output_note1_str, pk_charlie, eph_sk_charlie) # Charlie is the recipient
+    ciphertext2 = zethUtils.encrypt(output_note2_str, pk_charlie, eph_sk_charlie) # Charlie is the recipient
     pk_sender = eph_sk_charlie.public_key.encode(encoder=nacl.encoding.RawEncoder)
 
     # Hash the pk_sender and cipher-texts

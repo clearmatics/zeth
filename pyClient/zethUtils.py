@@ -19,20 +19,18 @@ from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
 # Gets PrivateKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
-def get_private_key_from_bytes(private_key_bytes):
-  return PrivateKey(private_key_bytes, encoder=nacl.encoding.RawEncoder)
+def get_private_key_from_bytes(sk_bytes):
+  return PrivateKey(sk_bytes, encoder=nacl.encoding.RawEncoder)
 
 # Gets PublicKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
-def get_public_key_from_bytes(public_key_bytes):
-  return PublicKey(public_key_bytes, encoder=nacl.encoding.RawEncoder)
+def get_public_key_from_bytes(pk_bytes):
+  return PublicKey(pk_bytes, encoder=nacl.encoding.RawEncoder)
 
-# Encrypts a string message by using valid ec25519 public key (bytes) and a private key object. See: https://pynacl.readthedocs.io/en/stable/public/
-def encrypt(message, public_key_bytes, private_key):
-  # Decodes hex representation to keys objects
-  public_key = get_public_key_from_bytes(public_key_bytes)
+# Encrypts a string message by using valid ec25519 public key and private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
+def encrypt(message, pk_receiver, sk_sender):
 
   # Inits encryption box instance
-  encryption_box = Box(private_key, public_key)
+  encryption_box = Box(sk_sender, pk_receiver)
 
   # Encods str message to bytes
   message_bytes = message.encode('utf-8')
@@ -43,13 +41,11 @@ def encrypt(message, public_key_bytes, private_key):
   # Need to cast to the parent class Bytes of nacl.utils.EncryptedMessage to make it accepted from mix solidity function
   return bytes(encrypted)
 
-# Decrypts a string ciphertext by using valid ec25519 public key (bytes) and a private key object. See: https://pynacl.readthedocs.io/en/stable/public/
-def decrypt(encrypted_message, public_key_bytes, private_key):
-  # Decode hex to keys objects
-  public_key = get_public_key_from_bytes(public_key_bytes)
+# Decrypts a string message by using valid ec25519 public key and private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
+def decrypt(encrypted_message, pk_sender, sk_receiver):
 
   # Inits encryption box instance
-  decryption_box = Box(private_key, public_key)
+  decryption_box = Box(sk_receiver, pk_sender)
 
   # Checks integrity of the ciphertext and decrypts it
   message = decryption_box.decrypt(encrypted_message)
@@ -82,10 +78,10 @@ def compute_merkle_path(address_commitment, tree_depth, byte_tree):
             address = int(address/2)
     return merkle_path
 
-def receive(ciphertext, public_key_bytes, private_key_bytes, username):
+def receive(ciphertext, pk_sender, sk_receiver, username):
     recovered_plaintext = ""
     try:
-        recovered_plaintext = decrypt(ciphertext, public_key_bytes, private_key_bytes)
+        recovered_plaintext = decrypt(ciphertext, pk_sender, sk_receiver)
         print("[INFO] {} recovered one plaintext".format(username.capitalize()))
         print("[INFO] {} received a payment!".format(username.capitalize()))
         # Just as an example we write the received coin in the coinstore
@@ -116,37 +112,37 @@ def gen_keys_utility(to_print=False):
   encoder = encoder=nacl.encoding.RawEncoder
 
   # Alice
-  skalice = PrivateKey.generate()
-  skalice_bytes = skalice.encode(encoder)
-  pkalice_bytes = skalice.public_key.encode(encoder)
+  sk_alice = PrivateKey.generate()
+  sk_alice_bytes = sk_alice.encode(encoder)
+  pk_alice_bytes = sk_alice.public_key.encode(encoder)
 
-  alice_keys_bytes = [pkalice_bytes, skalice_bytes]
+  alice_keys_bytes = [pk_alice_bytes, sk_alice_bytes]
 
   # Bob
-  skbob = PrivateKey.generate()
-  skbob_bytes = skbob.encode(encoder)
-  pkbob_bytes = skbob.public_key.encode(encoder)
+  sk_bob = PrivateKey.generate()
+  sk_bob_bytes = sk_bob.encode(encoder)
+  pk_bob_bytes = sk_bob.public_key.encode(encoder)
 
-  bob_keys_bytes = [pkbob_bytes, skbob_bytes]
+  bob_keys_bytes = [pk_bob_bytes, sk_bob_bytes]
 
   # Charlie
-  skcharlie = PrivateKey.generate()
-  skcharlie_bytes = skcharlie.encode(encoder)
-  pkcharlie_bytes = skcharlie.public_key.encode(encoder)
+  sk_charlie = PrivateKey.generate()
+  sk_charlie_bytes = sk_charlie.encode(encoder)
+  pk_charlie_bytes = sk_charlie.public_key.encode(encoder)
 
-  charlie_keys_bytes = [pkcharlie_bytes, skcharlie_bytes]
+  charlie_keys_bytes = [pk_charlie_bytes, sk_charlie_bytes]
 
   if to_print:
     print("Alice")
-    print(pkalice_bytes)
-    print(skalice_bytes)
+    print(pk_alice_bytes)
+    print(sk_alice_bytes)
 
     print("Bob")
-    print(pkbob_bytes)
-    print(skbob_bytes)
+    print(pk_bob_bytes)
+    print(sk_bob_bytes)
 
     print("Charlie")
-    print(pkcharlie_bytes)
-    print(skcharlie_bytes)
+    print(pk_charlie_bytes)
+    print(sk_charlie_bytes)
 
   return alice_keys_bytes, bob_keys_bytes, charlie_keys_bytes
