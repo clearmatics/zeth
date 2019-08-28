@@ -310,7 +310,7 @@ TEST(MPCTests, LayerC2ReadWrite)
         layer2_serialized = out.str();
     }
 
-    srs_mpc_layer_C2<ppT> layer2_deserialized = [layer2_serialized]() {
+    srs_mpc_layer_C2<ppT> layer2_deserialized = [&layer2_serialized]() {
         std::istringstream in(layer2_serialized);
         in.exceptions(
             std::ios_base::eofbit | std::ios_base::badbit |
@@ -322,6 +322,45 @@ TEST(MPCTests, LayerC2ReadWrite)
     ASSERT_EQ(layer2.delta_g2, layer2_deserialized.delta_g2);
     ASSERT_EQ(layer2.H_g1, layer2_deserialized.H_g1);
     ASSERT_EQ(layer2.L_g1, layer2_deserialized.L_g1);
+}
+
+TEST(MPCTests, KeyPairReadWrite)
+{
+    r1cs_constraint_system<Fr> constraint_system =
+        get_simple_constraint_system();
+    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
+    srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(qap.degree());
+    const srs_lagrange_evaluations<ppT> lagrange =
+        powersoftau_compute_lagrange_evaluations(pot, qap.degree());
+    srs_mpc_layer_L1<ppT> layer1 =
+        mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
+    const Fr delta = Fr::random_element();
+    srs_mpc_layer_C2<ppT> layer2 =
+        mpc_dummy_layer_C2<ppT>(layer1, delta, qap.num_inputs());
+    const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_create_key_pair(
+        std::move(pot),
+        std::move(layer1),
+        std::move(layer2),
+        std::move(constraint_system),
+        qap);
+
+    std::string keypair_serialized;
+    {
+        std::ostringstream out;
+        mpc_write_keypair(out, keypair);
+        keypair_serialized = out.str();
+    }
+
+    r1cs_gg_ppzksnark_keypair<ppT> keypair_deserialized = [&]() {
+        std::istringstream in(keypair_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return mpc_read_keypair<ppT>(in);
+    }();
+
+    ASSERT_EQ(keypair.pk, keypair_deserialized.pk);
+    ASSERT_EQ(keypair.vk, keypair_deserialized.vk);
 }
 
 } // namespace

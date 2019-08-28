@@ -105,6 +105,15 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
+/// Write a keypair to a stream.
+template<typename ppT>
+void mpc_write_keypair(
+    std::ostream &out, const libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair);
+
+/// Read a keypair from a stream.
+template<typename ppT>
+libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_read_keypair(std::istream &in);
+
 } // namespace libzeth
 
 #include "snarks/groth16/mpc_utils.tcc"
