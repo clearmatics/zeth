@@ -1,6 +1,7 @@
 #ifndef __ZETH_CIRCUIT_WRAPPER_TCC__
 #define __ZETH_CIRCUIT_WRAPPER_TCC__
 
+#include "circuit-wrapper.hpp"
 #include "zeth.h"
 
 namespace libzeth
@@ -19,7 +20,7 @@ keyPairT<ppT> CircuitWrapper<
     HashTreeT,
     ppT,
     NumInputs,
-    NumOutputs>::generate_trusted_setup()
+    NumOutputs>::generate_trusted_setup() const
 {
     libsnark::protoboard<FieldT> pb;
     joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
@@ -55,7 +56,7 @@ extended_proof<ppT> CircuitWrapper<
         bits64 vpub_out,
         const bits256 h_sig_in,
         const bits256 phi_in,
-        provingKeyT<ppT> proving_key)
+        provingKeyT<ppT> proving_key) const
 {
     // left hand side and right hand side of the joinsplit
     bits64 lhs_value = vpub_in;
