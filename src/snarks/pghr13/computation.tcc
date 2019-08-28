@@ -7,8 +7,8 @@ namespace libzeth
 // Generate the proof and returns a struct {proof, primary_input}
 template<typename ppT>
 libsnark::r1cs_ppzksnark_proof<ppT> gen_proof(
-    libsnark::protoboard<libff::Fr<ppT>> pb,
-    libsnark::r1cs_ppzksnark_proving_key<ppT> proving_key)
+    const libsnark::protoboard<libff::Fr<ppT>> &pb,
+    const libsnark::r1cs_ppzksnark_proving_key<ppT> &proving_key)
 {
     // See:
     // https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp#L81
@@ -29,7 +29,7 @@ libsnark::r1cs_ppzksnark_proof<ppT> gen_proof(
 // Run the trusted setup and returns a struct {proving_key, verifying_key}
 template<typename ppT>
 libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(
-    libsnark::protoboard<libff::Fr<ppT>> pb)
+    const libsnark::protoboard<libff::Fr<ppT>> &pb)
 {
     // Generate verification and proving key (Trusted setup) from the R1CS
     // (defined in the ZoKrates/wraplibsnark.cpp file) This function, basically
@@ -43,8 +43,8 @@ libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(
 // Verification of a proof
 template<typename ppT>
 bool verify(
-    libzeth::extended_proof<ppT> ext_proof,
-    libsnark::r1cs_ppzksnark_verification_key<ppT> verification_key)
+    const libzeth::extended_proof<ppT> &ext_proof,
+    const libsnark::r1cs_ppzksnark_verification_key<ppT> &verification_key)
 {
     return libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(
         verification_key, ext_proof.get_primary_input(), ext_proof.get_proof());
