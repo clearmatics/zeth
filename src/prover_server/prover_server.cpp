@@ -5,6 +5,8 @@
 #include "zeth.h"
 #include "zethConfig.h"
 
+#include <boost/program_options.hpp>
+#include <fstream>
 #include <grpc/grpc.h>
 #include <grpcpp/security/server_credentials.h>
 #include <grpcpp/server.h>
@@ -41,6 +43,8 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
 using grpc::StatusCode;
+
+namespace po = boost::program_options;
 
 // Use the Prover service defined in the proto file
 using proverpkg::Prover;
@@ -222,7 +226,7 @@ void ServerStartMessage()
               << std::endl;
 }
 
-void RunServer(
+static void RunServer(
     libzeth::CircuitWrapper<
         FieldT,
         HashT,
@@ -256,13 +260,51 @@ void RunServer(
     server->Wait();
 }
 
-int main(int, char **)
+static keyPairT<ppT> load_keypair(const std::string &keypair_file)
 {
+    std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
+    in.exceptions(
+        std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
+    return libzeth::mpc_read_keypair<ppT>(in);
+}
+
+int main(int argc, char **argv)
+{
+    // Options
+    po::options_description options("");
+    options.add_options()(
+        "keypair,k", po::value<std::string>(), "file to load keypair from");
+
+    auto usage = [&]() {
+        std::cout << "Usage:" << std::endl
+                  << "  " << argv[0] << " [<options>]" << std::endl
+                  << std::endl;
+        std::cout << options;
+        std::cout << std::endl;
+    };
+
+    std::string keypair_file;
+    try {
+        po::variables_map vm;
+        po::store(
+            po::command_line_parser(argc, argv).options(options).run(), vm);
+        if (vm.count("help")) {
+            usage();
+            return 0;
+        }
+        if (vm.count("keypair")) {
+            keypair_file = vm["keypair"].as<std::string>();
+        }
+    } catch (po::error &error) {
+        std::cerr << " ERROR: " << error.what() << std::endl;
+        usage();
+        return 1;
+    }
+
     // We inititalize the curve parameters here
     std::cout << "[DEBUG] Init params" << std::endl;
     ppT::init_public_params();
 
-    std::cout << "[DEBUG] Run setup" << std::endl;
     libzeth::CircuitWrapper<
         FieldT,
         HashT,
@@ -271,7 +313,22 @@ int main(int, char **)
         ZETH_NUM_JS_INPUTS,
         ZETH_NUM_JS_OUTPUTS>
         prover;
-    keyPairT<ppT> keypair = prover.generate_trusted_setup();
+    keyPairT<ppT> keypair = [&keypair_file, &prover]() {
+        if (!keypair_file.empty()) {
+#ifdef ZKSNARK_GROTH16
+            std::cout << "[DEBUG] Loading keypair: " << keypair_file
+                      << std::endl;
+            return load_keypair(keypair_file);
+#else
+            std::cout << "Keypair loading not supported in this config"
+                      << std::endl;
+            exit(1);
+#endif
+        }
+
+        std::cout << "[DEBUG] Generate new keypair" << std::endl;
+        return prover.generate_trusted_setup();
+    }();
 
     std::cout << "[DEBUG] Setup successful, starting the server..."
               << std::endl;
