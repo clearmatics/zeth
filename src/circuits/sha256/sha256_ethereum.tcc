@@ -24,6 +24,7 @@ namespace libzeth
 template<typename FieldT>
 sha256_ethereum<FieldT>::sha256_ethereum(
     libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_variable<FieldT> &ZERO,
     const libsnark::block_variable<FieldT> &input_block,
     const libsnark::digest_variable<FieldT> &output,
     const std::string &annotation_prefix)
@@ -31,16 +32,6 @@ sha256_ethereum<FieldT>::sha256_ethereum(
 {
     intermediate_hash.reset(new libsnark::digest_variable<FieldT>(
         pb, 256, FMT(this->annotation_prefix, " intermediate_hash")));
-
-    // Set the zero variable to the zero of our field, to later transform
-    // boolean vectors into vectors of ONE and ZERO intemplate<typename FieldT>
-    //
-    // TODO: pass ZERO as argument and delete these instructions.
-    // It should alredy be allocated on the protoboard which is given as
-    // argument of this function
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, FMT(this->annotation_prefix, " ZERO"));
-    pb.val(ZERO) = FieldT::zero(); // Here we want pb.val(ZERO) = 0;
 
     // Padding
     // Equivalent to the lines

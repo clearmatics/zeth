@@ -33,11 +33,8 @@ contract BaseMerkleTree {
     depth = treeDepth;
     nbLeaves = 2**depth;
 
-    // Initialize the merkle tree with zeroes in values
-    bytes32 zeroes;
-    for (uint i = 0; i < nbLeaves; i++) {
-      leaves.push(zeroes);
-    }
+    bytes32[] memory leavesBuilder = new bytes32[](nbLeaves);
+    leaves = leavesBuilder;
   }
 
   // Appends a commitment to the tree, and returns its address
@@ -63,7 +60,7 @@ contract BaseMerkleTree {
   // but we'll use this function for now
   function getLeaves() public view returns (bytes32[] memory) { // returns the bytes32[] array of leaves
     bytes32[] memory tmpLeaves = new bytes32[](nbLeaves);
-    for(uint i = 0; i < nbLeaves; i++) {
+    for(uint i; i < nbLeaves; i++) {
       tmpLeaves[i] = leaves[i];
     }
 

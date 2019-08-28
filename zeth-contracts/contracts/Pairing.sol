@@ -93,7 +93,7 @@ library Pairing {
         uint elements = p1.length;
         uint inputSize = elements * 6;
         uint[] memory input = new uint[](inputSize);
-        for (uint i = 0; i < elements; i++)
+        for (uint i; i < elements; i++)
         {
             // Curve point (G1) - 2 coordinates of 32bytes (0x20 in hex)
             input[i * 6 + 0] = p1[i].X;

@@ -84,7 +84,7 @@ private:
 public:
     input_note_gadget(
         libsnark::protoboard<FieldT> &pb,
-        libsnark::pb_variable<FieldT> &ZERO,
+        const libsnark::pb_variable<FieldT> &ZERO,
         std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk,
         // Input note Nullifier
         std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
@@ -109,7 +109,7 @@ private:
 public:
     output_note_gadget(
         libsnark::protoboard<FieldT> &pb,
-        libsnark::pb_variable<FieldT> &ZERO,
+        const libsnark::pb_variable<FieldT> &ZERO,
         std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
         std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
         const std::string &annotation_prefix = "output_note_gadget");

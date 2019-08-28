@@ -63,7 +63,7 @@ libsnark::pb_variable_array<FieldT> get128bits(
 // 0^192 || value_v (64 bits)
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
-    libsnark::pb_variable<FieldT> &ZERO,
+    const libsnark::pb_variable<FieldT> &ZERO,
     libsnark::pb_variable_array<FieldT> &value_v)
 {
     libsnark::pb_variable_array<FieldT> right_side;
@@ -84,46 +84,53 @@ libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
 }
 
 // See Zerocash extended paper, page 22
-// The commitment cm is computed as 
+// The commitment cm is computed as
 // HashT(HashT( trap_r || [HashT(a_pk, rho)]_[128]) || "0"*192 || v)
 // We denote by trap_r the trapdoor r
 template<typename FieldT, typename HashT>
-COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(libsnark::protoboard<FieldT>& pb,
-                                            libsnark::pb_variable<FieldT>& ZERO,
-                                            libsnark::pb_variable_array<FieldT>& a_pk,
-                                            libsnark::pb_variable_array<FieldT>& rho,
-                                            libsnark::pb_variable_array<FieldT>& trap_r,
-                                            libsnark::pb_variable_array<FieldT>& value_v,
-                                            std::shared_ptr<libsnark::digest_variable<FieldT>> result, 
-                                            const std::string &annotation_prefix
-) : libsnark::gadget<FieldT>(pb, annotation_prefix)
+COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_variable<FieldT> &ZERO,
+    libsnark::pb_variable_array<FieldT> &a_pk,
+    libsnark::pb_variable_array<FieldT> &rho,
+    libsnark::pb_variable_array<FieldT> &trap_r,
+    libsnark::pb_variable_array<FieldT> &value_v,
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
     // Allocate temporary results
-    inner_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " inner_k")));
+    inner_k.reset(new libsnark::digest_variable<FieldT>(
+        pb, 256, FMT(this->annotation_prefix, " inner_k")));
 
-    outer_k.reset(new libsnark::digest_variable<FieldT>(pb, 256, FMT(this->annotation_prefix, " outer_k")));
+    outer_k.reset(new libsnark::digest_variable<FieldT>(
+        pb, 256, FMT(this->annotation_prefix, " outer_k")));
 
     // Allocate gadgets
-    inner_com_gadget.reset(
-        new COMM_gadget<FieldT, HashT>(pb, a_pk, rho, inner_k, annotation_prefix)
-    );
-    outer_com_gadget.reset(
-        new COMM_gadget<FieldT, HashT>(pb, trap_r, get128bits(inner_k->bits), outer_k, annotation_prefix)
-    );
-    final_com_gadget.reset(
-        new COMM_gadget<FieldT, HashT>(pb, outer_k->bits, getRightSideCMCOMM(ZERO, value_v), result, annotation_prefix)
-    );
+    inner_com_gadget.reset(new COMM_gadget<FieldT, HashT>(
+        pb, a_pk, rho, inner_k, annotation_prefix));
+
+    outer_com_gadget.reset(new COMM_gadget<FieldT, HashT>(
+        pb, trap_r, get128bits(inner_k->bits), outer_k, annotation_prefix));
+    final_com_gadget.reset(new COMM_gadget<FieldT, HashT>(
+        pb,
+        outer_k->bits,
+        getRightSideCMCOMM(ZERO, value_v),
+        result,
+        annotation_prefix));
 }
 
 template<typename FieldT, typename HashT>
-void COMM_cm_gadget<FieldT, HashT>::generate_r1cs_constraints(){
+void COMM_cm_gadget<FieldT, HashT>::generate_r1cs_constraints()
+{
     inner_com_gadget->generate_r1cs_constraints();
     outer_com_gadget->generate_r1cs_constraints();
     final_com_gadget->generate_r1cs_constraints();
 }
 
 template<typename FieldT, typename HashT>
-void COMM_cm_gadget<FieldT, HashT>::generate_r1cs_witness(){
+void COMM_cm_gadget<FieldT, HashT>::generate_r1cs_witness()
+{
     inner_com_gadget->generate_r1cs_witness();
     outer_com_gadget->generate_r1cs_witness();
     final_com_gadget->generate_r1cs_witness();

@@ -26,6 +26,7 @@ keyPairT<ppT> circuit_wrapper<
     NumOutputs>::generate_trusted_setup() const
 {
     libsnark::protoboard<FieldT> pb;
+
     joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
 
@@ -104,6 +105,7 @@ extended_proof<ppT> circuit_wrapper<
     }
 
     libsnark::protoboard<FieldT> pb;
+
     joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
     g.generate_r1cs_constraints();
     g.generate_r1cs_witness(

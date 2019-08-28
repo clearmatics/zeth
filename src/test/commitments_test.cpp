@@ -214,17 +214,9 @@ TEST(TestCOMMs, TestCOMMGadget) {
     result.reset(new libsnark::digest_variable<FieldT>(
         pb, HashT::get_digest_len(), "result"));
 
-
-    std::shared_ptr<COMM_cm_gadget<FieldT, HashT> > comm_cm_gadget;
-    comm_cm_gadget.reset(new COMM_cm_gadget<FieldT, HashT>(
-        pb,
-        ZERO,
-        a_pk,
-        rho,
-        r,
-        v,
-        result)
-    );
+    std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> comm_cm_gadget;
+    comm_cm_gadget.reset(
+        new COMM_cm_gadget<FieldT, HashT>(pb, ZERO, a_pk, rho, r, v, result));
     comm_cm_gadget->generate_r1cs_constraints();
     comm_cm_gadget->generate_r1cs_witness();
 

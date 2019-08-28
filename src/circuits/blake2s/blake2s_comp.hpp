@@ -84,9 +84,6 @@ private:
     std::array<std::vector<g_primitive<FieldT>>, rounds> g_arrays;
     std::vector<xor_constant_gadget<FieldT>> xor_vector;
 
-    // TODO: Remove ZERO and pass it in the constructor
-    libsnark::pb_variable<FieldT> ZERO;
-
 public:
     std::array<std::array<FieldT, BLAKE2s_word_size>, 8> IV;
     std::array<std::array<uint, 16>, 10> sigma;

@@ -50,7 +50,7 @@ void note_gadget<FieldT>::generate_r1cs_witness(const zeth_note &note)
 template<typename FieldT, typename HashT, typename HashTreeT>
 input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(
     libsnark::protoboard<FieldT> &pb,
-    libsnark::pb_variable<FieldT> &ZERO,
+    const libsnark::pb_variable<FieldT> &ZERO,
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk,
     std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
     libsnark::pb_variable<FieldT> rt, // merkle_root
@@ -111,14 +111,7 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(
     // interactions with the mixer (that we know affect the public state and
     // leak data)).
     commit_to_inputs_cm.reset(new COMM_cm_gadget<FieldT, HashT>(
-        pb,
-        ZERO,
-        a_pk->bits,
-        rho,
-        this->r,
-        this->value,
-        commitment
-    ));
+        pb, ZERO, a_pk->bits, rho, this->r, this->value, commitment));
 
     // We do not forget to allocate the `value_enforce` variable
     // since it is submitted to boolean constraints
@@ -293,7 +286,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
 template<typename FieldT, typename HashT>
 output_note_gadget<FieldT, HashT>::output_note_gadget(
     libsnark::protoboard<FieldT> &pb,
-    libsnark::pb_variable<FieldT> &ZERO,
+    const libsnark::pb_variable<FieldT> &ZERO,
     std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
     std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
     const std::string &annotation_prefix)
@@ -304,14 +297,7 @@ output_note_gadget<FieldT, HashT>::output_note_gadget(
 
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_cm.reset(new COMM_cm_gadget<FieldT, HashT>(
-        pb,
-        ZERO,
-        a_pk->bits,
-        rho->bits,
-        this->r,
-        this->value,
-        commitment
-    ));
+        pb, ZERO, a_pk->bits, rho->bits, this->r, this->value, commitment));
 }
 
 template<typename FieldT, typename HashT>
