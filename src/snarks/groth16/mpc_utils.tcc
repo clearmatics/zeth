@@ -380,14 +380,36 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     //   layer2.H should have n-1 entries.
     //   layer2.L should have num_variables-num_inputs entries.
     //   pot should have degree >= n
-    if ((num_variables + 1 != layer1.A_g1.size()) ||
-        (num_variables + 1 != layer1.B_g1.size()) ||
-        (num_variables + 1 != layer1.B_g2.size()) ||
-        (num_variables + 1 != layer1.ABC_g1.size()) ||
-        (n - 1 != layer2.H_g1.size()) ||
-        (num_variables - num_inputs != layer2.L_g1.size()) ||
-        (pot.tau_powers_g2.size() < n)) {
+    if (num_variables + 1 != layer1.A_g1.size()) {
+        throw std::invalid_argument(
+            "expected " + std::to_string(num_variables + 1) +
+            " A entries, but saw " + std::to_string(layer1.A_g1.size()));
+    }
+    if (num_variables + 1 != layer1.B_g1.size()) {
+        throw std::invalid_argument(
+            "expected " + std::to_string(num_variables + 1) +
+            " B_g1 entries, but saw " + std::to_string(layer1.B_g1.size()));
+    }
+    if (num_variables + 1 != layer1.B_g2.size()) {
+        throw std::invalid_argument(
+            "expected " + std::to_string(num_variables + 1) +
+            " B_g2 entries, but saw " + std::to_string(layer1.B_g2.size()));
+    }
+    if (num_variables + 1 != layer1.ABC_g1.size()) {
+        throw std::invalid_argument(
+            "expected " + std::to_string(num_variables + 1) +
+            " ABC entries, but saw " + std::to_string(layer1.ABC_g1.size()));
+    }
+    if (n - 1 != layer2.H_g1.size()) {
         throw std::invalid_argument("mismatch in degrees of layers");
+    }
+    if (num_variables - num_inputs != layer2.L_g1.size()) {
+        throw std::invalid_argument(
+            "expected " + std::to_string(num_variables - num_inputs) +
+            " L entries, but saw " + std::to_string(layer2.L_g1.size()));
+    }
+    if (pot.tau_powers_g2.size() < n) {
+        throw std::invalid_argument("insufficient POT entries");
     }
 
     // { ( [B_i]_2, [B_i]_1 ) } i = 0 .. num_variables
@@ -425,6 +447,23 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
 
     return libsnark::r1cs_gg_ppzksnark_keypair<ppT>(
         std::move(pk), std::move(vk));
+}
+
+template<typename ppT>
+void mpc_write_keypair(
+    std::ostream &out, const libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair)
+{
+    out << keypair.pk;
+    out << keypair.vk;
+}
+
+template<typename ppT>
+libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_read_keypair(std::istream &in)
+{
+    libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair;
+    in >> keypair.pk;
+    in >> keypair.vk;
+    return keypair;
 }
 
 } // namespace libzeth
