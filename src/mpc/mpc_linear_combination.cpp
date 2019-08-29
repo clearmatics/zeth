@@ -25,12 +25,14 @@ using HashT = sha256_ethereum<FieldT>;
 //     -h,--help        This message
 //     --pot-degree     powersoftau degree (assumed equal to lagrange file)
 //     --out <file>     Linear combination output (mpc-linear-combination.bin)
+//     --verify         Skip computation.  Load and verify input data.
 class mpc_linear_combination : public subcommand
 {
     std::string powersoftau_file;
     std::string lagrange_file;
     size_t powersoftau_degree;
     std::string out_file;
+    bool verify;
 
 public:
     mpc_linear_combination()
@@ -39,6 +41,7 @@ public:
         , lagrange_file()
         , powersoftau_degree(0)
         , out_file()
+        , verify(false)
     {
     }
 
@@ -54,7 +57,8 @@ private:
             "powersoftau degree (assumed equal to lagrange file)")(
             "out,o",
             po::value<std::string>(),
-            "linear combination output (mpc-linear-combination.bin)");
+            "linear combination output (mpc-linear-combination.bin)")(
+            "verify", "Skip compuation. Load and verify input data");
         all_options.add(options).add_options()(
             "powersoftau_file", po::value<std::string>(), "powersoftau file")(
             "lagrange_file", po::value<std::string>(), "lagrange file");
@@ -78,6 +82,7 @@ private:
         out_file = vm.count("out")
                        ? vm["out"].as<std::string>()
                        : trusted_setup_file("mpc-linear-combination.bin");
+        verify = (bool)vm.count("verify");
     }
 
     void subcommand_usage() override
@@ -93,7 +98,8 @@ private:
             std::cout << "powersoftau_file: " << powersoftau_file << "\n"
                       << "lagrange_file: " << lagrange_file << "\n"
                       << "powersoftau_degree: " << powersoftau_degree << "\n"
-                      << "out_file: " << out_file << std::endl;
+                      << "out_file: " << out_file << "\n"
+                      << "verify: " << std::to_string(verify) << std::endl;
         }
 
         // Load lagrange evaluations to determine n, then load powersoftau
@@ -134,6 +140,13 @@ private:
         const libsnark::qap_instance<FieldT> qap =
             libsnark::r1cs_to_qap_instance_map(cs, true);
         libff::leave_block("Generate QAP");
+
+        // Early-out if "--verify" was specified
+        if (verify) {
+            std::cout << "verify: skipping computation and write.)"
+                      << std::endl;
+            return 0;
+        }
 
         // Compute final step of linear combination
         if (qap.degree() != lagrange.degree) {
