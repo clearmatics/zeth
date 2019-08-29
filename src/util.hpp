@@ -36,6 +36,10 @@ std::string trusted_setup_path(const std::string &fallback = "");
 // related to trusted setup.
 std::string trusted_setup_file(const std::string &file_name);
 
+template<typename V> bool container_is_well_formed(const V &values);
+template<typename T> void check_well_formed(const T &v, const char *name);
+template<typename T> void check_well_formed_(const T &v, const char *name);
+
 } // namespace libzeth
 #include "util.tcc"
 
