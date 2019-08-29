@@ -8,7 +8,7 @@ eth-hash==0.2.0
 eth-keyfile==0.5.1
 eth-keys==0.2.1
 eth-rlp==0.1.2
-eth-typing==2.0.0
+eth-typing==2.1.0
 eth-utils==1.4.1
 grpcio==1.18.0
 grpcio-tools==1.18.0
