@@ -89,6 +89,31 @@ template<typename FieldT> FieldT string_to_field(std::string input)
     return element;
 }
 
+template<typename V> bool container_is_well_formed(const V &values)
+{
+    for (const auto &v : values) {
+        if (!v.is_well_formed()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template<typename T> void check_well_formed(const T &v, const char *name)
+{
+    if (!v.is_well_formed()) {
+        throw std::invalid_argument(std::string(name) + " not well-formed");
+    }
+}
+
+template<typename T> void check_well_formed_(const T &v, const char *name)
+{
+    if (!is_well_formed(v)) {
+        throw std::invalid_argument(std::string(name) + " not well-formed");
+    }
+}
+
 } // namespace libzeth
 
 #endif // __ZETH_UTIL_TCC__

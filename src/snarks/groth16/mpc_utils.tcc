@@ -4,6 +4,7 @@
 #include "evaluator_from_lagrange.hpp"
 #include "mpc_utils.hpp"
 #include "multi_exp.hpp"
+#include "util.hpp"
 
 #include <algorithm>
 #include <exception>
@@ -32,11 +33,21 @@ template<typename ppT> size_t srs_mpc_layer_L1<ppT>::degree() const
     return T_tau_powers_g1.size() + 1;
 }
 
+template<typename ppT> bool srs_mpc_layer_L1<ppT>::is_well_formed() const
+{
+    return libzeth::container_is_well_formed(T_tau_powers_g1) &&
+           libzeth::container_is_well_formed(A_g1) &&
+           libzeth::container_is_well_formed(B_g1) &&
+           libzeth::container_is_well_formed(B_g2) &&
+           libzeth::container_is_well_formed(ABC_g1);
+}
+
 template<typename ppT>
 void srs_mpc_layer_L1<ppT>::write(std::ostream &out) const
 {
     using G1 = libff::G1<ppT>;
     using G2 = libff::G2<ppT>;
+    check_well_formed(*this, "mpc_layer1 (write)");
 
     // Write the sizes first, then stream out the values.
     const size_t num_T_tau_powers = T_tau_powers_g1.size();
@@ -103,12 +114,14 @@ srs_mpc_layer_L1<ppT> srs_mpc_layer_L1<ppT>::read(std::istream &in)
         in >> v;
     }
 
-    return srs_mpc_layer_L1<ppT>(
+    srs_mpc_layer_L1<ppT> l1(
         std::move(T_tau_powers_g1),
         std::move(A_g1),
         std::move(B_g1),
         std::move(B_g2),
         std::move(ABC_g1));
+    check_well_formed(l1, "mpc_layer1 (read)");
+    return l1;
 }
 
 template<typename ppT>
@@ -248,10 +261,18 @@ srs_mpc_layer_C2<ppT>::srs_mpc_layer_C2(
 {
 }
 
+template<typename ppT> bool srs_mpc_layer_C2<ppT>::is_well_formed() const
+{
+    return delta_g1.is_well_formed() && delta_g2.is_well_formed() &&
+           libzeth::container_is_well_formed(H_g1) &&
+           libzeth::container_is_well_formed(L_g1);
+}
+
 template<typename ppT>
 void srs_mpc_layer_C2<ppT>::write(std::ostream &out) const
 {
     using G1 = libff::G1<ppT>;
+    check_well_formed(*this, "mpc_layer2 (write)");
 
     // Write the sizes first.
     const size_t H_size = H_g1.size();
@@ -260,13 +281,10 @@ void srs_mpc_layer_C2<ppT>::write(std::ostream &out) const
     out.write((const char *)&L_size, sizeof(L_size));
 
     out << delta_g1;
-
     out << delta_g2;
-
     for (const G1 h : H_g1) {
         out << h;
     }
-
     for (const G1 l : L_g1) {
         out << l;
     }
@@ -300,8 +318,10 @@ srs_mpc_layer_C2<ppT> srs_mpc_layer_C2<ppT>::read(std::istream &in)
         in >> l;
     }
 
-    return srs_mpc_layer_C2<ppT>(
+    srs_mpc_layer_C2<ppT> l2(
         delta_g1, delta_g2, std::move(H_g1), std::move(L_g1));
+    check_well_formed(l2, "mpc_layer2 (read)");
+    return l2;
 }
 
 template<typename ppT>
@@ -450,9 +470,44 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
 }
 
 template<typename ppT>
+bool is_well_formed(const libsnark::r1cs_gg_ppzksnark_proving_key<ppT> &pk)
+{
+    if (!pk.alpha_g1.is_well_formed() || !pk.beta_g1.is_well_formed() ||
+        !pk.beta_g2.is_well_formed() || !pk.delta_g1.is_well_formed() ||
+        !pk.delta_g2.is_well_formed() ||
+        !libzeth::container_is_well_formed(pk.A_query) ||
+        !libzeth::container_is_well_formed(pk.L_query)) {
+        return false;
+    }
+
+    using knowledge_commitment =
+        libsnark::knowledge_commitment<libff::G2<ppT>, libff::G1<ppT>>;
+    for (const knowledge_commitment &b : pk.B_query.values) {
+        if (!b.g.is_well_formed() || !b.h.is_well_formed()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template<typename ppT>
+bool is_well_formed(const libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &vk)
+{
+    if (!vk.alpha_g1.is_well_formed() || !vk.beta_g2.is_well_formed() ||
+        !vk.delta_g2.is_well_formed() || !vk.ABC_g1.first.is_well_formed()) {
+        return false;
+    }
+
+    return container_is_well_formed(vk.ABC_g1.rest.values);
+}
+
+template<typename ppT>
 void mpc_write_keypair(
     std::ostream &out, const libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair)
 {
+    check_well_formed_(keypair.pk, "proving key (read)");
+    check_well_formed_(keypair.vk, "verification key (read)");
     out << keypair.pk;
     out << keypair.vk;
 }
@@ -463,6 +518,8 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_read_keypair(std::istream &in)
     libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair;
     in >> keypair.pk;
     in >> keypair.vk;
+    check_well_formed_(keypair.pk, "proving key (read)");
+    check_well_formed_(keypair.vk, "verification key (read)");
     return keypair;
 }
 

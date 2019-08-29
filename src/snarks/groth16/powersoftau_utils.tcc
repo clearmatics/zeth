@@ -2,6 +2,7 @@
 #define __ZETH_SNARKS_GROTH16_POWERSOFTAU_UTILS_TCC__
 
 #include "snarks/groth16/powersoftau_utils.hpp"
+#include "util.hpp"
 
 #include <thread>
 
@@ -68,6 +69,15 @@ srs_powersoftau<ppT>::srs_powersoftau(
     , beta_tau_powers_g1(std::move(beta_tau_powers_g1))
     , beta_g2(beta_g2)
 {
+}
+
+template<typename ppT> bool srs_powersoftau<ppT>::is_well_formed() const
+{
+    return libzeth::container_is_well_formed(tau_powers_g1) &&
+           libzeth::container_is_well_formed(tau_powers_g2) &&
+           libzeth::container_is_well_formed(alpha_tau_powers_g1) &&
+           libzeth::container_is_well_formed(beta_tau_powers_g1) &&
+           beta_g2.is_well_formed();
 }
 
 template<typename ppT>
@@ -287,8 +297,19 @@ srs_lagrange_evaluations<ppT>::srs_lagrange_evaluations(
 }
 
 template<typename ppT>
+bool srs_lagrange_evaluations<ppT>::is_well_formed() const
+{
+    return container_is_well_formed(lagrange_g1) &&
+           container_is_well_formed(lagrange_g2) &&
+           container_is_well_formed(alpha_lagrange_g1) &&
+           container_is_well_formed(beta_lagrange_g1);
+}
+
+template<typename ppT>
 void srs_lagrange_evaluations<ppT>::write(std::ostream &out) const
 {
+    check_well_formed(*this, "powersoftau (write)");
+
     out.write((const char *)&degree, sizeof(degree));
     for (const libff::G1<ppT> &l_g1 : lagrange_g1) {
         out << l_g1;
@@ -329,12 +350,14 @@ srs_lagrange_evaluations<ppT> srs_lagrange_evaluations<ppT>::read(
         in >> beta_l_g1;
     }
 
-    return srs_lagrange_evaluations<ppT>(
+    srs_lagrange_evaluations<ppT> lagrange(
         degree,
         std::move(lagrange_g1),
         std::move(lagrange_g2),
         std::move(alpha_lagrange_g1),
         std::move(beta_lagrange_g1));
+    check_well_formed(lagrange, "lagrange (read)");
+    return lagrange;
 }
 
 template<typename ppT>
