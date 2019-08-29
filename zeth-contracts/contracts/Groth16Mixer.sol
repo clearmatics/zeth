@@ -39,7 +39,7 @@ contract Groth16Mixer is BaseMixer {
 
         // 2.b Verify the signature
         bytes32 hash_proof = sha256(abi.encodePacked(a, b, c));
-        bytes32 hash_ciphers = sha256(abi.encodePacked(pk_sender,ciphertext0, ciphertext1));
+        bytes32 hash_ciphers = sha256(abi.encodePacked(pk_sender, ciphertext0, ciphertext1));
         require(
             otsig_verifier.verify(
                 vk,

@@ -18,38 +18,40 @@ import zethErrors as errors
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
-# Gets PrivateKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
+# Gets PrivateKey object from hexadecimal representation
+# (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
 def get_private_key_from_bytes(sk_bytes):
   return PrivateKey(sk_bytes, encoder=nacl.encoding.RawEncoder)
 
-# Gets PublicKey object from hexadecimal representation (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
+# Gets PublicKey object from hexadecimal representation
+# (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
 def get_public_key_from_bytes(pk_bytes):
   return PublicKey(pk_bytes, encoder=nacl.encoding.RawEncoder)
 
-# Encrypts a string message by using valid ec25519 public key and private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
+# Encrypts a string message by using valid ec25519 public key and
+# private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
 def encrypt(message, pk_receiver, sk_sender):
-
-  # Inits encryption box instance
+  # Init encryption box instance
   encryption_box = Box(sk_sender, pk_receiver)
 
-  # Encods str message to bytes
+  # Encode str message to bytes
   message_bytes = message.encode('utf-8')
 
-  # Encrypts the message. The nonce is chosen randomly.
+  # Encrypt the message. The nonce is chosen randomly.
   encrypted = encryption_box.encrypt(message_bytes, encoder=nacl.encoding.RawEncoder)
 
-  # Need to cast to the parent class Bytes of nacl.utils.EncryptedMessage to make it accepted from mix solidity function
+  # Need to cast to the parent class Bytes of nacl.utils.EncryptedMessage
+  # to make it accepted from `Mix` Solidity function
   return bytes(encrypted)
 
-# Decrypts a string message by using valid ec25519 public key and private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
+# Decrypts a string message by using valid ec25519 public key and private key objects.
+# See: https://pynacl.readthedocs.io/en/stable/public/
 def decrypt(encrypted_message, pk_sender, sk_receiver):
-
-  # Inits encryption box instance
+  # Init encryption box instance
   decryption_box = Box(sk_receiver, pk_sender)
 
-  # Checks integrity of the ciphertext and decrypts it
+  # Check integrity of the ciphertext and decrypt it
   message = decryption_box.decrypt(encrypted_message)
-
   return str(message, encoding = 'utf-8')
 
 # Converts the realtive address of a leaf to an absolute address in the tree
@@ -107,7 +109,6 @@ def parse_zksnark_arg():
 
 # Generates private/public keys (kP, k) over Curve25519 for Alice, Bob and Charlie
 def gen_keys_utility(to_print=False):
-
   # Encoder
   encoder = encoder=nacl.encoding.RawEncoder
 
