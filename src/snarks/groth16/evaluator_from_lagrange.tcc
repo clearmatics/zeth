@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_TCC__
+#define __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_TCC__
 
 #include "evaluator_from_lagrange.hpp"
 #include "multi_exp.hpp"
@@ -40,3 +41,5 @@ GroupT evaluator_from_lagrange<ppT, GroupT>::evaluate_from_lagrange_factors(
 }
 
 } // namespace libzeth
+
+#endif // __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_TCC__

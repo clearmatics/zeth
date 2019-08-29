@@ -28,7 +28,6 @@ public:
 };
 
 } // namespace libzeth
-
 #include "evaluator_from_lagrange.tcc"
 
 #endif // __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_HPP__
