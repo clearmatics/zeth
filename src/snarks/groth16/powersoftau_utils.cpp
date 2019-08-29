@@ -85,7 +85,7 @@ bool same_ratio(
     const libff::GT<ppT> b1a2_gt = ppT::final_exponentiation(b1a2);
 
     // Decide whether ratio a1:b1 in G1 equals a2:b2 in G2 by checking:
-    //   e( a1, b2 ) == e( b1, a2 )
+    //   e(a1, b2) =?= e(b1, a2)
     return a1b2_gt == b1a2_gt;
 }
 
@@ -110,7 +110,7 @@ srs_powersoftau::srs_powersoftau(
 srs_powersoftau dummy_powersoftau_from_secrets(
     const Fr &tau, const Fr &alpha, const Fr &beta, size_t n)
 {
-    // Compute powers.  Note zero-th power is included (alpha_g1 etc
+    // Compute powers. Note zero-th power is included (alpha_g1 etc
     // are provided in this way), so to support order N polynomials,
     // N+1 entries are required.
     const size_t num_tau_powers_g1 = 2 * n - 2 + 1;
@@ -199,6 +199,7 @@ void read_powersoftau_g2(std::istream &in, libff::G2<ppT> &out)
         break;
 
     case 0x04:
+        // Uncompressed
         read_powersoftau_fp2(in, out.X);
         read_powersoftau_fp2(in, out.Y);
         out.Z = libff::alt_bn128_Fq2::one();
@@ -280,7 +281,7 @@ bool powersoftau_validate(const srs_powersoftau &pot, const size_t n)
     // TODO: Cache precomputed g1, tau_g1, g2, tau_g2
     // TODO: Parallelize
 
-    // One at index 0
+    // Make sure that the identity of each group is at index 0
     if (pot.tau_powers_g1[0] != G1::one() ||
         pot.tau_powers_g2[0] != G2::one()) {
         return false;
@@ -292,7 +293,7 @@ bool powersoftau_validate(const srs_powersoftau &pot, const size_t n)
     const G1 tau_g1 = pot.tau_powers_g1[1];
     const G2 tau_g2 = pot.tau_powers_g2[1];
 
-    // SameRatio( (g1, tau_g1), (g2, tau_g2) )
+    // SameRatio((g1, tau_g1), (g2, tau_g2))
     const bool tau_g1_g2_consistent =
         same_ratio<ppT>(g1, pot.tau_powers_g1[1], g2, pot.tau_powers_g2[1]);
     if (!tau_g1_g2_consistent) {
