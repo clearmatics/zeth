@@ -19,20 +19,21 @@ extended_proof<ppT>::extended_proof(
             in_primary_input);
 }
 
-template<typename ppT> proofT<ppT> extended_proof<ppT>::get_proof()
+template<typename ppT> const proofT<ppT> &extended_proof<ppT>::get_proof() const
 {
     return *this->proof;
 }
 
 template<typename ppT>
-libsnark::r1cs_primary_input<libff::Fr<ppT>> extended_proof<
-    ppT>::get_primary_input()
+const libsnark::r1cs_primary_input<libff::Fr<ppT>>
+    &extended_proof<ppT>::get_primary_input() const
 {
     return *this->primary_inputs;
 }
 
 template<typename ppT>
-void extended_proof<ppT>::write_primary_input(boost::filesystem::path path)
+void extended_proof<ppT>::write_primary_input(
+    boost::filesystem::path path) const
 {
     if (path.empty()) {
         boost::filesystem::path tmp_path =
@@ -67,7 +68,7 @@ void extended_proof<ppT>::write_primary_input(boost::filesystem::path path)
     fh.close();
 }
 
-template<typename ppT> void extended_proof<ppT>::dump_primary_inputs()
+template<typename ppT> void extended_proof<ppT>::dump_primary_inputs() const
 {
     std::cout << "{\n";
     std::cout << " \"inputs\" :"
@@ -86,18 +87,19 @@ template<typename ppT> void extended_proof<ppT>::dump_primary_inputs()
 }
 
 template<typename ppT>
-void extended_proof<ppT>::write_proof(boost::filesystem::path path)
+void extended_proof<ppT>::write_proof(boost::filesystem::path path) const
 {
     proofToJson<ppT>(*this->proof, path);
 };
 
 template<typename ppT>
-void extended_proof<ppT>::write_extended_proof(boost::filesystem::path path)
+void extended_proof<ppT>::write_extended_proof(
+    boost::filesystem::path path) const
 {
     proofAndInputToJson<ppT>(*this->proof, *this->primary_inputs, path);
 };
 
-template<typename ppT> void extended_proof<ppT>::dump_proof()
+template<typename ppT> void extended_proof<ppT>::dump_proof() const
 {
     displayProof<ppT>(*this->proof);
 };
