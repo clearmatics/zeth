@@ -21,8 +21,8 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> gen_trusted_setup(
 
 template<typename ppT>
 bool verify(
-    libzeth::extended_proof<ppT> ext_proof,
-    libsnark::r1cs_gg_ppzksnark_verification_key<ppT> verification_key);
+    const libzeth::extended_proof<ppT> &ext_proof,
+    const libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &verification_key);
 
 } // namespace libzeth
 
