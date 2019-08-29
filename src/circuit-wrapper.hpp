@@ -42,7 +42,7 @@ public:
         bits64 vpub_out,
         const bits256 h_sig_in,
         const bits256 phi_in,
-        provingKeyT<ppT> proving_key) const;
+        const provingKeyT<ppT> &proving_key) const;
 };
 
 } // namespace libzeth

@@ -20,10 +20,11 @@ libsnark::r1cs_gg_ppzksnark_proof<ppT> gen_proof(
     libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary_input =
         pb.auxiliary_input();
 
-    // Generate proof from public input, auxiliary input (private/secret data),
-    // and proving key
+    // Generate proof from public input, auxiliary input
+    // (private/secret data), and proving key.  For now, force a pow2
+    // domain, in case the key came from the MPC.
     proofT<ppT> proof = libsnark::r1cs_gg_ppzksnark_prover(
-        proving_key, primary_input, auxiliary_input);
+        proving_key, primary_input, auxiliary_input, true);
 
     return proof;
 };
