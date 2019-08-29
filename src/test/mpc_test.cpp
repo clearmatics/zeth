@@ -36,7 +36,8 @@ TEST(MPCTests, LinearCombination)
         dummy_powersoftau_from_secrets(tau, alpha, beta, qap.degree());
 
     // linear combination
-    const srs_mpc_layer_L1 layer1 = mpc_compute_linearcombination(pot, qap);
+    const srs_mpc_layer_L1<ppT> layer1 =
+        mpc_compute_linearcombination<ppT>(pot, qap);
 
     // Without knowlege of tau, not many checks can be performed
     // beyond the ratio of terms in [ t(x) . x^i ]_1.
@@ -115,7 +116,7 @@ TEST(MPCTests, Layer2)
     size_t num_variables = qap.num_variables();
     size_t num_inputs = qap.num_inputs();
 
-    srs_mpc_layer_L1 layer1 = mpc_compute_linearcombination(pot, qap);
+    srs_mpc_layer_L1<ppT> layer1 = mpc_compute_linearcombination<ppT>(pot, qap);
 
     // Final key pair
     const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_dummy_layer2(
