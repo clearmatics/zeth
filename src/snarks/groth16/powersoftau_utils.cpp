@@ -1,4 +1,3 @@
-
 #include "powersoftau_utils.hpp"
 
 namespace libzeth
