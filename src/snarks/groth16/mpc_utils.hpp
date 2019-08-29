@@ -1,7 +1,7 @@
 #ifndef __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
 #define __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
 
-#include "snarks/groth16/powersoftau_utils.hpp"
+#include "include_libsnark.hpp"
 
 #include <vector>
 
@@ -23,6 +23,9 @@
 
 namespace libzeth
 {
+
+template<typename ppT> class srs_powersoftau;
+template<typename ppT> class srs_lagrange_evaluations;
 
 /// Output from linear combination $L_1$ - the linear combination of
 /// elements in powersoftau, based on a specific circuit.
@@ -53,6 +56,7 @@ public:
 
     size_t degree() const;
 
+    bool is_well_formed() const;
     void write(std::ostream &out) const;
     static srs_mpc_layer_L1 read(std::istream &in);
 };
@@ -81,6 +85,7 @@ public:
         libff::G1_vector<ppT> &&H_g1,
         libff::G1_vector<ppT> &&L_g1);
 
+    bool is_well_formed() const;
     void write(std::ostream &out) const;
     static srs_mpc_layer_C2 read(std::istream &in);
 };
@@ -104,6 +109,15 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     srs_mpc_layer_C2<ppT> &&layer2,
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
+
+/// Check proving key entries
+template<typename ppT>
+bool is_well_formed(const libsnark::r1cs_gg_ppzksnark_proving_key<ppT> &pk);
+
+/// Check verification key entries
+template<typename ppT>
+bool is_well_formed(
+    const libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &vk);
 
 /// Write a keypair to a stream.
 template<typename ppT>

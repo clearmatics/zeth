@@ -3,6 +3,7 @@
 #include "snarks/groth16/evaluator_from_lagrange.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "snarks/groth16/multi_exp.hpp"
+#include "snarks/groth16/powersoftau_utils.hpp"
 #include "test/simple_test.hpp"
 #include "util.hpp"
 

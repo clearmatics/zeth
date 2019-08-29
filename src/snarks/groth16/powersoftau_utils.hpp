@@ -35,6 +35,8 @@ public:
         libff::G1_vector<ppT> &&alpha_tau_powers_g1,
         libff::G1_vector<ppT> &&beta_tau_g1,
         const libff::G2<ppT> &beta_g2);
+
+    bool is_well_formed() const;
 };
 
 /// Encodings of lagrange polynomials at tau, computed from
@@ -63,6 +65,7 @@ public:
         std::vector<libff::G1<ppT>> &&alpha_lagrange_g1,
         std::vector<libff::G1<ppT>> &&beta_lagrange_g1);
 
+    bool is_well_formed() const;
     void write(std::ostream &out) const;
     static srs_lagrange_evaluations read(std::istream &in);
 };

@@ -1,7 +1,5 @@
 #include "powersoftau_utils.hpp"
 
-#include <thread>
-
 namespace libzeth
 {
 
@@ -281,16 +279,20 @@ srs_powersoftau<ppT> powersoftau_load(std::istream &in, size_t n)
     G2 beta_g2;
     read_powersoftau_g2(in, beta_g2);
 
-    return srs_powersoftau<ppT>(
+    srs_powersoftau<ppT> pot(
         std::move(tau_powers_g1),
         std::move(tau_powers_g2),
         std::move(alpha_tau_powers_g1),
         std::move(beta_tau_powers_g1),
         beta_g2);
+    check_well_formed(pot, "powersoftau (load)");
+    return pot;
 }
 
 void powersoftau_write(std::ostream &out, const srs_powersoftau<ppT> &pot)
 {
+    check_well_formed(pot, "powersoftau (write)");
+
     // Fake the hash
     uint8_t hash[64];
     memset(hash, 0, sizeof(hash));
