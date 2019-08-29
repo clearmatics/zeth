@@ -20,6 +20,12 @@ python -m venv zeth-devenv
 source zeth-devenv/bin/activate
 ```
 
+### Update pip to the latest version
+
+```
+pip install --upgrade pip
+```
+
 ### Install the dependencies
 
 ```
