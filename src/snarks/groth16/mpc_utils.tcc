@@ -1,6 +1,8 @@
-#include "mpc_utils.hpp"
+#ifndef __ZETH_SNARKS_GROTH16_MPC_UTILS_TCC__
+#define __ZETH_SNARKS_GROTH16_MPC_UTILS_TCC__
 
 #include "evaluator_from_lagrange.hpp"
+#include "mpc_utils.hpp"
 #include "multi_exp.hpp"
 
 #include <libff/algebra/scalar_multiplication/multiexp.hpp>
@@ -8,16 +10,8 @@
 namespace libzeth
 {
 
-using ppT = libff::default_ec_pp;
-using Fr = libff::Fr<ppT>;
-using G1 = libff::G1<ppT>;
-using G2 = libff::G2<ppT>;
-
-// -----------------------------------------------------------------------------
-// srs_mpc_layer_L1
-// -----------------------------------------------------------------------------
-
-srs_mpc_layer_L1::srs_mpc_layer_L1(
+template<typename ppT>
+srs_mpc_layer_L1<ppT>::srs_mpc_layer_L1(
     libff::G1_vector<ppT> &&T_tau_powers_g1,
     libff::G1_vector<ppT> &&A_g1,
     libff::G1_vector<ppT> &&B_g1,
@@ -31,9 +25,15 @@ srs_mpc_layer_L1::srs_mpc_layer_L1(
 {
 }
 
-srs_mpc_layer_L1 mpc_compute_linearcombination(
-    const srs_powersoftau &pot, const libsnark::qap_instance<Fr> &qap)
+template<typename ppT>
+srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
+    const srs_powersoftau &pot,
+    const libsnark::qap_instance<libff::Fr<ppT>> &qap)
 {
+    using Fr = libff::Fr<ppT>;
+    using G1 = libff::G1<ppT>;
+    using G2 = libff::G2<ppT>;
+
     libfqfft::evaluation_domain<Fr> &domain = *qap.domain;
 
     // n = number of constraints in qap / degree of t().
@@ -116,7 +116,7 @@ srs_mpc_layer_L1 mpc_compute_linearcombination(
     // by this circuit and using sparse vectors where it makes sense
     // (as is done for B_i's in r1cs_gg_ppzksnark_proving_key).
 
-    return srs_mpc_layer_L1(
+    return srs_mpc_layer_L1<ppT>(
         std::move(t_x_pow_i),
         std::move(A_i_g1),
         std::move(B_i_g1),
@@ -124,13 +124,18 @@ srs_mpc_layer_L1 mpc_compute_linearcombination(
         std::move(ABC_i_g1));
 }
 
+template<typename ppT>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
     srs_powersoftau &&pot,
-    srs_mpc_layer_L1 &&layer1,
-    const Fr &delta,
-    libsnark::r1cs_constraint_system<Fr> &&cs,
-    const libsnark::qap_instance<Fr> &qap)
+    srs_mpc_layer_L1<ppT> &&layer1,
+    const libff::Fr<ppT> &delta,
+    libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
+    const libsnark::qap_instance<libff::Fr<ppT>> &qap)
 {
+    using Fr = libff::Fr<ppT>;
+    using G1 = libff::G1<ppT>;
+    using G2 = libff::G2<ppT>;
+
     const Fr delta_inverse = delta.inverse();
 
     // { H_i } = { [ t(x) . x^i / delta ]_i } i = 0 .. m-1
@@ -200,3 +205,5 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
 }
 
 } // namespace libzeth
+
+#endif // __ZETH_SNARKS_GROTH16_MPC_UTILS_TCC__

@@ -24,11 +24,9 @@
 namespace libzeth
 {
 
-using ppT = libff::default_ec_pp;
-
 /// Output from linear combination $L_1$ - the linear combination of
 /// elements in powersoftau, based on a specific circuit.
-class srs_mpc_layer_L1
+template<typename ppT> class srs_mpc_layer_L1
 {
 public:
     /// { [ t(x) . x^i ]_1 }  i = 0 .. n-1
@@ -57,7 +55,8 @@ public:
 /// Given a circuit and a powersoftau with pre-computed lagrange
 /// polynomials, perform the correct linear combination for the CRS
 /// MPC.
-srs_mpc_layer_L1 mpc_compute_linearcombination(
+template<typename ppT>
+srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     const srs_powersoftau &pot,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
@@ -65,13 +64,16 @@ srs_mpc_layer_L1 mpc_compute_linearcombination(
 /// layer computation using just local randomness.  This is not a
 /// substitute for the full MPC with an auditable log of
 /// contributions, but is useful for testing.
+template<typename ppT>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
-    powersoftau &&pot,
-    srs_mpc_layer_L1 &&layer1,
+    srs_powersoftau &&pot,
+    srs_mpc_layer_L1<ppT> &&layer1,
     const libff::Fr<ppT> &delta,
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
 } // namespace libzeth
+
+#include "snarks/groth16/mpc_utils.tcc"
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
