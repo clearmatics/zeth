@@ -6,9 +6,9 @@
 #include <vector>
 
 // Structures and utility functions related to CRS generation via an
-// MPC.  Following [BoweGM17], the circuit $C$ generating the SRS is
+// MPC. Following [BoweGM17], the circuit $C$ generating the SRS is
 // considered to be made up of 3 layers: $C = C_1 L_1 C_2$.  The
-// output from $C_1$ is exactly the powersoftau data.  $L_1$
+// output from $C_1$ is exactly the powersoftau data. $L_1$
 // represents the linear combination based on a specific QAP, and
 // $C_2$ is the output from Phase2 of the MPC.
 //
@@ -53,15 +53,14 @@ public:
 };
 
 /// Given a circuit and a powersoftau with pre-computed lagrange
-/// polynomials, perform the correct linear combination for the CRS
-/// MPC.
+/// polynomials, perform the correct linear combination for the CRS MPC.
 template<typename ppT>
 srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     const srs_powersoftau &pot,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
 /// Given the output from the first layer of the MPC, perform the 2nd
-/// layer computation using just local randomness.  This is not a
+/// layer computation using just local randomness for delta. This is not a
 /// substitute for the full MPC with an auditable log of
 /// contributions, but is useful for testing.
 template<typename ppT>
