@@ -116,28 +116,35 @@ target_link_libraries(
 ## Tests
 include(CTest)
 
-function(zeth_test TEST_NAME TEST_SOURCE)
-  add_executable(
-    ${TEST_NAME}
-    EXCLUDE_FROM_ALL
-    ${TEST_SOURCE}
-  )
+# A target which builds all tests, even if they will not be run.
+add_custom_target(build_tests)
+
+function(zeth_test TEST_NAME TEST_SOURCE IS_FAST_TEST)
+  add_executable(${TEST_NAME} EXCLUDE_FROM_ALL ${TEST_SOURCE})
   target_link_libraries(${TEST_NAME} zeth gtest_main)
-  add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-  add_dependencies(check ${TEST_NAME})
+
+  # Add all tests to the 'build_tests' target
+  add_dependencies(build_tests ${TEST_NAME})
+
+  if((NOT FAST_TESTS_ONLY) OR IS_FAST_TEST)
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+    add_dependencies(check ${TEST_NAME})
+  else()
+    message("Skipping slow test ${TEST_NAME}")
+  endif()
 endfunction(zeth_test)
 
-zeth_test(test_simple test/simple_test.cpp)
-zeth_test(test_addition test/packed_addition_test.cpp)
-zeth_test(test_hex_to_field test/hex_to_field_test.cpp)
-zeth_test(test_note test/note_test.cpp)
-zeth_test(test_prfs test/prfs_test.cpp)
-zeth_test(test_commitments test/commitments_test.cpp)
-zeth_test(test_round test/round_test.cpp)
-zeth_test(test_mimc test/mimc_test.cpp)
-zeth_test(test_mimc_mp test/mimc_mp_test.cpp)
-zeth_test(test_merkle_tree test/merkle_tree_test.cpp)
-zeth_test(test_prover test/prover_test.cpp)
+zeth_test(test_simple test/simple_test.cpp TRUE)
+zeth_test(test_addition test/packed_addition_test.cpp TRUE)
+zeth_test(test_hex_to_field test/hex_to_field_test.cpp TRUE)
+zeth_test(test_note test/note_test.cpp TRUE)
+zeth_test(test_prfs test/prfs_test.cpp TRUE)
+zeth_test(test_commitments test/commitments_test.cpp TRUE)
+zeth_test(test_round test/round_test.cpp TRUE)
+zeth_test(test_mimc test/mimc_test.cpp TRUE)
+zeth_test(test_mimc_mp test/mimc_mp_test.cpp TRUE)
+zeth_test(test_merkle_tree test/merkle_tree_test.cpp TRUE)
+zeth_test(test_prover test/prover_test.cpp FALSE)
 
 # prover test has extra dependencies
 target_link_libraries(

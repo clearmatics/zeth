@@ -36,6 +36,13 @@ set(
   "Default snark: one of PGHR13, GROTH16"
 )
 
+# Run only fast test (e.g. on CI machine)
+option(
+  FAST_TESTS_ONLY
+  "Include only fast-running tests"
+  OFF
+)
+
 # Flags and compilation options for use with libsnark
 set(
   CURVE # Variable name
@@ -91,7 +98,7 @@ if(APPLE)
   set(WITH_SUPERCOP OFF CACHE BOOL "Build libff with supercop")
 
   # (Currently) OpenMP only available with custom llvm compilers
-  if(${CMAKE_C_COMPILER} MATCHES "/cc$")
+  if(${CMAKE_C_COMPILER} MATCHES ".*cc$")
     set(MULTICORE OFF)
   endif()
 endif()
