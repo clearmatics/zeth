@@ -36,19 +36,22 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
 
     libfqfft::evaluation_domain<Fr> &domain = *qap.domain;
 
-    // n = number of constraints in qap / degree of t().
+    // n = number of constraints in r1cs, or equivalently, n = deg(t(x))
+    // t(x) being the target polynomial of the QAP
+    // Note: In the code-base the target polynomial is also denoted Z
+    // as refered to as "the vanishing polynomial", and t is also used
+    // to represent the query point (aka "tau").
     const size_t n = qap.degree();
     const size_t num_variables = qap.num_variables();
 
-    // Langrange polynomials, and therefore A, B, C will have order
-    // (n-1).  T has order n.  H.t() has order 2n-2, => H(.) has
-    // order:
-    //
-    //   2n-2 - n = n-2
-    //
-    // Therefore { t(x) . x^i } has 0 .. n-2 (n-1 of them), requiring
-    // requires powers of tau 0 ..  2.n-2 (2n-1 of them).  We should
-    // have at least this many, by definition.
+    // The QAP polynomials A, B, C are of degree (n-1) as we know they
+    // are created by interpolation of an r1cs of n constraints.
+    // As a consequence, the polynomial (A.B - C) is of degree 2n-2,
+    // while the target polynomial t is of degree n.
+    // Thus, we need to have access (in the SRS) to powers up to 2n-2.
+    // To represent such polynomials we need {x^i} for in {0, ... n-2}
+    // hence why we check below that we have at least n-1 elements
+    // in the set of powers of tau
     assert(pot.tau_powers_g1.size() >= 2 * n - 1);
 
     // n+1 coefficients of t
