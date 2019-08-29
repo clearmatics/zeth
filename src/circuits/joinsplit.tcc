@@ -622,8 +622,13 @@ public:
         // We allocate 2 field elements to pack the value of h_sig
         nb_elements += 2;
 
-        // We allocate 2 field elements to pack each malleability tags h_iS
-        nb_elements += NumInputs * 2;
+        // h_sig is represented by 2 field element (if we consider a digest_len of 256 bits)
+        nb_elements += libff::div_ceil(HashT::get_digest_len(), FieldT::capacity());
+
+        // Each non-malleability tags (h_i) is represented by 2 field elements (if we consider a digest_len of 256 bits)
+        for (size_t i = 0; i < NumInputs; i++) {
+            nb_elements += libff::div_ceil(HashT::get_digest_len(), FieldT::capacity());
+        }
 
         return nb_elements;
     }

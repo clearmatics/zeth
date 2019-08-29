@@ -32,6 +32,9 @@
 // Include the API for the given SNARK
 #include "snarks_api_imports.hpp"
 
+// Include hash function circuit
+#include "circuits/blake2s/blake2s_comp.hpp"
+
 using google::protobuf::Empty;
 
 using grpc::Server;

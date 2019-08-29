@@ -150,8 +150,9 @@ if __name__ == '__main__':
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
     cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]
     new_merkle_root_bob_to_bob = result_deposit_bob_to_bob[2]
-    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob[3]
-    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob[4]
+    pk_sender_bob_to_bob = result_deposit_bob_to_bob[3]
+    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob[4]
+    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob[5]
 
     print("- Balances after Bob's deposit: ")
     print_token_balances(
@@ -161,10 +162,14 @@ if __name__ == '__main__':
         mixer_instance.address
     )
 
+    # Construct sk and pk objects from bytes
+    alice_sk = zethUtils.get_private_key_from_bytes(keystore["Alice"]["AddrSk"]["encSK"])
+    pk_sender = zethUtils.get_public_key_from_bytes(pk_sender_bob_to_bob)
+
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she was the recipient
     # But she wasn't the recipient (Bob was), so she fails to decrypt
-    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_bob1, keystore["Alice"]["AddrSk"]["dk"], "alice")
-    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_bob2, keystore["Alice"]["AddrSk"]["dk"], "alice")
+    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_bob1, pk_sender, alice_sk, "alice")
+    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_bob2, pk_sender, alice_sk, "alice")
     assert (recovered_plaintext1 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
     assert (recovered_plaintext2 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
 
@@ -174,7 +179,8 @@ if __name__ == '__main__':
     mk_byte_tree = get_merkle_tree(mixer_instance)
     mk_path = zethUtils.compute_merkle_path(cm_address_bob_to_bob1, mk_tree_depth, mk_byte_tree)
     # Bob decrypts one of the note he previously received (useless here but useful if the payment came from someone else)
-    input_note_json = json.loads(zethUtils.decrypt(ciphertext_bob_to_bob1, keystore["Bob"]["AddrSk"]["dk"]))
+    bob_sk = zethUtils.get_private_key_from_bytes(keystore["Bob"]["AddrSk"]["encSK"])
+    input_note_json = json.loads(zethUtils.decrypt(ciphertext_bob_to_bob1, pk_sender, bob_sk))
     input_note_bob_to_charlie = zethGRPC.zethNoteObjFromParsed(input_note_json)
     # Execution of the transfer
     result_transfer_bob_to_charlie = zethTest.bob_to_charlie(
@@ -192,9 +198,10 @@ if __name__ == '__main__':
     cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie[0] # Bob -> Bob (Change)
     cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie[1] # Bob -> Charlie (payment to Charlie)
     new_merkle_root_bob_to_charlie = result_transfer_bob_to_charlie[2]
-    ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[3]
-    ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[4]
-    
+    pk_sender_bob_to_charlie = result_transfer_bob_to_charlie[3]
+    ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[4]
+    ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[5]
+
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = ""
     try:
@@ -222,9 +229,13 @@ if __name__ == '__main__':
         mixer_instance.address
     )
 
+    # Construct sk and pk objects from bytes
+    charlie_sk = zethUtils.get_private_key_from_bytes(keystore["Charlie"]["AddrSk"]["encSK"])
+    pk_sender = zethUtils.get_public_key_from_bytes(pk_sender_bob_to_charlie)
+
     # Charlie tries to decrypt the ciphertexts from Bob's previous transaction
-    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_charlie1, keystore["Charlie"]["AddrSk"]["dk"], "charlie")
-    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_charlie2, keystore["Charlie"]["AddrSk"]["dk"], "charlie")
+    recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_charlie1, pk_sender, charlie_sk, "charlie")
+    recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_charlie2, pk_sender, charlie_sk, "charlie")
     assert (recovered_plaintext1 == ""),"Charlie managed to decrypt a ciphertext that was not encrypted with his key!"
     assert (recovered_plaintext2 != ""),"Charlie should have been able to decrypt the ciphertext that was obtained with his key!"
 

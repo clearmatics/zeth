@@ -8,6 +8,7 @@
 #include "circuits/sha256/sha256_ethereum.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
+#include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
 
 namespace libzeth
 {

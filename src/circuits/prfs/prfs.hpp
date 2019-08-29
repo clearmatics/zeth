@@ -63,7 +63,7 @@ libsnark::pb_variable_array<FieldT> get_tag_rho(
     size_t index);
 
 // PRF to generate the public addresses
-// a_pk = sha256("1100" || [a_sk]_252 || 0^256): See ZCash protocol
+// a_pk = blake2s("1100" || [a_sk]_252 || 0^256): See ZCash protocol
 // specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_addr_a_pk_gadget : public PRF_gadget<FieldT, HashT>
@@ -78,8 +78,8 @@ public:
 };
 
 // PRF to generate the nullifier
-// nf = sha256("1110" || [a_sk]_252 || rho): See ZCash protocol specification
-// paper, page 57
+// nf = blake2s("1110" || [a_sk]_252 || rho): See ZCash protocol
+// specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_nf_gadget : public PRF_gadget<FieldT, HashT>
 {
@@ -95,7 +95,7 @@ public:
 };
 
 // PRF to generate the h_i
-// h_i = sha256("0" || index || "00" || [a_sk]_252 || h_sig): See ZCash protocol
+// h_i = blake2s("0" || index || "00" || [a_sk]_252 || h_sig): See ZCash protocol
 // specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_pk_gadget : public PRF_gadget<FieldT, HashT>
@@ -112,8 +112,8 @@ public:
 };
 
 // PRF to generate rho
-// rho_i = sha256( "0" || index || "10" || [phi]_252 || h_sig): See ZCash
-// protocol specification paper, page 57
+// rho_i = blake2s( "0" || index || "10" || [phi]_252 || h_sig): See ZCash protocol
+// specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_rho_gadget : public PRF_gadget<FieldT, HashT>
 {

@@ -59,51 +59,38 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
 
     // Get a_pk from a_sk (PRF)
     //
-    // a_sk = 0xFF0000000000000000000000000000000000000000000000000000000000000F
-    // 0^256 =
-    // 0x0000000000000000000000000000000000000000000000000000000000000000 a_pk =
-    // sha256( 1100 || [a_sk]_252 || 0^256) Generated directly from a_sk and
-    // solidity sha256 (solidity v0.5.0)
-    bits256 a_pk_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("5c36fea42b82800d74304aa4f875142b42"
-                                            "1b4f2847e7c41c1077fbbcfd63f886"));
+    // 1100 || [a_sk]_252 = 0xCFF0000000000000000000000000000000000000000000000000000000000000
+    // 0^256 = 0x0000000000000000000000000000000000000000000000000000000000000000
+    // a_pk = blake2s( 1100 || [a_sk]_252 || 0^256)
+    // Generated directly from a_sk and hashlib blake2s
+    bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49"));
 
     // Get nf from a_sk and rho (PRF)
     //
-    // nf = sha256( 1110 || [a_sk]_252 || rho)
-    // a_sk: 0xFF0000000000000000000000000000000000000000000000000000000000000F
-    // '01 || [rho]_254' =
-    // 0x8FFFC00000000000000000000000000000000000000000000000000000002402 The
-    // test vector generated directly from a_sk and solidity sha256 (solidity
-    // v0.5.0), gives: nf =
-    // 0x69f12603c2cfb2acf6f80a8f72cbdeb4417a6b8c7290e793c4d22830c4b35c5f
-    bits256 nf_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("d7b310c2179ffb1561870e7783ef812f49"
-                                            "b86c368ec1688da6973490530ad731"));
+    // nf = blake2s( 1110 || [a_sk]_252 || rho)
+    // 1110 || [a_sk]_252: 0xEFF0000000000000000000000000000000000000000000000000000000000000
+    // rho = FFFF000000000000000000000000000000000000000000000000000000009009
+    // The test vector generated directly from a_sk and hashlib blake2s, gives:
+    bits256 nf_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7"));
 
     // Get the coin's commitment (COMM)
     //
-    // inner_k = sha256(a_pk || rho)
-    // outer_k = sha256(r || [inner_commitment]_128)
-    // cm = sha256(outer_k || 0^192 || value_v)
-    // Converted from old hex string
-    // "a8ab7c0cccb5d4cc8680b8d542d6745ab28d588e4dd6d40ee4d22cd7a544e74c"
-    // (big-endian)
-    FieldT cm_field = FieldT("7629154557169072753909110937311160500750602617703"
-                             "2131593675024857191760062284");
-    libff::leave_block(
-        "Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
+    // inner_k = blake2s(a_pk || rho)
+    // outer_k = blake2s(r || [inner_commitment]_128)
+    // cm = blake2s(outer_k || 0^192 || value_v)
+    // Converted from old hex string "c8095fff642b3eba57f195ef3e27dcf424b470a22a3bb05704836cda21249d66" (big-endian)
+    FieldT cm_field = FieldT("90479133891474647501306997235646353965064483568906678810249472230384841563494");
+    libff::leave_block("Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
-    libff::enter_block(
-        "Setup a local merkle tree and append our commitment to it", true);
-    std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
-        std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(ZETH_MERKLE_TREE_DEPTH));
+    libff::enter_block("Setup a local merkle tree and append our commitment to it", true);
+    std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree = std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
+        new merkle_tree_field<FieldT, HashTreeT>(
+            ZETH_MERKLE_TREE_DEPTH
+        )
+    );
 
-    // In practice the address is emitted by the mixer contract once the
-    // commitment is appended to the tree
-    libff::bit_vector address_bits = {
-        1, 0, 0, 0}; // The length 4 being the value of ZETH_MERKLE_TREE_DEPTH
+    // In practice the address is emitted by the mixer contract once the commitment is appended to the tree
+    libff::bit_vector address_bits = {1, 0, 0, 0}; // The length 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
 
     test_merkle_tree->set_value(address_commitment, cm_field);

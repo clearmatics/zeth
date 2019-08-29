@@ -140,9 +140,9 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
     // Note: (we want to make sure that we generate the same digests both
     // on-chain and off-chain)
     libsnark::pb_variable_array<FieldT> a_pk_expected = from_bits(
-        hexadecimal_digest_to_binary_vector(
-            "208f95ee37621c3c2d9c74be39bf687c47e84c679b88df270858067c08a16daf"),
-        ZERO);
+        hexadecimal_digest_to_binary_vector("2390c9e5370be7355f220b29caf3912ef970d828b73976ae9bfeb1402ce4c1f9"),
+        ZERO
+    );
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(
@@ -253,9 +253,9 @@ TEST(TestPRFs, TestPRFNFGadget)
     // (we want to make sure that we generate the same digests both on-chain and
     // off-chain)
     libsnark::pb_variable_array<FieldT> nf_expected = from_bits(
-        hexadecimal_digest_to_binary_vector(
-            "4a5f4f585dda39cc597366f9172bae924d22e832487e12e76742dbab9393b620"),
-        ZERO);
+        hexadecimal_digest_to_binary_vector("ea43866d185e1bdb84713b699a2966d929d1392488c010c603e46a4cb92986f8"),
+        ZERO
+    );
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(
@@ -366,9 +366,9 @@ TEST(TestPRFs, TestPRFPKGadget)
     // (we want to make sure that we generate the same digests both on-chain and
     // off-chain))
     libsnark::pb_variable_array<FieldT> h_expected0 = from_bits(
-        hexadecimal_digest_to_binary_vector(
-            "7ea1525fdbf9462c5144796937e1f80b9dad42369f7d4987c436b2f79257f9ac"),
-        ZERO);
+        hexadecimal_digest_to_binary_vector("8527fb92081cf832659a188163287f98b8c919401ba619d6ebd30dc0f1aedeff"),
+        ZERO
+    );
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result0;
     result0.reset(
@@ -382,9 +382,9 @@ TEST(TestPRFs, TestPRFPKGadget)
     prf_pk_gadget0->generate_r1cs_witness();
 
     libsnark::pb_variable_array<FieldT> h_expected1 = from_bits(
-        hexadecimal_digest_to_binary_vector(
-            "33fcc4f4ccdbe0854d633eb3b0889a4a54146ff4bde1ec73c0c87329a3728c4e"),
-        ZERO);
+        hexadecimal_digest_to_binary_vector("aea510673ff50225bec4bd918c102ea0c9b117b93534644ee70b74522b204b29"),
+        ZERO
+    );
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result1;
     result1.reset(
@@ -496,9 +496,9 @@ TEST(TestPRFs, TestPRFRhoGadget)
     // (we want to make sure that we generate the same digests both on-chain and
     // off-chain)
     libsnark::pb_variable_array<FieldT> rho_expected0 = from_bits(
-        hexadecimal_digest_to_binary_vector(
-            "a87c47a6c721bdbbb4aa8875c2aa72d4db31b9526aa920656049e00786f7f8a4"),
-        ZERO);
+        hexadecimal_digest_to_binary_vector("d7b7c4536bbba1aaca684706ba0df170af95515d573ad93e30015e1c40ebc539"),
+        ZERO
+    );
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result0;
     result0.reset(
@@ -512,9 +512,9 @@ TEST(TestPRFs, TestPRFRhoGadget)
     prf_rho_gadget0->generate_r1cs_witness();
 
     libsnark::pb_variable_array<FieldT> rho_expected1 = from_bits(
-        hexadecimal_digest_to_binary_vector(
-            "6da328efaf4ccdea318d086c0e30be4b7cf61accc37a3e760e46f367d811a3e3"),
-        ZERO);
+        hexadecimal_digest_to_binary_vector("bb17f6088e47a8b2ac8e3d57588d52fed63079dc2b7045561d6d5e7288384249"),
+        ZERO
+    );
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result1;
     result1.reset(

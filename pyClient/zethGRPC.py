@@ -1,11 +1,11 @@
 from Crypto import Random
 import os
 import json
-import hashlib
 import sys
 
-# Access the encoding functions
+# Access the encoding and hash functions
 from eth_abi import encode_single, encode_abi
+from hashlib import blake2s, sha256
 
 # Access the gRPC service and the proto messages
 import grpc
@@ -55,7 +55,7 @@ def hex32bytes(element):
     res = "00"*int((64-len(res))/2) + res
     return res
 
-# Compute h_sig = sha256(randomSeed, nf0, nf1, joinSplitPubKey)
+# Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
 def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
     # Flatten the verification key
     JSPubKeyHex = [item for sublist in joinSplitPubKey for item in sublist]
@@ -65,7 +65,7 @@ def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
         # For each element of the list, convert it to an hex and append it
         vk_hex += hex32bytes( "{0:0>4X}".format(int(item)) )
 
-    h_sig = hashlib.sha256(
+    h_sig = blake2s(
         encode_abi(['bytes32', 'bytes32', 'bytes32', 'bytes'], (bytes.fromhex(randomSeed), bytes.fromhex(nf0), bytes.fromhex(nf1), bytes.fromhex(vk_hex)) )
     ).hexdigest()
 
@@ -153,20 +153,20 @@ def hexFmt(string):
 # Used by the recipient of a payment to recompute the commitment and check the membership in the tree
 # to confirm the validity of a payment
 def computeCommitment(zethNoteGRPCObj):
-    # inner_k = sha256(a_pk || rho)
-    inner_k = hashlib.sha256(
+    # inner_k = blake2s(a_pk || rho)
+    inner_k = blake2s(
         encode_abi(['bytes32', 'bytes32'], (bytes.fromhex(zethNoteGRPCObj.aPK), bytes.fromhex(zethNoteGRPCObj.rho)))
     ).hexdigest()
 
     # outer_k = sha256(r || [inner_k]_128)
     first128InnerComm = inner_k[0:128]
-    outer_k = hashlib.sha256(
+    outer_k = blake2s(
         encode_abi(['bytes', 'bytes'], (bytes.fromhex(zethNoteGRPCObj.trapR), bytes.fromhex(first128InnerComm)))
     ).hexdigest()
 
     # cm = sha256(outer_k || 0^192 || value_v)
     frontPad = "000000000000000000000000000000000000000000000000"
-    cm = hashlib.sha256(
+    cm = blake2s(
         encode_abi(["bytes32", "bytes32"], (bytes.fromhex(outer_k), bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
     ).hexdigest()
     return cm
@@ -175,18 +175,18 @@ def hexadecimalDigestToBinaryString(digest):
     binary = lambda x: "".join(reversed( [i+j for i,j in zip( *[ ["{0:04b}".format(int(c,16)) for c in reversed("0"+x)][n::2] for n in [1,0]])]))
     return binary(digest)
 
-# Returns nf = sha256(1110 || [a_sk]_252 || rho)
+# Returns nf = blake2s(1110 || [a_sk]_252 || rho)
 def computeNullifier(zethNote, spendingAuthAsk):
     binaryAsk = hexadecimalDigestToBinaryString(spendingAuthAsk)
     first252Ask = binaryAsk[:252]
     leftLegBin = "1110" + first252Ask
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
-    nullifier = hashlib.sha256(
+    nullifier = blake2s(
         encode_abi(["bytes32", "bytes32"], [bytes.fromhex(leftLegHex), bytes.fromhex(zethNote.rho)])
     ).hexdigest()
     return nullifier
 
-# Returns h_i = sha256(0 || i || 00 || [a_sk]_252 || hsig)
+# Returns h_i = blake2s(0 || i || 00 || [a_sk]_252 || hsig)
 # See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
 def computeHi(ask, hsig, i):
     # [SANITY CHECK] make sure i is in the interval [0, 1]
@@ -200,13 +200,12 @@ def computeHi(ask, hsig, i):
     leftLegBin = "0" + str(i) + "00" + first252Ask
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
 
-    print(encode_abi(["bytes32", "bytes32"], [bytes.fromhex(leftLegHex), bytes.fromhex(hsig)]))
-    h_i = hashlib.sha256(
+    h_i = blake2s(
         encode_abi(["bytes32", "bytes32"], [bytes.fromhex(leftLegHex), bytes.fromhex(hsig)])
     ).hexdigest()
     return h_i
 
-# Returns rho_i = sha256(0 || i || 10 || [phi]_252 || hsig)
+# Returns rho_i = blake2s(0 || i || 10 || [phi]_252 || hsig)
 # See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
 def computeRhoi(phi, hsig, i):
     # [SANITY CHECK] make sure i is in the interval [0, 1]
@@ -220,7 +219,7 @@ def computeRhoi(phi, hsig, i):
     leftLegBin = "0" + str(i) + "10" + first252Phi
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
 
-    rho_i = hashlib.sha256(
+    rho_i = blake2s(
         encode_abi(["bytes32", "bytes32"], [bytes.fromhex(leftLegHex), bytes.fromhex(hsig)])
     ).hexdigest()
     return rho_i
@@ -228,14 +227,14 @@ def computeRhoi(phi, hsig, i):
 def int64ToHexadecimal(number):
     return '{:016x}'.format(number)
 
-# Returns a_pk = sha256(1100 || [a_sk]_252 || 0^256)
+# Returns a_pk = blake2s(1100 || [a_sk]_252 || 0^256)
 def deriveAPK(ask):
     binaryAsk = hexadecimalDigestToBinaryString(ask)
     first252Ask = binaryAsk[:252]
     leftLegBin = "1100" + first252Ask
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
     zeroes = "0000000000000000000000000000000000000000000000000000000000000000"
-    a_pk = hashlib.sha256(
+    a_pk = blake2s(
         encode_abi(["bytes32", "bytes32"], [bytes.fromhex(leftLegHex), bytes.fromhex(zeroes)])
     ).hexdigest()
     return a_pk
@@ -308,7 +307,6 @@ def encodeToHash(messages):
 # The public values are encoded over one field element
 def encodeInputToHash(messages):
     input_sha = bytearray()
-    print(messages)
 
     # Flatten the input list
     if any(isinstance(el, list) for el in messages):
@@ -413,7 +411,7 @@ def sign(keypair, hash_ciphers, hash_proof, hash_inputs):
         bytes.fromhex(hash_ciphers),
         bytes.fromhex(hash_proof),
         bytes.fromhex(hash_inputs)])
-    data_hex = hashlib.sha256(data_to_sign).hexdigest()
+    data_hex = sha256(data_to_sign).hexdigest()
 
     # Convert the hex digest into a field element
     h = int(data_hex, 16) % constants.ZETH_PRIME
