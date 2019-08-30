@@ -155,7 +155,6 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
     const size_t num_orig_ABC = layer1.ABC_g1.size();
     const size_t num_variables = qap.num_variables();
     const size_t num_inputs = qap.num_inputs();
-    const size_t num_L_elements = num_variables - num_inputs;
 
     assert(num_orig_ABC == num_variables + 1);
 
@@ -169,8 +168,9 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
     assert(B_i.size() == qap.num_variables() + 1);
 
     // { L_i } = [ { ABC_i / delta } ]_1, i = l+1 .. num_variables
+    const size_t num_L_elements = num_variables - num_inputs;
     libff::G1_vector<ppT> L_g1(num_L_elements);
-    for (size_t i = num_inputs + 1 ; i < num_variables + 1; ++i) {
+    for (size_t i = num_inputs + 1; i < num_variables + 1; ++i) {
         L_g1[i - num_inputs - 1] = delta_inverse * layer1.ABC_g1[i];
     }
     assert(L_g1.size() == qap.num_variables() - qap.num_inputs());
