@@ -173,4 +173,76 @@ std::vector<bool> convert_int_to_binary(int x)
     return ret;
 }
 
+static uint8_t hex_nibble(const char c)
+{
+    const char cc = std::tolower(c);
+    assert((cc >= '0' && cc <= '9') || (cc >= 'a' && cc <= 'z'));
+    if (cc <= '9') {
+        return cc - '0';
+    }
+
+    return cc - 'a' + 10;
+}
+
+static uint8_t hex_byte(const char *cs)
+{
+    const uint8_t *data = (const uint8_t *)cs;
+    return (hex_nibble(data[0]) << 4) | hex_nibble(data[1]);
+}
+
+static char nibble_hex(const uint8_t nibble)
+{
+    assert((nibble & 0xf0) == 0);
+    if (nibble > 9) {
+        return 'a' + nibble - 10;
+    }
+
+    return '0' + nibble;
+}
+
+std::string hexadecimal_str_to_binary_str(const std::string &s)
+{
+    assert(s.size() % 2 == 0);
+    const char *cs = s.c_str();
+    std::string out;
+    out.reserve(s.size() / 2);
+    for (size_t i = 0; i < s.size(); i += 2) {
+        out.push_back((char)hex_byte(&cs[i]));
+    }
+
+    return out;
+}
+
+std::string binary_str_to_hexadecimal_str(const char *s, const size_t size)
+{
+    std::string out;
+    out.reserve(size * 2);
+
+    const uint8_t *in = (const uint8_t *)s;
+    for (size_t i = 0; i < size; ++i) {
+        const uint8_t byte = in[i];
+        // printf("byte: %x\n", (uint32_t)byte);
+        out.push_back(nibble_hex(byte >> 4));
+        out.push_back(nibble_hex(byte & 0x0f));
+    }
+
+    return out;
+}
+
+std::string binary_str_to_hexadecimal_str(const std::string &s)
+{
+    std::string out;
+    out.reserve(s.size() * 2);
+
+    const uint8_t *in = (const uint8_t *)s.c_str();
+    for (size_t i = 0; i < s.size(); ++i) {
+        const uint8_t byte = in[i];
+        // printf("byte: %x\n", (int)(int8_t)byte);
+        out.push_back(nibble_hex(byte >> 4));
+        out.push_back(nibble_hex(byte & 0x0f));
+    }
+
+    return out;
+}
+
 } // namespace libzeth
