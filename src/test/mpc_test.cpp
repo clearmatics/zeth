@@ -32,9 +32,9 @@ TEST(MPCTests, LinearCombination)
     Fr tau = Fr::random_element();
     Fr alpha = Fr::random_element();
     Fr beta = Fr::random_element();
-    const srs_powersoftau pot =
-        dummy_powersoftau_from_secrets(tau, alpha, beta, qap.degree());
-    const srs_lagrange_evaluations lagrange =
+    const srs_powersoftau<ppT> pot =
+        dummy_powersoftau_from_secrets<ppT>(tau, alpha, beta, qap.degree());
+    const srs_lagrange_evaluations<ppT> lagrange =
         powersoftau_compute_lagrange_evaluations(pot, qap.degree());
 
     // linear combination
@@ -112,8 +112,9 @@ TEST(MPCTests, Layer2)
     const G2 g2_generator = G2::one();
 
     // dummy POT and pre-compute lagrange evaluations
-    srs_powersoftau pot = dummy_powersoftau_from_secrets(tau, alpha, beta, n);
-    const srs_lagrange_evaluations lagrange =
+    srs_powersoftau<ppT> pot =
+        dummy_powersoftau_from_secrets<ppT>(tau, alpha, beta, n);
+    const srs_lagrange_evaluations<ppT> lagrange =
         powersoftau_compute_lagrange_evaluations(pot, n);
 
     // dummy circuit and CRS2
