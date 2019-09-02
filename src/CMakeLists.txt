@@ -173,3 +173,8 @@ target_link_libraries(
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
 )
+target_link_libraries(
+  test_mpc
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+)
