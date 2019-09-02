@@ -357,6 +357,27 @@ TEST(PowersOfTauTests, ComputeLagrangeEvaluation)
     }
 }
 
+TEST(PowersOfTauTests, SerializeG2)
+{
+    const Fr fr_7(7);
+    const G2 g2_7 = fr_7 * G2::one();
+
+    std::cout << "g2_7: " << to_hex(g2_7) << std::endl;
+
+    // Serialize
+    std::ostringstream out;
+    out << g2_7;
+    std::string g2_7_ser = out.str();
+    std::cout << "g2_7_ser: " << bin_to_hex(g2_7_ser) << std::endl;
+
+    // Deserialize
+    std::istringstream in(g2_7_ser);
+    G2 g2_7_deser;
+    in >> g2_7_deser;
+
+    ASSERT_EQ(g2_7, g2_7_deser);
+}
+
 TEST(PowersOfTauTests, SerializeLagrangeEvaluation)
 {
     const size_t n = 16;
