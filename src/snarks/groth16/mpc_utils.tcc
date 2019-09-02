@@ -46,8 +46,8 @@ srs_mpc_layer_L1<ppT>::srs_mpc_layer_L1(
 
 template<typename ppT>
 srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
-    const srs_powersoftau &pot,
-    const srs_lagrange_evaluations &lagrange,
+    const srs_powersoftau<ppT> &pot,
+    const srs_lagrange_evaluations<ppT> &lagrange,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap)
 {
     using Fr = libff::Fr<ppT>;
@@ -173,7 +173,7 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
 
 template<typename ppT>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
-    srs_powersoftau &&pot,
+    srs_powersoftau<ppT> &&pot,
     srs_mpc_layer_L1<ppT> &&layer1,
     const libff::Fr<ppT> &delta,
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
