@@ -54,7 +54,7 @@ template<typename T> std::string to_hex(const T &v)
 TEST(PowersOfTauTests, PowersOfTauValidation)
 {
     const size_t n = 16;
-    const srs_powersoftau pot = dummy_powersoftau(n);
+    const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(n);
 
     ASSERT_TRUE(powersoftau_validate(pot, n));
 
@@ -62,7 +62,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
     {
         libff::G1_vector<ppT> tau_powers_g1 = pot.tau_powers_g1;
         tau_powers_g1[2] = tau_powers_g1[2] + G1::one();
-        const srs_powersoftau tamper_tau_g1(
+        const srs_powersoftau<ppT> tamper_tau_g1(
             std::move(tau_powers_g1),
             libff::G2_vector<ppT>(pot.tau_powers_g2),
             libff::G1_vector<ppT>(pot.alpha_tau_powers_g1),
@@ -75,7 +75,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
     {
         libff::G2_vector<ppT> tau_powers_g2 = pot.tau_powers_g2;
         tau_powers_g2[2] = tau_powers_g2[2] + G2::one();
-        const srs_powersoftau tamper_tau_g2(
+        const srs_powersoftau<ppT> tamper_tau_g2(
             libff::G1_vector<ppT>(pot.tau_powers_g1),
             std::move(tau_powers_g2),
             libff::G1_vector<ppT>(pot.alpha_tau_powers_g1),
@@ -88,7 +88,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
     {
         libff::G1_vector<ppT> alpha_tau_powers_g1 = pot.alpha_tau_powers_g1;
         alpha_tau_powers_g1[2] = alpha_tau_powers_g1[2] + G1::one();
-        const srs_powersoftau tamper_alpha_tau_g1(
+        const srs_powersoftau<ppT> tamper_alpha_tau_g1(
             libff::G1_vector<ppT>(pot.tau_powers_g1),
             libff::G2_vector<ppT>(pot.tau_powers_g2),
             std::move(alpha_tau_powers_g1),
@@ -101,7 +101,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
     {
         libff::G1_vector<ppT> beta_tau_powers_g1 = pot.beta_tau_powers_g1;
         beta_tau_powers_g1[2] = beta_tau_powers_g1[2] + G1::one();
-        const srs_powersoftau tamper_beta_tau_g1(
+        const srs_powersoftau<ppT> tamper_beta_tau_g1(
             libff::G1_vector<ppT>(pot.tau_powers_g1),
             libff::G2_vector<ppT>(pot.tau_powers_g2),
             libff::G1_vector<ppT>(pot.alpha_tau_powers_g1),
@@ -112,7 +112,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
     }
 
     {
-        const srs_powersoftau tamper_beta_g2(
+        const srs_powersoftau<ppT> tamper_beta_g2(
             libff::G1_vector<ppT>(pot.tau_powers_g1),
             libff::G2_vector<ppT>(pot.tau_powers_g2),
             libff::G1_vector<ppT>(pot.alpha_tau_powers_g1),
@@ -252,7 +252,7 @@ TEST(PowersOfTauTests, ReadPowersOfTauOutput)
     const size_t n = 16;
 
     std::ifstream in(filename, std::ios_base::binary | std::ios_base::in);
-    srs_powersoftau pot = powersoftau_load(in, n);
+    srs_powersoftau<ppT> pot = powersoftau_load(in, n);
 
     ASSERT_TRUE(powersoftau_validate(pot, n));
 }
@@ -265,9 +265,9 @@ TEST(PowersOfTauTests, ComputeLagrangeEvaluation)
     Fr tau = Fr::random_element();
     Fr alpha = Fr::random_element();
     Fr beta = Fr::random_element();
-    const srs_powersoftau pot =
-        dummy_powersoftau_from_secrets(tau, alpha, beta, n);
-    const srs_lagrange_evaluations lagrange =
+    const srs_powersoftau<ppT> pot =
+        dummy_powersoftau_from_secrets<ppT>(tau, alpha, beta, n);
+    const srs_lagrange_evaluations<ppT> lagrange =
         powersoftau_compute_lagrange_evaluations(pot, n);
 
     // Compare to the naive evaluations obtained using iFFT in Fr, and
