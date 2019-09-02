@@ -1,6 +1,7 @@
 #include "circuit-wrapper.hpp"
 #include "circuits/sha256/sha256_ethereum.hpp"
 #include "snarks/groth16/evaluator_from_lagrange.hpp"
+#include "snarks/groth16/mpc_phase2.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "snarks/groth16/multi_exp.hpp"
 #include "snarks/groth16/powersoftau_utils.hpp"
