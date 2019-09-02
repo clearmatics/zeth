@@ -30,6 +30,30 @@ static r1cs_constraint_system<Fr> get_simple_constraint_system()
     return cs;
 }
 
+// (Deterministic) creation of accumulator
+template<typename ppT>
+static srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
+    libff::Fr<ppT> seed, size_t degree, size_t num_L_elements)
+{
+    libff::G1_vector<ppT> H_g1(degree - 1);
+    for (libff::G1<ppT> &h : H_g1) {
+        h = seed * libff::G1<ppT>::one();
+        seed = seed + libff::Fr<ppT>::one();
+    };
+
+    libff::G1_vector<ppT> L_g1(num_L_elements);
+    for (libff::G1<ppT> &l : L_g1) {
+        l = seed * libff::G1<ppT>::one();
+        seed = seed + libff::Fr<ppT>::one();
+    };
+
+    return srs_mpc_phase2_accumulator<ppT>(
+        libff::G1<ppT>::one(),
+        libff::G2<ppT>::one(),
+        std::move(H_g1),
+        std::move(L_g1));
+}
+
 TEST(MPCTests, LinearCombination)
 {
     // Compute the small test qap first, in order to extract the
@@ -71,7 +95,8 @@ TEST(MPCTests, LinearCombination)
     // Check that:
     //
     //   [ domain.Z(tau) ]_1 = layer1.T_tau_powers_g1[0]
-    //   [ beta . A_i(tau) + alpha . B_i(tau) + C_i(tau) ]_1 = layer1.ABC_g1[i]
+    //   [ beta . A_i(tau) + alpha . B_i(tau) + C_i(tau) ]_1 =
+    //     layer1.ABC_g1[i]
     {
         const qap_instance_evaluation<Fr> qap_evaluation = ([&tau] {
             protoboard<Fr> pb;
@@ -365,7 +390,7 @@ TEST(MPCTests, KeyPairReadWrite)
     ASSERT_EQ(keypair.vk, keypair_deserialized.vk);
 }
 
-TEST(MPCTests, HashTest)
+TEST(MPCTests, HashInterface)
 {
     // in: ""
     // out: 786a....be2ce
@@ -377,6 +402,370 @@ TEST(MPCTests, HashTest)
             binary_str_to_hexadecimal_str((const char *)(&hash), sizeof(hash)),
             "786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d2"
             "5e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce");
+    }
+
+    // in: "The quick brown fox jumps over the lazy dog"
+    // out: a8ad....a918
+    const std::string s = "The quick brown fox jumps over the lazy dog";
+    const std::string expect_hash_hex =
+        "a8add4bdddfd93e4877d2746e62817b116364a1fa7bc148d95090bc7333b3673f82401"
+        "cf7aa2e4cb1ecd90296e3f14cb5413f8ed77be73045b13914cdcd6a918";
+    {
+        srs_mpc_hash_t hash;
+        srs_mpc_compute_hash(hash, s);
+        ASSERT_EQ(
+            expect_hash_hex,
+            binary_str_to_hexadecimal_str((const char *)(&hash), sizeof(hash)));
+    }
+    {
+        srs_mpc_hash_t hash;
+        hash_ostream hs;
+        hs << s;
+        hs.get_hash(hash);
+        ASSERT_EQ(
+            expect_hash_hex,
+            binary_str_to_hexadecimal_str((const char *)(&hash), sizeof(hash)));
+    }
+}
+
+TEST(MPCTests, Phase2PublicKeyReadWrite)
+{
+    srs_mpc_hash_t empty_hash;
+    const uint8_t empty[0]{};
+    srs_mpc_compute_hash(empty_hash, empty, 0);
+
+    const size_t seed = 9;
+    const libff::Fr<ppT> secret_1 = libff::Fr<ppT>(seed - 1);
+    const srs_mpc_phase2_publickey<ppT> pubkey =
+        srs_mpc_phase2_compute_public_key<ppT>(empty_hash, G1::one(), secret_1);
+
+    std::string pubkey_serialized;
+    {
+        std::ostringstream out;
+        pubkey.write(out);
+        pubkey_serialized = out.str();
+    }
+
+    srs_mpc_phase2_publickey<ppT> pubkey_deserialized = [&]() {
+        std::istringstream in(pubkey_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return srs_mpc_phase2_publickey<ppT>::read(in);
+    }();
+
+    ASSERT_EQ(pubkey, pubkey_deserialized);
+}
+
+TEST(MPCTests, Phase2AccumulatorReadWrite)
+{
+    const size_t seed = 9;
+    const size_t degree = 16;
+    const size_t num_L_elements = 7;
+    const srs_mpc_phase2_accumulator<ppT> accumulator =
+        dummy_initial_accumulator<ppT>(
+            libff::Fr<ppT>(seed), degree, num_L_elements);
+
+    std::string accumulator_serialized;
+    {
+        std::ostringstream out;
+        accumulator.write(out);
+        accumulator_serialized = out.str();
+    }
+
+    srs_mpc_phase2_accumulator<ppT> accumulator_deserialized = [&]() {
+        std::istringstream in(accumulator_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return srs_mpc_phase2_accumulator<ppT>::read(in);
+    }();
+
+    ASSERT_EQ(accumulator, accumulator_deserialized);
+}
+
+TEST(MPCTests, Phase2ChallengeReadWrite)
+{
+    const size_t seed = 9;
+    const size_t degree = 16;
+    const size_t num_L_elements = 7;
+    const srs_mpc_phase2_challenge<ppT> challenge =
+        srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
+            libff::Fr<ppT>(seed), degree, num_L_elements));
+
+    std::string challenge_serialized;
+    {
+        std::ostringstream out;
+        challenge.write(out);
+        challenge_serialized = out.str();
+    }
+
+    srs_mpc_phase2_challenge<ppT> challenge_deserialized = [&]() {
+        std::istringstream in(challenge_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return srs_mpc_phase2_challenge<ppT>::read(in);
+    }();
+
+    ASSERT_EQ(
+        0,
+        memcmp(
+            challenge.transcript_digest,
+            challenge_deserialized.transcript_digest,
+            sizeof(srs_mpc_hash_t)));
+    ASSERT_EQ(challenge.accumulator, challenge_deserialized.accumulator);
+    ASSERT_EQ(challenge, challenge_deserialized);
+}
+
+TEST(MPCTests, Phase2ResponseReadWrite)
+{
+    const size_t seed = 9;
+    const size_t degree = 16;
+    const size_t num_L_elements = 7;
+    const srs_mpc_phase2_challenge<ppT> challenge =
+        srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
+            libff::Fr<ppT>(seed), degree, num_L_elements));
+    const libff::Fr<ppT> secret = libff::Fr<ppT>(seed - 1);
+    const srs_mpc_phase2_response<ppT> response =
+        srs_mpc_phase2_compute_response<ppT>(challenge, secret);
+
+    std::string response_serialized;
+    {
+        std::ostringstream out;
+        response.write(out);
+        response_serialized = out.str();
+    }
+
+    srs_mpc_phase2_response<ppT> response_deserialized = [&]() {
+        std::istringstream in(response_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return srs_mpc_phase2_response<ppT>::read(in);
+    }();
+
+    ASSERT_EQ(response, response_deserialized);
+}
+
+TEST(MPCTests, Phase2Accumulation)
+{
+    const size_t seed = 9;
+    const size_t degree = 16;
+    const size_t num_L_elements = 7;
+
+    // Initial challenge
+
+    const srs_mpc_phase2_challenge<ppT> challenge_0 =
+        srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
+            libff::Fr<ppT>(seed), degree, num_L_elements));
+
+    // Participant 1
+    const libff::Fr<ppT> secret_1 = libff::Fr<ppT>(seed - 1);
+    srs_mpc_phase2_response<ppT> response_1 =
+        srs_mpc_phase2_compute_response<ppT>(challenge_0, secret_1);
+    ASSERT_TRUE(srs_mpc_phase2_verify_response(challenge_0, response_1));
+    const srs_mpc_phase2_challenge<ppT> challenge_1 =
+        srs_mpc_phase2_compute_challenge<ppT>(std::move(response_1));
+
+    // Participant 2
+    const libff::Fr<ppT> secret_2 = libff::Fr<ppT>(seed - 2);
+    const srs_mpc_phase2_response<ppT> response_2 =
+        srs_mpc_phase2_compute_response<ppT>(challenge_1, secret_2);
+    ASSERT_TRUE(srs_mpc_phase2_verify_response(challenge_1, response_2));
+
+    // Verify the size ratio of final accumulator against the original.
+    const srs_mpc_phase2_accumulator<ppT> &init_accum = challenge_0.accumulator;
+    const srs_mpc_phase2_accumulator<ppT> &final_accum =
+        response_2.new_accumulator;
+    const libff::Fr<ppT> expect_delta((seed - 1) * (seed - 2));
+    const libff::Fr<ppT> expect_delta_inv = expect_delta.inverse();
+
+    ASSERT_EQ(expect_delta * libff::G1<ppT>::one(), final_accum.delta_g1);
+    ASSERT_EQ(expect_delta * libff::G2<ppT>::one(), final_accum.delta_g2);
+    ASSERT_EQ(init_accum.H_g1.size(), final_accum.H_g1.size());
+    for (size_t i = 0; i < init_accum.H_g1.size(); ++i) {
+        ASSERT_EQ(expect_delta_inv * init_accum.H_g1[i], final_accum.H_g1[i]);
+    }
+    ASSERT_EQ(init_accum.L_g1.size(), final_accum.L_g1.size());
+    for (size_t i = 0; i < init_accum.L_g1.size(); ++i) {
+        ASSERT_EQ(expect_delta_inv * init_accum.L_g1[i], final_accum.L_g1[i]);
+    }
+}
+
+TEST(MPCTests, Phase2HashToG2)
+{
+    // Check that independently created source values (at different locations
+    // in memory) give the same result.
+    const size_t seed = 9;
+    const G1 s_0 = Fr(seed - 1) * G1::one();
+    const G1 s_1 = Fr(seed - 1) * G1::one();
+    const G1 s_delta_j_0 = Fr(seed - 2) * s_0;
+    const G1 s_delta_j_1 = Fr(seed - 2) * s_1;
+    const uint8_t empty[0]{};
+    srs_mpc_hash_t hash_0;
+    srs_mpc_compute_hash(hash_0, empty, 0);
+    srs_mpc_hash_t hash_1;
+    srs_mpc_compute_hash(hash_1, empty, 0);
+
+    G2 g2_0 = srs_mpc_compute_r_g2<ppT>(s_0, s_delta_j_0, hash_0);
+    G2 g2_1 = srs_mpc_compute_r_g2<ppT>(s_1, s_delta_j_1, hash_1);
+    ASSERT_EQ(g2_0, g2_1);
+}
+
+TEST(MPCTests, Phase2PublicKeyGeneration)
+{
+    const size_t seed = 9;
+    const libff::Fr<ppT> last_secret(seed - 1);
+    const libff::Fr<ppT> secret(seed - 2);
+    const uint8_t empty[0]{};
+    srs_mpc_hash_t hash;
+    srs_mpc_compute_hash(hash, empty, 0);
+
+    const srs_mpc_phase2_publickey<ppT> publickey =
+        srs_mpc_phase2_compute_public_key<ppT>(
+            hash, last_secret * G1::one(), secret);
+
+    const libff::G2<ppT> r_g2 =
+        srs_mpc_compute_r_g2<ppT>(publickey.s_g1, publickey.s_delta_j_g1, hash);
+
+    ASSERT_EQ(
+        0, memcmp(hash, publickey.transcript_digest, sizeof(srs_mpc_hash_t)));
+    ASSERT_EQ(last_secret * secret * G1::one(), publickey.new_delta_g1);
+    ASSERT_EQ(secret * publickey.s_g1, publickey.s_delta_j_g1);
+    ASSERT_EQ(secret * r_g2, publickey.r_delta_j_g2);
+    ASSERT_TRUE(same_ratio<ppT>(
+        last_secret * G1::one(),
+        publickey.new_delta_g1,
+        r_g2,
+        publickey.r_delta_j_g2));
+    ASSERT_TRUE(same_ratio<ppT>(
+        publickey.s_g1, publickey.s_delta_j_g1, r_g2, publickey.r_delta_j_g2));
+}
+
+TEST(MPCTests, Phase2UpdateVerification)
+{
+    const size_t seed = 9;
+    const size_t degree = 16;
+    const size_t num_L_elements = 7;
+
+    // Initial accumulator
+    const srs_mpc_phase2_challenge<ppT> challenge(
+        srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
+            libff::Fr<ppT>(seed), degree, num_L_elements)));
+    const libff::Fr<ppT> secret(seed - 1);
+    const libff::Fr<ppT> invalid_secret(seed - 2);
+    const libff::Fr<ppT> invalid_secret_inv = invalid_secret.inverse();
+
+    // Valid response should pass checks
+    {
+        srs_mpc_phase2_response<ppT> response =
+            srs_mpc_phase2_compute_response(challenge, secret);
+        ASSERT_EQ(
+            0,
+            memcmp(
+                challenge.transcript_digest,
+                response.publickey.transcript_digest,
+                sizeof(srs_mpc_hash_t)));
+
+        // const auto &publickey = response.publickey;
+        // const libff::G2<ppT> r_g2 = srs_mpc_compute_r_g2<ppT>(
+        //     publickey.s_g1, publickey.s_delta_j_g1,
+        //     publickey.transcript_digest);
+
+        // ASSERT_EQ(
+        //     0,
+        //     memcmp(challenge.transcript_digest, publickey.transcript_digest,
+        //     sizeof(srs_mpc_hash_t)));
+        // ASSERT_EQ(
+        //     r_g2,
+        //     srs_mpc_compute_r_g2<ppT>(
+        //         publickey.s_g1, publickey.s_delta_j_g1,
+        //         challenge.transcript_digest));
+        // ASSERT_EQ(secret * G1::one(), publickey.new_delta_g1);
+        // ASSERT_EQ(secret * publickey.s_g1, publickey.s_delta_j_g1);
+        // ASSERT_EQ(secret * r_g2, publickey.r_delta_j_g2);
+        // ASSERT_TRUE(same_ratio<ppT>(G1::one(), publickey.new_delta_g1, r_g2,
+        // publickey.r_delta_j_g2)); ASSERT_TRUE(same_ratio<ppT>(publickey.s_g1,
+        // publickey.s_delta_j_g1, r_g2, publickey.r_delta_j_g2));
+
+        ASSERT_TRUE(srs_mpc_phase2_verify_response(challenge, response));
+    }
+
+    // Invalid publickey.transcript_digest
+    {
+        srs_mpc_phase2_response<ppT> response =
+            srs_mpc_phase2_compute_response(challenge, secret);
+        response.publickey.transcript_digest[srs_mpc_hash_array_length / 2] +=
+            1;
+        ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
+    }
+
+    // Inconsistent publickey.new_delta_g1
+    {
+        srs_mpc_phase2_response<ppT> response =
+            srs_mpc_phase2_compute_response(challenge, secret);
+        response.publickey.new_delta_g1 = invalid_secret * G1::one();
+        ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
+    }
+
+    // Invalid $s * delta_j$ in proof-of-knowledge
+    {
+        srs_mpc_phase2_response<ppT> response =
+            srs_mpc_phase2_compute_response(challenge, secret);
+        response.publickey.s_delta_j_g1 =
+            invalid_secret * response.publickey.s_g1;
+        ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
+    }
+
+    // Invalid $r * delta_j$ in proof-of-knowledge
+    {
+        srs_mpc_phase2_response<ppT> response =
+            srs_mpc_phase2_compute_response(challenge, secret);
+        const libff::G2<ppT> r_g2 = srs_mpc_compute_r_g2<ppT>(
+            response.publickey.s_g1,
+            response.publickey.s_delta_j_g1,
+            response.publickey.transcript_digest);
+        response.publickey.r_delta_j_g2 = invalid_secret * r_g2;
+        ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
+    }
+
+    // Inconsistent delta_1 in new accumulator
+    {
+        srs_mpc_phase2_response<ppT> response =
+            srs_mpc_phase2_compute_response(challenge, secret);
+        response.new_accumulator.delta_g1 =
+            invalid_secret * libff::G1<ppT>::one();
+        ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
+    }
+
+    // Inconsistent delta_2 in new accumulator
+    {
+        srs_mpc_phase2_response<ppT> response =
+            srs_mpc_phase2_compute_response(challenge, secret);
+        response.new_accumulator.delta_g2 =
+            invalid_secret * libff::G2<ppT>::one();
+        ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
+    }
+
+    // Inconsistent delta_G2, H_i
+    {
+        const size_t invalidate_idx = degree / 2;
+        srs_mpc_phase2_response<ppT> response =
+            srs_mpc_phase2_compute_response(challenge, secret);
+        response.new_accumulator.H_g1[invalidate_idx] =
+            invalid_secret_inv * challenge.accumulator.H_g1[invalidate_idx];
+        ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
+    }
+
+    // Inconsistent delta_G2, L_i
+    {
+        const size_t invalidate_idx = num_L_elements / 2;
+        srs_mpc_phase2_response<ppT> response =
+            srs_mpc_phase2_compute_response(challenge, secret);
+        response.new_accumulator.L_g1[invalidate_idx] =
+            invalid_secret_inv * challenge.accumulator.L_g1[invalidate_idx];
+        ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
     }
 }
 
