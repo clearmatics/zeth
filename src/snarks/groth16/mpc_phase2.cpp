@@ -34,4 +34,24 @@ void srs_mpc_compute_hash(
     srs_mpc_hash_final(s, out_hash);
 }
 
+void srs_mpc_compute_hash(srs_mpc_hash_t out_hash, const std::string &data)
+{
+    srs_mpc_compute_hash(out_hash, data.data(), data.size());
+}
+
+hash_streambuf::hash_streambuf() { srs_mpc_hash_init(hash_state); }
+
+std::streamsize hash_streambuf::xsputn(const char *s, std::streamsize n)
+{
+    srs_mpc_hash_update(hash_state, s, n);
+    return n;
+}
+
+hash_ostream::hash_ostream() : std::ostream(&hsb), hsb() {}
+
+void hash_ostream::get_hash(srs_mpc_hash_t out_hash)
+{
+    srs_mpc_hash_final(hsb.hash_state, out_hash);
+}
+
 } // namespace libzeth
