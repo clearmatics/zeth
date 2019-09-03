@@ -4,3 +4,6 @@
 [submodule "depends/googletest"]
     path = depends/googletest
     url = https://github.com/google/googletest.git
+[submodule "depends/blake2"]
+	path = depends/blake2
+	url = https://github.com/BLAKE2/BLAKE2

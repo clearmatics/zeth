@@ -1,6 +1,7 @@
 #ifndef __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__
 #define __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__
 
+#include "blake2.h"
 #include "include_libsnark.hpp"
 
 namespace libzeth
@@ -9,8 +10,17 @@ namespace libzeth
 template<typename ppT> class srs_powersoftau;
 template<typename ppT> class srs_mpc_layer_L1;
 
-const size_t srs_mpc_phase2_hash_size = 64;
-using srs_mpc_phase2_hash_t = uint8_t[srs_mpc_phase2_hash_size];
+// Hashing for MPC.  Streaming and whole-buffer interfaces.
+const size_t srs_mpc_hash_size = 64;
+const size_t srs_mpc_hash_array_length = srs_mpc_hash_size / sizeof(size_t);
+using srs_mpc_hash_t = size_t[srs_mpc_hash_array_length];
+
+using srs_mpc_hash_state_t = blake2b_state;
+void srs_mpc_hash_init(srs_mpc_hash_state_t &);
+void srs_mpc_hash_update(srs_mpc_hash_state_t &, const void *, size_t);
+void srs_mpc_hash_final(srs_mpc_hash_state_t &, srs_mpc_hash_t);
+void srs_mpc_compute_hash(
+    srs_mpc_hash_t out_hash, const void *data, size_t data_size);
 
 /// Data that is updated py participants in the MPC for Phase2 of the SRS
 /// generation.

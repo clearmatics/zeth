@@ -56,7 +56,6 @@ include_directories(
   libff/common/default_types
 )
 
-
 # Enable Boost for program_options
 find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
 include_directories( ${Boost_INCLUDE_DIR} )
@@ -64,6 +63,9 @@ include_directories( ${Boost_INCLUDE_DIR} )
 # Add the binary tree to the search path for include files
 # so that we will find zethConfig.h
 include_directories( ${PROJECT_BINARY_DIR} )
+
+# blake2 library
+get_target_property(blake2_INCLUDE_DIRS blake2 INTERFACE_INCLUDE_DIRECTORIES)
 
 # zeth library
 file(
@@ -83,12 +85,15 @@ file(
 add_library(zeth ${ZETH_SOURCE} ${PROTO_SRCS})
 target_include_directories(
   zeth
+
   PUBLIC
+  .
   ${DEPENDS_DIR}/libsnark
   ${DEPENDS_DIR}/libsnark/depends/libff
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+  ${blake2_INCLUDE_DIRS}
 )
-target_link_libraries(zeth snark)
+target_link_libraries(zeth snark blake2)
 
 # prover_server executable
 file(
