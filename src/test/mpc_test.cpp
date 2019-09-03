@@ -365,6 +365,21 @@ TEST(MPCTests, KeyPairReadWrite)
     ASSERT_EQ(keypair.vk, keypair_deserialized.vk);
 }
 
+TEST(MPCTests, HashTest)
+{
+    // in: ""
+    // out: 786a....be2ce
+    {
+        uint8_t empty[0];
+        srs_mpc_hash_t hash;
+        srs_mpc_compute_hash(hash, empty, 0);
+        ASSERT_EQ(
+            binary_str_to_hexadecimal_str((const char *)(&hash), sizeof(hash)),
+            "786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d2"
+            "5e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce");
+    }
+}
+
 } // namespace
 
 int main(int argc, char **argv)
