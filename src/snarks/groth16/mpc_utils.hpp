@@ -56,7 +56,8 @@ public:
 /// polynomials, perform the correct linear combination for the CRS MPC.
 template<typename ppT>
 srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
-    const srs_powersoftau &pot,
+    const srs_powersoftau<ppT> &pot,
+    const srs_lagrange_evaluations<ppT> &lagrange,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
 /// Given the output from the first layer of the MPC, perform the 2nd
@@ -65,7 +66,7 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
 /// contributions, but is useful for testing.
 template<typename ppT>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
-    srs_powersoftau &&pot,
+    srs_powersoftau<ppT> &&pot,
     srs_mpc_layer_L1<ppT> &&layer1,
     const libff::Fr<ppT> &delta,
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
