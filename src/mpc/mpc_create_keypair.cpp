@@ -1,4 +1,5 @@
 #include "mpc_common.hpp"
+#include "snarks/groth16/mpc_phase2.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "snarks/groth16/powersoftau_utils.hpp"
 #include "util.hpp"
@@ -130,12 +131,13 @@ private:
         libff::leave_block("Load powers of tau");
 
         libff::enter_block("Load phase2 data");
-        if (!libff::inhibit_profiling_info) {
-            libff::print_indent();
-            std::cout << phase2_file << "\n";
-        }
-        srs_mpc_layer_C2<ppT> phase2 =
-            read_from_file<srs_mpc_layer_C2<ppT>>(phase2_file);
+        libff::print_indent();
+        std::cout << phase2_file << std::endl;
+        srs_mpc_phase2_challenge<ppT> phase2 = [this]() {
+            std::ifstream in(
+                phase2_file, std::ios_base::binary | std::ios_base::in);
+            return srs_mpc_phase2_challenge<ppT>::read(in);
+        }();
         libff::leave_block("Load phase2 data");
 
         // Compute circuit
@@ -148,12 +150,13 @@ private:
             libsnark::r1cs_to_qap_instance_map(cs, true);
         libff::leave_block("Generate QAP");
 
-        libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_create_key_pair(
-            std::move(pot),
-            std::move(lin_comb),
-            std::move(phase2),
-            std::move(cs),
-            qap);
+        libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair =
+            mpc_create_key_pair<ppT>(
+                std::move(pot),
+                std::move(lin_comb),
+                std::move(phase2.accumulator),
+                std::move(cs),
+                qap);
 
         // Write keypair to a file
         libff::enter_block("Writing keypair file");
