@@ -190,18 +190,18 @@ TEST(MPCTests, Layer2)
     size_t num_variables = qap.num_variables();
     size_t num_inputs = qap.num_inputs();
 
-    srs_mpc_layer_L1<ppT> layer1 =
+    srs_mpc_layer_L1<ppT> lin_comb =
         mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
 
     // layer C2
-    srs_mpc_layer_C2<ppT> layer2 =
-        mpc_dummy_layer_C2<ppT>(layer1, delta, num_inputs);
+    srs_mpc_phase2_accumulator<ppT> phase2 =
+        srs_mpc_dummy_phase2<ppT>(lin_comb, delta, num_inputs).accumulator;
 
     // final keypair
     const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_create_key_pair(
         std::move(pot),
-        std::move(layer1),
-        std::move(layer2),
+        std::move(lin_comb),
+        std::move(phase2),
         std::move(constraint_system),
         qap);
 
@@ -324,31 +324,32 @@ TEST(MPCTests, LayerC2ReadWrite)
     const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(qap.degree());
     const srs_lagrange_evaluations<ppT> lagrange =
         powersoftau_compute_lagrange_evaluations(pot, qap.degree());
-    const srs_mpc_layer_L1<ppT> layer1 =
+    const srs_mpc_layer_L1<ppT> lin_comb =
         mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
     const Fr delta = Fr::random_element();
-    const srs_mpc_layer_C2<ppT> layer2 =
-        mpc_dummy_layer_C2(layer1, delta, qap.num_inputs());
+    const srs_mpc_phase2_accumulator<ppT> phase2 =
+        srs_mpc_dummy_phase2(lin_comb, delta, qap.num_inputs()).accumulator;
 
-    std::string layer2_serialized;
+    std::string phase2_serialized;
     {
         std::ostringstream out;
-        layer2.write(out);
-        layer2_serialized = out.str();
+        phase2.write(out);
+        phase2_serialized = out.str();
     }
 
-    srs_mpc_layer_C2<ppT> layer2_deserialized = [&layer2_serialized]() {
-        std::istringstream in(layer2_serialized);
-        in.exceptions(
-            std::ios_base::eofbit | std::ios_base::badbit |
-            std::ios_base::failbit);
-        return srs_mpc_layer_C2<ppT>::read(in);
-    }();
+    srs_mpc_phase2_accumulator<ppT> phase2_deserialized =
+        [&phase2_serialized]() {
+            std::istringstream in(phase2_serialized);
+            in.exceptions(
+                std::ios_base::eofbit | std::ios_base::badbit |
+                std::ios_base::failbit);
+            return srs_mpc_phase2_accumulator<ppT>::read(in);
+        }();
 
-    ASSERT_EQ(layer2.delta_g1, layer2_deserialized.delta_g1);
-    ASSERT_EQ(layer2.delta_g2, layer2_deserialized.delta_g2);
-    ASSERT_EQ(layer2.H_g1, layer2_deserialized.H_g1);
-    ASSERT_EQ(layer2.L_g1, layer2_deserialized.L_g1);
+    ASSERT_EQ(phase2.delta_g1, phase2_deserialized.delta_g1);
+    ASSERT_EQ(phase2.delta_g2, phase2_deserialized.delta_g2);
+    ASSERT_EQ(phase2.H_g1, phase2_deserialized.H_g1);
+    ASSERT_EQ(phase2.L_g1, phase2_deserialized.L_g1);
 }
 
 TEST(MPCTests, KeyPairReadWrite)
@@ -362,12 +363,12 @@ TEST(MPCTests, KeyPairReadWrite)
     srs_mpc_layer_L1<ppT> layer1 =
         mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
     const Fr delta = Fr::random_element();
-    srs_mpc_layer_C2<ppT> layer2 =
-        mpc_dummy_layer_C2<ppT>(layer1, delta, qap.num_inputs());
+    srs_mpc_phase2_accumulator<ppT> phase2 =
+        srs_mpc_dummy_phase2<ppT>(layer1, delta, qap.num_inputs()).accumulator;
     const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_create_key_pair(
         std::move(pot),
         std::move(layer1),
-        std::move(layer2),
+        std::move(phase2),
         std::move(constraint_system),
         qap);
 

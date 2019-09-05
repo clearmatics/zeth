@@ -572,7 +572,7 @@ bool srs_mpc_phase2_verify_transcript(
 }
 
 template<typename ppT>
-srs_mpc_layer_C2<ppT> mpc_dummy_layer_C2(
+srs_mpc_phase2_challenge<ppT> srs_mpc_dummy_phase2(
     const srs_mpc_layer_L1<ppT> &layer1,
     const libff::Fr<ppT> &delta,
     const size_t num_inputs)
@@ -582,14 +582,16 @@ srs_mpc_layer_C2<ppT> mpc_dummy_layer_C2(
     srs_mpc_phase2_challenge<ppT> challenge_0 =
         srs_mpc_phase2_initial_challenge(
             srs_mpc_phase2_begin(layer1, num_inputs));
-    return srs_mpc_phase2_update_accumulator(challenge_0.accumulator, delta);
+    srs_mpc_phase2_response<ppT> response_1 =
+        srs_mpc_phase2_compute_response(challenge_0, delta);
+    return srs_mpc_phase2_compute_challenge(std::move(response_1));
 }
 
 template<typename ppT>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     srs_powersoftau<ppT> &&pot,
     srs_mpc_layer_L1<ppT> &&layer1,
-    srs_mpc_layer_C2<ppT> &&layer2,
+    srs_mpc_phase2_accumulator<ppT> &&layer2,
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap)
 {

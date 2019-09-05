@@ -15,8 +15,8 @@ namespace
 //     mpc dummy_phase2 [<option>] <linear_combination_file>
 //
 // Options:
-//     -h,--help           This message
-//     --out <file>        Write phase2 to <file> (mpc-phase2.bin)
+//     -h,--help       This message
+//     --out <file>    Write dummy final-challenge to <file> (mpc-challenge.bin)
 class mpc_dummy_phase2 : public subcommand
 {
     std::string linear_combination_file;
@@ -90,12 +90,12 @@ private:
         std::cout << std::to_string(num_inputs) << std::endl;
         libff::leave_block("computing num_inputs");
 
-        // Generate the artifical delta
+        // Generate the artificial delta
         const FieldT delta = FieldT::random_element();
 
-        // Generate and save the dummy phase2 data
-        const srs_mpc_layer_C2<ppT> phase2 =
-            mpc_dummy_layer_C2<ppT>(lin_comb, delta, num_inputs);
+        // Generate and save the dummy phase2 challenge
+        const srs_mpc_phase2_challenge<ppT> phase2 =
+            srs_mpc_dummy_phase2<ppT>(lin_comb, delta, num_inputs);
         libff::enter_block("writing phase2 data");
         {
             std::ofstream out(out_file);
