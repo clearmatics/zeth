@@ -7,8 +7,8 @@ namespace po = boost::program_options;
 using ppT = libff::default_ec_pp;
 using command_t = std::function<int(const std::vector<std::string> &)>;
 
-int zeth_mpc_new(const std::vector<std::string> &);
-int zeth_mpc_dummy_layer2(const std::vector<std::string> &);
+int zeth_mpc_linear_combination(const std::vector<std::string> &);
+int zeth_mpc_dummy_phase2(const std::vector<std::string> &);
 int zeth_mpc_create_keypair(const std::vector<std::string> &);
 
 int main(int argc, char **argv)
@@ -29,8 +29,8 @@ int main(int argc, char **argv)
     pos.add("command", 1).add("subargs", -1);
 
     const std::map<std::string, command_t> commands{
-        {"new", zeth_mpc_new},
-        {"dummy-layer2", zeth_mpc_dummy_layer2},
+        {"linear-combination", zeth_mpc_linear_combination},
+        {"dummy-phase2", zeth_mpc_dummy_phase2},
         {"create-keypair", zeth_mpc_create_keypair},
     };
 
