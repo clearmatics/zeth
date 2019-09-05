@@ -129,6 +129,7 @@ target_link_libraries(
 # mpc utility executable
 file(GLOB MPC_SOURCE mpc/*.?pp mpc/*.tcc)
 add_executable(mpc ${MPC_SOURCE})
+target_include_directories(mpc PRIVATE mpc)
 target_link_libraries(
   mpc
   zeth
