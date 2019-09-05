@@ -4,6 +4,7 @@
 #include "libff/common/rng.hpp"
 #include "snarks/groth16/mpc_phase2.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
+#include "snarks/groth16/powersoftau_utils.hpp"
 #include "util.hpp"
 
 namespace libzeth
@@ -335,6 +336,41 @@ srs_mpc_phase2_publickey<ppT> srs_mpc_phase2_compute_public_key(
 }
 
 template<typename ppT>
+bool srs_mpc_phase2_verify_publickey(
+    const libff::G1<ppT> last_delta_g1,
+    const srs_mpc_phase2_publickey<ppT> &publickey,
+    libff::G2<ppT> &out_r_g2)
+{
+    const libff::G1<ppT> &s_g1 = publickey.s_g1;
+    const libff::G1<ppT> &s_delta_j_g1 = publickey.s_delta_j_g1;
+    out_r_g2 = srs_mpc_compute_r_g2<ppT>(
+        s_g1, s_delta_j_g1, publickey.transcript_digest);
+    const libff::G2<ppT> &r_delta_j_g2 = publickey.r_delta_j_g2;
+    const libff::G1<ppT> &new_delta_g1 = publickey.new_delta_g1;
+
+    // Step 1 (from [BoweGM17]).  Check the proof of knowledge.
+    if (!same_ratio<ppT>(s_g1, s_delta_j_g1, out_r_g2, r_delta_j_g2)) {
+        return false;
+    }
+
+    // Step 2.  Check new_delta_g1 is correct.
+    if (!same_ratio<ppT>(last_delta_g1, new_delta_g1, out_r_g2, r_delta_j_g2)) {
+        return false;
+    }
+
+    return true;
+}
+
+template<typename ppT>
+bool srs_mpc_phase2_verify_publickey(
+    const libff::G1<ppT> last_delta_g1,
+    const srs_mpc_phase2_publickey<ppT> &publickey)
+{
+    libff::G2<ppT> r_g2;
+    return srs_mpc_phase2_verify_publickey<ppT>(last_delta_g1, publickey, r_g2);
+}
+
+template<typename ppT>
 srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_update_accumulator(
     const srs_mpc_phase2_accumulator<ppT> &last_accum,
     const libff::Fr<ppT> &delta_j)
@@ -392,25 +428,24 @@ bool srs_mpc_phase2_verify_update(
     const srs_mpc_phase2_accumulator<ppT> &updated,
     const srs_mpc_phase2_publickey<ppT> &publickey)
 {
-    const libff::G1<ppT> &s_g1 = publickey.s_g1;
-    const libff::G1<ppT> &s_delta_j_g1 = publickey.s_delta_j_g1;
-    const libff::G2<ppT> r_g2 = srs_mpc_compute_r_g2<ppT>(
-        s_g1, s_delta_j_g1, publickey.transcript_digest);
-    const libff::G2<ppT> &r_delta_j_g2 = publickey.r_delta_j_g2;
-
-    // Step 1 (from [BoweGM17]).  Check the proof of knowledge in the public
-    // key.
-    if (!same_ratio<ppT>(s_g1, s_delta_j_g1, r_g2, r_delta_j_g2)) {
+    // Step 1 and 2 (from [BoweGM17]).  Check the proof-of-knowledge in the
+    // public key, and the updated delta value.  Obtain r_g2 to avoid
+    // recomputing it.
+    libff::G2<ppT> r_g2;
+    if (!srs_mpc_phase2_verify_publickey(last.delta_g1, publickey, r_g2)) {
         return false;
     }
 
-    // Step 2.  Check that the updated delta values are correct (including in
-    // the public key).
-    const libff::G1<ppT> &new_delta_g1 = updated.delta_g1;
-    const libff::G2<ppT> &new_delta_g2 = updated.delta_g2;
-    if ((publickey.new_delta_g1 != new_delta_g1) ||
-        !same_ratio<ppT>(last.delta_g1, new_delta_g1, r_g2, r_delta_j_g2) ||
-        !same_ratio<ppT>(s_g1, s_delta_j_g1, last.delta_g2, new_delta_g2)) {
+    const libff::G1<ppT> &s_g1 = publickey.s_g1;
+    const libff::G1<ppT> &s_delta_j_g1 = publickey.s_delta_j_g1;
+    const libff::G2<ppT> &r_delta_j_g2 = publickey.r_delta_j_g2;
+
+    // Remaining parts of step 2 are to check the delta values in the
+    // accumulator. That is, updated.delta_g1 shoudl match the value in the
+    // public key, and updated.delta_2 should have the correct ratio with
+    // last.delta_2.
+    if ((publickey.new_delta_g1 != updated.delta_g1) ||
+        !same_ratio<ppT>(s_g1, s_delta_j_g1, last.delta_g2, updated.delta_g2)) {
         return false;
     }
 

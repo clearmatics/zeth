@@ -179,9 +179,18 @@ srs_mpc_phase2_publickey<ppT> srs_mpc_phase2_compute_public_key(
     const libff::G1<ppT> &last_delta,
     const libff::Fr<ppT> &secret);
 
+/// Verifies that a public key is correct, given some previous delta.
+/// Corresponds to steps 1 and 2 from "Verfication" in section 7.3 of
+/// [BoweGM17] (for a single contributor $j$).  Note that the caller is
+/// responsible for checking the transcript_hash.
+template<typename ppT>
+bool srs_mpc_phase2_verify_publickey(
+    const libff::G1<ppT> last_delta_g1,
+    const srs_mpc_phase2_publickey<ppT> &publickey);
+
 /// Core update function, which applies a secret contribution to an
-/// accumulator.  Corresponds to steps 3 onwards in "Computation", section 7.3
-/// of [BoweGM17].
+/// accumulator.  Corresponds to steps 3 onwards in "Computation",
+/// section 7.3 of [BoweGM17].
 template<typename ppT>
 srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_update_accumulator(
     const srs_mpc_phase2_accumulator<ppT> &last_accum,

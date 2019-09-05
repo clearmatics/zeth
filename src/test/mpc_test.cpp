@@ -641,6 +641,8 @@ TEST(MPCTests, Phase2PublicKeyGeneration)
         publickey.r_delta_j_g2));
     ASSERT_TRUE(same_ratio<ppT>(
         publickey.s_g1, publickey.s_delta_j_g1, r_g2, publickey.r_delta_j_g2));
+    ASSERT_TRUE(
+        srs_mpc_phase2_verify_publickey(last_secret * G1::one(), publickey));
 }
 
 TEST(MPCTests, Phase2UpdateVerification)
@@ -667,28 +669,6 @@ TEST(MPCTests, Phase2UpdateVerification)
                 challenge.transcript_digest,
                 response.publickey.transcript_digest,
                 sizeof(srs_mpc_hash_t)));
-
-        // const auto &publickey = response.publickey;
-        // const libff::G2<ppT> r_g2 = srs_mpc_compute_r_g2<ppT>(
-        //     publickey.s_g1, publickey.s_delta_j_g1,
-        //     publickey.transcript_digest);
-
-        // ASSERT_EQ(
-        //     0,
-        //     memcmp(challenge.transcript_digest, publickey.transcript_digest,
-        //     sizeof(srs_mpc_hash_t)));
-        // ASSERT_EQ(
-        //     r_g2,
-        //     srs_mpc_compute_r_g2<ppT>(
-        //         publickey.s_g1, publickey.s_delta_j_g1,
-        //         challenge.transcript_digest));
-        // ASSERT_EQ(secret * G1::one(), publickey.new_delta_g1);
-        // ASSERT_EQ(secret * publickey.s_g1, publickey.s_delta_j_g1);
-        // ASSERT_EQ(secret * r_g2, publickey.r_delta_j_g2);
-        // ASSERT_TRUE(same_ratio<ppT>(G1::one(), publickey.new_delta_g1, r_g2,
-        // publickey.r_delta_j_g2)); ASSERT_TRUE(same_ratio<ppT>(publickey.s_g1,
-        // publickey.s_delta_j_g1, r_g2, publickey.r_delta_j_g2));
-
         ASSERT_TRUE(srs_mpc_phase2_verify_response(challenge, response));
     }
 
