@@ -18,12 +18,12 @@ using HashTreeT = MiMC_mp_gadget<FieldT>;
 using HashT = sha256_ethereum<FieldT>;
 
 // Usage:
-//     mpc new [<option>] <powersoftau file> <lagrange file>
+//     mpc linear-combination [<option>] <powersoftau file> <lagrange file>
 //
 // Options:
-//     -h,--help           This message
-//     --pot-degree        powersoftau degree (assumed equal to lagrange file)
-//     --out <file>        Write layer1 (linear comb) to <file> (mpc-layer1.bin)
+//     -h,--help        This message
+//     --pot-degree     powersoftau degree (assumed equal to lagrange file)
+//     --out <file>     Linear combination output (mpc-linear-combination.bin)
 class cli_options
 {
 public:
@@ -47,7 +47,7 @@ cli_options::cli_options()
     : desc("Options")
     , all_desc("")
     , pos()
-    , argv0("powersoftau")
+    , argv0("mpc linear-combination")
     , help(false)
     , powersoftau_file()
     , lagrange_file()
@@ -60,7 +60,7 @@ cli_options::cli_options()
         "powersoftau degree (assumed equal to lagrange file)")(
         "out,o",
         po::value<std::string>(),
-        "layer1 output file (mpc-layer1.bin)");
+        "linear combination output (mpc-linear-combination.bin)");
     all_desc.add(desc).add_options()(
         "powersoftau_file", po::value<std::string>(), "powersoftau file")(
         "lagrange_file", po::value<std::string>(), "lagrange file");
@@ -105,10 +105,11 @@ void cli_options::parse(const std::vector<std::string> &args)
     lagrange_file = vm["lagrange_file"].as<std::string>();
     powersoftau_degree =
         vm.count("pot-degree") ? vm["pot-degree"].as<size_t>() : 0;
-    out = vm.count("out") ? vm["out"].as<std::string>() : "mpc-layer1.bin";
+    out = vm.count("out") ? vm["out"].as<std::string>()
+                          : "mpc-linear-combination.bin";
 }
 
-int zeth_mpc_new_main(const cli_options &options)
+int zeth_mpc_linear_combination_main(const cli_options &options)
 {
 #if 1
     std::cout << "argv0: " << options.argv0 << std::endl;
@@ -162,7 +163,7 @@ int zeth_mpc_new_main(const cli_options &options)
         libsnark::r1cs_to_qap_instance_map(cs, true);
     libff::leave_block("Generate QAP");
 
-    // Compute final step of layer1
+    // Compute final step of linear combination
     if (qap.degree() != lagrange.degree) {
         throw std::invalid_argument(
             "Degree of qap " + std::to_string(qap.degree()) + " does not " +
@@ -171,25 +172,25 @@ int zeth_mpc_new_main(const cli_options &options)
     }
 
     // Compute layer1 and write to a file
-    const srs_mpc_layer_L1<ppT> layer1 =
+    const srs_mpc_layer_L1<ppT> lin_comb =
         mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
 
-    libff::enter_block("Writing layer1 file");
+    libff::enter_block("Writing linear combination file");
     libff::print_indent();
     std::cout << options.out << std::endl;
     {
         std::ofstream out(
             options.out, std::ios_base::binary | std::ios_base::out);
-        layer1.write(out);
+        lin_comb.write(out);
     }
-    libff::leave_block("Writing layer1 file");
+    libff::leave_block("Writing linear combination file");
 
     return 0;
 }
 
 } // namespace
 
-int zeth_mpc_new(const std::vector<std::string> &args)
+int zeth_mpc_linear_combination(const std::vector<std::string> &args)
 {
     cli_options options;
     try {
@@ -203,7 +204,7 @@ int zeth_mpc_new(const std::vector<std::string> &args)
 
     // Execute and handle errors
     try {
-        return zeth_mpc_new_main(options);
+        return zeth_mpc_linear_combination_main(options);
     } catch (std::invalid_argument &error) {
         std::cerr << " ERROR: " << error.what() << std::endl;
         std::cout << std::endl;
