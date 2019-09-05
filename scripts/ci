@@ -35,6 +35,11 @@ function pyclient_check() {
         popd
 }
 
+function command_tests() {
+    scripts/test_pot_process
+    scripts/test_mpc
+}
+
 function build() {
     # Enable warnings-as-errors
     cxx_flags="-Werror"
@@ -66,6 +71,8 @@ function build() {
     make -j 2 VERBOSE=1 all build_tests
     make -j 2 check
     cd ..
+
+    command_tests
 }
 
 ci_task=$1
