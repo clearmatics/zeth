@@ -5,7 +5,7 @@
 set -x
 set -e
 
-POT="build/src/powersoftau"
+POT="build/src/pot-process"
 MPC="build/src/mpc"
 QAP_DEGREE=8
 
@@ -42,3 +42,8 @@ rm \
     ${linear_combination_file} \
     ${phase2_file} \
     ${keypair_file}
+
+set +x
+echo "=================================================================="
+echo "==                            PASSED                            =="
+echo "=================================================================="
