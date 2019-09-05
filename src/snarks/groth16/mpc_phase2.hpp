@@ -127,7 +127,7 @@ template<typename ppT> class srs_mpc_phase2_challenge
 {
 public:
     srs_mpc_hash_t transcript_digest;
-    const srs_mpc_phase2_accumulator<ppT> accumulator;
+    srs_mpc_phase2_accumulator<ppT> accumulator;
 
     srs_mpc_phase2_challenge(
         const srs_mpc_hash_t transcript_digest,

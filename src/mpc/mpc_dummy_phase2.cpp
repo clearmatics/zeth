@@ -1,4 +1,5 @@
 #include "mpc_common.hpp"
+#include "snarks/groth16/mpc_phase2.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "util.hpp"
 #include "zeth.h"
