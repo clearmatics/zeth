@@ -1,4 +1,3 @@
-#include "circuit-wrapper.hpp"
 #include "mpc_common.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "util.hpp"
@@ -9,10 +8,6 @@ namespace po = boost::program_options;
 
 namespace
 {
-
-using FieldT = libff::Fr<ppT>;
-using HashTreeT = MiMC_mp_gadget<FieldT>;
-using HashT = sha256_ethereum<FieldT>;
 
 // Usage:
 //     mpc dummy_phase2 [<option>] <linear_combination_file>
@@ -83,15 +78,9 @@ private:
         libff::leave_block("reading linear combination data");
 
         // Generate the zeth circuit (to determine the number of inputs)
-        const size_t num_inputs = []() {
+        const size_t num_inputs = [this]() {
             libsnark::protoboard<FieldT> pb;
-            joinsplit_gadget<
-                FieldT,
-                HashT,
-                HashTreeT,
-                ZETH_NUM_JS_INPUTS,
-                ZETH_NUM_JS_OUTPUTS>
-                js(pb);
+            populate_protoboard(pb, simple_circuit);
             const libsnark::r1cs_constraint_system<FieldT> cs =
                 pb.get_constraint_system();
             return cs.num_inputs();

@@ -1,4 +1,3 @@
-#include "include_libsnark.hpp"
 #include "mpc_common.hpp"
 
 #include <boost/program_options.hpp>
@@ -15,7 +14,8 @@ int main(int argc, char **argv)
 {
     ppT::init_public_params();
     po::options_description global("");
-    global.add_options()("help,h", "This help")("verbose,v", "Verbose output");
+    global.add_options()("help,h", "This help")("verbose,v", "Verbose output")(
+        "simple-circuit", "Use simple circuit (for testing)");
 
     po::options_description all("");
     all.add(global).add_options()(
@@ -66,6 +66,8 @@ int main(int argc, char **argv)
             libff::inhibit_profiling_counters = true;
         }
 
+        const bool simple_circuit = (bool)vm.count("simple-circuit");
+
         if (0 == vm.count("command")) {
             std::cerr << "error: no command specified\n";
             usage();
@@ -82,7 +84,8 @@ int main(int argc, char **argv)
             throw po::error("invalid command");
         }
 
-        return sub->execute(verbose, subargs);
+        sub->set_global_options(verbose, simple_circuit);
+        return sub->execute(subargs);
     } catch (po::error &error) {
         std::cerr << " ERROR: " << error.what() << std::endl;
         usage();

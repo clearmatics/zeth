@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Use the --simple-circuit option to test the SRS mpc pipeline
+
+set -x
+set -e
+
+POT="build/src/powersoftau"
+MPC="build/src/mpc"
+QAP_DEGREE=8
+
+pot_file=_test_pot-${QAP_DEGREE}.bin
+lagrange_file=_test_lagrange-${QAP_DEGREE}.bin
+
+linear_combination_file=_test_linear_combination-${QAP_DEGREE}.bin
+phase2_file=_test_phase2-${QAP_DEGREE}.bin
+keypair_file=_test_keypair-${QAP_DEGREE}.bin
+
+# Dummy pot data
+${POT} --dummy ${pot_file} ${QAP_DEGREE}
+
+# Compute lagrange points
+${POT} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
+
+# Generate the linear combination
+${MPC} --simple-circuit \
+       linear-combination --out ${linear_combination_file} \
+       ${pot_file} ${lagrange_file}
+
+# Create a dummy phase2 file
+${MPC} --simple-circuit \
+       dummy-phase2 --out ${phase2_file} ${linear_combination_file}
+
+# Create the keypair
+${MPC} --simple-circuit \
+       create-keypair --out ${keypair_file} \
+       ${pot_file} ${linear_combination_file} ${phase2_file}
+
+rm \
+    ${pot_file} \
+    ${lagrange_file} \
+    ${linear_combination_file} \
+    ${phase2_file} \
+    ${keypair_file}
