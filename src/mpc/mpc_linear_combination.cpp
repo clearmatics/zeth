@@ -1,4 +1,3 @@
-#include "circuit-wrapper.hpp"
 #include "mpc_common.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "snarks/groth16/powersoftau_utils.hpp"
@@ -13,10 +12,6 @@ namespace po = boost::program_options;
 
 namespace
 {
-
-using FieldT = libff::Fr<ppT>;
-using HashTreeT = MiMC_mp_gadget<FieldT>;
-using HashT = sha256_ethereum<FieldT>;
 
 // Usage:
 //     mpc linear-combination [<option>] <powersoftau file> <lagrange file>
@@ -127,14 +122,7 @@ private:
         // Compute circuit
         libff::enter_block("Generate QAP");
         libsnark::protoboard<FieldT> pb;
-        joinsplit_gadget<
-            FieldT,
-            HashT,
-            HashTreeT,
-            ZETH_NUM_JS_INPUTS,
-            ZETH_NUM_JS_OUTPUTS>
-            js(pb);
-        js.generate_r1cs_constraints();
+        populate_protoboard(pb, simple_circuit);
         const libsnark::r1cs_constraint_system<FieldT> cs =
             pb.get_constraint_system();
         const libsnark::qap_instance<FieldT> qap =

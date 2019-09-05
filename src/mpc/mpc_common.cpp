@@ -1,18 +1,28 @@
 #include "mpc_common.hpp"
 
+#include "circuit-wrapper.hpp"
+#include "test/simple_test.hpp"
+
 #include <iostream>
 
 namespace po = boost::program_options;
+
+using HashTreeT = MiMC_mp_gadget<FieldT>;
+using HashT = sha256_ethereum<FieldT>;
 
 subcommand::subcommand(const std::string &subcommand_name)
     : subcommand_name(subcommand_name), verbose(false), help(false)
 {
 }
 
-int subcommand::execute(bool verbose, const std::vector<std::string> &args)
+void subcommand::set_global_options(bool verbose, bool simple_circuit)
 {
     this->verbose = verbose;
+    this->simple_circuit = simple_circuit;
+}
 
+int subcommand::execute(const std::vector<std::string> &args)
+{
     po::options_description options_desc("Options");
     po::options_description all_options_desc("");
     po::positional_options_description positional_options_desc;
@@ -56,4 +66,21 @@ void subcommand::usage(const po::options_description &options)
 {
     subcommand_usage();
     std::cout << options << std::endl;
+}
+
+void populate_protoboard(libsnark::protoboard<FieldT> &pb, bool simple_circuit)
+{
+    if (simple_circuit) {
+        libzeth::test::simple_circuit<FieldT>(pb);
+        return;
+    }
+
+    joinsplit_gadget<
+        FieldT,
+        HashT,
+        HashTreeT,
+        ZETH_NUM_JS_INPUTS,
+        ZETH_NUM_JS_OUTPUTS>
+        js(pb);
+    js.generate_r1cs_constraints();
 }
