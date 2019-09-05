@@ -261,16 +261,12 @@ bool srs_mpc_phase2_verify_transcript(
     std::istream &transcript_stream,
     libff::G1<ppT> &out_final_delta);
 
-/// Final output from the second phase of the MPC.  A sub-set of the
-/// L1 data divided by a secret $\delta$.
-template<typename ppT> using srs_mpc_layer_C2 = srs_mpc_phase2_accumulator<ppT>;
-
 /// Given the output from the first layer of the MPC, perform the 2nd
 /// layer computation using just local randomness for delta. This is not a
 /// substitute for the full MPC with an auditable log of
 /// contributions, but is useful for testing.
 template<typename ppT>
-srs_mpc_layer_C2<ppT> mpc_dummy_layer_C2(
+srs_mpc_phase2_challenge<ppT> srs_mpc_dummy_phase2(
     const srs_mpc_layer_L1<ppT> &layer1,
     const libff::Fr<ppT> &delta,
     size_t num_inputs);
@@ -281,7 +277,7 @@ template<typename ppT>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     srs_powersoftau<ppT> &&pot,
     srs_mpc_layer_L1<ppT> &&layer1,
-    srs_mpc_layer_C2<ppT> &&layer2,
+    srs_mpc_phase2_accumulator<ppT> &&layer2,
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
