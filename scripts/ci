@@ -18,9 +18,13 @@ function format_check() {
     fi
 }
 
+function command_tests() {
+    scripts/test_pot_process
+    scripts/test_mpc
+}
+
 function build() {
-    dir_name=$1
-    build_type=$2
+    build_type=$1
 
     # Enable warnings-as-errors
     cxx_flags="-Werror"
@@ -47,14 +51,12 @@ function build() {
 
     make -j 2 VERBOSE=1 all build_tests
     make -j 2 check
+    cd ..
 }
 
-function build_release() {
-    build build-release Release
-}
-
-function build_debug() {
-    build build-debug Debug
+function ci() {
+    build $1
+    command_tests
 }
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
@@ -68,5 +70,5 @@ if [ "${CI_USE_DOCKER}" == "1" ] ; then
     docker build -f Dockerfile-zeth -t zeth-dev .
     docker run -t -p 50051:50051 --name zeth zeth-dev:latest $0 $@
 else
-    eval $@
+    ci $@
 fi
