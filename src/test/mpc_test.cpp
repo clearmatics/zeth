@@ -749,6 +749,48 @@ TEST(MPCTests, Phase2UpdateVerification)
     }
 }
 
+TEST(MPCTests, Phase2TranscriptVerification)
+{
+    const size_t seed = 9;
+    const size_t degree = 16;
+    const size_t num_L_elements = 7;
+
+    // Simulate a transcript with 3 participants.
+    const srs_mpc_phase2_challenge<ppT> challenge_0 =
+        srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
+            libff::Fr<ppT>(seed), degree, num_L_elements));
+    std::ostringstream transcript_out;
+
+    // Participant 1
+    const libff::Fr<ppT> secret_1 = libff::Fr<ppT>(seed - 1);
+    srs_mpc_phase2_response<ppT> response_1 =
+        srs_mpc_phase2_compute_response<ppT>(challenge_0, secret_1);
+    response_1.publickey.write(transcript_out);
+    const srs_mpc_phase2_challenge<ppT> challenge_1 =
+        srs_mpc_phase2_compute_challenge<ppT>(std::move(response_1));
+
+    // Participant 2
+    const libff::Fr<ppT> secret_2 = libff::Fr<ppT>(seed - 2);
+    srs_mpc_phase2_response<ppT> response_2 =
+        srs_mpc_phase2_compute_response<ppT>(challenge_1, secret_2);
+    response_2.publickey.write(transcript_out);
+    const srs_mpc_phase2_challenge<ppT> challenge_2 =
+        srs_mpc_phase2_compute_challenge<ppT>(std::move(response_2));
+
+    // Participant 3
+    const libff::Fr<ppT> secret_3 = libff::Fr<ppT>(seed - 3);
+    const srs_mpc_phase2_response<ppT> response_3 =
+        srs_mpc_phase2_compute_response<ppT>(challenge_2, secret_3);
+    response_3.publickey.write(transcript_out);
+
+    // Create a transcript and verify it.
+    std::istringstream transcript(transcript_out.str());
+    G1 final_delta_g1;
+    ASSERT_TRUE(srs_mpc_phase2_verify_transcript<ppT>(
+        challenge_0.transcript_digest, G1::one(), transcript, final_delta_g1));
+    ASSERT_EQ(secret_1 * secret_2 * secret_3 * G1::one(), final_delta_g1);
+}
+
 } // namespace
 
 int main(int argc, char **argv)

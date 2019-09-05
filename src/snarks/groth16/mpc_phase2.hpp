@@ -239,6 +239,28 @@ template<typename ppT>
 srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_compute_challenge(
     srs_mpc_phase2_response<ppT> &&response);
 
+/// The transcript of the MPC is formed of a sequence of contributions (public
+/// key).  Each contribution contains the digest of the previous one, and the
+/// value of delta after it has been applied.  Therefore the final accumulator
+/// can be fully verified using just the transcript as follows:
+///
+/// - establish the initial value of accumulator and the transcript digest
+///
+/// - confirm the transcript of contributions based on this, yielding an
+///   encoding of the final delta
+///
+/// - check that the final accumulator is consistent with the initial
+///   accumulator, based on the final delta
+///
+/// This function validates the transcript as a stream of publickey objects,
+/// outputing the encoding of the final delta in G1.
+template<typename ppT>
+bool srs_mpc_phase2_verify_transcript(
+    const srs_mpc_hash_t initial_transcript_digest,
+    const libff::G1<ppT> initial_delta,
+    std::istream &transcript_stream,
+    libff::G1<ppT> &out_final_delta);
+
 /// Final output from the second phase of the MPC.  A sub-set of the
 /// L1 data divided by a secret $\delta$.
 template<typename ppT> using srs_mpc_layer_C2 = srs_mpc_phase2_accumulator<ppT>;

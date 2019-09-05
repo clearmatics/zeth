@@ -538,6 +538,40 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_compute_challenge(
 }
 
 template<typename ppT>
+bool srs_mpc_phase2_verify_transcript(
+    const srs_mpc_hash_t initial_transcript_digest,
+    const libff::G1<ppT> initial_delta,
+    std::istream &transcript_stream,
+    libff::G1<ppT> &out_final_delta)
+{
+    srs_mpc_hash_t digest;
+    memcpy(digest, initial_transcript_digest, sizeof(srs_mpc_hash_t));
+    libff::G1<ppT> delta = initial_delta;
+
+    while (EOF != transcript_stream.peek()) {
+        const srs_mpc_phase2_publickey<ppT> publickey =
+            srs_mpc_phase2_publickey<ppT>::read(transcript_stream);
+
+        const bool digests_match = !memcmp(
+            digest, publickey.transcript_digest, sizeof(srs_mpc_hash_t));
+        if (!digests_match) {
+            return false;
+        }
+
+        if (!srs_mpc_phase2_verify_publickey(delta, publickey)) {
+            return false;
+        }
+
+        // Contribution is valid.  Update state and read next publickey.
+        publickey.compute_digest(digest);
+        delta = publickey.new_delta_g1;
+    }
+
+    out_final_delta = delta;
+    return true;
+}
+
+template<typename ppT>
 srs_mpc_layer_C2<ppT> mpc_dummy_layer_C2(
     const srs_mpc_layer_L1<ppT> &layer1,
     const libff::Fr<ppT> &delta,
