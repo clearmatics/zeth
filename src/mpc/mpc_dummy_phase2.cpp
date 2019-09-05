@@ -16,11 +16,11 @@ using HashTreeT = MiMC_mp_gadget<FieldT>;
 using HashT = sha256_ethereum<FieldT>;
 
 // Usage:
-//     mpc new [<option>] <layer1_file>
+//     mpc dummy_phase2 [<option>] <linear_combination_file>
 //
 // Options:
 //     -h,--help           This message
-//     --out <file>        Write layer2 to <file> (mpc-layer2.bin)
+//     --out <file>        Write phase2 to <file> (mpc-phase2.bin)
 class cli_options
 {
 public:
@@ -30,7 +30,7 @@ public:
 
     std::string argv0;
     bool help;
-    std::string layer1_file;
+    std::string linear_combination_file;
     std::string out;
 
     cli_options();
@@ -42,24 +42,27 @@ cli_options::cli_options()
     : desc("Options")
     , all_desc("")
     , pos()
-    , argv0("mpc dummy_layer2")
+    , argv0("mpc dummy_phase2")
     , help(false)
-    , layer1_file()
+    , linear_combination_file()
     , out()
 {
     desc.add_options()("help,h", "This help")(
         "out,o",
         po::value<std::string>(),
-        "layer2 output file (mpc-layer2.bin)");
+        "phase2 output file (mpc-phase2.bin)");
     all_desc.add(desc).add_options()(
-        "layer1_file", po::value<std::string>(), "layer1 file");
-    pos.add("layer1_file", 1);
+        "linear_combination_file",
+        po::value<std::string>(),
+        "Linear combination file");
+    pos.add("linear_combination_file", 1);
 }
 
 void cli_options::usage() const
 {
     std::cout << "Usage:" << std::endl
-              << "  " << argv0 << " [<options>] <layer1_file>" << std::endl
+              << "  " << argv0 << " [<options>] <linear_combination_file>"
+              << std::endl
               << std::endl
               << desc << std::endl;
 }
@@ -82,33 +85,34 @@ void cli_options::parse(const std::vector<std::string> &args)
         return;
     }
 
-    if (0 == vm.count("layer1_file")) {
-        throw po::error("layer1 file not specified");
+    if (0 == vm.count("linear_combination_file")) {
+        throw po::error("linear_combination file not specified");
     }
-    layer1_file = vm["layer1_file"].as<std::string>();
+    linear_combination_file = vm["linear_combination_file"].as<std::string>();
 
-    out = vm.count("out") ? vm["out"].as<std::string>() : "mpc-layer2.bin";
+    out = vm.count("out") ? vm["out"].as<std::string>() : "mpc-phase2.bin";
 }
 
-int zeth_mpc_new_main(const cli_options &options)
+int zeth_mpc_dummy_phase2_main(const cli_options &options)
 {
 #if 1
     std::cout << "argv0: " << options.argv0 << std::endl;
     std::cout << "help: " << std::to_string(options.help) << std::endl;
-    std::cout << "layer1_file: " << options.layer1_file << std::endl;
+    std::cout << "linear_combination_file: " << options.linear_combination_file
+              << std::endl;
     std::cout << "out: " << options.out << std::endl;
 #endif
 
-    // Load the layer1 output
-    libff::enter_block("reading layer1 data");
-    srs_mpc_layer_L1<ppT> layer1 = [&options]() {
-        std::ifstream in(options.layer1_file);
+    // Load the linear_combination output
+    libff::enter_block("reading linear combination data");
+    srs_mpc_layer_L1<ppT> lin_comb = [&options]() {
+        std::ifstream in(options.linear_combination_file);
         in.exceptions(
             std::ios_base::eofbit | std::ios_base::badbit |
             std::ios_base::failbit);
         return srs_mpc_layer_L1<ppT>::read(in);
     }();
-    libff::leave_block("reading layer1 data");
+    libff::leave_block("reading linear combination data");
 
     // Generate the zeth circuit (to determine the number of inputs)
     const size_t num_inputs = []() {
@@ -128,22 +132,22 @@ int zeth_mpc_new_main(const cli_options &options)
     // Generate the artifical delta
     const FieldT delta = FieldT::random_element();
 
-    // Generate and save the dummy layer2 data
-    const srs_mpc_layer_C2<ppT> layer2 =
-        mpc_dummy_layer_C2<ppT>(layer1, delta, num_inputs);
-    libff::enter_block("writing layer2 data");
+    // Generate and save the dummy phase2 data
+    const srs_mpc_layer_C2<ppT> phase2 =
+        mpc_dummy_layer_C2<ppT>(lin_comb, delta, num_inputs);
+    libff::enter_block("writing phase2 data");
     {
         std::ofstream out(options.out);
-        layer2.write(out);
+        phase2.write(out);
     }
-    libff::leave_block("writing layer2 data");
+    libff::leave_block("writing phase2 data");
 
     return 0;
 }
 
 } // namespace
 
-int zeth_mpc_dummy_layer2(const std::vector<std::string> &args)
+int zeth_mpc_dummy_phase2(const std::vector<std::string> &args)
 {
     cli_options options;
     try {
@@ -157,7 +161,7 @@ int zeth_mpc_dummy_layer2(const std::vector<std::string> &args)
 
     // Execute and handle errors
     try {
-        return zeth_mpc_new_main(options);
+        return zeth_mpc_dummy_phase2_main(options);
     } catch (std::invalid_argument &error) {
         std::cerr << " ERROR: " << error.what() << std::endl;
         std::cout << std::endl;
