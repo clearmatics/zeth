@@ -423,6 +423,47 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_update_accumulator(
 }
 
 template<typename ppT>
+bool srs_mpc_phase2_update_is_consistent(
+    const srs_mpc_phase2_accumulator<ppT> &last,
+    const srs_mpc_phase2_accumulator<ppT> &updated)
+{
+    libff::enter_block("call to srs_mpc_phase2_update_is_consistent");
+
+    // Check basic compatibility between 'last' and 'updated'
+    if (last.H_g1.size() != updated.H_g1.size() ||
+        last.L_g1.size() != updated.L_g1.size()) {
+        return false;
+    }
+
+    const libff::G2<ppT> &old_delta_g2 = last.delta_g2;
+    const libff::G2<ppT> &new_delta_g2 = updated.delta_g2;
+
+    // Check that, that the delta_g1 and delta_2 ratios match.
+    if (!same_ratio<ppT>(
+            last.delta_g1, updated.delta_g1, old_delta_g2, new_delta_g2)) {
+        return false;
+    }
+
+    // Step 3.  Check that the updates to L values are consistent.  Each
+    // entry should have been divided by $\delta_j$, so SameRatio((updated,
+    // last), (old_delta_g2, new_delta_g2)) should hold.
+    if (!same_ratio_vectors<ppT>(
+            updated.L_g1, last.L_g1, old_delta_g2, new_delta_g2)) {
+        return false;
+    }
+
+    // Step 4.  Similar consistency checks for H
+    if (!same_ratio_vectors<ppT>(
+            updated.H_g1, last.H_g1, old_delta_g2, new_delta_g2)) {
+        return false;
+    }
+
+    libff::leave_block("call to srs_mpc_phase2_update_is_consistent");
+
+    return true;
+}
+
+template<typename ppT>
 bool srs_mpc_phase2_verify_update(
     const srs_mpc_phase2_accumulator<ppT> &last,
     const srs_mpc_phase2_accumulator<ppT> &updated,
@@ -436,46 +477,11 @@ bool srs_mpc_phase2_verify_update(
         return false;
     }
 
-    const libff::G1<ppT> &s_g1 = publickey.s_g1;
-    const libff::G1<ppT> &s_delta_j_g1 = publickey.s_delta_j_g1;
-    const libff::G2<ppT> &r_delta_j_g2 = publickey.r_delta_j_g2;
-
-    // Remaining parts of step 2 are to check the delta values in the
-    // accumulator. That is, updated.delta_g1 shoudl match the value in the
-    // public key, and updated.delta_2 should have the correct ratio with
-    // last.delta_2.
-    if ((publickey.new_delta_g1 != updated.delta_g1) ||
-        !same_ratio<ppT>(s_g1, s_delta_j_g1, last.delta_g2, updated.delta_g2)) {
+    if (publickey.new_delta_g1 != updated.delta_g1) {
         return false;
     }
 
-    // Check basic compatibility between 'last' and 'updated'
-    if (last.H_g1.size() != updated.H_g1.size() ||
-        last.L_g1.size() != updated.L_g1.size()) {
-        return false;
-    }
-
-    // TODO: implement efficient batch_same_ratio
-
-    // Step 3.  Check that the updates to L values are consistent with
-    // the public key.  Each entry should have been divided by $\delta_j$, so
-    // SameRatio((updated, last), (r_g2, r_delta_j_g2)) should hold.
-    for (size_t i = 0; i < updated.L_g1.size(); ++i) {
-        if (!same_ratio<ppT>(
-                updated.L_g1[i], last.L_g1[i], r_g2, r_delta_j_g2)) {
-            return false;
-        }
-    }
-
-    // Step 4.  Similar consistency checks for H
-    for (size_t i = 0; i < updated.H_g1.size(); ++i) {
-        if (!same_ratio<ppT>(
-                updated.H_g1[i], last.H_g1[i], r_g2, r_delta_j_g2)) {
-            return false;
-        }
-    }
-
-    return true;
+    return srs_mpc_phase2_update_is_consistent(last, updated);
 }
 
 template<typename ppT>
