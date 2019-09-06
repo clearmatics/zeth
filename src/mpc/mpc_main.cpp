@@ -6,6 +6,7 @@ namespace po = boost::program_options;
 
 extern subcommand *mpc_linear_combination_cmd;
 extern subcommand *mpc_dummy_phase2_cmd;
+extern subcommand *mpc_phase2_begin_cmd;
 extern subcommand *mpc_create_keypair_cmd;
 
 int mpc_main(int argc, char **argv, ProtoboardInitFn pb_init)
@@ -27,6 +28,7 @@ int mpc_main(int argc, char **argv, ProtoboardInitFn pb_init)
     const std::map<std::string, subcommand *> commands{
         {"linear-combination", mpc_linear_combination_cmd},
         {"dummy-phase2", mpc_dummy_phase2_cmd},
+        {"phase2-begin", mpc_phase2_begin_cmd},
         {"create-keypair", mpc_create_keypair_cmd},
     };
 
