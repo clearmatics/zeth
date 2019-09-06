@@ -783,13 +783,23 @@ TEST(MPCTests, Phase2TranscriptVerification)
     const srs_mpc_phase2_response<ppT> response_3 =
         srs_mpc_phase2_compute_response<ppT>(challenge_2, secret_3);
     response_3.publickey.write(transcript_out);
+    srs_mpc_hash_t final_digest;
+    response_3.publickey.compute_digest(final_digest);
 
     // Create a transcript and verify it.
     std::istringstream transcript(transcript_out.str());
     G1 final_delta_g1;
+    srs_mpc_hash_t final_transcript_digest;
     ASSERT_TRUE(srs_mpc_phase2_verify_transcript<ppT>(
-        challenge_0.transcript_digest, G1::one(), transcript, final_delta_g1));
+        challenge_0.transcript_digest,
+        G1::one(),
+        transcript,
+        final_delta_g1,
+        final_transcript_digest));
     ASSERT_EQ(secret_1 * secret_2 * secret_3 * G1::one(), final_delta_g1);
+    ASSERT_EQ(
+        0,
+        memcmp(final_digest, final_transcript_digest, sizeof(srs_mpc_hash_t)));
 }
 
 } // namespace

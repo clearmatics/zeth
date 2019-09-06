@@ -269,9 +269,10 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_compute_challenge(
 template<typename ppT>
 bool srs_mpc_phase2_verify_transcript(
     const srs_mpc_hash_t initial_transcript_digest,
-    const libff::G1<ppT> initial_delta,
+    const libff::G1<ppT> &initial_delta,
     std::istream &transcript_stream,
-    libff::G1<ppT> &out_final_delta);
+    libff::G1<ppT> &out_final_delta,
+    srs_mpc_hash_t out_final_transcript_digest);
 
 /// Given the output from the first layer of the MPC, perform the 2nd
 /// layer computation using just local randomness for delta. This is not a
