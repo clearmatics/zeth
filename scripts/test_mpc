@@ -11,7 +11,17 @@ pot_file=_test_pot-${QAP_DEGREE}.bin
 lagrange_file=_test_lagrange-${QAP_DEGREE}.bin
 
 linear_combination_file=_test_linear_combination-${QAP_DEGREE}.bin
-phase2_file=_test_phase2-${QAP_DEGREE}.bin
+
+transcript_file=_test_transcript.bin
+challenge_0_file=_test_challenge_0.bin
+response_1_file=_test_response_1.bin
+challenge_1_file=_test_challenge_1.bin
+response_2_file=_test_response_2.bin
+challenge_2_file=_test_challenge_2.bin
+response_3_file=_test_response_3.bin
+challenge_3_file=_test_challenge_3.bin
+final_phase2_file=${challenge_3_file}
+
 keypair_file=_test_keypair-${QAP_DEGREE}.bin
 
 # Dummy pot data
@@ -21,25 +31,50 @@ ${POT} --dummy ${pot_file} ${QAP_DEGREE}
 ${POT} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
 
 # Generate the linear combination
-${MPC} \
-       linear-combination --out ${linear_combination_file} \
+${MPC} linear-combination --out ${linear_combination_file} \
        ${pot_file} ${lagrange_file}
 
-# Create a dummy phase2 file
-${MPC} \
-       dummy-phase2 --out ${phase2_file} ${linear_combination_file}
+# Begin Phase2 MPC and run some rounds, accumulating transcript.
+${MPC} phase2-begin --out ${challenge_0_file} ${linear_combination_file}
+
+${MPC} phase2-contribute \
+       --out ${response_1_file} ${challenge_0_file}
+${MPC} phase2-verify-contribution \
+       --transcript ${transcript_file} \
+       --new-challenge ${challenge_1_file} \
+       ${challenge_0_file} ${response_1_file}
+
+${MPC} phase2-contribute \
+       --out ${response_2_file} ${challenge_1_file}
+${MPC} phase2-verify-contribution \
+       --transcript ${transcript_file} \
+       --new-challenge ${challenge_2_file} \
+       ${challenge_1_file} ${response_2_file}
+
+${MPC} phase2-contribute \
+       --out ${response_3_file} ${challenge_2_file}
+${MPC} phase2-verify-contribution \
+       --transcript ${transcript_file} \
+       --new-challenge ${challenge_3_file} \
+       ${challenge_2_file} ${response_3_file}
+
+# Verify the transcript
+${MPC} phase2-verify-transcript \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}
 
 # Create the keypair
-${MPC} \
-       create-keypair --out ${keypair_file} \
-       ${pot_file} ${linear_combination_file} ${phase2_file}
+${MPC} create-keypair --out ${keypair_file} \
+       ${pot_file} ${linear_combination_file} ${final_phase2_file}
 
-rm \
-    ${pot_file} \
-    ${lagrange_file} \
-    ${linear_combination_file} \
-    ${phase2_file} \
-    ${keypair_file}
+# Clean up files
+rm ${pot_file} ${lagrange_file} ${linear_combination_file}
+rm ${transcript_file}
+rm ${challenge_0_file}
+rm ${response_1_file} ${challenge_1_file}
+rm ${response_2_file} ${challenge_2_file}
+rm ${response_3_file} ${challenge_3_file}
+rm -f ${final_phase2_file}
+rm ${keypair_file}
 
 set +x
 echo "=================================================================="
