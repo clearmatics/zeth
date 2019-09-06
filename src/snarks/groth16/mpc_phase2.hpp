@@ -196,6 +196,18 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_update_accumulator(
     const srs_mpc_phase2_accumulator<ppT> &last_accum,
     const libff::Fr<ppT> &delta_j);
 
+/// Assuming last is fully verified, and updated.delta_g1 has the appropriate
+/// ratio, check that all other elements of updated.  This covers the G2 part
+/// of step 2, and all of steps 3 and 4 of "Verification" in section 7.3 of
+/// [BoweGM17].  Primarily used directly by `srs_mpc_phase2_verify_update`, as
+/// part of the validation process for a contribution and resulting
+/// accumulator.  It also used when verifying the final transcript, to check
+/// consistency of initial and final accumulators without intermediate values.
+template<typename ppT>
+bool srs_mpc_phase2_update_is_consistent(
+    const srs_mpc_phase2_accumulator<ppT> &last,
+    const srs_mpc_phase2_accumulator<ppT> &updated);
+
 /// Core verification function for a single contribution.  Checks the
 /// self-consistency of a public key, and that the corresponding contribution
 /// has been correctly applied to all values in 'last', to generate 'updated'.
