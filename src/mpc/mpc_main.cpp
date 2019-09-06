@@ -9,6 +9,7 @@ extern subcommand *mpc_dummy_phase2_cmd;
 extern subcommand *mpc_phase2_begin_cmd;
 extern subcommand *mpc_phase2_contribute_cmd;
 extern subcommand *mpc_phase2_verify_contribution_cmd;
+extern subcommand *mpc_phase2_verify_transcript_cmd;
 extern subcommand *mpc_create_keypair_cmd;
 
 int mpc_main(int argc, char **argv, ProtoboardInitFn pb_init)
@@ -33,6 +34,7 @@ int mpc_main(int argc, char **argv, ProtoboardInitFn pb_init)
         {"phase2-begin", mpc_phase2_begin_cmd},
         {"phase2-contribute", mpc_phase2_contribute_cmd},
         {"phase2-verify-contribution", mpc_phase2_verify_contribution_cmd},
+        {"phase2-verify-transcript", mpc_phase2_verify_transcript_cmd},
         {"create-keypair", mpc_create_keypair_cmd},
     };
 
