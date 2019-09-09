@@ -56,7 +56,26 @@ TEST(PowersOfTauTests, PowersOfTauIsWellFormed)
     const size_t n = 16;
     const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(n);
 
-    ASSERT_TRUE(powersoftau_is_well_formed(pot, n));
+    ASSERT_TRUE(powersoftau_is_well_formed(pot));
+
+    // inconsistent sizes
+    {
+        libff::G1_vector<ppT> tau_powers_g1 = pot.tau_powers_g1;
+        tau_powers_g1[2] = tau_powers_g1[2] + G1::one();
+        const srs_powersoftau<ppT> tamper_sizes(
+            std::move(tau_powers_g1),
+            libff::G2_vector<ppT>(
+                pot.tau_powers_g2.begin(), pot.tau_powers_g2.begin() + (n - 1)),
+            libff::G1_vector<ppT>(
+                pot.alpha_tau_powers_g1.begin(),
+                pot.alpha_tau_powers_g1.begin() + (n - 1)),
+            libff::G1_vector<ppT>(
+                pot.beta_tau_powers_g1.begin(),
+                pot.beta_tau_powers_g1.begin() + (n - 1)),
+            pot.beta_g2);
+
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_sizes));
+    }
 
     // tamper with some individual entries
     {
@@ -69,7 +88,7 @@ TEST(PowersOfTauTests, PowersOfTauIsWellFormed)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_is_well_formed(tamper_tau_g1, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_tau_g1));
     }
 
     {
@@ -82,7 +101,7 @@ TEST(PowersOfTauTests, PowersOfTauIsWellFormed)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_is_well_formed(tamper_tau_g2, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_tau_g2));
     }
 
     {
@@ -95,7 +114,7 @@ TEST(PowersOfTauTests, PowersOfTauIsWellFormed)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_is_well_formed(tamper_alpha_tau_g1, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_alpha_tau_g1));
     }
 
     {
@@ -108,7 +127,7 @@ TEST(PowersOfTauTests, PowersOfTauIsWellFormed)
             std::move(beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_is_well_formed(tamper_beta_tau_g1, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_beta_tau_g1));
     }
 
     {
@@ -119,7 +138,7 @@ TEST(PowersOfTauTests, PowersOfTauIsWellFormed)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2 + G2::one());
 
-        ASSERT_FALSE(powersoftau_is_well_formed(tamper_beta_g2, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_beta_g2));
     }
 }
 
@@ -306,7 +325,7 @@ TEST(PowersOfTauTests, ReadWritePowersOfTauOutput)
         pot_write = pot_write.substr(64);
     }
 
-    ASSERT_TRUE(powersoftau_is_well_formed(pot, n));
+    ASSERT_TRUE(powersoftau_is_well_formed(pot));
     ASSERT_EQ(expect_pot_write.substr(64, pot_write.size()), pot_write);
 }
 

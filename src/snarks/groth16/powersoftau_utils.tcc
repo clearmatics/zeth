@@ -207,10 +207,19 @@ template<typename ppT> srs_powersoftau<ppT> dummy_powersoftau(size_t n)
 }
 
 template<typename ppT>
-bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot, const size_t n)
+bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot)
 {
     // TODO: Cache precomputed g1, tau_g1, g2, tau_g2
     // TODO: Parallelize
+
+    // Check sizes are valid.  tau_powers_g1 should have 2n-1 elements, and
+    // other vectors should have n entries.
+    const size_t n = (pot.tau_powers_g1.size() + 1) / 2;
+    if (n != 1ull << libff::log2(n) || n != pot.tau_powers_g2.size() ||
+        n != pot.alpha_tau_powers_g1.size() ||
+        n != pot.beta_tau_powers_g1.size()) {
+        return false;
+    }
 
     // Make sure that the identity of each group is at index 0
     if (pot.tau_powers_g1[0] != libff::G1<ppT>::one() ||
@@ -218,7 +227,6 @@ bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot, const size_t n)
         return false;
     }
 
-    const size_t num_tau_powers_g1 = 2 * n - 1;
     const libff::G1<ppT> g1 = libff::G1<ppT>::one();
     const libff::G2<ppT> g2 = libff::G2<ppT>::one();
     const libff::G1<ppT> tau_g1 = pot.tau_powers_g1[1];
@@ -261,7 +269,7 @@ bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot, const size_t n)
 
     // SameRatio((tau_powers_g1[i-1], tau_powers_g1[i]), (g2, tau_g2))
     // for remaining powers
-    for (size_t i = n; i < num_tau_powers_g1; ++i) {
+    for (size_t i = n; i < pot.tau_powers_g1.size(); ++i) {
         if (!same_ratio<ppT>(
                 pot.tau_powers_g1[i - 1], pot.tau_powers_g1[i], g2, tau_g2)) {
             return false;
