@@ -121,8 +121,7 @@ bool same_ratio(
 
 /// Verify that the pot data is well formed.
 template<typename ppT>
-bool powersoftau_is_well_formed(
-    const srs_powersoftau<ppT> &pot, const size_t n);
+bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot);
 
 /// Compute the evaluation of the lagrange polynomials in G1 and G2,
 /// along with some useful factors.  The results can be cached and
