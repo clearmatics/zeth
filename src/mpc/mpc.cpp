@@ -1,20 +1,19 @@
 #include "include_libsnark.hpp"
+#include "mpc_common.hpp"
 
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 
 using ppT = libff::default_ec_pp;
-using command_t = std::function<int(const std::vector<std::string> &)>;
 
-int zeth_mpc_linear_combination(const std::vector<std::string> &);
-int zeth_mpc_dummy_phase2(const std::vector<std::string> &);
-int zeth_mpc_create_keypair(const std::vector<std::string> &);
+extern subcommand *mpc_linear_combination_cmd;
+extern subcommand *mpc_dummy_phase2_cmd;
+extern subcommand *mpc_create_keypair_cmd;
 
 int main(int argc, char **argv)
 {
     ppT::init_public_params();
-
     po::options_description global("");
     global.add_options()("help,h", "This help")("verbose,v", "Verbose output");
 
@@ -28,10 +27,10 @@ int main(int argc, char **argv)
     po::positional_options_description pos;
     pos.add("command", 1).add("subargs", -1);
 
-    const std::map<std::string, command_t> commands{
-        {"linear-combination", zeth_mpc_linear_combination},
-        {"dummy-phase2", zeth_mpc_dummy_phase2},
-        {"create-keypair", zeth_mpc_create_keypair},
+    const std::map<std::string, subcommand *> commands{
+        {"linear-combination", mpc_linear_combination_cmd},
+        {"dummy-phase2", mpc_dummy_phase2_cmd},
+        {"create-keypair", mpc_create_keypair_cmd},
     };
 
     auto usage = [&argv, &global, &commands]() {
@@ -78,7 +77,12 @@ int main(int argc, char **argv)
             po::collect_unrecognized(parsed.options, po::include_positional);
         subargs[0] = std::string(argv[0]) + " " + subargs[0];
 
-        return commands.find(command)->second(subargs);
+        subcommand *sub = commands.find(command)->second;
+        if (sub == nullptr) {
+            throw po::error("invalid command");
+        }
+
+        return sub->execute(verbose, subargs);
     } catch (po::error &error) {
         std::cerr << " ERROR: " << error.what() << std::endl;
         usage();
