@@ -795,6 +795,8 @@ TEST(MPCTests, Phase2TranscriptVerification)
     const libff::Fr<ppT> secret_1 = libff::Fr<ppT>(seed - 1);
     srs_mpc_phase2_response<ppT> response_1 =
         srs_mpc_phase2_compute_response<ppT>(challenge_0, secret_1);
+    srs_mpc_hash_t response_1_hash;
+    response_1.publickey.compute_digest(response_1_hash);
     response_1.publickey.write(transcript_out);
     const srs_mpc_phase2_challenge<ppT> challenge_1 =
         srs_mpc_phase2_compute_challenge<ppT>(std::move(response_1));
@@ -803,6 +805,8 @@ TEST(MPCTests, Phase2TranscriptVerification)
     const libff::Fr<ppT> secret_2 = libff::Fr<ppT>(seed - 2);
     srs_mpc_phase2_response<ppT> response_2 =
         srs_mpc_phase2_compute_response<ppT>(challenge_1, secret_2);
+    srs_mpc_hash_t response_2_hash;
+    response_2.publickey.compute_digest(response_2_hash);
     response_2.publickey.write(transcript_out);
     const srs_mpc_phase2_challenge<ppT> challenge_2 =
         srs_mpc_phase2_compute_challenge<ppT>(std::move(response_2));
@@ -811,24 +815,79 @@ TEST(MPCTests, Phase2TranscriptVerification)
     const libff::Fr<ppT> secret_3 = libff::Fr<ppT>(seed - 3);
     const srs_mpc_phase2_response<ppT> response_3 =
         srs_mpc_phase2_compute_response<ppT>(challenge_2, secret_3);
+    srs_mpc_hash_t response_3_hash;
+    response_3.publickey.compute_digest(response_3_hash);
     response_3.publickey.write(transcript_out);
     srs_mpc_hash_t final_digest;
     response_3.publickey.compute_digest(final_digest);
 
-    // Create a transcript and verify it.
-    std::istringstream transcript(transcript_out.str());
-    G1 final_delta_g1;
-    srs_mpc_hash_t final_transcript_digest;
-    ASSERT_TRUE(srs_mpc_phase2_verify_transcript<ppT>(
-        challenge_0.transcript_digest,
-        G1::one(),
-        transcript,
-        final_delta_g1,
-        final_transcript_digest));
-    ASSERT_EQ(secret_1 * secret_2 * secret_3 * G1::one(), final_delta_g1);
-    ASSERT_EQ(
-        0,
-        memcmp(final_digest, final_transcript_digest, sizeof(srs_mpc_hash_t)));
+    // Create a transcript
+    const std::string transcript = transcript_out.str();
+
+    // Simple verification
+    {
+        std::istringstream transcript_stream(transcript);
+        G1 final_delta_g1;
+        srs_mpc_hash_t final_transcript_digest;
+        ASSERT_TRUE(srs_mpc_phase2_verify_transcript<ppT>(
+            challenge_0.transcript_digest,
+            G1::one(),
+            transcript_stream,
+            final_delta_g1,
+            final_transcript_digest));
+        ASSERT_EQ(secret_1 * secret_2 * secret_3 * G1::one(), final_delta_g1);
+        ASSERT_EQ(
+            0,
+            memcmp(
+                final_digest, final_transcript_digest, sizeof(srs_mpc_hash_t)));
+    }
+
+    // Verify and check for contribution
+    {
+        std::istringstream transcript_stream(transcript);
+        G1 final_delta_g1;
+        srs_mpc_hash_t final_transcript_digest;
+        bool contribution_found;
+        ASSERT_TRUE(srs_mpc_phase2_verify_transcript<ppT>(
+            challenge_0.transcript_digest,
+            G1::one(),
+            response_2_hash,
+            transcript_stream,
+            final_delta_g1,
+            final_transcript_digest,
+            contribution_found));
+        ASSERT_EQ(secret_1 * secret_2 * secret_3 * G1::one(), final_delta_g1);
+        ASSERT_EQ(
+            0,
+            memcmp(
+                final_digest, final_transcript_digest, sizeof(srs_mpc_hash_t)));
+        ASSERT_TRUE(contribution_found);
+    }
+
+    // Verify and check for non-existant contribution
+    {
+        srs_mpc_hash_t no_such_contribution;
+        memset(no_such_contribution, 0, sizeof(srs_mpc_hash_t));
+
+        std::istringstream transcript_stream(transcript);
+        G1 final_delta_g1;
+        srs_mpc_hash_t final_transcript_digest;
+        bool contribution_found;
+        ASSERT_TRUE(srs_mpc_phase2_verify_transcript<ppT>(
+            challenge_0.transcript_digest,
+            G1::one(),
+            no_such_contribution,
+            transcript_stream,
+            final_delta_g1,
+            final_transcript_digest,
+            contribution_found));
+        ASSERT_EQ(secret_1 * secret_2 * secret_3 * G1::one(), final_delta_g1);
+        ASSERT_EQ(
+            0,
+            memcmp(
+                final_digest, final_transcript_digest, sizeof(srs_mpc_hash_t)));
+        ASSERT_FALSE(contribution_found);
+    }
 }
 
 } // namespace
