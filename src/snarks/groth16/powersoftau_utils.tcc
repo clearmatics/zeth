@@ -52,6 +52,82 @@ bool same_ratio(
     return a1b2_gt == b1a2_gt;
 }
 
+template<typename ppT, typename It>
+bool same_ratio_batch(
+    It a1,
+    const It &a1_end,
+    It b1,
+    const It &b1_end,
+    const libff::G2<ppT> &a2,
+    const libff::G2<ppT> &b2)
+{
+    libff::G1<ppT> a1_accum = libff::G1<ppT>::zero();
+    libff::G1<ppT> b1_accum = libff::G1<ppT>::zero();
+
+    while (a1 != a1_end) {
+        const libff::Fr<ppT> r = libff::Fr<ppT>::random_element();
+        a1_accum = a1_accum + (r * *a1);
+        b1_accum = b1_accum + (r * *b1);
+        ++a1;
+        ++b1;
+    }
+
+    if (b1 != b1_end) {
+        throw std::invalid_argument("a1s and b1s are of different length");
+    }
+
+    return same_ratio<ppT>(a1_accum, b1_accum, a2, b2);
+}
+
+template<typename ppT, typename It>
+bool same_ratio_batch(
+    const libff::G1<ppT> &a1,
+    const libff::G1<ppT> &b1,
+    It a2,
+    const It &a2_end,
+    It b2,
+    const It &b2_end)
+{
+    libff::G2<ppT> a2_accum = libff::G2<ppT>::zero();
+    libff::G2<ppT> b2_accum = libff::G2<ppT>::zero();
+
+    while (a2 != a2_end) {
+        const libff::Fr<ppT> r = libff::Fr<ppT>::random_element();
+        a2_accum = a2_accum + (r * *a2);
+        b2_accum = b2_accum + (r * *b2);
+        ++a2;
+        ++b2;
+    }
+
+    if (b2 != b2_end) {
+        throw std::invalid_argument("a1s and b1s are of different length");
+    }
+
+    return same_ratio<ppT>(a1, b1, a2_accum, b2_accum);
+}
+
+template<typename ppT, typename C>
+bool consistent_ratio(
+    const C &a1s, const libff::G2<ppT> &a2, const libff::G2<ppT> &b2)
+{
+    const size_t a1s_size = a1s.size();
+    auto first(a1s.begin());
+    auto end(a1s.end());
+    return same_ratio_batch<ppT>(
+        first, first + (a1s_size - 1), first + 1, end, a2, b2);
+}
+
+template<typename ppT, typename C>
+bool consistent_ratio(
+    const libff::G1<ppT> &a1, const libff::G1<ppT> &b1, const C &a2s)
+{
+    const size_t a1s_size = a2s.size();
+    auto first = a2s.begin();
+    auto end = a2s.end();
+    return same_ratio_batch<ppT>(
+        a1, b1, first, first + (a1s_size - 1), first + 1, end);
+}
+
 // -----------------------------------------------------------------------------
 // powersoftau
 // -----------------------------------------------------------------------------
