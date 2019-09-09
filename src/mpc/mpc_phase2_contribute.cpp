@@ -11,16 +11,21 @@ namespace
 //   $0 phase2-contribute [<options>] <challenge_file>
 //
 // Options:
-//   --out <file>    Response output file (mpc-response.bin)
+//   --out <file>      Response output file (mpc-response.bin)
+//   --digest <file>   Write contribution hash to file.
 class mpc_phase2_contribute : public subcommand
 {
 private:
     std::string challenge_file;
     std::string out_file;
+    std::string digest;
 
 public:
     mpc_phase2_contribute()
-        : subcommand("phase2-contribute"), challenge_file(), out_file()
+        : subcommand("phase2-contribute")
+        , challenge_file()
+        , out_file()
+        , digest()
     {
     }
 
@@ -33,7 +38,10 @@ private:
         options.add_options()(
             "out,o",
             po::value<std::string>(),
-            "Reponse output file (mpc-response.bin)");
+            "Reponse output file (mpc-response.bin)")(
+            "digest",
+            po::value<std::string>(),
+            "Write contribution digest to file");
         all_options.add(options).add_options()(
             "challenge_file", po::value<std::string>(), "challenge file");
         pos.add("challenge_file", 1);
@@ -48,6 +56,7 @@ private:
         challenge_file = vm["challenge_file"].as<std::string>();
         out_file = vm.count("out") ? vm["out"].as<std::string>()
                                    : trusted_setup_file("mpc-response.bin");
+        digest = vm.count("digest") ? vm["digest"].as<std::string>() : "";
     }
 
     void subcommand_usage() override
@@ -61,6 +70,7 @@ private:
         if (verbose) {
             std::cout << "challenge_file: " << challenge_file << "\n";
             std::cout << "out_file: " << out_file << std::endl;
+            std::cout << "digest: " << digest << std::endl;
         }
 
         libff::enter_block("Load challenge file");
@@ -89,6 +99,17 @@ private:
             response.write(out);
         }
         libff::leave_block("Writing response");
+
+        srs_mpc_hash_t contr_digest;
+        response.publickey.compute_digest(contr_digest);
+        std::cout << "Digest of the contribution was:\n";
+        srs_mpc_hash_write(contr_digest, std::cout);
+
+        if (!digest.empty()) {
+            std::ofstream out(digest);
+            srs_mpc_hash_write(contr_digest, out);
+            std::cout << "Digest written to: " << digest << std::endl;
+        }
 
         return 0;
     }
