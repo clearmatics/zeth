@@ -2,6 +2,7 @@
 #include "mpc_common.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "snarks/groth16/powersoftau_utils.hpp"
+#include "util.hpp"
 
 #include <vector>
 
@@ -88,8 +89,8 @@ private:
         phase2_file = vm["phase2_file"].as<std::string>();
         powersoftau_degree =
             vm.count("pot-degree") ? vm["pot-degree"].as<size_t>() : 0;
-        out_file =
-            vm.count("out") ? vm["out"].as<std::string>() : "mpc-keypair.bin";
+        out_file = vm.count("out") ? vm["out"].as<std::string>()
+                                   : trusted_setup_file("mpc-keypair.bin");
     }
 
     void subcommand_usage() override
