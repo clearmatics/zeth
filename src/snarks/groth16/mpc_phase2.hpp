@@ -276,6 +276,18 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_compute_challenge(
 ///
 /// This function validates the transcript as a stream of publickey objects,
 /// outputing the encoding of the final delta in G1.
+template<typename ppT, bool enable_contribution_check = true>
+bool srs_mpc_phase2_verify_transcript(
+    const srs_mpc_hash_t initial_transcript_digest,
+    const libff::G1<ppT> &initial_delta,
+    const srs_mpc_hash_t check_for_contribution,
+    std::istream &transcript_stream,
+    libff::G1<ppT> &out_final_delta,
+    srs_mpc_hash_t out_final_transcript_digest,
+    bool &out_contribution_found);
+
+/// Similar to other transcript verification above, but does not check for the
+/// presence of a specific contribution digest.
 template<typename ppT>
 bool srs_mpc_phase2_verify_transcript(
     const srs_mpc_hash_t initial_transcript_digest,
