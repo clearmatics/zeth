@@ -432,45 +432,20 @@ bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot)
         return false;
     }
 
-    // TODO: This can be done probabilistically with (faster) random
-    // linear combinations.
-
     // SameRatio((tau_powers_g1[i-1], tau_powers_g1[i]), (g2, tau_g2))
     // SameRatio((tau_powers_g2[i-1], tau_powers_g2[i]), (g1, tau_g1))
     // SameRatio(
     //     (alpha_tau_powers_g1[i-1], alpha_tau_powers_g1[i]), (g2, tau_g2))
     // SameRatio(
     //     (beta_tau_powers_g1[i-1], beta_tau_powers_g1[i]), (g2, tau_g2))
-    for (size_t i = 1; i < n; ++i) {
-        if (!same_ratio<ppT>(
-                pot.tau_powers_g1[i - 1], pot.tau_powers_g1[i], g2, tau_g2) ||
-            !same_ratio<ppT>(
-                g1, tau_g1, pot.tau_powers_g2[i - 1], pot.tau_powers_g2[i]) ||
-            !same_ratio<ppT>(
-                pot.alpha_tau_powers_g1[i - 1],
-                pot.alpha_tau_powers_g1[i],
-                g2,
-                tau_g2) ||
-            !same_ratio<ppT>(
-                pot.beta_tau_powers_g1[i - 1],
-                pot.beta_tau_powers_g1[i],
-                g2,
-                tau_g2)) {
-            return false;
-        }
-    }
-
-    // SameRatio((tau_powers_g1[i-1], tau_powers_g1[i]), (g2, tau_g2))
-    // for remaining powers
-    for (size_t i = n; i < pot.tau_powers_g1.size(); ++i) {
-        if (!same_ratio<ppT>(
-                pot.tau_powers_g1[i - 1], pot.tau_powers_g1[i], g2, tau_g2)) {
-            return false;
-        }
+    if (!same_ratio_consecutive<ppT>(pot.tau_powers_g1, g2, tau_g2) ||
+        !same_ratio_consecutive<ppT>(g1, tau_g1, pot.tau_powers_g2) ||
+        !same_ratio_consecutive<ppT>(pot.alpha_tau_powers_g1, g2, tau_g2) ||
+        !same_ratio_consecutive<ppT>(pot.beta_tau_powers_g1, g2, tau_g2)) {
+        return false;
     }
 
     // SameRatio((g1, beta_tau_powers_g1), (g2, beta_g2))
-    // SameRatio((g1, delta_g1), (g2, delta_g2))
     if (!same_ratio<ppT>(g1, pot.beta_tau_powers_g1[0], g2, pot.beta_g2)) {
         return false;
     }
