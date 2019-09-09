@@ -21,7 +21,9 @@
 //
 // "Phase2" (From "zk-SNARK MPCs, made easy" library
 //  https://github.com/ebfull/phase2)
-
+//
+// "Sapling MPC" ("Multi-party computation for Zcash's Sapling zk-SNARK public
+//  parameters" https://github.com/zcash-hackworks/sapling-mpc)
 namespace libzeth
 {
 
@@ -40,6 +42,14 @@ void srs_mpc_hash_final(srs_mpc_hash_state_t &, srs_mpc_hash_t);
 void srs_mpc_compute_hash(
     srs_mpc_hash_t out_hash, const void *data, size_t data_size);
 void srs_mpc_compute_hash(srs_mpc_hash_t out_hash, const std::string &data);
+
+/// Convert a hash to a human-readable string (4 x 4 x 4-byte hex words),
+/// following the format used in the "powersoftau" and "Sapling MPC" code.
+void srs_mpc_hash_write(const srs_mpc_hash_t hash, std::ostream &out);
+
+/// Parse a human-readable string (4 x 4 x 4-byte hex words) reprsenting an
+/// srs_mpc_hash_t.
+bool srs_mpc_hash_read(srs_mpc_hash_t out_hash, std::istream &in);
 
 class hash_streambuf : std::streambuf
 {

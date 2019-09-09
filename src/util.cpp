@@ -213,7 +213,7 @@ std::string hexadecimal_str_to_binary_str(const std::string &s)
     return out;
 }
 
-std::string binary_str_to_hexadecimal_str(const char *s, const size_t size)
+std::string binary_str_to_hexadecimal_str(const void *s, const size_t size)
 {
     std::string out;
     out.reserve(size * 2);
