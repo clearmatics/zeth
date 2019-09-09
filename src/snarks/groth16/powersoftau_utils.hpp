@@ -119,6 +119,44 @@ bool same_ratio(
     const libff::G2<ppT> &a2,
     const libff::G2<ppT> &b2);
 
+/// Given two sequences a1s and b1s, check (with high probability) that
+///   same_ratio((a1s[i], b1s[i]), (a2, b2))
+/// holds for all i.  For random field values r_i, sum up:
+///   a1 = a1s[0] * r_0 + ... + a1s[n] * r_n
+///   b1 = b1s[0] * r_0 + ... + b1s[n] * r_n
+/// and check same_ratio((a1, b1), (a2, b2)).
+///
+/// (Based on merge_pairs function from https://github.com/ebfull/powersoftau/)
+template<typename ppT, typename It>
+bool same_ratio_batch(
+    It a1,
+    const It &a1_end,
+    It b1,
+    const It &b1_end,
+    const libff::G2<ppT> &a2,
+    const libff::G2<ppT> &b2);
+
+// same_ratio_batch for sequences of elements in G2.
+template<typename ppT, typename It>
+bool same_ratio_batch(
+    const libff::G1<ppT> &a1,
+    const libff::G1<ppT> &b1,
+    It a2,
+    const It &a2_end,
+    It b2,
+    const It &b2_end);
+
+/// Thin wrapper around same_ratio_batch for vector-like containers C, that
+/// checks that consecutive entries all have a ratio consistent with (a2, b2).
+template<typename ppT, typename C>
+bool consistent_ratio(
+    const C &a1s, const libff::G2<ppT> &a2, const libff::G2<ppT> &b2);
+
+/// consistent_ratio for containers of elements in G2.
+template<typename ppT, typename C>
+bool consistent_ratio(
+    const libff::G1<ppT> &a1, const libff::G1<ppT> &b1, const C &a2s);
+
 /// Verify that the pot data is well formed.
 template<typename ppT>
 bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot);
