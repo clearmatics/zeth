@@ -245,4 +245,24 @@ std::string binary_str_to_hexadecimal_str(const std::string &s)
     return out;
 }
 
+std::string trusted_setup_path(const std::string &fallback)
+{
+    const char *path = std::getenv("ZETH_TRUSTED_SETUP_DIR");
+    if (nullptr == path) {
+        return fallback;
+    }
+
+    return path;
+}
+
+std::string trusted_setup_file(const std::string &file_name)
+{
+    const std::string path = trusted_setup_path();
+    if (!path.empty() && path.back() != '/') {
+        return path + "/" + file_name;
+    }
+
+    return path + file_name;
+}
+
 } // namespace libzeth

@@ -4,6 +4,8 @@
 
 #include "libsnark_helpers/debug_helpers.hpp"
 
+#include "util.hpp"
+
 namespace libzeth
 {
 
@@ -60,14 +62,7 @@ std::string point_g2_affine_as_hex(libff::alt_bn128_G2 _p)
 
 boost::filesystem::path get_path_to_setup_directory()
 {
-    const char *path_to_setup_directory = std::getenv("ZETH_TRUSTED_SETUP_DIR");
-    if (path_to_setup_directory == NULL) {
-        // Fallback destination if the ZETH_TRUSTED_SETUP_DIR env var is not set
-        path_to_setup_directory = "../trusted_setup";
-    }
-
-    boost::filesystem::path setup_dir(path_to_setup_directory);
-    return setup_dir;
+    return boost::filesystem::path(trusted_setup_path("../trusted_setup"));
 }
 
 boost::filesystem::path get_path_to_debug_directory()

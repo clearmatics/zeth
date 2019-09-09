@@ -28,6 +28,14 @@ std::string hexadecimal_str_to_binary_str(const std::string &s);
 std::string binary_str_to_hexadecimal_str(const char *s, const size_t size);
 std::string binary_str_to_hexadecimal_str(const std::string &s);
 
+// Attempt to find the default trusted setup path, given by env variables or
+// fallback.
+std::string trusted_setup_path(const std::string &fallback = "");
+
+// Check for environment variables defining the location of a specific file
+// related to trusted setup.
+std::string trusted_setup_file(const std::string &file_name);
+
 } // namespace libzeth
 #include "util.tcc"
 

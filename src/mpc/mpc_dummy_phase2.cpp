@@ -1,6 +1,7 @@
 #include "circuit-wrapper.hpp"
 #include "mpc_common.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
+#include "util.hpp"
 #include "zeth.h"
 
 using namespace libzeth;
@@ -56,8 +57,8 @@ private:
         linear_combination_file =
             vm["linear_combination_file"].as<std::string>();
 
-        out_file =
-            vm.count("out") ? vm["out"].as<std::string>() : "mpc-phase2.bin";
+        out_file = vm.count("out") ? vm["out"].as<std::string>()
+                                   : trusted_setup_file("mpc-phase2.bin");
     }
 
     void subcommand_usage() override
