@@ -173,7 +173,7 @@ static int powersoftau_main(const cli_options &options)
 
     // If --check was given, run the well-formedness check and stop.
     if (options.check) {
-        if (!powersoftau_is_well_formed(powersoftau, options.degree)) {
+        if (!powersoftau_is_well_formed(powersoftau)) {
             std::cerr << "Invalid powersoftau file" << std::endl;
             return 1;
         }
