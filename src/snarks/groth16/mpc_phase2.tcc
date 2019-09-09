@@ -543,18 +543,21 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_compute_challenge(
         new_transcript_digest, std::move(response.new_accumulator));
 }
 
-template<typename ppT>
+template<typename ppT, bool enable_contribution_check>
 bool srs_mpc_phase2_verify_transcript(
     const srs_mpc_hash_t initial_transcript_digest,
     const libff::G1<ppT> &initial_delta,
+    const srs_mpc_hash_t check_for_contribution,
     std::istream &transcript_stream,
     libff::G1<ppT> &out_final_delta,
-    srs_mpc_hash_t out_final_transcript_digest)
+    srs_mpc_hash_t out_final_transcript_digest,
+    bool &out_contribution_found)
 {
     srs_mpc_hash_t digest;
     memcpy(digest, initial_transcript_digest, sizeof(srs_mpc_hash_t));
     libff::G1<ppT> delta = initial_delta;
 
+    bool contribution_found = false;
     while (EOF != transcript_stream.peek()) {
         const srs_mpc_phase2_publickey<ppT> publickey =
             srs_mpc_phase2_publickey<ppT>::read(transcript_stream);
@@ -565,18 +568,48 @@ bool srs_mpc_phase2_verify_transcript(
             return false;
         }
 
+        publickey.compute_digest(digest);
+        if (enable_contribution_check && !contribution_found &&
+            0 == memcmp(
+                     digest, check_for_contribution, sizeof(srs_mpc_hash_t))) {
+            contribution_found = true;
+        }
+
         if (!srs_mpc_phase2_verify_publickey(delta, publickey)) {
             return false;
         }
 
         // Contribution is valid.  Update state and read next publickey.
-        publickey.compute_digest(digest);
         delta = publickey.new_delta_g1;
     }
 
     out_final_delta = delta;
     memcpy(out_final_transcript_digest, digest, sizeof(srs_mpc_hash_t));
+    if (enable_contribution_check) {
+        out_contribution_found = contribution_found;
+    }
+
     return true;
+}
+
+template<typename ppT>
+bool srs_mpc_phase2_verify_transcript(
+    const srs_mpc_hash_t initial_transcript_digest,
+    const libff::G1<ppT> &initial_delta,
+    std::istream &transcript_stream,
+    libff::G1<ppT> &out_final_delta,
+    srs_mpc_hash_t out_final_transcript_digest)
+{
+    const srs_mpc_hash_t dummy_check_for_contribution{};
+    bool dummy_out_contribution_found;
+    return srs_mpc_phase2_verify_transcript<ppT, false>(
+        initial_transcript_digest,
+        initial_delta,
+        dummy_check_for_contribution,
+        transcript_stream,
+        out_final_delta,
+        out_final_transcript_digest,
+        dummy_out_contribution_found);
 }
 
 template<typename ppT>
