@@ -429,6 +429,35 @@ TEST(MPCTests, HashInterface)
     }
 }
 
+TEST(MPCTests, HashRepresentation)
+{
+    const uint8_t empty[0]{};
+    const std::string expected_hash_string =
+        "786a02f7 42015903 c6c6fd85 2552d272\n"
+        "912f4740 e1584761 8a86e217 f71f5419\n"
+        "d25e1031 afee5853 13896444 934eb04b\n"
+        "903a685b 1448b755 d56f701a fe9be2ce\n";
+
+    srs_mpc_hash_t hash;
+    srs_mpc_compute_hash(hash, empty, 0);
+
+    // Write to stream
+    const std::string hash_string = [&]() {
+        std::ostringstream ss;
+        srs_mpc_hash_write(hash, ss);
+        return ss.str();
+    }();
+    ASSERT_EQ(expected_hash_string, hash_string);
+
+    // Read from stream
+    srs_mpc_hash_t hash_from_string;
+    {
+        std::istringstream ss(hash_string);
+        ASSERT_TRUE(srs_mpc_hash_read(hash_from_string, ss));
+    }
+    ASSERT_EQ(0, memcmp(hash, hash_from_string, sizeof(srs_mpc_hash_t)));
+}
+
 TEST(MPCTests, Phase2PublicKeyReadWrite)
 {
     srs_mpc_hash_t empty_hash;
