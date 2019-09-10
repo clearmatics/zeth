@@ -197,7 +197,7 @@ template<typename ppT> srs_powersoftau<ppT> dummy_powersoftau(size_t n)
 }
 
 template<typename ppT>
-bool powersoftau_validate(const srs_powersoftau<ppT> &pot, const size_t n)
+bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot, const size_t n)
 {
     // TODO: Cache precomputed g1, tau_g1, g2, tau_g2
     // TODO: Parallelize
