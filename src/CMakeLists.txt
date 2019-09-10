@@ -122,10 +122,10 @@ target_link_libraries(
   protobuf::libprotobuf
 )
 
-# powersoftau utility
-add_executable(powersoftau powersoftau/powersoftau.cpp)
+# pot-process utility
+add_executable(pot-process pot_process/pot_process.cpp)
 target_link_libraries(
-  powersoftau
+  pot-process
   zeth
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
