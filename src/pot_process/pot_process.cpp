@@ -15,7 +15,7 @@ using ppT = libff::default_ec_pp;
 // -----------------------------------------------------------------------------
 
 // Usage:
-//     powersoftau [<options>] <powersoftau file> <degree>
+//     pot-process [<options>] <powersoftau file> <degree>
 //
 // Options:
 //     -h,--help              This message
@@ -32,7 +32,7 @@ public:
     po::options_description all_desc;
     po::positional_options_description pos;
 
-    std::string argv0;
+    std::string command;
     bool help;
     std::string powersoftau_file;
     size_t degree;
@@ -51,7 +51,7 @@ cli_options::cli_options()
     : desc("Options")
     , all_desc("")
     , pos()
-    , argv0("powersoftau")
+    , command("pot-process")
     , help(false)
     , powersoftau_file()
     , degree(0)
@@ -74,9 +74,8 @@ cli_options::cli_options()
 void cli_options::usage() const
 {
     std::cout << "Usage:" << std::endl
-              << "  " << argv0 << " [<options>] <powersoftau file> <degree>"
-              << std::endl
-              << std::endl
+              << "  " << command
+              << " [<options>] <powersoftau file> <degree>\n\n"
               << desc << std::endl;
 }
 
@@ -89,7 +88,7 @@ void cli_options::parse(int argc, char **argv)
                                     .run();
     po::store(parsed, vm);
 
-    argv0 = argv[0];
+    command = argv[0];
 
     if (vm.count("help")) {
         help = true;
@@ -132,7 +131,7 @@ static int powersoftau_main(const cli_options &options)
     }
 
     if (options.verbose) {
-        std::cout << " argv0: " << options.argv0 << "\n";
+        std::cout << " command: " << options.command << "\n";
         std::cout << " help: " << std::to_string(options.help) << "\n";
         std::cout << " powersoftau_file: " << options.powersoftau_file << "\n";
         std::cout << " degree: " << std::to_string(options.degree) << "\n";
