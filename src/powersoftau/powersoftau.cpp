@@ -1,5 +1,5 @@
-/// Small utility to verify powersoftau output and to compute the
-/// evaluation of Lagrange polynomials at tau.
+/// Small utility to check powersoftau output and to compute the evaluation of
+/// Lagrange polynomials at tau.
 
 #include "snarks/groth16/powersoftau_utils.hpp"
 
@@ -20,7 +20,7 @@ using ppT = libff::default_ec_pp;
 // Options:
 //     -h,--help              This message
 //     -v,--verbose           Verbose
-//     --verify               Verify only
+//     --check                Check pot well-formedness and exit
 //     --out <file>           Write the lagrange polynomial values to this file
 //                            ("lagrange-radix2-<n>")
 //     --lagrange-degree <l>  Use degree l instead of n (l < n)
@@ -37,7 +37,7 @@ public:
     std::string powersoftau_file;
     size_t degree;
     bool verbose;
-    bool verify;
+    bool check;
     bool dummy;
     std::string out;
     size_t lagrange_degree;
@@ -56,13 +56,13 @@ cli_options::cli_options()
     , powersoftau_file()
     , degree(0)
     , verbose(false)
-    , verify(false)
+    , check(false)
     , out()
     , lagrange_degree(0)
 {
     desc.add_options()("help,h", "This help")("verbose,v", "Verbose output")(
-        "verify",
-        "Verify only")("out,o", po::value<std::string>(), "Output file")(
+        "check", "Check pot well-formedness and exit")(
+        "out,o", po::value<std::string>(), "Output file")(
         "lagrange-degree", po::value<size_t>(), "Use degree l")(
         "dummy", "Create dummy powersoftau data (!for testing only)");
     all_desc.add(desc).add_options()(
@@ -105,7 +105,7 @@ void cli_options::parse(int argc, char **argv)
 
     powersoftau_file = vm["powersoftau_file"].as<std::string>();
     verbose = vm.count("verbose");
-    verify = vm.count("verify");
+    check = vm.count("check");
     degree = vm["degree"].as<size_t>();
     lagrange_degree = vm.count("lagrange-degree")
                           ? vm["lagrange-degree"].as<size_t>()
@@ -114,8 +114,8 @@ void cli_options::parse(int argc, char **argv)
                           : "lagrange-" + std::to_string(lagrange_degree);
     dummy = vm.count("dummy");
 
-    if (dummy && verify) {
-        throw po::error("specify at most one of --dummy and --verify");
+    if (dummy && check) {
+        throw po::error("specify at most one of --dummy and --check");
     }
 }
 
@@ -137,7 +137,7 @@ static int powersoftau_main(const cli_options &options)
         std::cout << " powersoftau_file: " << options.powersoftau_file << "\n";
         std::cout << " degree: " << std::to_string(options.degree) << "\n";
         std::cout << " verbose: " << std::to_string(options.verbose) << "\n";
-        std::cout << " verify: " << std::to_string(options.verify) << "\n";
+        std::cout << " check: " << std::to_string(options.check) << std::endl;
         std::cout << " out: " << options.out << "\n";
         std::cout << " lagrange_degree: "
                   << std::to_string(options.lagrange_degree) << std::endl;
@@ -172,10 +172,10 @@ static int powersoftau_main(const cli_options &options)
         powersoftau_load(in, options.degree);
     in.close();
 
-    // If --verify was given, run the verification and stop.
-    if (options.verify) {
-        if (!powersoftau_validate(powersoftau, options.degree)) {
-            std::cerr << "Error validating powersoftau file" << std::endl;
+    // If --check was given, run the well-formedness check and stop.
+    if (options.check) {
+        if (!powersoftau_is_well_formed(powersoftau, options.degree)) {
+            std::cerr << "Invalid powersoftau file" << std::endl;
             return 1;
         }
 

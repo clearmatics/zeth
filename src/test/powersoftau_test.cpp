@@ -51,12 +51,12 @@ template<typename T> std::string to_hex(const T &v)
     return bin_to_hex(bufstream.str());
 }
 
-TEST(PowersOfTauTests, PowersOfTauValidation)
+TEST(PowersOfTauTests, PowersOfTauIsWellFormed)
 {
     const size_t n = 16;
     const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(n);
 
-    ASSERT_TRUE(powersoftau_validate(pot, n));
+    ASSERT_TRUE(powersoftau_is_well_formed(pot, n));
 
     // tamper with some individual entries
     {
@@ -69,7 +69,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_validate(tamper_tau_g1, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_tau_g1, n));
     }
 
     {
@@ -82,7 +82,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_validate(tamper_tau_g2, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_tau_g2, n));
     }
 
     {
@@ -95,7 +95,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_validate(tamper_alpha_tau_g1, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_alpha_tau_g1, n));
     }
 
     {
@@ -108,7 +108,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             std::move(beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_validate(tamper_beta_tau_g1, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_beta_tau_g1, n));
     }
 
     {
@@ -119,7 +119,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2 + G2::one());
 
-        ASSERT_FALSE(powersoftau_validate(tamper_beta_g2, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_beta_g2, n));
     }
 }
 
@@ -306,7 +306,7 @@ TEST(PowersOfTauTests, ReadWritePowersOfTauOutput)
         pot_write = pot_write.substr(64);
     }
 
-    ASSERT_TRUE(powersoftau_validate(pot, n));
+    ASSERT_TRUE(powersoftau_is_well_formed(pot, n));
     ASSERT_EQ(expect_pot_write.substr(64, pot_write.size()), pot_write);
 }
 
