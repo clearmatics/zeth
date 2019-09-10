@@ -51,12 +51,12 @@ template<typename T> std::string to_hex(const T &v)
     return bin_to_hex(bufstream.str());
 }
 
-TEST(PowersOfTauTests, PowersOfTauValidation)
+TEST(PowersOfTauTests, PowersOfTauIsWellFormed)
 {
     const size_t n = 16;
     const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(n);
 
-    ASSERT_TRUE(powersoftau_validate(pot, n));
+    ASSERT_TRUE(powersoftau_is_well_formed(pot, n));
 
     // tamper with some individual entries
     {
@@ -69,7 +69,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_validate(tamper_tau_g1, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_tau_g1, n));
     }
 
     {
@@ -82,7 +82,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_validate(tamper_tau_g2, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_tau_g2, n));
     }
 
     {
@@ -95,7 +95,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_validate(tamper_alpha_tau_g1, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_alpha_tau_g1, n));
     }
 
     {
@@ -108,7 +108,7 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             std::move(beta_tau_powers_g1),
             pot.beta_g2);
 
-        ASSERT_FALSE(powersoftau_validate(tamper_beta_tau_g1, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_beta_tau_g1, n));
     }
 
     {
@@ -119,11 +119,11 @@ TEST(PowersOfTauTests, PowersOfTauValidation)
             libff::G1_vector<ppT>(pot.beta_tau_powers_g1),
             pot.beta_g2 + G2::one());
 
-        ASSERT_FALSE(powersoftau_validate(tamper_beta_g2, n));
+        ASSERT_FALSE(powersoftau_is_well_formed(tamper_beta_g2, n));
     }
 }
 
-TEST(UtilTest, ReadPowersOfTauFr)
+TEST(UtilTest, ReadWritePowersOfTauFr)
 {
     const Fr fr_1 = Fr::one();
     const Fr fr_2 = fr_1 + fr_1;
@@ -141,10 +141,18 @@ TEST(UtilTest, ReadPowersOfTauFr)
         read_powersoftau_fr(ss_bytes, fr_7_inv_read);
     }
 
+    std::string fr_7_inv_write;
+    {
+        std::ostringstream out;
+        write_powersoftau_fr(out, fr_7_inv);
+        fr_7_inv_write = bin_to_hex(out.str());
+    }
+
     ASSERT_EQ(fr_7_inv, fr_7_inv_read);
+    ASSERT_EQ(s_f_7_inv, fr_7_inv_write);
 }
 
-TEST(UtilTest, ReadPowersOfTauG1)
+TEST(UtilTest, ReadWritePowersOfTauG1)
 {
     const Fr fr_1 = Fr::one();
     const Fr fr_2 = fr_1 + fr_1;
@@ -163,12 +171,20 @@ TEST(UtilTest, ReadPowersOfTauG1)
         "00e0ee2def593392a7a94e9bbbac1d4b104dbe5b6ec573eb04105efeaed342ca"
         "0fa5508a1ea35c78b4b7fc8eefa700c2ba6dba17b6747b89f7ddfdd7e38a39d8";
 
+    std::string g1_7_inv_write;
+    {
+        std::ostringstream out;
+        write_powersoftau_g1(out, expect_g1_7_inv);
+        g1_7_inv_write = bin_to_hex(out.str());
+    }
+
     ASSERT_EQ(G1::zero(), hex_to_g1(s_g1_0));
     ASSERT_EQ(G1::one(), hex_to_g1(s_g1_1));
     ASSERT_EQ(expect_g1_7_inv, hex_to_g1(s_g1_7_inv));
+    ASSERT_EQ(s_g1_7_inv, g1_7_inv_write);
 }
 
-TEST(UtilTest, ReadPowersOfTauFq2)
+TEST(UtilTest, ReadWritePowersOfTauFq2)
 {
     const std::string fq2_x_string =
         "04d4bf3239f77cee7b47c7245e9281b3e9c1182d6381a87bbf81f9f2a6254b73"
@@ -193,6 +209,13 @@ TEST(UtilTest, ReadPowersOfTauFq2)
         read_powersoftau_fq2(ss, fq2_in_y);
     }
 
+    std::string g2_one_x_write;
+    {
+        std::ostringstream out;
+        write_powersoftau_fq2(out, g2_one_x);
+        g2_one_x_write = bin_to_hex(out.str());
+    }
+
     std::cout << "fq2_in_x hex (full): " << std::endl
               << to_hex(fq2_in_x) << std::endl;
     std::cout << "fq2_in_y hex (full): " << std::endl
@@ -200,9 +223,10 @@ TEST(UtilTest, ReadPowersOfTauFq2)
 
     ASSERT_EQ(g2_one_x, fq2_in_x);
     ASSERT_EQ(g2_one_y, fq2_in_y);
+    ASSERT_EQ(fq2_x_string, g2_one_x_write);
 }
 
-TEST(PowersOfTauTests, ReadPowersOfTauG2)
+TEST(PowersOfTauTests, ReadWritePowersOfTauG2)
 {
     const Fr fr_1 = Fr::one();
     const Fr fr_2 = fr_1 + fr_1;
@@ -236,15 +260,23 @@ TEST(PowersOfTauTests, ReadPowersOfTauG2)
               << to_hex(g2_1.X) << std::endl
               << to_hex(g2_1.Y) << std::endl;
 
+    std::string g2_7_inv_write;
+    {
+        std::ostringstream out;
+        write_powersoftau_g2(out, g2_7_inv);
+        g2_7_inv_write = bin_to_hex(out.str());
+    }
+
     ASSERT_EQ(G2::zero(), hex_to_g2(s_g2_0));
     ASSERT_EQ(g2_1.X, g2_1_read.X);
     ASSERT_EQ(g2_1.Y, g2_1_read.Y);
     ASSERT_EQ(g2_1.Z, g2_1_read.Z);
     ASSERT_EQ(G2::one(), g2_1_read);
     ASSERT_EQ(g2_7_inv, g2_7_inv_read);
+    ASSERT_EQ(s_g2_7_inv, g2_7_inv_write);
 }
 
-TEST(PowersOfTauTests, ReadPowersOfTauOutput)
+TEST(PowersOfTauTests, ReadWritePowersOfTauOutput)
 {
     char *zeth = getenv("ZETH");
     const std::string filename = std::string(zeth == nullptr ? "." : zeth) +
@@ -254,7 +286,28 @@ TEST(PowersOfTauTests, ReadPowersOfTauOutput)
     std::ifstream in(filename, std::ios_base::binary | std::ios_base::in);
     srs_powersoftau<ppT> pot = powersoftau_load(in, n);
 
-    ASSERT_TRUE(powersoftau_validate(pot, n));
+    std::string expect_pot_write;
+    {
+        std::ifstream in_pot(
+            filename, std::ios_base::binary | std::ios_base::in);
+        expect_pot_write = std::string(
+            std::istreambuf_iterator<char>(in_pot),
+            std::istreambuf_iterator<char>());
+    }
+
+    std::string pot_write;
+    {
+        std::ostringstream out;
+        powersoftau_write(out, pot);
+        pot_write = out.str();
+
+        // powersoftau_write creates a dummy hash at the start, which may not
+        // match the original, so extract the substring to be compared.
+        pot_write = pot_write.substr(64);
+    }
+
+    ASSERT_TRUE(powersoftau_is_well_formed(pot, n));
+    ASSERT_EQ(expect_pot_write.substr(64, pot_write.size()), pot_write);
 }
 
 TEST(PowersOfTauTests, ComputeLagrangeEvaluation)
@@ -302,6 +355,49 @@ TEST(PowersOfTauTests, ComputeLagrangeEvaluation)
         ASSERT_EQ(beta_L_j_g1, lagrange.beta_lagrange_g1[j])
             << "beta L_" << std::to_string(j) << " in G1";
     }
+}
+
+TEST(PowersOfTauTests, SerializeG2)
+{
+    const Fr fr_7(7);
+    const G2 g2_7 = fr_7 * G2::one();
+
+    std::cout << "g2_7: " << to_hex(g2_7) << std::endl;
+
+    // Serialize
+    std::ostringstream out;
+    out << g2_7;
+    std::string g2_7_ser = out.str();
+    std::cout << "g2_7_ser: " << bin_to_hex(g2_7_ser) << std::endl;
+
+    // Deserialize
+    std::istringstream in(g2_7_ser);
+    G2 g2_7_deser;
+    in >> g2_7_deser;
+
+    ASSERT_EQ(g2_7, g2_7_deser);
+}
+
+TEST(PowersOfTauTests, SerializeLagrangeEvaluation)
+{
+    const size_t n = 16;
+    const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(n);
+    const srs_lagrange_evaluations<ppT> lagrange =
+        powersoftau_compute_lagrange_evaluations(pot, n);
+
+    std::ostringstream out;
+    lagrange.write(out);
+    std::string lagrange_ser = out.str();
+
+    std::istringstream in(lagrange_ser);
+    const srs_lagrange_evaluations<ppT> lagrange_deser =
+        srs_lagrange_evaluations<ppT>::read(in);
+
+    ASSERT_EQ(lagrange.degree, lagrange_deser.degree);
+    ASSERT_EQ(lagrange.lagrange_g1, lagrange_deser.lagrange_g1);
+    ASSERT_EQ(lagrange.lagrange_g2, lagrange_deser.lagrange_g2);
+    ASSERT_EQ(lagrange.alpha_lagrange_g1, lagrange_deser.alpha_lagrange_g1);
+    ASSERT_EQ(lagrange.beta_lagrange_g1, lagrange_deser.beta_lagrange_g1);
 }
 
 } // namespace

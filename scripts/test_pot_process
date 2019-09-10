@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+POT=$1
+[ "" == "${POT}" ] && POT="build/src/pot-process"
+
+POT_DATA="testdata/powersoftau_response.4.bin"
+POT_DATA_DEGREE=16
+
+set -e
+set -x
+
+# Check real data
+${POT} --check ${POT_DATA} ${POT_DATA_DEGREE}
+
+# Write dummy data
+${POT} --dummy /tmp/test_pot-6.bin 64
+
+# Check consistency of dummy data
+${POT} --check /tmp/test_pot-6.bin 64
+
+# Generate encoded Lagrange evaluation from real data
+${POT} --out /tmp/lagrange-4.bin ${POT_DATA} ${POT_DATA_DEGREE}
+
+# Generate encoded evaluation of Lagrange polynomials of smaller
+# degree, from real data
+${POT} \
+    --out /tmp/lagrange-3.bin \
+    --lagrange-degree $((${POT_DATA_DEGREE} / 2)) \
+    ${POT_DATA} ${POT_DATA_DEGREE}
+
+set +x
+echo "=================================================================="
+echo "==                            PASSED                            =="
+echo "=================================================================="

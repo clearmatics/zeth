@@ -197,7 +197,7 @@ template<typename ppT> srs_powersoftau<ppT> dummy_powersoftau(size_t n)
 }
 
 template<typename ppT>
-bool powersoftau_validate(const srs_powersoftau<ppT> &pot, const size_t n)
+bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot, const size_t n)
 {
     // TODO: Cache precomputed g1, tau_g1, g2, tau_g2
     // TODO: Parallelize
@@ -287,6 +287,57 @@ srs_lagrange_evaluations<ppT>::srs_lagrange_evaluations(
 }
 
 template<typename ppT>
+void srs_lagrange_evaluations<ppT>::write(std::ostream &out) const
+{
+    out.write((const char *)&degree, sizeof(degree));
+    for (const libff::G1<ppT> &l_g1 : lagrange_g1) {
+        out << l_g1;
+    }
+    for (const libff::G2<ppT> &l_g2 : lagrange_g2) {
+        out << l_g2;
+    }
+    for (const libff::G1<ppT> &alpha_l_g1 : alpha_lagrange_g1) {
+        out << alpha_l_g1;
+    }
+    for (const libff::G1<ppT> &beta_l_g1 : beta_lagrange_g1) {
+        out << beta_l_g1;
+    }
+}
+
+template<typename ppT>
+srs_lagrange_evaluations<ppT> srs_lagrange_evaluations<ppT>::read(
+    std::istream &in)
+{
+    size_t degree;
+    in.read((char *)&degree, sizeof(degree));
+
+    std::vector<libff::G1<ppT>> lagrange_g1(degree);
+    std::vector<libff::G2<ppT>> lagrange_g2(degree);
+    std::vector<libff::G1<ppT>> alpha_lagrange_g1(degree);
+    std::vector<libff::G1<ppT>> beta_lagrange_g1(degree);
+
+    for (libff::G1<ppT> &l_g1 : lagrange_g1) {
+        in >> l_g1;
+    }
+    for (libff::G2<ppT> &l_g2 : lagrange_g2) {
+        in >> l_g2;
+    }
+    for (libff::G1<ppT> &alpha_l_g1 : alpha_lagrange_g1) {
+        in >> alpha_l_g1;
+    }
+    for (libff::G1<ppT> &beta_l_g1 : beta_lagrange_g1) {
+        in >> beta_l_g1;
+    }
+
+    return srs_lagrange_evaluations<ppT>(
+        degree,
+        std::move(lagrange_g1),
+        std::move(lagrange_g2),
+        std::move(alpha_lagrange_g1),
+        std::move(beta_lagrange_g1));
+}
+
+template<typename ppT>
 srs_lagrange_evaluations<ppT> powersoftau_compute_lagrange_evaluations(
     const srs_powersoftau<ppT> &pot, const size_t n)
 {
@@ -313,30 +364,40 @@ srs_lagrange_evaluations<ppT> powersoftau_compute_lagrange_evaluations(
     libff::enter_block("computing [Lagrange_i(x)]_1");
     std::vector<G1> lagrange_g1(
         pot.tau_powers_g1.begin(), pot.tau_powers_g1.begin() + n);
-    assert(lagrange_g1[0] == G1::one());
-    assert(lagrange_g1.size() == n);
+    if (lagrange_g1[0] != G1::one() || lagrange_g1.size() != n) {
+        throw std::invalid_argument("unexpected powersoftau data (g1). Invalid "
+                                    "file or degree mismatch");
+    }
     compute_lagrange_from_powers(lagrange_g1, omega_inv);
     libff::leave_block("computing [Lagrange_i(x)]_1");
 
     libff::enter_block("computing [Lagrange_i(x)]_2");
     std::vector<G2> lagrange_g2(
         pot.tau_powers_g2.begin(), pot.tau_powers_g2.begin() + n);
-    assert(lagrange_g2[0] == G2::one());
-    assert(lagrange_g2.size() == n);
+    if (lagrange_g2[0] != G2::one() || lagrange_g2.size() != n) {
+        throw std::invalid_argument("unexpected powersoftau data (g2). invalid "
+                                    "file or degree mismatch");
+    }
     compute_lagrange_from_powers(lagrange_g2, omega_inv);
     libff::leave_block("computing [Lagrange_i(x)]_2");
 
     libff::enter_block("computing [alpha . Lagrange_i(x)]_1");
     std::vector<G1> alpha_lagrange_g1(
         pot.alpha_tau_powers_g1.begin(), pot.alpha_tau_powers_g1.begin() + n);
-    assert(alpha_lagrange_g1.size() == n);
+    if (alpha_lagrange_g1.size() != n) {
+        throw std::invalid_argument("unexpected powersoftau data (alpha). "
+                                    "invalid file or degree mismatch");
+    }
     compute_lagrange_from_powers(alpha_lagrange_g1, omega_inv);
     libff::leave_block("computing [alpha . Lagrange_i(x)]_1");
 
     libff::enter_block("computing [beta . Lagrange_i(x)]_1");
     std::vector<G1> beta_lagrange_g1(
         pot.beta_tau_powers_g1.begin(), pot.beta_tau_powers_g1.begin() + n);
-    assert(beta_lagrange_g1.size() == n);
+    if (beta_lagrange_g1.size() != n) {
+        throw std::invalid_argument("unexpected powersoftau data (alpha). "
+                                    "invalid file or degree mismatch");
+    }
     compute_lagrange_from_powers(beta_lagrange_g1, omega_inv);
     libff::leave_block("computing [beta . Lagrange_i(x)]_1");
 

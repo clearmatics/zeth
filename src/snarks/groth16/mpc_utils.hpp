@@ -50,6 +50,11 @@ public:
         libff::G1_vector<ppT> &&B_g1,
         libff::G2_vector<ppT> &&B_g2,
         libff::G1_vector<ppT> &&ABC_g1);
+
+    size_t degree() const;
+
+    void write(std::ostream &out) const;
+    static srs_mpc_layer_L1 read(std::istream &in);
 };
 
 /// Given a circuit and a powersoftau with pre-computed lagrange
@@ -60,17 +65,54 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     const srs_lagrange_evaluations<ppT> &lagrange,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
+/// Output from the second phase of the MPC.  A sub-set of the L1
+/// data divided by a secret delta.
+template<typename ppT> class srs_mpc_layer_C2
+{
+public:
+    libff::G1<ppT> delta_g1;
+    libff::G2<ppT> delta_g2;
+    libff::G1_vector<ppT> H_g1;
+    libff::G1_vector<ppT> L_g1;
+
+    srs_mpc_layer_C2(
+        const libff::G1<ppT> &delta_g1,
+        const libff::G2<ppT> &delta_g2,
+        libff::G1_vector<ppT> &&H_g1,
+        libff::G1_vector<ppT> &&L_g1);
+
+    void write(std::ostream &out) const;
+    static srs_mpc_layer_C2 read(std::istream &in);
+};
+
 /// Given the output from the first layer of the MPC, perform the 2nd
 /// layer computation using just local randomness for delta. This is not a
 /// substitute for the full MPC with an auditable log of
 /// contributions, but is useful for testing.
 template<typename ppT>
-libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_dummy_layer2(
+srs_mpc_layer_C2<ppT> mpc_dummy_layer_C2(
+    const srs_mpc_layer_L1<ppT> &layer1,
+    const libff::Fr<ppT> &delta,
+    size_t num_inputs);
+
+/// Given the output from all phases of the MPC, create the
+/// prover and verification keys for the given circuit.
+template<typename ppT>
+libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     srs_powersoftau<ppT> &&pot,
     srs_mpc_layer_L1<ppT> &&layer1,
-    const libff::Fr<ppT> &delta,
+    srs_mpc_layer_C2<ppT> &&layer2,
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
+
+/// Write a keypair to a stream.
+template<typename ppT>
+void mpc_write_keypair(
+    std::ostream &out, const libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair);
+
+/// Read a keypair from a stream.
+template<typename ppT>
+libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_read_keypair(std::istream &in);
 
 } // namespace libzeth
 

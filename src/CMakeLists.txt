@@ -58,7 +58,7 @@ include_directories(
 
 
 # Enable Boost for program_options
-find_package( Boost REQUIRED COMPONENTS system filesystem )
+find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
 include_directories( ${Boost_INCLUDE_DIR} )
 
 # Add the binary tree to the search path for include files
@@ -113,6 +113,25 @@ target_link_libraries(
   protobuf::libprotobuf
 )
 
+# pot-process utility
+add_executable(pot-process pot_process/pot_process.cpp)
+target_link_libraries(
+  pot-process
+  zeth
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+)
+
+# mpc utility executable
+file(GLOB MPC_SOURCE mpc/*.?pp mpc/*.tcc)
+add_executable(mpc ${MPC_SOURCE})
+target_link_libraries(
+  mpc
+  zeth
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+)
+
 ## Tests
 include(CTest)
 
@@ -151,6 +170,11 @@ zeth_test(test_prover test/prover_test.cpp FALSE)
 # prover test has extra dependencies
 target_link_libraries(
   test_prover
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+)
+target_link_libraries(
+  test_mpc
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
 )

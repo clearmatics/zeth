@@ -1,31 +1,39 @@
+#include "circuit-wrapper.hpp"
+#include "circuits/sha256/sha256_ethereum.hpp"
+#include "snarks/groth16/evaluator_from_lagrange.hpp"
 #include "snarks/groth16/mpc_utils.hpp"
 #include "snarks/groth16/multi_exp.hpp"
 #include "test/simple_test.hpp"
 #include "util.hpp"
 
+#include <fstream>
 #include <gtest/gtest.h>
+#include <thread>
 
-using ppT = libff::default_ec_pp;
+using namespace libsnark;
+
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
-using namespace libsnark;
-using namespace libzeth;
 
 namespace
 {
+
+static r1cs_constraint_system<Fr> get_simple_constraint_system()
+{
+    protoboard<Fr> pb;
+    libzeth::test::simple_circuit<Fr>(pb);
+    r1cs_constraint_system<Fr> cs = pb.get_constraint_system();
+    cs.swap_AB_if_beneficial();
+    return cs;
+}
 
 TEST(MPCTests, LinearCombination)
 {
     // Compute the small test qap first, in order to extract the
     // degree.
-    const r1cs_constraint_system<Fr> constraint_system = ([] {
-        protoboard<Fr> pb;
-        libzeth::test::simple_circuit<Fr>(pb);
-        r1cs_constraint_system<Fr> cs = pb.get_constraint_system();
-        cs.swap_AB_if_beneficial();
-        return cs;
-    })();
+    const r1cs_constraint_system<Fr> constraint_system =
+        get_simple_constraint_system();
     qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
 
     // dummy powersoftau
@@ -41,9 +49,10 @@ TEST(MPCTests, LinearCombination)
     const srs_mpc_layer_L1<ppT> layer1 =
         mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
 
-    // Without knowlege of tau, not many checks can be performed
-    // beyond the ratio of terms in [ t(x) . x^i ]_1.
+    // Checks that can be performed without knowledge of tau. (ratio
+    // of terms in [ t(x) . x^i ]_1, etc).
     const size_t qap_n = qap.degree();
+    ASSERT_EQ(qap_n, layer1.degree());
     ASSERT_EQ(qap_n - 1, layer1.T_tau_powers_g1.size());
     ASSERT_EQ(qap.num_variables() + 1, layer1.ABC_g1.size());
 
@@ -94,6 +103,39 @@ TEST(MPCTests, LinearCombination)
     }
 }
 
+TEST(MPCTests, LinearCombinationReadWrite)
+{
+    const r1cs_constraint_system<Fr> constraint_system =
+        get_simple_constraint_system();
+    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
+    const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(qap.degree());
+    const srs_lagrange_evaluations<ppT> lagrange =
+        powersoftau_compute_lagrange_evaluations<ppT>(pot, qap.degree());
+    const srs_mpc_layer_L1<ppT> layer1 =
+        mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
+
+    std::string layer1_serialized;
+    {
+        std::ostringstream out;
+        layer1.write(out);
+        layer1_serialized = out.str();
+    }
+
+    srs_mpc_layer_L1<ppT> layer1_deserialized = [layer1_serialized]() {
+        std::istringstream in(layer1_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return srs_mpc_layer_L1<ppT>::read(in);
+    }();
+
+    ASSERT_EQ(layer1.T_tau_powers_g1, layer1_deserialized.T_tau_powers_g1);
+    ASSERT_EQ(layer1.A_g1, layer1_deserialized.A_g1);
+    ASSERT_EQ(layer1.B_g1, layer1_deserialized.B_g1);
+    ASSERT_EQ(layer1.B_g2, layer1_deserialized.B_g2);
+    ASSERT_EQ(layer1.ABC_g1, layer1_deserialized.ABC_g1);
+}
+
 TEST(MPCTests, Layer2)
 {
     // Small test circuit and QAP
@@ -117,18 +159,22 @@ TEST(MPCTests, Layer2)
     const srs_lagrange_evaluations<ppT> lagrange =
         powersoftau_compute_lagrange_evaluations(pot, n);
 
-    // dummy circuit and CRS2
+    // dummy circuit and layer L1
     size_t num_variables = qap.num_variables();
     size_t num_inputs = qap.num_inputs();
 
     srs_mpc_layer_L1<ppT> layer1 =
         mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
 
-    // Final key pair
-    const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_dummy_layer2(
+    // layer C2
+    srs_mpc_layer_C2<ppT> layer2 =
+        mpc_dummy_layer_C2<ppT>(layer1, delta, num_inputs);
+
+    // final keypair
+    const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_create_key_pair(
         std::move(pot),
         std::move(layer1),
-        delta,
+        std::move(layer2),
         std::move(constraint_system),
         qap);
 
@@ -241,6 +287,80 @@ TEST(MPCTests, Layer2)
         ASSERT_TRUE(
             r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
     }
+}
+
+TEST(MPCTests, LayerC2ReadWrite)
+{
+    const r1cs_constraint_system<Fr> constraint_system =
+        get_simple_constraint_system();
+    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
+    const srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(qap.degree());
+    const srs_lagrange_evaluations<ppT> lagrange =
+        powersoftau_compute_lagrange_evaluations(pot, qap.degree());
+    const srs_mpc_layer_L1<ppT> layer1 =
+        mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
+    const Fr delta = Fr::random_element();
+    const srs_mpc_layer_C2<ppT> layer2 =
+        mpc_dummy_layer_C2(layer1, delta, qap.num_inputs());
+
+    std::string layer2_serialized;
+    {
+        std::ostringstream out;
+        layer2.write(out);
+        layer2_serialized = out.str();
+    }
+
+    srs_mpc_layer_C2<ppT> layer2_deserialized = [&layer2_serialized]() {
+        std::istringstream in(layer2_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return srs_mpc_layer_C2<ppT>::read(in);
+    }();
+
+    ASSERT_EQ(layer2.delta_g1, layer2_deserialized.delta_g1);
+    ASSERT_EQ(layer2.delta_g2, layer2_deserialized.delta_g2);
+    ASSERT_EQ(layer2.H_g1, layer2_deserialized.H_g1);
+    ASSERT_EQ(layer2.L_g1, layer2_deserialized.L_g1);
+}
+
+TEST(MPCTests, KeyPairReadWrite)
+{
+    r1cs_constraint_system<Fr> constraint_system =
+        get_simple_constraint_system();
+    qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
+    srs_powersoftau<ppT> pot = dummy_powersoftau<ppT>(qap.degree());
+    const srs_lagrange_evaluations<ppT> lagrange =
+        powersoftau_compute_lagrange_evaluations(pot, qap.degree());
+    srs_mpc_layer_L1<ppT> layer1 =
+        mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
+    const Fr delta = Fr::random_element();
+    srs_mpc_layer_C2<ppT> layer2 =
+        mpc_dummy_layer_C2<ppT>(layer1, delta, qap.num_inputs());
+    const r1cs_gg_ppzksnark_keypair<ppT> keypair = mpc_create_key_pair(
+        std::move(pot),
+        std::move(layer1),
+        std::move(layer2),
+        std::move(constraint_system),
+        qap);
+
+    std::string keypair_serialized;
+    {
+        std::ostringstream out;
+        mpc_write_keypair(out, keypair);
+        keypair_serialized = out.str();
+    }
+
+    r1cs_gg_ppzksnark_keypair<ppT> keypair_deserialized = [&]() {
+        std::istringstream in(keypair_serialized);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return mpc_read_keypair<ppT>(in);
+    }();
+
+    ASSERT_EQ(keypair.pk, keypair_deserialized.pk);
+    ASSERT_EQ(keypair.vk, keypair_deserialized.vk);
 }
 
 } // namespace
