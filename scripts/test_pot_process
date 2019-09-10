@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 POT=$1
-[ "" == "${POT}" ] && POT="build/src/powersoftau"
+[ "" == "${POT}" ] && POT="build/src/pot-process"
 
 POT_DATA="testdata/powersoftau_response.4.bin"
 POT_DATA_DEGREE=16
@@ -9,14 +9,14 @@ POT_DATA_DEGREE=16
 set -e
 set -x
 
-# Verify real data
-${POT} --verify ${POT_DATA} ${POT_DATA_DEGREE}
+# Check real data
+${POT} --check ${POT_DATA} ${POT_DATA_DEGREE}
 
 # Write dummy data
 ${POT} --dummy /tmp/test_pot-6.bin 64
 
-# Verify dummy data
-${POT} --verify /tmp/test_pot-6.bin 64
+# Check consistency of dummy data
+${POT} --check /tmp/test_pot-6.bin 64
 
 # Generate encoded Lagrange evaluation from real data
 ${POT} --out /tmp/lagrange-4.bin ${POT_DATA} ${POT_DATA_DEGREE}
