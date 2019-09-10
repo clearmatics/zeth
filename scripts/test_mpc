@@ -15,14 +15,20 @@ linear_combination_file=_test_linear_combination-${QAP_DEGREE}.bin
 transcript_file=_test_transcript.bin
 challenge_0_file=_test_challenge_0.bin
 response_1_file=_test_response_1.bin
+response_digest_1_file=_test_response_digest_1.bin
 challenge_1_file=_test_challenge_1.bin
 response_2_file=_test_response_2.bin
+response_digest_2_file=_test_response_digest_2.bin
 challenge_2_file=_test_challenge_2.bin
 response_3_file=_test_response_3.bin
+response_digest_3_file=_test_response_digest_3.bin
 challenge_3_file=_test_challenge_3.bin
 final_phase2_file=${challenge_3_file}
+invalid_response_digest_file=_test_response_digest_invalid.bin
 
 keypair_file=_test_keypair-${QAP_DEGREE}.bin
+
+rm -f ${transcript_file}
 
 # Dummy pot data
 ${POT} --dummy ${pot_file} ${QAP_DEGREE}
@@ -38,6 +44,7 @@ ${MPC} linear-combination --out ${linear_combination_file} \
 ${MPC} phase2-begin --out ${challenge_0_file} ${linear_combination_file}
 
 ${MPC} phase2-contribute \
+       --digest ${response_digest_1_file} \
        --out ${response_1_file} ${challenge_0_file}
 ${MPC} phase2-verify-contribution \
        --transcript ${transcript_file} \
@@ -45,6 +52,7 @@ ${MPC} phase2-verify-contribution \
        ${challenge_0_file} ${response_1_file}
 
 ${MPC} phase2-contribute \
+       --digest ${response_digest_2_file} \
        --out ${response_2_file} ${challenge_1_file}
 ${MPC} phase2-verify-contribution \
        --transcript ${transcript_file} \
@@ -52,6 +60,7 @@ ${MPC} phase2-verify-contribution \
        ${challenge_1_file} ${response_2_file}
 
 ${MPC} phase2-contribute \
+       --digest ${response_digest_3_file} \
        --out ${response_3_file} ${challenge_2_file}
 ${MPC} phase2-verify-contribution \
        --transcript ${transcript_file} \
@@ -62,6 +71,27 @@ ${MPC} phase2-verify-contribution \
 ${MPC} phase2-verify-transcript \
        ${challenge_0_file} ${transcript_file} ${challenge_3_file}
 
+# Verify the transcript, checking for each contribution
+${MPC} phase2-verify-transcript \
+       --digest ${response_digest_1_file} \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}
+${MPC} phase2-verify-transcript \
+       --digest ${response_digest_2_file} \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}
+${MPC} phase2-verify-transcript \
+       --digest ${response_digest_3_file} \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}
+
+# Invalid contribution check
+echo 00000000 >> ${invalid_response_digest_file}
+cat ${response_digest_3_file} >> ${invalid_response_digest_file}
+if (${MPC} phase2-verify-transcript \
+       --digest ${invalid_response_digest_file} \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}) then
+   echo ERROR: expected failure
+   exit 1
+fi
+
 # Create the keypair
 ${MPC} create-keypair --out ${keypair_file} \
        ${pot_file} ${linear_combination_file} ${final_phase2_file}
@@ -70,10 +100,12 @@ ${MPC} create-keypair --out ${keypair_file} \
 rm ${pot_file} ${lagrange_file} ${linear_combination_file}
 rm ${transcript_file}
 rm ${challenge_0_file}
-rm ${response_1_file} ${challenge_1_file}
-rm ${response_2_file} ${challenge_2_file}
-rm ${response_3_file} ${challenge_3_file}
-rm -f ${final_phase2_file}
+rm ${response_1_file} ${challenge_1_file} ${response_1_digest_file}
+rm ${response_2_file} ${challenge_2_file} ${response_2_digest_file}
+rm ${response_3_file} ${challenge_3_file} ${response_3_digest_file}
+invalid_response_digest_file=_test_response_digest_invalid.bin
+rm -f ${final_phase2_file} # Same as challenge_3_file
+rm ${invalid_response_digest_file}
 rm ${keypair_file}
 
 set +x
