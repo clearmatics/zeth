@@ -18,6 +18,11 @@ bits64 get_bits64_from_vector(std::vector<bool> vect)
     return dump_vector_in_array<64>(vect);
 }
 
+bits32 get_bits32_from_vector(std::vector<bool> vect)
+{
+    return dump_vector_in_array<32>(vect);
+}
+
 bitsAddr get_bitsAddr_from_vector(std::vector<bool> vect)
 {
     return dump_vector_in_array<ZETH_MERKLE_TREE_DEPTH>(vect);
@@ -36,6 +41,11 @@ std::vector<bool> get_vector_from_bits256(bits256 arr)
 std::vector<bool> get_vector_from_bits64(bits64 arr)
 {
     return dump_array_in_vector<64>(arr);
+}
+
+std::vector<bool> get_vector_from_bits32(bits32 arr)
+{
+    return dump_array_in_vector<32>(arr);
 }
 
 std::vector<bool> get_vector_from_bitsAddr(bitsAddr arr)

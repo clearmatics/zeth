@@ -47,7 +47,7 @@ libsnark::pb_variable_array<FieldT> gen_256_zeroes(
     }
 
     // Check that we correctly built a 256-bit (half a block) string since we
-    // use sha256
+    // use blake2s 256
     assert(ret.size() == 256);
 
     return ret;

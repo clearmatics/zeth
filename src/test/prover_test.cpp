@@ -15,7 +15,7 @@
 #include <chrono>
 // Import only the core components of the SNARK (not the API components)
 #include "circuit-wrapper.hpp"
-#include "circuits/sha256/sha256_ethereum.hpp"
+#include "circuits/blake2s/blake2s_comp.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "snarks_core_imports.hpp"
 #include "util.hpp"
@@ -25,7 +25,7 @@ using namespace libzeth;
 // Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
-typedef sha256_ethereum<FieldT> HashT;
+typedef BLAKE2s_256_comp<FieldT> HashT;
 typedef MiMC_mp_gadget<FieldT> HashTreeT;
 
 namespace

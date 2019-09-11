@@ -2,7 +2,6 @@
 #define __ZETH_JOINSPLIT_CIRCUIT_TCC__
 
 #include "circuits/notes/note.hpp" // Contains the circuits for the notes
-#include "circuits/sha256/sha256_ethereum.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "types/joinsplit.hpp"
 #include "zeth.h" // Contains the definitions of the constants we use

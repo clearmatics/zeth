@@ -6,8 +6,8 @@
 // Header to use the merkle tree data structure
 #include "src/types/merkle_tree_field.hpp"
 
-// Header to use the sha256_ethereum gadget
-#include "circuits/sha256/sha256_ethereum.hpp"
+// Header to use the blake2s gadget
+#include "circuits/blake2s/blake2s_comp.hpp"
 
 // Access the `from_bits` function and other utils
 #include "circuits/circuits-util.hpp"
@@ -27,7 +27,7 @@ using namespace libzeth;
 
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
-typedef sha256_ethereum<FieldT>
+typedef BLAKE2s_256_comp<FieldT>
     HashT; // We use our hash function to do the tests
 typedef MiMC_mp_gadget<FieldT>
     HashTreeT; // We use our hash function to do the tests
@@ -146,74 +146,63 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     ASSERT_TRUE(is_valid_witness);
 };
 
-TEST(TestNoteCircuits, TestOutputNoteGadget)
-{
+TEST(TestNoteCircuits, TestOutputNoteGadget) {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
     ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
-    libff::enter_block(
-        "Initialize the output coins' data (a_pk, cm, rho)", true);
-    bits384 trap_r_bits384 =
-        get_bits384_from_vector(hexadecimal_str_to_binary_vector(
-            "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
-            "000000000000FF00000000000000FF"));
-    bits64 value_bits64 = get_bits64_from_vector(
-        hexadecimal_str_to_binary_vector("2F0000000000000F"));
-    bits256 rho_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000"
-                                            "000000000000000000000000009009"));
-    bits256 a_pk_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("6461f753bfe21ba2219ced74875b8dbd8c"
-                                            "114c3c79d7e41306dd82118de1895b"));
+    libff::enter_block("Initialize the output coins' data (a_pk, cm, rho)", true);
+    bits384 trap_r_bits384 = get_bits384_from_vector(hexadecimal_str_to_binary_vector("0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
+    bits64 value_bits64 = get_bits64_from_vector(hexadecimal_str_to_binary_vector("2F0000000000000F"));
+    bits256 rho_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000000000000000000000000000009009"));
+    bits256 a_pk_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"));
 
     // Get the coin's commitment (COMM)
     //
-    // inner_k = sha256(a_pk || rho)
-    // outer_k = sha256(r || [inner_commitment]_128)
-    // cm = sha256(outer_k || 0^192 || value_v)
-    bits256 cm_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("823d19485c94f74b4739ba7d17e4b43469"
-                                            "3086a996fa2e8d1438a91b1c220331"));
-    libff::leave_block(
-        "Initialize the output coins' data (a_pk, cm, rho)", true);
+    // inner_k = blake2s(a_pk || rho)
+    // outer_k = blake2s(r || [inner_commitment]_128)
+    // cm = blake2s(outer_k || 0^192 || value_v)
+    bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("626876b3e2747325f469df067b1f86c8474ffe85e97f56f273c5798dcfccd925"));
+    libff::leave_block("Initialize the output coins' data (a_pk, cm, rho)", true);
 
-    libff::enter_block(
-        "Data conversion to generate a witness of the note gadget", true);
+    libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> rho_digest;
-    rho_digest.reset(new libsnark::digest_variable<FieldT>(
-        pb, HashT::get_digest_len(), "rho_digest"));
+    std::shared_ptr<libsnark::digest_variable<FieldT> > rho_digest;
+    rho_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "rho_digest"));
     rho_digest->generate_r1cs_constraints();
-    rho_digest->generate_r1cs_witness(
-        libff::bit_vector(get_vector_from_bits256(rho_bits256)));
+    rho_digest->generate_r1cs_witness(libff::bit_vector(get_vector_from_bits256(rho_bits256)));
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> commitment;
-    commitment.reset(new libsnark::digest_variable<FieldT>(
-        pb, HashT::get_digest_len(), "root_digest"));
-    std::shared_ptr<output_note_gadget<FieldT, HashT>> output_note_g =
-        std::shared_ptr<output_note_gadget<FieldT, HashT>>(
-            new output_note_gadget<FieldT, HashT>(
-                pb, ZERO, rho_digest, commitment));
+    std::shared_ptr<libsnark::digest_variable<FieldT> > commitment;
+    commitment.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "root_digest"));
+    std::shared_ptr<output_note_gadget<FieldT, HashT>> output_note_g  = std::shared_ptr<output_note_gadget<FieldT, HashT>>(
+        new output_note_gadget<FieldT, HashT>(
+            pb,
+            ZERO,
+            rho_digest,
+            commitment
+        )
+    );
 
     // Create a note from the coin's data
-    ZethNote note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits384);
+    ZethNote note(
+        a_pk_bits256,
+        value_bits64,
+        rho_bits256,
+        trap_r_bits384
+    );
 
     output_note_g->generate_r1cs_constraints();
     output_note_g->generate_r1cs_witness(note);
-    libff::leave_block(
-        "Data conversion to generate a witness of the note gadget", true);
+    libff::leave_block("Data conversion to generate a witness of the note gadget", true);
 
     bool is_valid_witness = pb.is_satisfied();
-    std::cout << "************* SAT result: " << is_valid_witness
-              << " ******************" << std::endl;
+    std::cout << "************* SAT result: " << is_valid_witness <<  " ******************" << std::endl;
     ASSERT_TRUE(is_valid_witness);
 
     // Last check to make sure the commitment computed is the expected one
     libff::bit_vector obtained_digest = commitment->get_digest();
-    libff::bit_vector expected_digest =
-        libff::bit_vector(get_vector_from_bits256(cm_bits256));
+    libff::bit_vector expected_digest = libff::bit_vector(get_vector_from_bits256(cm_bits256));
     ASSERT_EQ(obtained_digest, expected_digest);
 };
 

@@ -61,9 +61,6 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
 
     # Hash the pk_sender and cipher-texts
     ciphers = eph_pk_sender_bytes + ciphertext1 + ciphertext2
-
-    # Hash the cipher-texts TODO TO REMOVE
-    ciphers = ciphertext1 + ciphertext2
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof

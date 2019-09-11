@@ -5,8 +5,6 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
 
-#include "circuits/sha256/sha256_ethereum.hpp"
-
 #include <libsnark/gadgetlib1/gadget.hpp>
 
 namespace libzeth
@@ -26,7 +24,7 @@ public:
         libsnark::pb_variable_array<FieldT> x,
         libsnark::pb_variable_array<FieldT> y,
         std::shared_ptr<libsnark::digest_variable<FieldT>>
-            result, // sha256(x || y)
+            result, // blake2s(x || y)
         const std::string &annotation_prefix = "PRF_gadget");
 
     void generate_r1cs_constraints();
@@ -34,7 +32,7 @@ public:
 };
 
 // This function is useful as the generation of a_pk is done via a_pk =
-// sha256(a_sk || 0^256) See Zerocash extended paper, page 22, paragraph
+// blake2s(a_sk || 0^256) See Zerocash extended paper, page 22, paragraph
 // "Instantiating the NP statement POUR"
 template<typename FieldT, typename HashT>
 libsnark::pb_variable_array<FieldT> gen_256_zeroes(
@@ -90,7 +88,7 @@ public:
         libsnark::pb_variable_array<FieldT> &a_sk,
         libsnark::pb_variable_array<FieldT> &rho,
         std::shared_ptr<libsnark::digest_variable<FieldT>>
-            result, // sha256(a_sk || 01 || [rho]_254)
+            result, // blake2s(a_sk || 01 || [rho]_254)
         const std::string &annotation_prefix = "PRF_nf_gadget");
 };
 

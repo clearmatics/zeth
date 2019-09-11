@@ -6,8 +6,8 @@
 // Header to use the merkle tree data structure
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
-// Header to use the sha256_ethereum gadget
-#include "circuits/sha256/sha256_ethereum.hpp"
+// Header to use the blake2s gadget
+#include "circuits/blake2s/blake2s_comp.hpp"
 
 // Access the `from_bits` function and other utils
 #include "circuits/circuits-util.hpp"
@@ -21,7 +21,7 @@ using namespace libzeth;
 // Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
-typedef sha256_ethereum<FieldT>
+typedef BLAKE2s_256_comp<FieldT>
     HashT; // We use our hash function to do the tests
 
 namespace

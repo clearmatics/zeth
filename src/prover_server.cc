@@ -55,7 +55,7 @@ typedef libff::default_ec_pp
     ppT; // Instantiated from the curve specified in the CMakelists.txt
 typedef libff::Fr<ppT> FieldT;
 typedef MiMC_mp_gadget<FieldT> HashTreeT; // Hash used in the merkle tree
-typedef sha256_ethereum<FieldT> HashT; // Hash used for the commitments and PRFs
+typedef BLAKE2s_256_comp<FieldT> HashT; // Hash used for the commitments and PRFs
 
 class ProverImpl final : public Prover::Service
 {
