@@ -51,6 +51,32 @@ template<typename T> std::string to_hex(const T &v)
     return bin_to_hex(bufstream.str());
 }
 
+template<typename T> using PointSerializer = void(std::ostream &, const T &);
+
+template<typename T> using PointDeserializer = T(std::istream &);
+
+template<
+    typename T,
+    size_t expectSize,
+    PointSerializer<T> serialize,
+    PointDeserializer<T> deserialize>
+void check_point_serialization(const T &v)
+{
+    const std::string serialized = [&v]() {
+        std::ostringstream ss;
+        serialize(ss, v);
+        return ss.str();
+    }();
+
+    const T deserialized = [&serialized]() {
+        std::istringstream ss(serialized);
+        return deserialize(ss);
+    }();
+
+    ASSERT_EQ(expectSize, serialized.size());
+    ASSERT_EQ(v, deserialized);
+}
+
 TEST(PowersOfTauTests, SameRatioTest)
 {
     // Correct and incorrect ratios
@@ -498,6 +524,68 @@ TEST(PowersOfTauTests, SerializeLagrangeEvaluation)
     ASSERT_EQ(lagrange.lagrange_g2, lagrange_deser.lagrange_g2);
     ASSERT_EQ(lagrange.alpha_lagrange_g1, lagrange_deser.alpha_lagrange_g1);
     ASSERT_EQ(lagrange.beta_lagrange_g1, lagrange_deser.beta_lagrange_g1);
+}
+
+TEST(PowersOfTauTests, G1PointCompression)
+{
+    auto check_g1_compressed = [](const G1 &v) {
+        const size_t expectCompressedSize = 33;
+        check_point_serialization<
+            G1,
+            expectCompressedSize,
+            libff::alt_bn128_G1_write_compressed,
+            libff::alt_bn128_G1_read_compressed>(v);
+    };
+
+    auto check_g1_uncompressed = [](const G1 &v) {
+        const size_t expectUncompressedSize = 65;
+        check_point_serialization<
+            G1,
+            expectUncompressedSize,
+            libff::alt_bn128_G1_write_uncompressed,
+            libff::alt_bn128_G1_read_uncompressed>(v);
+    };
+
+    auto check_g1 = [&](const G1 &v) {
+        check_g1_compressed(v);
+        check_g1_uncompressed(v);
+    };
+
+    check_g1(G1::zero());
+    check_g1(G1::one());
+    check_g1(Fr(7).inverse() * G1::one());
+    check_g1(Fr(-1) * Fr(7).inverse() * G1::one());
+}
+
+TEST(PowersOfTauTests, G2PointCompression)
+{
+    auto check_g2_compressed = [](const G2 &v) {
+        const size_t expectCompressedSize = 65;
+        check_point_serialization<
+            G2,
+            expectCompressedSize,
+            libff::alt_bn128_G2_write_compressed,
+            libff::alt_bn128_G2_read_compressed>(v);
+    };
+
+    auto check_g2_uncompressed = [](const G2 &v) {
+        const size_t expectUncompressedSize = 129;
+        check_point_serialization<
+            G2,
+            expectUncompressedSize,
+            libff::alt_bn128_G2_write_uncompressed,
+            libff::alt_bn128_G2_read_uncompressed>(v);
+    };
+
+    auto check_g2 = [&](const G2 &v) {
+        check_g2_compressed(v);
+        check_g2_uncompressed(v);
+    };
+
+    check_g2(G2::zero());
+    check_g2(G2::one());
+    check_g2(Fr(7).inverse() * G2::one());
+    check_g2(Fr(-1) * Fr(7).inverse() * G2::one());
 }
 
 } // namespace
