@@ -53,7 +53,7 @@ template<typename T> std::string to_hex(const T &v)
 
 template<typename T> using point_serializer_t = void(std::ostream &, const T &);
 
-template<typename T> using point_deserializer_t = T(std::istream &);
+template<typename T> using point_deserializer_t = void(std::istream &, T &);
 
 template<
     typename T,
@@ -68,10 +68,11 @@ void check_point_serialization(const T &v)
         return ss.str();
     }();
 
-    const T deserialized = [&serialized]() {
+    T deserialized;
+    {
         std::istringstream ss(serialized);
-        return deserialize(ss);
-    }();
+        deserialize(ss, deserialized);
+    };
 
     ASSERT_EQ(expectSize, serialized.size());
     ASSERT_EQ(v, deserialized);

@@ -97,7 +97,9 @@ public:
     bool operator==(const srs_mpc_phase2_accumulator<ppT> &other) const;
     bool is_well_formed() const;
     void write(std::ostream &out) const;
+    void write_compressed(std::ostream &out) const;
     static srs_mpc_phase2_accumulator<ppT> read(std::istream &in);
+    static srs_mpc_phase2_accumulator<ppT> read_compressed(std::istream &in);
 };
 
 /// Public Key representing a single contribution to the MPC.  This includes a
