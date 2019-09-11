@@ -48,9 +48,10 @@ function build() {
         export PATH="/usr/local/opt/llvm/bin:/usr/local/bin:${PATH}"
         export PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig"
         export LIBRARY_PATH="/usr/local/opt/openssl/lib"
-        export LDFLAGS="-L/usr/local/opt/llvm/lib -L-L/usr/local/lib"
-        export CPPFLAGS="-I/usr/local/opt/llvm/include -I/usr/local/include"
+        export LDFLAGS="-L/usr/local/lib"
+        export CPPFLAGS="-I/usr/local/include"
 
+        cxx_flags="${cxx_flags} -I/usr/local/opt/openssl/include"
         cxx_flags="${cxx_flags} -Wno-deprecated-declarations"
     fi
 
