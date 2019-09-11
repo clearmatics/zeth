@@ -229,7 +229,7 @@ template<typename ppT>
 void srs_mpc_phase2_response<ppT>::write(std::ostream &out) const
 {
     check_well_formed(*this, "srs_mpc_phase2_response::write");
-    new_accumulator.write(out);
+    new_accumulator.write_compressed(out);
     publickey.write(out);
 }
 
@@ -238,7 +238,7 @@ srs_mpc_phase2_response<ppT> srs_mpc_phase2_response<ppT>::read(
     std::istream &in)
 {
     srs_mpc_phase2_accumulator<ppT> accumulator =
-        srs_mpc_phase2_accumulator<ppT>::read(in);
+        srs_mpc_phase2_accumulator<ppT>::read_compressed(in);
     srs_mpc_phase2_publickey<ppT> pubkey =
         srs_mpc_phase2_publickey<ppT>::read(in);
 

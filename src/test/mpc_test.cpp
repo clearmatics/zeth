@@ -511,7 +511,24 @@ TEST(MPCTests, Phase2AccumulatorReadWrite)
         return srs_mpc_phase2_accumulator<ppT>::read(in);
     }();
 
+    std::string accumulator_compressed;
+    {
+        std::ostringstream out;
+        accumulator.write_compressed(out);
+        accumulator_compressed = out.str();
+    }
+
+    srs_mpc_phase2_accumulator<ppT> accumulator_decompressed = [&]() {
+        std::istringstream in(accumulator_compressed);
+        in.exceptions(
+            std::ios_base::eofbit | std::ios_base::badbit |
+            std::ios_base::failbit);
+        return srs_mpc_phase2_accumulator<ppT>::read_compressed(in);
+    }();
+
     ASSERT_EQ(accumulator, accumulator_deserialized);
+    ASSERT_EQ(accumulator, accumulator_decompressed);
+    ASSERT_LT(accumulator_compressed.size(), accumulator_serialized.size());
 }
 
 TEST(MPCTests, Phase2ChallengeReadWrite)
