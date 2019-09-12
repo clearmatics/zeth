@@ -104,43 +104,52 @@ libsnark::pb_variable_array<FieldT> from_bits(
 
 // Sum 2 binary strings, discard last carry
 template<typename FieldT, size_t BitLen>
-std::array<FieldT, BitLen> binaryFieldAdditionNoCarry(std::array<FieldT, BitLen> A, std::array<FieldT, BitLen> B) {
+std::array<FieldT, BitLen> binaryFieldAdditionNoCarry(
+    std::array<FieldT, BitLen> A, std::array<FieldT, BitLen> B)
+{
     for (size_t i = 0; i < BitLen; i++) {
-        if ( (A[i] - FieldT("1"))*A[i] != 0 || (B[i] - FieldT("1"))*B[i] != 0 ) {
+        if ((A[i] - FieldT("1")) * A[i] != 0 ||
+            (B[i] - FieldT("1")) * B[i] != 0) {
             throw std::domain_error("Invalid value (should be 0 or 1)");
         }
     }
 
     std::array<FieldT, BitLen> sum = FieldT("0");
     FieldT carry = 0;
-    for(size_t i = 0; i < BitLen; i++){
-        sum[i] = A[i] + B[i] + carry - FieldT(2)*A[i]*B[i] - FieldT(2)*A[i]*carry - FieldT(2)*B[i]*carry + FieldT(4)*A[i]*B[i]*carry;
-        carry = A[i]*B[i] + A[i]*carry + B[i]*carry - FieldT(2)*A[i]*B[i]*carry;
+    for (size_t i = 0; i < BitLen; i++) {
+        sum[i] = A[i] + B[i] + carry - FieldT(2) * A[i] * B[i] -
+                 FieldT(2) * A[i] * carry - FieldT(2) * B[i] * carry +
+                 FieldT(4) * A[i] * B[i] * carry;
+        carry = A[i] * B[i] + A[i] * carry + B[i] * carry -
+                FieldT(2) * A[i] * B[i] * carry;
     }
-    
+
     return sum;
 }
 
 // XOR 2 binary strings
 template<typename FieldT, size_t BitLen>
-std::array<FieldT, BitLen> binaryFieldXOR(std::array<FieldT, BitLen> A, std::array<FieldT, BitLen> B) {
+std::array<FieldT, BitLen> binaryFieldXOR(
+    std::array<FieldT, BitLen> A, std::array<FieldT, BitLen> B)
+{
     for (size_t i = 0; i < BitLen; i++) {
-        if ( (A[i] - FieldT("1"))*A[i] != 0 || (B[i] - FieldT("1"))*B[i] != 0 ) {
+        if ((A[i] - FieldT("1")) * A[i] != 0 ||
+            (B[i] - FieldT("1")) * B[i] != 0) {
             throw std::domain_error("Invalid value (should be 0 or 1)");
         }
     }
 
     std::array<FieldT, BitLen> xor_array;
     xor_array.fill(FieldT("0"));
-    for(size_t i = 0; i < BitLen; i++){
-        xor_array[i] = A[i] + B[i] - FieldT(2)*A[i]*B[i]; // c is carry
+    for (size_t i = 0; i < BitLen; i++) {
+        xor_array[i] = A[i] + B[i] - FieldT(2) * A[i] * B[i]; // c is carry
     }
-    
+
     return xor_array;
 }
 
-template<typename FieldT>
-std::vector<FieldT> convertToBinary(size_t n) {
+template<typename FieldT> std::vector<FieldT> convertToBinary(size_t n)
+{
     std::vector<FieldT> res;
 
     if (n / 2 != 0) {
@@ -157,6 +166,6 @@ std::vector<FieldT> convertToBinary(size_t n) {
     return res;
 }
 
-} // libzeth
+} // namespace libzeth
 
 #endif // __ZETH_CIRCUITS_UTILS_TCC__

@@ -38,11 +38,14 @@ std::vector<bool> get_vector_from_bitsAddr(bitsAddr arr);
 
 // Sum 2 binary strings
 template<size_t BitLen>
-std::array<bool, BitLen> binaryAddition(std::array<bool, BitLen> A, std::array<bool, BitLen> B);
+std::array<bool, BitLen> binaryAddition(
+    std::array<bool, BitLen> A, std::array<bool, BitLen> B);
 template<size_t BitLen>
-std::array<bool, BitLen> binaryAdditionNoCarry(std::array<bool, BitLen> A, std::array<bool, BitLen> B);
+std::array<bool, BitLen> binaryAdditionNoCarry(
+    std::array<bool, BitLen> A, std::array<bool, BitLen> B);
 template<size_t BitLen>
-std::array<bool, BitLen> binaryXOR(std::array<bool, BitLen> A, std::array<bool, BitLen> B);
+std::array<bool, BitLen> binaryXOR(
+    std::array<bool, BitLen> A, std::array<bool, BitLen> B);
 
 bits64 sum_bits64(bits64 a, bits64 b);
 

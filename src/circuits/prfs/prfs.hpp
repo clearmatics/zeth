@@ -93,8 +93,8 @@ public:
 };
 
 // PRF to generate the h_i
-// h_i = blake2s("0" || index || "00" || [a_sk]_252 || h_sig): See ZCash protocol
-// specification paper, page 57
+// h_i = blake2s("0" || index || "00" || [a_sk]_252 || h_sig): See ZCash
+// protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_pk_gadget : public PRF_gadget<FieldT, HashT>
 {
@@ -110,8 +110,8 @@ public:
 };
 
 // PRF to generate rho
-// rho_i = blake2s( "0" || index || "10" || [phi]_252 || h_sig): See ZCash protocol
-// specification paper, page 57
+// rho_i = blake2s( "0" || index || "10" || [phi]_252 || h_sig): See ZCash
+// protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_rho_gadget : public PRF_gadget<FieldT, HashT>
 {

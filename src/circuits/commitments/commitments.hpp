@@ -5,7 +5,6 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/commitment.tcc
 
-
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
 

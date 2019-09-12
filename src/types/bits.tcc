@@ -53,29 +53,33 @@ std::array<bool, BitLen> binaryAddition(
 
 // Sum 2 binary strings, discard last carry
 template<size_t BitLen>
-std::array<bool, BitLen> binaryAdditionNoCarry(std::array<bool, BitLen> A, std::array<bool, BitLen> B) {
+std::array<bool, BitLen> binaryAdditionNoCarry(
+    std::array<bool, BitLen> A, std::array<bool, BitLen> B)
+{
     std::array<bool, BitLen> sum;
     sum.fill(0);
-    
+
     bool carry = 0;
-    for(int i = BitLen - 1; i >= 0; i--){
+    for (int i = BitLen - 1; i >= 0; i--) {
         sum[i] = ((A[i] ^ B[i]) ^ carry); // c is carry
         carry = ((A[i] & B[i]) | (A[i] & carry)) | (B[i] & carry);
     }
-    
+
     return sum;
 }
 
 // XOR 2 binary strings
 template<size_t BitLen>
-std::array<bool, BitLen> binaryXOR(std::array<bool, BitLen> A, std::array<bool, BitLen> B) {
+std::array<bool, BitLen> binaryXOR(
+    std::array<bool, BitLen> A, std::array<bool, BitLen> B)
+{
     std::array<bool, BitLen> xor_array;
     xor_array.fill(0);
-    
-    for(int i = BitLen - 1; i >= 0; i--){
+
+    for (int i = BitLen - 1; i >= 0; i--) {
         xor_array[i] = A[i] != B[i]; // c is carry
     }
-    
+
     return xor_array;
 }
 
