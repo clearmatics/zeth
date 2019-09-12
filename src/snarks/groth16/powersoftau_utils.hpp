@@ -127,35 +127,35 @@ bool same_ratio(
 /// and check same_ratio((a1, b1), (a2, b2)).
 ///
 /// (Based on merge_pairs function from https://github.com/ebfull/powersoftau/)
-template<typename ppT, typename It>
-bool same_ratio_batch(
-    It a1,
-    const It &a1_end,
-    It b1,
-    const It &b1_end,
+template<typename ppT>
+bool same_ratio_vectors(
+    const std::vector<libff::G1<ppT>> &a1s,
+    const std::vector<libff::G1<ppT>> &b1s,
     const libff::G2<ppT> &a2,
     const libff::G2<ppT> &b2);
 
-// same_ratio_batch for sequences of elements in G2.
-template<typename ppT, typename It>
-bool same_ratio_batch(
+/// same_ratio_vectors implementation for vectors of G2 elements.
+template<typename ppT>
+bool same_ratio_vectors(
     const libff::G1<ppT> &a1,
     const libff::G1<ppT> &b1,
-    It a2,
-    const It &a2_end,
-    It b2,
-    const It &b2_end);
+    const std::vector<libff::G2<ppT>> &a2s,
+    const std::vector<libff::G2<ppT>> &b2s);
 
-/// Thin wrapper around same_ratio_batch for vector-like containers C, that
-/// checks that consecutive entries all have a ratio consistent with (a2, b2).
-template<typename ppT, typename C>
-bool consistent_ratio(
-    const C &a1s, const libff::G2<ppT> &a2, const libff::G2<ppT> &b2);
+/// Checks that consecutive entries in a1s all have a ratio consistent with (a2,
+/// b2).
+template<typename ppT>
+bool same_ratio_consecutive(
+    const std::vector<libff::G1<ppT>> &a1s,
+    const libff::G2<ppT> &a2,
+    const libff::G2<ppT> &b2);
 
-/// consistent_ratio for containers of elements in G2.
-template<typename ppT, typename C>
-bool consistent_ratio(
-    const libff::G1<ppT> &a1, const libff::G1<ppT> &b1, const C &a2s);
+/// same_ratio_consecutive implementation for vectors of G2 elements.
+template<typename ppT>
+bool same_ratio_consecutive(
+    const libff::G1<ppT> &a1,
+    const libff::G1<ppT> &b1,
+    const std::vector<libff::G2<ppT>> &a2s);
 
 /// Verify that the pot data is well formed.
 template<typename ppT>
