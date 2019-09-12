@@ -155,15 +155,15 @@ TEST(TestSHA256, TestHashWithZeroLeg)
     left.allocate(pb, 256, "left");
     right.allocate(pb, 256, "right");
 
-    libff::bit_vector left_bits =
-        libff::bit_vector(hexadecimal_digest_to_binary_vector(
-            "806e5c213a2f3d436273e924eb6311ac2db6c33624b28165b79c779e00fa2752"));
-    libff::bit_vector right_bits =
-        libff::bit_vector(hexadecimal_digest_to_binary_vector(
-            "0000000000000000000000000000000000000000000000000000000000000000"));
-    libff::bit_vector expected_bits =
-        libff::bit_vector(hexadecimal_digest_to_binary_vector(
-            "a631eca6f9fc96e9b0135804aceb5e97df404c3877d14e7f5ea67b4c120cec44"));
+    libff::bit_vector left_bits = libff::bit_vector(
+        hexadecimal_digest_to_binary_vector("806e5c213a2f3d436273e924eb6311ac2d"
+                                            "b6c33624b28165b79c779e00fa2752"));
+    libff::bit_vector right_bits = libff::bit_vector(
+        hexadecimal_digest_to_binary_vector("0000000000000000000000000000000000"
+                                            "000000000000000000000000000000"));
+    libff::bit_vector expected_bits = libff::bit_vector(
+        hexadecimal_digest_to_binary_vector("a631eca6f9fc96e9b0135804aceb5e97df"
+                                            "404c3877d14e7f5ea67b4c120cec44"));
 
     left.fill_with_bits(pb, left_bits);
     right.fill_with_bits(pb, right_bits);
