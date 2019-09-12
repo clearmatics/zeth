@@ -158,13 +158,13 @@ def computeCommitment(zethNoteGRPCObj):
         encode_abi(['bytes32', 'bytes32'], (bytes.fromhex(zethNoteGRPCObj.aPK), bytes.fromhex(zethNoteGRPCObj.rho)))
     ).hexdigest()
 
-    # outer_k = sha256(r || [inner_k]_128)
+    # outer_k = blake2s(r || [inner_k]_128)
     first128InnerComm = inner_k[0:128]
     outer_k = blake2s(
         encode_abi(['bytes', 'bytes'], (bytes.fromhex(zethNoteGRPCObj.trapR), bytes.fromhex(first128InnerComm)))
     ).hexdigest()
 
-    # cm = sha256(outer_k || 0^192 || value_v)
+    # cm = blake2s(outer_k || 0^192 || value_v)
     frontPad = "000000000000000000000000000000000000000000000000"
     cm = blake2s(
         encode_abi(["bytes32", "bytes32"], (bytes.fromhex(outer_k), bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
