@@ -27,6 +27,107 @@ static void compute_lagrange_from_powers(
     }
 }
 
+// Given two sequences `as` and `bs` of group elements, compute
+//   a_accum = as[0] * r_0 + ... + as[n] * r_n
+//   b_accum = bs[0] * r_0 + ... + bs[n] * r_n
+// for random scalars r_0 ... r_n.
+template<typename ppT, typename G>
+void random_linear_combination(
+    const std::vector<G> &as, const std::vector<G> &bs, G &a_accum, G &b_accum)
+{
+    if (as.size() != bs.size()) {
+        throw std::invalid_argument(
+            "vector size mismatch (random_linear_comb)");
+    }
+
+    a_accum = G::zero();
+    b_accum = G::zero();
+
+    // Split across threads, each one accumulating into its own thread-local
+    // variable, and then (atomically) adding that to the global a1_accum and
+    // b1_accum values.  These final sums are then used in the final pairing
+    // check.
+#ifdef MULTICORE
+#pragma omp parallel shared(a_accum, b_accum)
+#endif
+    {
+        G a_thread_accum = G::zero();
+        G b_thread_accum = G::zero();
+
+        const size_t scalar_bits = libff::Fr<ppT>::num_bits;
+        const size_t window_size = libff::wnaf_opt_window_size<G>(scalar_bits);
+        std::vector<long> wnaf;
+
+#ifdef MULTICORE
+#pragma omp for
+#endif
+        for (size_t i = 0; i < as.size(); ++i) {
+            const libff::Fr<ppT> r = libff::Fr<ppT>::random_element();
+            update_wnaf(wnaf, window_size, r.as_bigint());
+            G r_ai = fixed_window_wnaf_exp(window_size, as[i], wnaf);
+            G r_bi = fixed_window_wnaf_exp(window_size, bs[i], wnaf);
+
+            a_thread_accum = a_thread_accum + r_ai;
+            b_thread_accum = b_thread_accum + r_bi;
+        }
+
+#ifdef MULTICORE
+#pragma omp critical
+#endif
+        {
+            a_accum = a_accum + a_thread_accum;
+            b_accum = b_accum + b_thread_accum;
+        }
+    }
+}
+
+// Similar to random_linear_combination, but compute:
+//   a_accum = as[0] * r_0 + ... + as[n-1] * r_{n-1}
+//   b_accum = bs[1] * r_0 + ... + bs[n  ] * r_{n-1}
+// for checking consistent ratio of consecutive entries.
+template<typename ppT, typename G>
+void random_linear_combination_consecutive(
+    const std::vector<G> &as, G &a_accum, G &b_accum)
+{
+    a_accum = G::zero();
+    b_accum = G::zero();
+
+    const size_t num_entries = as.size() - 1;
+
+#ifdef MULTICORE
+#pragma omp parallel shared(a_accum, b_accum)
+#endif
+    {
+        G a_thread_accum = G::zero();
+        G b_thread_accum = G::zero();
+
+        const size_t scalar_bits = libff::Fr<ppT>::num_bits;
+        const size_t window_size = libff::wnaf_opt_window_size<G>(scalar_bits);
+        std::vector<long> wnaf;
+
+#ifdef MULTICORE
+#pragma omp for
+#endif
+        for (size_t i = 0; i < num_entries; ++i) {
+            const libff::Fr<ppT> r = libff::Fr<ppT>::random_element();
+            update_wnaf(wnaf, window_size, r.as_bigint());
+            G r_ai = fixed_window_wnaf_exp(window_size, as[i], wnaf);
+            G r_bi = fixed_window_wnaf_exp(window_size, as[i + 1], wnaf);
+
+            a_thread_accum = a_thread_accum + r_ai;
+            b_thread_accum = b_thread_accum + r_bi;
+        }
+
+#ifdef MULTICORE
+#pragma omp critical
+#endif
+        {
+            a_accum = a_accum + a_thread_accum;
+            b_accum = b_accum + b_thread_accum;
+        }
+    }
+}
+
 } // namespace
 
 template<typename ppT>
@@ -52,80 +153,96 @@ bool same_ratio(
     return a1b2_gt == b1a2_gt;
 }
 
-template<typename ppT, typename It>
-bool same_ratio_batch(
-    It a1,
-    const It &a1_end,
-    It b1,
-    const It &b1_end,
+template<typename ppT>
+bool same_ratio_vectors(
+    const std::vector<libff::G1<ppT>> &a1s,
+    const std::vector<libff::G1<ppT>> &b1s,
     const libff::G2<ppT> &a2,
     const libff::G2<ppT> &b2)
 {
-    libff::G1<ppT> a1_accum = libff::G1<ppT>::zero();
-    libff::G1<ppT> b1_accum = libff::G1<ppT>::zero();
+    using G1 = libff::G1<ppT>;
 
-    while (a1 != a1_end) {
-        const libff::Fr<ppT> r = libff::Fr<ppT>::random_element();
-        a1_accum = a1_accum + (r * *a1);
-        b1_accum = b1_accum + (r * *b1);
-        ++a1;
-        ++b1;
+    libff::enter_block("call to same_ratio_vectors (G1)");
+    if (a1s.size() != b1s.size()) {
+        throw std::invalid_argument("vector size mismatch in same_ratio_batch");
     }
 
-    if (b1 != b1_end) {
-        throw std::invalid_argument("a1s and b1s are of different length");
-    }
+    libff::enter_block("accumulating random combination");
+    G1 a1_accum;
+    G1 b1_accum;
+    random_linear_combination<ppT>(a1s, b1s, a1_accum, b1_accum);
+    libff::leave_block("accumulating random combination");
 
-    return same_ratio<ppT>(a1_accum, b1_accum, a2, b2);
+    const bool same = same_ratio<ppT>(a1_accum, b1_accum, a2, b2);
+    libff::leave_block("call to same_ratio_vectors (G1)");
+    return same;
 }
 
-template<typename ppT, typename It>
-bool same_ratio_batch(
+template<typename ppT>
+bool same_ratio_vectors(
     const libff::G1<ppT> &a1,
     const libff::G1<ppT> &b1,
-    It a2,
-    const It &a2_end,
-    It b2,
-    const It &b2_end)
+    const std::vector<libff::G2<ppT>> &a2s,
+    const std::vector<libff::G2<ppT>> &b2s)
 {
-    libff::G2<ppT> a2_accum = libff::G2<ppT>::zero();
-    libff::G2<ppT> b2_accum = libff::G2<ppT>::zero();
+    using G2 = libff::G2<ppT>;
 
-    while (a2 != a2_end) {
-        const libff::Fr<ppT> r = libff::Fr<ppT>::random_element();
-        a2_accum = a2_accum + (r * *a2);
-        b2_accum = b2_accum + (r * *b2);
-        ++a2;
-        ++b2;
+    libff::enter_block("call to same_ratio_vectors (G2)");
+    if (a2s.size() != b2s.size()) {
+        throw std::invalid_argument("vector size mismatch in same_ratio_batch");
     }
 
-    if (b2 != b2_end) {
-        throw std::invalid_argument("a1s and b1s are of different length");
-    }
+    libff::enter_block("accumulating random combination");
+    G2 a2_accum;
+    G2 b2_accum;
+    random_linear_combination<ppT>(a2s, b2s, a2_accum, b2_accum);
+    libff::leave_block("accumulating random combination");
 
-    return same_ratio<ppT>(a1, b1, a2_accum, b2_accum);
+    const bool same = same_ratio<ppT>(a1, b1, a2_accum, b2_accum);
+    libff::leave_block("call to same_ratio_vectors (G2)");
+    return same;
 }
 
-template<typename ppT, typename C>
-bool consistent_ratio(
-    const C &a1s, const libff::G2<ppT> &a2, const libff::G2<ppT> &b2)
+template<typename ppT>
+bool same_ratio_consecutive(
+    const std::vector<libff::G1<ppT>> &a1s,
+    const libff::G2<ppT> &a2,
+    const libff::G2<ppT> &b2)
 {
-    const size_t a1s_size = a1s.size();
-    auto first(a1s.begin());
-    auto end(a1s.end());
-    return same_ratio_batch<ppT>(
-        first, first + (a1s_size - 1), first + 1, end, a2, b2);
+    using G1 = libff::G1<ppT>;
+
+    libff::enter_block("call to same_ratio_consecutive (G1)");
+
+    libff::enter_block("accumulating random combination");
+    G1 a1_accum;
+    G1 b1_accum;
+    random_linear_combination_consecutive<ppT>(a1s, a1_accum, b1_accum);
+    libff::leave_block("accumulating random combination");
+
+    const bool same = same_ratio<ppT>(a1_accum, b1_accum, a2, b2);
+    libff::leave_block("call to same_ratio_consecutive (G1)");
+    return same;
 }
 
-template<typename ppT, typename C>
-bool consistent_ratio(
-    const libff::G1<ppT> &a1, const libff::G1<ppT> &b1, const C &a2s)
+template<typename ppT>
+bool same_ratio_consecutive(
+    const libff::G1<ppT> &a1,
+    const libff::G1<ppT> &b1,
+    const std::vector<libff::G2<ppT>> &a2s)
 {
-    const size_t a1s_size = a2s.size();
-    auto first = a2s.begin();
-    auto end = a2s.end();
-    return same_ratio_batch<ppT>(
-        a1, b1, first, first + (a1s_size - 1), first + 1, end);
+    using G2 = libff::G2<ppT>;
+
+    libff::enter_block("call to same_ratio_consecutive (G2)");
+
+    libff::enter_block("accumulating random combination");
+    G2 a2_accum;
+    G2 b2_accum;
+    random_linear_combination_consecutive<ppT>(a2s, a2_accum, b2_accum);
+    libff::leave_block("accumulating random combination");
+
+    const bool same = same_ratio<ppT>(a1, b1, a2_accum, b2_accum);
+    libff::leave_block("call to same_ratio_consecutive (G2)");
+    return same;
 }
 
 // -----------------------------------------------------------------------------
