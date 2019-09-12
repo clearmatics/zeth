@@ -166,8 +166,8 @@ TEST(TestNoteCircuits, TestOutputNoteGadget) {
     bits256 cm_bits256 = get_bits256_from_vector(hexadecimal_digest_to_binary_vector("626876b3e2747325f469df067b1f86c8474ffe85e97f56f273c5798dcfccd925"));
     libff::leave_block("Initialize the output coins' data (a_pk, cm, rho)", true);
 
-    libff::enter_block("[BEGIN] Data conversion to generate a witness of the note gadget", true);
-
+    libff::enter_block(
+        "Data conversion to generate a witness of the note gadget", true);
     std::shared_ptr<libsnark::digest_variable<FieldT> > rho_digest;
     rho_digest.reset(new libsnark::digest_variable<FieldT>(pb, HashT::get_digest_len(), "rho_digest"));
     rho_digest->generate_r1cs_constraints();

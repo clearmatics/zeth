@@ -144,9 +144,9 @@ zeth_test(test_mimc test/mimc_test.cpp TRUE)
 zeth_test(test_mimc_mp test/mimc_mp_test.cpp TRUE)
 zeth_test(test_prfs test/prfs_test.cpp TRUE)
 zeth_test(test_commitments test/commitments_test.cpp TRUE)
-zeth_test(test_note test/note_test.cpp TRUE)
 zeth_test(test_merkle_tree test/merkle_tree_test.cpp TRUE)
-zeth_test(test_prover test/prover_test.cpp FALSE)
+zeth_test(test_note test/note_test.cpp TRUE)
+zeth_test(test_prover test/prover_test.cpp TRUE)
 
 # prover test has extra dependencies
 target_link_libraries(
