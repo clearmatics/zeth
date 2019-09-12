@@ -75,20 +75,25 @@ TEST(PowersOfTauTests, SameRatioBatchTest)
     // Create some powers and check $x^i$ vs $x^(i+1)$.
     const size_t num_powers = 8;
     const Fr x = Fr::random_element();
+    const Fr alpha = Fr::random_element();
     const Fr xx = x + Fr::one();
     const G1 x_g1 = x * G1::one();
     const G2 x_g2 = x * G2::one();
-    // G1 base_g1 = G1::one();
-    // G1 base_g2 = G2::one();
 
     std::vector<G1> powers_g1(num_powers);
+    std::vector<G1> powers_alpha_g1(num_powers);
     std::vector<G2> powers_g2(num_powers);
+    std::vector<G2> powers_alpha_g2(num_powers);
     powers_g1[0] = G1::one();
+    powers_alpha_g1[0] = alpha * G1::one();
     powers_g2[0] = G2::one();
+    powers_alpha_g2[0] = alpha * G2::one();
 
     for (size_t i = 1; i < powers_g1.size(); ++i) {
         powers_g1[i] = x * powers_g1[i - 1];
+        powers_alpha_g1[i] = x * powers_alpha_g1[i - 1];
         powers_g2[i] = x * powers_g2[i - 1];
+        powers_alpha_g2[i] = x * powers_alpha_g2[i - 1];
     }
 
     std::vector<G1> invalid_powers_g1(powers_g1);
@@ -97,54 +102,34 @@ TEST(PowersOfTauTests, SameRatioBatchTest)
     invalid_powers_g2[4] = xx * invalid_powers_g2[3];
 
     // Check valid containers
-    using iterT1 = std::vector<G1>::iterator;
-    using iterT2 = std::vector<G2>::iterator;
-    const bool valid_i1 = same_ratio_batch<ppT, iterT1>(
-        powers_g1.begin(),
-        powers_g1.begin() + (num_powers - 1),
-        powers_g1.begin() + 1,
-        powers_g1.begin() + num_powers,
-        G2::one(),
-        x_g2);
-    const bool valid_i2 = same_ratio_batch<ppT, iterT2>(
-        G1::one(),
-        x_g1,
-        powers_g2.begin(),
-        powers_g2.begin() + (num_powers - 1),
-        powers_g2.begin() + 1,
-        powers_g2.begin() + num_powers);
-    const bool valid_c1 = consistent_ratio<ppT>(powers_g1, G2::one(), x_g2);
-    const bool valid_c2 = consistent_ratio<ppT>(G1::one(), x_g1, powers_g2);
+    const bool valid_vectors_g1 = same_ratio_vectors<ppT>(
+        powers_g1, powers_alpha_g1, G2::one(), powers_alpha_g2[0]);
+    const bool valid_vectors_g2 = same_ratio_vectors<ppT>(
+        G1::one(), powers_alpha_g1[0], powers_g2, powers_alpha_g2);
+    const bool valid_consecutive_g1 =
+        same_ratio_consecutive<ppT>(powers_g1, G2::one(), x_g2);
+    const bool valid_consecutive_g2 =
+        same_ratio_consecutive<ppT>(G1::one(), x_g1, powers_g2);
 
-    ASSERT_TRUE(valid_i1);
-    ASSERT_TRUE(valid_i2);
-    ASSERT_TRUE(valid_c1);
-    ASSERT_TRUE(valid_c2);
+    ASSERT_TRUE(valid_vectors_g1);
+    ASSERT_TRUE(valid_vectors_g2);
+    ASSERT_TRUE(valid_consecutive_g1);
+    ASSERT_TRUE(valid_consecutive_g2);
 
     // Invalid cases
-    const bool invalid_i1 = same_ratio_batch<ppT, iterT1>(
-        invalid_powers_g1.begin(),
-        invalid_powers_g1.begin() + (num_powers - 1),
-        invalid_powers_g1.begin() + 1,
-        invalid_powers_g1.begin() + num_powers,
-        G2::one(),
-        x_g2);
-    const bool invalid_i2 = same_ratio_batch<ppT, iterT2>(
-        G1::one(),
-        x_g1,
-        invalid_powers_g2.begin(),
-        invalid_powers_g2.begin() + (num_powers - 1),
-        invalid_powers_g2.begin() + 1,
-        invalid_powers_g2.begin() + num_powers);
-    const bool invalid_c1 =
-        consistent_ratio<ppT>(invalid_powers_g1, G2::one(), x_g2);
-    const bool invalid_c2 =
-        consistent_ratio<ppT>(G1::one(), x_g1, invalid_powers_g2);
+    const bool invalid_vectors_g1 = same_ratio_vectors<ppT>(
+        invalid_powers_g1, powers_alpha_g1, G2::one(), powers_alpha_g2[0]);
+    const bool invalid_vectors_g2 = same_ratio_vectors<ppT>(
+        G1::one(), powers_alpha_g1[0], invalid_powers_g2, powers_alpha_g2);
+    const bool invalid_consecutive_g1 =
+        same_ratio_consecutive<ppT>(invalid_powers_g1, G2::one(), x_g2);
+    const bool invalid_consecutive_g2 =
+        same_ratio_consecutive<ppT>(G1::one(), x_g1, invalid_powers_g2);
 
-    ASSERT_FALSE(invalid_i1);
-    ASSERT_FALSE(invalid_i2);
-    ASSERT_FALSE(invalid_c1);
-    ASSERT_FALSE(invalid_c2);
+    ASSERT_FALSE(invalid_vectors_g1);
+    ASSERT_FALSE(invalid_vectors_g2);
+    ASSERT_FALSE(invalid_consecutive_g1);
+    ASSERT_FALSE(invalid_consecutive_g2);
 }
 
 TEST(PowersOfTauTests, PowersOfTauIsWellFormed)
