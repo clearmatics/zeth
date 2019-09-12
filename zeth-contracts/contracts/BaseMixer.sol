@@ -128,10 +128,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
             digest_inputs[1] = primary_inputs[i+1];
             bytes32 current_nullifier = Bytes.sha256_digest_from_field_elements(digest_inputs);
             require(
-                uint256(current_nullifier) < r,
-                "invalid nullifier: This nullifier is not within range"
-            );
-            require(
                 !nullifiers[current_nullifier],
                 "Invalid nullifier: This nullifier has already been used"
             );
@@ -145,6 +141,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
         //Format and append the root
         bytes32 formatted = bytes32(primary_inputs[0]);
+        require(
+            uint256(formatted) < r,
+            "invalid root: The root is not within range"
+        );
         formatted_inputs[0] = formatted;
 
         //Format and append the nullifiers
@@ -152,6 +152,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
             digest_inputs[0] = primary_inputs[i];
             digest_inputs[1] = primary_inputs[i+1];
             formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+            require(
+                uint256(formatted) < r,
+                "invalid nullifier: This nullifier is not within range"
+            );
             formatted_inputs[(i-1)/2 + 1] = formatted;
         }
 
@@ -160,15 +164,27 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
             digest_inputs[0] = primary_inputs[i];
             digest_inputs[1] = primary_inputs[i+1];
             formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+            require(
+                uint256(formatted) < r,
+                "invalid commitment: This commitment is not within range"
+            );
             formatted_inputs[(i-1)/2 + 1] = formatted;
         }
 
         //Format and append the v_pub_in
         formatted = bytes32(primary_inputs[1 + 2 * (jsIn + jsOut)]);
+        require(
+            uint256(formatted) < 18446744073709551615,
+            "invalid value in: v_pub_in is not within range"
+        );
         formatted_inputs[1 + jsIn + jsOut] = formatted;
 
         //Format and append the v_pub_out
         formatted = bytes32(primary_inputs[1 + 2 * (jsIn + jsOut) + 1]);
+        require(
+            uint256(formatted) < 18446744073709551615,
+            "invalid value out: v_pub_out is not within range"
+        );
         formatted_inputs[1 + jsIn + jsOut + 1] = formatted;
 
         //Format and append h_sig
