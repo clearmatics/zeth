@@ -4,8 +4,6 @@
 
 namespace po = boost::program_options;
 
-using ppT = libff::default_ec_pp;
-
 extern subcommand *mpc_linear_combination_cmd;
 extern subcommand *mpc_dummy_phase2_cmd;
 extern subcommand *mpc_create_keypair_cmd;
