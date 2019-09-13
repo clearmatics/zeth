@@ -99,12 +99,16 @@ option(
 )
 
 option(
+  MONTGOMERY_OUTPUT
+  "Serialize Fp elements as their Montgomery representations (faster but not human-readable)"
+  ON
+)
+
+option(
   USE_PT_COMPRESSION
   "Use point compression"
   OFF
 )
-
-set(USE_PT_COMPRESSION OFF)
 
 if(APPLE)
   # These must be disabled to make dependencies build on macos
@@ -152,6 +156,10 @@ endif()
 
 if("${BINARY_OUTPUT}")
   add_definitions(-DBINARY_OUTPUT)
+endif()
+
+if("${MONTGOMERY_OUTPUT}")
+  add_definitions(-DMONTGOMERY_OUTPUT)
 endif()
 
 if(NOT "${USE_PT_COMPRESSION}")
