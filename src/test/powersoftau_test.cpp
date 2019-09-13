@@ -26,7 +26,7 @@ static std::string bin_to_hex(const std::string &hex)
     return binary_str_to_hexadecimal_str(hex);
 }
 
-G1 hex_to_g1(const std::string &s)
+G1 pot_hex_to_g1(const std::string &s)
 {
     const std::string bin = hex_to_bin(s);
     std::istringstream ss_bytes(bin);
@@ -35,7 +35,7 @@ G1 hex_to_g1(const std::string &s)
     return out;
 }
 
-G2 hex_to_g2(const std::string hex)
+G2 pot_hex_to_g2(const std::string hex)
 {
     const std::string bin = hex_to_bin(hex);
     std::istringstream ss_bytes(bin);
@@ -178,9 +178,9 @@ TEST(UtilTest, ReadWritePowersOfTauG1)
         g1_7_inv_write = bin_to_hex(out.str());
     }
 
-    ASSERT_EQ(G1::zero(), hex_to_g1(s_g1_0));
-    ASSERT_EQ(G1::one(), hex_to_g1(s_g1_1));
-    ASSERT_EQ(expect_g1_7_inv, hex_to_g1(s_g1_7_inv));
+    ASSERT_EQ(G1::zero(), pot_hex_to_g1(s_g1_0));
+    ASSERT_EQ(G1::one(), pot_hex_to_g1(s_g1_1));
+    ASSERT_EQ(expect_g1_7_inv, pot_hex_to_g1(s_g1_7_inv));
     ASSERT_EQ(s_g1_7_inv, g1_7_inv_write);
 }
 
@@ -250,8 +250,8 @@ TEST(PowersOfTauTests, ReadWritePowersOfTauG2)
         "b14da6d95df90f1f022fad41d223e50698a91e5d7f74dce6a77d752b8ab81a64";
 
     const G2 g2_1 = G2::one();
-    const G2 g2_1_read = hex_to_g2(s_g2_1);
-    const G2 g2_7_inv_read = hex_to_g2(s_g2_7_inv);
+    const G2 g2_1_read = pot_hex_to_g2(s_g2_1);
+    const G2 g2_7_inv_read = pot_hex_to_g2(s_g2_7_inv);
 
     std::cout << "g2_1_read (2 components): " << std::endl
               << to_hex(g2_1_read.X) << std::endl
@@ -267,7 +267,7 @@ TEST(PowersOfTauTests, ReadWritePowersOfTauG2)
         g2_7_inv_write = bin_to_hex(out.str());
     }
 
-    ASSERT_EQ(G2::zero(), hex_to_g2(s_g2_0));
+    ASSERT_EQ(G2::zero(), pot_hex_to_g2(s_g2_0));
     ASSERT_EQ(g2_1.X, g2_1_read.X);
     ASSERT_EQ(g2_1.Y, g2_1_read.Y);
     ASSERT_EQ(g2_1.Z, g2_1_read.Z);

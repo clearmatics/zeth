@@ -15,16 +15,9 @@ public:
 };
 
 template<mp_size_t n, const libff::bigint<n> &modulus>
-std::istream &read_powersoftau_fp(
-    std::istream &in, libff::Fp_model<n, modulus> &out)
+void to_montgomery_repr(libff::Fp_model<n, modulus> &m)
 {
-    const size_t data_size = sizeof(libff::bigint<n>);
-    char tmp[data_size];
-    in.read(tmp, data_size);
-    std::reverse(&tmp[0], &tmp[data_size]);
-    membuf fq_stream(tmp, &tmp[data_size]);
-    std::istream(&fq_stream) >> out;
-    return in;
+    m.mul_reduce(libff::Fp_model<n, modulus>::Rsquared);
 }
 
 template<mp_size_t n, const libff::bigint<n> &modulus>
@@ -34,6 +27,20 @@ libff::Fp_model<n, modulus> from_montgomery_repr(libff::Fp_model<n, modulus> m)
     tmp.mont_repr.data[0] = 1;
     tmp.mul_reduce(m.mont_repr);
     return tmp;
+}
+
+template<mp_size_t n, const libff::bigint<n> &modulus>
+std::istream &read_powersoftau_fp(
+    std::istream &in, libff::Fp_model<n, modulus> &out)
+{
+    const size_t data_size = sizeof(libff::bigint<n>);
+    char *bytes = (char *)&out;
+    in.read(bytes, data_size);
+
+    std::reverse(&bytes[0], &bytes[data_size]);
+    to_montgomery_repr(out);
+
+    return in;
 }
 
 template<mp_size_t n, const libff::bigint<n> &modulus>
@@ -70,8 +77,9 @@ std::istream &read_powersoftau_fp2(
     for (size_t i = 0; i < n; ++i) {
         el.c1.mont_repr.data[i] = c1.data[i];
     }
-    el.c0.mul_reduce(libff::Fp_model<n, modulus>::Rsquared);
-    el.c1.mul_reduce(libff::Fp_model<n, modulus>::Rsquared);
+
+    to_montgomery_repr(el.c0);
+    to_montgomery_repr(el.c1);
 
     return in;
 }
