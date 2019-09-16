@@ -126,16 +126,24 @@ target_link_libraries(
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
 
-# mpc utility executable
-file(GLOB MPC_SOURCE mpc/*.?pp mpc/*.tcc)
-add_executable(mpc ${MPC_SOURCE})
-target_include_directories(mpc PRIVATE mpc)
+# mpc library
+file(GLOB MPC_LIB_SOURCE mpc/mpc_*.?pp mpc/mpc_*.tcc)
+add_library(libmpc ${MPC_LIB_SOURCE})
+target_include_directories(libmpc PUBLIC mpc)
 target_link_libraries(
-  mpc
+  libmpc
   zeth
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
+
+# mpc utility executable
+add_executable(mpc mpc/mpc.cpp)
+target_link_libraries(mpc libmpc)
+
+# mpc test utility
+add_executable(mpc-test test/mpc_test_cli.cpp)
+target_link_libraries(mpc-test libmpc)
 
 ## Tests
 include(CTest)

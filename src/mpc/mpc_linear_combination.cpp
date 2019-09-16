@@ -123,7 +123,7 @@ private:
         // Compute circuit
         libff::enter_block("Generate QAP");
         libsnark::protoboard<FieldT> pb;
-        populate_protoboard(pb, simple_circuit);
+        init_protoboard(pb);
         const libsnark::r1cs_constraint_system<FieldT> cs =
             pb.get_constraint_system();
         const libsnark::qap_instance<FieldT> qap =

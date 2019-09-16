@@ -1,25 +1,18 @@
 #include "mpc_common.hpp"
 
-#include "circuit-wrapper.hpp"
-#include "circuits/blake2s/blake2s_comp.hpp"
-#include "test/simple_test.hpp"
-
 #include <iostream>
 
 namespace po = boost::program_options;
-
-using HashTreeT = MiMC_mp_gadget<FieldT>;
-using HashT = BLAKE2s_256_comp<FieldT>;
 
 subcommand::subcommand(const std::string &subcommand_name)
     : subcommand_name(subcommand_name), verbose(false), help(false)
 {
 }
 
-void subcommand::set_global_options(bool verbose, bool simple_circuit)
+void subcommand::set_global_options(bool verbose, ProtoboardInitFn pb_init)
 {
     this->verbose = verbose;
-    this->simple_circuit = simple_circuit;
+    this->protoboard_init = pb_init;
 }
 
 int subcommand::execute(const std::vector<std::string> &args)
@@ -63,25 +56,13 @@ int subcommand::execute(const std::vector<std::string> &args)
     }
 }
 
+void subcommand::init_protoboard(libsnark::protoboard<FieldT> &pb) const
+{
+    protoboard_init(pb);
+}
+
 void subcommand::usage(const po::options_description &options)
 {
     subcommand_usage();
     std::cout << options << std::endl;
-}
-
-void populate_protoboard(libsnark::protoboard<FieldT> &pb, bool simple_circuit)
-{
-    if (simple_circuit) {
-        libzeth::test::simple_circuit<FieldT>(pb);
-        return;
-    }
-
-    joinsplit_gadget<
-        FieldT,
-        HashT,
-        HashTreeT,
-        ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS>
-        js(pb);
-    js.generate_r1cs_constraints();
 }
