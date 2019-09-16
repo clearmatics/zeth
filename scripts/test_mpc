@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 
-# Use the --simple-circuit option to test the SRS mpc pipeline
-
 set -x
 set -e
 
 POT="build/src/pot-process"
-MPC="build/src/mpc"
+MPC="build/src/mpc-test"
 QAP_DEGREE=8
 
 pot_file=_test_pot-${QAP_DEGREE}.bin
@@ -23,16 +21,16 @@ ${POT} --dummy ${pot_file} ${QAP_DEGREE}
 ${POT} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
 
 # Generate the linear combination
-${MPC} --simple-circuit \
+${MPC} \
        linear-combination --out ${linear_combination_file} \
        ${pot_file} ${lagrange_file}
 
 # Create a dummy phase2 file
-${MPC} --simple-circuit \
+${MPC} \
        dummy-phase2 --out ${phase2_file} ${linear_combination_file}
 
 # Create the keypair
-${MPC} --simple-circuit \
+${MPC} \
        create-keypair --out ${keypair_file} \
        ${pot_file} ${linear_combination_file} ${phase2_file}
 
