@@ -3,7 +3,7 @@
 POT=$1
 [ "" == "${POT}" ] && POT="build/src/pot-process"
 
-POT_DATA="testdata/powersoftau_response.4.bin"
+POT_DATA="testdata/powersoftau_challenge.4.bin"
 POT_DATA_DEGREE=16
 
 set -e
