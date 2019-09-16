@@ -147,6 +147,7 @@ bool TestValidJS2In2Case1(
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
     ext_proof.dump_proof();
+    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
     ext_proof.dump_primary_inputs();
 
     return res;
@@ -265,6 +266,11 @@ bool TestValidJS2In2Case2(
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("[END] Verify proof", true);
+
+    std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+    ext_proof.dump_proof();
+    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
+    ext_proof.dump_primary_inputs();
 
     return res;
 }
@@ -385,6 +391,11 @@ bool TestValidJS2In2Case3(
     libff::leave_block("[END] Verify proof", true);
 
     return res;
+
+    std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+    ext_proof.dump_proof();
+    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
+    ext_proof.dump_primary_inputs();
 }
 
 bool TestValidJS2In2Deposit(
@@ -497,10 +508,13 @@ bool TestValidJS2In2Deposit(
     // Get the verification key
     libzeth::verificationKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
-
-    ext_proof.dump_primary_inputs();
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("[END] Verify proof", true);
+
+    std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+    ext_proof.dump_proof();
+    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
+    ext_proof.dump_primary_inputs();
 
     return res;
 }
@@ -619,6 +633,11 @@ bool TestInvalidJS2In2(
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify ? " << res << std::endl;
     libff::leave_block("[END] Verify proof", true);
+
+    std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+    ext_proof.dump_proof();
+    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
+    ext_proof.dump_primary_inputs();
 
     return res;
 }
