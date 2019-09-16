@@ -1,30 +1,30 @@
 #ifndef __ZETH_MPC_MPC_COMMON_HPP__
 #define __ZETH_MPC_MPC_COMMON_HPP__
 
-#include "include_libsnark.hpp"
+#include "mpc_main.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <string>
 #include <vector>
 
-using ppT = libff::default_ec_pp;
-using FieldT = libff::Fr<ppT>;
-
 class subcommand
 {
 protected:
     std::string subcommand_name;
     bool verbose;
-    bool simple_circuit;
+    ProtoboardInitFn protoboard_init;
 
 private:
     bool help;
 
 public:
     subcommand(const std::string &subcommand_name);
-    void set_global_options(bool verbose, bool simple_circuit);
+    void set_global_options(bool verbose, ProtoboardInitFn protoboard_init);
     int execute(const std::vector<std::string> &args);
+
+protected:
+    void init_protoboard(libsnark::protoboard<FieldT> &pb) const;
 
 private:
     void usage(const boost::program_options::options_description &all_options);
@@ -48,8 +48,5 @@ template<typename T> inline T read_from_file(const std::string &file_name)
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
     return T::read(in);
 }
-
-void populate_protoboard(
-    libsnark::protoboard<libff::Fr<ppT>> &pb, bool simple_circuit);
 
 #endif // __ZETH_MPC_MPC_COMMON_HPP__
