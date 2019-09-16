@@ -230,14 +230,13 @@ srs_powersoftau<ppT> powersoftau_load(std::istream &in, size_t n)
     //
     //   https://github.com/clearmatics/powersoftau
     //
-    // Assume the stream is the final response file from the
+    // Assume the stream is the final challenge file from the
     // powersoftau protocol.  Load the Accumulator object.
     //
     // File is structured:
     //
-    //   [prev_hash    : uint8_t[64]]
-    //   [accumulator  : Accumulator]
-    //   [contribution : Public Key ]
+    //   [prev_resp_hash : uint8_t[64]]
+    //   [accumulator    : Accumulator]
     //
     // From src/lib.rs:
     //
