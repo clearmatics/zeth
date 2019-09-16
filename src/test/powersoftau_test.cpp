@@ -407,7 +407,7 @@ TEST(PowersOfTauTests, ReadWritePowersOfTauOutput)
 {
     char *zeth = getenv("ZETH");
     const std::string filename = std::string(zeth == nullptr ? "." : zeth) +
-                                 "/testdata/powersoftau_response.4.bin";
+                                 "/testdata/powersoftau_challenge.4.bin";
     const size_t n = 16;
 
     std::ifstream in(filename, std::ios_base::binary | std::ios_base::in);
