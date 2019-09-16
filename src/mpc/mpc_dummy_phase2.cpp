@@ -80,7 +80,7 @@ private:
         // Generate the zeth circuit (to determine the number of inputs)
         const size_t num_inputs = [this]() {
             libsnark::protoboard<FieldT> pb;
-            populate_protoboard(pb, simple_circuit);
+            init_protoboard(pb);
             const libsnark::r1cs_constraint_system<FieldT> cs =
                 pb.get_constraint_system();
             return cs.num_inputs();
