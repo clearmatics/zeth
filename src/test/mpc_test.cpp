@@ -84,6 +84,40 @@ TEST(MPCTests, ChaChaRng)
     check_output(expect_output_2, "expect_output_2");
 }
 
+TEST(MPCTests, HashToG2)
+{
+    srs_mpc_hash_t hash;
+    const std::string seed = hexadecimal_str_to_binary_str(
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+    memcpy(hash, seed.data(), sizeof(srs_mpc_hash_t));
+
+    Fr expect_fr;
+    {
+        std::istringstream ss(
+            hexadecimal_str_to_binary_str("20e70f3b594e4a9bd78e7d23f796f3bce4de"
+                                          "92af13adf10beffe2cf84b59e2ad"));
+        read_powersoftau_fr(ss, expect_fr);
+    }
+
+    G2 expect_g2;
+    {
+        std::istringstream ss(hexadecimal_str_to_binary_str(
+            "04048fb80ba85a814f6ca7db7194da6c71fa7d8b7aa05b49ce315c96c20b916ab"
+            "36544a6656acae3f5a7da00ca96dfe5b9c4bcec736f75cf85a27fab44f426df28"
+            "0532af644ab533ca189739ae2d908b95d643051f6692286eca126ad4c65275def"
+            "8e0f6b24ebb57b415e59b465dc7f3f823c615434955b96f7f3f5ba4f7505e43"));
+        read_powersoftau_g2(ss, expect_g2);
+    }
+
+    Fr fr;
+    srs_mpc_compute_fr(hash, fr);
+    G2 g2 = srs_mpc_compute_r_g2<ppT>(hash);
+
+    ASSERT_EQ(expect_fr, fr);
+    ASSERT_EQ(expect_g2, g2);
+}
+
 TEST(MPCTests, LinearCombination)
 {
     // Compute the small test qap first, in order to extract the
@@ -674,19 +708,14 @@ TEST(MPCTests, Phase2HashToG2)
 {
     // Check that independently created source values (at different locations
     // in memory) give the same result.
-    const size_t seed = 9;
-    const G1 s_0 = Fr(seed - 1) * G1::one();
-    const G1 s_1 = Fr(seed - 1) * G1::one();
-    const G1 s_delta_j_0 = Fr(seed - 2) * s_0;
-    const G1 s_delta_j_1 = Fr(seed - 2) * s_1;
     const uint8_t empty[0]{};
     srs_mpc_hash_t hash_0;
     srs_mpc_compute_hash(hash_0, empty, 0);
     srs_mpc_hash_t hash_1;
     srs_mpc_compute_hash(hash_1, empty, 0);
 
-    G2 g2_0 = srs_mpc_compute_r_g2<ppT>(s_0, s_delta_j_0, hash_0);
-    G2 g2_1 = srs_mpc_compute_r_g2<ppT>(s_1, s_delta_j_1, hash_1);
+    G2 g2_0 = srs_mpc_compute_r_g2<ppT>(hash_0);
+    G2 g2_1 = srs_mpc_compute_r_g2<ppT>(hash_1);
     ASSERT_EQ(g2_0, g2_1);
 }
 
@@ -703,8 +732,7 @@ TEST(MPCTests, Phase2PublicKeyGeneration)
         srs_mpc_phase2_compute_public_key<ppT>(
             hash, last_secret * G1::one(), secret);
 
-    const libff::G2<ppT> r_g2 =
-        srs_mpc_compute_r_g2<ppT>(publickey.s_g1, publickey.s_delta_j_g1, hash);
+    const libff::G2<ppT> r_g2 = srs_mpc_compute_r_g2<ppT>(hash);
 
     ASSERT_EQ(
         0, memcmp(hash, publickey.transcript_digest, sizeof(srs_mpc_hash_t)));
@@ -779,10 +807,8 @@ TEST(MPCTests, Phase2UpdateVerification)
     {
         srs_mpc_phase2_response<ppT> response =
             srs_mpc_phase2_compute_response(challenge, secret);
-        const libff::G2<ppT> r_g2 = srs_mpc_compute_r_g2<ppT>(
-            response.publickey.s_g1,
-            response.publickey.s_delta_j_g1,
-            response.publickey.transcript_digest);
+        const libff::G2<ppT> r_g2 =
+            srs_mpc_compute_r_g2<ppT>(response.publickey.transcript_digest);
         response.publickey.r_delta_j_g2 = invalid_secret * r_g2;
         ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
     }
