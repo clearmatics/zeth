@@ -67,6 +67,9 @@ include_directories( ${PROJECT_BINARY_DIR} )
 # blake2 library
 get_target_property(blake2_INCLUDE_DIRS blake2 INTERFACE_INCLUDE_DIRECTORIES)
 
+# libsodium library
+get_target_property(sodium_INCLUDE_DIRS sodium INTERFACE_INCLUDE_DIRECTORIES)
+
 # zeth library
 file(
   GLOB_RECURSE
@@ -92,8 +95,9 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libff
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
   ${blake2_INCLUDE_DIRS}
+  ${sodium_INCLUDE_DIRS}
 )
-target_link_libraries(zeth snark blake2)
+target_link_libraries(zeth snark blake2 sodium)
 
 # prover_server executable
 file(
