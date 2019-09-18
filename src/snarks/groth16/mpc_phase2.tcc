@@ -250,7 +250,7 @@ srs_mpc_phase2_response<ppT> srs_mpc_phase2_response<ppT>::read(
 }
 
 template<mp_size_t n, const libff::bigint<n> &modulus>
-void srs_mpc_compute_fr(
+void srs_mpc_digest_to_fp(
     const srs_mpc_hash_t transcript_digest, libff::Fp_model<n, modulus> &out_fr)
 {
     // Fill a U512 with random data and compute the representation mod m.
@@ -272,10 +272,10 @@ void srs_mpc_compute_fr(
 /// Deterministically choose a value $r$ in G2, given some $s$ and $s_delta_j$
 /// in G1, and the current transcript digest.
 template<typename ppT>
-libff::G2<ppT> srs_mpc_compute_r_g2(const srs_mpc_hash_t transcript_digest)
+libff::G2<ppT> srs_mpc_digest_to_g2(const srs_mpc_hash_t transcript_digest)
 {
     libff::Fr<ppT> fr;
-    srs_mpc_compute_fr(transcript_digest, fr);
+    srs_mpc_digest_to_fp(transcript_digest, fr);
     return fr * libff::G2<ppT>::one();
 }
 
@@ -330,7 +330,7 @@ srs_mpc_phase2_publickey<ppT> srs_mpc_phase2_compute_public_key(
     const libff::G1<ppT> new_delta_g1 = delta_j * last_delta;
     const libff::G1<ppT> s_g1 = libff::G1<ppT>::random_element();
     const libff::G1<ppT> s_delta_j_g1 = delta_j * s_g1;
-    const libff::G2<ppT> r_g2 = srs_mpc_compute_r_g2<ppT>(transcript_digest);
+    const libff::G2<ppT> r_g2 = srs_mpc_digest_to_g2<ppT>(transcript_digest);
     const libff::G2<ppT> r_delta_j_g2 = delta_j * r_g2;
     libff::leave_block("call to srs_mpc_phase2_compute_public_key");
 
@@ -346,7 +346,7 @@ bool srs_mpc_phase2_verify_publickey(
 {
     const libff::G1<ppT> &s_g1 = publickey.s_g1;
     const libff::G1<ppT> &s_delta_j_g1 = publickey.s_delta_j_g1;
-    out_r_g2 = srs_mpc_compute_r_g2<ppT>(publickey.transcript_digest);
+    out_r_g2 = srs_mpc_digest_to_g2<ppT>(publickey.transcript_digest);
     const libff::G2<ppT> &r_delta_j_g2 = publickey.r_delta_j_g2;
     const libff::G1<ppT> &new_delta_g1 = publickey.new_delta_g1;
 
