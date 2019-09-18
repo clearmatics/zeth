@@ -25,6 +25,7 @@ function command_tests() {
 
 function build() {
     build_type=$1
+    full=$2
 
     # Enable warnings-as-errors
     cxx_flags="-Werror"
@@ -41,7 +42,9 @@ function build() {
     fi
 
     cmake_flags="-DCMAKE_BUILD_TYPE=${build_type}"
-    # cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
+    if ! [ "1" == "${full}" ] ; then
+        cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
+    fi
 
     . setup_env.sh
     mkdir -p build
@@ -57,11 +60,21 @@ function build() {
 }
 
 function ci() {
-    build $1
+    build $1 $2
     command_tests
 }
 
-if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
+build_type=$1
+full_build=$2
+if [ "" == "${full_build}" ] ; then
+    if [ "false" == "${TRAVIS_PULL_REQUEST}" ] || [ "" == "${TRAVIS_PULL_REQUEST}" ] ; then
+        full_build=0
+    else
+        full_build=1
+    fi
+fi
+
+if [ "1" == "${CI_CHECK_FORMAT}" ] ; then
     format_check
 fi
 
@@ -70,7 +83,7 @@ fi
 if [ "${CI_USE_DOCKER}" == "1" ] ; then
     docker pull clearmatics/zeth-base:latest
     docker build -f Dockerfile-zeth -t zeth-dev .
-    docker run -t -p 50051:50051 --name zeth zeth-dev:latest $0 $@
+    docker run -t -p 50051:50051 --name zeth zeth-dev:latest $0 ${build_type} ${full_build}
 else
-    ci $@
+    ci $build_type ${build_type} ${full_build}
 fi
