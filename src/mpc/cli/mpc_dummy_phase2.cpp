@@ -1,7 +1,7 @@
 #include "circuits/blake2s/blake2s_comp.hpp"
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
-#include "snarks/groth16/mpc_utils.hpp"
+#include "snarks/groth16/mpc/mpc_utils.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
 #include "util.hpp"
 #include "zeth.h"
 
@@ -15,7 +15,6 @@ namespace
 //     mpc dummy_phase2 [<option>] <linear_combination_file>
 //
 // Options:
-//     -h,--help       This message
 //     --out <file>    Write dummy final-challenge to <file> (mpc-challenge.bin)
 class mpc_dummy_phase2 : public subcommand
 {
@@ -30,9 +29,9 @@ public:
 
 private:
     void initialize_suboptions(
-        boost::program_options::options_description &options,
-        boost::program_options::options_description &all_options,
-        boost::program_options::positional_options_description &pos) override
+        po::options_description &options,
+        po::options_description &all_options,
+        po::positional_options_description &pos) override
     {
         options.add_options()(
             "out,o",
@@ -45,8 +44,7 @@ private:
         pos.add("linear_combination_file", 1);
     }
 
-    void parse_suboptions(
-        const boost::program_options::variables_map &vm) override
+    void parse_suboptions(const po::variables_map &vm) override
     {
         if (0 == vm.count("linear_combination_file")) {
             throw po::error("linear_combination file not specified");
@@ -90,7 +88,7 @@ private:
         std::cout << std::to_string(num_inputs) << std::endl;
         libff::leave_block("computing num_inputs");
 
-        // Generate the artificial delta
+        // Generate a single delta for dummy phase2
         const FieldT delta = FieldT::random_element();
 
         // Generate and save the dummy phase2 challenge

@@ -1,8 +1,10 @@
+
+#include "snarks/groth16/mpc/phase2.hpp"
+// This comment preserves include order under clang-format.
 #include "circuits/blake2s/blake2s_comp.hpp"
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
-#include "snarks/groth16/mpc_utils.hpp"
-#include "snarks/groth16/powersoftau_utils.hpp"
+#include "snarks/groth16/mpc/mpc_utils.hpp"
+#include "snarks/groth16/mpc/powersoftau_utils.hpp"
 #include "util.hpp"
 
 #include <vector>
@@ -17,7 +19,7 @@ namespace
 //  mpc create-keypair [<option>]
 //      <powersoftau_file>
 //      <linear_combination_file>
-//      <phase2_file>
+//      <phase2_challenge_file>
 //
 // Options:
 //  -h,--help           This message
@@ -28,7 +30,7 @@ class mpc_create_keypair : public subcommand
 private:
     std::string powersoftau_file;
     std::string lin_comb_file;
-    std::string phase2_file;
+    std::string phase2_challenge_file;
     size_t powersoftau_degree;
     std::string out_file;
 
@@ -37,7 +39,7 @@ public:
         : subcommand("create-keypair")
         , powersoftau_file()
         , lin_comb_file()
-        , phase2_file()
+        , phase2_challenge_file()
         , powersoftau_degree(0)
         , out_file()
     {
@@ -45,9 +47,9 @@ public:
 
 private:
     void initialize_suboptions(
-        boost::program_options::options_description &options,
-        boost::program_options::options_description &all_options,
-        boost::program_options::positional_options_description &pos) override
+        po::options_description &options,
+        po::options_description &all_options,
+        po::positional_options_description &pos) override
     {
         options.add_options()(
             "pot-degree",
@@ -61,16 +63,15 @@ private:
             "linear_combination_file",
             po::value<std::string>(),
             "linear combination file")(
-            "phase2_file",
+            "phase2_challenge_file",
             po::value<std::string>(),
             "phase2 final challenge file");
         pos.add("powersoftau_file", 1)
             .add("linear_combination_file", 1)
-            .add("phase2_file", 1);
+            .add("phase2_challenge_file", 1);
     }
 
-    void parse_suboptions(
-        const boost::program_options::variables_map &vm) override
+    void parse_suboptions(const po::variables_map &vm) override
     {
         if (0 == vm.count("powersoftau_file")) {
             throw po::error("powersoftau_file not specified");
@@ -78,13 +79,13 @@ private:
         if (0 == vm.count("linear_combination_file")) {
             throw po::error("linear_combination_file not specified");
         }
-        if (0 == vm.count("phase2_file")) {
-            throw po::error("phase2_file not specified");
+        if (0 == vm.count("phase2_challenge_file")) {
+            throw po::error("phase2_challenge_file not specified");
         }
 
         powersoftau_file = vm["powersoftau_file"].as<std::string>();
         lin_comb_file = vm["linear_combination_file"].as<std::string>();
-        phase2_file = vm["phase2_file"].as<std::string>();
+        phase2_challenge_file = vm["phase2_challenge_file"].as<std::string>();
         powersoftau_degree =
             vm.count("pot-degree") ? vm["pot-degree"].as<size_t>() : 0;
         out_file = vm.count("out") ? vm["out"].as<std::string>()
@@ -96,7 +97,7 @@ private:
         std::cout << "Usage:\n"
                   << "  " << subcommand_name << " [<options>]  \\\n"
                   << "        <powersoftau_file> <linear_combination_file> "
-                     "<phase2_file>\n\n";
+                     "<phase2_challenge_file>\n\n";
     }
 
     int execute_subcommand() override
@@ -104,7 +105,8 @@ private:
         if (verbose) {
             std::cout << "powersoftau_file: " << powersoftau_file << "\n"
                       << "lin_comb_file: " << lin_comb_file << "\n"
-                      << "phase2_file: " << phase2_file << "\n"
+                      << "phase2_challenge_file: " << phase2_challenge_file
+                      << "\n"
                       << "powersoftau_degree: " << powersoftau_degree << "\n"
                       << "out_file: " << out_file << std::endl;
         }
@@ -133,12 +135,10 @@ private:
 
         libff::enter_block("Load phase2 data");
         libff::print_indent();
-        std::cout << phase2_file << std::endl;
-        srs_mpc_phase2_challenge<ppT> phase2 = [this]() {
-            std::ifstream in(
-                phase2_file, std::ios_base::binary | std::ios_base::in);
-            return srs_mpc_phase2_challenge<ppT>::read(in);
-        }();
+        std::cout << phase2_challenge_file << std::endl;
+        srs_mpc_phase2_challenge<ppT> phase2 =
+            read_from_file<srs_mpc_phase2_challenge<ppT>>(
+                phase2_challenge_file);
         libff::leave_block("Load phase2 data");
 
         // Compute circuit

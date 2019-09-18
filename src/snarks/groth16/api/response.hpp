@@ -17,6 +17,6 @@ void prepare_verification_key_response(
     prover_proto::VerificationKey *message);
 
 } // namespace libzeth
-#include "snarks/groth16/response.tcc"
+#include "response.tcc"
 
 #endif // __ZETH_RESPONSE_HPP__

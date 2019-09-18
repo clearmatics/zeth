@@ -1,11 +1,12 @@
 #ifndef __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__
 #define __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__
 
+#include "phase2.hpp"
+// This comment preserves include order under clang-format.
+#include "chacha_rng.hpp"
 #include "libff/common/rng.hpp"
-#include "snarks/groth16/mpc/chacha_rng.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
-#include "snarks/groth16/mpc_utils.hpp"
-#include "snarks/groth16/powersoftau_utils.hpp"
+#include "mpc_utils.hpp"
+#include "powersoftau_utils.hpp"
 #include "util.hpp"
 
 namespace libzeth
@@ -33,8 +34,7 @@ template<typename ppT>
 bool srs_mpc_phase2_accumulator<ppT>::is_well_formed() const
 {
     return delta_g1.is_well_formed() && delta_g2.is_well_formed() &&
-           libzeth::container_is_well_formed(H_g1) &&
-           libzeth::container_is_well_formed(L_g1);
+           container_is_well_formed(H_g1) && container_is_well_formed(L_g1);
 }
 
 template<typename ppT>
@@ -384,7 +384,7 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_update_accumulator(
     const libff::G1<ppT> new_delta_g1 = delta_j * last_accum.delta_g1;
     const libff::G2<ppT> new_delta_g2 = delta_j * last_accum.delta_g2;
 
-    // Step3: Update $L_i$ by dividing by $\delta$ ('K' in the paper, but we
+    // Step 3: Update $L_i$ by dividing by $\delta$ ('K' in the paper, but we
     // use L here to be consistent with the final keypair in libsnark).
     libff::enter_block("updating L_g1");
     const size_t num_L_elements = last_accum.L_g1.size();
@@ -522,7 +522,7 @@ bool srs_mpc_phase2_verify_response(
     const srs_mpc_phase2_challenge<ppT> &challenge,
     const srs_mpc_phase2_response<ppT> &response)
 {
-    // Ensure that response.pubkey corresponsds to challenge.transcript_digest
+    // Ensure that response.pubkey corresponds to challenge.transcript_digest
     const bool digest_match = !memcmp(
         challenge.transcript_digest,
         response.publickey.transcript_digest,
@@ -725,8 +725,8 @@ bool is_well_formed(const libsnark::r1cs_gg_ppzksnark_proving_key<ppT> &pk)
     if (!pk.alpha_g1.is_well_formed() || !pk.beta_g1.is_well_formed() ||
         !pk.beta_g2.is_well_formed() || !pk.delta_g1.is_well_formed() ||
         !pk.delta_g2.is_well_formed() ||
-        !libzeth::container_is_well_formed(pk.A_query) ||
-        !libzeth::container_is_well_formed(pk.L_query)) {
+        !container_is_well_formed(pk.A_query) ||
+        !container_is_well_formed(pk.L_query)) {
         return false;
     }
 

@@ -1,4 +1,4 @@
-#include "snarks/groth16/mpc_phase2.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
 
 namespace libzeth
 {
@@ -94,6 +94,9 @@ void hash_ostream::get_hash(srs_mpc_hash_t out_hash)
     srs_mpc_hash_final(hsb.hash_state, out_hash);
 }
 
+// Specialization of write_compressed, for the case where ppT == alt_bn128_pp.
+// Cannot be a generic template as it relies on calls that are specific to the
+// alt_bn128_pp types.
 template<>
 void srs_mpc_phase2_accumulator<libff::alt_bn128_pp>::write_compressed(
     std::ostream &out) const
@@ -118,6 +121,9 @@ void srs_mpc_phase2_accumulator<libff::alt_bn128_pp>::write_compressed(
     }
 }
 
+// Specialization of read_compressed, for the case where ppT == alt_bn128_pp.
+// Cannot be a generic template as it relies on calls that are specific to the
+// alt_bn128_pp types.
 template<>
 srs_mpc_phase2_accumulator<libff::alt_bn128_pp> srs_mpc_phase2_accumulator<
     libff::alt_bn128_pp>::read_compressed(std::istream &in)

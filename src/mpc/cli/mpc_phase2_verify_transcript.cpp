@@ -1,5 +1,5 @@
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
@@ -37,9 +37,9 @@ public:
 
 private:
     void initialize_suboptions(
-        boost::program_options::options_description &options,
-        boost::program_options::options_description &all_options,
-        boost::program_options::positional_options_description &pos) override
+        po::options_description &options,
+        po::options_description &all_options,
+        po::positional_options_description &pos) override
     {
         options.add_options()(
             "digest",
@@ -56,8 +56,7 @@ private:
             .add("final_challenge_file", 1);
     }
 
-    void parse_suboptions(
-        const boost::program_options::variables_map &vm) override
+    void parse_suboptions(const po::variables_map &vm) override
     {
         if (0 == vm.count("challenge_0_file")) {
             throw po::error("challenge_0_file not specified");
@@ -92,14 +91,9 @@ private:
 
         // Load the initial challenge
         libff::enter_block("Load challenge_0 file");
-        const srs_mpc_phase2_challenge<ppT> challenge_0 = [&]() {
-            std::ifstream in(
-                challenge_0_file, std::ios_base::binary | std::ios_base::in);
-            in.exceptions(
-                std::ios_base::eofbit | std::ios_base::badbit |
-                std::ios_base::failbit);
-            return srs_mpc_phase2_challenge<ppT>::read(in);
-        }();
+        const srs_mpc_phase2_challenge<ppT> challenge_0 =
+            read_from_file<const srs_mpc_phase2_challenge<ppT>>(
+                challenge_0_file);
         libff::leave_block("Load challenge_0 file");
 
         bool check_for_contribution = false;
@@ -163,15 +157,9 @@ private:
 
         // Load and check the final challenge
         libff::enter_block("Load phase2 output");
-        const srs_mpc_phase2_challenge<ppT> final_challenge = [&]() {
-            std::ifstream in(
-                final_challenge_file,
-                std::ios_base::binary | std::ios_base::in);
-            in.exceptions(
-                std::ios_base::eofbit | std::ios_base::badbit |
-                std::ios_base::failbit);
-            return srs_mpc_phase2_challenge<ppT>::read(in);
-        }();
+        const srs_mpc_phase2_challenge<ppT> final_challenge =
+            read_from_file<const srs_mpc_phase2_challenge<ppT>>(
+                final_challenge_file);
         libff::leave_block("Load phase2 output");
 
         libff::enter_block("Verify final output");
