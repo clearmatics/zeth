@@ -11,14 +11,16 @@ namespace
 //   $0 phase2-contribute [<options>] <challenge_file>
 //
 // Options:
-//   --out <file>      Response output file (mpc-response.bin)
-//   --digest <file>   Write contribution hash to file.
+//   --out <file>        Response output file (mpc-response.bin)
+//   --digest <file>     Write contribution hash to file.
+//   --skip-user-input   Use only ststem randomness
 class mpc_phase2_contribute : public subcommand
 {
 private:
     std::string challenge_file;
     std::string out_file;
     std::string digest;
+    bool skip_user_input;
 
 public:
     mpc_phase2_contribute()
@@ -26,6 +28,7 @@ public:
         , challenge_file()
         , out_file()
         , digest()
+        , skip_user_input(false)
     {
     }
 
@@ -41,7 +44,8 @@ private:
             "Reponse output file (mpc-response.bin)")(
             "digest",
             po::value<std::string>(),
-            "Write contribution digest to file");
+            "Write contribution digest to file")(
+            "skip-user-input", "Use only system randomness");
         all_options.add(options).add_options()(
             "challenge_file", po::value<std::string>(), "challenge file");
         pos.add("challenge_file", 1);
@@ -57,6 +61,7 @@ private:
         out_file = vm.count("out") ? vm["out"].as<std::string>()
                                    : trusted_setup_file("mpc-response.bin");
         digest = vm.count("digest") ? vm["digest"].as<std::string>() : "";
+        skip_user_input = (bool)vm.count("skip-user-input");
     }
 
     void subcommand_usage() override
@@ -71,6 +76,7 @@ private:
             std::cout << "challenge_file: " << challenge_file << "\n";
             std::cout << "out_file: " << out_file << std::endl;
             std::cout << "digest: " << digest << std::endl;
+            std::cout << "skip_user_input: " << skip_user_input << std::endl;
         }
 
         libff::enter_block("Load challenge file");
@@ -82,8 +88,7 @@ private:
         libff::leave_block("Load challenge file");
 
         libff::enter_block("Computing randomness");
-        // TODO: determine strategy for this.
-        libff::Fr<ppT> contribution = libff::Fr<ppT>::random_element();
+        libff::Fr<ppT> contribution = get_randomness();
         libff::leave_block("Computing randomness");
 
         libff::enter_block("Computing response");
@@ -112,6 +117,40 @@ private:
         }
 
         return 0;
+    }
+
+    libff::Fr<ppT> get_randomness()
+    {
+        using random_word = std::random_device::result_type;
+
+        std::random_device rd;
+        hash_ostream hs;
+        uint64_t buf[4];
+        const size_t buf_size_in_words = sizeof(buf) / sizeof(random_word);
+
+        // 1024 bytes of system randomness,
+        for (size_t i = 0; i < 1024 / sizeof(buf); ++i) {
+            random_word *words = (random_word *)&buf;
+            for (size_t i = 0; i < buf_size_in_words; ++i) {
+                words[i] = rd();
+            }
+            hs.write((const char *)&buf, sizeof(buf));
+        }
+
+        if (!skip_user_input) {
+            std::cout << "Enter some random text and press [ENTER] ..."
+                      << std::endl;
+            std::string user_input;
+            std::getline(std::cin, user_input);
+            hs << user_input;
+        }
+
+        srs_mpc_hash_t digest;
+        hs.get_hash(digest);
+
+        libff::Fr<ppT> randomness;
+        srs_mpc_digest_to_fp(digest, randomness);
+        return randomness;
     }
 };
 
