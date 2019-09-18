@@ -8,9 +8,9 @@
 namespace libzeth
 {
 
-/// Output from the first phase of the MPC (powersoftau).  The
-/// structure matches that data exactly (no indication of degree,
-/// etc), so that it can be loaded directly.
+/// Output from the first phase of the MPC (powersoftau). The structure
+/// matches that data exactly (no indication of degree, etc), so that it can be
+/// loaded directly. Implements the interface of StructuredT.
 template<typename ppT> class srs_powersoftau
 {
 public:
@@ -79,8 +79,8 @@ srs_powersoftau<ppT> dummy_powersoftau_from_secrets(
     const libff::Fr<ppT> &beta,
     size_t n);
 
-/// Same as dummy_powersoftau_from_secrets(), where the secrets are not
-/// of interest.
+/// Same as dummy_powersoftau_from_secrets(), where the secrets are not of
+/// interest.
 template<typename ppT> srs_powersoftau<ppT> dummy_powersoftau(size_t n);
 
 // Utility functions for reading and writing data as formatted by the
@@ -109,8 +109,8 @@ srs_powersoftau<libff::alt_bn128_pp> powersoftau_load(
 void powersoftau_write(
     std::ostream &in, const srs_powersoftau<libff::alt_bn128_pp> &pot);
 
-/// Implements the SameRatio described in "Scalable Multi-party
-/// Computation for zk-SNARK Parameters in the Random Beacon Model"
+/// Implements the SameRatio described in "Scalable Multi-party Computation for
+/// zk-SNARK Parameters in the Random Beacon Model"
 /// http://eprint.iacr.org/2017/1050
 template<typename ppT>
 bool same_ratio(
@@ -121,7 +121,7 @@ bool same_ratio(
 
 /// Given two sequences a1s and b1s, check (with high probability) that
 ///   same_ratio((a1s[i], b1s[i]), (a2, b2))
-/// holds for all i.  For random field values r_i, sum up:
+/// holds for all i. For random field values r_i, sum up:
 ///   a1 = a1s[0] * r_0 + ... + a1s[n] * r_n
 ///   b1 = b1s[0] * r_0 + ... + b1s[n] * r_n
 /// and check same_ratio((a1, b1), (a2, b2)).
@@ -161,15 +161,15 @@ bool same_ratio_consecutive(
 template<typename ppT>
 bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot);
 
-/// Compute the evaluation of the lagrange polynomials in G1 and G2,
-/// along with some useful factors.  The results can be cached and
-/// used against any QAP, provided its domain size matched.
+/// Compute the evaluation of the lagrange polynomials in G1 and G2, along with
+/// some useful factors. The results can be cached and used against any QAP,
+/// provided its domain size matched.
 template<typename ppT>
 srs_lagrange_evaluations<ppT> powersoftau_compute_lagrange_evaluations(
     const srs_powersoftau<ppT> &pot, const size_t n);
 
 } // namespace libzeth
 
-#include "snarks/groth16/powersoftau_utils.tcc"
+#include "snarks/groth16/mpc/powersoftau_utils.tcc"
 
 #endif // __ZETH_SNARKS_GROTH_POWERSOFTAU_UTILS_HPP__

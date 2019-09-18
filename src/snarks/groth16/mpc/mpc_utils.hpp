@@ -7,7 +7,7 @@
 
 // Structures and utility functions related to CRS generation via an
 // MPC. Following [BoweGM17], the circuit $C$ generating the SRS is
-// considered to be made up of 3 layers: $C = C_1 L_1 C_2$.  The
+// considered to be made up of 3 layers: $C = C_1 L_1 C_2$. The
 // output from $C_1$ is exactly the powersoftau data. $L_1$
 // represents the linear combination based on a specific QAP, and
 // $C_2$ is the output from Phase2 of the MPC.
@@ -27,8 +27,9 @@ namespace libzeth
 template<typename ppT> class srs_powersoftau;
 template<typename ppT> class srs_lagrange_evaluations;
 
-/// Output from linear combination $L_1$ - the linear combination of
-/// elements in powersoftau, based on a specific circuit.
+/// Output from linear combination $L_1$ - the linear combination of elements
+/// in powersoftau, based on a specific circuit. Implements the interfaces of
+/// StructuredT and ReadableT templates.
 template<typename ppT> class srs_mpc_layer_L1
 {
 public:
@@ -71,6 +72,6 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
 
 } // namespace libzeth
 
-#include "snarks/groth16/mpc_utils.tcc"
+#include "snarks/groth16/mpc/mpc_utils.tcc"
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__

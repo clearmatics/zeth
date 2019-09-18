@@ -1,5 +1,5 @@
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
 
 using namespace libzeth;
 namespace po = boost::program_options;
@@ -33,9 +33,9 @@ public:
 
 private:
     void initialize_suboptions(
-        boost::program_options::options_description &options,
-        boost::program_options::options_description &all_options,
-        boost::program_options::positional_options_description &pos) override
+        po::options_description &options,
+        po::options_description &all_options,
+        po::positional_options_description &pos) override
     {
         options.add_options()(
             "transcript",
@@ -50,13 +50,12 @@ private:
         pos.add("challenge_file", 1).add("response_file", 1);
     }
 
-    void parse_suboptions(
-        const boost::program_options::variables_map &vm) override
+    void parse_suboptions(const po::variables_map &vm) override
     {
-        if (0 == vm.count("challenge_file")) {
+        if (!vm.count("challenge_file")) {
             throw po::error("challenge_file not specified");
         }
-        if (0 == vm.count("response_file")) {
+        if (!vm.count("response_file")) {
             throw po::error("response_file not specified");
         }
         challenge_file = vm["challenge_file"].as<std::string>();
@@ -84,30 +83,16 @@ private:
         }
 
         libff::enter_block("Load challenge file");
-        srs_mpc_phase2_challenge<ppT> challenge = [&]() {
-            std::ifstream in(
-                challenge_file, std::ios_base::binary | std::ios_base::in);
-            in.exceptions(
-                std::ios_base::eofbit | std::ios_base::badbit |
-                std::ios_base::failbit);
-            return srs_mpc_phase2_challenge<ppT>::read(in);
-        }();
+        srs_mpc_phase2_challenge<ppT> challenge =
+            read_from_file<srs_mpc_phase2_challenge<ppT>>(challenge_file);
         libff::leave_block("Load challenge file");
 
         libff::enter_block("Load response file");
-        srs_mpc_phase2_response<ppT> response = [&]() {
-            std::ifstream in(
-                response_file, std::ios_base::binary | std::ios_base::in);
-            in.exceptions(
-                std::ios_base::eofbit | std::ios_base::badbit |
-                std::ios_base::failbit);
-            return srs_mpc_phase2_response<ppT>::read(in);
-        }();
+        srs_mpc_phase2_response<ppT> response =
+            read_from_file<srs_mpc_phase2_response<ppT>>(response_file);
         libff::leave_block("Load response file");
 
         libff::enter_block("Verifying response");
-        // TODO: return explanation messages from
-        // `srs_mpc_phase2_verify_response`
         const bool response_is_valid =
             srs_mpc_phase2_verify_response(challenge, response);
         libff::leave_block("Verifying response");
@@ -118,7 +103,7 @@ private:
 
         // TODO: Backup the transcript file before writing a new version?
 
-        // If a transcation file has been specified, append this contribution
+        // If a transcript file has been specified, append this contribution
         if (!transcript_file.empty()) {
             libff::enter_block("appending contribution to transcript");
             std::ofstream out(
