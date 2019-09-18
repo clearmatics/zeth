@@ -19,6 +19,6 @@ GroupT multi_exp(
 
 } // namespace libzeth
 
-#include "snarks/groth16/multi_exp.tcc"
+#include "snarks/groth16/mpc/multi_exp.tcc"
 
 #endif // __ZETH_SNARKS_GRPOTH16_MULTI_EXP_HPP__

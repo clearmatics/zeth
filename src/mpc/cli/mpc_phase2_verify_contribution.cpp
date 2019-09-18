@@ -1,5 +1,5 @@
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
 
 using namespace libzeth;
 namespace po = boost::program_options;

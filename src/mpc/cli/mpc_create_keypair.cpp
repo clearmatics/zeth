@@ -1,7 +1,7 @@
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
-#include "snarks/groth16/mpc_utils.hpp"
-#include "snarks/groth16/powersoftau_utils.hpp"
+#include "snarks/groth16/mpc/mpc_utils.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
+#include "snarks/groth16/mpc/powersoftau_utils.hpp"
 #include "util.hpp"
 
 #include <vector>

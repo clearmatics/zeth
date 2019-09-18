@@ -1,11 +1,10 @@
 #ifndef __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__
 #define __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__
 
+#include "chacha_rng.hpp"
 #include "libff/common/rng.hpp"
-#include "snarks/groth16/mpc/chacha_rng.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
-#include "snarks/groth16/mpc_utils.hpp"
-#include "snarks/groth16/powersoftau_utils.hpp"
+#include "mpc_utils.hpp"
+#include "powersoftau_utils.hpp"
 #include "util.hpp"
 
 namespace libzeth

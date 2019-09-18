@@ -340,6 +340,6 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_read_keypair(std::istream &in);
 
 } // namespace libzeth
 
-#include "snarks/groth16/mpc_phase2.tcc"
+#include "snarks/groth16/mpc/phase2.tcc"
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__

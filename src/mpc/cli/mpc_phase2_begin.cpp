@@ -1,6 +1,6 @@
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
-#include "snarks/groth16/mpc_utils.hpp"
+#include "snarks/groth16/mpc/mpc_utils.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>

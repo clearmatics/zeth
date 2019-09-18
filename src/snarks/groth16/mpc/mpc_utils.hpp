@@ -71,6 +71,6 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
 
 } // namespace libzeth
 
-#include "snarks/groth16/mpc_utils.tcc"
+#include "snarks/groth16/mpc/mpc_utils.tcc"
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
