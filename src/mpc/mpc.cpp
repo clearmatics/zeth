@@ -16,4 +16,7 @@ void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
     js.generate_r1cs_constraints();
 }
 
-int main(int argc, char **argv) { mpc_main(argc, argv, zeth_protoboard); }
+int main(int argc, char **argv)
+{
+    return mpc_main(argc, argv, zeth_protoboard);
+}
