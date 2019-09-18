@@ -170,8 +170,13 @@ public:
 
 // Phase2 functions
 
+template<mp_size_t n, const libff::bigint<n> &modulus>
+void srs_mpc_digest_to_fp(
+    const srs_mpc_hash_t transcript_digest,
+    libff::Fp_model<n, modulus> &out_fr);
+
 template<typename ppT>
-libff::G2<ppT> srs_mpc_compute_r_g2(const srs_mpc_hash_t digest);
+libff::G2<ppT> srs_mpc_digest_to_g2(const srs_mpc_hash_t digest);
 
 /// Given the output from the linear combination of the L1 layer of the SRS
 /// circuit, compute the starting parameters for Phase 2 (the MPC for C2
