@@ -111,8 +111,8 @@ TEST(MPCTests, HashToG2)
     }
 
     Fr fr;
-    srs_mpc_compute_fr(hash, fr);
-    G2 g2 = srs_mpc_compute_r_g2<ppT>(hash);
+    srs_mpc_digest_to_fp(hash, fr);
+    G2 g2 = srs_mpc_digest_to_g2<ppT>(hash);
 
     ASSERT_EQ(expect_fr, fr);
     ASSERT_EQ(expect_g2, g2);
@@ -714,8 +714,8 @@ TEST(MPCTests, Phase2HashToG2)
     srs_mpc_hash_t hash_1;
     srs_mpc_compute_hash(hash_1, empty, 0);
 
-    G2 g2_0 = srs_mpc_compute_r_g2<ppT>(hash_0);
-    G2 g2_1 = srs_mpc_compute_r_g2<ppT>(hash_1);
+    G2 g2_0 = srs_mpc_digest_to_g2<ppT>(hash_0);
+    G2 g2_1 = srs_mpc_digest_to_g2<ppT>(hash_1);
     ASSERT_EQ(g2_0, g2_1);
 }
 
@@ -732,7 +732,7 @@ TEST(MPCTests, Phase2PublicKeyGeneration)
         srs_mpc_phase2_compute_public_key<ppT>(
             hash, last_secret * G1::one(), secret);
 
-    const libff::G2<ppT> r_g2 = srs_mpc_compute_r_g2<ppT>(hash);
+    const libff::G2<ppT> r_g2 = srs_mpc_digest_to_g2<ppT>(hash);
 
     ASSERT_EQ(
         0, memcmp(hash, publickey.transcript_digest, sizeof(srs_mpc_hash_t)));
@@ -808,7 +808,7 @@ TEST(MPCTests, Phase2UpdateVerification)
         srs_mpc_phase2_response<ppT> response =
             srs_mpc_phase2_compute_response(challenge, secret);
         const libff::G2<ppT> r_g2 =
-            srs_mpc_compute_r_g2<ppT>(response.publickey.transcript_digest);
+            srs_mpc_digest_to_g2<ppT>(response.publickey.transcript_digest);
         response.publickey.r_delta_j_g2 = invalid_secret * r_g2;
         ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
     }
