@@ -27,8 +27,9 @@ namespace libzeth
 template<typename ppT> class srs_powersoftau;
 template<typename ppT> class srs_lagrange_evaluations;
 
-/// Output from linear combination $L_1$ - the linear combination of
-/// elements in powersoftau, based on a specific circuit.
+/// Output from linear combination $L_1$ - the linear combination of elements
+/// in powersoftau, based on a specific circuit.  Implements the interfaces of
+/// StructuredT and ReadableT templates.
 template<typename ppT> class srs_mpc_layer_L1
 {
 public:
@@ -71,6 +72,6 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
 
 } // namespace libzeth
 
-#include "snarks/groth16/mpc_utils.tcc"
+#include "snarks/groth16/mpc/mpc_utils.tcc"
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__

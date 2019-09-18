@@ -40,13 +40,30 @@ private:
 };
 
 // Utility function to load data objects from a file, using a static read
-// method.
-template<typename T> inline T read_from_file(const std::string &file_name)
+// method.  `readableT` must be a type with a static compatile `read` method.
+template<typename readableT>
+inline readableT read_from_file(const std::string &file_name)
 {
     std::ifstream in(file_name, std::ios_base::binary | std::ios_base::in);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return T::read(in);
+    return readableT::read(in);
+}
+
+// Load data objects from a file, similarly to read_from_file, while computing
+// the hash of the serialized structure. `readableT` must be a type with a
+// static compatile `read` method.
+template<typename readableT>
+inline readableT read_from_file_and_hash(
+    const std::string &file_name, srs_mpc_hash_t out_hash)
+{
+    std::ifstream inf(file_name, std::ios_base::binary | std::ios_base::in);
+    hash_istream_wrapper in(inf);
+    in.exceptions(
+        std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
+    readableT v = readableT::read(in);
+    in.get_hash(out_hash);
+    return v;
 }
 
 #endif // __ZETH_MPC_MPC_COMMON_HPP__

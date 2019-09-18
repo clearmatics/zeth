@@ -4,6 +4,7 @@
 #include "evaluator_from_lagrange.hpp"
 #include "mpc_utils.hpp"
 #include "multi_exp.hpp"
+#include "phase2.hpp"
 #include "util.hpp"
 
 #include <algorithm>

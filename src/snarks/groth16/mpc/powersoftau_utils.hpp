@@ -8,9 +8,9 @@
 namespace libzeth
 {
 
-/// Output from the first phase of the MPC (powersoftau).  The
-/// structure matches that data exactly (no indication of degree,
-/// etc), so that it can be loaded directly.
+/// Output from the first phase of the MPC (powersoftau).  The structure
+/// matches that data exactly (no indication of degree, etc), so that it can be
+/// loaded directly.  Implements the interface of StructuredT.
 template<typename ppT> class srs_powersoftau
 {
 public:
@@ -170,6 +170,6 @@ srs_lagrange_evaluations<ppT> powersoftau_compute_lagrange_evaluations(
 
 } // namespace libzeth
 
-#include "snarks/groth16/powersoftau_utils.tcc"
+#include "snarks/groth16/mpc/powersoftau_utils.tcc"
 
 #endif // __ZETH_SNARKS_GROTH_POWERSOFTAU_UTILS_HPP__

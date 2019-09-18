@@ -1,6 +1,6 @@
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
-#include "snarks/groth16/mpc_utils.hpp"
+#include "snarks/groth16/mpc/mpc_utils.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
@@ -29,9 +29,9 @@ public:
 
 private:
     void initialize_suboptions(
-        boost::program_options::options_description &options,
-        boost::program_options::options_description &all_options,
-        boost::program_options::positional_options_description &pos) override
+        po::options_description &options,
+        po::options_description &all_options,
+        po::positional_options_description &pos) override
     {
         options.add_options()(
             "out,o",
@@ -44,8 +44,7 @@ private:
         pos.add("linear_combination_file", 1);
     }
 
-    void parse_suboptions(
-        const boost::program_options::variables_map &vm) override
+    void parse_suboptions(const po::variables_map &vm) override
     {
         if (0 == vm.count("linear_combination_file")) {
             throw po::error("linear_combination_file not specified");
@@ -69,11 +68,8 @@ private:
         }
 
         libff::enter_block("Load linear combination file");
-        srs_mpc_layer_L1<ppT> lin_comb = [&]() {
-            std::ifstream in(
-                lin_comb_file, std::ios_base::binary | std::ios_base::in);
-            return srs_mpc_layer_L1<ppT>::read(in);
-        }();
+        srs_mpc_layer_L1<ppT> lin_comb =
+            read_from_file<srs_mpc_layer_L1<ppT>>(lin_comb_file, cs_hash);
         libff::leave_block("Load linear combination file");
 
         // Compute circuit
