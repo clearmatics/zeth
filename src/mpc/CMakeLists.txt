@@ -15,6 +15,10 @@ target_link_libraries(
 add_executable(mpc mpc.cpp)
 target_link_libraries(mpc mpc-cli)
 
+# mpc client executable
+add_executable(mpc-client mpc_client.cpp)
+target_link_libraries(mpc-client mpc-cli)
+
 # mpc test utility
 add_executable(mpc-test test/mpc_test_cli.cpp)
 target_link_libraries(mpc-test mpc-cli)
