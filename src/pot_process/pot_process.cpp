@@ -1,7 +1,7 @@
 /// Small utility to check powersoftau output and to compute the evaluation of
 /// Lagrange polynomials at tau.
 
-#include "snarks/groth16/powersoftau_utils.hpp"
+#include "snarks/groth16/mpc/powersoftau_utils.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>

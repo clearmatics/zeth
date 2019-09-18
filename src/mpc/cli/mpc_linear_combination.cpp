@@ -1,6 +1,6 @@
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_utils.hpp"
-#include "snarks/groth16/powersoftau_utils.hpp"
+#include "snarks/groth16/mpc/mpc_utils.hpp"
+#include "snarks/groth16/mpc/powersoftau_utils.hpp"
 #include "util.hpp"
 
 #include <boost/program_options.hpp>
@@ -42,9 +42,9 @@ public:
 
 private:
     void initialize_suboptions(
-        boost::program_options::options_description &options,
-        boost::program_options::options_description &all_options,
-        boost::program_options::positional_options_description &pos) override
+        po::options_description &options,
+        po::options_description &all_options,
+        po::positional_options_description &pos) override
     {
         options.add_options()(
             "pot-degree",
@@ -60,8 +60,7 @@ private:
         pos.add("powersoftau_file", 1).add("lagrange_file", 1);
     }
 
-    void parse_suboptions(
-        const boost::program_options::variables_map &vm) override
+    void parse_suboptions(const po::variables_map &vm) override
     {
         if (0 == vm.count("powersoftau_file")) {
             throw po::error("powersoftau_file not specified");

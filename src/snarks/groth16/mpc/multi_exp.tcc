@@ -1,7 +1,7 @@
 #ifndef __ZETH_SNARKS_GROTH16_MULTI_EXP_TCC__
 #define __ZETH_SNARKS_GROTH16_MULTI_EXP_TCC__
 
-#include "snarks/groth16/multi_exp.hpp"
+#include "snarks/groth16/mpc/multi_exp.hpp"
 
 namespace libzeth
 {

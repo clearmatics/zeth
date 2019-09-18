@@ -1,5 +1,5 @@
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc_phase2.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
 
 using namespace libzeth;
 namespace po = boost::program_options;
@@ -12,8 +12,8 @@ namespace
 //
 // Options:
 //   --out <file>        Response output file (mpc-response.bin)
-//   --digest <file>     Write contribution hash to file.
-//   --skip-user-input   Use only ststem randomness
+//   --digest <file>     Write contribution hash to file
+//   --skip-user-input   Use only system randomness
 class mpc_phase2_contribute : public subcommand
 {
 private:
@@ -34,9 +34,9 @@ public:
 
 private:
     void initialize_suboptions(
-        boost::program_options::options_description &options,
-        boost::program_options::options_description &all_options,
-        boost::program_options::positional_options_description &pos) override
+        po::options_description &options,
+        po::options_description &all_options,
+        po::positional_options_description &pos) override
     {
         options.add_options()(
             "out,o",
@@ -51,8 +51,7 @@ private:
         pos.add("challenge_file", 1);
     }
 
-    void parse_suboptions(
-        const boost::program_options::variables_map &vm) override
+    void parse_suboptions(const po::variables_map &vm) override
     {
         if (0 == vm.count("challenge_file")) {
             throw po::error("challenge_file not specified");
@@ -80,11 +79,8 @@ private:
         }
 
         libff::enter_block("Load challenge file");
-        srs_mpc_phase2_challenge<ppT> challenge = [&]() {
-            std::ifstream in(
-                challenge_file, std::ios_base::binary | std::ios_base::in);
-            return srs_mpc_phase2_challenge<ppT>::read(in);
-        }();
+        srs_mpc_phase2_challenge<ppT> challenge =
+            read_from_file<srs_mpc_phase2_challenge<ppT>>(challenge_file);
         libff::leave_block("Load challenge file");
 
         libff::enter_block("Computing randomness");
@@ -105,14 +101,14 @@ private:
         }
         libff::leave_block("Writing response");
 
-        srs_mpc_hash_t contr_digest;
-        response.publickey.compute_digest(contr_digest);
+        srs_mpc_hash_t contrib_digest;
+        response.publickey.compute_digest(contrib_digest);
         std::cout << "Digest of the contribution was:\n";
-        srs_mpc_hash_write(contr_digest, std::cout);
+        srs_mpc_hash_write(contrib_digest, std::cout);
 
         if (!digest.empty()) {
             std::ofstream out(digest);
-            srs_mpc_hash_write(contr_digest, out);
+            srs_mpc_hash_write(contrib_digest, out);
             std::cout << "Digest written to: " << digest << std::endl;
         }
 
