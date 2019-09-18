@@ -1,12 +1,18 @@
 #ifndef __ZETH_MPC_MPC_COMMON_HPP__
 #define __ZETH_MPC_MPC_COMMON_HPP__
 
-#include "mpc_main.hpp"
+#include "include_libsnark.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
+#include <map>
 #include <string>
 #include <vector>
+
+using ppT = libff::default_ec_pp;
+using FieldT = libff::Fr<ppT>;
+
+using ProtoboardInitFn = std::function<void(libsnark::protoboard<FieldT> &)>;
 
 class subcommand
 {
@@ -65,5 +71,20 @@ inline readableT read_from_file_and_hash(
     in.get_hash(out_hash);
     return v;
 }
+
+extern subcommand *mpc_linear_combination_cmd;
+extern subcommand *mpc_dummy_phase2_cmd;
+extern subcommand *mpc_phase2_begin_cmd;
+extern subcommand *mpc_phase2_contribute_cmd;
+extern subcommand *mpc_phase2_verify_contribution_cmd;
+extern subcommand *mpc_phase2_verify_transcript_cmd;
+extern subcommand *mpc_create_keypair_cmd;
+
+/// Main entry point into the mpc command for a given circuit.
+int mpc_main(
+    int argc,
+    char **argv,
+    const std::map<std::string, subcommand *> &commands,
+    ProtoboardInitFn pb_init);
 
 #endif // __ZETH_MPC_MPC_COMMON_HPP__
