@@ -1,16 +1,13 @@
 #ifndef __ZETH_MPC_MPC_COMMON_HPP__
 #define __ZETH_MPC_MPC_COMMON_HPP__
 
-#include "include_libsnark.hpp"
+#include "circuit_types.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <map>
 #include <string>
 #include <vector>
-
-using ppT = libff::default_ec_pp;
-using FieldT = libff::Fr<ppT>;
 
 using ProtoboardInitFn = std::function<void(libsnark::protoboard<FieldT> &)>;
 

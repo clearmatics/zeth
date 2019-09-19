@@ -26,9 +26,6 @@ namespace libzeth
 // class offers methods to retrieve the root of the Merkle tree and to
 // obtain the authentication paths for (the value at) a given address.
 
-// typedef FieldT merkle_authentication_node;
-// typedef std::vector<merkle_authentication_node> merkle_authentication_path;
-
 template<typename FieldT, typename HashTreeT> class merkle_tree_field
 {
 

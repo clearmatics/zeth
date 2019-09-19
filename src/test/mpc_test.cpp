@@ -1,4 +1,4 @@
-#include "circuit-wrapper.hpp"
+#include "circuit_types.hpp"
 #include "circuits/sha256/sha256_ethereum.hpp"
 #include "snarks/groth16/mpc/chacha_rng.hpp"
 #include "snarks/groth16/mpc/evaluator_from_lagrange.hpp"

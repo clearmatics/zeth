@@ -10,8 +10,6 @@
 
 #include <libff/common/default_types/ec_pp.hpp>
 
-typedef libff::default_ec_pp ppT;
-
 namespace libzeth
 {
 

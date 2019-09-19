@@ -19,12 +19,6 @@
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
 
-// See:
-// https://github.com/scipr-lab/libff/blob/master/libff/common/default_types/ec_pp.hpp
-// We need to set the right curve as a flag during the compilation, and the
-// right curve is going to be picked if we use the default_ec_pp as a FieldT`
-// typedef libff::Fr<libff::default_ec_pp> FieldT;
-
 namespace libzeth
 {
 
