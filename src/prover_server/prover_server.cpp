@@ -1,3 +1,4 @@
+#include "circuit_types.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "snarks_alias.hpp"
 #include "util.hpp"
@@ -26,15 +27,8 @@
 #include "api/prover.grpc.pb.h"
 #pragma GCC diagnostic pop
 
-// Include circuit wrapper that makes use of the conditioned imported files
-// above
-#include "circuit-wrapper.hpp"
-
 // Include the API for the given SNARK
 #include "snarks_api_imports.hpp"
-
-// Include hash function circuit
-#include "circuits/blake2s/blake2s_comp.hpp"
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;

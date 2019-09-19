@@ -1,16 +1,13 @@
 #ifndef __ZETH_MPC_CLI_COMMON_HPP__
 #define __ZETH_MPC_CLI_COMMON_HPP__
 
-#include "include_libsnark.hpp"
+#include "circuit_types.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <map>
 #include <string>
 #include <vector>
-
-using ppT = libff::default_ec_pp;
-using FieldT = libff::Fr<ppT>;
 
 using ProtoboardInitFn = std::function<void(libsnark::protoboard<FieldT> &)>;
 
@@ -45,29 +42,34 @@ private:
     virtual int execute_subcommand() = 0;
 };
 
+// interface for ReadableT types:
+// {
+//     static ReadableT read(std::istream &in);
+// }
+
 // Utility function to load data objects from a file, using a static read
-// method.  `readableT` must be a type with a static compatile `read` method.
-template<typename readableT>
-inline readableT read_from_file(const std::string &file_name)
+// method.  Type must satisfy ReadableT constraints above.
+template<typename ReadableT>
+inline ReadableT read_from_file(const std::string &file_name)
 {
     std::ifstream in(file_name, std::ios_base::binary | std::ios_base::in);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return readableT::read(in);
+    return ReadableT::read(in);
 }
 
 // Load data objects from a file, similarly to read_from_file, while computing
-// the hash of the serialized structure. `readableT` must be a type with a
-// static compatile `read` method.
-template<typename readableT>
-inline readableT read_from_file_and_hash(
+// the hash of the serialized structure.  Type must satisfy ReadableT
+// constraints above.
+template<typename ReadableT>
+inline ReadableT read_from_file_and_hash(
     const std::string &file_name, srs_mpc_hash_t out_hash)
 {
     std::ifstream inf(file_name, std::ios_base::binary | std::ios_base::in);
     hash_istream_wrapper in(inf);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    readableT v = readableT::read(in);
+    ReadableT v = ReadableT::read(in);
     in.get_hash(out_hash);
     return v;
 }
