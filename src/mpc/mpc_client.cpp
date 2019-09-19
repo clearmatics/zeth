@@ -7,9 +7,6 @@
 
 void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
 {
-    using HashTreeT = MiMC_mp_gadget<FieldT>;
-    using HashT = sha256_ethereum<FieldT>;
-
     joinsplit_gadget<
         FieldT,
         HashT,
