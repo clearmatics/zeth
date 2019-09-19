@@ -1,3 +1,4 @@
+#include "circuit_types.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "snarks_alias.hpp"
 #include "util.hpp"
@@ -26,15 +27,8 @@
 #include "prover.grpc.pb.h"
 #pragma GCC diagnostic pop
 
-// Include circuit wrapper that makes use of the conditioned imported files
-// above
-#include "circuit-wrapper.hpp"
-
 // Include the API for the given SNARK
 #include "snarks_api_imports.hpp"
-
-// Include hash function circuit
-#include "circuits/blake2s/blake2s_comp.hpp"
 
 using google::protobuf::Empty;
 
@@ -52,15 +46,6 @@ using proverpkg::Prover;
 // Use the messages defined in the proto file
 using proverpkg::PackedDigest;
 using proverpkg::ProofInputs;
-
-// Instantiate the templates with the right types
-// Instantiated from the curve specified in the CMakelists.txt
-typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT;
-// Hash used in the merkle tree
-typedef MiMC_mp_gadget<FieldT> HashTreeT;
-// Hash used for the commitments and PRFs
-typedef BLAKE2s_256_comp<FieldT> HashT;
 
 class ProverImpl final : public Prover::Service
 {
