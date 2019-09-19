@@ -7,10 +7,6 @@
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
-// We instantiate the ppT (public parameters Template with the public paramaters
-// of the curve we use (alt_bn128))
-typedef libff::default_ec_pp ppT;
-
 namespace libzeth
 {
 
