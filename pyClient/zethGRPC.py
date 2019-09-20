@@ -3,6 +3,7 @@ import os
 import json
 import hashlib
 import sys
+from math import ceil
 
 # Access the encoding functions
 from eth_abi import encode_single, encode_abi
@@ -306,9 +307,12 @@ def encodeToHash(messages):
 # (https://github.com/zcash/zips/blob/master/protocol/protocol.pdf)
 # The root, nullifierS, commitmentS, h_sig and h_iS are encoded over two field elements
 # The public values are encoded over one field element
+# Encode the primary inputs as defined in ZCash chapter 4.15.1 into a byte array
+# (https://github.com/zcash/zips/blob/master/protocol/protocol.pdf)
+# The root, nullifierS, commitmentS, h_sig and h_iS are encoded over two field elements
+# The public values are encoded over one field element
 def encodeInputToHash(messages):
     input_sha = bytearray()
-    print(messages)
 
     # Flatten the input list
     if any(isinstance(el, list) for el in messages):
@@ -320,49 +324,60 @@ def encodeInputToHash(messages):
                 new_list.append(el)
         messages = new_list
 
+    size_bits = 2*64 + 3*(1 + 2*constants.JS_INPUTS + constants.JS_OUTPUTS)
+    bits = ""
+    for i in range(ceil(size_bits/256)):
+        bits += "{0:0{1}b}".format(int(messages[-1*(i+1)], 16), min(256, size_bits))
+
+    # Encode the public value in
+    v_in = "{0:0>4X}".format(int(bits[:64][::-1], 2))
+    v_in = hex32bytes(v_in)
+    vin_encoded = encode_single("bytes32", bytes.fromhex(v_in))
+    input_sha  += vin_encoded
+
+    # Encode the public value out
+    v_out = "{0:0>4X}".format(int(bits[64:128][::-1], 2))
+    v_out = hex32bytes(v_out)
+    vout_encoded = encode_single("bytes32", bytes.fromhex(v_out))
+    input_sha  += vout_encoded
+
     # Encode the given Merkle Tree root
     root = hex32bytes(messages[0][2:])
     root_encoded = encode_single("bytes32", bytes.fromhex(root))
     input_sha  += root_encoded
 
     # Encode the given input nullifiers
-    for i in range(1, 1 + 2*(constants.JS_INPUTS), 2):
-        nf = fieldsToThex(messages[i], messages[i+1])
+    offset = 2*64 + 3
+    for i in range(1, 1 + constants.JS_INPUTS):
+        nfbits = "{0:0>4X}".format(int(bits[offset : offset + 3], 2))
+        nf = fieldsToHex(messages[i], nfbits)
+        offset += 3
         nf_encoded = encode_single("bytes32", bytes.fromhex(nf))
         input_sha  += nf_encoded
 
     # Encode the given output commitments
-    for i in range(1 + 2*(constants.JS_INPUTS), 1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS), 2):
-        cm = fieldsToThex(messages[i], messages[i+1])
+    for i in range(1 + constants.JS_INPUTS, 1 + constants.JS_INPUTS + constants.JS_OUTPUTS):
+        cmbits = "{0:0>4X}".format(int(bits[offset : offset + 3], 2))
+        cm = fieldsToHex(messages[i], cmbits)
+        offset += 3
         cm_encoded = encode_single("bytes32", bytes.fromhex(cm))
         input_sha  += cm_encoded
 
-    # Encode the public value in
-    v_in = messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS)][2:]
-    v_in = hex32bytes(v_in)
-    vin_encoded = encode_single("bytes32", bytes.fromhex(v_in))
-    input_sha  += vin_encoded
-
-    # Encode the public value out
-    v_out = messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1][2:]
-    v_out = hex32bytes(v_out)
-    vout_encoded = encode_single("bytes32", bytes.fromhex(v_out))
-    input_sha  += vout_encoded
-
     # Encode the h_sig
-    hsig = fieldsToThex(
-        messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1],
-        messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1 + 1])
+    hsig = fieldsToHex(
+        messages[1 + constants.JS_INPUTS + constants.JS_OUTPUTS],
+        "{0:0>4X}".format(int(bits[2*64:2*64+3], 2))
+    )
     hsig_encoded = encode_single("bytes32", bytes.fromhex(hsig))
     input_sha  += hsig_encoded
 
     # Encode the h_iS
     for i in range(
-        1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS +1 + 1),
-        1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS +1 + 1 + constants.JS_INPUTS),
-        2
-    ):
-        hi = fieldsToThex(messages[i], messages[i+1])
+        1 + constants.JS_INPUTS + constants.JS_OUTPUTS + 1,
+        1 + constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + constants.JS_INPUTS):
+        hibits = "{0:0>4X}".format(int(bits[offset : offset + 3], 2))
+        hi = fieldsToHex(messages[i], hibits)
+        offset += 3
         hi_encoded = encode_single("bytes32", bytes.fromhex(hi))
         input_sha  += hi_encoded
 
@@ -370,7 +385,7 @@ def encodeInputToHash(messages):
 
 # Encode a 256 bit array written over two field elements into a single 32 byte long hex
 # if A= x0 ... x255 and B = y0 ... y7, returns R = hex(x255 ... x3 || y7 y6 y5)
-def fieldsToThex(longfield, shortfield):
+def fieldsToHex(longfield, shortfield):
     # Convert longfield into a 253 bit long array
     long_bit = "{0:b}".format(int(longfield, 16))
     if len(long_bit) > 253:

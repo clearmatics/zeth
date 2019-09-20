@@ -44,6 +44,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     using Bytes for *;
 
     uint r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint log_r = 253;
 
     // The roots of the different updated trees
     mapping(bytes32 => bool) roots;
@@ -97,6 +98,30 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         token = token_address;
     }
 
+    function extract_extra_bits(uint start, uint end, uint[] memory primary_inputs) public pure returns (bytes1) {
+        require(
+            end-start < 16,
+            "invalid range"
+        );
+        uint16 res;
+        uint offset = 2*64+3;
+        uint index_start_bytes32 = (offset+start)/253;
+        uint index_end_bytes32 = (offset+end)/253;
+        uint padding = 3;
+        if (primary_inputs.length-1 == index_end_bytes32) {
+            padding = 256 - ( (offset + 3*(2*jsIn + jsOut)) % 253);
+        }
+        uint index_start_byte = (padding+offset+start)/8;
+        uint8 start_byte = uint8(bytes32(primary_inputs[index_start_bytes32])[index_start_byte]);
+        uint index_end_byte = (padding+offset+end)/8;
+        uint8 end_byte = uint8(bytes32(primary_inputs[index_end_bytes32])[index_end_byte]);
+        res = start_byte*(2**8)+end_byte;
+        uint index_start_bit = (offset+padding+start)%8;
+        res = res * uint16(2**index_start_bit);
+        res = res / uint16(2**(16 - (end - start+1)));
+        return bytes2(res)[1];
+    }
+
     // ============================================================================================ //
     // Reminder: Remember that the primary inputs are ordered as follows:
     // We make sure to have the primary inputs ordered as follow:
@@ -113,20 +138,21 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // and modifies the state of the mixer contract accordingly
     // (ie: Appends the commitments to the tree, appends the nullifiers to the list and so on)
     function assemble_root_and_nullifiers_and_append_to_state(uint[] memory primary_inputs) internal {
-        // 1. We re-assemble the full root digest from the 2 field elements it was packed into
-        uint256[] memory digest_inputs = new uint[](2);
-        digest_inputs[0] = primary_inputs[0];
-
+        // 1. We check whether the root exists
         require(
-            roots[bytes32(digest_inputs[0])],
+            roots[bytes32(primary_inputs[0])],
             "Invalid root: This root doesn't exist"
         );
 
         // 2. We re-assemble the nullifiers (JSInputs)
-        for(uint i = 1; i < 1 + 2*jsIn; i += 2) {
-            digest_inputs[0] = primary_inputs[i];
-            digest_inputs[1] = primary_inputs[i+1];
-            bytes32 current_nullifier = Bytes.sha256_digest_from_field_elements(digest_inputs);
+        uint256 digest_input;
+        bytes1 bits_input;
+        uint index;
+        for(uint i = 1; i < 1 + jsIn; i ++) {
+            digest_input = primary_inputs[i];
+            index = 3*(i-1);
+            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            bytes32 current_nullifier = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
             require(
                 !nullifiers[current_nullifier],
                 "Invalid nullifier: This nullifier has already been used"
@@ -135,9 +161,16 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
     }
 
+
     function assemble_primary_inputs_and_hash(uint[] memory primary_inputs) public returns (bytes32) {
         bytes32[1 + jsIn + jsOut + 1 + 1 + 1 + jsIn] memory formatted_inputs;
-        uint256[] memory digest_inputs = new uint[](2);
+        uint256 digest_input;
+        bytes1 bits_input;
+        uint index;
+        uint padding = 0;
+        if (3*(2*jsIn+jsOut) < (253-131)) {
+            padding = 253 - (131 + 3*(2*jsIn+jsOut));
+        }
 
         //Format and append the root
         bytes32 formatted = bytes32(primary_inputs[0]);
@@ -148,10 +181,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         formatted_inputs[0] = formatted;
 
         //Format and append the nullifiers
-        for(uint i = 1; i < 1 + 2 * (jsIn); i += 2) {
-            digest_inputs[0] = primary_inputs[i];
-            digest_inputs[1] = primary_inputs[i+1];
-            formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+        for(uint i = 1; i < 1 + jsIn; i ++) {
+            digest_input = primary_inputs[i];
+            index = 3*(i-1);
+            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            formatted = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
             require(
                 uint256(formatted) < r,
                 "invalid nullifier: This nullifier is not within range"
@@ -160,10 +194,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
 
         //Format and append the commitments
-        for(uint i = 1 + 2 * (jsIn); i < 1 + 2 * (jsIn + jsOut); i += 2) {
-            digest_inputs[0] = primary_inputs[i];
-            digest_inputs[1] = primary_inputs[i+1];
-            formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+        for(uint i = 1 + jsIn; i < 1 + jsIn + jsOut; i ++) {
+            digest_input = primary_inputs[i];
+            index = 3*(i-1);
+            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            formatted = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
             require(
                 uint256(formatted) < r,
                 "invalid commitment: This commitment is not within range"
@@ -172,7 +207,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
 
         //Format and append the v_pub_in
-        formatted = bytes32(primary_inputs[1 + 2 * (jsIn + jsOut)]);
+        formatted = bytes32(primary_inputs[1 + 2*jsIn + jsOut]) >> (224-padding);
         require(
             uint256(formatted) < 18446744073709551615,
             "invalid value in: v_pub_in is not within range"
@@ -180,7 +215,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         formatted_inputs[1 + jsIn + jsOut] = formatted;
 
         //Format and append the v_pub_out
-        formatted = bytes32(primary_inputs[1 + 2 * (jsIn + jsOut) + 1]);
+        formatted = (bytes32(primary_inputs[1 + 2*jsIn + jsOut]) << (padding+32)) >> 224;
         require(
             uint256(formatted) < 18446744073709551615,
             "invalid value out: v_pub_out is not within range"
@@ -188,16 +223,17 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         formatted_inputs[1 + jsIn + jsOut + 1] = formatted;
 
         //Format and append h_sig
-        digest_inputs[0] = primary_inputs[1 + 2 * (jsIn + jsOut) + 1 + 1];
-        digest_inputs[1] = primary_inputs[1 + 2 * (jsIn + jsOut + 1) + 1];
-        formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+        digest_input = primary_inputs[1 + jsIn + jsOut];
+        bits_input = byte((bytes32(primary_inputs[1 + 2*jsIn + jsOut]) << (padding+15*8)) >> 5);
+        formatted = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
         formatted_inputs[1 + jsIn + jsOut + 1 + 1] = formatted;
 
         //Format and append the h_iS
-        for(uint i = 1 + 2 * (jsIn + jsOut + 1) + 1 + 1; i < 1 + 2 * (jsIn + jsOut + 1 + jsIn) + 1 + 1; i += 2) {
-            digest_inputs[0] = primary_inputs[i];
-            digest_inputs[1] = primary_inputs[i+1];
-            formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
+        for(uint i = 1 + jsIn + jsOut + 1; i < 1 + jsIn + jsOut + 1 + jsIn; i ++) {
+            digest_input = primary_inputs[i];
+            index = 3*(i-1);
+            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            formatted = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
             formatted_inputs[(i-1)/2 + 2] = formatted;
         }
 
@@ -209,11 +245,14 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     function assemble_commitments_and_append_to_state(uint[] memory primary_inputs) internal {
         // We re-assemble the commitments (JSOutputs)
-        uint256[] memory digest_inputs = new uint[](2);
-        for(uint i = 1 + 2 * jsIn ; i < 1 + 2*(jsIn + jsOut); i += 2) {
-            digest_inputs[0] = primary_inputs[i]; // See the way the inputs are ordered in the extended proof
-            digest_inputs[1] = primary_inputs[i+1];
-            bytes32 current_commitment = Bytes.sha256_digest_from_field_elements(digest_inputs);
+        uint256 digest_input;
+        uint index;
+        bytes1 bits_input;
+        for(uint i = 1 + jsIn ; i < 1 + jsIn + jsOut; i ++) {
+            digest_input = primary_inputs[i]; // See the way the inputs are ordered in the extended proof
+            index = 3*(i-1);
+            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            bytes32 current_commitment = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
             uint commitmentAddress = insert(current_commitment);
             emit LogAddress(commitmentAddress);
         }
