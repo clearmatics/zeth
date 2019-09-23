@@ -1,13 +1,33 @@
-# mpc command
+# Overview
 
-Performs administrative operations related to the MPC for SRS generation.
-Operations performed by this command are specific to the constraint system used
-by zeth, relying on the circuit-agnostic `powersoftau` data and pre-computed
-Lagrange polynomials evaluations, as computed by the `powersoftau` command.
+Tools and scripts for SRS generation via an MPC.
 
-This command can be used to generate the linear-combination data, which forms
-the initial "challenge" of the Phase 2 MPC.  Participants compute a "resonse"
-for their challenge, which is then processed to create a final keypair and an
-auditable transcript of contributions.
+# Dependencies
 
-For the full list of options, see output of `mpc --help`.
+- zeth mpc executables (built from this repo, or from a binary ditribution)
+- python3 (>=3.6) and venv (`pip install venv`).
+
+# For MPC Participants
+
+## Contributing
+
+## Verification
+
+# For MPC Coordinator
+
+## Setup
+
+If necessary, follow instructions to build zeth binary executables.  Then:
+
+```
+$ pyton -m venv env
+$ . env/bin/activate
+(env) $ make setup
+```
+
+## Run the coordinator
+
+Inside the venv:
+```
+(env) $ coordinator
+```
