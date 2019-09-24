@@ -26,15 +26,6 @@ JS_INPUTS = 2
 # Nb of output notes
 JS_OUTPUTS = 2
 
-# Size of public values (v_in and v_out)
-SIZE_VALUE = 64
-
-# Length of the hash digest used for commitment and prf generation
-DIGEST_LENGTH = 256
-
 # Order of the largest prime order subgroup of the elliptic curve group
 # See: https://github.com/ethereum/go-ethereum/blob/master/crypto/bn256/cloudflare/constants.go#L23
 ZETH_PRIME = 21888242871839275222246405745257275088548364400416034343698204186575808495617
-
-# Nb Field size
-FIELD_CAPACITY = 253 # = floor(log(ZETH_PRIME, 2))

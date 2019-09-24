@@ -56,8 +56,7 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     hash_proof = sha256(zethGRPC.encodeToHash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zethGRPC.encodeInputToHash(proof_json["inputs"])
-    hash_inputs = sha256(encoded_inputs).hexdigest()
+    hash_inputs = sha256(zethGRPC.encodeToHash(proof_json["inputs"])).hexdigest()
 
     # Compute the joinSplit signature
     joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
@@ -122,8 +121,7 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     hash_proof = sha256(zethGRPC.encodeToHash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zethGRPC.encodeInputToHash(proof_json["inputs"])
-    hash_inputs = sha256(encoded_inputs).hexdigest()
+    hash_inputs = sha256(zethGRPC.encodeToHash(proof_json["inputs"])).hexdigest()
 
     # Compute the joinSplit signature
     joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
@@ -188,8 +186,7 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     hash_proof = sha256(zethGRPC.encodeToHash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zethGRPC.encodeInputToHash(proof_json["inputs"])
-    hash_inputs = sha256(encoded_inputs).hexdigest()
+    hash_inputs = sha256(zethGRPC.encodeToHash(proof_json["inputs"])).hexdigest()
 
     # Compute the joinSplit signature
     joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
