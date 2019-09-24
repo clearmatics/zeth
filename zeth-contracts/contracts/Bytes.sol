@@ -81,19 +81,19 @@ library Bytes {
 
     function int256ToBytes8(uint256 input) internal pure returns (bytes8) {
         bytes memory inBytes = new bytes(32);
-        assembly { 
-            mstore(add(inBytes, 32), input) 
+        assembly {
+            mstore(add(inBytes, 32), input)
         }
-        
+
         bytes memory subBytes = subBytes(inBytes, 24, 32);
         bytes8 resBytes8;
         assembly {
             resBytes8 := mload(add(subBytes, 32))
         }
-        
+
         return resBytes8;
     }
-    
+
     function subBytes(bytes memory inBytes, uint startIndex, uint endIndex) internal pure returns (bytes memory) {
         bytes memory result = new bytes(endIndex-startIndex);
         for(uint i = startIndex; i < endIndex; i++) {
@@ -142,5 +142,16 @@ library Bytes {
 
         return (( c >> ((a & 0xF)*8)) & 0xF0)   +
             (( c >> (((a >> 4)&0xF)*8) + 4) & 0xF);
+    }
+
+    function swap_bit_order(bytes32 input) internal pure returns (bytes32) {
+        bytes32 rev;
+        for (uint i = 0 ; i < 256 ; i++){
+            rev = rev << 1;
+            if (uint((input << (255-i)) >> 255) == 1) {
+                rev = rev ^ bytes32(0x0000000000000000000000000000000000000000000000000000000000000001);
+            }
+        }
+        return rev;
     }
 }

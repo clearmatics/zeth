@@ -42,10 +42,6 @@ contract ERC223ReceivingContract {
 **/
 contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     using Bytes for *;
-
-    uint r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
-    uint log_r = 253;
-
     // The roots of the different updated trees
     mapping(bytes32 => bool) roots;
 
@@ -60,8 +56,14 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     uint constant jsOut = 2; // Nb of commitments/ciphertexts
 
     // We have 2 field elements for each digest (nullifierS (jsIn), commitmentS (jsOut), h_iS (jsIn) and h_sig)
-    // The root, v_pub_in and v_pub_out are all represented by one field element, so we have 1 + 1 + 1 extra public values
+    // The root, v_pub_in and v_pub_out are all represented by one field element, so we have 1 extra public values
     uint constant nbInputs = 1 + 2 * (jsIn + jsOut) + 1 + 1 + 2 * (1 + jsIn);
+
+    // Constants regarding the hash digest length, the prime number used and its associated length in bits and the max values (v_in and v_out)
+    uint constant digest_length = 256;
+    uint r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint constant field_capacity = 253; // = ceil(log(r,2))
+    uint constant size_value = 64;
 
     // Contract variable that indicates the address of the token contract
     // If token = address(0) then the mixer works with ether
@@ -105,11 +107,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         );
         uint16 res;
         uint offset = 2*64+3;
-        uint index_start_bytes32 = (offset+start)/253;
-        uint index_end_bytes32 = (offset+end)/253;
-        uint padding = 3;
+        uint index_start_bytes32 = 1 + 1 + 2*jsIn + jsOut + (offset+start)/field_capacity;
+        uint index_end_bytes32 = 1 + 1 + 2*jsIn + jsOut + (offset+end)/field_capacity;
+        uint padding = digest_length - field_capacity;
         if (primary_inputs.length-1 == index_end_bytes32) {
-            padding = 256 - ( (offset + 3*(2*jsIn + jsOut)) % 253);
+            padding = digest_length - ( (offset + 3*(2*jsIn + jsOut)) % field_capacity);
         }
         uint index_start_byte = (padding+offset+start)/8;
         uint8 start_byte = uint8(bytes32(primary_inputs[index_start_bytes32])[index_start_byte]);
@@ -148,10 +150,14 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         uint256 digest_input;
         bytes1 bits_input;
         uint index;
+        uint size_extra_bits = digest_length % field_capacity;
+        if (digest_length < field_capacity) {
+            size_extra_bits = 0;
+        }
         for(uint i = 1; i < 1 + jsIn; i ++) {
             digest_input = primary_inputs[i];
-            index = 3*(i-1);
-            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            index = (digest_length-field_capacity)*(i-1);
+            bits_input = extract_extra_bits(index, index+(size_extra_bits-1), primary_inputs);
             bytes32 current_nullifier = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
             require(
                 !nullifiers[current_nullifier],
@@ -162,79 +168,74 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     }
 
 
-    function assemble_primary_inputs_and_hash(uint[] memory primary_inputs) public returns (bytes32) {
+    function assemble_primary_inputs_and_hash(uint[] memory primary_inputs) public pure returns (bytes32) {
+        require(digest_length > field_capacity, "Assemble not necessary"); //except for the public values
+
         bytes32[1 + jsIn + jsOut + 1 + 1 + 1 + jsIn] memory formatted_inputs;
         uint256 digest_input;
         bytes1 bits_input;
         uint index;
-        uint padding = 0;
-        if (3*(2*jsIn+jsOut) < (253-131)) {
-            padding = 253 - (131 + 3*(2*jsIn+jsOut));
+        uint counter = 0;
+        uint size_extra_bits = digest_length % field_capacity;
+
+        uint padding = digest_length - field_capacity;
+        if (padding*(2*jsIn+jsOut) < (field_capacity-(2*size_value + padding))) {
+            padding = digest_length - (2*size_value + (digest_length-field_capacity)*(1+2*jsIn+jsOut));
         }
 
         //Format and append the root
         bytes32 formatted = bytes32(primary_inputs[0]);
-        require(
-            uint256(formatted) < r,
-            "invalid root: The root is not within range"
-        );
-        formatted_inputs[0] = formatted;
+        formatted_inputs[counter] = formatted;
+        counter += 1;
 
         //Format and append the nullifiers
         for(uint i = 1; i < 1 + jsIn; i ++) {
             digest_input = primary_inputs[i];
-            index = 3*(i-1);
-            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            index = size_extra_bits*(i-1);
+            bits_input = extract_extra_bits(index, index+(size_extra_bits-1), primary_inputs);
             formatted = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
-            require(
-                uint256(formatted) < r,
-                "invalid nullifier: This nullifier is not within range"
-            );
-            formatted_inputs[(i-1)/2 + 1] = formatted;
+            formatted_inputs[counter] = formatted;
+            counter += 1;
         }
 
         //Format and append the commitments
         for(uint i = 1 + jsIn; i < 1 + jsIn + jsOut; i ++) {
             digest_input = primary_inputs[i];
-            index = 3*(i-1);
-            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            index = size_extra_bits*(i-1);
+            bits_input = extract_extra_bits(index, index+(size_extra_bits-1), primary_inputs);
             formatted = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
-            require(
-                uint256(formatted) < r,
-                "invalid commitment: This commitment is not within range"
-            );
-            formatted_inputs[(i-1)/2 + 1] = formatted;
+            formatted_inputs[counter] = formatted;
+            counter += 1;
         }
 
         //Format and append the v_pub_in
-        formatted = bytes32(primary_inputs[1 + 2*jsIn + jsOut]) >> (224-padding);
-        require(
-            uint256(formatted) < 18446744073709551615,
-            "invalid value in: v_pub_in is not within range"
-        );
-        formatted_inputs[1 + jsIn + jsOut] = formatted;
+        formatted = (bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << padding) >> (digest_length - size_value);
+        formatted = Bytes.swap_bit_order(formatted) >> (digest_length - size_value);
+        formatted_inputs[counter] = formatted;
+        counter += 1;
 
         //Format and append the v_pub_out
-        formatted = (bytes32(primary_inputs[1 + 2*jsIn + jsOut]) << (padding+32)) >> 224;
-        require(
-            uint256(formatted) < 18446744073709551615,
-            "invalid value out: v_pub_out is not within range"
-        );
-        formatted_inputs[1 + jsIn + jsOut + 1] = formatted;
+        formatted = (bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << (padding + size_value)) >> (digest_length - size_value);
+        formatted = Bytes.swap_bit_order(formatted) >> (digest_length - size_value);
+        formatted_inputs[counter] = formatted;
+        counter += 1;
 
         //Format and append h_sig
         digest_input = primary_inputs[1 + jsIn + jsOut];
-        bits_input = byte((bytes32(primary_inputs[1 + 2*jsIn + jsOut]) << (padding+15*8)) >> 5);
+        bytes32 b32 = bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << (padding + 2*size_value);
+        bits_input = byte(b32 >> (8-size_extra_bits));
         formatted = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
-        formatted_inputs[1 + jsIn + jsOut + 1 + 1] = formatted;
+        formatted_inputs[counter] = formatted;
+        counter += 1;
 
         //Format and append the h_iS
         for(uint i = 1 + jsIn + jsOut + 1; i < 1 + jsIn + jsOut + 1 + jsIn; i ++) {
             digest_input = primary_inputs[i];
-            index = 3*(i-1);
-            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            index = size_extra_bits*(i-2);
+            bits_input = extract_extra_bits(index, index+(size_extra_bits-1), primary_inputs);
             formatted = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
-            formatted_inputs[(i-1)/2 + 2] = formatted;
+            formatted_inputs[counter] = formatted;
+            counter += 1;
         }
 
         bytes32 hash_inputs = sha256(abi.encodePacked(formatted_inputs));
@@ -248,10 +249,14 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         uint256 digest_input;
         uint index;
         bytes1 bits_input;
+        uint size_extra_bits = digest_length % field_capacity;
+        if (digest_length < field_capacity) {
+            size_extra_bits = 0;
+        }
         for(uint i = 1 + jsIn ; i < 1 + jsIn + jsOut; i ++) {
             digest_input = primary_inputs[i]; // See the way the inputs are ordered in the extended proof
-            index = 3*(i-1);
-            bits_input = extract_extra_bits(index, index+2, primary_inputs);
+            index = (digest_length-field_capacity)*(i-1);
+            bits_input = extract_extra_bits(index, index+(size_extra_bits-1), primary_inputs);
             bytes32 current_commitment = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
             uint commitmentAddress = insert(current_commitment);
             emit LogAddress(commitmentAddress);
@@ -260,7 +265,13 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     function process_public_values(uint[] memory primary_inputs) internal {
         // 1. We get the vpub_in in wei
-        uint64 vpub_in = Bytes.get_value_from_inputs(Bytes.int256ToBytes8(primary_inputs[1 + 2*(jsIn + jsOut)]));
+        uint padding = digest_length - field_capacity;
+        if (padding*(2*jsIn+jsOut) < (field_capacity-(2*size_value + padding))) {
+            padding = digest_length - (2*size_value + (digest_length-field_capacity)*(1+2*jsIn+jsOut));
+        }
+        bytes32 vpub_bytes = (bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << padding) >> (digest_length-size_value);
+        vpub_bytes = Bytes.swap_bit_order(vpub_bytes) >> (digest_length-size_value);
+        uint64 vpub_in = Bytes.get_int64_from_bytes8(Bytes.int256ToBytes8(uint(vpub_bytes)));
 
         // If the vpub_in is > 0, we need to make sure the right amount is paid
         if (vpub_in > 0) {
@@ -280,7 +291,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
 
         // 2. Get vpub_out in wei
-        uint64 vpub_out = Bytes.get_value_from_inputs(Bytes.int256ToBytes8(primary_inputs[2*(1 + jsIn + jsOut)]));
+        vpub_bytes = (bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << (padding+size_value)) >> (digest_length-size_value);
+        vpub_bytes = Bytes.swap_bit_order(vpub_bytes) >> (digest_length-size_value);
+        uint64 vpub_out = Bytes.get_int64_from_bytes8(Bytes.int256ToBytes8(uint(vpub_bytes)));
 
         // If value_pub_out > 0 then we do a withdraw
         // We retrieve the msg.sender and send him the appropriate value IF proof is valid

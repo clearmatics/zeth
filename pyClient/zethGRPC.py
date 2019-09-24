@@ -303,14 +303,12 @@ def encodeToHash(messages):
 
     return input_sha
 
-# Encode the primary inputs as defined in ZCash chapter 4.15.1 into a byte array
-# (https://github.com/zcash/zips/blob/master/protocol/protocol.pdf)
-# The root, nullifierS, commitmentS, h_sig and h_iS are encoded over two field elements
-# The public values are encoded over one field element
-# Encode the primary inputs as defined in ZCash chapter 4.15.1 into a byte array
-# (https://github.com/zcash/zips/blob/master/protocol/protocol.pdf)
-# The root, nullifierS, commitmentS, h_sig and h_iS are encoded over two field elements
-# The public values are encoded over one field element
+
+# Reassemble the primary inputs 
+# The root, nullifierS, commitmentS, h_sig and h_iS are encoded over one field elements
+# with their remaining bits, as well as the public values being encoded over one field element
+# primary inputs = [root, nf_0, ..., nf_in, cm_0, ..., cm_out, h_sig, h_0, ..., h_in, bits_0, ... , bits_n]
+# with bits_0 || ... || bits_n = v_pub_in || v_pub_out || h_sig* || nf_0* || ... || nf_in* || cm_0* || ... || cm_out* || h_0* || ... || h_out*
 def encodeInputToHash(messages):
     input_sha = bytearray()
 
@@ -324,60 +322,66 @@ def encodeInputToHash(messages):
                 new_list.append(el)
         messages = new_list
 
-    size_bits = 2*64 + 3*(1 + 2*constants.JS_INPUTS + constants.JS_OUTPUTS)
+    # Compute the number of bits in primary inputs' "bits"
+    size_extra_bits = constants.DIGEST_LENGTH % constants.FIELD_CAPACITY
+    if constants.DIGEST_LENGTH < constants.FIELD_CAPACITY:
+        size_extra_bits = 0
+    size_bits = 2*constants.SIZE_VALUE + size_extra_bits*(1 + 2*constants.JS_INPUTS + constants.JS_OUTPUTS)
+
+    # Append all bits in one single variable
     bits = ""
-    for i in range(ceil(size_bits/256)):
+    for i in range(ceil(size_bits/constants.FIELD_CAPACITY)):
         bits += "{0:0{1}b}".format(int(messages[-1*(i+1)], 16), min(256, size_bits))
 
-    # Encode the public value in
-    v_in = "{0:0>4X}".format(int(bits[:64][::-1], 2))
-    v_in = hex32bytes(v_in)
-    vin_encoded = encode_single("bytes32", bytes.fromhex(v_in))
-    input_sha  += vin_encoded
-
-    # Encode the public value out
-    v_out = "{0:0>4X}".format(int(bits[64:128][::-1], 2))
-    v_out = hex32bytes(v_out)
-    vout_encoded = encode_single("bytes32", bytes.fromhex(v_out))
-    input_sha  += vout_encoded
-
-    # Encode the given Merkle Tree root
+    # Encode and append the given Merkle Tree root
     root = hex32bytes(messages[0][2:])
     root_encoded = encode_single("bytes32", bytes.fromhex(root))
     input_sha  += root_encoded
 
-    # Encode the given input nullifiers
-    offset = 2*64 + 3
+    # Encode and append the given input nullifiers
+    offset = 2*constants.SIZE_VALUE + size_extra_bits
     for i in range(1, 1 + constants.JS_INPUTS):
-        nfbits = "{0:0>4X}".format(int(bits[offset : offset + 3], 2))
+        nfbits = "{0:0>4X}".format(int(bits[offset : offset + size_extra_bits], 2))
         nf = fieldsToHex(messages[i], nfbits)
-        offset += 3
+        offset += size_extra_bits
         nf_encoded = encode_single("bytes32", bytes.fromhex(nf))
         input_sha  += nf_encoded
 
-    # Encode the given output commitments
+    # Encode and append the given output commitments
     for i in range(1 + constants.JS_INPUTS, 1 + constants.JS_INPUTS + constants.JS_OUTPUTS):
-        cmbits = "{0:0>4X}".format(int(bits[offset : offset + 3], 2))
+        cmbits = "{0:0>4X}".format(int(bits[offset : offset + size_extra_bits], 2))
         cm = fieldsToHex(messages[i], cmbits)
-        offset += 3
+        offset += size_extra_bits
         cm_encoded = encode_single("bytes32", bytes.fromhex(cm))
         input_sha  += cm_encoded
 
-    # Encode the h_sig
+    # Encode and append the public value in
+    v_in = "{0:0>4X}".format(int(bits[:constants.SIZE_VALUE][::-1], 2))
+    v_in = hex32bytes(v_in)
+    vin_encoded = encode_single("bytes32", bytes.fromhex(v_in))
+    input_sha  += vin_encoded
+
+    # Encode and append the public value out
+    v_out = "{0:0>4X}".format(int(bits[constants.SIZE_VALUE:2*constants.SIZE_VALUE][::-1], 2))
+    v_out = hex32bytes(v_out)
+    vout_encoded = encode_single("bytes32", bytes.fromhex(v_out))
+    input_sha  += vout_encoded
+
+    # Encode and append the h_sig
     hsig = fieldsToHex(
         messages[1 + constants.JS_INPUTS + constants.JS_OUTPUTS],
-        "{0:0>4X}".format(int(bits[2*64:2*64+3], 2))
+        "{0:0>4X}".format(int(bits[2*constants.SIZE_VALUE:2*constants.SIZE_VALUE+size_extra_bits], 2))
     )
     hsig_encoded = encode_single("bytes32", bytes.fromhex(hsig))
     input_sha  += hsig_encoded
 
-    # Encode the h_iS
+    # Encode and append the h_iS
     for i in range(
         1 + constants.JS_INPUTS + constants.JS_OUTPUTS + 1,
         1 + constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + constants.JS_INPUTS):
-        hibits = "{0:0>4X}".format(int(bits[offset : offset + 3], 2))
+        hibits = "{0:0>4X}".format(int(bits[offset : offset + size_extra_bits], 2))
         hi = fieldsToHex(messages[i], hibits)
-        offset += 3
+        offset += size_extra_bits
         hi_encoded = encode_single("bytes32", bytes.fromhex(hi))
         input_sha  += hi_encoded
 
@@ -385,25 +389,28 @@ def encodeInputToHash(messages):
 
 # Encode a 256 bit array written over two field elements into a single 32 byte long hex
 # if A= x0 ... x255 and B = y0 ... y7, returns R = hex(x255 ... x3 || y7 y6 y5)
+# (we assume in that example that FIELD_CAPACITY = 253 and DIGEST_LENGTH = 256)
 def fieldsToHex(longfield, shortfield):
-    # Convert longfield into a 253 bit long array
+    size_extra_bits = constants.DIGEST_LENGTH-constants.FIELD_CAPACITY
+
+    # Convert longfield into a constants.FIELD_CAPACITY bit long array
     long_bit = "{0:b}".format(int(longfield, 16))
-    if len(long_bit) > 253:
-        long_bit = long_bit[:253]
-    long_bit = "0"*(253-len(long_bit)) + long_bit
+    if len(long_bit) > constants.FIELD_CAPACITY:
+        long_bit = long_bit[:constants.FIELD_CAPACITY]
+    long_bit = "0"*(constants.FIELD_CAPACITY-len(long_bit)) + long_bit
 
     # Convert shortfield into a 3 bit long array
     short_bit = "{0:b}".format(int(shortfield, 16))
-    if len(short_bit) < 3:
-        short_bit = "0"*(3-len(short_bit)) + short_bit
+    if len(short_bit) < (constants.DIGEST_LENGTH - constants.FIELD_CAPACITY):
+        short_bit = "0"*(size_extra_bits-len(short_bit)) + short_bit
 
     # Reverse the bit arrays
     reversed_long = long_bit[::-1]
     reversed_short = short_bit[::-1]
 
     # Fill the result 256 bit long array
-    res = reversed_long[:253]
-    res += reversed_short[:3]
+    res = reversed_long[:constants.FIELD_CAPACITY]
+    res += reversed_short[:size_extra_bits]
     res = hex32bytes("{0:0>4X}".format( int(res,2) ))
 
     return res
@@ -435,7 +442,6 @@ def sign(keypair, hash_ciphers, hash_proof, hash_inputs):
 
     # Compute the signature sigma
     sigma = sk[1] + h * sk[0] % constants.ZETH_PRIME
-
     return sigma
 
 
