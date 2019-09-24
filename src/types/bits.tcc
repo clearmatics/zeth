@@ -30,8 +30,10 @@ std::vector<bool> dump_array_in_vector(std::array<bool, Size> arr)
 
 // Sum 2 binary strings
 template<size_t BitLen>
-std::array<bool, BitLen> binaryAddition(
-    std::array<bool, BitLen> A, std::array<bool, BitLen> B)
+std::array<bool, BitLen> binary_addition(
+    std::array<bool, BitLen> A,
+    std::array<bool, BitLen> B,
+    bool withCarry)
 {
     std::array<bool, BitLen> sum;
     sum.fill(0);
@@ -42,8 +44,9 @@ std::array<bool, BitLen> binaryAddition(
         carry = ((A[i] & B[i]) | (A[i] & carry)) | (B[i] & carry);
     }
 
-    // If the last carry is 1, then we have an overflow
-    if (carry) {
+    // If we ask for the last carry to be taken into account (withCarry=true)
+    // and that the last carry is 1, then we raise an overflow error
+    if (withCarry && carry) {
         throw std::overflow_error("Overflow: The sum of the binary addition "
                                   "cannot be encoded on <BitLen> bits");
     }
@@ -51,26 +54,9 @@ std::array<bool, BitLen> binaryAddition(
     return sum;
 }
 
-// Sum 2 binary strings, discard last carry
-template<size_t BitLen>
-std::array<bool, BitLen> binaryAdditionNoCarry(
-    std::array<bool, BitLen> A, std::array<bool, BitLen> B)
-{
-    std::array<bool, BitLen> sum;
-    sum.fill(0);
-
-    bool carry = 0;
-    for (int i = BitLen - 1; i >= 0; i--) {
-        sum[i] = ((A[i] ^ B[i]) ^ carry); // c is carry
-        carry = ((A[i] & B[i]) | (A[i] & carry)) | (B[i] & carry);
-    }
-
-    return sum;
-}
-
 // XOR 2 binary strings
 template<size_t BitLen>
-std::array<bool, BitLen> binaryXOR(
+std::array<bool, BitLen> binary_xor(
     std::array<bool, BitLen> A, std::array<bool, BitLen> B)
 {
     std::array<bool, BitLen> xor_array;

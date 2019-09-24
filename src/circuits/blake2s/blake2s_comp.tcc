@@ -91,7 +91,7 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
     }
 
     // [SANITY CHECK] Pad if necessary
-    for (size_t i = 0; i < 512 - input_size; i++) {
+    for (size_t i = 0; i < BLAKE2s_block_size - input_size; i++) {
         padded_input.push_back(FieldT("0"));
     }
 

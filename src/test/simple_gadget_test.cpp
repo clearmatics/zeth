@@ -8,7 +8,6 @@
 #include "circuits/circuits-util.hpp"
 #include "util.hpp"
 
-using namespace libsnark;
 using namespace libzeth;
 
 typedef libff::default_ec_pp ppT;

@@ -104,7 +104,7 @@ libsnark::pb_variable_array<FieldT> from_bits(
 
 // Sum 2 binary strings, discard last carry
 template<typename FieldT, size_t BitLen>
-std::array<FieldT, BitLen> binaryFieldAdditionNoCarry(
+std::array<FieldT, BitLen> binary_field_addition_no_carry(
     std::array<FieldT, BitLen> A, std::array<FieldT, BitLen> B)
 {
     for (size_t i = 0; i < BitLen; i++) {
@@ -129,7 +129,7 @@ std::array<FieldT, BitLen> binaryFieldAdditionNoCarry(
 
 // XOR 2 binary strings
 template<typename FieldT, size_t BitLen>
-std::array<FieldT, BitLen> binaryFieldXOR(
+std::array<FieldT, BitLen> binary_field_xor(
     std::array<FieldT, BitLen> A, std::array<FieldT, BitLen> B)
 {
     for (size_t i = 0; i < BitLen; i++) {
@@ -148,12 +148,12 @@ std::array<FieldT, BitLen> binaryFieldXOR(
     return xor_array;
 }
 
-template<typename FieldT> std::vector<FieldT> convertToBinary(size_t n)
+template<typename FieldT> std::vector<FieldT> convert_to_binary(size_t n)
 {
     std::vector<FieldT> res;
 
     if (n / 2 != 0) {
-        std::vector<FieldT> temp = convertToBinary<FieldT>(n / 2);
+        std::vector<FieldT> temp = convert_to_binary<FieldT>(n / 2);
         res.insert(res.end(), temp.begin(), temp.end());
     }
 

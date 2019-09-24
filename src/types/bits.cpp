@@ -58,7 +58,7 @@ bits64 sum_bits64(bits64 a, bits64 b)
     std::array<bool, 64> sum;
 
     try {
-        sum = binaryAddition(a, b);
+        sum = binary_addition(a, b);
     } catch (const std::overflow_error &e) {
         // We return 0 encoded in binary if we overflow
         sum.fill(0);

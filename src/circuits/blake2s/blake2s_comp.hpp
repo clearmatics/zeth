@@ -69,6 +69,6 @@ public:
 
 } // namespace libzeth
 #include "blake2s_comp.tcc"
-#include "blake2s_setup.tcc"
+#include "blake2s_comp_setup.tcc"
 
 #endif // __ZETH_BLAKE2S_HASH_HPP__

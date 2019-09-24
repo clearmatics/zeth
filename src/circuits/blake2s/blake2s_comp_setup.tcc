@@ -1,9 +1,9 @@
-#ifndef __ZETH_BLAKE2S_SETUP_TCC__
-#define __ZETH_BLAKE2S_SETUP_TCC__
+#ifndef __ZETH_BLAKE2S_COMP_SETUP_TCC__
+#define __ZETH_BLAKE2S_COMP_SETUP_TCC__
 
 namespace libzeth
 {
-
+// All constants come from https://blake2.net/blake2.pdf appendix A.2
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_constants()
 {
     IV[0] = {
@@ -101,14 +101,14 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
         std::array<FieldT, 32> pb_swapped =
             swap_byte32_endianness(parameter_block[i]);
         std::array<FieldT, 32> IVi = IV[i];
-        h[i] = binaryFieldXOR(pb_swapped, IVi);
+        h[i] = binary_field_xor(pb_swapped, IVi);
     }
 }
 
 template<typename FieldT>
 void BLAKE2s_256_comp<FieldT>::setup_counter(size_t len_input_block)
 {
-    std::vector<FieldT> length_bits = convertToBinary<FieldT>(len_input_block);
+    std::vector<FieldT> length_bits = convert_to_binary<FieldT>(len_input_block);
     size_t bit_size = length_bits.size();
     size_t padding = 64 - bit_size;
 
@@ -141,12 +141,12 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_v()
         v[0][i].fill_with_field_elements(this->pb, temp_field_vector);
     }
 
-    std::array<FieldT, 32> temp_field_xored = binaryFieldXOR(IV[4], t[0]);
+    std::array<FieldT, 32> temp_field_xored = binary_field_xor(IV[4], t[0]);
     std::vector<FieldT> temp_field_vector12(
         temp_field_xored.begin(), temp_field_xored.end());
     v[0][12].fill_with_field_elements(this->pb, temp_field_vector12);
 
-    temp_field_xored = binaryFieldXOR(IV[5], t[1]);
+    temp_field_xored = binary_field_xor(IV[5], t[1]);
     std::vector<FieldT> temp_field_vector13(
         temp_field_xored.begin(), temp_field_xored.end());
     v[0][13].fill_with_field_elements(this->pb, temp_field_vector13);
@@ -155,7 +155,7 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_v()
     std::array<FieldT, 32> xFF = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                                   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                                   1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    temp_field_xored = binaryFieldXOR(IV[6], xFF);
+    temp_field_xored = binary_field_xor(IV[6], xFF);
     std::vector<FieldT> temp_field_vector14(
         temp_field_xored.begin(), temp_field_xored.end());
     v[0][14].fill_with_field_elements(this->pb, temp_field_vector14);
@@ -164,7 +164,7 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_v()
     std::array<FieldT, 32> x00 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    temp_field_xored = binaryFieldXOR(IV[7], x00);
+    temp_field_xored = binary_field_xor(IV[7], x00);
     std::vector<FieldT> temp_field_vector15(
         temp_field_xored.begin(), temp_field_xored.end());
     v[0][15].fill_with_field_elements(this->pb, temp_field_vector15);
@@ -300,4 +300,4 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_gadgets()
 
 } // namespace libzeth
 
-#endif // __ZETH_BLAKE2S_SETUP_TCC__
+#endif // __ZETH_BLAKE2S_COMP_SETUP_TCC__
