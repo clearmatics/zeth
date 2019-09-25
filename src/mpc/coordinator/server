@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+
+"""
+coordinator command
+"""
+
+from coordinator.icontributionhandler import IContributionHandler
+from coordinator.parsing_utils import handle_upload_request
+from typing import cast, Tuple
+from flask import Flask, request, Response
+import io
+from os import remove
+from os.path import exists
+
+
+def run_server(handler: IContributionHandler) -> None:
+
+    server = Flask(__name__)
+
+    @server.route('/challenge', methods=['GET'])
+    def register() -> Response:
+        return Response(
+            open("upload", "wb"),
+            mimetype="application/octet-stream")
+
+    @server.route('/contribute', methods=['POST'])
+    def contribute() -> Tuple[str, int]:
+        print(f"mimetype: {request.mimetype}")
+        print(f"headers: {request.headers}")
+
+        upload_file = "upload"
+        try:
+            handle_upload_request(
+                request.headers,
+                cast(io.BufferedIOBase, request.stream),
+                upload_file)
+            print("GOT CONTRIBUTION")
+
+        except Exception as ex:
+            return f"error: {ex}", 400
+
+        finally:
+            # Remove the uploaded file if it is still there
+            if exists(upload_file):
+                remove(upload_file)
+
+        return "OK", 200
+
+    print("running ...")
+    server.run()
+
+
+if __name__ == "__main__":
+    import os
+
+    class DummyHandler(IContributionHandler):
+        def get_current_challenge_file(self) -> str:
+            return "upload-test"
+
+        def process_contribution(self, file_name: str) -> bool:
+            os.rename(file_name, "upload-test")
+            return True
+
+    handler = DummyHandler()
+    run_server(handler)

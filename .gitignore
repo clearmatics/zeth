@@ -22,15 +22,17 @@ debug/*json
 /zeth-contracts/node_modules/*
 
 # Ignore pyClient env and build directories
-/pyClient/env/
 /pyClient/api/*_pb2.py
 /pyClient/api/*_pb2_grpc.py
 /pyClient/api/*_pb2.pyi
 
 # Ignore python cache dirs
+
+# Python temp files
 __pycache__
 .mypy_cache
-*.egg-info/
+env/
+*.egg-info
 
 # Ignore some unix temp files
 *~

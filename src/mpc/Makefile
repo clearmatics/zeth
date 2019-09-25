@@ -1,7 +1,14 @@
 
+.PHONY: setup check test syntax
+
 setup:
 	pip install -e .
 
-check:
+check: syntax test
+
+syntax:
 	flake8 `git ls-files coordinator`
-	mypy `git ls-files coordinator`
+	mypy -p coordinator
+
+test:
+	python -m unittest
