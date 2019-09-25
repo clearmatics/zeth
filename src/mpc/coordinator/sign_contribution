@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+from coordinator.crypto import \
+    import_digest, import_signing_key, sign, export_signature
+from typing import List
+
+
+def usage(argv0: str) -> None:
+    print(f"""
+Usage:
+  {argv0} [key_file] [digest_hex]
+""")
+
+
+def sign_contribution(argv: List[str]) -> int:
+    if 3 != len(argv):
+        usage(argv[0])
+        return 1
+
+    key_file = argv[1]
+    digest_string = argv[2]
+
+    digest = import_digest(digest_string)
+    with open(key_file, "rb") as prv_f:
+        signing_key = import_signing_key(prv_f.read())
+
+    sig = sign(signing_key, digest)
+    print(export_signature(sig))
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    exit(sign_contribution(sys.argv))

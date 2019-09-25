@@ -37,5 +37,11 @@ pyClient/util_pb2_grpc.py
 # Ignore pycash
 pyClient/__pycache__/
 
+# Python temp files
+__pycache__
+.mypy_cache
+env/
+*.egg-info
+
 # Unix temp files
 *~
