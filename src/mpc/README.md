@@ -25,9 +25,15 @@ $ . env/bin/activate
 (env) $ make setup
 ```
 
+# Run tests
+
+```
+(env) $ make check
+```
+
 ## Run the coordinator
 
 Inside the venv:
 ```
-(env) $ coordinator
+(env) $ server
 ```

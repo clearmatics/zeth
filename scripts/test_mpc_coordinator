@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+set -e
+. src/mpc/env/bin/activate
+set -x
+
+PRIVATE_KEY_FILE="testdata/mpc_key1.pem"
+PUBLIC_KEY_FILE="testdata/mpc_key1.pub.pem"
+# PUBLIC_KEY_HEX="testdata/mpc_key1.pub.hex"
+SIGNATURE_HEX="testdata/mpc_contribution_sig.hex"
+# CURVE="secp256p1"
+CURVE="secp521r1"
+
+DATA_FILE=LICENSE
+
+# gen / load private key
+if ! [ -e ${PRIVATE_KEY_FILE} ] ; then
+    generate_key ${PRIVATE_KEY_FILE} > ${PUBLIC_KEY_FILE}
+    # openssl ecparam -name ${CURVE} -genkey -out ${PRIVATE_KEY}
+fi
+
+echo public key:
+cat ${PUBLIC_KEY_FILE}
+
+# openssl ec -in ${PRIVATE_KEY} -pubout -out ${PUBLIC_KEY}
+# # openssl ec -in ${PUBLIC_KEY} -pubin -text -noout -conv_form compressed
+# openssl ec -in ${PUBLIC_KEY} -pubin -outform DER | hexdump -e '16/1 "%02x"' > ${PUBLIC_KEY_HEX}
+
+# echo pubkey:
+# cat ${public_key}
+
+# openssl dgst -sha512 -binary -sign ${PRIVATE_KEY} ${DATA_FILE} | hexdump -e '16/1 "%02x"' > ${SIGNATURE_HEX}
+# echo sig hex:
+# cat ${SIGNATURE_HEX}
+# sig=`cat ${SIGNATURE_HEX}`
+
+contrib_digest=`shasum -a 512 ${DATA_FILE} | awk '{print $1}'`
+echo contrib_digest: ${contrib_digest}
+
+
+sig=`sign_contribution ${PRIVATE_KEY_FILE} ${contrib_digest}`
+
+curl -H 'X-Signature:'${sig} -F 'data=@LICENSE' http://127.0.0.1:5000/contribute
