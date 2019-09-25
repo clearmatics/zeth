@@ -31,9 +31,7 @@ std::vector<bool> dump_array_in_vector(std::array<bool, Size> arr)
 // Sum 2 binary strings
 template<size_t BitLen>
 std::array<bool, BitLen> binary_addition(
-    std::array<bool, BitLen> A,
-    std::array<bool, BitLen> B,
-    bool withCarry)
+    std::array<bool, BitLen> A, std::array<bool, BitLen> B, bool withCarry)
 {
     std::array<bool, BitLen> sum;
     sum.fill(0);

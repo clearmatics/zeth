@@ -39,7 +39,9 @@ std::vector<bool> get_vector_from_bitsAddr(bitsAddr arr);
 // Sum 2 binary strings
 template<size_t BitLen>
 std::array<bool, BitLen> binary_addition(
-    std::array<bool, BitLen> A, std::array<bool, BitLen> B, bool withCarry=false);
+    std::array<bool, BitLen> A,
+    std::array<bool, BitLen> B,
+    bool withCarry = false);
 
 template<size_t BitLen>
 std::array<bool, BitLen> binary_xor(

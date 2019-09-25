@@ -108,7 +108,8 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
 template<typename FieldT>
 void BLAKE2s_256_comp<FieldT>::setup_counter(size_t len_input_block)
 {
-    std::vector<FieldT> length_bits = convert_to_binary<FieldT>(len_input_block);
+    std::vector<FieldT> length_bits =
+        convert_to_binary<FieldT>(len_input_block);
     size_t bit_size = length_bits.size();
     size_t padding = 64 - bit_size;
 
