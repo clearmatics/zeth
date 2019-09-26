@@ -26,3 +26,10 @@ class IContributionHandler(ABC):
         found, throw an exception with an appropriate message, or return false.
         """
         pass
+
+    @abstractmethod
+    def on_completed(self) -> None:
+        """
+        All contributions have been received and the MPC is complete.
+        """
+        pass
