@@ -14,8 +14,15 @@ class IContributionHandler(ABC):
 
     @abstractmethod
     def get_current_challenge_file(self) -> str:
+        """
+        Return the location of the current challenge to serve.
+        """
         pass
 
     @abstractmethod
     def process_contribution(self, file_name: str) -> bool:
+        """
+        Process the given uploaded file as a contribution.  If any errors are
+        found, throw an exception with an appropriate message, or return false.
+        """
         pass

@@ -1,48 +1,140 @@
 #!/usr/bin/env python3
 
 """
-coordinator command
+server command
 """
 
 from coordinator.icontributionhandler import IContributionHandler
+from coordinator.server_state import Configuration, ServerState
 from coordinator.parsing_utils import handle_upload_request
+from coordinator.crypto import export_verification_key, import_signature
 from typing import cast, Tuple
 from flask import Flask, request, Response
 import io
+import time
 from os import remove
 from os.path import exists
 
 
+CONFIGURATION_FILE = "server_config.json"
+STATE_FILE = "server_state.json"
+UPLOAD_FILE = "upload.raw"
+
+
+def _write_state_file(state: ServerState, state_file: str) -> None:
+    with open(state_file, "w") as state_f:
+        state_f.write(state.to_json())
+
+
 def run_server(handler: IContributionHandler) -> None:
 
+    # Try to open config file and state file
+    config: Configuration
+    with open(CONFIGURATION_FILE, "r") as config_f:
+        config = Configuration.from_json(config_f.read())
+
+    state: ServerState
+    if exists(STATE_FILE):
+        with open(STATE_FILE, "r") as state_f:
+            state = ServerState.from_json(state_f.read())
+    else:
+        state = ServerState.new(config)
+        _write_state_file(state, STATE_FILE)
+
+    # Launch server
     server = Flask(__name__)
 
     @server.route('/challenge', methods=['GET'])
-    def register() -> Response:
+    def challenge() -> Response:
+        if state.have_all_contributions():
+            return Response("MPC is complete.  No remaining challenges", 405)
+
+        challenge_file = handler.get_current_challenge_file()
         return Response(
-            open("upload", "wb"),
+            open(challenge_file, "rb"),
             mimetype="application/octet-stream")
 
     @server.route('/contribute', methods=['POST'])
     def contribute() -> Tuple[str, int]:
-        print(f"mimetype: {request.mimetype}")
-        print(f"headers: {request.headers}")
 
-        upload_file = "upload"
         try:
+
+            print("contribute:")
+
+            # Basic request check
+            headers = request.headers
+            # print(f"contribute: headers = {headers}")
+            if 'Content-Length' not in headers:
+                raise Exception("no Content-Length header")
+            if 'Content-Type' not in headers:
+                raise Exception("no Content-Type header")
+            if 'X-MPC-Public-Key' not in headers:
+                raise Exception("no X-MPC-Public-Key header")
+            if 'X-MPC-Signature' not in headers:
+                raise Exception("no X-MPC-Signature header")
+
+            content_length = int(headers['Content-Length'])
+            pub_key_str = headers.get('X-MPC-Public-Key')
+            # print(f"contribute: headers = {headers}")
+            sig = import_signature(headers.get('X-MPC-Signature'))
+            content_type = headers['Content-Type']
+            print(f"contribute: content_length = {content_length}")
+            print(f"contribute: pub_key_str = {pub_key_str}")
+            print(f"contribute: sig = {sig}")
+            print(f"contribute: content_type = {content_type}")
+
+            boundary: str = ""
+            for val in content_type.split("; "):
+                if val.startswith("boundary="):
+                    boundary = val[len("boundary="):]
+                    break
+            if not boundary:
+                raise Exception("content-type contains no boundary")
+            print(f"content_length = {content_length}")
+            print(f"pub_key_str = {pub_key_str}")
+            print(f"sig = {sig}")
+            print(f"content_type = {content_type}")
+
+            # Update state using the current time and check if the MPC is still
+            # active.
+            now = time.time()
+            print(f"contribute: current time = {now}")
+            state.update(config, now)
+            if state.have_all_contributions():
+                return "MPC is complete.  No contributions accepted.", 405
+
+            # Check the public key matches the expected next contributor (as
+            # text, rather than relying on comparison operators)
+            contributor = config.contributors[state.next_contributor_index]
+            pub_key = contributor.public_key
+            if export_verification_key(pub_key) != pub_key_str:
+                return "Contributor key does not match.", 403
+
             handle_upload_request(
-                request.headers,
+                content_length,
+                boundary,
+                pub_key,
+                sig,
                 cast(io.BufferedIOBase, request.stream),
-                upload_file)
+                UPLOAD_FILE)
             print("GOT CONTRIBUTION")
 
+            if not handler.process_contribution(UPLOAD_FILE):
+                raise Exception("contribution failed")
+
+            now = time.time()
+            print(f"contribute: SUCCEEDED, finished time = {now}")
+            state.received_contribution(config, now)
+            _write_state_file(state, STATE_FILE)
+
         except Exception as ex:
+            print(f"server_error: {ex}")
             return f"error: {ex}", 400
 
         finally:
             # Remove the uploaded file if it is still there
-            if exists(upload_file):
-                remove(upload_file)
+            if exists(UPLOAD_FILE):
+                remove(UPLOAD_FILE)
 
         return "OK", 200
 
