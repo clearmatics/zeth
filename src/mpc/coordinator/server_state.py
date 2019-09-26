@@ -37,6 +37,7 @@ class Configuration(object):
             contributors: List[Contributor],
             start_time: float,
             contribution_interval: float):
+        assert 0 != start_time
         self.contributors: List[Contributor] = contributors
         self.start_time: float = float(start_time)
         self.contribution_interval: float = float(contribution_interval)
@@ -73,6 +74,8 @@ class ServerState(object):
             next_contributor_index: int,
             num_contributors: int,
             next_contributor_deadline: float):
+        assert num_contributors != 0
+        assert next_contributor_deadline != 0.0
         self.next_contributor_index: int = next_contributor_index
         self.num_contributors: int = num_contributors
         self.next_contributor_deadline: float = next_contributor_deadline
