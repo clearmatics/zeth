@@ -37,7 +37,7 @@ function pyclient_check() {
 
 function command_tests() {
     scripts/test_pot_process
-    scripts/test_mpc
+    scripts/test_phase2
 }
 
 function build() {
