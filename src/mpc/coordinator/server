@@ -5,12 +5,14 @@ server command
 """
 
 from coordinator.icontributionhandler import IContributionHandler
+from coordinator.interval import Interval
 from coordinator.server_state import Configuration, ServerState
 from coordinator.upload_utils import handle_upload_request
 from coordinator.crypto import \
     import_digest, export_verification_key, import_signature, verify
 from typing import cast, Tuple
 from flask import Flask, request, Response
+from threading import Lock
 import io
 import time
 from os import remove
@@ -63,22 +65,31 @@ def run_server(handler: IContributionHandler) -> None:
         _finalize_handler_once()
         _write_state_file(state, STATE_FILE)
 
+    # Lock
+
+    lock = Lock()
+
     # Server and end points
     server = Flask(__name__)
 
     @server.route('/challenge', methods=['GET'])
     def challenge() -> Response:
-        _update_state(time.time())
-        if state.have_all_contributions():
-            return Response("MPC is complete.  No remaining challenges", 405)
+        lock.acquire()
+        try:
+            _update_state(time.time())
+            if state.have_all_contributions():
+                return Response("MPC is complete.  No remaining challenges", 405)
 
-        challenge_file = handler.get_current_challenge_file()
-        return Response(
-            open(challenge_file, "rb"),
-            mimetype="application/octet-stream")
+            challenge_file = handler.get_current_challenge_file()
+            return Response(
+                open(challenge_file, "rb"),
+                mimetype="application/octet-stream")
+        finally:
+            lock.release()
 
     @server.route('/contribute', methods=['POST'])
     def contribute() -> Tuple[str, int]:
+        lock.acquire()
         try:
             # Basic request check
             headers = request.headers
@@ -161,13 +172,27 @@ def run_server(handler: IContributionHandler) -> None:
             return f"error: {ex}", 400
 
         finally:
+            lock.release()
             # Remove the uploaded file if it is still there
             if exists(UPLOAD_FILE):
                 remove(UPLOAD_FILE)
 
         return "OK", 200
 
-    server.run(port=config.port)
+    def _tick() -> None:
+        lock.acquire()
+        try:
+            _update_state(time.time())
+        finally:
+            lock.release()
+
+    interval = Interval(60.0, _tick)
+    try:
+        server.run(port=config.port, threaded=False)
+    finally:
+        print("Stopping ...", end='')
+        interval.stop()
+        print("DONE")
 
 
 def test_main() -> int:
