@@ -35,17 +35,41 @@ def run_server(handler: IContributionHandler) -> None:
 
     state: ServerState
     if exists(STATE_FILE):
+        print(f"run_server: using existing state file: {STATE_FILE}")
         with open(STATE_FILE, "r") as state_f:
             state = ServerState.from_json(state_f.read())
     else:
         state = ServerState.new(config)
         _write_state_file(state, STATE_FILE)
 
-    # Launch server
+    # Util functions to handle state updates, call the handler exactly once
+    # when the MPC has completed, and persist state as necessary
+    handler_finalized = state.have_all_contributions()
+
+    def _finalize_handler_once() -> None:
+        nonlocal handler_finalized
+        print(f"_finalize_handler_once: handler_finalized={handler_finalized}")
+        print(f"_finalize_handler_once: have_all_contributions={state.have_all_contributions()}")
+        if (not handler_finalized) and state.have_all_contributions():
+            handler_finalized = True
+            handler.on_completed()
+
+    def _update_state(now: float) -> None:
+        if state.update(config, now):
+            _finalize_handler_once()
+            _write_state_file(state, STATE_FILE)
+
+    def _on_contribution(now: float) -> None:
+        state.received_contribution(config, now)
+        _finalize_handler_once()
+        _write_state_file(state, STATE_FILE)
+
+    # Server and end points
     server = Flask(__name__)
 
     @server.route('/challenge', methods=['GET'])
     def challenge() -> Response:
+        _update_state(time.time())
         if state.have_all_contributions():
             return Response("MPC is complete.  No remaining challenges", 405)
 
@@ -56,11 +80,7 @@ def run_server(handler: IContributionHandler) -> None:
 
     @server.route('/contribute', methods=['POST'])
     def contribute() -> Tuple[str, int]:
-
         try:
-
-            print("contribute:")
-
             # Basic request check
             headers = request.headers
             # print(f"contribute: headers = {headers}")
@@ -75,13 +95,12 @@ def run_server(handler: IContributionHandler) -> None:
 
             content_length = int(headers['Content-Length'])
             pub_key_str = headers.get('X-MPC-Public-Key')
-            # print(f"contribute: headers = {headers}")
             sig = import_signature(headers.get('X-MPC-Signature'))
             content_type = headers['Content-Type']
-            print(f"contribute: content_length = {content_length}")
-            print(f"contribute: pub_key_str = {pub_key_str}")
-            print(f"contribute: sig = {sig}")
-            print(f"contribute: content_type = {content_type}")
+            # print(f"contribute: content_length = {content_length}")
+            # print(f"contribute: pub_key_str = {pub_key_str}")
+            # print(f"contribute: sig = {export_signature(sig)}")
+            # print(f"contribute: content_type = {content_type}")
 
             boundary: str = ""
             for val in content_type.split("; "):
@@ -90,26 +109,26 @@ def run_server(handler: IContributionHandler) -> None:
                     break
             if not boundary:
                 raise Exception("content-type contains no boundary")
-            print(f"content_length = {content_length}")
-            print(f"pub_key_str = {pub_key_str}")
-            print(f"sig = {sig}")
-            print(f"content_type = {content_type}")
 
-            # Update state using the current time and check if the MPC is still
-            # active.
             now = time.time()
             print(f"contribute: current time = {now}")
-            state.update(config, now)
+
+            # Update state using the current time and return an error if the
+            # MPC is no longer active.
+            _update_state(now)
             if state.have_all_contributions():
                 return "MPC is complete.  No contributions accepted.", 405
 
-            # Check the public key matches the expected next contributor (as
-            # text, rather than relying on comparison operators)
+            # Check that the public key matches the expected next contributor
+            # (as text, rather than relying on comparison operators)
             contributor = config.contributors[state.next_contributor_index]
             pub_key = contributor.public_key
-            if export_verification_key(pub_key) != pub_key_str:
-                return "Contributor key does not match.", 403
+            expect_pub_key_str = export_verification_key(pub_key)
+            if expect_pub_key_str != pub_key_str:
+                return "contributor key does not match.", 403
 
+            # Accept the upload.  If it is successful, pass the file to the
+            # handler.
             handle_upload_request(
                 content_length,
                 boundary,
@@ -123,9 +142,10 @@ def run_server(handler: IContributionHandler) -> None:
                 raise Exception("contribution failed")
 
             now = time.time()
-            print(f"contribute: SUCCEEDED, finished time = {now}")
-            state.received_contribution(config, now)
-            _write_state_file(state, STATE_FILE)
+            _on_contribution(now)
+            print(
+                f"contribute: SUCCEEDED ({state.next_contributor_index} / " +
+                f"{state.num_contributors} contribs), finished time = {now}")
 
         except Exception as ex:
             print(f"server_error: {ex}")
@@ -138,20 +158,15 @@ def run_server(handler: IContributionHandler) -> None:
 
         return "OK", 200
 
-    print("running ...")
     server.run()
 
 
-if __name__ == "__main__":
-    import os
-
-    class DummyHandler(IContributionHandler):
-        def get_current_challenge_file(self) -> str:
-            return "upload-test"
-
-        def process_contribution(self, file_name: str) -> bool:
-            os.rename(file_name, "upload-test")
-            return True
-
-    handler = DummyHandler()
+def test_main() -> int:
+    from coordinator.null_contribution_handler import NullContributionHandler
+    handler = NullContributionHandler()
     run_server(handler)
+    return 0
+
+
+if __name__ == "__main__":
+    exit(test_main())
