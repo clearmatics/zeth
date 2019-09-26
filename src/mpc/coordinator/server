@@ -6,8 +6,9 @@ server command
 
 from coordinator.icontributionhandler import IContributionHandler
 from coordinator.server_state import Configuration, ServerState
-from coordinator.parsing_utils import handle_upload_request
-from coordinator.crypto import export_verification_key, import_signature
+from coordinator.upload_utils import handle_upload_request
+from coordinator.crypto import \
+    import_digest, export_verification_key, import_signature, verify
 from typing import cast, Tuple
 from flask import Flask, request, Response
 import io
@@ -48,8 +49,6 @@ def run_server(handler: IContributionHandler) -> None:
 
     def _finalize_handler_once() -> None:
         nonlocal handler_finalized
-        print(f"_finalize_handler_once: handler_finalized={handler_finalized}")
-        print(f"_finalize_handler_once: have_all_contributions={state.have_all_contributions()}")
         if (not handler_finalized) and state.have_all_contributions():
             handler_finalized = True
             handler.on_completed()
@@ -88,15 +87,18 @@ def run_server(handler: IContributionHandler) -> None:
                 raise Exception("no Content-Length header")
             if 'Content-Type' not in headers:
                 raise Exception("no Content-Type header")
+            if 'X-MPC-Digest' not in headers:
+                raise Exception("no X-MPC-Digest header")
             if 'X-MPC-Public-Key' not in headers:
                 raise Exception("no X-MPC-Public-Key header")
             if 'X-MPC-Signature' not in headers:
                 raise Exception("no X-MPC-Signature header")
 
             content_length = int(headers['Content-Length'])
+            content_type = headers['Content-Type']
+            digest = import_digest(headers.get('X-MPC-Digest'))
             pub_key_str = headers.get('X-MPC-Public-Key')
             sig = import_signature(headers.get('X-MPC-Signature'))
-            content_type = headers['Content-Type']
             # print(f"contribute: content_length = {content_length}")
             # print(f"contribute: pub_key_str = {pub_key_str}")
             # print(f"contribute: sig = {export_signature(sig)}")
@@ -127,16 +129,23 @@ def run_server(handler: IContributionHandler) -> None:
             if expect_pub_key_str != pub_key_str:
                 return "contributor key does not match.", 403
 
-            # Accept the upload.  If it is successful, pass the file to the
-            # handler.
+            # Check signature correctness.  Ensures that the uploader is the
+            # owner of the correct key BEFORE the costly file upload.  Gives
+            # limited protection against DoS attacks (intentional or otherwise)
+            # from people other than the next contributor.  (Note that this
+            # pre-upload check requires the digest to be passed in the HTTP
+            # header.)
+            if not verify(sig, pub_key, digest):
+                return "signature check failed", 403
+
+            # Accept the upload (if the digest matches).  If successful, pass
+            # the file to the handler.
             handle_upload_request(
                 content_length,
                 boundary,
-                pub_key,
-                sig,
+                digest,
                 cast(io.BufferedIOBase, request.stream),
                 UPLOAD_FILE)
-            print("GOT CONTRIBUTION")
 
             if not handler.process_contribution(UPLOAD_FILE):
                 raise Exception("contribution failed")
@@ -158,7 +167,7 @@ def run_server(handler: IContributionHandler) -> None:
 
         return "OK", 200
 
-    server.run()
+    server.run(port=config.port)
 
 
 def test_main() -> int:
