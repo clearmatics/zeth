@@ -18,5 +18,6 @@
         }
     ],
     "start_time": "TIME",
-    "contribution_interval": "10.0"
+    "contribution_interval": "10.0",
+    "port": 8001
 }

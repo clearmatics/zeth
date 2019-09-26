@@ -36,11 +36,13 @@ class Configuration(object):
             self,
             contributors: List[Contributor],
             start_time: float,
-            contribution_interval: float):
+            contribution_interval: float,
+            port: int = 5000):
         assert 0 != start_time
         self.contributors: List[Contributor] = contributors
         self.start_time: float = float(start_time)
         self.contribution_interval: float = float(contribution_interval)
+        self.port = port
 
     def to_json(self) -> str:
         return json.dumps(self._to_json_dict())
@@ -54,6 +56,7 @@ class Configuration(object):
             "contributors": [c._to_json_dict() for c in self.contributors],
             "start_time": str(self.start_time),
             "contribution_interval": str(self.contribution_interval),
+            "port": self.port,
         }
 
     @staticmethod
@@ -62,7 +65,8 @@ class Configuration(object):
         return Configuration(
             [Contributor._from_json_dict(c) for c in contributors_json_list],
             float(cast(str, json_dict["start_time"])),
-            float(cast(str, json_dict["contribution_interval"])))
+            float(cast(str, json_dict["contribution_interval"])),
+            port=int(cast(int, json_dict["port"])))
 
 
 class ServerState(object):
@@ -75,13 +79,14 @@ class ServerState(object):
             num_contributors: int,
             next_contributor_deadline: float):
         assert num_contributors != 0
-        assert next_contributor_deadline != 0.0
         self.next_contributor_index: int = next_contributor_index
         self.num_contributors: int = num_contributors
         self.next_contributor_deadline: float = next_contributor_deadline
 
     @staticmethod
     def new(configuration: Configuration) -> ServerState:
+        assert configuration.start_time != 0.0
+        assert configuration.contribution_interval != 0.0
         return ServerState(
             0,
             len(configuration.contributors),
