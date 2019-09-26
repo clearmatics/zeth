@@ -7,8 +7,8 @@ from Crypto.Hash import SHA512
 HASH = SHA512
 HASH_LENGTH = 64
 CURVE = ecdsa.NIST521p
-
 VerificationKey = ecdsa.VerifyingKey
+Signature = bytes
 
 
 def export_digest(digest: bytes) -> str:
