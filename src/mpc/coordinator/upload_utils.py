@@ -2,10 +2,7 @@
 
 import io
 from Crypto.Hash import SHA512
-# from Crypto.PublicKey import ECC
-# from Crypto.Signature import DSS
 from typing import Optional
-from .crypto import VerificationKey, Signature, verify
 
 
 def _read_part_headers(stream: io.IOBase) -> int:
@@ -71,8 +68,7 @@ def _read_to_memory(
 def handle_upload_request(
         content_length: int,
         content_boundary: str,
-        public_key: VerificationKey,
-        signature: Signature,
+        expect_digest: bytes,
         stream: io.BufferedIOBase,
         file_name: str) -> None:
     """
@@ -104,14 +100,10 @@ def handle_upload_request(
     digest = _read_to_file(stream, file_name, remaining_bytes)
     if digest is None:
         raise Exception("invalid part format")
-
-    print(f"handle_upload_request: digest: {digest.hex()}")
+    if digest != expect_digest:
+        raise Exception("digest mismatch")
 
     # Read final boundary and sanity check
     tail = _read_to_memory(stream, final_boundary_size)
     if tail is None or tail.decode() != final_boundary:
         raise Exception("invalid part tail")
-
-    # check signature
-    if not verify(signature, public_key, digest):
-        raise Exception("signature check failed")
