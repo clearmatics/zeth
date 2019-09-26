@@ -24,6 +24,8 @@ class NullContributionHandler(IContributionHandler):
         return True
 
     def on_completed(self) -> None:
-        assert os.path.exists(CONTRIBUTION_FILE_NAME)
         assert not os.path.exists(FINAL_FILE_NAME)
-        os.rename(CONTRIBUTION_FILE_NAME, FINAL_FILE_NAME)
+        if os.path.exists(CONTRIBUTION_FILE_NAME):
+            os.rename(CONTRIBUTION_FILE_NAME, FINAL_FILE_NAME)
+        else:
+            print("WARNING: no contributions found")
