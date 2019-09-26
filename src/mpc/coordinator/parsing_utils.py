@@ -1,21 +1,11 @@
 #!/usr/bin/env python3
 
 import io
-from werkzeug.datastructures import EnvironHeaders
 from Crypto.Hash import SHA512
 # from Crypto.PublicKey import ECC
 # from Crypto.Signature import DSS
 from typing import Optional
-from .crypto import import_signature, import_verification_key, verify
-
-
-TEST_VK = import_verification_key(
-    "30" +
-    "819b301006072a8648ce3d020106052b810400230381860004010b0bcea9b4fa" +
-    "331695817099759bcc2d21105603a308c0957212975e1b355c43f3d204b66652" +
-    "a0786e53cf3448771809a05fe1fe97e4086de26f84b33a70e31ebc00aa568907" +
-    "3aa89da9ecb036c1031aa27c7839de62f097cf1d46704b594c021cde001ebd0e" +
-    "3f0033b98817ffa466905ce81b7916432666b490e3cbf4ca8808ebf401")
+from .crypto import VerificationKey, Signature, verify
 
 
 def _read_part_headers(stream: io.IOBase) -> int:
@@ -79,32 +69,18 @@ def _read_to_memory(
 
 
 def handle_upload_request(
-        headers: EnvironHeaders,
+        content_length: int,
+        content_boundary: str,
+        public_key: VerificationKey,
+        signature: Signature,
         stream: io.BufferedIOBase,
-        # public_key: str,
         file_name: str) -> None:
     """
-    Given headers and an input stream, extract raw content to a file.
+    Given sufficient header data and an input stream, stream raw content to a
+    file, hashing it at the same time to verify the given signature.
     """
 
-    content_length = int(headers['Content-Length'])
-    # print(f"content_length: {content_length}")
-
-    content_type = headers['Content-Type']
-    # print(f"content_type: {content_type}")
-
-    sig_s = headers.get('X-Signature', None)
-    if sig_s is None:
-        raise Exception("signature not present")
-    sig = import_signature(sig_s)
-
-    boundary: str
-    for val in content_type.split("; "):
-        if val.startswith("boundary="):
-            boundary = val[len("boundary="):]
-    # print(f"boundary: {boundary}")
-
-    final_boundary = f"\r\n--{boundary}--\r\n"
+    final_boundary = f"\r\n--{content_boundary}--\r\n"
     final_boundary_size = len(final_boundary)
 
     # Expect the stream to be formatted:
@@ -125,7 +101,7 @@ def handle_upload_request(
 
     # Read up to the final boundary,
     print(f"expecting {remaining_bytes} file bytes")
-    digest = _read_to_file(stream, 'upload', remaining_bytes)
+    digest = _read_to_file(stream, file_name, remaining_bytes)
     if digest is None:
         raise Exception("invalid part format")
 
@@ -137,5 +113,5 @@ def handle_upload_request(
         raise Exception("invalid part tail")
 
     # check signature
-    if not verify(sig, TEST_VK, digest):
+    if not verify(signature, public_key, digest):
         raise Exception("signature check failed")

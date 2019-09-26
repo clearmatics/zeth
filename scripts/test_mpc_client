@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+# Test an mpc server that has been set up with a test handler, using the
+# configuration in /testdata.
+
+set -e
+. src/mpc/env/bin/activate
+set -x
+
+# fake contribution data
+echo FAKE > contrib_data
+
+# 1 - private key
+# 2 - public key
+# 3 - contrib file
+function contribute() {
+    contrib_digest=`shasum -a 512 $3 | awk '{print $1}'`
+    pub_key=`cat $2`
+    sig=`sign_contribution $1 ${contrib_digest}`
+    curl \
+        --fail \
+        --fail-early \
+        -H 'X-MPC-Public-Key: '${pub_key} \
+        -H 'X-MPC-Signature:'${sig} \
+        -F "data=@$3" \
+        http://127.0.0.1:5000/contribute
+
+}
+
+# attempt to send data as the 2nd contributor
+if (contribute testdata/mpc_key2.bin testdata/mpc_key2.pub contrib_data) ; then
+    echo Expected premature contribution to fail
+    exit 1
+fi
+
+# make 4 contributionsn
+contribute testdata/mpc_key1.bin testdata/mpc_key1.pub contrib_data
+contribute testdata/mpc_key2.bin testdata/mpc_key2.pub contrib_data
+contribute testdata/mpc_key3.bin testdata/mpc_key3.pub contrib_data
+contribute testdata/mpc_key4.bin testdata/mpc_key4.pub contrib_data
+
+# further contributions should fail
+if (contribute testdata/mpc_key4.bin testdata/mpc_key4.pub contrib_data) ; then
+    echo Expected repeated contribution to fail
+    exit 1
+fi
