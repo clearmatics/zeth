@@ -32,7 +32,7 @@ class TestServerState(TestCase):
         self._test_json_serialization(state)
 
         # update, deadline not passed
-        state.update(START_TIME + (CONTRIBUTION_INTERVAL / 2))
+        state.update(config, START_TIME + (CONTRIBUTION_INTERVAL / 2))
         self.assertEqual(0, state.next_contributor_index)
         self.assertEqual(
             START_TIME + CONTRIBUTION_INTERVAL,
@@ -43,7 +43,7 @@ class TestServerState(TestCase):
         self._test_json_serialization(state)
 
         # deadline passed with no contribution
-        state.update(START_TIME + CONTRIBUTION_INTERVAL + 0.1)
+        state.update(config, START_TIME + CONTRIBUTION_INTERVAL + 0.1)
         self.assertEqual(1, state.next_contributor_index)
         self.assertEqual(
             START_TIME + 0.1 + 2 * CONTRIBUTION_INTERVAL,
@@ -55,6 +55,7 @@ class TestServerState(TestCase):
 
         # got contribution part way through interval
         state.received_contribution(
+            config,
             START_TIME + 0.1 + 1.5 * CONTRIBUTION_INTERVAL)
         self.assertEqual(2, state.next_contributor_index)
         self.assertEqual(
@@ -67,6 +68,7 @@ class TestServerState(TestCase):
 
         # 3rd contribution deadline
         state.update(
+            config,
             START_TIME + 0.2 + 2.5 * CONTRIBUTION_INTERVAL)
         self.assertEqual(3, state.next_contributor_index)
         self.assertEqual(
@@ -76,6 +78,7 @@ class TestServerState(TestCase):
 
         # final contribution
         state.received_contribution(
+            config,
             START_TIME + 0.2 + 3.0 * CONTRIBUTION_INTERVAL)
         self.assertTrue(state.have_all_contributions())
         self.assertEqual(0, state.next_contributor_deadline)

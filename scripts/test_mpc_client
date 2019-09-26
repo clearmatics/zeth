@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. scripts/test_mpc_common.sh
+
 # Test an mpc server that has been set up with a test handler, using the
 # configuration in /testdata.
 
@@ -34,10 +36,16 @@ if (contribute testdata/mpc_key2.bin testdata/mpc_key2.pub contrib_data) ; then
 fi
 
 # make 4 contributionsn
-contribute testdata/mpc_key1.bin testdata/mpc_key1.pub contrib_data
-contribute testdata/mpc_key2.bin testdata/mpc_key2.pub contrib_data
-contribute testdata/mpc_key3.bin testdata/mpc_key3.pub contrib_data
-contribute testdata/mpc_key4.bin testdata/mpc_key4.pub contrib_data
+contribute ${PRV_KEY_1} ${PUB_KEY_1} contrib_data
+contribute ${PRV_KEY_2} ${PUB_KEY_2} contrib_data
+contribute ${PRV_KEY_3} ${PUB_KEY_3} contrib_data
+contribute ${PRV_KEY_4} ${PUB_KEY_4} contrib_data
+
+# check that the server has registered completion
+if ! [ -e ${SERVER_DIR}/final-upload ] ; then
+    echo "Expected final file on server"
+    exit 1
+fi
 
 # further contributions should fail
 if (contribute testdata/mpc_key4.bin testdata/mpc_key4.pub contrib_data) ; then
