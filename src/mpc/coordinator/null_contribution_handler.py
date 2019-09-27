@@ -11,15 +11,16 @@ FINAL_FILE_NAME = "final-upload"
 
 class NullContributionHandler(IContributionHandler):
     """
-    A null handler that accepts contributions and simple stores them as
-    challenges.  When the MPC has completed, the latest contribution is moved
-    to
+    A null handler that accepts contributions and simply stores them as
+    subsequent challenges.  When the MPC has completed, the latest contribution
+    is moved to
     """
 
-    def get_current_challenge_file(self) -> str:
+    def get_current_challenge_file(self, _next_contributor_idx: int) -> str:
         return CONTRIBUTION_FILE_NAME
 
-    def process_contribution(self, file_name: str) -> bool:
+    def process_contribution(
+            self, _contributionn_idx: int, file_name: str) -> bool:
         os.rename(file_name, CONTRIBUTION_FILE_NAME)
         return True
 
