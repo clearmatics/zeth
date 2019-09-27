@@ -1,5 +1,6 @@
 
-SERVER_DIR=test_server
+SERVER_DIR=_test_server_data
+
 PRV_KEY_1=testdata/mpc_key1.bin
 PUB_KEY_1=testdata/mpc_key1.pub
 PRV_KEY_2=testdata/mpc_key2.bin
