@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+"""
+Script to launch a null server.  Press CTRL-C to stop
+"""
+
+
+def main() -> int:
+    from coordinator.null_contribution_handler import NullContributionHandler
+    from coordinator.server import Server
+    import time
+
+    handler = NullContributionHandler()
+    try:
+        server = Server(handler, ".")
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        server.stop()
+
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main())

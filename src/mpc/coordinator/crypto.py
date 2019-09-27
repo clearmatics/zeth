@@ -8,6 +8,7 @@ HASH = SHA512
 HASH_LENGTH = 64
 CURVE = ecdsa.NIST521p
 VerificationKey = ecdsa.VerifyingKey
+SigningKey = ecdsa.SigningKey
 Signature = bytes
 
 
