@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
+. scripts/test_mpc_common.sh
+
 # Launch an mpc server with test config
 
 set -e
 set -x
-
-SERVER_DIR=test_server
 
 rm -rf ${SERVER_DIR}
 mkdir -p ${SERVER_DIR}
@@ -19,4 +19,4 @@ set +x
 . src/mpc/env/bin/activate
 set -x
 cd ${SERVER_DIR}
-server
+null_server

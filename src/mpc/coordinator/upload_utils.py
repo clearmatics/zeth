@@ -13,7 +13,7 @@ def _read_part_headers(stream: io.IOBase) -> int:
         total_bytes = total_bytes + bytes_read
 
         l_str = line.decode()
-        print(f"read_part_headers: line({len(line)} bytes): '{l_str}'")
+        # print(f"read_part_headers: line({len(line)} bytes): '{l_str}'")
         if bytes_read < 3:
             if l_str == "\r\n" or l_str == "\n":
                 break
@@ -46,7 +46,7 @@ def _read_to_file(
             out_f.write(chunk)
             bytes_to_read = bytes_to_read - len(chunk)
 
-    print(f"_read_to_file: digest={h.hexdigest()}")
+    # print(f"_read_to_file: digest={h.hexdigest()}")
     return h.digest()
 
 
@@ -96,7 +96,7 @@ def handle_upload_request(
     remaining_bytes = remaining_bytes - header_bytes
 
     # Read up to the final boundary,
-    print(f"expecting {remaining_bytes} file bytes")
+    # print(f"expecting {remaining_bytes} file bytes")
     digest = _read_to_file(stream, file_name, remaining_bytes)
     if digest is None:
         raise Exception("invalid part format")
