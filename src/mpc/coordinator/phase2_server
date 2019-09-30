@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+"""
+Script to launch a phase2 coordinator server.
+"""
+
+
+def main() -> int:
+    from coordinator.phase2_contribution_handler import \
+        Phase2ContributionHandler
+    from coordinator.server import Server
+    import time
+
+    try:
+        server = Server(Phase2ContributionHandler(), ".")
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        server.stop()
+
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main())
