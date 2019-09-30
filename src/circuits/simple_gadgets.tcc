@@ -30,7 +30,9 @@ template<typename FieldT> void xor_gadget<FieldT>::generate_r1cs_constraints()
         // res = a XOR b <=> (2.a) * b = a + b - res
         this->pb.add_r1cs_constraint(
             libsnark::r1cs_constraint<FieldT>(
-                2 * a[i], b[i], a[i] + b[i] - res[i]),
+                2 * a[i],
+                b[i],
+                a[i] + b[i] - res[i]),
             FMT(this->annotation_prefix, " xored_bits_%zu", i));
     }
 };
@@ -79,12 +81,15 @@ void xor_constant_gadget<FieldT>::generate_r1cs_constraints()
     //   2(res) * c = res + c - res2
     // which leads to:
     //   2(a + b - 2ab) * c = a + b - 2ab + c - res2
+    // => res2 = 2ac + 2bc - 4abc - a - b + 2ab - c
+    // => res2 = b * [2 * (1 - 2c) * a] + b * (2c - 1) + a * (2c - 1) - c
+    // => res2 - b * (1 - 2c) - a * (1 - 2c) - c = b * [-2(1 - 2c) * a]
     for (size_t i = 0; i < a.size(); i++) {
         this->pb.add_r1cs_constraint(
             libsnark::r1cs_constraint<FieldT>(
-                2 * (a[i] + b[i] - 2 * a[i] * b[i]),
-                c[i],
-                a[i] + b[i] - 2 * a[i] * b[i] + c[i] - res[i]),
+                -FieldT("2") * (FieldT("1") - FieldT("2") * c[i]) * a[i],
+                b[i],
+                res[i] - c[i] - a[i] * (FieldT("1") - FieldT("2") * c[i]) - b[i] * (FieldT("1") - FieldT("2") * c[i])),
             FMT(this->annotation_prefix, " rotated_xored_bits_%zu", i));
     }
 };
