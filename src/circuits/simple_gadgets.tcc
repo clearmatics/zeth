@@ -133,7 +133,9 @@ void xor_rot_gadget<FieldT>::generate_r1cs_constraints()
     for (size_t i = 0; i < a.size(); i++) {
         this->pb.add_r1cs_constraint(
             libsnark::r1cs_constraint<FieldT>(
-                -2 * a[i], b[i], res[(i + shift) % a.size()] - a[i] - b[i]),
+                2 * a[i],
+                b[i],
+                a[i] + b[i] - res[(i + shift) % a.size()]),
             FMT(this->annotation_prefix, " rotated_xored_bits_%zu", i));
     }
 };
