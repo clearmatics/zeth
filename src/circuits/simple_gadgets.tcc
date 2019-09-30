@@ -10,6 +10,7 @@
 namespace libzeth
 {
 
+/// xor_gadget set the constraints for the computation of the XOR of 2 bit strings
 template<typename FieldT>
 xor_gadget<FieldT>::xor_gadget(
     libsnark::protoboard<FieldT> &pb,
@@ -25,12 +26,13 @@ xor_gadget<FieldT>::xor_gadget(
 
 template<typename FieldT> void xor_gadget<FieldT>::generate_r1cs_constraints()
 {
-    // 32 constraints
+    // Set the constraints (#constraints = length of bit string)
     for (size_t i = 0; i < a.size(); i++) {
+        // res = a XOR b <=> (2.a) * b = a + b - res
         this->pb.add_r1cs_constraint(
             libsnark::r1cs_constraint<FieldT>(
-                -2 * a[i], b[i], res[i] - a[i] - b[i]),
-            FMT(this->annotation_prefix, " rotated_xored_bits_%zu", i));
+                2 * a[i], b[i], a[i] + b[i] - res[i]),
+            FMT(this->annotation_prefix, " xored_bits_%zu", i));
     }
 };
 

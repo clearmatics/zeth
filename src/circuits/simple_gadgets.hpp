@@ -11,9 +11,10 @@
 namespace libzeth
 {
 
+/// xor_gadget computes res = a XOR b
 template<typename FieldT> class xor_gadget : public libsnark::gadget<FieldT>
 {
-    // Computes res = a XOR b
+
 private:
     const libsnark::pb_variable_array<FieldT> a;
     const libsnark::pb_variable_array<FieldT> b;
@@ -32,10 +33,11 @@ public:
     void generate_r1cs_witness();
 };
 
+/// xor_constant_gadget computes res = a XOR b XOR c with c constant
 template<typename FieldT>
 class xor_constant_gadget : public libsnark::gadget<FieldT>
 {
-    // Computes res = a XOR b XOR c with c constant
+
 private:
     const libsnark::pb_variable_array<FieldT> a;
     const libsnark::pb_variable_array<FieldT> b;
@@ -56,9 +58,10 @@ public:
     void generate_r1cs_witness();
 };
 
+/// xor_rot_gadget computes a XOR b and rotate it by shift
 template<typename FieldT> class xor_rot_gadget : public libsnark::gadget<FieldT>
 {
-    // Computes a XOR b and rotate it by shift
+
 private:
     const libsnark::pb_variable_array<FieldT> a;
     const libsnark::pb_variable_array<FieldT> b;
@@ -79,13 +82,12 @@ public:
     void generate_r1cs_witness();
 };
 
+/// double_bit32_sum_eq_gadget checks that res = a + b % 2**32
+/// with a, b and res being modulo bit long arrays
 template<typename FieldT>
 class double_bit32_sum_eq_gadget : public libsnark::gadget<FieldT>
 {
-    /*
-    Gadget checking that res = a + b % 2**32
-    with a, b and res being modulo bit long arrays
-    */
+
 private:
     libsnark::pb_variable_array<FieldT> a;
     libsnark::pb_variable_array<FieldT> b;
