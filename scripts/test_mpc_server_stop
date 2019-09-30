@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+. scripts/test_mpc_common.sh
+
+set -e
+set -x
+
+function stop_server() {
+    if [ -d ${SERVER_DIR} ] ; then
+        pushd ${SERVER_DIR}
+        if [ -e server.pid ] ; then
+            pid=`cat server.pid`
+            echo "TEST: Stopping server (pid: "${pid}")"
+            while (kill "${pid}") ; do
+                sleep 0.5
+            done
+            rm server.pid
+            echo "TEST: Server stopped"
+        fi
+        popd
+    fi
+}
+
+stop_server
