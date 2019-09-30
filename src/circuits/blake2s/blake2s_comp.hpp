@@ -24,6 +24,7 @@ class BLAKE2s_256_comp : public libsnark::gadget<FieldT>
 private:
     // Section 2.1 of https://blake2.net/blake2.pdf specifies that BLAKE2s has 10 rounds
     static const int rounds = 10;
+
     std::array<std::array<FieldT, 32>, 8> h;
     std::array<std::array<FieldT, 32>, 2> t;
     std::array<libsnark::pb_variable_array<FieldT>, 16> block;
@@ -44,7 +45,7 @@ private:
 
 public:
     std::array<std::array<FieldT, 32>, 8> IV;
-    std::array<std::array<uint, 16>, 10> sigma; // I think we need to replace 10 by nb_rounds?
+    std::array<std::array<uint, 16>, 10> sigma;
 
     BLAKE2s_256_comp(
         libsnark::protoboard<FieldT> &pb,
