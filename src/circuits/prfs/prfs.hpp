@@ -32,8 +32,8 @@ public:
 };
 
 // This function is useful as the generation of a_pk is done via a_pk =
-// blake2sCompress(a_sk || 0^256) See Zerocash extended paper, page 22, paragraph
-// "Instantiating the NP statement POUR"
+// blake2sCompress(a_sk || 0^256) See Zerocash extended paper, page 22,
+// paragraph "Instantiating the NP statement POUR"
 template<typename FieldT, typename HashT>
 libsnark::pb_variable_array<FieldT> gen_256_zeroes(
     libsnark::pb_variable<FieldT> &ZERO);
@@ -110,8 +110,8 @@ public:
 };
 
 // PRF to generate rho
-// rho_i = blake2sCompress( "0" || index || "10" || [phi]_252 || h_sig): See ZCash
-// protocol specification paper, page 57
+// rho_i = blake2sCompress( "0" || index || "10" || [phi]_252 || h_sig): See
+// ZCash protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_rho_gadget : public PRF_gadget<FieldT, HashT>
 {

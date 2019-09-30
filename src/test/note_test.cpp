@@ -62,7 +62,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // 1100 || [a_sk]_252 =
     // 0xCFF0000000000000000000000000000000000000000000000000000000000000 0^256
     // = 0x0000000000000000000000000000000000000000000000000000000000000000 a_pk
-    // = blake2sCompress( 1100 || [a_sk]_252 || 0^256) 
+    // = blake2sCompress( 1100 || [a_sk]_252 || 0^256)
     // Generated directly from a_sk and hashlib blake2s
     bits256 a_pk_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("f172d7299ac8ac974ea59413e4a8769182"
