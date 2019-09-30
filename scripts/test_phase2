@@ -7,28 +7,30 @@ POT="build/src/pot-process"
 MPC="build/src/mpc/mpc-test"
 QAP_DEGREE=8
 
-pot_file=_test_pot-${QAP_DEGREE}.bin
-lagrange_file=_test_lagrange-${QAP_DEGREE}.bin
+DATA_DIR=_test_phase2_data
+[ -e ${DATA_DIR} ] && rm -r ${DATA_DIR}
+mkdir -p ${DATA_DIR}
 
-linear_combination_file=_test_linear_combination-${QAP_DEGREE}.bin
+pot_file=${DATA_DIR}/pot-${QAP_DEGREE}.bin
+lagrange_file=${DATA_DIR}/lagrange-${QAP_DEGREE}.bin
+linear_combination_file=${DATA_DIR}/linear_combination-${QAP_DEGREE}.bin
 
-transcript_file=_test_transcript.bin
-challenge_0_file=_test_challenge_0.bin
-response_1_file=_test_response_1.bin
-response_digest_1_file=_test_response_digest_1.bin
-challenge_1_file=_test_challenge_1.bin
-response_2_file=_test_response_2.bin
-response_digest_2_file=_test_response_digest_2.bin
-challenge_2_file=_test_challenge_2.bin
-response_3_file=_test_response_3.bin
-response_digest_3_file=_test_response_digest_3.bin
-challenge_3_file=_test_challenge_3.bin
+transcript_file=${DATA_DIR}/transcript.bin
+challenge_0_file=${DATA_DIR}/challenge_0.bin
+response_1_file=${DATA_DIR}/response_1.bin
+response_digest_1_file=${DATA_DIR}/response_digest_1.bin
+challenge_1_file=${DATA_DIR}/challenge_1.bin
+response_2_file=${DATA_DIR}/response_2.bin
+response_digest_2_file=${DATA_DIR}/response_digest_2.bin
+challenge_2_file=${DATA_DIR}/challenge_2.bin
+response_3_file=${DATA_DIR}/response_3.bin
+response_digest_3_file=${DATA_DIR}/response_digest_3.bin
+challenge_3_file=${DATA_DIR}/challenge_3.bin
 final_phase2_file=${challenge_3_file}
-invalid_response_digest_file=_test_response_digest_invalid.bin
+invalid_response_digest_file=${DATA_DIR}/response_digest_invalid.bin
 
-keypair_file=_test_keypair-${QAP_DEGREE}.bin
+keypair_file=${DATA_DIR}/keypair-${QAP_DEGREE}.bin
 
-rm -f ${transcript_file}
 
 # Dummy pot data
 ${POT} --dummy ${pot_file} ${QAP_DEGREE}
@@ -99,18 +101,6 @@ fi
 ${MPC} create-keypair \
        ${pot_file} ${linear_combination_file} ${final_phase2_file} \
        ${keypair_file}
-
-# Clean up files
-rm ${pot_file} ${lagrange_file} ${linear_combination_file}
-rm ${transcript_file}
-rm ${challenge_0_file}
-rm ${response_1_file} ${challenge_1_file} ${response_1_digest_file}
-rm ${response_2_file} ${challenge_2_file} ${response_2_digest_file}
-rm ${response_3_file} ${challenge_3_file} ${response_3_digest_file}
-invalid_response_digest_file=_test_response_digest_invalid.bin
-rm -f ${final_phase2_file} # Same as challenge_3_file
-rm ${invalid_response_digest_file}
-rm ${keypair_file}
 
 set +x
 echo "=================================================================="
