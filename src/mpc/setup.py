@@ -25,6 +25,7 @@ setup(
     ],
     scripts=[
         "coordinator/null_server",
+        "coordinator/phase2_server",
         "coordinator/sign_contribution",
         "coordinator/generate_key",
     ]

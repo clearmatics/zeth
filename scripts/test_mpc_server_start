@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+. scripts/test_mpc_common.sh
+
+set -e
+. src/mpc/env/bin/activate
+set -x
+
+function prepare_server() {
+    rm -rf ${SERVER_DIR}
+    mkdir -p ${SERVER_DIR}
+    now=`python -c 'import time; print(str(time.time()))'`
+    sed -e "s/TIME/${now}/g" ${SERVER_CONFIG_TEMPLATE} \
+        > ${SERVER_DIR}/server_config.json
+
+    # Set up phase2
+    pot_file=${SERVER_DIR}/_test_pot-${QAP_DEGREE}.bin
+    lagrange_file=${SERVER_DIR}/_test_lagrange-${QAP_DEGREE}.bin
+    linear_combination_file=${SERVER_DIR}/_test_linear_combination-${QAP_DEGREE}.bin
+    # keypair_file=${SERVER_DIR}/_test_keypair-${QAP_DEGREE}.bin
+
+    ${POT} --dummy ${pot_file} ${QAP_DEGREE}
+    ${POT} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
+    ${MPC} linear-combination --out ${linear_combination_file} \
+           ${pot_file} ${lagrange_file}
+    ${MPC} phase2-begin --out ${CHALLENGE_0_FILE} ${linear_combination_file}
+}
+
+function start_server() {
+    pushd ${SERVER_DIR}
+
+    phase2_server > server.log &
+    echo $! > server.pid
+
+    while ! get_state ; do
+        echo "TEST: waiting for server to start ..."
+        sleep 1
+    done
+    echo "TEST: server up (pid: "`cat server.pid`")"
+    popd
+}
+
+prepare_server
+start_server

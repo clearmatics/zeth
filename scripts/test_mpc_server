@@ -3,20 +3,11 @@
 . scripts/test_mpc_common.sh
 
 # Test an mpc server that has been set up with a test handler, using the
-# configuration in /testdata.
-
-POT="build/src/pot-process"
-MPC="build/src/mpc/mpc-test"
-QAP_DEGREE=8
+# configuration in ./testdata.
 
 set -e
 . src/mpc/env/bin/activate
 set -x
-
-# Get server state
-function get_state() {
-    curl --fail http://${HOST}:${PORT}/state
-}
 
 # Get challenge
 function get_challenge() {
@@ -50,7 +41,7 @@ function contribute() {
     curl \
         --fail \
         --fail-early \
-        -H 'X-MPC-Digest:'${contrib_digest} \
+        -H 'X-MPC-Digest:'${contrib_sha} \
         -H 'X-MPC-Public-Key: '${pub_key} \
         -H 'X-MPC-Signature:'${sig} \
         -F "data=@response.bin" \
@@ -59,129 +50,50 @@ function contribute() {
     popd
 }
 
-function prepare_server() {
-    rm -rf ${SERVER_DIR}
-    mkdir -p ${SERVER_DIR}
-    now=`python -c 'import time; print(str(time.time()))'`
-    sed -e "s/TIME/${now}/g" testdata/mpc_server_config.json \
-        > ${SERVER_DIR}/server_config.json
-
-    # Set up phase2
-    pot_file=${SERVER_DIR}/_test_pot-${QAP_DEGREE}.bin
-    lagrange_file=${SERVER_DIR}/_test_lagrange-${QAP_DEGREE}.bin
-    linear_combination_file=${SERVER_DIR}/_test_linear_combination-${QAP_DEGREE}.bin
-    challenge_0_file=${SERVER_DIR}/challenge_0.bin
-    transcript_file=${SERVER_DIR}/transcript.bin
-    # keypair_file=${SERVER_DIR}/_test_keypair-${QAP_DEGREE}.bin
-
-    ${POT} --dummy ${pot_file} ${QAP_DEGREE}
-    ${POT} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
-    ${MPC} linear-combination --out ${linear_combination_file} \
-           ${pot_file} ${lagrange_file}
-    ${MPC} phase2-begin --out ${challenge_0_file} ${linear_combination_file}
-}
-
-function start_server() {
-    pushd ${SERVER_DIR}
-    null_server > server.log &
-    echo $! > server.pid
-
-    while ! get_state ; do
-        echo "TEST: waiting for server to start ..."
-        sleep 1
-    done
-    echo "TEST: server up (pid: "`cat server.pid`")"
-    popd
-}
-
-function stop_server() {
-    if [ -d ${SERVER_DIR} ] ; then
-        pushd ${SERVER_DIR}
-        if [ -e server.pid ] ; then
-            pid=`cat server.pid`
-            echo "TEST: Stopping server (pid: "${pid}")"
-            while (kill "${pid}") ; do
-                sleep 0.5
-            done
-            rm server.pid
-            echo "TEST: Server stopped"
-        fi
-        popd
-    fi
-}
-
-stop_server
-prepare_server
-start_server
+scripts/test_mpc_server_stop || echo -n
+scripts/test_mpc_server_start
+# stop_server
+# prepare_server
+# start_server
 
 # make 4 contributions
 contribute ${PRV_KEY_1} ${PUB_KEY_1} 1
-# contribute ${PRV_KEY_2} ${PUB_KEY_2} 2
-# contribute ${PRV_KEY_3} ${PUB_KEY_3} 3
-# contribute ${PRV_KEY_4} ${PUB_KEY_4} 4
+contribute ${PRV_KEY_2} ${PUB_KEY_2} 2
+contribute ${PRV_KEY_3} ${PUB_KEY_3} 3
+contribute ${PRV_KEY_4} ${PUB_KEY_4} 4
 
-# # Server should spend some time verifying
+# Server will spend some time verifying.  Wait for it.
+while ! [ -e ${FINAL_OUTPUT_FILE} ] ; do
+      echo Waiting for ${FINAL_OUTPUT_FILE} ...
+      sleep 1
+done
 
-# while ! [ -e ${SERVER_DIR}/final_challenge.bin ] ; do
-#       echo Waiting for final_challenge.bin ...
-#       sleep 1
-# done
+while ! [ -e ${FINAL_TRANSCRIPT_FILE} ] ; do
+      echo Waiting for ${FINAL_TRANSCRIPT_FILE} ...
+      sleep 1
+done
 
-# while ! [ -e ${SERVER_DIR}/final_transcript.bin ] ; do
-#       echo Waiting for final_transcript.bin ...
-#       sleep 1
-# done
+# Verify the transcript, checking for contribution
+${MPC} phase2-verify-transcript \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+${MPC} phase2-verify-transcript \
+       --digest _test_contrib_1/response.bin.digest \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+${MPC} phase2-verify-transcript \
+       --digest _test_contrib_2/response.bin.digest \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+${MPC} phase2-verify-transcript \
+       --digest _test_contrib_3/response.bin.digest \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+${MPC} phase2-verify-transcript \
+       --digest _test_contrib_4/response.bin.digest \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
 
-# # TODO: Verify contributions are in transcript
+# Shut down the server
+scripts/test_mpc_server_stop
 
-# # ${MPC} phase2-verify-transcript \
-# #        ${challenge_0_file} ${transcript_file} ${challenge_3_file}
-
-# # # Verify the transcript, checking for each contribution
-# # ${MPC} phase2-verify-transcript \
-# #        --digest ${response_digest_1_file} \
-# #        ${challenge_0_file} ${transcript_file} ${challenge_3_file}
-# # ${MPC} phase2-verify-transcript \
-# #        --digest ${response_digest_2_file} \
-# #        ${challenge_0_file} ${transcript_file} ${challenge_3_file}
-# # ${MPC} phase2-verify-transcript \
-# #        --digest ${response_digest_3_file} \
-# #        ${challenge_0_file} ${transcript_file} ${challenge_3_file}
-
-# # # Invalid contribution check
-# # echo 00000000 >> ${invalid_response_digest_file}
-# # cat ${response_digest_3_file} >> ${invalid_response_digest_file}
-# # if (${MPC} phase2-verify-transcript \
-# #        --digest ${invalid_response_digest_file} \
-# #        ${challenge_0_file} ${transcript_file} ${challenge_3_file}) then
-# #    echo ERROR: expected failure
-# #    exit 1
-# # fi
-
-# # # Create the keypair
-# # ${MPC} create-keypair --out ${keypair_file} \
-# #        ${pot_file} ${linear_combination_file} ${final_phase2_file}
-
-# # # Clean up files
-# # rm ${pot_file} ${lagrange_file} ${linear_combination_file}
-# # rm ${transcript_file}
-# # rm ${challenge_0_file}
-# # rm ${response_1_file} ${challenge_1_file} ${response_1_digest_file}
-# # rm ${response_2_file} ${challenge_2_file} ${response_2_digest_file}
-# # rm ${response_3_file} ${challenge_3_file} ${response_3_digest_file}
-# # invalid_response_digest_file=_test_response_digest_invalid.bin
-# # rm -f ${final_phase2_file}      # Same as challenge_3_file
-# # rm ${invalid_response_digest_file}
-# # rm ${keypair_file}
-
-
-
-
-# sleep 1
-# stop_server
-
-# set +x
-# set +e
-# echo "============================================================"
-# echo "==                        PASSED                          =="
-# echo "============================================================"
+set +x
+set +e
+echo "============================================================"
+echo "==                        PASSED                          =="
+echo "============================================================"
