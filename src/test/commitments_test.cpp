@@ -248,7 +248,7 @@ TEST(TestCOMMs, TestCOMMInnerKGadget)
         ZERO);
 
     // inner_k should equal:
-    // inner_k = blake2s(a_pk || rho)
+    // inner_k = blake2sCompress(a_pk || rho)
     //
     // a_pk: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     // rho: 0xCF000000000000FF00000000000000FF00000000000000FF00000000000000FF
@@ -381,7 +381,7 @@ TEST(TestCOMMs, TestCOMMOuterKGadget)
         ZERO);
 
     // outer_k should equal:
-    // outer_k = blake2s(r || [inner_commitment]_128)
+    // outer_k = blake2sCompress(r || [inner_commitment]_128)
     //
     // Hex of the 384 bits of the trap_r:
     // "0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF00000000000000FF"
@@ -479,7 +479,7 @@ TEST(TestCOMMs, TestCOMMCMGadget)
         ZERO);
 
     // cm should equal:
-    // cm = blake2s(outer_k || 0^192 || value_v)
+    // cm = blake2sCompress(outer_k || 0^192 || value_v)
     //
     // outer_k:
     // 0xAF000000000000FF00000000000000FF00000000000000FF00000000000000FF '0^192

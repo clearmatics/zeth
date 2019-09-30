@@ -77,8 +77,8 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_constants()
 
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
 {
-    // parameter block, size set to 32 bytes, fanout and depth set to serial
-    // mode
+    // parameter block, size set to 32 bytes, fanout and depth set to one
+    // to correspond to serial mode (<=> having a tree of depth and fanout 1)
     std::array<std::array<FieldT, 32>, 8> parameter_block;
     parameter_block[0] = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                           0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1};
@@ -108,6 +108,7 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
 template<typename FieldT>
 void BLAKE2s_256_comp<FieldT>::setup_counter(size_t len_input_block)
 {
+    // the counter corresponds to the size of the unpadded input block
     std::vector<FieldT> length_bits =
         convert_to_binary<FieldT>(len_input_block);
     size_t bit_size = length_bits.size();

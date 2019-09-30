@@ -62,15 +62,15 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // 1100 || [a_sk]_252 =
     // 0xCFF0000000000000000000000000000000000000000000000000000000000000 0^256
     // = 0x0000000000000000000000000000000000000000000000000000000000000000 a_pk
-    // = blake2s( 1100 || [a_sk]_252 || 0^256) Generated directly from a_sk and
-    // hashlib blake2s
+    // = blake2sCompress( 1100 || [a_sk]_252 || 0^256) 
+    // Generated directly from a_sk and hashlib blake2s
     bits256 a_pk_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("f172d7299ac8ac974ea59413e4a8769182"
                                             "6df038ba24a2b52d5c5d15c2cc8c49"));
 
     // Get nf from a_sk and rho (PRF)
     //
-    // nf = blake2s( 1110 || [a_sk]_252 || rho)
+    // nf = blake2sCompress( 1110 || [a_sk]_252 || rho)
     // 1110 || [a_sk]_252:
     // 0xEFF0000000000000000000000000000000000000000000000000000000000000 rho =
     // FFFF000000000000000000000000000000000000000000000000000000009009 The test
@@ -81,9 +81,9 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
 
     // Get the coin's commitment (COMM)
     //
-    // inner_k = blake2s(a_pk || rho)
-    // outer_k = blake2s(r || [inner_commitment]_128)
-    // cm = blake2s(outer_k || 0^192 || value_v)
+    // inner_k = blake2sCompress(a_pk || rho)
+    // outer_k = blake2sCompress(r || [inner_commitment]_128)
+    // cm = blake2sCompress(outer_k || 0^192 || value_v)
     // Converted from old hex string
     // "c8095fff642b3eba57f195ef3e27dcf424b470a22a3bb05704836cda21249d66"
     // (big-endian)
@@ -181,9 +181,9 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
 
     // Get the coin's commitment (COMM)
     //
-    // inner_k = blake2s(a_pk || rho)
-    // outer_k = blake2s(r || [inner_commitment]_128)
-    // cm = blake2s(outer_k || 0^192 || value_v)
+    // inner_k = blake2sCompress(a_pk || rho)
+    // outer_k = blake2sCompress(r || [inner_commitment]_128)
+    // cm = blake2sCompress(outer_k || 0^192 || value_v)
     bits256 cm_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("626876b3e2747325f469df067b1f86c847"
                                             "4ffe85e97f56f273c5798dcfccd925"));
