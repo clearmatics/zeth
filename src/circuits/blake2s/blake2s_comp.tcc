@@ -78,7 +78,7 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
     // input (with padding if necessary)
     size_t input_size = input_block.bits.size();
     // We do not use block_size because the value might not be entered
-    //(c.f. block_variable<FieldT>::block_variable(protoboard<FieldT> &pb,
+    // (c.f. block_variable<FieldT>::block_variable(protoboard<FieldT> &pb,
     //                                   const
     //                                   std::vector<pb_variable_array<FieldT> >
     //                                   &parts, const std::string

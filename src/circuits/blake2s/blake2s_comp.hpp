@@ -25,8 +25,29 @@ private:
     // Section 2.1 of https://blake2.net/blake2.pdf specifies that BLAKE2s has 10 rounds
     static const int rounds = 10;
 
+    // Finalization flags. See Section 2.3 of https://blake2.net/blake2.pdf
+    // We do a single call to the compression function: the first block is the last
+    // thus, f0 is set to xFF
+    static const std::array<FieldT, 32> f0 = {
+        1, 1, 1, 1, 1, 1, 1, 1, // FF
+        1, 1, 1, 1, 1, 1, 1, 1, // FF
+        1, 1, 1, 1, 1, 1, 1, 1, // FF
+        1, 1, 1, 1, 1, 1, 1, 1  // FF
+    };
+
+    // We use the sequential mode, f1 is set to x00
+    static const std::array<FieldT, 32> f1 = {
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0  // 00
+    };
+
+    // Chain value
     std::array<std::array<FieldT, 32>, 8> h;
+    // Counters t0 and t1
     std::array<std::array<FieldT, 32>, 2> t;
+    
     std::array<libsnark::pb_variable_array<FieldT>, 16> block;
     std::array<std::array<libsnark::pb_variable_array<FieldT>, 16>, rounds + 1>
         v;

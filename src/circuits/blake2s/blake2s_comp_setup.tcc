@@ -84,23 +84,73 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
     // Parameter block, size set to 32 bytes, fanout and depth set to serial
     // mode
     std::array<std::array<FieldT, 32>, 8> parameter_block;
-    parameter_block[0] = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1};
-    parameter_block[1] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    parameter_block[2] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    parameter_block[3] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    parameter_block[4] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    parameter_block[5] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    parameter_block[6] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    parameter_block[7] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // See: Section 2.8 https://blake2.net/blake2.pdf Table 2
+    parameter_block[0] = {
+        // Digest byte length = 32 bytes
+        0, 0, 1, 0, 0, 0, 0, 0, // 0x20
+        // Key byte length = 0 bytes
+        0, 0, 0, 0, 0, 0, 0, 0, // 0x00
+        // Fanout
+        0, 0, 0, 0, 0, 0, 0, 1, // 0x01
+        // Depth
+        0, 0, 0, 0, 0, 0, 0, 1  // 0x01
+    };
 
+    // Leaf length
+    parameter_block[1] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    // Node offset
+    parameter_block[2] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    parameter_block[3] = {
+        // Node offset (cont.)
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        // Node depth
+        0, 0, 0, 0, 0, 0, 0, 0,
+        // Inner length
+        0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    // Salt
+    parameter_block[4] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0
+    };
+    parameter_block[5] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    // Personalization
+    parameter_block[6] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0
+    };
+    parameter_block[7] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    // See: Appendix A.1 of https://blake2.net/blake2.pdf
     for (size_t i = 0; i < 8; i++) {
         std::array<FieldT, 32> pb_swapped =
             swap_byte32_endianness(parameter_block[i]);
@@ -118,15 +168,23 @@ void BLAKE2s_256_comp<FieldT>::setup_counter(size_t len_input_block)
     size_t bit_size = length_bits.size();
     size_t padding = 64 - bit_size;
 
-    // initialize counters to size of blocks
-    t[0] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // Initialize counters to size of blocks
+    t[0] = {
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0  // 00
+    };
     for (size_t i = 0; int(i) < std::min(int(32), int(bit_size)); i++) {
         t[0][32 - i - 1] = length_bits[bit_size - i - 1];
     }
 
-    t[1] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    t[1] = {
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0  // 00
+    };
     if (bit_size > 32) {
         for (size_t i = 0; i < bit_size - 32; i++) {
             t[1][padding + i] = length_bits[i];
@@ -134,6 +192,8 @@ void BLAKE2s_256_comp<FieldT>::setup_counter(size_t len_input_block)
     }
 }
 
+/// setup_v initializes the internal state matrix as documented
+/// Appendix A.1 https://blake2.net/blake2.pdf
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_v()
 {
     for (size_t i = 0; i < 8; i++) {
@@ -157,20 +217,12 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_v()
         temp_field_xored.begin(), temp_field_xored.end());
     v[0][13].fill_with_field_elements(this->pb, temp_field_vector13);
 
-    // We do only one compression, f0 is set to xFF
-    std::array<FieldT, 32> xFF = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    temp_field_xored = binary_field_xor(IV[6], xFF);
+    temp_field_xored = binary_field_xor(IV[6], f0);
     std::vector<FieldT> temp_field_vector14(
         temp_field_xored.begin(), temp_field_xored.end());
     v[0][14].fill_with_field_elements(this->pb, temp_field_vector14);
 
-    // We are in sequential mode, f1 is set to x00
-    std::array<FieldT, 32> x00 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    temp_field_xored = binary_field_xor(IV[7], x00);
+    temp_field_xored = binary_field_xor(IV[7], f1);
     std::vector<FieldT> temp_field_vector15(
         temp_field_xored.begin(), temp_field_xored.end());
     v[0][15].fill_with_field_elements(this->pb, temp_field_vector15);
