@@ -22,6 +22,7 @@ template<typename FieldT>
 class BLAKE2s_256_comp : public libsnark::gadget<FieldT>
 {
 private:
+    // Section 2.1 of https://blake2.net/blake2.pdf specifies that BLAKE2s has 10 rounds
     static const int rounds = 10;
     std::array<std::array<FieldT, 32>, 8> h;
     std::array<std::array<FieldT, 32>, 2> t;
@@ -34,7 +35,8 @@ private:
     libsnark::block_variable<FieldT> input_block;
     libsnark::digest_variable<FieldT> output;
 
-    std::array<std::vector<g_primitive<FieldT>>, 10> g_arrays;
+    // Array of mixing functions G used in each rounds in the compression function
+    std::array<std::vector<g_primitive<FieldT>>, rounds> g_arrays;
     std::vector<xor_constant_gadget<FieldT>> xor_vector;
 
     // TODO: Remove ZERO and pass it in the constructor
@@ -42,7 +44,7 @@ private:
 
 public:
     std::array<std::array<FieldT, 32>, 8> IV;
-    std::array<std::array<uint, 16>, 10> sigma;
+    std::array<std::array<uint, 16>, 10> sigma; // I think we need to replace 10 by nb_rounds?
 
     BLAKE2s_256_comp(
         libsnark::protoboard<FieldT> &pb,

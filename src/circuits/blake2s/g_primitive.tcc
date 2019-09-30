@@ -4,6 +4,7 @@
 namespace libzeth
 {
 
+// See: Section 3.1 of https://tools.ietf.org/html/rfc7693
 template<typename FieldT>
 g_primitive<FieldT>::g_primitive(
     libsnark::protoboard<FieldT> &pb,
@@ -35,17 +36,17 @@ g_primitive<FieldT>::g_primitive(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a, b, a1_temp));
     a1_2_gadget.reset(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a1_temp, x, a1));
-    d_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, d, a1, 16, d1));
+    d_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, d, a1, rotation_constant_r1, d1));
     c1_gadget.reset(new double_bit32_sum_eq_gadget<FieldT>(pb, c, d1, c1));
-    b_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, b, c1, 12, b1));
+    b_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, b, c1, rotation_constant_r2, b1));
 
     a2_1_gadget.reset(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a1, b1, a2_temp));
     a2_2_gadget.reset(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a2_temp, y, a2));
-    d1_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, d1, a2, 8, d2));
+    d1_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, d1, a2, rotation_constant_r3, d2));
     c2_gadget.reset(new double_bit32_sum_eq_gadget<FieldT>(pb, c1, d2, c2));
-    b1_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, b1, c2, 7, b2));
+    b1_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, b1, c2, rotation_constant_r4, b2));
 };
 
 template<typename FieldT> void g_primitive<FieldT>::generate_r1cs_constraints()

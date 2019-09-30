@@ -3,9 +3,11 @@
 
 namespace libzeth
 {
-// All constants come from https://blake2.net/blake2.pdf appendix A.2
+
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_constants()
 {
+    // See: Appendix A.2 of https://blake2.net/blake2.pdf for the specification
+    // of the IV used in BLAKE2s
     IV[0] = {
         0, 1, 1, 0, 1, 0, 1, 0, // 6A
         0, 0, 0, 0, 1, 0, 0, 1, // 09
@@ -63,6 +65,8 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_constants()
         0, 0, 0, 1, 1, 0, 0, 1  // 19
     };
 
+    // See: Appendix A.1 of https://blake2.net/blake2.pdf for the specification
+    // of the permutations used in BLAKE2s
     sigma[0] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     sigma[1] = {14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3};
     sigma[2] = {11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4};
@@ -77,8 +81,8 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_constants()
 
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
 {
-    // parameter block, size set to 32 bytes, fanout and depth set to one
-    // to correspond to serial mode (<=> having a tree of depth and fanout 1)
+    // Parameter block, size set to 32 bytes, fanout and depth set to serial
+    // mode
     std::array<std::array<FieldT, 32>, 8> parameter_block;
     parameter_block[0] = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                           0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1};
@@ -174,129 +178,133 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_v()
 
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_gadgets()
 {
+    // See: Section 3.2 of https://tools.ietf.org/html/rfc7693
     for (size_t i = 0; i < rounds; i++) {
-        g_arrays[i].emplace_back(
+        // Message word selection permutation for this round
+        std::array<uint, 16> s = sigma[i % rounds];
+
+        g_arrays[i].emplace_back(g_primitive<FieldT>(
             this->pb,
             v[i][0],
             v[i][4],
             v[i][8],
             v[i][12],
-            block[sigma[i % rounds][0]],
-            block[sigma[i % rounds][1]],
+            block[s[0]],
+            block[s[1]],
             v_temp[i][0],
             v_temp[i][4],
             v_temp[i][8],
             v_temp[i][12],
-            FMT(this->annotation_prefix, " g_primitive_1_round_%zu", i));
+            FMT(this->annotation_prefix, " g_primitive_1_round_%zu", i)));
 
-        g_arrays[i].emplace_back(
+        g_arrays[i].emplace_back(g_primitive<FieldT>(
             this->pb,
             v[i][1],
             v[i][5],
             v[i][9],
             v[i][13],
-            block[sigma[i % rounds][2]],
-            block[sigma[i % rounds][3]],
+            block[s[2]],
+            block[s[3]],
             v_temp[i][1],
             v_temp[i][5],
             v_temp[i][9],
             v_temp[i][13],
-            FMT(this->annotation_prefix, " g_primitive_2_round_%zu", i));
+            FMT(this->annotation_prefix, " g_primitive_2_round_%zu", i)));
 
-        g_arrays[i].emplace_back(
+        g_arrays[i].emplace_back(g_primitive<FieldT>(
             this->pb,
             v[i][2],
             v[i][6],
             v[i][10],
             v[i][14],
-            block[sigma[i % rounds][4]],
-            block[sigma[i % rounds][5]],
+            block[s[4]],
+            block[s[5]],
             v_temp[i][2],
             v_temp[i][6],
             v_temp[i][10],
             v_temp[i][14],
-            FMT(this->annotation_prefix, " g_primitive_3_round_%zu", i));
+            FMT(this->annotation_prefix, " g_primitive_3_round_%zu", i)));
 
-        g_arrays[i].emplace_back(
+        g_arrays[i].emplace_back(g_primitive<FieldT>(
             this->pb,
             v[i][3],
             v[i][7],
             v[i][11],
             v[i][15],
-            block[sigma[i % rounds][6]],
-            block[sigma[i % rounds][7]],
+            block[s[6]],
+            block[s[7]],
             v_temp[i][3],
             v_temp[i][7],
             v_temp[i][11],
             v_temp[i][15],
-            FMT(this->annotation_prefix, " g_primitive_4_round_%zu", i));
+            FMT(this->annotation_prefix, " g_primitive_4_round_%zu", i)));
 
-        g_arrays[i].emplace_back(
+        g_arrays[i].emplace_back(g_primitive<FieldT>(
             this->pb,
             v_temp[i][0],
             v_temp[i][5],
             v_temp[i][10],
             v_temp[i][15],
-            block[sigma[i % rounds][8]],
-            block[sigma[i % rounds][9]],
+            block[s[8]],
+            block[s[9]],
             v[i + 1][0],
             v[i + 1][5],
             v[i + 1][10],
             v[i + 1][15],
-            FMT(this->annotation_prefix, " g_primitive_5_round_%zu", i));
+            FMT(this->annotation_prefix, " g_primitive_5_round_%zu", i)));
 
-        g_arrays[i].emplace_back(
+        g_arrays[i].emplace_back(g_primitive<FieldT>(
             this->pb,
             v_temp[i][1],
             v_temp[i][6],
             v_temp[i][11],
             v_temp[i][12],
-            block[sigma[i % rounds][10]],
-            block[sigma[i % rounds][11]],
+            block[s[10]],
+            block[s[11]],
             v[i + 1][1],
             v[i + 1][6],
             v[i + 1][11],
             v[i + 1][12],
-            FMT(this->annotation_prefix, " g_primitive_6_round_%zu", i));
+            FMT(this->annotation_prefix, " g_primitive_6_round_%zu", i)));
 
-        g_arrays[i].emplace_back(
+        g_arrays[i].emplace_back(g_primitive<FieldT>(
             this->pb,
             v_temp[i][2],
             v_temp[i][7],
             v_temp[i][8],
             v_temp[i][13],
-            block[sigma[i % rounds][12]],
-            block[sigma[i % rounds][13]],
+            block[s[12]],
+            block[s[13]],
             v[i + 1][2],
             v[i + 1][7],
             v[i + 1][8],
             v[i + 1][13],
-            FMT(this->annotation_prefix, " g_primitive_7_round_%zu", i));
+            FMT(this->annotation_prefix, " g_primitive_7_round_%zu", i)));
 
-        g_arrays[i].emplace_back(
+        g_arrays[i].emplace_back(g_primitive<FieldT>(
             this->pb,
             v_temp[i][3],
             v_temp[i][4],
             v_temp[i][9],
             v_temp[i][14],
-            block[sigma[i % rounds][14]],
-            block[sigma[i % rounds][15]],
+            block[s[14]],
+            block[s[15]],
             v[i + 1][3],
             v[i + 1][4],
             v[i + 1][9],
             v[i + 1][14],
-            FMT(this->annotation_prefix, " g_primitive_8_round_%zu", i));
+            FMT(this->annotation_prefix, " g_primitive_8_round_%zu", i)));
     }
 
     for (size_t i = 0; i < 8; i++) {
         std::vector<FieldT> temp_field_vector(h[i].begin(), h[i].end());
-        xor_vector.emplace_back(
+        xor_vector.emplace_back(xor_constant_gadget<FieldT>(
             this->pb,
             v[rounds][i],
             v[rounds][8 + i],
             temp_field_vector,
             output_bytes[i],
-            FMT(this->annotation_prefix, " xor_output_%zu", i));
+            FMT(this->annotation_prefix, " xor_output_%zu", i)));
     }
 }
 

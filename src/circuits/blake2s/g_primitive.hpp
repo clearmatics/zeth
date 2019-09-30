@@ -14,6 +14,12 @@ namespace libzeth
 template<typename FieldT> class g_primitive : public libsnark::gadget<FieldT>
 {
 private:
+    // See: Section 2.1 https://tools.ietf.org/html/rfc7693
+    static const int rotation_constant_r1 = 16;
+    static const int rotation_constant_r2 = 12;
+    static const int rotation_constant_r3 = 8;
+    static const int rotation_constant_r4 = 7;
+
     libsnark::pb_variable_array<FieldT> a1;
     libsnark::pb_variable_array<FieldT> a1_temp;
     libsnark::pb_variable_array<FieldT> a2_temp;
