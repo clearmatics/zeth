@@ -17,7 +17,9 @@ BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
     // Allocate and format the 16 input block variable
     for (size_t i = 0; i < BLAKE2s_word_number; i++) {
         block[i].allocate(
-            pb, BLAKE2s_word_size, FMT(this->annotation_prefix, " block_%zu", i));
+            pb,
+            BLAKE2s_word_size,
+            FMT(this->annotation_prefix, " block_%zu", i));
     }
 
     // Setup constants, hash parameters and initialize the state
@@ -46,7 +48,9 @@ BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
     // Allocate output bytes (before swapping endianness and appending)
     for (size_t i = 0; i < 8; i++) {
         output_bytes[i].allocate(
-            pb, BLAKE2s_word_size, FMT(this->annotation_prefix, " output_byte_%zu", i));
+            pb,
+            BLAKE2s_word_size,
+            FMT(this->annotation_prefix, " output_byte_%zu", i));
     }
 
     // Set up the g_primitive gadgets used in the compression function
@@ -99,7 +103,8 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
     // Allocate and format the 16 input block variable
     for (size_t i = 0; i < BLAKE2s_word_number; i++) {
         std::vector<FieldT> temp_vector(
-            padded_input.begin() + BLAKE2s_word_size * i, padded_input.begin() + BLAKE2s_word_size * (i + 1));
+            padded_input.begin() + BLAKE2s_word_size * i,
+            padded_input.begin() + BLAKE2s_word_size * (i + 1));
         std::vector<FieldT> swapped_vector = swap_byte_endianness(temp_vector);
         block[i].fill_with_field_elements(this->pb, swapped_vector);
     }

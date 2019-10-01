@@ -39,13 +39,15 @@ g_primitive<FieldT>::g_primitive(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a1_temp, x, a1));
 
     // v[d] := (v[d] ^ v[a]) >>> R1
-    d_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, d, a1, rotation_constant_r1, d1));
+    d_xor_gadget.reset(
+        new xor_rot_gadget<FieldT>(pb, d, a1, rotation_constant_r1, d1));
 
     // v[c] := (v[c] + v[d]) mod 2^32
     c1_gadget.reset(new double_bit32_sum_eq_gadget<FieldT>(pb, c, d1, c1));
 
     // v[b] := (v[b] ^ v[c]) >>> R2
-    b_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, b, c1, rotation_constant_r2, b1));
+    b_xor_gadget.reset(
+        new xor_rot_gadget<FieldT>(pb, b, c1, rotation_constant_r2, b1));
 
     // v[a] := (v[a] + v[b] + y) mod 2^32
     a2_1_gadget.reset(
@@ -54,13 +56,15 @@ g_primitive<FieldT>::g_primitive(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a2_temp, y, a2));
 
     // v[d] := (v[d] ^ v[a]) >>> R3
-    d1_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, d1, a2, rotation_constant_r3, d2));
+    d1_xor_gadget.reset(
+        new xor_rot_gadget<FieldT>(pb, d1, a2, rotation_constant_r3, d2));
 
     // v[c] := (v[c] + v[d]) mod 2^32
     c2_gadget.reset(new double_bit32_sum_eq_gadget<FieldT>(pb, c1, d2, c2));
 
     // v[b] := (v[b] ^ v[c]) >>> R4
-    b1_xor_gadget.reset(new xor_rot_gadget<FieldT>(pb, b1, c2, rotation_constant_r4, b2));
+    b1_xor_gadget.reset(
+        new xor_rot_gadget<FieldT>(pb, b1, c2, rotation_constant_r4, b2));
 };
 
 template<typename FieldT> void g_primitive<FieldT>::generate_r1cs_constraints()

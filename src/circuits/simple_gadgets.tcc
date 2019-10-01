@@ -30,9 +30,7 @@ template<typename FieldT> void xor_gadget<FieldT>::generate_r1cs_constraints()
         // res = a XOR b <=> (2.a) * b = a + b - res
         this->pb.add_r1cs_constraint(
             libsnark::r1cs_constraint<FieldT>(
-                2 * a[i],
-                b[i],
-                a[i] + b[i] - res[i]),
+                2 * a[i], b[i], a[i] + b[i] - res[i]),
             FMT(this->annotation_prefix, " xored_bits_%zu", i));
     }
 };
@@ -89,8 +87,8 @@ void xor_constant_gadget<FieldT>::generate_r1cs_constraints()
             libsnark::r1cs_constraint<FieldT>(
                 -FieldT("2") * (FieldT("1") - FieldT("2") * c[i]) * a[i],
                 b[i],
-                res[i] - c[i] - a[i] * (FieldT("1") - FieldT("2") * c[i])
-                - b[i] * (FieldT("1") - FieldT("2") * c[i])),
+                res[i] - c[i] - a[i] * (FieldT("1") - FieldT("2") * c[i]) -
+                    b[i] * (FieldT("1") - FieldT("2") * c[i])),
             FMT(this->annotation_prefix, " rotated_xored_bits_%zu", i));
     }
 };
@@ -139,9 +137,7 @@ void xor_rot_gadget<FieldT>::generate_r1cs_constraints()
     for (size_t i = 0; i < a.size(); i++) {
         this->pb.add_r1cs_constraint(
             libsnark::r1cs_constraint<FieldT>(
-                2 * a[i],
-                b[i],
-                a[i] + b[i] - res[(i + shift) % a.size()]),
+                2 * a[i], b[i], a[i] + b[i] - res[(i + shift) % a.size()]),
             FMT(this->annotation_prefix, " rotated_xored_bits_%zu", i));
     }
 };
@@ -185,7 +181,7 @@ void double_bit32_sum_eq_gadget<FieldT>::generate_r1cs_constraints(
     //
     // Below, we propose an alternative way to constraint the result to
     // be a boolean string and to be the valid sum of a and b.
-    // 
+    //
     // Let a and b be the input bit string of length 32 bits (uint32)
     // Let res be the claimed result of a + b of length 33 bits (an additional
     // bit account for the potential carry of the addition of a and b)

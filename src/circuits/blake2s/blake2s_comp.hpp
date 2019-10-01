@@ -58,10 +58,14 @@ private:
     std::array<std::array<FieldT, BLAKE2s_word_size>, 2> t;
 
     std::array<libsnark::pb_variable_array<FieldT>, BLAKE2s_word_number> block;
-    std::array<std::array<libsnark::pb_variable_array<FieldT>,
-        BLAKE2s_word_number>, rounds + 1> v;
-    std::array<std::array<libsnark::pb_variable_array<FieldT>,
-        BLAKE2s_word_number>, rounds> v_temp;
+    std::array<
+        std::array<libsnark::pb_variable_array<FieldT>, BLAKE2s_word_number>,
+        rounds + 1>
+        v;
+    std::array<
+        std::array<libsnark::pb_variable_array<FieldT>, BLAKE2s_word_number>,
+        rounds>
+        v_temp;
     std::array<libsnark::pb_variable_array<FieldT>, 8> output_bytes;
     libsnark::block_variable<FieldT> input_block;
     libsnark::digest_variable<FieldT> output;

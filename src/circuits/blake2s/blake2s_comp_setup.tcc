@@ -171,7 +171,8 @@ void BLAKE2s_256_comp<FieldT>::setup_counter(size_t len_input_block)
         0, 0, 0, 0, 0, 0, 0, 0, // 00
         0, 0, 0, 0, 0, 0, 0, 0  // 00
     };
-    for (size_t i = 0; int(i) < std::min(int(BLAKE2s_word_size), int(bit_size)); i++) {
+    for (size_t i = 0; int(i) < std::min(int(BLAKE2s_word_size), int(bit_size));
+         i++) {
         t[0][BLAKE2s_word_size - i - 1] = length_bits[bit_size - i - 1];
     }
 
