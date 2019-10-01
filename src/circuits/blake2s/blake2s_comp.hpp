@@ -35,21 +35,26 @@ private:
 
     // Finalization flags. See Section 2.3 of https://blake2.net/blake2.pdf
     // We do a single call to the compression function: the first block is the
-    // last. Thus, f0 is set to xFF
-    const std::array<FieldT, BLAKE2s_word_size> f0 = {
+    // last. Thus, f0 is set to xFFFFFFFF
+    //
+    // Note:
+    // We use the workaround described here
+    // https://stackoverflow.com/questions/32912921/whats-wrong-with-this-inline-initialization-of-stdarray
+    // to initialize the const std::arrays
+    const std::array<FieldT, BLAKE2s_word_size> f0 = {{
         1, 1, 1, 1, 1, 1, 1, 1, // FF
         1, 1, 1, 1, 1, 1, 1, 1, // FF
         1, 1, 1, 1, 1, 1, 1, 1, // FF
         1, 1, 1, 1, 1, 1, 1, 1  // FF
-    };
+    }};
 
-    // We use the sequential mode, f1 is set to x00
-    const std::array<FieldT, BLAKE2s_word_size> f1 = {
+    // We use the sequential mode, f1 is set to x00000000
+    const std::array<FieldT, BLAKE2s_word_size> f1 = {{
         0, 0, 0, 0, 0, 0, 0, 0, // 00
         0, 0, 0, 0, 0, 0, 0, 0, // 00
         0, 0, 0, 0, 0, 0, 0, 0, // 00
         0, 0, 0, 0, 0, 0, 0, 0  // 00
-    };
+    }};
 
     // Chaining values
     std::array<std::array<FieldT, BLAKE2s_word_size>, 8> h;
