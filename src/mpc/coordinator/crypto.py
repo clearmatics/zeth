@@ -24,6 +24,8 @@ def import_digest(digest_s: str) -> bytes:
     """
     Digest from string
     """
+    if len(digest_s) != 2 * HASH_LENGTH:
+        raise Exception(f"unexpected digest string length: {len(digest_s)}")
     assert len(digest_s) == 2 * HASH_LENGTH
     return bytes.fromhex(digest_s)
 
@@ -58,6 +60,16 @@ def export_signature(sig: bytes) -> str:
 
 def import_signature(sig_s: str) -> bytes:
     return bytes.fromhex(sig_s)
+
+
+def compute_file_digest(file_name: str) -> bytes:
+    import subprocess
+    digest_output = subprocess.run(
+        ["shasum", "-a", "512", file_name],
+        check=True,
+        capture_output=True).stdout
+    digest_str = digest_output.split(b" ")[0].decode()
+    return import_digest(digest_str)
 
 
 def sign(sk: ecdsa.SigningKey, digest: bytes) -> bytes:

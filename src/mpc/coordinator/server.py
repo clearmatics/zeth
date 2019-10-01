@@ -21,7 +21,6 @@ from logging import info, warning
 from os import remove
 from os.path import exists, join
 
-
 CONFIGURATION_FILE = "server_config.json"
 STATE_FILE = "server_state.json"
 UPLOAD_FILE = "upload.raw"
@@ -232,6 +231,7 @@ class Server(object):
                 return cb(req)
             except Exception as ex:
                 warning(f"error in request: {ex}")
+                print(f"error in request: {ex}")
                 return Response("error: {ex}", 400)
             finally:
                 self.state_lock.release()

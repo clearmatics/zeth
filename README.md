@@ -94,6 +94,10 @@ These scripts implement a scenario where Alice, Bob and Charlie do confidential 
 
 **Note:** These clients are very minimal and only used for testing purpose!
 
+## Secure SRS generation
+
+See [MPC for SRS generation documentation](src/mpc/README.md)
+
 ## References and useful links
 
 - **BabyZoe:** https://github.com/zcash-hackworks/babyzoe

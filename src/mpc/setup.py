@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 from setuptools import find_packages
@@ -22,11 +22,15 @@ setup(
         "cheroot==7.0.0",
         "pycryptodome==3.9.0",
         "ecdsa==0.13.2",
+        "click==7.0",
+        "requests==2.22.0",
     ],
     scripts=[
-        "coordinator/null_server",
-        "coordinator/phase2_server",
-        "coordinator/sign_contribution",
-        "coordinator/generate_key",
+        "commands/null_server",
+        "commands/phase2_server",
+        "commands/phase2_contribute",
+        "commands/sign_contribution",
+        "commands/generate_key",
+        "commands/public_key",
     ]
 )

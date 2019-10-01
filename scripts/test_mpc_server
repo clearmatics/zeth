@@ -9,58 +9,29 @@ set -e
 . src/mpc/env/bin/activate
 set -x
 
-# Get challenge
-function get_challenge() {
-    while ! (curl --fail -o challenge.bin http://${HOST}:${PORT}/challenge) ; do
-        echo Server may still be computing ...
-        sleep 1
-    done
-}
-
 # Upload contribution
 # 1 - private key
-# 2 - public key
-# 3 - client id
+# 2 - client id
 function contribute() {
-    contributor_dir=_test_contrib_$3
+    contributor_dir=_test_contrib_$2
     rm -rf ${contributor_dir}
     mkdir -p ${contributor_dir}
     pushd ${contributor_dir}
-
-    get_challenge
-
-    # perform contribution
-    ${MPC} phase2-contribute \
-       --skip-user-input \
-       --digest response.bin.digest \
-       --out response.bin challenge.bin
-
-    contrib_sha=`shasum -a 512 response.bin | awk '{print $1}'`
-    pub_key=`cat $2`
-    sig=`sign_contribution $1 ${contrib_sha}`
-    curl \
-        --fail \
-        --fail-early \
-        -H 'X-MPC-Digest:'${contrib_sha} \
-        -H 'X-MPC-Public-Key: '${pub_key} \
-        -H 'X-MPC-Signature:'${sig} \
-        -F "data=@response.bin" \
-        http://${HOST}:${PORT}/contribute
-
+    phase2_contribute \
+        --skip-user-input \
+        --mpc-executable ${MPC} \
+        http://${HOST}:${PORT} $1
     popd
 }
 
 scripts/test_mpc_server_stop || echo -n
 scripts/test_mpc_server_start
-# stop_server
-# prepare_server
-# start_server
 
 # make 4 contributions
-contribute ${PRV_KEY_1} ${PUB_KEY_1} 1
-contribute ${PRV_KEY_2} ${PUB_KEY_2} 2
-contribute ${PRV_KEY_3} ${PUB_KEY_3} 3
-contribute ${PRV_KEY_4} ${PUB_KEY_4} 4
+contribute ${PRV_KEY_1} 1
+contribute ${PRV_KEY_2} 2
+contribute ${PRV_KEY_3} 3
+contribute ${PRV_KEY_4} 4
 
 # Server will spend some time verifying.  Wait for it.
 while ! [ -e ${FINAL_OUTPUT_FILE} ] ; do
