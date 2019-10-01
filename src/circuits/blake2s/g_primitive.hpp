@@ -11,6 +11,8 @@
 namespace libzeth
 {
 
+/// g_primitive is the gadget implementing the mixing function G
+/// used in Blake2s. See: https://tools.ietf.org/html/rfc7693#section-3.1
 template<typename FieldT> class g_primitive : public libsnark::gadget<FieldT>
 {
 private:
