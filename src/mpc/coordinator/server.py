@@ -47,6 +47,7 @@ class Server(object):
         self.upload_file = join(server_dir, UPLOAD_FILE)
         self.state_file_path = join(server_dir, STATE_FILE)
         self.state: ServerState
+        self.processing = False
 
         # Try to open config file and state files
         config_file_name = join(server_dir, CONFIGURATION_FILE)
@@ -103,6 +104,10 @@ class Server(object):
         self._write_state_file()
 
     def _tick(self) -> None:
+        if self.processing:
+            info("_tick: processing.  ignoring tick")
+            return
+
         self.state_lock.acquire()
         try:
             self._update_state(time.time())
@@ -117,6 +122,7 @@ class Server(object):
             }), 200)
 
     def _challenge(self, _req: Request) -> Response:
+        # TODO: Require authentication here, to avoid DoS?
         self._update_state(time.time())
         if self.state.have_all_contributions():
             return Response(
@@ -129,95 +135,113 @@ class Server(object):
             mimetype="application/octet-stream")
 
     def _contribute(self, request: Request) -> Response:
+        # Basic request check
+        headers = request.headers
+        # print(f"contribute: headers = {headers}")
+        if 'Content-Length' not in headers:
+            raise Exception("no Content-Length header")
+        if 'Content-Type' not in headers:
+            raise Exception("no Content-Type header")
+        if 'X-MPC-Digest' not in headers:
+            raise Exception("no X-MPC-Digest header")
+        if 'X-MPC-Public-Key' not in headers:
+            raise Exception("no X-MPC-Public-Key header")
+        if 'X-MPC-Signature' not in headers:
+            raise Exception("no X-MPC-Signature header")
+
+        content_length = int(headers['Content-Length'])
+        content_type = headers['Content-Type']
+        digest = import_digest(headers['X-MPC-Digest'])
+        pub_key_str = headers.get('X-MPC-Public-Key')
+        sig = import_signature(headers['X-MPC-Signature'])
+        # print(f"contribute: content_length = {content_length}")
+        # print(f"contribute: pub_key_str = {pub_key_str}")
+        # print(f"contribute: sig = {export_signature(sig)}")
+        # print(f"contribute: content_type = {content_type}")
+
+        boundary: str = ""
+        for val in content_type.split("; "):
+            if val.startswith("boundary="):
+                boundary = val[len("boundary="):]
+                break
+        if not boundary:
+            raise Exception("content-type contains no boundary")
+
+        now = time.time()
+        info(f"contribute: current time = {now}")
+
+        # Update state using the current time and return an error if
+        # the MPC is no longer active.
+        self._update_state(now)
+        if self.state.have_all_contributions():
+            return Response("MPC complete.  No contributions accepted.", 405)
+
+        # Check that the public key matches the expected next
+        # contributor (as text, rather than relying on comparison
+        # operators)
+        contributor_idx = self.state.next_contributor_index
+        contributor = self.config.contributors[contributor_idx]
+        pub_key = contributor.public_key
+        expect_pub_key_str = export_verification_key(pub_key)
+        if expect_pub_key_str != pub_key_str:
+            return Response("contributor key mismatch", 403)
+
+        # Check signature correctness.  Ensures that the uploader is
+        # the owner of the correct key BEFORE the costly file upload.
+        # Gives limited protection against DoS attacks (intentional or
+        # otherwise) from people other than the next contributor.
+        # (Note that this pre-upload check requires the digest to be
+        # passed in the HTTP header.)
+        if not verify(sig, pub_key, digest):
+            return Response("signature check failed", 403)
+
+        # Accept the upload (if the digest matches).  If successful,
+        # pass the file to the handler.
+        if exists(self.upload_file):
+            remove(self.upload_file)
+        handle_upload_request(
+            content_length,
+            boundary,
+            digest,
+            cast(io.BufferedIOBase, request.stream),
+            self.upload_file)
+
+        # Mark this instance as busy, launch a processing thread, and
+        # return (releasing the state lock).  Until the processing thread
+        # has finished, further requests will just return 503.
+        self.processing = True
+        Thread(target=self._process_contribution).start()
+        info(f"Launched thread for {self.state.next_contributor_index}" +
+             f"/{self.state.num_contributors} contrib")
+        return Response("OK", 200)
+
+    def _process_contribution(self) -> None:
         try:
-            # Basic request check
-            headers = request.headers
-            # print(f"contribute: headers = {headers}")
-            if 'Content-Length' not in headers:
-                raise Exception("no Content-Length header")
-            if 'Content-Type' not in headers:
-                raise Exception("no Content-Type header")
-            if 'X-MPC-Digest' not in headers:
-                raise Exception("no X-MPC-Digest header")
-            if 'X-MPC-Public-Key' not in headers:
-                raise Exception("no X-MPC-Public-Key header")
-            if 'X-MPC-Signature' not in headers:
-                raise Exception("no X-MPC-Signature header")
-
-            content_length = int(headers['Content-Length'])
-            content_type = headers['Content-Type']
-            digest = import_digest(headers['X-MPC-Digest'])
-            pub_key_str = headers.get('X-MPC-Public-Key')
-            sig = import_signature(headers['X-MPC-Signature'])
-            # print(f"contribute: content_length = {content_length}")
-            # print(f"contribute: pub_key_str = {pub_key_str}")
-            # print(f"contribute: sig = {export_signature(sig)}")
-            # print(f"contribute: content_type = {content_type}")
-
-            boundary: str = ""
-            for val in content_type.split("; "):
-                if val.startswith("boundary="):
-                    boundary = val[len("boundary="):]
-                    break
-            if not boundary:
-                raise Exception("content-type contains no boundary")
-
-            now = time.time()
-            info(f"contribute: current time = {now}")
-
-            # Update state using the current time and return an error if
-            # the MPC is no longer active.
-            self._update_state(now)
-            if self.state.have_all_contributions():
-                return Response("MPC complete.  No contributions accepted.", 405)
-
-            # Check that the public key matches the expected next
-            # contributor (as text, rather than relying on comparison
-            # operators)
-            contributor_idx = self.state.next_contributor_index
-            contributor = self.config.contributors[contributor_idx]
-            pub_key = contributor.public_key
-            expect_pub_key_str = export_verification_key(pub_key)
-            if expect_pub_key_str != pub_key_str:
-                return Response("contributor key mismatch", 403)
-
-            # Check signature correctness.  Ensures that the uploader is
-            # the owner of the correct key BEFORE the costly file upload.
-            # Gives limited protection against DoS attacks (intentional or
-            # otherwise) from people other than the next contributor.
-            # (Note that this pre-upload check requires the digest to be
-            # passed in the HTTP header.)
-            if not verify(sig, pub_key, digest):
-                return Response("signature check failed", 403)
-
-            # Accept the upload (if the digest matches).  If successful,
-            # pass the file to the handler.
-            if exists(self.upload_file):
-                remove(self.upload_file)
-            handle_upload_request(
-                content_length,
-                boundary,
-                digest,
-                cast(io.BufferedIOBase, request.stream),
-                self.upload_file)
-
-            if not self.handler.process_contribution(
-                    self.state.next_contributor_index,
-                    UPLOAD_FILE):
-                raise Exception("contribution failed")
-
-            now = time.time()
-            self._on_contribution(now)
             info(
-                f"contribute: SUCCESS ({self.state.next_contributor_index}" +
-                f"/{self.state.num_contributors} contribs), finished time " +
-                f"= {now}")
-            return Response("OK", 200)
+                "_process_contribution(thread): processing contribution " +
+                f"{self.state.next_contributor_index}" +
+                f"/{self.state.num_contributors} (start={time.time()})")
+
+            if self.handler.process_contribution(
+                    self.state.next_contributor_index,
+                    self.upload_file):
+                now = time.time()
+                info(f"_process_contribution(thread): SUCCESS (finished {now})")
+                self._on_contribution(now)
+
+            else:
+                warning("_process_contribution(thread): contribution failed")
+                return
 
         finally:
-            # Remove the uploaded file if it is still there
-            if exists(UPLOAD_FILE):
-                remove(UPLOAD_FILE)
+            try:
+                # Remove the uploaded file if it is still there
+                if exists(self.upload_file):
+                    remove(self.upload_file)
+            finally:
+                # Mark server as ready again
+                self.processing = False
+                info("_process_contribution(thread): completed")
 
     def _run(self) -> None:
         # Server and end points
@@ -226,6 +250,10 @@ class Server(object):
         def _with_state_lock(
                 req: Request,
                 cb: Callable[[Request], Response]) -> Response:
+
+            if self.processing:
+                return Response("processing contribution.  retry later.", 503)
+
             self.state_lock.acquire()
             try:
                 return cb(req)
