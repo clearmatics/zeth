@@ -79,9 +79,11 @@ void xor_constant_gadget<FieldT>::generate_r1cs_constraints()
     //   2(res) * c = res + c - res2
     // which leads to:
     //   2(a + b - 2ab) * c = a + b - 2ab + c - res2
-    // => res2 = 2ac + 2bc - 4abc - a - b + 2ab - c
-    // => res2 = b * [2 * (1 - 2c) * a] + b * (2c - 1) + a * (2c - 1) - c
-    // => res2 - b * (1 - 2c) - a * (1 - 2c) - c = b * [-2(1 - 2c) * a]
+    // => res2 = a + b - 2ab + c - 2ac - 2bc + 4abc
+    // => res2 - c = b * (4ac - 2a) + a + b - 2ac - 2bc
+    // => res2 - c = b * (4ac - 2a) + a * (1 - 2c) + b * (1 - 2c)
+    // => res2 - c - a * (1 - 2c) - b * (1 - 2c) = b * (4ac - 2a)
+    // and b * (4ac - 2a) = b * [2 * (2c - 1) *a] = b * [-2 * (1 - 2c) *a]
     for (size_t i = 0; i < a.size(); i++) {
         this->pb.add_r1cs_constraint(
             libsnark::r1cs_constraint<FieldT>(
