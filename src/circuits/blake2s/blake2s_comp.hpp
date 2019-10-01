@@ -22,12 +22,13 @@ template<typename FieldT>
 class BLAKE2s_256_comp : public libsnark::gadget<FieldT>
 {
 private:
-    // Section 2.1 of https://blake2.net/blake2.pdf specifies that BLAKE2s has 10 rounds
+    // Section 2.1 of https://blake2.net/blake2.pdf specifies that BLAKE2s has
+    // 10 rounds
     static const int rounds = 10;
 
     // Finalization flags. See Section 2.3 of https://blake2.net/blake2.pdf
-    // We do a single call to the compression function: the first block is the last
-    // thus, f0 is set to xFF
+    // We do a single call to the compression function: the first block is the
+    // last. Thus, f0 is set to xFF
     const std::array<FieldT, 32> f0 = {
         1, 1, 1, 1, 1, 1, 1, 1, // FF
         1, 1, 1, 1, 1, 1, 1, 1, // FF
@@ -57,7 +58,8 @@ private:
     libsnark::block_variable<FieldT> input_block;
     libsnark::digest_variable<FieldT> output;
 
-    // Array of mixing functions G used in each rounds in the compression function
+    // Array of mixing functions G used in each rounds in the compression
+    // function
     std::array<std::vector<g_primitive<FieldT>>, rounds> g_arrays;
     std::vector<xor_constant_gadget<FieldT>> xor_vector;
 

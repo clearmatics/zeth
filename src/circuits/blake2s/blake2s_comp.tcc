@@ -74,15 +74,15 @@ void BLAKE2s_256_comp<FieldT>::generate_r1cs_constraints(
 
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
 {
-    // Format two 256 bit long big endian inputs into one 512 long little endian
+    // Format two 256-bit long big endian inputs into one 512 long little endian
     // input (with padding if necessary)
     size_t input_size = input_block.bits.size();
     // We do not use block_size because the value might not be entered
     // (c.f. block_variable<FieldT>::block_variable(protoboard<FieldT> &pb,
     //                                   const
-    //                                   std::vector<pb_variable_array<FieldT> >
+    //                                   std::vector<pb_variable_array<FieldT>>
     //                                   &parts, const std::string
-    //                                   &annotation_prefix) )
+    //                                   &annotation_prefix))
 
     // Push the block variable in local to be swapped
     std::vector<FieldT> padded_input;
