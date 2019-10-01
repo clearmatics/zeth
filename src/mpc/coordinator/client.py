@@ -5,6 +5,7 @@ from .crypto import \
     export_signature
 from requests import post, get
 from os.path import join
+import time
 
 CHUNK_SIZE = 4096
 
@@ -18,11 +19,23 @@ class Client(object):
         """
         GET /challenge request, downloading to file
         """
-        with get(join(self.base_url, "challenge"), stream=True) as req:
-            req.raise_for_status()
-            with open(challenge_file, "wb") as out_f:
-                for chunk in req.iter_content(chunk_size=CHUNK_SIZE):
-                    out_f.write(chunk)
+        # Contributors should be notified of their turn AFTER processing has
+        # completed on the previous contribution.  However, it's possible for
+        # the next contributor, knowing his turn is next, to be waiting for
+        # processing to complete.  Hence we loop with a message if the server
+        # claims to be temporarily unavailable.
+        while True:
+            with get(join(self.base_url, "challenge"), stream=True) as resp:
+                if 503 == resp.status_code:
+                    print("server is busy.  retrying ...")
+                    time.sleep(5.0)
+                    continue
+
+                resp.raise_for_status()
+                with open(challenge_file, "wb") as out_f:
+                    for chunk in resp.iter_content(chunk_size=CHUNK_SIZE):
+                        out_f.write(chunk)
+                break
 
     def push_contribution(
             self,
