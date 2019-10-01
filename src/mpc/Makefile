@@ -7,8 +7,8 @@ setup:
 check: syntax test
 
 syntax:
-	flake8 `git ls-files coordinator`
-	mypy -p coordinator
+	flake8 `git ls-files 'coordinator/**.py' commands 'test/**.py'`
+	mypy `git ls-files 'coordinator/**.py' commands 'test/**.py'`
 
 test:
 	python -m unittest

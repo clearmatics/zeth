@@ -4,22 +4,24 @@
 Script to launch a phase2 coordinator server.
 """
 
+from click import command, option
 
-def main() -> int:
+
+@command()
+@option("--path", default=".", help="Server working path")
+def phase2_server(path: str) -> None:
     from coordinator.phase2_contribution_handler import \
         Phase2ContributionHandler
     from coordinator.server import Server
     import time
 
     try:
-        server = Server(Phase2ContributionHandler(), ".")
+        server = Server(Phase2ContributionHandler(), path)
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
         server.stop()
 
-    return 0
-
 
 if __name__ == "__main__":
-    exit(main())
+    phase2_server()

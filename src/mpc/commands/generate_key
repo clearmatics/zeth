@@ -3,32 +3,23 @@
 from coordinator.crypto import \
     generate_signing_key, get_verification_key, export_signing_key, \
     export_verification_key
-from typing import List
+from click import command, argument
 
 
-def usage(argv0: str) -> None:
-    print(f"""
-Usage:
-  {argv0} [key_output_file]
-""")
-
-
-def generate_key(argv: List[str]) -> int:
-    if 2 != len(argv):
-        usage(argv[0])
-        return 1
-
-    out_file = argv[1]
+@command()
+@argument("key-file")
+def generate_key(key_file: str) -> None:
+    """
+    Generate new private key to key-file.  Public key is written to stdout.
+    """
     signing_key = generate_signing_key()
     verification_key = get_verification_key(signing_key)
 
-    with open(out_file, "wb") as out_f:
+    with open(key_file, "wb") as out_f:
         out_f.write(export_signing_key(signing_key))
 
     print(export_verification_key(verification_key))
-    return 0
 
 
 if __name__ == "__main__":
-    import sys
-    exit(generate_key(sys.argv))
+    generate_key()
