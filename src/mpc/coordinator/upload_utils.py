@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import io
 from Crypto.Hash import SHA512
 from typing import Optional
+import io
 
 
 def _read_part_headers(stream: io.IOBase) -> int:

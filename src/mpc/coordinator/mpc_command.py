@@ -12,9 +12,10 @@ Utility to invoke MPC command
 
 class MPCCommand(object):
     """
+    Wrapper around the 'mpc' utility.
     """
 
-    def __init__(self, mpc_exe: str = ""):
+    def __init__(self, mpc_exe: Optional[str] = ""):
         if not mpc_exe:
             mpc_exe = os.path.join(
                 os.path.dirname(__file__),
@@ -55,6 +56,18 @@ class MPCCommand(object):
         if digest_file is not None:
             args += ["--digest", digest_file]
         args += [orig_challenge, transcript, final_challenge]
+        return self._exec(args)
+
+    def phase2_contribute(
+            self,
+            challenge_file: str,
+            output_file: Optional[str] = None,
+            digest_file: Optional[str] = None,
+            skip_user_input: bool = False) -> bool:
+        args = ["phase2-contribute", challenge_file]
+        args += ["--out", output_file] if output_file else []
+        args += ["--digest", digest_file] if digest_file else []
+        args += ["--skip-user-input"] if output_file else []
         return self._exec(args)
 
     def _exec(self, args: List[str]) -> bool:
