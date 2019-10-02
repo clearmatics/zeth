@@ -20,7 +20,8 @@ function contribute() {
     phase2_contribute \
         --skip-user-input \
         --mpc-executable ${MPC} \
-        http://${HOST}:${PORT} $1
+        --server-certificate ${SERVER_CERT} \
+        https://${HOST}:${PORT} $1
     popd
 }
 
