@@ -5,11 +5,13 @@ server command
 """
 
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher  # type: ignore
-from coordinator.icontributionhandler import IContributionHandler
-from coordinator.interval import Interval
-from coordinator.server_state import Configuration, ServerState
-from coordinator.upload_utils import handle_upload_request
-from coordinator.crypto import \
+from cheroot.ssl.builtin import BuiltinSSLAdapter                  # type: ignore
+from .icontributionhandler import IContributionHandler
+from .interval import Interval
+from .server_configuration import Configuration
+from .server_state import ServerState
+from .upload_utils import handle_upload_request
+from .crypto import \
     import_digest, export_verification_key, import_signature, verify
 from typing import cast, Optional, Callable
 from flask import Flask, request, Request, Response
@@ -285,10 +287,18 @@ class Server(object):
 
         interval = Interval(60.0, _tick)
         try:
+            if not exists(self.config.tls_certificate):
+                raise Exception(f"no cert file {self.config.tls_certificate}")
+            if not exists(self.config.tls_key):
+                raise Exception(f"no key file {self.config.tls_key}")
+
             self.server = WSGIServer(
                 ('0.0.0.0', self.config.port),
                 PathInfoDispatcher({'/': app}),
                 numthreads=1)
+            self.server.ssl_adapter = BuiltinSSLAdapter(
+                self.config.tls_certificate,
+                self.config.tls_key)
             self.server.start()
         finally:
             # print("(thread) Stopping ...", end='')
