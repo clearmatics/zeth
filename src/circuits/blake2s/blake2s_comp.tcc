@@ -15,30 +15,32 @@ BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
     , output(output)
 {
     // Allocate and format the 16 input block variable
-    for (size_t i = 0; i < 16; i++) {
+    for (size_t i = 0; i < BLAKE2s_word_number; i++) {
         block[i].allocate(
-            pb, 32, FMT(this->annotation_prefix, " block_%zu", i));
+            pb,
+            BLAKE2s_word_size,
+            FMT(this->annotation_prefix, " block_%zu", i));
     }
 
-    // Setup constants, parameters and first state
+    // Setup constants, hash parameters and initialize the state
     ZERO.allocate(pb, FMT(this->annotation_prefix, " ZERO"));
     BLAKE2s_256_comp<FieldT>::setup_constants();
     BLAKE2s_256_comp<FieldT>::setup_h();
 
-    // Allocate the states
+    // Allocate the state variables
     for (size_t i = 0; i < rounds + 1; i++) {
-        for (size_t j = 0; j < 16; j++) {
+        for (size_t j = 0; j < BLAKE2s_word_number; j++) {
             v[i][j].allocate(
                 this->pb,
-                32,
+                BLAKE2s_word_size,
                 FMT(this->annotation_prefix, " v_%zu", i * rounds + j));
         }
     }
     for (size_t i = 0; i < rounds; i++) {
-        for (size_t j = 0; j < 16; j++) {
+        for (size_t j = 0; j < BLAKE2s_word_number; j++) {
             v_temp[i][j].allocate(
                 this->pb,
-                32,
+                BLAKE2s_word_size,
                 FMT(this->annotation_prefix, " v_temp_%zu", i * rounds + j));
         }
     }
@@ -46,10 +48,13 @@ BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
     // Allocate output bytes (before swapping endianness and appending)
     for (size_t i = 0; i < 8; i++) {
         output_bytes[i].allocate(
-            pb, 32, FMT(this->annotation_prefix, " output_byte_%zu", i));
+            pb,
+            BLAKE2s_word_size,
+            FMT(this->annotation_prefix, " output_byte_%zu", i));
     }
 
-    setup_gadgets();
+    // Set up the g_primitive gadgets used in the compression function
+    setup_mixing_gadgets();
 };
 
 template<typename FieldT>
@@ -74,15 +79,15 @@ void BLAKE2s_256_comp<FieldT>::generate_r1cs_constraints(
 
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
 {
-    // Format two 256 bit long big endian inputs into one 512 long little endian
+    // Format two 256-bit long big endian inputs into one 512 long little endian
     // input (with padding if necessary)
     size_t input_size = input_block.bits.size();
     // We do not use block_size because the value might not be entered
-    //(c.f. block_variable<FieldT>::block_variable(protoboard<FieldT> &pb,
+    // (c.f. block_variable<FieldT>::block_variable(protoboard<FieldT> &pb,
     //                                   const
-    //                                   std::vector<pb_variable_array<FieldT> >
+    //                                   std::vector<pb_variable_array<FieldT>>
     //                                   &parts, const std::string
-    //                                   &annotation_prefix) )
+    //                                   &annotation_prefix))
 
     // Push the block variable in local to be swapped
     std::vector<FieldT> padded_input;
@@ -90,15 +95,16 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
         padded_input.push_back(this->pb.val(input_block.bits[i]));
     }
 
-    // [SANITY CHECK] Pad if necessary
+    // [SANITY CHECK] Pad if necessary (if input_size < BLAKE2s_block_size)
     for (size_t i = 0; i < BLAKE2s_block_size - input_size; i++) {
         padded_input.push_back(FieldT("0"));
     }
 
     // Allocate and format the 16 input block variable
-    for (size_t i = 0; i < 16; i++) {
+    for (size_t i = 0; i < BLAKE2s_word_number; i++) {
         std::vector<FieldT> temp_vector(
-            padded_input.begin() + 32 * i, padded_input.begin() + 32 * (i + 1));
+            padded_input.begin() + BLAKE2s_word_size * i,
+            padded_input.begin() + BLAKE2s_word_size * (i + 1));
         std::vector<FieldT> swapped_vector = swap_byte_endianness(temp_vector);
         block[i].fill_with_field_elements(this->pb, swapped_vector);
     }
