@@ -16,19 +16,8 @@ class MPCCommand(object):
     """
 
     def __init__(self, mpc_exe: Optional[str] = ""):
-        if not mpc_exe:
-            mpc_exe = os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "..",
-                "..",
-                "build",
-                "src",
-                "mpc",
-                "mpc-test")
-
-        assert exists(mpc_exe)
-        self.mpc_exe = mpc_exe
+        self.mpc_exe = mpc_exe or _default_mpc_bin()
+        assert exists(self.mpc_exe)
 
     def phase2_verify_contribution(
             self,
@@ -75,3 +64,14 @@ class MPCCommand(object):
         print(f"CMD: {' '.join(cmd)}")
         comp = subprocess.run(cmd)
         return 0 == comp.returncode
+
+
+def _default_mpc_bin() -> str:
+    return os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "build",
+        "src",
+        "mpc",
+        "mpc-test")
