@@ -96,7 +96,7 @@ These scripts implement a scenario where Alice, Bob and Charlie do confidential 
 
 ## Secure SRS generation
 
-See [MPC for SRS generation documentation](src/mpc/README.md)
+See [MPC for SRS generation documentation](mpc/README.md)
 
 ## References and useful links
 

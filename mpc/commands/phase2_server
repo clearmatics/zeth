@@ -5,11 +5,13 @@ Script to launch a phase2 coordinator server.
 """
 
 from click import command, option
+from typing import Optional
 
 
 @command()
 @option("--path", default=".", help="Server working path")
-def phase2_server(path: str) -> None:
+@option("--bin-path", default=None, help="Path to mpc binaries")
+def phase2_server(path: str, bin_path: Optional[str]) -> None:
     from coordinator.phase2_contribution_handler import \
         Phase2ContributionHandler
     from coordinator.server import Server

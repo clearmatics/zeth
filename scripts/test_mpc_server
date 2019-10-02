@@ -2,12 +2,11 @@
 
 . scripts/test_mpc_common.sh
 
+set -e
+set -x
+
 # Test an mpc server that has been set up with a test handler, using the
 # configuration in ./testdata.
-
-set -e
-. src/mpc/env/bin/activate
-set -x
 
 # Upload contribution
 # 1 - private key
@@ -25,8 +24,9 @@ function contribute() {
     popd
 }
 
-scripts/test_mpc_server_stop || echo -n
-scripts/test_mpc_server_start
+stop_server || echo -n
+prepare_server
+start_server
 
 # make 4 contributions
 contribute ${PRV_KEY_1} 1
@@ -62,7 +62,7 @@ ${MPC} phase2-verify-transcript \
        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
 
 # Shut down the server
-scripts/test_mpc_server_stop
+stop_server
 
 set +x
 set +e

@@ -6,9 +6,9 @@ Implementation of Phase2ContributionHandler
 
 from coordinator.icontributionhandler import IContributionHandler
 from coordinator.mpc_command import MPCCommand
-from os.path import exists
+from os.path import exists, join
 from os import rename
-
+from typing import Optional
 
 CHALLENGE_0_FILE = "challenge_0.bin"
 NEXT_CHALLENGE_FILE = "next_challenge.bin"
@@ -23,7 +23,7 @@ class Phase2ContributionHandler(IContributionHandler):
     Handler processing phase2 challenges and contributions.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, bin_path: Optional[str] = None) -> None:
         # Sanity check
         if not exists(CHALLENGE_0_FILE):
             raise Exception(f"no {CHALLENGE_0_FILE} found in server dir")
@@ -33,7 +33,8 @@ class Phase2ContributionHandler(IContributionHandler):
             if exists(TRANSCRIPT_FILE):
                 raise Exception(f"unexpected {TRANSCRIPT_FILE} in server dir")
 
-        self.mpc = MPCCommand()
+        mpc_exe = join(bin_path, "mpc") if bin_path else None
+        self.mpc = MPCCommand(mpc_exe)
 
     def get_current_challenge_file(self, contributor_idx: int) -> str:
         # If there is no NEXT_CHALLENGE_FILE, use CHALLENGE_0_FILE.  (Note,
