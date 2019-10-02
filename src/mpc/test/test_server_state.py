@@ -2,7 +2,8 @@
 
 from unittest import TestCase
 from coordinator.crypto import import_verification_key
-from coordinator.server_state import Configuration, Contributor, ServerState
+from coordinator.server_state import ServerState
+from coordinator.server_configuration import Configuration, Contributor
 
 
 START_TIME = 8000.0
@@ -123,7 +124,11 @@ class TestServerState(TestCase):
                 Contributor("c4@mpc.com", import_verification_key(TEST_KEY_3)),
             ],
             START_TIME,
-            CONTRIBUTION_INTERVAL)
+            CONTRIBUTION_INTERVAL,
+            "key.pem",
+            "cert.pem",
+            8001
+        )
 
         pass
 

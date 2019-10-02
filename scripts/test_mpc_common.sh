@@ -12,6 +12,9 @@ TRANSCRIPT_FILE=${SERVER_DIR}/transcript.bin
 FINAL_OUTPUT_FILE=${SERVER_DIR}/final_output.bin
 FINAL_TRANSCRIPT_FILE=${SERVER_DIR}/final_transcript.bin
 
+SERVER_KEY=${SERVER_DIR}/key.pem
+SERVER_CERT=${SERVER_DIR}/cert.pem
+
 # Commands
 POT="${BIN_DIR}/pot-process"
 MPC="${BIN_DIR}/mpc/mpc-test"
@@ -33,5 +36,5 @@ PUB_KEY_4=${TEST_DATA_DIR}/mpc_key4.pub
 
 # Get server state
 function get_state() {
-    curl --fail http://${HOST}:${PORT}/state
+    curl --cacert ${SERVER_CERT} --fail https://${HOST}:${PORT}/state
 }
