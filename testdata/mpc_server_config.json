@@ -19,5 +19,7 @@
     ],
     "start_time": "TIME",
     "contribution_interval": "10.0",
+    "tls_key": "key.pem",
+    "tls_certificate": "cert.pem",
     "port": 8001
 }

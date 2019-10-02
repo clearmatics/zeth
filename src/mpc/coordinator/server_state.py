@@ -1,72 +1,9 @@
+#!/usr/bin/env python3
+
 from __future__ import annotations
-from typing import List, Dict, cast
+from typing import cast
 import json
-from .crypto import \
-    VerificationKey, import_verification_key, export_verification_key
-
-JsonDict = Dict[str, object]
-
-
-class Contributor(object):
-    """
-    Details of a specific contributor
-    """
-    def __init__(self, email: str, public_key: VerificationKey):
-        self.email = email
-        self.public_key = public_key
-
-    def _to_json_dict(self) -> JsonDict:
-        return {
-            "email": self.email,
-            "public_key": export_verification_key(self.public_key),
-        }
-
-    @staticmethod
-    def _from_json_dict(json_dict: JsonDict) -> Contributor:
-        return Contributor(
-            cast(str, json_dict["email"]),
-            import_verification_key(cast(str, json_dict["public_key"])))
-
-
-class Configuration(object):
-    """
-    Static configuration provided at startup
-    """
-    def __init__(
-            self,
-            contributors: List[Contributor],
-            start_time: float,
-            contribution_interval: float,
-            port: int = 5000):
-        assert 0 != start_time
-        self.contributors: List[Contributor] = contributors
-        self.start_time: float = float(start_time)
-        self.contribution_interval: float = float(contribution_interval)
-        self.port = port
-
-    def to_json(self) -> str:
-        return json.dumps(self._to_json_dict())
-
-    @staticmethod
-    def from_json(config_json: str) -> Configuration:
-        return Configuration._from_json_dict(json.loads(config_json))
-
-    def _to_json_dict(self) -> JsonDict:
-        return {
-            "contributors": [c._to_json_dict() for c in self.contributors],
-            "start_time": str(self.start_time),
-            "contribution_interval": str(self.contribution_interval),
-            "port": self.port,
-        }
-
-    @staticmethod
-    def _from_json_dict(json_dict: JsonDict) -> Configuration:
-        contributors_json_list = cast(List[JsonDict], json_dict["contributors"])
-        return Configuration(
-            [Contributor._from_json_dict(c) for c in contributors_json_list],
-            float(cast(str, json_dict["start_time"])),
-            float(cast(str, json_dict["contribution_interval"])),
-            port=int(cast(int, json_dict["port"])))
+from .server_configuration import JsonDict, Configuration
 
 
 class ServerState(object):
