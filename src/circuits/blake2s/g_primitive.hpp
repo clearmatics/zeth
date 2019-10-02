@@ -2,7 +2,7 @@
 #define __ZETH_G_PRIMITIVE_HPP__
 
 #include "circuits/circuits-util.hpp"
-#include "circuits/simple_gadgets.hpp"
+#include "circuits/binary_operation_gadgets.hpp"
 #include "types/bits.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>

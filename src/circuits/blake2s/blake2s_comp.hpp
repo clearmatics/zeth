@@ -2,7 +2,7 @@
 #define __ZETH_BLAKE2S_HASH_HPP__
 
 #include "circuits/circuits-util.hpp"
-#include "circuits/simple_gadgets.hpp"
+#include "circuits/binary_operation_gadgets.hpp"
 #include "g_primitive.hpp"
 #include "types/bits.hpp"
 #include "util.hpp"

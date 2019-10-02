@@ -107,6 +107,6 @@ public:
 };
 
 } // namespace libzeth
-#include "simple_gadgets.tcc"
+#include "binary_operation_gadgets.tcc"
 
 #endif // __ZZETH_SIMPLE_GADGETS_HPP__
