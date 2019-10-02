@@ -102,6 +102,9 @@ contract Groth16Verifier {
         uint[2] memory c,
         uint[] memory primaryInputs
     ) public returns (bool) {
+        // Scalar field characteristic
+        uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);
@@ -109,6 +112,11 @@ contract Groth16Verifier {
 
         uint[] memory inputValues = new uint[](primaryInputs.length);
         for(uint i = 0; i < primaryInputs.length; i++){
+            // Make sure that all primary inputs lie in the scalar field
+            require(
+                primaryInputs[i] < r,
+                "Input is not is scalar field"
+            );
             inputValues[i] = primaryInputs[i];
         }
 
