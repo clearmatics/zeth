@@ -5,10 +5,6 @@ from os.path import exists
 import os.path
 import subprocess
 
-"""
-Utility to invoke MPC command
-"""
-
 
 class MPCCommand(object):
     """
@@ -16,19 +12,8 @@ class MPCCommand(object):
     """
 
     def __init__(self, mpc_exe: Optional[str] = ""):
-        if not mpc_exe:
-            mpc_exe = os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "..",
-                "..",
-                "build",
-                "src",
-                "mpc",
-                "mpc-test")
-
-        assert exists(mpc_exe)
-        self.mpc_exe = mpc_exe
+        self.mpc_exe = mpc_exe or _default_mpc_bin()
+        assert exists(self.mpc_exe)
 
     def phase2_verify_contribution(
             self,
@@ -36,13 +21,10 @@ class MPCCommand(object):
             response: str,
             out_new_challenge: Optional[str] = None,
             transcript: Optional[str] = None) -> bool:
-        args = [
-            "phase2-verify-contribution",
-        ]
-        if out_new_challenge is not None:
-            args += ["--new-challenge", out_new_challenge]
-        if transcript is not None:
-            args += ["--transcript", transcript]
+        args = ["phase2-verify-contribution"]
+        args += ["--new-challenge", out_new_challenge] \
+            if out_new_challenge else []
+        args += ["--transcript", transcript] if transcript else []
         args += [orig_challenge, response]
         return self._exec(args)
 
@@ -53,19 +35,17 @@ class MPCCommand(object):
             transcript: str,
             digest_file: Optional[str] = None) -> bool:
         args = ["phase2-verify-transcript"]
-        if digest_file is not None:
-            args += ["--digest", digest_file]
+        args += ["--digest", digest_file] if digest_file else []
         args += [orig_challenge, transcript, final_challenge]
         return self._exec(args)
 
     def phase2_contribute(
             self,
             challenge_file: str,
-            output_file: Optional[str] = None,
+            output_file: str,
             digest_file: Optional[str] = None,
             skip_user_input: bool = False) -> bool:
-        args = ["phase2-contribute", challenge_file]
-        args += ["--out", output_file] if output_file else []
+        args = ["phase2-contribute", challenge_file, output_file]
         args += ["--digest", digest_file] if digest_file else []
         args += ["--skip-user-input"] if output_file else []
         return self._exec(args)
@@ -75,3 +55,8 @@ class MPCCommand(object):
         print(f"CMD: {' '.join(cmd)}")
         comp = subprocess.run(cmd)
         return 0 == comp.returncode
+
+
+def _default_mpc_bin() -> str:
+    return os.path.join(
+        os.path.dirname(__file__), "..", "..", "build", "src", "mpc", "mpc")

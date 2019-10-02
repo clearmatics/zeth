@@ -139,7 +139,6 @@ class Server(object):
     def _contribute(self, request: Request) -> Response:
         # Basic request check
         headers = request.headers
-        # print(f"contribute: headers = {headers}")
         if 'Content-Length' not in headers:
             raise Exception("no Content-Length header")
         if 'Content-Type' not in headers:
@@ -156,10 +155,6 @@ class Server(object):
         digest = import_digest(headers['X-MPC-Digest'])
         pub_key_str = headers.get('X-MPC-Public-Key')
         sig = import_signature(headers['X-MPC-Signature'])
-        # print(f"contribute: content_length = {content_length}")
-        # print(f"contribute: pub_key_str = {pub_key_str}")
-        # print(f"contribute: sig = {export_signature(sig)}")
-        # print(f"contribute: content_type = {content_type}")
 
         boundary: str = ""
         for val in content_type.split("; "):
@@ -301,7 +296,5 @@ class Server(object):
                 self.config.tls_key)
             self.server.start()
         finally:
-            # print("(thread) Stopping ...", end='')
             interval.stop()
             self.server = None
-            # print("(thread) DONE")
