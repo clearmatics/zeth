@@ -13,7 +13,8 @@ class NullContributionHandler(IContributionHandler):
     """
     A null handler that accepts contributions and simply stores them as
     subsequent challenges.  When the MPC has completed, the latest contribution
-    is moved to
+    is moved to 'final-upload'.  Can be used for testing coordinator
+    configuration (certificate setup, etc).
     """
 
     def get_current_challenge_file(self, _next_contributor_idx: int) -> str:

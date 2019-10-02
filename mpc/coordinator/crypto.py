@@ -5,7 +5,7 @@ from Crypto.Hash import SHA512
 
 
 HASH = SHA512
-HASH_LENGTH = 64
+HASH_BYTE_LENGTH = 64
 CURVE = ecdsa.NIST521p
 VerificationKey = ecdsa.VerifyingKey
 SigningKey = ecdsa.SigningKey
@@ -16,7 +16,7 @@ def export_digest(digest: bytes) -> str:
     """
     Digest to string
     """
-    assert len(digest) == HASH_LENGTH
+    assert len(digest) == HASH_BYTE_LENGTH
     return digest.hex()
 
 
@@ -24,9 +24,9 @@ def import_digest(digest_s: str) -> bytes:
     """
     Digest from string
     """
-    if len(digest_s) != 2 * HASH_LENGTH:
+    if len(digest_s) != 2 * HASH_BYTE_LENGTH:
         raise Exception(f"unexpected digest string length: {len(digest_s)}")
-    assert len(digest_s) == 2 * HASH_LENGTH
+    assert len(digest_s) == 2 * HASH_BYTE_LENGTH
     return bytes.fromhex(digest_s)
 
 

@@ -6,16 +6,15 @@ Implementation of Phase2ContributionHandler
 
 from coordinator.icontributionhandler import IContributionHandler
 from coordinator.mpc_command import MPCCommand
-from os.path import exists
-from os import rename
+from coordinator.phase1_contribution_handler import \
+    NEW_CHALLENGE_FILE, TRANSCRIPT_FILE, FINAL_OUTPUT, FINAL_TRANSCRIPT
 
+from os.path import exists, join
+from os import rename
+from typing import Optional
 
 CHALLENGE_0_FILE = "challenge_0.bin"
 NEXT_CHALLENGE_FILE = "next_challenge.bin"
-NEW_CHALLENGE_FILE = "new_challenge.bin"
-TRANSCRIPT_FILE = "transcript.bin"
-FINAL_OUTPUT = "final_output.bin"
-FINAL_TRANSCRIPT = "final_transcript.bin"
 
 
 class Phase2ContributionHandler(IContributionHandler):
@@ -23,7 +22,7 @@ class Phase2ContributionHandler(IContributionHandler):
     Handler processing phase2 challenges and contributions.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, bin_path: Optional[str] = None) -> None:
         # Sanity check
         if not exists(CHALLENGE_0_FILE):
             raise Exception(f"no {CHALLENGE_0_FILE} found in server dir")
@@ -33,12 +32,13 @@ class Phase2ContributionHandler(IContributionHandler):
             if exists(TRANSCRIPT_FILE):
                 raise Exception(f"unexpected {TRANSCRIPT_FILE} in server dir")
 
-        self.mpc = MPCCommand()
+        mpc_exe = join(bin_path, "mpc") if bin_path else None
+        self.mpc = MPCCommand(mpc_exe)
 
     def get_current_challenge_file(self, contributor_idx: int) -> str:
         # If there is no NEXT_CHALLENGE_FILE, use CHALLENGE_0_FILE.  (Note,
         # contributor_idx may be > 0, even if there is no NEXT_CHALLENGE_FILE.
-        # The only condition related ot contributor_idx is that, if
+        # The only condition related to contributor_idx is that, if
         # contributor_idx is 0, we MUST ONLY have the initial challenge.)
         have_next_challenge = exists(NEXT_CHALLENGE_FILE)
         if have_next_challenge:
