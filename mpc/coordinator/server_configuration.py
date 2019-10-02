@@ -4,9 +4,12 @@ from __future__ import annotations
 from .crypto import \
     VerificationKey, import_verification_key, export_verification_key
 import json
+import time
 from typing import List, Dict, cast
 
 JsonDict = Dict[str, object]
+
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 class Contributor(object):
@@ -58,9 +61,10 @@ class Configuration(object):
         return Configuration._from_json_dict(json.loads(config_json))
 
     def _to_json_dict(self) -> JsonDict:
+        start_local = time.localtime(self.start_time)
         return {
             "contributors": [c._to_json_dict() for c in self.contributors],
-            "start_time": str(self.start_time),
+            "start_time": time.strftime(TIME_FORMAT, start_local),
             "contribution_interval": str(self.contribution_interval),
             "tls_key": self.tls_key,
             "tls_certificate": self.tls_certificate,
@@ -70,9 +74,12 @@ class Configuration(object):
     @staticmethod
     def _from_json_dict(json_dict: JsonDict) -> Configuration:
         contributors_json_list = cast(List[JsonDict], json_dict["contributors"])
+        start_local = time.strptime(
+            cast(str, json_dict["start_time"]),
+            TIME_FORMAT)
         return Configuration(
             [Contributor._from_json_dict(c) for c in contributors_json_list],
-            float(cast(str, json_dict["start_time"])),
+            time.mktime(start_local),
             float(cast(str, json_dict["contribution_interval"])),
             tls_key=cast(str, json_dict["tls_key"]),
             tls_certificate=cast(str, json_dict["tls_certificate"]),
