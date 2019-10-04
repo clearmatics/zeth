@@ -196,8 +196,37 @@ if __name__ == '__main__':
         mk_tree_depth,
         zksnark
     )
-
+    new_merkle_root_charlie_withdrawal = result_charlie_withdrawal[2]
     print("Balances after Charlie's withdrawal: ")
+    print_balances(
+        bob_eth_address,
+        alice_eth_address,
+        charlie_eth_address,
+        mixer_instance.address
+    )
+
+    # Charlie tries to carry out a double spend by withdrawing twice the same note
+    result_double_spending = ""
+    try:
+        # New commitments are added in the tree at each withdraw so we recompiute the path to have the updated nodes
+        mk_byte_tree = get_merkle_tree(mixer_instance)
+        mk_path = zethUtils.compute_merkle_path(cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
+        result_double_spending = zethTest.charlie_double_withdraw(
+            test_grpc_endpoint,
+            mixer_instance,
+            new_merkle_root_charlie_withdrawal,
+            mk_path,
+            input_note_charlie_withdraw,
+            cm_address_bob_to_charlie2,
+            charlie_eth_address,
+            keystore,
+            mk_tree_depth,
+            zksnark
+        )
+    except Exception as e:
+        print("Charlie's double spending successfully rejected! (msg: {})".format(e))
+    print("Balances after Charlie's double withdrawal attempt: ")
+    assert (result_double_spending == ""),"Charlie managed to withdraw the same note twice!"
     print_balances(
         bob_eth_address,
         alice_eth_address,
