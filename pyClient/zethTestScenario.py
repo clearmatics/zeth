@@ -245,7 +245,7 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
 
 # Charlie tries to carry out a double spending by modifying the value of the nullifier of the previous payment
 def charlie_double_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_note1, input_address1, charlie_eth_address, keystore, mk_tree_depth, zksnark):
-    print(" === Charlie attempts to withdraw 0.9 once more (doubke spend) from his funds on the Mixer ===")
+    print(" === Charlie attempts to withdraw 0.9 once more (double spend) one of his note on the Mixer ===")
 
     charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
     charlie_ask = keystore["Charlie"]["AddrSk"]["aSK"]

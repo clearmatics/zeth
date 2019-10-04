@@ -143,24 +143,24 @@ if __name__ == '__main__':
     ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[4]
     ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[5]
 
-    ## Bob tries to spend `input_note_bob_to_charlie` twice
-    #result_double_spending = ""
-    #try:
-    #    result_double_spending = zethTest.bob_to_charlie(
-    #        test_grpc_endpoint,
-    #        mixer_instance,
-    #        new_merkle_root_bob_to_bob,
-    #        mk_path,
-    #        input_note_bob_to_charlie,
-    #        cm_address_bob_to_bob1,
-    #        bob_eth_address,
-    #        keystore,
-    #        mk_tree_depth,
-    #        zksnark
-    #    )
-    #except Exception as e:
-    #    print("Bob's double spending successfully rejected! (msg: {})".format(e))
-    #assert (result_double_spending == ""),"Bob managed to spend the same note twice!"
+    # Bob tries to spend `input_note_bob_to_charlie` twice
+    result_double_spending = ""
+    try:
+        result_double_spending = zethTest.bob_to_charlie(
+            test_grpc_endpoint,
+            mixer_instance,
+            new_merkle_root_bob_to_bob,
+            mk_path,
+            input_note_bob_to_charlie,
+            cm_address_bob_to_bob1,
+            bob_eth_address,
+            keystore,
+            mk_tree_depth,
+            zksnark
+        )
+    except Exception as e:
+        print("Bob's double spending successfully rejected! (msg: {})".format(e))
+    assert (result_double_spending == ""),"Bob managed to spend the same note twice!"
 
     print("- Balances after Bob's transfer to Charlie: ")
     print_balances(
@@ -226,10 +226,10 @@ if __name__ == '__main__':
     except Exception as e:
         print("Charlie's double spending successfully rejected! (msg: {})".format(e))
     print("Balances after Charlie's double withdrawal attempt: ")
+    assert (result_double_spending == ""),"Charlie managed to withdraw the same note twice!"
     print_balances(
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
         mixer_instance.address
     )
-    assert (result_double_spending == ""),"Charlie managed to withdraw the same note twice!"
