@@ -275,6 +275,7 @@ def charlie_double_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path
 
     ##### ATTACK BLOCK
     # Add malicious nullifiers (located at index 2 and 4 in the array of inputs)
+    # See: https://github.com/clearmatics/zeth/issues/38
     r = 21888242871839275222246405745257275088548364400416034343698204186575808495617
     print("proof_json => ", proof_json)
     print("proof_json[inputs][2] => ", proof_json["inputs"][2])
