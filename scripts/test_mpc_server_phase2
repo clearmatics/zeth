@@ -11,6 +11,7 @@ set -x
 # Upload contribution
 # 1 - private key
 # 2 - client id
+# 3 - server dir
 function contribute() {
     contributor_dir=_test_contrib_$2
     rm -rf ${contributor_dir}
@@ -19,20 +20,23 @@ function contribute() {
     phase2_contribute \
         --skip-user-input \
         --mpc-executable ${MPC} \
-        --server-certificate ${SERVER_CERT} \
-        https://${HOST}:${PORT} $1
+        --server-certificate $3/${SERVER_CERT} \
+        https://${HOST}:${PHASE2_PORT} $1
     popd
 }
 
-stop_server || echo -n
-prepare_server
-start_server
+root_dir=`pwd`
+stop_server_phase2 || echo -n
+prepare_server_phase2
+start_server_phase2
 
 # make 4 contributions
-contribute ${PRV_KEY_1} 1
-contribute ${PRV_KEY_2} 2
-contribute ${PRV_KEY_3} 3
-contribute ${PRV_KEY_4} 4
+contribute ${PRV_KEY_1} 1 ${PHASE2_SERVER_DIR}
+contribute ${PRV_KEY_2} 2 ${PHASE2_SERVER_DIR}
+contribute ${PRV_KEY_3} 3 ${PHASE2_SERVER_DIR}
+contribute ${PRV_KEY_4} 4 ${PHASE2_SERVER_DIR}
+
+pushd ${PHASE2_SERVER_DIR}
 
 # Server will spend some time verifying.  Wait for it.
 while ! [ -e ${FINAL_OUTPUT_FILE} ] ; do
@@ -49,20 +53,22 @@ done
 ${MPC} phase2-verify-transcript \
        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
 ${MPC} phase2-verify-transcript \
-       --digest _test_contrib_1/response.bin.digest \
+       --digest ${root_dir}/_test_contrib_1/response.bin.digest \
        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
 ${MPC} phase2-verify-transcript \
-       --digest _test_contrib_2/response.bin.digest \
+       --digest ${root_dir}/_test_contrib_2/response.bin.digest \
        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
 ${MPC} phase2-verify-transcript \
-       --digest _test_contrib_3/response.bin.digest \
+       --digest ${root_dir}/_test_contrib_3/response.bin.digest \
        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
 ${MPC} phase2-verify-transcript \
-       --digest _test_contrib_4/response.bin.digest \
+       --digest ${root_dir}/_test_contrib_4/response.bin.digest \
        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
 
+popd
+
 # Shut down the server
-stop_server
+stop_server_phase2
 
 set +x
 set +e

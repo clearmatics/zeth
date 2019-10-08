@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
+. scripts/test_mpc_common.sh
+
 set -x
 set -e
-
-POT="build/src/pot-process"
-MPC="build/src/mpc/mpc-test"
-QAP_DEGREE=8
 
 DATA_DIR=_test_phase2_data
 [ -e ${DATA_DIR} ] && rm -r ${DATA_DIR}
@@ -33,10 +31,10 @@ keypair_file=${DATA_DIR}/keypair-${QAP_DEGREE}.bin
 
 
 # Dummy pot data
-${POT} --dummy ${pot_file} ${QAP_DEGREE}
+${POT_PROCESS} --dummy ${pot_file} ${QAP_DEGREE}
 
 # Compute lagrange points
-${POT} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
+${POT_PROCESS} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
 
 # Generate the linear combination
 ${MPC} linear-combination \
