@@ -59,7 +59,7 @@ class Server(object):
         if exists(STATE_FILE):
             info(f"run_server: using existing state file: {STATE_FILE}")
             with open(STATE_FILE, "r") as state_f:
-                self.state = ServerState.from_json(state_f.read())
+                self.state = ServerState.from_json(self.config, state_f.read())
         else:
             self.state = ServerState.new(self.config)
             self._write_state_file()
@@ -96,12 +96,12 @@ class Server(object):
             self.handler.on_completed()
 
     def _update_state(self, now: float) -> None:
-        if self.state.update(self.config, now):
+        if self.state.update(now):
             self._finalize_handler_once()
             self._write_state_file()
 
     def _on_contribution(self, now: float) -> None:
-        self.state.received_contribution(self.config, now)
+        self.state.received_contribution(now)
         self._finalize_handler_once()
         self._write_state_file()
 
