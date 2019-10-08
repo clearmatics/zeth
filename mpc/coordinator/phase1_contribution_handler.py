@@ -21,9 +21,12 @@ class Phase1ContributionHandler(IContributionHandler):
     Handler processing phase1 (powersoftau) challenges and contributions.
     """
 
-    def __init__(self, powersoftau_path: Optional[str] = None) -> None:
+    def __init__(
+            self,
+            powersoftau_path: Optional[str] = None,
+            num_powers: Optional[int] = None) -> None:
 
-        self.powersoftau = PowersOfTauCommand(powersoftau_path)
+        self.powersoftau = PowersOfTauCommand(powersoftau_path, num_powers)
 
         # Create challenge file if it does not exist.
         if not exists(CHALLENGE_FILE):
@@ -46,11 +49,11 @@ class Phase1ContributionHandler(IContributionHandler):
             if not exists(NEW_CHALLENGE_FILE):
                 raise Exception("unknown error creating new challenge")
 
-            # concat part of response into transcript
+            # concatenate part of response into transcript
             self.powersoftau.append_response_to_transcript(
                 RESPONSE_FILE, TRANSCRIPT_FILE)
 
-            # move new_challenge ot be the next challenge
+            # move new_challenge to be the next challenge
             rename(NEW_CHALLENGE_FILE, CHALLENGE_FILE)
             return True
 
