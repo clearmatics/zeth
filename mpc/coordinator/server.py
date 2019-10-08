@@ -183,8 +183,8 @@ class Server(object):
         # operators)
         contributor_idx = self.state.next_contributor_index
         contributor = self.config.contributors[contributor_idx]
-        pub_key = contributor.public_key
-        expect_pub_key_str = export_verification_key(pub_key)
+        verification_key = contributor.verification_key
+        expect_pub_key_str = export_verification_key(verification_key)
         if expect_pub_key_str != pub_key_str:
             return Response("contributor key mismatch", 403)
 
@@ -194,7 +194,7 @@ class Server(object):
         # otherwise) from people other than the next contributor.
         # (Note that this pre-upload check requires the digest to be
         # passed in the HTTP header.)
-        if not verify(sig, pub_key, digest):
+        if not verify(sig, verification_key, digest):
             return Response("signature check failed", 403)
 
         # Accept the upload (if the digest matches).  If successful,
