@@ -47,22 +47,39 @@ class ServerState(object):
         Update the state after new contribution has been successfully received.
         """
         assert not self.have_all_contributions()
-        self.next_contributor_index = self.next_contributor_index + 1
-        self._update_deadline(config, now)
+        self._next_contributor(config, now)
 
     def update(self, config: Configuration, now: float) -> bool:
         """
         Check whether a contributor has missed his chance.  If the next deadline
         has not passed, do nothing and return False.  If the deadline has
-        passed, update state and
+        passed, update and contact the next participant.
         """
-        # If the next contributor deadline has passed,
+        # If the next contributor deadline has passed, update
         if now < self.next_contributor_deadline:
             return False
 
+        self._next_contributor(config, now)
+        return True
+
+    def _next_contributor(self, config: Configuration, now: float) -> None:
+        from .crypto import export_verification_key
+
         self.next_contributor_index = self.next_contributor_index + 1
         self._update_deadline(config, now)
-        return True
+        if self.have_all_contributions() or not config.email_server:
+            return
+
+        contr = config.contributors[self.next_contributor_index]
+
+        _send_mail(
+            email_server=config.email_server,
+            email_address=cast(str, config.email_address),
+            email_password=cast(str, config.email_password),
+            to=contr.email,
+            subject="[MPC] Your contribution window has begun.",
+            body="Please contribute to the MPC using your contribution key: " +
+            export_verification_key(contr.verification_key))
 
     def _to_json_dict(self) -> JsonDict:
         return {
@@ -83,3 +100,36 @@ class ServerState(object):
             self.next_contributor_deadline = 0.0
         else:
             self.next_contributor_deadline = now + config.contribution_interval
+
+
+def _send_mail(
+        email_server: str,
+        email_address: str,
+        email_password: str,
+        to: str,
+        subject: str,
+        body: str) -> None:
+    """
+    Send an email, given a server + credentials
+    """
+    from ssl import create_default_context
+    from smtplib import SMTP_SSL
+    from email.message import EmailMessage
+
+    host_port = email_server.split(":")
+    host = host_port[0]
+    if len(host_port) == 2:
+        port = int(host_port[1])
+    else:
+        port = 465
+
+    ssl_ctx = create_default_context()
+    with SMTP_SSL(host, port, context=ssl_ctx) as smtp:
+        smtp.login(email_address, email_password)
+        msg = EmailMessage()
+        msg.set_content(f"Subject: {subject}\n\n{body}")
+        msg['Subject'] = subject
+        msg['From'] = email_address
+        msg['To'] = to
+        smtp.send_message(msg)
+        # server.sendmail(email_address, to, body)
