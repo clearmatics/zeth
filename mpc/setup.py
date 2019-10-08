@@ -27,6 +27,8 @@ setup(
     ],
     scripts=[
         "commands/null_server",
+        "commands/phase1_server",
+        "commands/phase1_contribute",
         "commands/phase2_server",
         "commands/phase2_contribute",
         "commands/sign_contribution",

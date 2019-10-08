@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+. scripts/test_mpc_common.sh
+
+set -e
+set -x
+
+# Test an phase1 mpc server that has been set up with a test handler, using the
+# configuration in ./testdata.
+
+# Upload contribution
+# 1 - private key
+# 2 - client id
+# 3 - server dir
+function contribute() {
+    contributor_dir=_test_contrib_$2
+    rm -rf ${contributor_dir}
+    mkdir -p ${contributor_dir}
+    pushd ${contributor_dir}
+    phase1_contribute \
+        --skip-user-input \
+        -n ${QAP_DEGREE} \
+        --pot-path ${POT_DIR} \
+        --server-certificate $3/${SERVER_CERT} \
+        https://${HOST}:${PHASE1_PORT} $1
+    popd
+}
+
+stop_server_phase1 || echo -n
+prepare_server_phase1
+start_server_phase1
+
+# make 4 contributions
+contribute ${PRV_KEY_1} 1 ${PHASE1_SERVER_DIR}
+contribute ${PRV_KEY_2} 2 ${PHASE1_SERVER_DIR}
+contribute ${PRV_KEY_3} 3 ${PHASE1_SERVER_DIR}
+contribute ${PRV_KEY_4} 4 ${PHASE1_SERVER_DIR}
+
+pushd ${PHASE1_SERVER_DIR}
+
+# Server will spend some time verifying.  Wait for it.
+while ! [ -e ${FINAL_OUTPUT_FILE} ] ; do
+      echo Waiting for ${FINAL_OUTPUT_FILE} ...
+      sleep 1
+done
+
+while ! [ -e ${FINAL_TRANSCRIPT_FILE} ] ; do
+      echo Waiting for ${FINAL_TRANSCRIPT_FILE} ...
+      sleep 1
+done
+
+# # Verify the transcript, checking for contribution
+# ${MPC} phase2-verify-transcript \
+#        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+# ${MPC} phase2-verify-transcript \
+#        --digest _test_contrib_1/response.bin.digest \
+#        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+# ${MPC} phase2-verify-transcript \
+#        --digest _test_contrib_2/response.bin.digest \
+#        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+# ${MPC} phase2-verify-transcript \
+#        --digest _test_contrib_3/response.bin.digest \
+#        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+# ${MPC} phase2-verify-transcript \
+#        --digest _test_contrib_4/response.bin.digest \
+#        ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+
+popd
+
+# Shut down the server
+stop_server_phase1
+
+set +x
+set +e
+echo "============================================================"
+echo "==                        PASSED                          =="
+echo "============================================================"

@@ -10,14 +10,17 @@ from typing import Optional
 
 @command()
 @option("--pot-path", default=None, help="Path to poweroftau repository")
-def phase1_server(bin_path: Optional[str]) -> None:
+@option("--num-powers", "-n", default=None, type=int, help="Number of powers")
+def phase1_server(
+        pot_path: Optional[str],
+        num_powers: Optional[int]) -> None:
     from coordinator.phase1_contribution_handler import \
         Phase1ContributionHandler
     from coordinator.server import Server
     import time
 
     try:
-        server = Server(Phase1ContributionHandler(), ".")
+        server = Server(Phase1ContributionHandler(pot_path, num_powers), ".")
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
