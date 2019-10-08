@@ -170,6 +170,12 @@ MPC:
 }
 ```
 
+The server can notify participants by email when their contribution time slot
+begins (when the previous contributor either finishes his contribution, or his
+timeslot expires).  To enable email notifications, set the `email_server`,
+`email_address` and `email_password` fields to point to an (tls enabled) mail
+server.
+
 See the [test configuration](../testdata/mpc_server_config.json) for an example
 configuration file.
 
