@@ -33,7 +33,7 @@ class TestServerState(TestCase):
         self._test_json_serialization(state)
 
         # update, deadline not passed
-        state.update(config, START_TIME + (CONTRIBUTION_INTERVAL / 2))
+        state.update(START_TIME + (CONTRIBUTION_INTERVAL / 2))
         self.assertEqual(0, state.next_contributor_index)
         self.assertEqual(
             START_TIME + CONTRIBUTION_INTERVAL,
@@ -44,7 +44,7 @@ class TestServerState(TestCase):
         self._test_json_serialization(state)
 
         # deadline passed with no contribution
-        state.update(config, START_TIME + CONTRIBUTION_INTERVAL + 0.1)
+        state.update(START_TIME + CONTRIBUTION_INTERVAL + 0.1)
         self.assertEqual(1, state.next_contributor_index)
         self.assertEqual(
             START_TIME + 0.1 + 2 * CONTRIBUTION_INTERVAL,
@@ -56,7 +56,6 @@ class TestServerState(TestCase):
 
         # got contribution part way through interval
         state.received_contribution(
-            config,
             START_TIME + 0.1 + 1.5 * CONTRIBUTION_INTERVAL)
         self.assertEqual(2, state.next_contributor_index)
         self.assertEqual(
@@ -69,7 +68,6 @@ class TestServerState(TestCase):
 
         # 3rd contribution deadline
         state.update(
-            config,
             START_TIME + 0.2 + 2.5 * CONTRIBUTION_INTERVAL)
         self.assertEqual(3, state.next_contributor_index)
         self.assertEqual(
@@ -79,7 +77,6 @@ class TestServerState(TestCase):
 
         # final contribution
         state.received_contribution(
-            config,
             START_TIME + 0.2 + 3.0 * CONTRIBUTION_INTERVAL)
         self.assertTrue(state.have_all_contributions())
         self.assertEqual(0, state.next_contributor_deadline)
@@ -130,10 +127,8 @@ class TestServerState(TestCase):
             8001
         )
 
-        pass
-
     def _test_json_serialization(self, state: ServerState) -> None:
         state_1_json = state.to_json()
-        state_2 = ServerState.from_json(state_1_json)
+        state_2 = ServerState.from_json(self._dummy_config(), state_1_json)
         state_2_json = state_2.to_json()
         self.assertEqual(state_1_json, state_2_json)
