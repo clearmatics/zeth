@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from coordinator.contribute import contribute
-from coordinator.pot_command import \
+from coordinator.powersoftau_command import \
     PowersOfTauCommand, CHALLENGE_FILE, RESPONSE_FILE
 from typing import Optional
 from click import command, option, argument, ClickException
@@ -15,19 +15,16 @@ from os.path import exists
 @command()
 @argument("base-url")
 @argument("key-file")
-@option("--challenge", default=CHALLENGE_FILE)
-@option("--response", default=RESPONSE_FILE)
 # @option("--response-digest", default=RESPONSE_DIGEST_FILE)
-@option("--pot-path", default=None, help="path to powerfotau repo")
+@option("--pot-path", default=None, help="path to powersoftau repo")
+@option("--num-powers", "-n", default=None, type=int, help="number of powers")
 @option("--skip-user-input", is_flag=True, default=False)
 @option("--server-certificate", default=None, help="server certificate")
 def phase1_contribute(
         base_url: str,
         key_file: str,
-        challenge: str,
-        response: str,
-        response_digest: str,
         pot_path: Optional[str],
+        num_powers: Optional[int],
         skip_user_input: bool,
         server_certificate: Optional[str]) -> None:
     """
@@ -36,12 +33,8 @@ def phase1_contribute(
 
     # Compute contribution
     def _contribute() -> str:
-        pot = PowersOfTauCommand(pot_path)
-        contribution_success = pot.contribute(
-            challenge,
-            response,
-            response_digest,
-            skip_user_input)
+        pot = PowersOfTauCommand(pot_path, num_powers)
+        contribution_success = pot.contribute(skip_user_input)
         if not contribution_success:
             raise ClickException("failed to generate response")
         if not exists(RESPONSE_FILE):
