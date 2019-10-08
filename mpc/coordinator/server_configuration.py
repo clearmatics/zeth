@@ -13,21 +13,21 @@ class Contributor(object):
     """
     Details of a specific contributor
     """
-    def __init__(self, email: str, public_key: VerificationKey):
+    def __init__(self, email: str, verification_key: VerificationKey):
         self.email = email
-        self.public_key = public_key
+        self.verification_key = verification_key
 
     def _to_json_dict(self) -> JsonDict:
         return {
             "email": self.email,
-            "public_key": export_verification_key(self.public_key),
+            "verification_key": export_verification_key(self.verification_key),
         }
 
     @staticmethod
     def _from_json_dict(json_dict: JsonDict) -> Contributor:
         return Contributor(
             cast(str, json_dict["email"]),
-            import_verification_key(cast(str, json_dict["public_key"])))
+            import_verification_key(cast(str, json_dict["verification_key"])))
 
 
 class Configuration(object):
