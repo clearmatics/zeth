@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# TODO: check for dependencies, with clear error messages
+
+set -e
+set -x
+
+cd mpc
+python -m venv env
+. env/bin/activate
+make setup
