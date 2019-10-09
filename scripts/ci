@@ -36,8 +36,20 @@ function pyclient_check() {
 }
 
 function command_tests() {
+    # Setup the mpc python env and install dependencies
+    scripts/mpc_setup
+
+    # Execute checks on mpc python code
+    pushd mpc
+        . env/bin/activate
+        make check
+        deactivate
+        popd
+
+    # Execute the test scripts for pot-process, mpc, mpc server and client
     scripts/test_pot_process
     scripts/test_phase2
+    scripts/test_mpc_server_phase2
 }
 
 function build() {
