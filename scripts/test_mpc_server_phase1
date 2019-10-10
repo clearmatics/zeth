@@ -13,7 +13,7 @@ set -x
 # 2 - client id
 # 3 - server dir
 function contribute() {
-    contributor_dir=_test_contrib_$2
+    contributor_dir=_test_phase1_contrib_$2
     rm -rf ${contributor_dir}
     mkdir -p ${contributor_dir}
     pushd ${contributor_dir}
