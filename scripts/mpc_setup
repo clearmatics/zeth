@@ -3,7 +3,7 @@
 # TODO: check for dependencies, with clear error messages
 
 
-python --version
+python3 --version
 which python || echo No python
 which python3 || echo No python3
 
@@ -12,7 +12,7 @@ set -x
 
 
 cd mpc
-python -m venv env
+python3 -m venv env
 . env/bin/activate
 pip install --upgrade pip
 make setup
