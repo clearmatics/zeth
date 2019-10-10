@@ -8,4 +8,5 @@ set -x
 cd mpc
 python -m venv env
 . env/bin/activate
+pip install --upgrade pip
 make setup
