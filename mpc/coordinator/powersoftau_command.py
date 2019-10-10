@@ -42,12 +42,18 @@ class PowersOfTauCommand(object):
                 stdout=transcript_f,
                 check=True)
 
-    def contribute(self, skip_user_input: bool) -> bool:
+    def contribute(
+            self,
+            digest_file: Optional[str],
+            skip_user_input: bool) -> bool:
         assert exists(CHALLENGE_FILE)
+        cmd_args: List[str] = []
         kwargs = {}
+        if digest_file:
+            cmd_args += ["--digest", digest_file]
         if skip_user_input:
             kwargs["input"] = "any data\n".encode()
-        if self._exec("compute", [], kwargs):
+        if self._exec("compute", cmd_args, kwargs):
             assert exists(RESPONSE_FILE)
             return True
         return False
