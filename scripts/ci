@@ -20,7 +20,7 @@ function format_check() {
 
 function command_tests() {
     # Setup the mpc python env and install dependencies
-    scripts/mpc_setup
+    # scripts/mpc_setup
 
     # Execute checks on mpc python code
     pushd mpc
@@ -72,7 +72,11 @@ function build() {
 }
 
 function ci() {
+    # Setup the mpc python env and install dependencies
+    scripts/mpc_setup
+
     build $1 $2
+
     command_tests
 }
 

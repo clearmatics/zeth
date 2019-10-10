@@ -2,8 +2,14 @@
 
 # TODO: check for dependencies, with clear error messages
 
+
+python --version
+which python || echo No python
+which python3 || echo No python3
+
 set -e
 set -x
+
 
 cd mpc
 python -m venv env
