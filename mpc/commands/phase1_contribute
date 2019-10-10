@@ -9,14 +9,14 @@ from os.path import exists
 
 # CHALLENGE_FILE = "challenge.bin"
 # RESPONSE_FILE = "response.bin"
-# RESPONSE_DIGEST_FILE = "response.bin.digest"
+RESPONSE_DIGEST_FILE = "response.bin.digest"
 
 
 @command()
 @argument("base-url")
 @argument("key-file")
-# @option("--response-digest", default=RESPONSE_DIGEST_FILE)
 @option("--pot-path", default=None, help="path to powersoftau repo")
+@option("--response-digest", default=RESPONSE_DIGEST_FILE)
 @option("--num-powers", "-n", default=None, type=int, help="number of powers")
 @option("--skip-user-input", is_flag=True, default=False)
 @option("--server-certificate", default=None, help="server certificate")
@@ -24,6 +24,7 @@ def phase1_contribute(
         base_url: str,
         key_file: str,
         pot_path: Optional[str],
+        response_digest: str,
         num_powers: Optional[int],
         skip_user_input: bool,
         server_certificate: Optional[str]) -> None:
@@ -34,7 +35,7 @@ def phase1_contribute(
     # Compute contribution
     def _contribute() -> str:
         pot = PowersOfTauCommand(pot_path, num_powers)
-        contribution_success = pot.contribute(skip_user_input)
+        contribution_success = pot.contribute(response_digest, skip_user_input)
         if not contribution_success:
             raise ClickException("failed to generate response")
         if not exists(RESPONSE_FILE):
