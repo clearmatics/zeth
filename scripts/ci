@@ -19,10 +19,10 @@ function format_check() {
 }
 
 function command_tests() {
-    if [ "Linux" == "${platform}" ] ; then
-        apt update
-        apt upgrade -y python
-    fi
+    # if [ "Linux" == "${platform}" ] ; then
+    #     apt update
+    #     apt upgrade -y python
+    # fi
 
     # Setup the mpc python env and install dependencies
     scripts/mpc_setup
@@ -38,29 +38,6 @@ function command_tests() {
     scripts/test_pot_process
     scripts/test_phase2
     scripts/test_mpc_server_phase2
-}
-
-function ci_setup() {
-
-    if [ "Linux" == "${platform}" ] ; then
-        return
-    fi
-
-    apt-get install -y \
-            build-essential \
-            autoconf \
-            libtool
-    git clone -b v1.24.x https://github.com/grpc/grpc
-    pushd grpc
-        git submodule update --init --recursive
-        pushd third_party/protobuf
-            ./autogen.sh
-            ./configure --prefix=/usr
-            make -j 2
-            make install
-            popd
-        make install
-        popd
 }
 
 function build() {
@@ -97,6 +74,30 @@ function build() {
     make -j 2 VERBOSE=1 all build_tests
     make -j 2 check
     cd ..
+}
+
+function ci_setup() {
+
+    if ! [ "Linux" == "${platform}" ] ; then
+        return
+    fi
+
+    # apt-get install -y \
+    #         build-essential \
+    #         autoconf \
+    #         libtool
+    git clone --recursive --shallow-submodules --depth=1 -b v1.24.x https://github.com/grpc/grpc
+    pushd grpc
+        git submodule update --init --recursive
+        pushd third_party/protobuf
+            ./autogen.sh
+            ./configure --prefix=/usr
+            make -j 2
+            sudo make install
+            popd
+        make
+        sudo make install
+        popd
 }
 
 function ci() {

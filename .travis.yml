@@ -12,6 +12,10 @@ addons:
             - libssl-dev
             - pkg-config
             - curl
+            - python3.7-venv
+            - build-essential
+            - autoconf
+            - libtool
     homebrew:
         packages:
             - gmp
@@ -27,11 +31,11 @@ matrix:
     include:
         - env: CI_CONFIG=Release
           os: linux
-          python: 3.7
+          dist: bionic
           language: minimal
         - env: CI_CHECK_FORMAT=1 CI_CONFIG=Debug
           os: linux
-          python: 3.7
+          dist: bionic
           language: minimal
         - env: CI_CONFIG=Release
           os: osx

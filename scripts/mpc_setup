@@ -3,23 +3,26 @@
 platform=`uname`
 echo platform=${platform}
 
+set -x
+
 # TODO: check for dependencies, with clear error messages
 
-if [ "Linux" == "${platform}" ] ; then
-    apt update
-    apt upgrade -y python
-fi
+# if [ "Linux" == "${platform}" ] ; then
+    # sudo apt update
+    # sudo apt upgrade -y python
+# fi
 
+python3.7 --version
 python3 --version
 which python || echo No python
-which python3 || echo No python3
+which python3.7 || echo No python3
 
 set -e
 set -x
 
 
 cd mpc
-python3 -m venv env
+python3.7 -m venv env
 . env/bin/activate
 pip install --upgrade pip
 make setup
