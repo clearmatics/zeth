@@ -40,6 +40,29 @@ function command_tests() {
     scripts/test_mpc_server_phase2
 }
 
+function ci_setup() {
+
+    if [ "Linux" == "${platform}" ] ; then
+        return
+    fi
+
+    apt-get install -y \
+            build-essential \
+            autoconf \
+            libtool
+    git clone -b v1.24.x https://github.com/grpc/grpc
+    pushd grpc
+        git submodule update --init --recursive
+        pushd third_party/protobuf
+            ./autogen.sh
+            ./configure --prefix=/usr
+            make -j 2
+            make install
+            popd
+        make install
+        popd
+}
+
 function build() {
     build_type=$1
     full=$2
@@ -106,5 +129,6 @@ if [ "${CI_USE_DOCKER}" == "1" ] ; then
     docker build -f Dockerfile-zeth -t zeth-dev .
     docker run -t -p 50051:50051 --name zeth zeth-dev:latest $0 ${build_type} ${full_build}
 else
+    ci_setup
     ci $build_type ${build_type} ${full_build}
 fi

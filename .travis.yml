@@ -3,6 +3,15 @@ addons:
         packages:
             - docker.io
             - clang-format
+            - libboost-all-dev
+            - libgmp3-dev
+            - libprocps-dev
+            - g++
+            - libxslt-dev
+            - cmake
+            - libssl-dev
+            - pkg-config
+            - curl
     homebrew:
         packages:
             - gmp
@@ -16,11 +25,11 @@ addons:
 
 matrix:
     include:
-        - env: CI_CONFIG=Release CI_USE_DOCKER=1
+        - env: CI_CONFIG=Release
           os: linux
           python: 3.7
           language: minimal
-        - env: CI_CHECK_FORMAT=1 CI_CONFIG=Debug CI_USE_DOCKER=1
+        - env: CI_CHECK_FORMAT=1 CI_CONFIG=Debug
           os: linux
           python: 3.7
           language: minimal
