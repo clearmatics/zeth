@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 
+platform=`uname`
+echo platform=${platform}
+
 # TODO: check for dependencies, with clear error messages
 
+if [ "Linux" == "${platform}" ] ; then
+    apt update
+    apt upgrade -y python
+fi
 
 python3 --version
 which python || echo No python
