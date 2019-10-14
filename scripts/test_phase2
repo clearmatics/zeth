@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
+. scripts/test_mpc_common.sh
+
 set -x
 set -e
-
-. scripts/test_mpc_common.sh
 
 DATA_DIR=_test_phase2_data
 [ -e ${DATA_DIR} ] && rm -r ${DATA_DIR}
