@@ -125,12 +125,14 @@ function stop_server_common() {
 
 function get_state_phase1() {
     curl \
+        -k \
         --cacert ${PHASE1_SERVER_DIR}/${SERVER_CERT} \
         --fail https://${HOST}:${PHASE1_PORT}/state
 }
 
 function get_state_phase2() {
     curl \
+        -k \
         --cacert ${PHASE2_SERVER_DIR}/${SERVER_CERT} \
         --fail https://${HOST}:${PHASE2_PORT}/state
 }

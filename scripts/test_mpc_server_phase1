@@ -21,8 +21,10 @@ function contribute() {
         --skip-user-input \
         -n ${QAP_DEGREE} \
         --pot-path ${POT_DIR} \
-        --server-certificate $3/${SERVER_CERT} \
         https://${HOST}:${PHASE1_PORT} $1
+
+        # --server-certificate $3/${SERVER_CERT} \
+
     popd
 }
 

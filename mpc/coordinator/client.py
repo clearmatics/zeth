@@ -31,7 +31,7 @@ class Client(object):
             return get(
                 join(self.base_url, "challenge"),
                 stream=True,
-                verify=self.cert_path)
+                verify=self.cert_path or False)
 
         while True:
             with _get_challenge() as resp:
@@ -65,5 +65,5 @@ class Client(object):
                 join(self.base_url, "contribute"),
                 files={'response': upload_f},
                 headers=headers,
-                verify=self.cert_path)
+                verify=self.cert_path or False)
             r.raise_for_status()
