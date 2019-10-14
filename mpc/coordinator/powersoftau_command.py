@@ -58,8 +58,8 @@ class PowersOfTauCommand(object):
             return True
         return False
 
-    def verify_transcript(self) -> bool:
-        return self._exec("verify")
+    def verify_transcript(self, num_rounds: int) -> bool:
+        return self._exec("verify", args=["--rounds", str(num_rounds)])
 
     def _exec(
             self,

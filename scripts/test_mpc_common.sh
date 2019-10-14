@@ -58,7 +58,7 @@ function prepare_server_common() {
     rm -rf server_state.json
     rm -rf server_config.json
     rm -rf ${TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE} ${FINAL_TRANSCRIPT_FILE} \
-       next_challenge.bin
+       next_challenge.bin phase1_state.json
 
     # Config
     now=`python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S"))'`
