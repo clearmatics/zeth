@@ -18,7 +18,11 @@ typedef libff::Fr<ppT> FieldT;
 namespace
 {
 
-// The test correponds to the first round of blake2s(b"hello world")
+// This test corresponds to the first call of the g_primitive of blake2s(b"hello
+// world"). As blake2s first formats the input blocks in 32bit words in little
+// endian, the inputs of the first g_primitive are "lleh" and "ow o"
+// ("hello world" -> "hell" "o wo" "rld" plus padding-> "lleh" "ow o" "dlr" plus
+// padding)
 TEST(TestG, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
@@ -63,7 +67,7 @@ TEST(TestG, TestTrue)
         },
         ZERO);
 
-    // "lleh"
+    // First word in little endian "lleh"
     libsnark::pb_variable_array<FieldT> x = from_bits(
         {
             0, 1, 1, 0, 1, 1, 0, 0, // 6C
@@ -73,7 +77,7 @@ TEST(TestG, TestTrue)
         },
         ZERO);
 
-    // "ow o"
+    // Second word in little endian "ow o"
     libsnark::pb_variable_array<FieldT> y = from_bits(
         {
             0, 1, 1, 0, 1, 1, 1, 1, // 6F
