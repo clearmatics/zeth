@@ -46,9 +46,10 @@ libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
 // the value of the commitment_k without needing 2 distinct gadgets for this.
 //
 // See Zerocash extended paper, page 22
-// The commitment k is computed as k = blake2sCompress(r ||
-// [blake2sCompress(a_pk || rho)]_128) where we define the left part: inner_k =
-// blake2sCompress(a_pk || rho) as being the inner commitment of k
+// The commitment k is computed as
+// k = blake2sCompress(r || [blake2sCompress(a_pk || rho)]_128)
+// where we define the right part as being the inner commitment of k:
+// inner_k = blake2sCompress(a_pk || rho)
 template<typename FieldT, typename HashT>
 class COMM_inner_k_gadget : public COMM_gadget<FieldT, HashT>
 {
@@ -64,10 +65,11 @@ public:
 };
 
 // See Zerocash extended paper, page 22
-// The commitment k is computed as k = blake2sCompress(r ||
-// [blake2sCompress(a_pk || rho)]_128) where we define: outer_k =
-// blake2sCompress(r || [inner_commitment]_128) as being the outer commitment of
-// k We denote by trap_r the trapdoor r
+// The commitment k is computed as
+// k = blake2sCompress(r || [blake2sCompress(a_pk || rho)]_128)
+// where we define outer_k as being the outer commitment of k:
+// outer_k = blake2sCompress(r || [inner_commitment]_128)
+// We denote by trap_r the trapdoor r
 template<typename FieldT, typename HashT>
 class COMM_outer_k_gadget : public COMM_gadget<FieldT, HashT>
 {

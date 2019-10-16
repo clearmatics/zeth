@@ -88,9 +88,9 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
     // Digest byte length, Key byte length, Fanout, Depth
     parameter_block[0] = {
         0, 0, 1, 0, 0, 0, 0, 0, // 0x20 (32 bytes)
-        0, 0, 0, 0, 0, 0, 0, 0, // 0x00
-        0, 0, 0, 0, 0, 0, 0, 1, // 0x01
-        0, 0, 0, 0, 0, 0, 0, 1  // 0x01
+        0, 0, 0, 0, 0, 0, 0, 0, // 0x00 (key length)
+        0, 0, 0, 0, 0, 0, 0, 1, // 0x01 (fanout 1)
+        0, 0, 0, 0, 0, 0, 0, 1  // 0x01 (depth 1)
     };
 
     // Leaf length
@@ -113,8 +113,8 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
     parameter_block[3] = {
         0, 0, 0, 0, 0, 0, 0, 0, // 00
         0, 0, 0, 0, 0, 0, 0, 0, // 00
-        0, 0, 0, 0, 0, 0, 0, 0, // 00
-        0, 0, 0, 0, 0, 0, 0, 0  // 00
+        0, 0, 0, 0, 0, 0, 0, 0, // 00 (node depth)
+        0, 0, 0, 0, 0, 0, 0, 0  // 00 (inner length)
     };
 
     // Salt

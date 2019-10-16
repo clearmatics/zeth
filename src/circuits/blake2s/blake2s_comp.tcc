@@ -157,7 +157,8 @@ size_t BLAKE2s_256_comp<FieldT>::expected_constraints(
     const bool ensure_output_bitness)
 {
     libff::UNUSED(ensure_output_bitness);
-    return 21216; // ~38.89% of sha256_ethereum
+    return 21216;
+    // ~38.89% of sha256_ethereum
 }
 
 template<typename FieldT>

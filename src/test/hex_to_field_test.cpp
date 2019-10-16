@@ -11,7 +11,9 @@
 
 // Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
+
+// Should be alt_bn128 in the CMakeLists.txt
+typedef libff::Fr<ppT> FieldT;
 
 namespace
 {
@@ -113,8 +115,10 @@ TEST(TestHexConvertion, TestHexToFieldBadString)
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not
-                               // forget to do this !!!!
+    // /!\ WARNING: Do once for all tests. Do not
+    // forget to do this !!!!
+    ppT::init_public_params();
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

@@ -19,8 +19,10 @@ TEST(TestMiMCMp, TestTrue)
     libsnark::pb_variable<FieldT> y;
     y.allocate(pb, "y");
     pb.set_input_sizes(1);
+
+    // y = sha3_256("mimc")
     pb.val(y) = FieldT("1568395149631190174933950911896067630329022481212975289"
-                       "0706581988986633412003"); // sha3_256("mimc")
+                       "0706581988986633412003");
 
     // Private inputs
     libsnark::pb_variable<FieldT> x;
@@ -67,8 +69,10 @@ TEST(TestMiMCMp, TestFalse)
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not
-                               // forget to do this !!!!
+    // /!\ WARNING: Do once for all tests. Do not
+    // forget to do this !!!!
+    ppT::init_public_params();
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

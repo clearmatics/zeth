@@ -83,7 +83,7 @@ public:
 };
 
 /// double_bit32_sum_eq_gadget checks that res = a + b % 2**32
-/// with a, b and res being modulo bit long arrays
+/// with a, b and res being 32-bit long arrays
 template<typename FieldT>
 class double_bit32_sum_eq_gadget : public libsnark::gadget<FieldT>
 {

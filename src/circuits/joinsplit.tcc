@@ -25,8 +25,8 @@ private:
     // because we pack the nullifiers (Inputs of JS = NumInputs), the
     // commitments (Output of JS = NumOutputs) AND the v_pub_out taken out of
     // the mix (+1) AND the public value v_pub_in that is put into the mix (+1)
-    // AND the signature hash h_sig (+1) AND the malleability tags h_iS (+
-    // NumInputs)
+    // AND the signature hash h_sig (+1) AND the message authentication tags
+    // h_iS (+NumInputs)
     std::array<
         libsnark::pb_variable_array<FieldT>,
         NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs>
@@ -63,7 +63,7 @@ private:
     // Sighash h_sig := hSigCRH(randomSeed, {nf_old},
     // joinSplitPubKey) (p.53 ZCash proto. spec.)
     std::shared_ptr<libsnark::digest_variable<FieldT>> h_sig;
-    // List of malleability tags
+    // List of message authentication tags
     std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumInputs>
         h_is;
 
@@ -163,7 +163,8 @@ public:
             packed_inputs[NumInputs + NumOutputs + 1 + 1].allocate(
                 pb, 1 + 1, FMT(this->annotation_prefix, " h_sig"));
 
-            // We allocate 2 field elements to pack each malleability tags h_iS
+            // We allocate 2 field elements to pack each message authentication
+            // tags h_iS
             for (size_t i = NumInputs + NumOutputs + 1 + 1 + 1;
                  i < NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs;
                  i++) {
@@ -618,13 +619,13 @@ public:
         // < FieldT::capacity()
         nb_elements += 1;
 
-        // h_sig is represented by 2 field element (if we consider a digest_len
+        // h_sig is represented by 2 field elements (if we consider a digest_len
         // of 256 bits)
         nb_elements +=
             libff::div_ceil(HashT::get_digest_len(), FieldT::capacity());
 
-        // Each non-malleability tags (h_i) is represented by 2 field elements
-        // (if we consider a digest_len of 256 bits)
+        // Each message authentication tags (h_i) is represented by 2 field
+        // elements (if we consider a digest_len of 256 bits)
         for (size_t i = 0; i < NumInputs; i++) {
             nb_elements +=
                 libff::div_ceil(HashT::get_digest_len(), FieldT::capacity());

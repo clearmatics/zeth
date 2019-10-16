@@ -27,37 +27,60 @@ TEST(TestG, TestTrue)
     ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
-    // 0110 1011  0000 1000 1110 0110  0100 0111
     libsnark::pb_variable_array<FieldT> a = from_bits(
-        {0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0,
-         1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1},
+        {
+            0, 1, 1, 0, 1, 0, 1, 1, // 6B
+            0, 0, 0, 0, 1, 0, 0, 0, // 08
+            1, 1, 1, 0, 0, 1, 1, 0, // E6
+            0, 1, 0, 0, 0, 1, 1, 1  // 47
+        },
         ZERO);
-    // 0101 0001  0000 1110  0101 0010  0111 1111
+
     libsnark::pb_variable_array<FieldT> b = from_bits(
-        {0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0,
-         0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
+        {
+            0, 1, 0, 1, 0, 0, 0, 1, // 51
+            0, 0, 0, 0, 1, 1, 1, 0, // 0E
+            0, 1, 0, 1, 0, 0, 1, 0, // 52
+            0, 1, 1, 1, 1, 1, 1, 1  // 7F
+        },
         ZERO);
-    // 0110 1010  0000 1001  1110 0110  0110 0111
+
     libsnark::pb_variable_array<FieldT> c = from_bits(
-        {0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-         1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1},
+        {
+            0, 1, 1, 0, 1, 0, 1, 0, // 6A
+            0, 0, 0, 0, 1, 0, 0, 1, // 09
+            1, 1, 1, 0, 0, 1, 1, 0, // E6
+            0, 1, 1, 0, 0, 1, 1, 1  // 67
+        },
         ZERO);
-    // 0101 0001  0000 1110  0101 0010  0111 0100
+
     libsnark::pb_variable_array<FieldT> d = from_bits(
-        {0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0,
-         0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0},
+        {
+            0, 1, 0, 1, 0, 0, 0, 1, // 51
+            0, 0, 0, 0, 1, 1, 1, 0, // 0E
+            0, 1, 0, 1, 0, 0, 1, 0, // 52
+            0, 1, 1, 1, 0, 1, 0, 0  // 74
+        },
         ZERO);
 
-    // 0110 1100  0110 1100  0110 0101  0110 1000
+    // "lleh"
     libsnark::pb_variable_array<FieldT> x = from_bits(
-        {0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0,
-         0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0},
+        {
+            0, 1, 1, 0, 1, 1, 0, 0, // 6C
+            0, 1, 1, 0, 1, 1, 0, 0, // 6C
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 0, 1, 0, 0, 0  // 68
+        },
         ZERO);
 
-    // 0110 1111  0111 0111  0010 0000  0110 1111
+    // "ow o"
     libsnark::pb_variable_array<FieldT> y = from_bits(
-        {0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1,
-         0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1},
+        {
+            0, 1, 1, 0, 1, 1, 1, 1, // 6F
+            0, 1, 1, 1, 0, 1, 1, 1, // 77
+            0, 0, 1, 0, 0, 0, 0, 0, // 20
+            0, 1, 1, 0, 1, 1, 1, 1  // 6F
+        },
         ZERO);
 
     libsnark::pb_variable_array<FieldT> a2;
@@ -76,29 +99,42 @@ TEST(TestG, TestTrue)
     g_gadget.generate_r1cs_constraints();
     g_gadget.generate_r1cs_witness();
 
-    // 0111 0000  1011 0001  0011 0101  0011 1101
     libsnark::pb_variable_array<FieldT> a2_expected = from_bits(
-        {0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1,
-         0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1},
+        {
+            0, 1, 1, 1, 0, 0, 0, 0, // 70
+            1, 0, 1, 1, 0, 0, 0, 1, // B1
+            0, 0, 1, 1, 0, 1, 0, 1, // 35
+            0, 0, 1, 1, 1, 1, 0, 1  // 3D
+        },
         ZERO);
 
-    // 1100 0000  0111 1111  0010 1110  0111 1011
     libsnark::pb_variable_array<FieldT> b2_expected = from_bits(
-        {1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-         0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1},
+        {
+            1, 1, 0, 0, 0, 0, 0, 0, // C0
+            0, 1, 1, 1, 1, 1, 1, 1, // 7F
+            0, 0, 1, 0, 1, 1, 1, 0, // 2E
+            0, 1, 1, 1, 1, 0, 1, 1  // 7B
+        },
         ZERO);
 
-    // 1110 0111  0010 0001  0100 1011  0100 0000
     libsnark::pb_variable_array<FieldT> c2_expected = from_bits(
-        {1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1,
-         0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0},
+        {
+            1, 1, 1, 0, 0, 1, 1, 1, // E7
+            0, 0, 1, 0, 0, 0, 0, 1, // 21
+            0, 1, 0, 0, 1, 0, 1, 1, // 4B
+            0, 1, 0, 0, 0, 0, 0, 0  // 40
+        },
         ZERO);
 
-    // 1011 0000  1011 1100  1110 1011  0100 1100
     libsnark::pb_variable_array<FieldT> d2_expected = from_bits(
-        {1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0,
-         1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0},
+        {
+            1, 0, 1, 1, 0, 0, 0, 0, // B0
+            1, 0, 1, 1, 1, 1, 0, 0, // BC
+            1, 1, 1, 0, 1, 0, 1, 1, // EB
+            0, 1, 0, 0, 1, 1, 0, 0  // 4C
+        },
         ZERO);
+
     ASSERT_EQ(a2_expected.get_bits(pb), a2.get_bits(pb));
     ASSERT_EQ(b2_expected.get_bits(pb), b2.get_bits(pb));
     ASSERT_EQ(c2_expected.get_bits(pb), c2.get_bits(pb));
@@ -185,8 +221,10 @@ TEST(TestBlake2sComp, TestTrue)
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not
-                               // forget to do this !!!!
+    // /!\ WARNING: Do once for all tests. Do not
+    // forget to do this !!!!
+    ppT::init_public_params();
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

@@ -26,11 +26,13 @@
 using namespace libzeth;
 
 typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
-typedef BLAKE2s_256_comp<FieldT>
-    HashT; // We use our hash function to do the tests
-typedef MiMC_mp_gadget<FieldT>
-    HashTreeT; // We use our hash function to do the tests
+
+// Should be alt_bn128 in the CMakeLists.txt
+typedef libff::Fr<ppT> FieldT;
+
+// We use our hash functions to do the tests
+typedef BLAKE2s_256_comp<FieldT> HashT;
+typedef MiMC_mp_gadget<FieldT> HashTreeT;
 
 namespace
 {
@@ -60,10 +62,11 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // Get a_pk from a_sk (PRF)
     //
     // 1100 || [a_sk]_252 =
-    // 0xCFF0000000000000000000000000000000000000000000000000000000000000 0^256
-    // = 0x0000000000000000000000000000000000000000000000000000000000000000 a_pk
-    // = blake2sCompress( 1100 || [a_sk]_252 || 0^256)
-    // Generated directly from a_sk and hashlib blake2s
+    // 0xCFF0000000000000000000000000000000000000000000000000000000000000
+    // 0^256 =
+    // 0x0000000000000000000000000000000000000000000000000000000000000000 a_pk =
+    // blake2sCompress( 1100 || [a_sk]_252 || 0^256) Generated directly from
+    // a_sk and hashlib blake2s
     bits256 a_pk_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("f172d7299ac8ac974ea59413e4a8769182"
                                             "6df038ba24a2b52d5c5d15c2cc8c49"));
@@ -71,10 +74,10 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // Get nf from a_sk and rho (PRF)
     //
     // nf = blake2sCompress( 1110 || [a_sk]_252 || rho)
-    // 1110 || [a_sk]_252:
-    // 0xEFF0000000000000000000000000000000000000000000000000000000000000 rho =
-    // FFFF000000000000000000000000000000000000000000000000000000009009 The test
-    // vector generated directly from a_sk and hashlib blake2s, gives:
+    // 1110 || [a_sk]_252 =
+    // 0xEFF0000000000000000000000000000000000000000000000000000000000000
+    // rho = FFFF000000000000000000000000000000000000000000000000000000009009
+    // The test vector generated directly from a_sk and hashlib blake2s, gives:
     bits256 nf_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("ff2f41920346251f6e7c67062149f98bc9"
                                             "0c915d3d3020927ca01deab5da0fd7"));
@@ -231,8 +234,10 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not
-                               // forget to do this !!!!
+    // /!\ WARNING: Do once for all tests. Do not
+    // forget to do this !!!!
+    ppT::init_public_params();
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

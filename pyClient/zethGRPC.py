@@ -82,7 +82,7 @@ def transactionRandomness():
     return rand_phi
 
 # Compute the note randomness: the trapdoor trapR and rho.
-# Starting the Non-Maleability update, rho is computed from phi (see above),
+# Starting the Non-Malleability update, rho is computed from phi (see above),
 # the rho generated in this function is thus obsolete except for dummy input notes.
 def noteRandomness():
     rand_rho = bytes(Random.get_random_bytes(32)).hex()
