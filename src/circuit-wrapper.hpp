@@ -2,6 +2,7 @@
 #define __ZETH_CIRCUIT_WRAPPER_HPP__
 
 #include "circuits/joinsplit.tcc"
+#include "libsnark_helpers/libsnark_helpers.hpp"
 #include "types/note.hpp"
 
 // zkSNARK specific aliases and imports

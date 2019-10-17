@@ -5,8 +5,9 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
 
-#include <libsnark/gadgetlib1/gadget.hpp>
 #include "circuits/circuits-util.hpp"
+
+#include <libsnark/gadgetlib1/gadget.hpp>
 
 namespace libzeth
 {
