@@ -1,5 +1,5 @@
-#ifndef __ZETH_G_PRIMITIVE_TCC__
-#define __ZETH_G_PRIMITIVE_TCC__
+#ifndef __ZETH_CIRCUITS_G_PRIMITIVE_TCC__
+#define __ZETH_CIRCUITS_G_PRIMITIVE_TCC__
 
 namespace libzeth
 {
@@ -96,4 +96,4 @@ template<typename FieldT> void g_primitive<FieldT>::generate_r1cs_witness()
 
 } // namespace libzeth
 
-#endif // __ZETH_G_PRIMITIVE_TCC__
+#endif // __ZETH_CIRCUITS_G_PRIMITIVE_TCC__

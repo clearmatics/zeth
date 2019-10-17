@@ -1,6 +1,3 @@
-#ifndef __ZETH_CIRCUITS_UTILS_CPP__
-#define __ZETH_CIRCUITS_UTILS_CPP__
-
 #include "circuits-util.hpp"
 
 namespace libzeth
@@ -37,5 +34,3 @@ std::vector<unsigned long> bit_list_to_ints(
 }
 
 } // namespace libzeth
-
-#endif // __ZETH_CIRCUITS_UTILS_CPP__

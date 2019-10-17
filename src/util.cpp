@@ -1,6 +1,3 @@
-#ifndef __ZETH_UTIL_CPP__
-#define __ZETH_UTIL_CPP__
-
 #include "util.hpp"
 
 #include "zeth.h"
@@ -177,5 +174,3 @@ std::vector<bool> convert_int_to_binary(int x)
 }
 
 } // namespace libzeth
-
-#endif // __ZETH_UTIL_CPP__

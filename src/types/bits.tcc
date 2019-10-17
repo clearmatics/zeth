@@ -1,10 +1,10 @@
-#ifndef __ZETH_TYPE_BITS_TCC__
-#define __ZETH_TYPE_BITS_TCC__
+#ifndef __ZETH_TYPES_BITS_TCC__
+#define __ZETH_TYPES_BITS_TCC__
 
 namespace libzeth
 {
 
-// dump_vector_in_array dumps a vector into an array
+/// dump_vector_in_array dumps a vector into an array
 template<size_t Size>
 std::array<bool, Size> dump_vector_in_array(std::vector<bool> vect)
 {
@@ -19,7 +19,7 @@ std::array<bool, Size> dump_vector_in_array(std::vector<bool> vect)
     return array;
 };
 
-// dump_array_in_vector dumps an array into a vector
+/// dump_array_in_vector dumps an array into a vector
 template<size_t Size>
 std::vector<bool> dump_array_in_vector(std::array<bool, Size> arr)
 {
@@ -28,8 +28,8 @@ std::vector<bool> dump_array_in_vector(std::array<bool, Size> arr)
     return vect;
 }
 
-// binary_addition sums 2 binary strings with or without carry depending on the
-// boolean value of the `with_carry` variable
+/// binary_addition sums 2 binary strings with or without carry depending on the
+/// boolean value of the `with_carry` variable
 template<size_t BitLen>
 std::array<bool, BitLen> binary_addition(
     std::array<bool, BitLen> A, std::array<bool, BitLen> B, bool with_carry)
@@ -53,7 +53,7 @@ std::array<bool, BitLen> binary_addition(
     return sum;
 }
 
-// binary_xor computes the XOR of 2 binary strings
+/// binary_xor computes the XOR of 2 binary strings
 template<size_t BitLen>
 std::array<bool, BitLen> binary_xor(
     std::array<bool, BitLen> A, std::array<bool, BitLen> B)
@@ -70,4 +70,4 @@ std::array<bool, BitLen> binary_xor(
 
 } // namespace libzeth
 
-#endif // __ZETH_TYPE_BITS_TCC__
+#endif // __ZETH_TYPES_BITS_TCC__

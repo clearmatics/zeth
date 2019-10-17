@@ -1,5 +1,5 @@
-#ifndef __ZETH_NOTE_TCC__
-#define __ZETH_NOTE_TCC__
+#ifndef __ZETH_CIRCUITS_NOTE_TCC__
+#define __ZETH_CIRCUITS_NOTE_TCC__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
@@ -351,4 +351,4 @@ void output_note_gadget<FieldT, HashT>::generate_r1cs_witness(
 
 } // namespace libzeth
 
-#endif // __ZETH_NOTE_TCC__
+#endif // __ZETH_CIRCUITS_NOTE_TCC__

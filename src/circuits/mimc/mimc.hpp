@@ -2,11 +2,10 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_MIMC_HPP__
-#define __ZETH_MIMC_HPP__
+#ifndef __ZETH_CIRCUITS_MIMC_HPP__
+#define __ZETH_CIRCUITS_MIMC_HPP__
 
 #include "mimc_round.hpp"
-#include "snarks_alias.hpp"
 
 // MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation
 // with exponent 7 and rounds 91. It makes use of MiMCe7_round_gadget to enforce
@@ -56,4 +55,4 @@ public:
 } // namespace libzeth
 #include "mimc.tcc"
 
-#endif // __ZETH_MIMC_HPP__
+#endif // __ZETH_CIRCUITS_MIMC_HPP__

@@ -1,5 +1,5 @@
-#ifndef __ZETH_BLAKE2S_COMP_HPP__
-#define __ZETH_BLAKE2S_COMP_HPP__
+#ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
+#define __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
 
 #include "circuits/binary_operation.hpp"
 #include "circuits/circuits-util.hpp"
@@ -18,13 +18,13 @@ namespace libzeth
 const size_t BLAKE2s_digest_size = 256;
 const size_t BLAKE2s_block_size = 512;
 
-// Number of words composing the state of BLAKE2s
+/// Number of words composing the state of BLAKE2s
 const size_t BLAKE2s_word_number = 16;
-// Bit-length of the words composing the state of BLAKE2s
+/// Bit-length of the words composing the state of BLAKE2s
 const size_t BLAKE2s_word_size = 32;
 
-// BLAKE2s_256_comp is the gadget implementing the BLAKE2s
-// compression function for digests of length 256
+/// BLAKE2s_256_comp is the gadget implementing the BLAKE2s
+/// compression function for digests of length 256
 template<typename FieldT>
 class BLAKE2s_256_comp : public libsnark::gadget<FieldT>
 {
@@ -114,4 +114,4 @@ public:
 #include "blake2s_comp.tcc"
 #include "blake2s_comp_setup.tcc"
 
-#endif // __ZETH_BLAKE2S_COMP_HPP__
+#endif // __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__

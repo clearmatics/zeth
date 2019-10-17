@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_MIMC_TCC__
-#define __ZETH_MIMC_TCC__
+#ifndef __ZETH_CIRCUITS_MIMC_TCC__
+#define __ZETH_CIRCUITS_MIMC_TCC__
 
 namespace libzeth
 {
@@ -275,4 +275,4 @@ void MiMCe7_permutation_gadget<FieldT>::setup_sha3_constants()
 
 } // namespace libzeth
 
-#endif // __ZETH_MIMC_TCC__
+#endif // __ZETH_CIRCUITS_MIMC_TCC__

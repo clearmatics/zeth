@@ -1,5 +1,5 @@
-#ifndef __ZETH_CIRCUITS_UTILS_HPP__
-#define __ZETH_CIRCUITS_UTILS_HPP__
+#ifndef __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__
+#define __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__
 
 #include "types/bits.hpp"
 
@@ -31,4 +31,4 @@ std::vector<unsigned long> bit_list_to_ints(
 } // namespace libzeth
 #include "circuits/circuits-util.tcc"
 
-#endif // __ZETH_CIRCUITS_UTILS_HPP__
+#endif // __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__

@@ -1,5 +1,5 @@
-#ifndef __ZETH_G_PRIMITIVE_HPP__
-#define __ZETH_G_PRIMITIVE_HPP__
+#ifndef __ZETH_CIRCUITS_G_PRIMITIVE_HPP__
+#define __ZETH_CIRCUITS_G_PRIMITIVE_HPP__
 
 #include "circuits/binary_operation.hpp"
 #include "circuits/circuits-util.hpp"
@@ -11,8 +11,8 @@
 namespace libzeth
 {
 
-// g_primitive is the gadget implementing the mixing function G
-// used in Blake2s. See: https://tools.ietf.org/html/rfc7693#section-3.1
+/// g_primitive is the gadget implementing the mixing function G
+/// used in Blake2s. See: https://tools.ietf.org/html/rfc7693#section-3.1
 template<typename FieldT> class g_primitive : public libsnark::gadget<FieldT>
 {
 private:
@@ -67,4 +67,4 @@ public:
 } // namespace libzeth
 #include "g_primitive.tcc"
 
-#endif // __ZETH_G_PRIMITIVE_HPP__
+#endif // __ZETH_CIRCUITS_G_PRIMITIVE_HPP__

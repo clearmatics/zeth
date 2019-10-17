@@ -1,5 +1,5 @@
-#ifndef __ZETH_SHA256_ETHEREUM_TCC__
-#define __ZETH_SHA256_ETHEREUM_TCC__
+#ifndef __ZETH_CIRCUITS_SHA256_ETHEREUM_TCC__
+#define __ZETH_CIRCUITS_SHA256_ETHEREUM_TCC__
 
 // DISCLAIMER:
 // Content taken and adapted from:
@@ -235,4 +235,4 @@ libff::bit_vector sha256_ethereum<FieldT>::get_hash(
 
 } // namespace libzeth
 
-#endif // __ZETH_SHA256_ETHEREUM_TCC__
+#endif // __ZETH_CIRCUITS_SHA256_ETHEREUM_TCC__

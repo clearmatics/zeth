@@ -1,10 +1,9 @@
-#ifndef __ZETH_JOINSPLIT_TCC__
-#define __ZETH_JOINSPLIT_TCC__
+#ifndef __ZETH_CIRCUITS_JOINSPLIT_TCC__
+#define __ZETH_CIRCUITS_JOINSPLIT_TCC__
 
 // Contains the circuits for the notes
 #include "circuits/notes/note.hpp"
 // Contains the definitions of the constants we use
-#include "libsnark_helpers/libsnark_helpers.hpp"
 #include "types/joinsplit.hpp"
 #include "zeth.h"
 
@@ -637,4 +636,4 @@ public:
     }
 };
 
-#endif // __ZETH_JOINSPLIT_TCC__
+#endif // __ZETH_CIRCUITS_JOINSPLIT_TCC__

@@ -1,6 +1,3 @@
-#ifndef __ZETH_UTIL_API_CPP__
-#define __ZETH_UTIL_API_CPP__
-
 #include "util_api.hpp"
 
 // Message formatting and parsing utility
@@ -58,5 +55,3 @@ proverpkg::HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affi
 }
 
 } // namespace libzeth
-
-#endif // __ZETH_UTIL_API_CPP__

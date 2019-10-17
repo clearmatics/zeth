@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/scipr-lab/libsnark/blob/master/libsnark/common/data_structures/merkle_tree.tcc
 
-#ifndef __ZETH_TYPE_MERKLE_TREE_FIELD_TCC__
-#define __ZETH_TYPE_MERKLE_TREE_FIELD_TCC__
+#ifndef __ZETH_TYPES_MERKLE_TREE_FIELD_TCC__
+#define __ZETH_TYPES_MERKLE_TREE_FIELD_TCC__
 
 #include "circuits/mimc/mimc_mp.hpp"
 
@@ -233,4 +233,4 @@ void merkle_tree_field<FieldT, HashTreeT>::dump() const
 
 } // namespace libzeth
 
-#endif // __ZETH_TYPE_MERKLE_TREE_FIELD_TCC__
+#endif // __ZETH_TYPES_MERKLE_TREE_FIELD_TCC__

@@ -1,5 +1,5 @@
-#ifndef __ZETH_COMMITMENT_TCC__
-#define __ZETH_COMMITMENT_TCC__
+#ifndef __ZETH_CIRCUITS_COMMITMENT_TCC__
+#define __ZETH_CIRCUITS_COMMITMENT_TCC__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
@@ -147,4 +147,4 @@ COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(
 
 } // namespace libzeth
 
-#endif // __ZETH_COMMITMENT_TCC__
+#endif // __ZETH_CIRCUITS_COMMITMENT_TCC__

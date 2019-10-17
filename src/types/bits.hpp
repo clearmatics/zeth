@@ -1,5 +1,5 @@
-#ifndef __ZETH_TYPE_BITS_HPP__
-#define __ZETH_TYPE_BITS_HPP__
+#ifndef __ZETH_TYPES_BITS_HPP__
+#define __ZETH_TYPES_BITS_HPP__
 
 #include "zeth.h"
 
@@ -52,4 +52,4 @@ bits64 sum_bits64(bits64 a, bits64 b);
 } // namespace libzeth
 #include "bits.tcc"
 
-#endif // __ZETH_TYPE_BITS_HPP__
+#endif // __ZETH_TYPES_BITS_HPP__

@@ -1,5 +1,5 @@
-#ifndef __ZETH_BLAKE2S_COMP_SETUP_TCC__
-#define __ZETH_BLAKE2S_COMP_SETUP_TCC__
+#ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_SETUP_TCC__
+#define __ZETH_CIRCUITS_BLAKE2S_COMP_SETUP_TCC__
 
 namespace libzeth
 {
@@ -192,8 +192,8 @@ void BLAKE2s_256_comp<FieldT>::setup_counter(size_t len_input_block)
     }
 }
 
-// setup_v initializes the internal state matrix as documented
-// Appendix A.1 https://blake2.net/blake2.pdf
+/// setup_v initializes the internal state matrix as documented
+/// Appendix A.1 https://blake2.net/blake2.pdf
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_v()
 {
     // [v_0, ..., v_7] = [h_0, ..., h_7]
@@ -368,4 +368,4 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_mixing_gadgets()
 
 } // namespace libzeth
 
-#endif // __ZETH_BLAKE2S_COMP_SETUP_TCC__
+#endif // __ZETH_CIRCUITS_BLAKE2S_COMP_SETUP_TCC__
