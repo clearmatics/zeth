@@ -1,5 +1,5 @@
-#ifndef __ZETH_SIMPLE_GADGETS_HPP__
-#define __ZETH_SIMPLE_GADGETS_HPP__
+#ifndef __ZETH_BINARY_OPERATION_GADGETS_HPP__
+#define __ZETH_BINARY_OPERATION_GADGETS_HPP__
 
 #include "circuits/circuits-util.hpp"
 #include "math.h"
@@ -109,4 +109,4 @@ public:
 } // namespace libzeth
 #include "binary_operation_gadgets.tcc"
 
-#endif // __ZZETH_SIMPLE_GADGETS_HPP__
+#endif // __ZETH_BINARY_OPERATION_GADGETS_HPP__
