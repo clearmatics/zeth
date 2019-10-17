@@ -11,6 +11,9 @@ addons:
             - boost
             - openssl
             - cmake
+            - libtool
+            - autoconf
+            - automake
             # - llvm
 
 matrix:
