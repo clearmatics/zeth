@@ -45,7 +45,6 @@ std::vector<FieldT> swap_byte_endianness(std::vector<FieldT> value)
 template<typename FieldT>
 std::array<FieldT, 32> swap_byte32_endianness(std::array<FieldT, 32> value)
 {
-
     std::array<FieldT, 32> swapped;
     for (size_t i = 0; i < 4; i++) {
         for (size_t j = 0; j < 8; j++) {
@@ -55,10 +54,8 @@ std::array<FieldT, 32> swap_byte32_endianness(std::array<FieldT, 32> value)
     return swapped;
 }
 
-/*
- * string_to_field(std::string input) converts a string ob bytes of size <=32 to
- * a FieldT element.
- */
+// string_to_field(std::string input) converts a string ob bytes of size <=32 to
+// a FieldT element.
 template<typename FieldT> FieldT string_to_field(std::string input)
 {
 

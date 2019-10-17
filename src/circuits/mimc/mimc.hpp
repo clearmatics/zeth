@@ -2,10 +2,10 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_MIMC_PERMUTATION_HPP__
-#define __ZETH_MIMC_PERMUTATION_HPP__
+#ifndef __ZETH_MIMC_CIRCUITS_HPP__
+#define __ZETH_MIMC_CIRCUITS_HPP__
 
-#include "round.hpp"
+#include "mimc_round.hpp"
 #include "snarks_alias.hpp"
 
 // MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation
@@ -56,4 +56,4 @@ public:
 } // namespace libzeth
 #include "mimc.tcc"
 
-#endif // __ZETH_MIMC_PERMUTATION_HPP__
+#endif // __ZETH_MIMC_CIRCUITS_HPP__

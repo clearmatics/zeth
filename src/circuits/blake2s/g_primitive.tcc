@@ -33,37 +33,31 @@ g_primitive<FieldT>::g_primitive(
     a2_temp.allocate(pb, 32, " a2_temp");
 
     // v[a] := (v[a] + v[b] + x) mod 2^32
-    a1_1_gadget.reset(
+    a1_1_sum_gadget.reset(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a, b, a1_temp));
-    a1_2_gadget.reset(
+    a1_2_sum_gadget.reset(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a1_temp, x, a1));
-
     // v[d] := (v[d] ^ v[a]) >>> R1
-    d_xor_gadget.reset(
+    d1_xor_gadget.reset(
         new xor_rot_gadget<FieldT>(pb, d, a1, rotation_constant_r1, d1));
-
     // v[c] := (v[c] + v[d]) mod 2^32
-    c1_gadget.reset(new double_bit32_sum_eq_gadget<FieldT>(pb, c, d1, c1));
-
+    c1_sum_gadget.reset(new double_bit32_sum_eq_gadget<FieldT>(pb, c, d1, c1));
     // v[b] := (v[b] ^ v[c]) >>> R2
-    b_xor_gadget.reset(
+    b1_xor_gadget.reset(
         new xor_rot_gadget<FieldT>(pb, b, c1, rotation_constant_r2, b1));
 
     // v[a] := (v[a] + v[b] + y) mod 2^32
-    a2_1_gadget.reset(
+    a2_1_sum_gadget.reset(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a1, b1, a2_temp));
-    a2_2_gadget.reset(
+    a2_2_sum_gadget.reset(
         new double_bit32_sum_eq_gadget<FieldT>(pb, a2_temp, y, a2));
-
     // v[d] := (v[d] ^ v[a]) >>> R3
-    d1_xor_gadget.reset(
+    d2_xor_gadget.reset(
         new xor_rot_gadget<FieldT>(pb, d1, a2, rotation_constant_r3, d2));
-
     // v[c] := (v[c] + v[d]) mod 2^32
-    c2_gadget.reset(new double_bit32_sum_eq_gadget<FieldT>(pb, c1, d2, c2));
-
+    c2_sum_gadget.reset(new double_bit32_sum_eq_gadget<FieldT>(pb, c1, d2, c2));
     // v[b] := (v[b] ^ v[c]) >>> R4
-    b1_xor_gadget.reset(
+    b2_xor_gadget.reset(
         new xor_rot_gadget<FieldT>(pb, b1, c2, rotation_constant_r4, b2));
 };
 
@@ -71,33 +65,33 @@ template<typename FieldT> void g_primitive<FieldT>::generate_r1cs_constraints()
 {
     // 262 constraints (4 * 32 (xor) + 4 * 33 (add true) + 2 * 1 (add false))
     // Note: we do not check the booleaness of this temp variable
-    a1_1_gadget->generate_r1cs_constraints(false);
-    a1_2_gadget->generate_r1cs_constraints();
-    d_xor_gadget->generate_r1cs_constraints();
-    c1_gadget->generate_r1cs_constraints();
-    b_xor_gadget->generate_r1cs_constraints();
+    a1_1_sum_gadget->generate_r1cs_constraints(false);
+    a1_2_sum_gadget->generate_r1cs_constraints();
+    d1_xor_gadget->generate_r1cs_constraints();
+    c1_sum_gadget->generate_r1cs_constraints();
+    b1_xor_gadget->generate_r1cs_constraints();
 
     // Note: we do not check the booleaness of this temp variable
-    a2_1_gadget->generate_r1cs_constraints(false);
-    a2_2_gadget->generate_r1cs_constraints();
-    d1_xor_gadget->generate_r1cs_constraints();
-    c2_gadget->generate_r1cs_constraints();
-    b1_xor_gadget->generate_r1cs_constraints();
+    a2_1_sum_gadget->generate_r1cs_constraints(false);
+    a2_2_sum_gadget->generate_r1cs_constraints();
+    d2_xor_gadget->generate_r1cs_constraints();
+    c2_sum_gadget->generate_r1cs_constraints();
+    b2_xor_gadget->generate_r1cs_constraints();
 };
 
 template<typename FieldT> void g_primitive<FieldT>::generate_r1cs_witness()
 {
-    a1_1_gadget->generate_r1cs_witness();
-    a1_2_gadget->generate_r1cs_witness();
-    d_xor_gadget->generate_r1cs_witness();
-    c1_gadget->generate_r1cs_witness();
-    b_xor_gadget->generate_r1cs_witness();
-
-    a2_1_gadget->generate_r1cs_witness();
-    a2_2_gadget->generate_r1cs_witness();
+    a1_1_sum_gadget->generate_r1cs_witness();
+    a1_2_sum_gadget->generate_r1cs_witness();
     d1_xor_gadget->generate_r1cs_witness();
-    c2_gadget->generate_r1cs_witness();
+    c1_sum_gadget->generate_r1cs_witness();
     b1_xor_gadget->generate_r1cs_witness();
+
+    a2_1_sum_gadget->generate_r1cs_witness();
+    a2_2_sum_gadget->generate_r1cs_witness();
+    d2_xor_gadget->generate_r1cs_witness();
+    c2_sum_gadget->generate_r1cs_witness();
+    b2_xor_gadget->generate_r1cs_witness();
 };
 
 } // namespace libzeth

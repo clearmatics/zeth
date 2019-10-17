@@ -1,7 +1,7 @@
-#ifndef __ZETH_BLAKE2S_HASH_HPP__
-#define __ZETH_BLAKE2S_HASH_HPP__
+#ifndef __ZETH_BLAKE2S_COMP_HPP__
+#define __ZETH_BLAKE2S_COMP_HPP__
 
-#include "circuits/binary_operation_gadgets.hpp"
+#include "circuits/binary_operation.hpp"
 #include "circuits/circuits-util.hpp"
 #include "g_primitive.hpp"
 #include "types/bits.hpp"
@@ -114,4 +114,4 @@ public:
 #include "blake2s_comp.tcc"
 #include "blake2s_comp_setup.tcc"
 
-#endif // __ZETH_BLAKE2S_HASH_HPP__
+#endif // __ZETH_BLAKE2S_COMP_HPP__

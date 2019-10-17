@@ -14,7 +14,7 @@
 #include "util.hpp"
 
 // Get the gadget to test
-#include "circuits/commitments/commitments.hpp"
+#include "circuits/commitments/commitment.hpp"
 
 using namespace libzeth;
 

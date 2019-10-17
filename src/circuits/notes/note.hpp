@@ -9,8 +9,8 @@
 #include <src/circuits/mimc/mimc_mp.hpp>
 
 // Get the prfs and commitments circuits
-#include "circuits/commitments/commitments.hpp"
-#include "circuits/prfs/prfs.hpp"
+#include "circuits/commitments/commitment.hpp"
+#include "circuits/prfs/prf.hpp"
 // Get the utils functions
 #include "circuits/circuits-util.tcc"
 

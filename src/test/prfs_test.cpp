@@ -19,7 +19,7 @@
 #include "util.hpp"
 
 // Gadget to test
-#include "circuits/prfs/prfs.hpp"
+#include "circuits/prfs/prf.hpp"
 
 using namespace libsnark;
 using namespace libzeth;

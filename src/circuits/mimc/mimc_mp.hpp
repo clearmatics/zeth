@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_MIMC_MP_HPP__
-#define __ZETH_MIMC_MP_HPP__
+#ifndef __ZETH_MIMC_MP_CIRCUITS_HPP__
+#define __ZETH_MIMC_MP_CIRCUITS_HPP__
 
 #include "mimc.hpp"
 #include "snarks_alias.hpp"
@@ -49,4 +49,4 @@ public:
 } // namespace libzeth
 #include "mimc_mp.tcc"
 
-#endif // __ZETH_MIMC_MP_HPP__
+#endif // __ZETH_MIMC_MP_CIRCUITS_HPP__

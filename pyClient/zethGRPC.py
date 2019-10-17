@@ -66,7 +66,15 @@ def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
         vk_hex += hex32bytes( "{0:0>4X}".format(int(item)) )
 
     h_sig = blake2s(
-        encode_abi(['bytes32', 'bytes32', 'bytes32', 'bytes'], (bytes.fromhex(randomSeed), bytes.fromhex(nf0), bytes.fromhex(nf1), bytes.fromhex(vk_hex)) )
+        encode_abi(
+            ['bytes32', 'bytes32', 'bytes32', 'bytes'],
+            (
+                bytes.fromhex(randomSeed),
+                bytes.fromhex(nf0),
+                bytes.fromhex(nf1),
+                bytes.fromhex(vk_hex)
+            )
+        )
     ).hexdigest()
 
     return h_sig
@@ -155,19 +163,34 @@ def hexFmt(string):
 def computeCommitment(zethNoteGRPCObj):
     # inner_k = blake2s(a_pk || rho)
     inner_k = blake2s(
-        encode_abi(['bytes32', 'bytes32'], (bytes.fromhex(zethNoteGRPCObj.aPK), bytes.fromhex(zethNoteGRPCObj.rho)))
+        encode_abi(['bytes32', 'bytes32'],
+            (
+                bytes.fromhex(zethNoteGRPCObj.aPK),
+                bytes.fromhex(zethNoteGRPCObj.rho)
+            )
+        )
     ).hexdigest()
 
     # outer_k = blake2s(r || [inner_k]_128)
     first128InnerComm = inner_k[0:128]
     outer_k = blake2s(
-        encode_abi(['bytes', 'bytes'], (bytes.fromhex(zethNoteGRPCObj.trapR), bytes.fromhex(first128InnerComm)))
+        encode_abi(['bytes', 'bytes'],
+            (
+                bytes.fromhex(zethNoteGRPCObj.trapR),
+                bytes.fromhex(first128InnerComm)
+            )
+        )
     ).hexdigest()
 
     # cm = blake2s(outer_k || 0^192 || value_v)
     frontPad = "000000000000000000000000000000000000000000000000"
     cm = blake2s(
-        encode_abi(["bytes32", "bytes32"], (bytes.fromhex(outer_k), bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
+        encode_abi(["bytes32", "bytes32"],
+            (
+            bytes.fromhex(outer_k),
+            bytes.fromhex(frontPad + zethNoteGRPCObj.value)
+            )
+        )
     ).hexdigest()
     return cm
 
@@ -182,7 +205,12 @@ def computeNullifier(zethNote, spendingAuthAsk):
     leftLegBin = "1110" + first252Ask
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
     nullifier = blake2s(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(leftLegHex), bytes.fromhex(zethNote.rho)])
+        encode_abi(["bytes32", "bytes32"],
+            (
+                bytes.fromhex(leftLegHex),
+                bytes.fromhex(zethNote.rho)
+            )
+        )
     ).hexdigest()
     return nullifier
 
@@ -201,7 +229,12 @@ def computeHi(ask, hsig, i):
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
 
     h_i = blake2s(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(leftLegHex), bytes.fromhex(hsig)])
+        encode_abi(["bytes32", "bytes32"], 
+            (
+                bytes.fromhex(leftLegHex),
+                bytes.fromhex(hsig)
+            )
+        )
     ).hexdigest()
     return h_i
 
@@ -220,7 +253,12 @@ def computeRhoi(phi, hsig, i):
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
 
     rho_i = blake2s(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(leftLegHex), bytes.fromhex(hsig)])
+        encode_abi(["bytes32", "bytes32"],
+            (
+                bytes.fromhex(leftLegHex),
+                bytes.fromhex(hsig)
+            )
+        )
     ).hexdigest()
     return rho_i
 
@@ -235,7 +273,12 @@ def deriveAPK(ask):
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
     zeroes = "0000000000000000000000000000000000000000000000000000000000000000"
     a_pk = blake2s(
-        encode_abi(["bytes32", "bytes32"], [bytes.fromhex(leftLegHex), bytes.fromhex(zeroes)])
+        encode_abi(["bytes32", "bytes32"],
+            (
+                bytes.fromhex(leftLegHex),
+                bytes.fromhex(zeroes)
+            )
+        )
     ).hexdigest()
     return a_pk
 
@@ -405,12 +448,16 @@ def sign(keypair, hash_ciphers, hash_proof, hash_inputs):
     y1_hex = hex32bytes( "{0:0>4X}".format(int(vk[1][1])) )
 
     # Encode and hash the verifying key and input hashes
-    data_to_sign = encode_abi(["bytes32", "bytes32", "bytes32", "bytes32", "bytes32"],
-        [bytes.fromhex(y0_hex),
-        bytes.fromhex(y1_hex),
-        bytes.fromhex(hash_ciphers),
-        bytes.fromhex(hash_proof),
-        bytes.fromhex(hash_inputs)])
+    data_to_sign = encode_abi(
+        ["bytes32", "bytes32", "bytes32", "bytes32", "bytes32"],
+        (
+            bytes.fromhex(y0_hex),
+            bytes.fromhex(y1_hex),
+            bytes.fromhex(hash_ciphers),
+            bytes.fromhex(hash_proof),
+            bytes.fromhex(hash_inputs)
+        )
+    )
     data_hex = sha256(data_to_sign).hexdigest()
 
     # Convert the hex digest into a field element

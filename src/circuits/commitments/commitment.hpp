@@ -16,7 +16,9 @@ class COMM_gadget : libsnark::gadget<FieldT>
 {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<HashT> hasher; // Hash gadget used as a commitment
+    // Hash gadget used as a commitment
+    std::shared_ptr<HashT> hasher;
+    // blake2sCompress(x || y)
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
 
 public:
@@ -24,8 +26,7 @@ public:
         libsnark::protoboard<FieldT> &pb,
         libsnark::pb_variable_array<FieldT> x,
         libsnark::pb_variable_array<FieldT> y,
-        std::shared_ptr<libsnark::digest_variable<FieldT>>
-            result, // blake2sCompress(x || y)
+        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
         const std::string &annotation_prefix = "COMM_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
@@ -100,6 +101,6 @@ public:
 };
 
 } // namespace libzeth
-#include "circuits/commitments/commitments.tcc"
+#include "circuits/commitments/commitment.tcc"
 
 #endif // __ZETH_COMMITMENT_CIRCUITS_HPP__

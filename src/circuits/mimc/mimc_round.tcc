@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_MIMC_ROUND_TCC__
-#define __ZETH_MIMC_ROUND_TCC__
+#ifndef __ZETH_MIMC_ROUND_CIRCUITS_TCC__
+#define __ZETH_MIMC_ROUND_CIRCUITS_TCC__
 
 namespace libzeth
 {
@@ -95,4 +95,4 @@ const libsnark::pb_variable<FieldT> &MiMCe7_round_gadget<FieldT>::result() const
 
 } // namespace libzeth
 
-#endif // __ZETH_MIMC_ROUND_TCC__
+#endif // __ZETH_MIMC_ROUND_CIRCUITS_TCC__

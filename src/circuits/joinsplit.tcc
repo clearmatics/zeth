@@ -1,5 +1,5 @@
-#ifndef __ZETH_JOINSPLIT_CIRCUIT_TCC__
-#define __ZETH_JOINSPLIT_CIRCUIT_TCC__
+#ifndef __ZETH_JOINSPLIT_CIRCUITS_TCC__
+#define __ZETH_JOINSPLIT_CIRCUITS_TCC__
 
 #include "circuits/notes/note.hpp" // Contains the circuits for the notes
 #include "libsnark_helpers/libsnark_helpers.hpp"
@@ -635,4 +635,4 @@ public:
     }
 };
 
-#endif // __ZETH_JOINSPLIT_CIRCUIT_TCC__
+#endif // __ZETH_JOINSPLIT_CIRCUITS_TCC__

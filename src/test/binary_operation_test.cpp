@@ -1,4 +1,4 @@
-#include "circuits/binary_operation_gadgets.hpp"
+#include "circuits/binary_operation.hpp"
 #include "snarks_alias.hpp"
 
 #include "gtest/gtest.h"
