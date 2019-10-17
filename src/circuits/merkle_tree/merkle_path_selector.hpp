@@ -3,8 +3,8 @@
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/merkle_tree.hpp
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/merkle_tree.cpp
 
-#ifndef __ZETH_MERKLE_PATH_SELECTOR_CIRCUITS_HPP___
-#define __ZETH_MERKLE_PATH_SELECTOR_CIRCUITS_HPP___
+#ifndef __ZETH_MERKLE_PATH_SELECTOR_HPP___
+#define __ZETH_MERKLE_PATH_SELECTOR_HPP___
 
 #include "depends/libsnark/libsnark/gadgetlib1/gadgets/basic_gadgets.hpp"
 #include "snarks_alias.hpp"
@@ -72,4 +72,4 @@ public:
 } // namespace libzeth
 #include "merkle_path_selector.tcc"
 
-#endif // __ZETH_MERKLE_PATH_SELECTOR_CIRCUITS_HPP___
+#endif // __ZETH_MERKLE_PATH_SELECTOR_HPP___

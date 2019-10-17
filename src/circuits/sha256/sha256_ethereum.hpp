@@ -1,5 +1,5 @@
-#ifndef __SHA256_ETHEREUM_CIRCUITS_HPP__
-#define __SHA256_ETHEREUM_CIRCUITS_HPP__
+#ifndef __SHA256_ETHEREUM_HPP__
+#define __SHA256_ETHEREUM_HPP__
 
 // DISCLAIMER:
 // Content taken and adapted from:
@@ -69,4 +69,4 @@ public:
 } // namespace libzeth
 #include "circuits/sha256/sha256_ethereum.tcc"
 
-#endif // __SHA256_ETHEREUM_CIRCUITS_HPP__
+#endif // __SHA256_ETHEREUM_HPP__

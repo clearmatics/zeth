@@ -1,5 +1,5 @@
-#ifndef __ZETH_COMMITMENT_CIRCUITS_HPP__
-#define __ZETH_COMMITMENT_CIRCUITS_HPP__
+#ifndef __ZETH_COMMITMENT_HPP__
+#define __ZETH_COMMITMENT_HPP__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
@@ -103,4 +103,4 @@ public:
 } // namespace libzeth
 #include "circuits/commitments/commitment.tcc"
 
-#endif // __ZETH_COMMITMENT_CIRCUITS_HPP__
+#endif // __ZETH_COMMITMENT_HPP__

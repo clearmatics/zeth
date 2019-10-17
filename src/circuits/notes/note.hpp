@@ -1,5 +1,5 @@
-#ifndef __ZETH_NOTES_CIRCUITS_HPP__
-#define __ZETH_NOTES_CIRCUITS_HPP__
+#ifndef __ZETH_NOTE_HPP__
+#define __ZETH_NOTE_HPP__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
@@ -134,4 +134,4 @@ public:
 } // namespace libzeth
 #include "circuits/notes/note.tcc"
 
-#endif // __ZETH_NOTES_CIRCUITS_HPP__
+#endif // __ZETH_NOTE_HPP__

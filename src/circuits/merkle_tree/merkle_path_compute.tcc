@@ -3,8 +3,8 @@
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/merkle_tree.hpp
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/merkle_tree.cpp
 
-#ifndef __ZETH_MERKLE_PATH_COMPUTE_CIRCUITS_TCC__
-#define __ZETH_MERKLE_PATH_COMPUTE_CIRCUITS_TCC__
+#ifndef __ZETH_MERKLE_PATH_COMPUTE_TCC__
+#define __ZETH_MERKLE_PATH_COMPUTE_TCC__
 
 namespace libzeth
 {
@@ -100,4 +100,4 @@ const libsnark::pb_variable<FieldT> merkle_path_compute<FieldT, HashTreeT>::
 
 } // namespace libzeth
 
-#endif // __ZETH_MERKLE_PATH_COMPUTE_CIRCUITS_TCC__
+#endif // __ZETH_MERKLE_PATH_COMPUTE_TCC__

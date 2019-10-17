@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_MIMC_ROUND_CIRCUITS_HPP__
-#define __ZETH_MIMC_ROUND_CIRCUITS_HPP__
+#ifndef __ZETH_MIMC_ROUND_HPP__
+#define __ZETH_MIMC_ROUND_HPP__
 
 #include "circuits/circuits-util.hpp"
 #include "snarks_alias.hpp"
@@ -65,4 +65,4 @@ public:
 } // namespace libzeth
 #include "mimc_round.tcc"
 
-#endif // __ZETH_MIMC_ROUND_CIRCUITS_HPP__
+#endif // __ZETH_MIMC_ROUND_HPP__

@@ -1,5 +1,5 @@
-#ifndef __ZETH_PRFS_CIRCUITS_HPP__
-#define __ZETH_PRFS_CIRCUITS_HPP__
+#ifndef __ZETH_PRF_HPP__
+#define __ZETH_PRF_HPP__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
@@ -129,4 +129,4 @@ public:
 } // namespace libzeth
 #include "circuits/prfs/prf.tcc"
 
-#endif // __ZETH_PRFS_CIRCUITS_HPP__
+#endif // __ZETH_PRF_HPP__
