@@ -1,10 +1,12 @@
 #ifndef __ZETH_JOINSPLIT_TCC__
 #define __ZETH_JOINSPLIT_TCC__
 
-#include "circuits/notes/note.hpp" // Contains the circuits for the notes
+// Contains the circuits for the notes
+#include "circuits/notes/note.hpp"
+// Contains the definitions of the constants we use
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "types/joinsplit.hpp"
-#include "zeth.h" // Contains the definitions of the constants we use
+#include "zeth.h"
 
 #include <boost/static_assert.hpp>
 #include <src/types/merkle_tree_field.hpp>

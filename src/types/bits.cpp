@@ -1,3 +1,6 @@
+#ifndef __ZETH_TYPE_BITS_CPP__
+#define __ZETH_TYPE_BITS_CPP__
+
 #include "bits.hpp"
 
 namespace libzeth
@@ -68,3 +71,5 @@ bits64 sum_bits64(bits64 a, bits64 b)
 }
 
 } // namespace libzeth
+
+#endif // __ZETH_TYPE_BITS_CPP__

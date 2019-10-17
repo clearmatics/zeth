@@ -11,7 +11,7 @@
 namespace libzeth
 {
 
-/// xor_gadget computes res = a XOR b
+// xor_gadget computes res = a XOR b
 template<typename FieldT> class xor_gadget : public libsnark::gadget<FieldT>
 {
 
@@ -33,7 +33,7 @@ public:
     void generate_r1cs_witness();
 };
 
-/// xor_constant_gadget computes res = a XOR b XOR c with c constant
+// xor_constant_gadget computes res = a XOR b XOR c with c constant
 template<typename FieldT>
 class xor_constant_gadget : public libsnark::gadget<FieldT>
 {
@@ -58,7 +58,7 @@ public:
     void generate_r1cs_witness();
 };
 
-/// xor_rot_gadget computes a XOR b and rotate it by shift
+// xor_rot_gadget computes a XOR b and rotate it by shift
 template<typename FieldT> class xor_rot_gadget : public libsnark::gadget<FieldT>
 {
 
@@ -82,8 +82,8 @@ public:
     void generate_r1cs_witness();
 };
 
-/// double_bit32_sum_eq_gadget checks that res = a + b % 2**32
-/// with a, b and res being 32-bit long arrays
+// double_bit32_sum_eq_gadget checks that res = a + b % 2**32
+// with a, b and res being 32-bit long arrays
 template<typename FieldT>
 class double_bit32_sum_eq_gadget : public libsnark::gadget<FieldT>
 {

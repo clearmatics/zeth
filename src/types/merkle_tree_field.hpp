@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/scipr-lab/libsnark/blob/master/libsnark/common/data_structures/merkle_tree.hpp
 
-#ifndef __ZETH_MERKLE_TREE_FIELD_HPP__
-#define __ZETH_MERKLE_TREE_FIELD_HPP__
+#ifndef __ZETH_TYPE_MERKLE_TREE_FIELD_HPP__
+#define __ZETH_TYPE_MERKLE_TREE_FIELD_HPP__
 
 #include <libff/common/default_types/ec_pp.hpp>
 #include <libff/common/utils.hpp>
@@ -56,4 +56,4 @@ public:
 } // namespace libzeth
 #include "merkle_tree_field.tcc"
 
-#endif // __ZETH_MERKLE_TREE_FIELD_HPP__
+#endif // __ZETH_TYPE_MERKLE_TREE_FIELD_HPP__
