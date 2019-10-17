@@ -4,7 +4,7 @@ set -x
 set -e
 
 POT="build/src/pot-process"
-MPC="build/src/mpc-test"
+MPC="build/src/mpc/mpc-test"
 QAP_DEGREE=8
 
 pot_file=_test_pot-${QAP_DEGREE}.bin
@@ -44,6 +44,7 @@ ${MPC} linear-combination --out ${linear_combination_file} \
 ${MPC} phase2-begin --out ${challenge_0_file} ${linear_combination_file}
 
 ${MPC} phase2-contribute \
+       --skip-user-input \
        --digest ${response_digest_1_file} \
        --out ${response_1_file} ${challenge_0_file}
 ${MPC} phase2-verify-contribution \
@@ -52,6 +53,7 @@ ${MPC} phase2-verify-contribution \
        ${challenge_0_file} ${response_1_file}
 
 ${MPC} phase2-contribute \
+       --skip-user-input \
        --digest ${response_digest_2_file} \
        --out ${response_2_file} ${challenge_1_file}
 ${MPC} phase2-verify-contribution \
@@ -60,6 +62,7 @@ ${MPC} phase2-verify-contribution \
        ${challenge_1_file} ${response_2_file}
 
 ${MPC} phase2-contribute \
+       --skip-user-input \
        --digest ${response_digest_3_file} \
        --out ${response_3_file} ${challenge_2_file}
 ${MPC} phase2-verify-contribution \

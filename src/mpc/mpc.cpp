@@ -1,11 +1,8 @@
 #include "circuit-wrapper.hpp"
-#include "mpc_main.hpp"
+#include "mpc_common.hpp"
 
 void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
 {
-    using HashTreeT = MiMC_mp_gadget<FieldT>;
-    using HashT = sha256_ethereum<FieldT>;
-
     joinsplit_gadget<
         FieldT,
         HashT,
@@ -18,5 +15,14 @@ void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
 
 int main(int argc, char **argv)
 {
-    return mpc_main(argc, argv, zeth_protoboard);
+    const std::map<std::string, subcommand *> commands{
+        {"linear-combination", mpc_linear_combination_cmd},
+        {"dummy-phase2", mpc_dummy_phase2_cmd},
+        {"phase2-begin", mpc_phase2_begin_cmd},
+        {"phase2-contribute", mpc_phase2_contribute_cmd},
+        {"phase2-verify-contribution", mpc_phase2_verify_contribution_cmd},
+        {"phase2-verify-transcript", mpc_phase2_verify_transcript_cmd},
+        {"create-keypair", mpc_create_keypair_cmd},
+    };
+    return mpc_main(argc, argv, commands, zeth_protoboard);
 }

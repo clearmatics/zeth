@@ -20,9 +20,10 @@ using namespace libzeth;
 
 // Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
-typedef sha256_ethereum<FieldT>
-    HashT; // We use our hash function to do the tests
+// Should be alt_bn128 in the CMakeLists.txt
+typedef libff::Fr<ppT> FieldT;
+// We use our hash function to do the tests
+typedef sha256_ethereum<FieldT> HashT;
 
 namespace
 {

@@ -1,6 +1,8 @@
 #ifndef __ZETH_UTIL_TCC__
 #define __ZETH_UTIL_TCC__
 
+#include "util.hpp"
+
 namespace libzeth
 {
 
