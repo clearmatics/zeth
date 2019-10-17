@@ -170,6 +170,6 @@ srs_lagrange_evaluations<ppT> powersoftau_compute_lagrange_evaluations(
 
 } // namespace libzeth
 
-#include "snarks/groth16/powersoftau_utils.tcc"
+#include "snarks/groth16/mpc/powersoftau_utils.tcc"
 
 #endif // __ZETH_SNARKS_GROTH_POWERSOFTAU_UTILS_HPP__

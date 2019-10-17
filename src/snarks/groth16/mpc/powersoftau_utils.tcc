@@ -1,7 +1,7 @@
 #ifndef __ZETH_SNARKS_GROTH16_POWERSOFTAU_UTILS_TCC__
 #define __ZETH_SNARKS_GROTH16_POWERSOFTAU_UTILS_TCC__
 
-#include "snarks/groth16/powersoftau_utils.hpp"
+#include "snarks/groth16/mpc/powersoftau_utils.hpp"
 #include "util.hpp"
 
 #include <thread>

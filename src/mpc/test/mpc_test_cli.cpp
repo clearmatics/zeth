@@ -1,16 +1,9 @@
-#include "circuit-wrapper.hpp"
 #include "mpc_common.hpp"
+#include "test/simple_test.hpp"
 
-void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
+void simple_protoboard(libsnark::protoboard<FieldT> &pb)
 {
-    joinsplit_gadget<
-        FieldT,
-        HashT,
-        HashTreeT,
-        ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS>
-        js(pb);
-    js.generate_r1cs_constraints();
+    libzeth::test::simple_circuit<FieldT>(pb);
 }
 
 int main(int argc, char **argv)
@@ -24,5 +17,5 @@ int main(int argc, char **argv)
         {"phase2-verify-transcript", mpc_phase2_verify_transcript_cmd},
         {"create-keypair", mpc_create_keypair_cmd},
     };
-    return mpc_main(argc, argv, commands, zeth_protoboard);
+    return mpc_main(argc, argv, commands, simple_protoboard);
 }

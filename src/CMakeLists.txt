@@ -64,10 +64,10 @@ include_directories( ${Boost_INCLUDE_DIR} )
 # so that we will find zethConfig.h
 include_directories( ${PROJECT_BINARY_DIR} )
 
-# blake2 library
+# blake2 library headers
 get_target_property(blake2_INCLUDE_DIRS blake2 INTERFACE_INCLUDE_DIRECTORIES)
 
-# libsodium library
+# libsodium headers
 get_target_property(sodium_INCLUDE_DIRS sodium INTERFACE_INCLUDE_DIRECTORIES)
 
 # zeth library
@@ -126,25 +126,6 @@ target_link_libraries(
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
 
-# mpc library
-file(GLOB MPC_LIB_SOURCE mpc/mpc_*.?pp mpc/mpc_*.tcc)
-add_library(libmpc ${MPC_LIB_SOURCE})
-target_include_directories(libmpc PUBLIC mpc)
-target_link_libraries(
-  libmpc
-  zeth
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-)
-
-# mpc utility executable
-add_executable(mpc mpc/mpc.cpp)
-target_link_libraries(mpc libmpc)
-
-# mpc test utility
-add_executable(mpc-test test/mpc_test_cli.cpp)
-target_link_libraries(mpc-test libmpc)
-
 ## Tests
 include(CTest)
 
@@ -191,3 +172,5 @@ target_link_libraries(
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
 )
+
+add_subdirectory(mpc)

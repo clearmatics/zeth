@@ -1,4 +1,4 @@
-#include "snarks/groth16/mpc_phase2.hpp"
+#include "snarks/groth16/mpc/phase2.hpp"
 
 namespace libzeth
 {

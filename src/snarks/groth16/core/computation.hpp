@@ -26,6 +26,6 @@ bool verify(
 
 } // namespace libzeth
 
-#include "snarks/groth16/computation.tcc"
+#include "snarks/groth16/core/computation.tcc"
 
 #endif // __ZETH_COMPUTATION_HPP__
