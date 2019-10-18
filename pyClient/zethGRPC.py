@@ -187,8 +187,8 @@ def computeCommitment(zethNoteGRPCObj):
     cm = blake2s(
         encode_abi(["bytes32", "bytes32"],
             (
-            bytes.fromhex(outer_k),
-            bytes.fromhex(frontPad + zethNoteGRPCObj.value)
+                bytes.fromhex(outer_k),
+                bytes.fromhex(frontPad + zethNoteGRPCObj.value)
             )
         )
     ).hexdigest()

@@ -2,7 +2,7 @@
 #define __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
 
 #include "circuits/binary_operation.hpp"
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 #include "g_primitive.hpp"
 #include "types/bits.hpp"
 #include "util.hpp"

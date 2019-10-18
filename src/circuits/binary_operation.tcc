@@ -1,7 +1,7 @@
 #ifndef __ZETH_CIRCUITS_BINARY_OPERATION_TCC__
 #define __ZETH_CIRCUITS_BINARY_OPERATION_TCC__
 
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 #include "types/bits.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>

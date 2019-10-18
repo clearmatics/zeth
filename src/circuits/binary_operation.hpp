@@ -1,7 +1,7 @@
 #ifndef __ZETH_CIRCUITS_BINARY_OPERATION_HPP__
 #define __ZETH_CIRCUITS_BINARY_OPERATION_HPP__
 
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 #include "math.h"
 #include "types/bits.hpp"
 

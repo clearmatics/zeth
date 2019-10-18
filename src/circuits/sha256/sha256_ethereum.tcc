@@ -6,7 +6,7 @@
 // https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
 
 // Get the from_bits function
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 
 // This gadget implements the interface of the HashT template
 

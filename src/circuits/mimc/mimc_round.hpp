@@ -5,7 +5,7 @@
 #ifndef __ZETH_CIRCUITS_MIMC_ROUND_HPP__
 #define __ZETH_CIRCUITS_MIMC_ROUND_HPP__
 
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 

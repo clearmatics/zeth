@@ -11,7 +11,7 @@
 #include "circuits/commitments/commitment.hpp"
 #include "circuits/prfs/prf.hpp"
 // Get the utils functions
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 
 // Get the bits typedefs and associated functions
 #include "types/bits.hpp"
