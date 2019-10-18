@@ -13,10 +13,11 @@ void srs_mpc_phase2_accumulator<libff::alt_bn128_pp>::write_compressed(
     using G1 = libff::alt_bn128_G1;
     check_well_formed(*this, "mpc_layer2 (write)");
 
-    // Write the sizes first.
+    // Write cs_hash and sizes first.
 
     const size_t H_size = H_g1.size();
     const size_t L_size = L_g1.size();
+    out.write((const char *)cs_hash, sizeof(srs_mpc_hash_t));
     out.write((const char *)&H_size, sizeof(H_size));
     out.write((const char *)&L_size, sizeof(L_size));
 
@@ -40,8 +41,10 @@ srs_mpc_phase2_accumulator<libff::alt_bn128_pp> srs_mpc_phase2_accumulator<
     using G1 = libff::alt_bn128_G1;
     using G2 = libff::alt_bn128_G2;
 
+    srs_mpc_hash_t cs_hash;
     size_t H_size;
     size_t L_size;
+    in.read((char *)cs_hash, sizeof(srs_mpc_hash_t));
     in.read((char *)&H_size, sizeof(H_size));
     in.read((char *)&L_size, sizeof(L_size));
 
@@ -61,7 +64,7 @@ srs_mpc_phase2_accumulator<libff::alt_bn128_pp> srs_mpc_phase2_accumulator<
     }
 
     srs_mpc_phase2_accumulator<libff::alt_bn128_pp> l2(
-        delta_g1, delta_g2, std::move(H_g1), std::move(L_g1));
+        cs_hash, delta_g1, delta_g2, std::move(H_g1), std::move(L_g1));
     check_well_formed(l2, "mpc_layer2 (read)");
     return l2;
 }

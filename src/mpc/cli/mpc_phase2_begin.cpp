@@ -68,8 +68,10 @@ private:
         }
 
         libff::enter_block("Load linear combination file");
+        srs_mpc_hash_t cs_hash;
         srs_mpc_layer_L1<ppT> lin_comb =
-            read_from_file<srs_mpc_layer_L1<ppT>>(lin_comb_file, cs_hash);
+            read_from_file_and_hash<srs_mpc_layer_L1<ppT>>(
+                lin_comb_file, cs_hash);
         libff::leave_block("Load linear combination file");
 
         // Compute circuit
@@ -83,14 +85,11 @@ private:
         std::cout << std::to_string(num_inputs) << std::endl;
         libff::leave_block("Computing num inputs");
 
-        // TODO: use the hash of the linear combination as the inital transcript
-        // digest?
-
         // Initial challenge
         libff::enter_block("Computing initial challenge");
         const srs_mpc_phase2_challenge<ppT> initial_challenge =
             srs_mpc_phase2_initial_challenge<ppT>(
-                srs_mpc_phase2_begin<ppT>(lin_comb, num_inputs));
+                srs_mpc_phase2_begin<ppT>(cs_hash, lin_comb, num_inputs));
         libff::leave_block("Computing initial challenge");
 
         libff::enter_block("Writing initial challenge");

@@ -12,19 +12,22 @@ namespace libzeth
 
 template<typename ppT>
 srs_mpc_phase2_accumulator<ppT>::srs_mpc_phase2_accumulator(
+    const srs_mpc_hash_t cs_hash,
     const libff::G1<ppT> &delta_g1,
     const libff::G2<ppT> &delta_g2,
     libff::G1_vector<ppT> &&H_g1,
     libff::G1_vector<ppT> &&L_g1)
     : delta_g1(delta_g1), delta_g2(delta_g2), H_g1(H_g1), L_g1(L_g1)
 {
+    memcpy(this->cs_hash, cs_hash, sizeof(srs_mpc_hash_t));
 }
 
 template<typename ppT>
 bool srs_mpc_phase2_accumulator<ppT>::operator==(
     const srs_mpc_phase2_accumulator<ppT> &other) const
 {
-    return (delta_g1 == other.delta_g1) && (delta_g2 == other.delta_g2) &&
+    return !memcmp(cs_hash, other.cs_hash, sizeof(srs_mpc_hash_t)) &&
+           (delta_g1 == other.delta_g1) && (delta_g2 == other.delta_g2) &&
            (H_g1 == other.H_g1) && (L_g1 == other.L_g1);
 }
 
@@ -41,10 +44,11 @@ void srs_mpc_phase2_accumulator<ppT>::write(std::ostream &out) const
     using G1 = libff::G1<ppT>;
     check_well_formed(*this, "mpc_layer2 (write)");
 
-    // Write the sizes first.
+    // Write cs_hash and sizes first.
 
     const size_t H_size = H_g1.size();
     const size_t L_size = L_g1.size();
+    out.write((const char *)cs_hash, sizeof(srs_mpc_hash_t));
     out.write((const char *)&H_size, sizeof(H_size));
     out.write((const char *)&L_size, sizeof(L_size));
 
@@ -64,9 +68,11 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_accumulator<ppT>::read(
 {
     using G1 = libff::G1<ppT>;
 
+    srs_mpc_hash_t cs_hash;
     size_t H_size;
     size_t L_size;
 
+    in.read((char *)cs_hash, sizeof(srs_mpc_hash_t));
     in.read((char *)&H_size, sizeof(H_size));
     in.read((char *)&L_size, sizeof(L_size));
 
@@ -84,10 +90,10 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_accumulator<ppT>::read(
         in >> l;
     }
 
-    srs_mpc_phase2_accumulator<ppT> l2(
-        delta_g1, delta_g2, std::move(H_g1), std::move(L_g1));
-    check_well_formed(l2, "mpc_layer2 (read)");
-    return l2;
+    srs_mpc_phase2_accumulator<ppT> accum(
+        cs_hash, delta_g1, delta_g2, std::move(H_g1), std::move(L_g1));
+    check_well_formed(accum, "phase2_accumulator (read)");
+    return accum;
 }
 
 template<typename ppT>
@@ -279,7 +285,9 @@ libff::G2<ppT> srs_mpc_digest_to_g2(const srs_mpc_hash_t transcript_digest)
 
 template<typename ppT>
 srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
-    const srs_mpc_layer_L1<ppT> &layer_L1, size_t num_inputs)
+    const srs_mpc_hash_t cs_hash,
+    const srs_mpc_layer_L1<ppT> &layer_L1,
+    size_t num_inputs)
 {
     // { H_i } = { [ t(x) . x^i / delta ]_1 } i = 0 .. n-2 (n-1 entries)
     libff::enter_block("computing initial { H_i } i=0..n-2");
@@ -311,6 +319,7 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
     libff::G1_vector<ppT> L_g1(num_L_elements);
 
     return srs_mpc_phase2_accumulator<ppT>(
+        cs_hash,
         libff::G1<ppT>::one(),
         libff::G2<ppT>::one(),
         libff::G1_vector<ppT>(layer_L1.T_tau_powers_g1),
@@ -419,7 +428,11 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_update_accumulator(
     libff::leave_block("call to srs_mpc_phase2_update_accumulator");
 
     return srs_mpc_phase2_accumulator<ppT>(
-        new_delta_g1, new_delta_g2, std::move(H_g1), std::move(L_g1));
+        last_accum.cs_hash,
+        new_delta_g1,
+        new_delta_g2,
+        std::move(H_g1),
+        std::move(L_g1));
 }
 
 template<typename ppT>
@@ -430,7 +443,8 @@ bool srs_mpc_phase2_update_is_consistent(
     libff::enter_block("call to srs_mpc_phase2_update_is_consistent");
 
     // Check basic compatibility between 'last' and 'updated'
-    if (last.H_g1.size() != updated.H_g1.size() ||
+    if (memcmp(last.cs_hash, updated.cs_hash, sizeof(srs_mpc_hash_t)) ||
+        last.H_g1.size() != updated.H_g1.size() ||
         last.L_g1.size() != updated.L_g1.size()) {
         return false;
     }
@@ -489,8 +503,8 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_initial_challenge(
     srs_mpc_phase2_accumulator<ppT> &&accumulator)
 {
     srs_mpc_hash_t initial_transcript_digest;
-    const uint8_t empty[0]{};
-    srs_mpc_compute_hash(initial_transcript_digest, empty, 0);
+    srs_mpc_compute_hash(
+        initial_transcript_digest, accumulator.cs_hash, sizeof(srs_mpc_hash_t));
     return srs_mpc_phase2_challenge<ppT>(
         initial_transcript_digest, std::move(accumulator));
 }
@@ -620,9 +634,12 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_dummy_phase2(
 {
     // Start with a blank challenge and simulate one contribution of the MPC
     // using delta.
+    srs_mpc_hash_t init_hash;
+    uint8_t empty[0];
+    srs_mpc_compute_hash(init_hash, empty, 0);
     srs_mpc_phase2_challenge<ppT> challenge_0 =
         srs_mpc_phase2_initial_challenge(
-            srs_mpc_phase2_begin(layer1, num_inputs));
+            srs_mpc_phase2_begin(init_hash, layer1, num_inputs));
     srs_mpc_phase2_response<ppT> response_1 =
         srs_mpc_phase2_compute_response(challenge_0, delta);
     return srs_mpc_phase2_compute_challenge(std::move(response_1));
