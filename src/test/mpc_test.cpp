@@ -36,6 +36,12 @@ template<typename ppT>
 static srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
     libff::Fr<ppT> seed, size_t degree, size_t num_L_elements)
 {
+    // Dummy cs_hash from the seed.
+    srs_mpc_hash_t cs_hash;
+    hash_ostream ss;
+    ss << seed;
+    ss.get_hash(cs_hash);
+
     libff::G1_vector<ppT> H_g1(degree - 1);
     for (libff::G1<ppT> &h : H_g1) {
         h = seed * libff::G1<ppT>::one();
@@ -49,6 +55,7 @@ static srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
     };
 
     return srs_mpc_phase2_accumulator<ppT>(
+        cs_hash,
         libff::G1<ppT>::one(),
         libff::G2<ppT>::one(),
         std::move(H_g1),
