@@ -89,9 +89,55 @@ std::streamsize hash_streambuf::xsputn(const char *s, std::streamsize n)
     return n;
 }
 
+hash_streambuf_wrapper::hash_streambuf_wrapper(std::ostream *inner)
+    : inner_out(inner)
+{
+    srs_mpc_hash_init(hash_state);
+}
+
+hash_streambuf_wrapper::hash_streambuf_wrapper(std::istream *inner)
+    : inner_in(inner)
+{
+    srs_mpc_hash_init(hash_state);
+}
+
+std::streamsize hash_streambuf_wrapper::xsputn(const char *s, std::streamsize n)
+{
+    inner_out->write(s, n);
+    srs_mpc_hash_update(hash_state, s, n);
+    return n;
+}
+
+std::streamsize hash_streambuf_wrapper::xsgetn(char *s, std::streamsize n)
+{
+    inner_in->read(s, n);
+    srs_mpc_hash_update(hash_state, s, n);
+    return n;
+}
+
 hash_ostream::hash_ostream() : std::ostream(&hsb), hsb() {}
 
 void hash_ostream::get_hash(srs_mpc_hash_t out_hash)
+{
+    srs_mpc_hash_final(hsb.hash_state, out_hash);
+}
+
+hash_ostream_wrapper::hash_ostream_wrapper(std::ostream &inner_stream)
+    : std::ostream(&hsb), hsb(&inner_stream)
+{
+}
+
+void hash_ostream_wrapper::get_hash(srs_mpc_hash_t out_hash)
+{
+    srs_mpc_hash_final(hsb.hash_state, out_hash);
+}
+
+hash_istream_wrapper::hash_istream_wrapper(std::istream &inner_stream)
+    : std::istream(&hsb), hsb(&inner_stream)
+{
+}
+
+void hash_istream_wrapper::get_hash(srs_mpc_hash_t out_hash)
 {
     srs_mpc_hash_final(hsb.hash_state, out_hash);
 }

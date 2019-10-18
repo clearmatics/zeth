@@ -40,6 +40,22 @@ protected:
     friend class hash_ostream;
 };
 
+class hash_streambuf_wrapper : std::streambuf
+{
+protected:
+    hash_streambuf_wrapper(std::ostream *inner);
+    hash_streambuf_wrapper(std::istream *inner);
+    virtual std::streamsize xsputn(const char *s, std::streamsize n) override;
+    virtual std::streamsize xsgetn(char *s, std::streamsize n) override;
+
+    std::ostream *inner_out;
+    std::istream *inner_in;
+    srs_mpc_hash_state_t hash_state;
+
+    friend class hash_ostream_wrapper;
+    friend class hash_istream_wrapper;
+};
+
 class hash_ostream : public std::ostream
 {
 public:
@@ -48,6 +64,26 @@ public:
 
 private:
     hash_streambuf hsb;
+};
+
+class hash_ostream_wrapper : public std::ostream
+{
+public:
+    hash_ostream_wrapper(std::ostream &inner_stream);
+    void get_hash(srs_mpc_hash_t out_hash);
+
+private:
+    hash_streambuf_wrapper hsb;
+};
+
+class hash_istream_wrapper : public std::istream
+{
+public:
+    hash_istream_wrapper(std::istream &inner_stream);
+    void get_hash(srs_mpc_hash_t out_hash);
+
+private:
+    hash_streambuf_wrapper hsb;
 };
 
 } // namespace libzeth
