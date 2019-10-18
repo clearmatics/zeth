@@ -96,6 +96,23 @@ private:
                 challenge_0_file);
         libff::leave_block("Load challenge_0 file");
 
+        // Simple sanity check on challenge.0. The initial transcript digest
+        // should be based on the cs_hash for this MPC.
+        {
+            srs_mpc_hash_t init_transcript_digest;
+            srs_mpc_compute_hash(
+                init_transcript_digest,
+                challenge_0.accumulator.cs_hash,
+                sizeof(srs_mpc_hash_t));
+            if (memcmp(
+                    init_transcript_digest,
+                    challenge_0.transcript_digest,
+                    sizeof(srs_mpc_hash_t))) {
+                throw std::invalid_argument(
+                    "transcript digest does not match starting challenge");
+            }
+        }
+
         bool check_for_contribution = false;
 
         // If required, load a contribution hash and set the
