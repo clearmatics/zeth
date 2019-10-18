@@ -9,11 +9,12 @@ namespace libzeth
 {
 
 // Hashing for MPC. Streaming and whole-buffer interfaces.
-const size_t srs_mpc_hash_size = 64;
-const size_t srs_mpc_hash_array_length = srs_mpc_hash_size / sizeof(size_t);
-using srs_mpc_hash_t = size_t[srs_mpc_hash_array_length];
+const size_t SRS_MPC_HASH_SIZE = 64;
+const size_t SRS_MPC_HASH_ARRAY_LENGTH = SRS_MPC_HASH_SIZE / sizeof(size_t);
 
+using srs_mpc_hash_t = size_t[SRS_MPC_HASH_ARRAY_LENGTH];
 using srs_mpc_hash_state_t = crypto_generichash_blake2b_state;
+
 void srs_mpc_hash_init(srs_mpc_hash_state_t &);
 void srs_mpc_hash_update(srs_mpc_hash_state_t &, const void *, size_t);
 void srs_mpc_hash_final(srs_mpc_hash_state_t &, srs_mpc_hash_t);
@@ -25,7 +26,7 @@ void srs_mpc_compute_hash(srs_mpc_hash_t out_hash, const std::string &data);
 /// following the format used in the "powersoftau" and "Sapling MPC" code.
 void srs_mpc_hash_write(const srs_mpc_hash_t hash, std::ostream &out);
 
-/// Parse a human-readable string (4 x 4 x 4-byte hex words) reprsenting an
+/// Parse a human-readable string (4 x 4 x 4-byte hex words) representing an
 /// srs_mpc_hash_t.
 bool srs_mpc_hash_read(srs_mpc_hash_t out_hash, std::istream &in);
 
@@ -40,6 +41,22 @@ protected:
     friend class hash_ostream;
 };
 
+class hash_streambuf_wrapper : std::streambuf
+{
+protected:
+    hash_streambuf_wrapper(std::ostream *inner);
+    hash_streambuf_wrapper(std::istream *inner);
+    virtual std::streamsize xsputn(const char *s, std::streamsize n) override;
+    virtual std::streamsize xsgetn(char *s, std::streamsize n) override;
+
+    std::ostream *inner_out;
+    std::istream *inner_in;
+    srs_mpc_hash_state_t hash_state;
+
+    friend class hash_ostream_wrapper;
+    friend class hash_istream_wrapper;
+};
+
 class hash_ostream : public std::ostream
 {
 public:
@@ -48,6 +65,26 @@ public:
 
 private:
     hash_streambuf hsb;
+};
+
+class hash_ostream_wrapper : public std::ostream
+{
+public:
+    hash_ostream_wrapper(std::ostream &inner_stream);
+    void get_hash(srs_mpc_hash_t out_hash);
+
+private:
+    hash_streambuf_wrapper hsb;
+};
+
+class hash_istream_wrapper : public std::istream
+{
+public:
+    hash_istream_wrapper(std::istream &inner_stream);
+    void get_hash(srs_mpc_hash_t out_hash);
+
+private:
+    hash_streambuf_wrapper hsb;
 };
 
 } // namespace libzeth

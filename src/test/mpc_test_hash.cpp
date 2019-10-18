@@ -75,6 +75,55 @@ TEST(MPCHashTests, HashRepresentation)
     ASSERT_EQ(0, memcmp(hash, hash_from_string, sizeof(srs_mpc_hash_t)));
 }
 
+TEST(MPCHashTests, HashOStreamWrapper)
+{
+    const std::string s = "The quick brown fox jumps over the lazy dog";
+    const std::string expect_hash_hex =
+        "a8add4bdddfd93e4877d2746e62817b116364a1fa7bc148d95090bc7333b3673f82401"
+        "cf7aa2e4cb1ecd90296e3f14cb5413f8ed77be73045b13914cdcd6a918";
+
+    // Create string stream and hash stream wrapper
+    std::ostringstream ss;
+    hash_ostream_wrapper hsw(ss);
+    hsw << s;
+
+    // Extract hash and data from wrapped stream
+    srs_mpc_hash_t hash;
+    hsw.get_hash(hash);
+    std::string stream_data(ss.str());
+
+    // Test
+    ASSERT_EQ(s, stream_data);
+    ASSERT_EQ(
+        expect_hash_hex, binary_str_to_hexadecimal_str(hash, sizeof(hash)));
+}
+
+TEST(MPCHashTests, HashIStreamWrapper)
+{
+    const std::string s = "The quick brown fox jumps over the lazy dog";
+    const std::string expect_hash_hex =
+        "a8add4bdddfd93e4877d2746e62817b116364a1fa7bc148d95090bc7333b3673f82401"
+        "cf7aa2e4cb1ecd90296e3f14cb5413f8ed77be73045b13914cdcd6a918";
+
+    // Create string stream and hash stream wrapper
+    std::istringstream ss(s);
+    hash_istream_wrapper hsw(ss);
+
+    // Stream data
+    std::string stream_data;
+    stream_data.resize(s.size(), ' ');
+    hsw.read(&stream_data[0], s.size());
+
+    // Extract hash and data from wrapped stream
+    srs_mpc_hash_t hash;
+    hsw.get_hash(hash);
+
+    // Test
+    ASSERT_EQ(s, stream_data);
+    ASSERT_EQ(
+        expect_hash_hex, binary_str_to_hexadecimal_str(hash, sizeof(hash)));
+}
+
 } // namespace tests
 
 } // namespace libzeth
