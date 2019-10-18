@@ -36,6 +36,11 @@ template<typename ppT> class srs_mpc_layer_L1;
 template<typename ppT> class srs_mpc_phase2_accumulator
 {
 public:
+    // Hash of the initial state before any contributions are made. Kept
+    // constant over the MPC, and used to check that challenges and responses
+    // are part of the same MPC.
+    srs_mpc_hash_t cs_hash;
+
     libff::G1<ppT> delta_g1;
 
     libff::G2<ppT> delta_g2;
@@ -47,6 +52,7 @@ public:
     libff::G1_vector<ppT> L_g1;
 
     srs_mpc_phase2_accumulator(
+        const srs_mpc_hash_t cs_hash,
         const libff::G1<ppT> &delta_g1,
         const libff::G2<ppT> &delta_g2,
         libff::G1_vector<ppT> &&H_g1,
@@ -145,7 +151,9 @@ libff::G2<ppT> srs_mpc_digest_to_g2(const srs_mpc_hash_t digest);
 /// layer). See "Initialization" in section 7.3 of [BoweGM17].
 template<typename ppT>
 srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
-    const srs_mpc_layer_L1<ppT> &layer_L1, size_t num_inputs);
+    const srs_mpc_hash_t cs_hash,
+    const srs_mpc_layer_L1<ppT> &layer_L1,
+    size_t num_inputs);
 
 /// Outputs the public key (which includes the POK) for our secret. Correponds
 /// to steps 1 and 2 in "Computation", section 7.3 of [BoweGM17]
