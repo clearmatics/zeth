@@ -6,7 +6,7 @@
 #include <libff/common/default_types/ec_pp.hpp>
 
 // Access the `from_bits` function and other utils
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 #include "util.hpp"
 
 using namespace libsnark;

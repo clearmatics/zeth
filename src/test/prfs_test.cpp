@@ -15,7 +15,7 @@
 #include "circuits/blake2s/blake2s_comp.hpp"
 
 // Access the `from_bits` function and other utils
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 #include "util.hpp"
 
 // Gadget to test
