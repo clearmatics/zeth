@@ -714,7 +714,7 @@ TEST(MPCTests, Phase2UpdateVerification)
     {
         srs_mpc_phase2_response<ppT> response =
             srs_mpc_phase2_compute_response(challenge, secret);
-        response.publickey.transcript_digest[srs_mpc_hash_array_length / 2] +=
+        response.publickey.transcript_digest[SRS_MPC_HASH_ARRAY_LENGTH / 2] +=
             1;
         ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
     }
