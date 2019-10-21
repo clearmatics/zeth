@@ -20,6 +20,7 @@ RESPONSE_DIGEST_FILE = "response.bin.digest"
 @option("--num-powers", "-n", default=None, type=int, help="number of powers")
 @option("--skip-user-input", is_flag=True, default=False)
 @option("--server-certificate", default=None, help="server certificate")
+@option("--insecure", is_flag=True, help="allow missing certificate chain")
 def phase1_contribute(
         base_url: str,
         key_file: str,
@@ -27,7 +28,8 @@ def phase1_contribute(
         response_digest: str,
         num_powers: Optional[int],
         skip_user_input: bool,
-        server_certificate: Optional[str]) -> None:
+        server_certificate: Optional[str],
+        insecure: bool) -> None:
     """
     Download a challenge, then compute, sign and upload an MPC contribution
     """
@@ -43,7 +45,12 @@ def phase1_contribute(
         return RESPONSE_FILE
 
     contribute(
-        base_url, key_file, CHALLENGE_FILE, _contribute, server_certificate)
+        base_url,
+        key_file,
+        CHALLENGE_FILE,
+        _contribute,
+        server_certificate,
+        insecure)
 
 
 if __name__ == "__main__":

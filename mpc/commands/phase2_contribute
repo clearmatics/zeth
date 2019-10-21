@@ -19,6 +19,7 @@ RESPONSE_DIGEST_FILE = "response.bin.digest"
 @option("--mpc-executable", default=None, help="path to mpc executable")
 @option("--skip-user-input", is_flag=True, default=False)
 @option("--server-certificate", default=None, help="server certificate")
+@option("--insecure", is_flag=True, help="allow missing certificate chain")
 def phase2_contribute(
         base_url: str,
         key_file: str,
@@ -27,7 +28,8 @@ def phase2_contribute(
         response_digest: str,
         mpc_executable: Optional[str],
         skip_user_input: bool,
-        server_certificate: Optional[str]) -> None:
+        server_certificate: Optional[str],
+        insecure: bool) -> None:
     """
     Download a challenge, then compute, sign and upload an MPC contribution
     """
@@ -45,7 +47,13 @@ def phase2_contribute(
         return response
 
     # Run
-    contribute(base_url, key_file, challenge, _contribute, server_certificate)
+    contribute(
+        base_url,
+        key_file,
+        challenge,
+        _contribute,
+        server_certificate,
+        insecure)
 
 
 if __name__ == "__main__":

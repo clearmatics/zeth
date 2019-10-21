@@ -3,7 +3,7 @@
 from .crypto import \
     VerificationKey, Signature, export_digest, export_verification_key, \
     export_signature
-from typing import Optional
+from typing import Optional, Union
 from requests import post, get, Response
 from os.path import join, exists
 import time
@@ -13,10 +13,14 @@ CHUNK_SIZE = 4096
 
 class Client(object):
 
-    def __init__(self, base_url: str, cert_path: Optional[str] = None):
+    def __init__(
+            self,
+            base_url: str,
+            cert_path: Optional[str] = None,
+            insecure: bool = False):
         assert not cert_path or exists(cert_path)
         self.base_url = base_url
-        self.cert_path = cert_path
+        self.verify: Union[bool, str, None] = False if insecure else cert_path
 
     def get_challenge(self, challenge_file: str) -> None:
         """
@@ -31,7 +35,7 @@ class Client(object):
             return get(
                 join(self.base_url, "challenge"),
                 stream=True,
-                verify=self.cert_path)
+                verify=self.verify)
 
         while True:
             with _get_challenge() as resp:
@@ -65,5 +69,5 @@ class Client(object):
                 join(self.base_url, "contribute"),
                 files={'response': upload_f},
                 headers=headers,
-                verify=self.cert_path)
+                verify=self.verify)
             r.raise_for_status()
