@@ -23,6 +23,8 @@ namespace
 // endian, the inputs of the first g_primitive are "lleh" and "ow o"
 // ("hello world" -> "hell" "o wo" "rld" plus padding-> "lleh" "ow o" "dlr" plus
 // padding)
+// The test vectors were computed with the help of blake2s python script from
+// https://github.com/buggywhip/blake2_py
 TEST(TestG, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
@@ -146,6 +148,7 @@ TEST(TestG, TestTrue)
 }
 
 // The test correponds to blake2s(b"hello world")
+// The test vectors were computed with hashlib's blake2s function
 TEST(TestBlake2sComp, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
