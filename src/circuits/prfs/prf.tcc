@@ -1,5 +1,5 @@
-#ifndef __ZETH_PRFS_CIRCUITS_TCC__
-#define __ZETH_PRFS_CIRCUITS_TCC__
+#ifndef __ZETH_CIRCUITS_PRF_TCC__
+#define __ZETH_CIRCUITS_PRF_TCC__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
@@ -248,4 +248,4 @@ PRF_rho_gadget<FieldT, HashT>::PRF_rho_gadget(
 
 } // namespace libzeth
 
-#endif // __ZETH_PRFS_CIRCUITS_TCC__
+#endif // __ZETH_CIRCUITS_PRF_TCC__

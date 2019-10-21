@@ -1,5 +1,5 @@
-#ifndef __ZETH_JOINSPLIT_HPP__
-#define __ZETH_JOINSPLIT_HPP__
+#ifndef __ZETH_TYPES_JOINSPLIT_HPP__
+#define __ZETH_TYPES_JOINSPLIT_HPP__
 
 #include "types/bits.hpp"
 #include "types/note.hpp"
@@ -43,4 +43,4 @@ public:
 
 } // namespace libzeth
 
-#endif // __ZETH_JOINSPLIT_HPP__
+#endif // __ZETH_TYPES_JOINSPLIT_HPP__

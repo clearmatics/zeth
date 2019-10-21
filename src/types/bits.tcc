@@ -1,5 +1,5 @@
-#ifndef __ZETH_BITS_TCC__
-#define __ZETH_BITS_TCC__
+#ifndef __ZETH_TYPES_BITS_TCC__
+#define __ZETH_TYPES_BITS_TCC__
 
 namespace libzeth
 {
@@ -70,4 +70,4 @@ std::array<bool, BitLen> binary_xor(
 
 } // namespace libzeth
 
-#endif // __ZETH_BITS_TCC__
+#endif // __ZETH_TYPES_BITS_TCC__

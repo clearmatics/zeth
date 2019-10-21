@@ -1,7 +1,7 @@
-#ifndef __ZETH_BINARY_OPERATION_GADGETS_TCC__
-#define __ZETH_BINARY_OPERATION_GADGETS_TCC__
+#ifndef __ZETH_CIRCUITS_BINARY_OPERATION_TCC__
+#define __ZETH_CIRCUITS_BINARY_OPERATION_TCC__
 
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 #include "types/bits.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
@@ -260,4 +260,4 @@ void double_bit32_sum_eq_gadget<FieldT>::generate_r1cs_witness()
 
 } // namespace libzeth
 
-#endif // __ZETH_BINARY_OPERATION_GADGETS_TCC__
+#endif // __ZETH_CIRCUITS_BINARY_OPERATION_TCC__

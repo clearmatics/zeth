@@ -1,9 +1,11 @@
-#ifndef __ZETH_PRFS_CIRCUITS_HPP__
-#define __ZETH_PRFS_CIRCUITS_HPP__
+#ifndef __ZETH_CIRCUITS_PRF_HPP__
+#define __ZETH_CIRCUITS_PRF_HPP__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
+
+#include "circuits/circuits-utils.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 
@@ -127,6 +129,6 @@ public:
 };
 
 } // namespace libzeth
-#include "circuits/prfs/prfs.tcc"
+#include "circuits/prfs/prf.tcc"
 
-#endif // __ZETH_PRFS_CIRCUITS_HPP__
+#endif // __ZETH_CIRCUITS_PRF_HPP__

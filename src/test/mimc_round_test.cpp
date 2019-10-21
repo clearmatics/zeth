@@ -1,4 +1,4 @@
-#include "circuits/mimc/round.hpp"
+#include "circuits/mimc/mimc_round.hpp"
 #include "snarks_alias.hpp"
 
 #include "gtest/gtest.h"

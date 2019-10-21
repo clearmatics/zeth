@@ -1,5 +1,5 @@
-#ifndef __ZETH_BLAKE2S_COMP_SETUP_TCC__
-#define __ZETH_BLAKE2S_COMP_SETUP_TCC__
+#ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_SETUP_TCC__
+#define __ZETH_CIRCUITS_BLAKE2S_COMP_SETUP_TCC__
 
 namespace libzeth
 {
@@ -368,4 +368,4 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_mixing_gadgets()
 
 } // namespace libzeth
 
-#endif // __ZETH_BLAKE2S_COMP_SETUP_TCC__
+#endif // __ZETH_CIRCUITS_BLAKE2S_COMP_SETUP_TCC__

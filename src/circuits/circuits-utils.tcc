@@ -1,5 +1,5 @@
-#ifndef __ZETH_CIRCUITS_UTILS_TCC__
-#define __ZETH_CIRCUITS_UTILS_TCC__
+#ifndef __ZETH_CIRCUITS_CIRCUITS_UTILS_TCC__
+#define __ZETH_CIRCUITS_CIRCUITS_UTILS_TCC__
 
 #include <libsnark/gadgetlib1/pb_variable.hpp>
 #include <vector>
@@ -168,4 +168,4 @@ template<typename FieldT> std::vector<FieldT> convert_to_binary(size_t n)
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUITS_UTILS_TCC__
+#endif // __ZETH_CIRCUITS_CIRCUITS_UTILS_TCC__

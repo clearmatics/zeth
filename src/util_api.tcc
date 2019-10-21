@@ -42,4 +42,4 @@ libzeth::JSInput<FieldT> ParseJSInput(const proverpkg::JSInput &input)
 
 } // namespace libzeth
 
-#endif
+#endif // __ZETH_UTIL_API_TCC__

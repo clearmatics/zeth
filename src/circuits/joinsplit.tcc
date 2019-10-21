@@ -1,10 +1,11 @@
-#ifndef __ZETH_JOINSPLIT_CIRCUIT_TCC__
-#define __ZETH_JOINSPLIT_CIRCUIT_TCC__
+#ifndef __ZETH_CIRCUITS_JOINSPLIT_TCC__
+#define __ZETH_CIRCUITS_JOINSPLIT_TCC__
 
-#include "circuits/notes/note.hpp" // Contains the circuits for the notes
-#include "libsnark_helpers/libsnark_helpers.hpp"
+// Contains the circuits for the notes
+#include "circuits/notes/note.hpp"
 #include "types/joinsplit.hpp"
-#include "zeth.h" // Contains the definitions of the constants we use
+// Contains the definitions of the constants we use
+#include "zeth.h"
 
 #include <boost/static_assert.hpp>
 #include <src/types/merkle_tree_field.hpp>
@@ -635,4 +636,4 @@ public:
     }
 };
 
-#endif // __ZETH_JOINSPLIT_CIRCUIT_TCC__
+#endif // __ZETH_CIRCUITS_JOINSPLIT_TCC__

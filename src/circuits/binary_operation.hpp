@@ -1,7 +1,7 @@
-#ifndef __ZETH_BINARY_OPERATION_GADGETS_HPP__
-#define __ZETH_BINARY_OPERATION_GADGETS_HPP__
+#ifndef __ZETH_CIRCUITS_BINARY_OPERATION_HPP__
+#define __ZETH_CIRCUITS_BINARY_OPERATION_HPP__
 
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 #include "math.h"
 #include "types/bits.hpp"
 
@@ -107,6 +107,6 @@ public:
 };
 
 } // namespace libzeth
-#include "binary_operation_gadgets.tcc"
+#include "binary_operation.tcc"
 
-#endif // __ZETH_BINARY_OPERATION_GADGETS_HPP__
+#endif // __ZETH_CIRCUITS_BINARY_OPERATION_HPP__

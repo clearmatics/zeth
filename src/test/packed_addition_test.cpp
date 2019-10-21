@@ -9,7 +9,7 @@
 #include "zeth.h"
 
 // Include the type we need
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 #include "circuits/notes/note.hpp"
 #include "types/bits.hpp"
 #include "types/joinsplit.hpp"
