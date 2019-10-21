@@ -11,7 +11,8 @@ def contribute(
         key_file: str,
         challenge_file: str,
         contribute: Callable[[], str],
-        server_certificate: Optional[str]) -> None:
+        server_certificate: Optional[str],
+        insecure: bool) -> None:
     """
     Given a callback that creates a response from a challenge, download a
     challenge, create the response via the callback, and sign and upload it.
@@ -22,7 +23,7 @@ def contribute(
     print("got key")
 
     # Get challenge
-    client = Client(base_url, server_certificate)
+    client = Client(base_url, server_certificate, insecure)
     client.get_challenge(challenge_file)
     print("got challenge")
 
