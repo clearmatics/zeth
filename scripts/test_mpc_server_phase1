@@ -22,6 +22,7 @@ function contribute() {
         -n ${QAP_DEGREE} \
         --pot-path ${POT_DIR} \
         --server-certificate $3/${SERVER_CERT} \
+        --insecure \
         https://${HOST}:${PHASE1_PORT} $1
     popd
 }
