@@ -3,11 +3,9 @@
 
 // Contains the circuits for the notes
 #include "circuits/notes/note.hpp"
-
+#include "types/joinsplit.hpp"
 // Contains the definitions of the constants we use
 #include "zeth.h"
-
-#include "types/joinsplit.hpp"
 
 #include <boost/static_assert.hpp>
 #include <src/types/merkle_tree_field.hpp>
