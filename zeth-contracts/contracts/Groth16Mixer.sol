@@ -38,15 +38,13 @@ contract Groth16Mixer is BaseMixer {
         );
 
         // 2.b Verify the signature
-        bytes32 hash_proof = sha256(abi.encodePacked(a, b, c));
-        bytes32 hash_ciphers = sha256(abi.encodePacked(pk_sender, ciphertext0, ciphertext1));
         require(
             otsig_verifier.verify(
                 vk,
                 sigma,
-                hash_ciphers,
-                hash_proof,
-                assemble_primary_inputs_and_hash(input)
+                sha256(abi.encodePacked(pk_sender, ciphertext0, ciphertext1)),
+                sha256(abi.encodePacked(a, b, c)),
+                sha256(abi.encodePacked(input))
             ),
             "Invalid signature: Unable to verify the signature correctly"
         );
