@@ -1,7 +1,9 @@
+services:
+    - docker
+
 addons:
     apt:
         packages:
-            - docker.io
             - clang-format
     homebrew:
         packages:
@@ -14,21 +16,26 @@ addons:
             - libtool
             - autoconf
             - automake
+            - python
             # - llvm
 
 matrix:
     include:
         - env: CI_CONFIG=Release CI_USE_DOCKER=1
           os: linux
+          dist: bionic
           language: minimal
         - env: CI_CHECK_FORMAT=1 CI_CONFIG=Debug CI_USE_DOCKER=1
           os: linux
+          dist: bionic
           language: minimal
         - env: CI_CONFIG=Release
           os: osx
+          python: 3.7
           osx_image: xcode11
         - env: CI_CONFIG=Debug
           os: osx
+          python: 3.7
           osx_image: xcode11
 
 script: CI_USE_DOCKER=${CI_USE_DOCKER} travis_wait 30 scripts/ci ${CI_CONFIG}

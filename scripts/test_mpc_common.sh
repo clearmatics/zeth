@@ -161,10 +161,10 @@ function prepare_server_phase2() {
         linear_combination_file=_test_linear_combination-${QAP_DEGREE}.bin
 
         ${POT_PROCESS} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
-        ${MPC} linear-combination --out ${linear_combination_file} \
-               ${pot_file} ${lagrange_file}
+        ${MPC} linear-combination \
+               ${pot_file} ${lagrange_file} ${linear_combination_file}
         ${MPC} phase2-begin \
-               --out ${CHALLENGE_0_FILE} ${linear_combination_file}
+               ${linear_combination_file} ${CHALLENGE_0_FILE}
     fi
     popd
 }

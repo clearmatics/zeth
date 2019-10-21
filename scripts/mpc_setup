@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 
-# TODO: check for dependencies, with clear error messages
+platform=`uname`
+echo platform=${platform}
+
+set -x
+
+python3.7 --version
+python3 --version
+which python || echo No python
+which python3.7 || echo No python3
 
 set -e
 set -x
 
+
 cd mpc
-python -m venv env
+python3.7 -m venv env
 . env/bin/activate
 pip install --upgrade pip
 make setup
