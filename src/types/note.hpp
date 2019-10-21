@@ -1,5 +1,5 @@
-#ifndef __ZETH_NOTE_HPP__
-#define __ZETH_NOTE_HPP__
+#ifndef __ZETH_TYPES_NOTE_HPP__
+#define __ZETH_TYPES_NOTE_HPP__
 
 #include "types/bits.hpp"
 
@@ -49,4 +49,4 @@ public:
 
 } // namespace libzeth
 
-#endif // __ZETH_NOTE_HPP__
+#endif // __ZETH_TYPES_NOTE_HPP__

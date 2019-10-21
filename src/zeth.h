@@ -12,7 +12,7 @@
 #define ZETH_A_SK_SIZE 32 // 256 bits for rho
 #define ZETH_R_SIZE 48 // 384 bits for r
 
-#define ZETH_DIGEST_BIT_SIZE 256 // Size of a sha256 digest in bits
-#define ZETH_DIGEST_HEX_SIZE 64 // Size of a sha256 digest in hex characters
+#define ZETH_DIGEST_BIT_SIZE 256 // Size of a HashT digest in bits
+#define ZETH_DIGEST_HEX_SIZE 64 // Size of a HashT digest in hex characters
 
 #endif // __ZETH_CONSTANTS__

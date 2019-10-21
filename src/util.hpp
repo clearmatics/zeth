@@ -27,4 +27,4 @@ template<typename FieldT> FieldT string_to_field(std::string input);
 } // namespace libzeth
 #include "util.tcc"
 
-#endif
+#endif // __ZETH_UTIL_HPP__

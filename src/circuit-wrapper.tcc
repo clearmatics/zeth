@@ -63,12 +63,12 @@ extended_proof<ppT> CircuitWrapper<
 
     // Compute the sum on the left hand side of the joinsplit
     for (size_t i = 0; i < NumInputs; i++) {
-        lhs_value = binaryAddition<64>(lhs_value, inputs[i].note.value());
+        lhs_value = binary_addition<64>(lhs_value, inputs[i].note.value());
     }
 
     // Compute the sum on the right hand side of the joinsplit
     for (size_t i = 0; i < NumOutputs; i++) {
-        rhs_value = binaryAddition<64>(rhs_value, outputs[i].value());
+        rhs_value = binary_addition<64>(rhs_value, outputs[i].value());
     }
 
     // [CHECK] Make sure that the balance between rhs and lfh is respected

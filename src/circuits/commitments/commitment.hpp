@@ -1,13 +1,12 @@
-#ifndef __ZETH_COMMITMENT_CIRCUITS_HPP__
-#define __ZETH_COMMITMENT_CIRCUITS_HPP__
+#ifndef __ZETH_CIRCUITS_COMMITMENT_HPP__
+#define __ZETH_CIRCUITS_COMMITMENT_HPP__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/commitment.tcc
 
-#include "circuits/sha256/sha256_ethereum.hpp"
-
 #include <libsnark/gadgetlib1/gadget.hpp>
+#include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
 
 namespace libzeth
 {
@@ -17,7 +16,9 @@ class COMM_gadget : libsnark::gadget<FieldT>
 {
 private:
     std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<HashT> hasher; // Hash gadget used as a commitment
+    // Hash gadget used as a commitment
+    std::shared_ptr<HashT> hasher;
+    // blake2sCompress(x || y)
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
 
 public:
@@ -25,8 +26,7 @@ public:
         libsnark::protoboard<FieldT> &pb,
         libsnark::pb_variable_array<FieldT> x,
         libsnark::pb_variable_array<FieldT> y,
-        std::shared_ptr<libsnark::digest_variable<FieldT>>
-            result, // sha256(x || y)
+        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
         const std::string &annotation_prefix = "COMM_gadget");
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
@@ -47,9 +47,10 @@ libsnark::pb_variable_array<FieldT> getRightSideCMCOMM(
 // the value of the commitment_k without needing 2 distinct gadgets for this.
 //
 // See Zerocash extended paper, page 22
-// The commitment k is computed as k = sha256(r || [sha256(a_pk || rho)]_128)
-// where we define the left part: inner_k = sha256(a_pk || rho)
-// as being the inner commitment of k
+// The commitment k is computed as
+// k = blake2sCompress(r || [blake2sCompress(a_pk || rho)]_128)
+// where we define the right part as being the inner commitment of k:
+// inner_k = blake2sCompress(a_pk || rho)
 template<typename FieldT, typename HashT>
 class COMM_inner_k_gadget : public COMM_gadget<FieldT, HashT>
 {
@@ -60,14 +61,15 @@ public:
             &a_pk, // public address key, 256 bits
         libsnark::pb_variable_array<FieldT> &rho, // 256 bits
         std::shared_ptr<libsnark::digest_variable<FieldT>>
-            result, // sha256(a_pk || rho)
+            result, // blake2sCompress(a_pk || rho)
         const std::string &annotation_prefix = "COMM_inner_k_gadget");
 };
 
 // See Zerocash extended paper, page 22
-// The commitment k is computed as k = sha256(r || [sha256(a_pk || rho)]_128)
-// where we define: outer_k = sha256(r || [inner_commitment]_128)
-// as being the outer commitment of k
+// The commitment k is computed as
+// k = blake2sCompress(r || [blake2sCompress(a_pk || rho)]_128)
+// where we define outer_k as being the outer commitment of k:
+// outer_k = blake2sCompress(r || [inner_commitment]_128)
 // We denote by trap_r the trapdoor r
 template<typename FieldT, typename HashT>
 class COMM_outer_k_gadget : public COMM_gadget<FieldT, HashT>
@@ -79,11 +81,11 @@ public:
         libsnark::pb_variable_array<FieldT>
             &inner_k, // 256 bits, but we only keep 128 bits out of it
         std::shared_ptr<libsnark::digest_variable<FieldT>>
-            result, // sha256(trap_r || [inner_k]_128)
+            result, // blake2sCompress(trap_r || [inner_k]_128)
         const std::string &annotation_prefix = "COMM_outer_k_gadget");
 };
 
-// cm = sha256(outer_k || 0^192 || value_v)
+// cm = blake2sCompress(outer_k || 0^192 || value_v)
 template<typename FieldT, typename HashT>
 class COMM_cm_gadget : public COMM_gadget<FieldT, HashT>
 {
@@ -94,11 +96,11 @@ public:
         libsnark::pb_variable_array<FieldT> &outer_k, // 256 bits
         libsnark::pb_variable_array<FieldT> &value_v, //  64 bits
         std::shared_ptr<libsnark::digest_variable<FieldT>>
-            result, // sha256(outer_k || 0^192 || value_v)
+            result, // blake2sCompress(outer_k || 0^192 || value_v)
         const std::string &annotation_prefix = "COMM_cm_gadget");
 };
 
 } // namespace libzeth
-#include "circuits/commitments/commitments.tcc"
+#include "circuits/commitments/commitment.tcc"
 
-#endif // __ZETH_COMMITMENT_CIRCUITS_HPP__
+#endif // __ZETH_CIRCUITS_COMMITMENT_HPP__

@@ -1,4 +1,4 @@
-#include "circuits-util.hpp"
+#include "circuits-utils.hpp"
 
 namespace libzeth
 {

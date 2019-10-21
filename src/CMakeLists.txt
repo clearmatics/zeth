@@ -137,14 +137,19 @@ endfunction(zeth_test)
 zeth_test(test_simple test/simple_test.cpp TRUE)
 zeth_test(test_addition test/packed_addition_test.cpp TRUE)
 zeth_test(test_hex_to_field test/hex_to_field_test.cpp TRUE)
-zeth_test(test_note test/note_test.cpp TRUE)
-zeth_test(test_prfs test/prfs_test.cpp TRUE)
-zeth_test(test_commitments test/commitments_test.cpp TRUE)
-zeth_test(test_round test/round_test.cpp TRUE)
+zeth_test(test_binary_operation test/binary_operation_test.cpp TRUE)
+zeth_test(test_blake2s test/blake2s_test.cpp TRUE)
+zeth_test(test_mimc_round test/mimc_round_test.cpp TRUE)
 zeth_test(test_mimc test/mimc_test.cpp TRUE)
 zeth_test(test_mimc_mp test/mimc_mp_test.cpp TRUE)
+zeth_test(test_prfs test/prfs_test.cpp TRUE)
+zeth_test(test_commitments test/commitments_test.cpp TRUE)
 zeth_test(test_merkle_tree test/merkle_tree_test.cpp TRUE)
-zeth_test(test_prover test/prover_test.cpp FALSE)
+zeth_test(test_note test/note_test.cpp TRUE)
+zeth_test(test_prover test/prover_test.cpp TRUE)
+
+# Old Tests
+# zeth_test(test_sha256 test/test_sha256.cpp TRUE)
 
 # prover test has extra dependencies
 target_link_libraries(
