@@ -5,8 +5,10 @@ from coordinator.contribute import contribute
 from typing import Optional
 from click import command, option, argument, ClickException
 
-CHALLENGE_FILE = "challenge.bin"
-RESPONSE_FILE = "response.bin"
+# Note, in phase2, the tools support files with any names, but default to the
+# same as phase1 (powersoftau) for consistency
+from coordinator.powersoftau_command import CHALLENGE_FILE, RESPONSE_FILE
+
 RESPONSE_DIGEST_FILE = "response.bin.digest"
 
 

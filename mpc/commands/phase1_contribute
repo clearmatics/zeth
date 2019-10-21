@@ -2,13 +2,11 @@
 
 from coordinator.contribute import contribute
 from coordinator.powersoftau_command import \
-    PowersOfTauCommand, CHALLENGE_FILE, RESPONSE_FILE
+    CHALLENGE_FILE, RESPONSE_FILE, PowersOfTauCommand
 from typing import Optional
 from click import command, option, argument, ClickException
 from os.path import exists
 
-# CHALLENGE_FILE = "challenge.bin"
-# RESPONSE_FILE = "response.bin"
 RESPONSE_DIGEST_FILE = "response.bin.digest"
 
 
