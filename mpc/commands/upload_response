@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+
+from coordinator.client import Client
+import coordinator.contribute as contribute
+from click import command, argument, option
+from typing import Optional
+
+
+@command()
+@argument("base-url")
+@argument("key-file")
+@argument("response-file")
+@option("--server-certificate", default=None, help="server certificate")
+@option("--insecure", is_flag=True, help="allow missing certificate chain")
+def upload_response(
+        base_url: str,
+        key_file: str,
+        response_file: str,
+        server_certificate: Optional[str],
+        insecure: bool) -> None:
+    """
+    Download the currenct challenge.  (usually performed as part of a
+    contribute command).
+    """
+    client = Client(base_url, server_certificate, insecure)
+    contribute.upload_response(client, response_file, key_file)
+
+
+if __name__ == "__main__":
+    upload_response()
