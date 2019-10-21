@@ -19,10 +19,6 @@ function format_check() {
 }
 
 function pyclient_check() {
-    if [ "${platform}" == "Linux" ] ; then
-        sudo apt install -y python3-venv
-    fi
-
     pushd pyClient
 
         python3.7 -m venv env
@@ -88,6 +84,16 @@ function build() {
     command_tests
 }
 
+function ci_setup() {
+
+    if ! [ "${platform}" == "Linux" ] ; then
+        return
+    fi
+
+    sudo apt install -y python3-venv
+}
+
+
 ci_task=$1
 full_build=$2
 if [ "${full_build}" == "" ] ; then
@@ -118,5 +124,6 @@ if [ "${CI_USE_DOCKER}" == "1" ] ; then
            --env CI_CONFIG=${CI_CONFIG} \
            zeth-dev:latest $0 ${ci_task} ${full_build}
 else
+    ci_setup
     ${ci_task}
 fi
