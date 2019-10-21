@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+
+from coordinator.powersoftau_command import CHALLENGE_FILE
+from coordinator.client import Client
+from click import command, argument, option
+from typing import Optional
+
+# The default name of the challenge file is defined by phase1 (powersoftau)
+# which has the strongest restrictions.
+
+
+@command()
+@argument("base-url")
+@option(
+    "--challenge-file",
+    default=CHALLENGE_FILE,
+    help="File to download challenge to")
+def get_challenge(
+        base_url: str,
+        challenge_file: str,
+        server_certificate: Optional[str],
+        insecure: bool) -> None:
+    """
+    Manually download the current challenge (usually performed as part of a
+    contribute command).
+    """
+    client = Client(base_url, server_certificate, insecure)
+    client.get_challenge(challenge_file)
+
+
+if __name__ == "__main__":
+    get_challenge()

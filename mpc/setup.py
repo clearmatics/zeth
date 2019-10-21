@@ -30,6 +30,8 @@ setup(
         "commands/phase1_contribute",
         "commands/phase2_server",
         "commands/phase2_contribute",
+        "commands/get_challenge",
+        "commands/upload_contribution",
         "commands/sign_contribution",
         "commands/generate_key",
         "commands/public_key",
