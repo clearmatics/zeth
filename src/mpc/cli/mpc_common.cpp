@@ -103,7 +103,7 @@ int mpc_main(
     ProtoboardInitFn pb_init)
 {
     ppT::init_public_params();
-    po::options_description global("");
+    po::options_description global("Global options");
     global.add_options()("help,h", "This help")("verbose,v", "Verbose output");
 
     po::options_description all("");
