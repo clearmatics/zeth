@@ -12,10 +12,8 @@ namespace
 {
 
 // Usage:
-//   $0 phase2-begin [<options>] <linear_combination_file>
+//   $0 phase2-begin [<options>] <linear_combination_file> <challenge_out_file>
 //
-// Options:
-//   --out <file>    Initial challenge output file (mpc-challenge.bin)
 class mpc_phase2_begin : public subcommand
 {
 private:
@@ -33,15 +31,14 @@ private:
         po::options_description &all_options,
         po::positional_options_description &pos) override
     {
-        options.add_options()(
-            "out,o",
-            po::value<std::string>(),
-            "Initial challenge output file (mpc-challenge.bin)");
         all_options.add(options).add_options()(
             "linear_combination_file",
             po::value<std::string>(),
-            "linear combination file");
-        pos.add("linear_combination_file", 1);
+            "linear combination file")(
+            "challenge_out_file",
+            po::value<std::string>(),
+            "initial challenge output file");
+        pos.add("linear_combination_file", 1).add("challenge_out_file", 1);
     }
 
     void parse_suboptions(const po::variables_map &vm) override
@@ -49,15 +46,18 @@ private:
         if (0 == vm.count("linear_combination_file")) {
             throw po::error("linear_combination_file not specified");
         }
+        if (0 == vm.count("challenge_out_file")) {
+            throw po::error("challenge_out_file not specified");
+        }
         lin_comb_file = vm["linear_combination_file"].as<std::string>();
-        out_file = vm.count("out") ? vm["out"].as<std::string>()
-                                   : trusted_setup_file("mpc-challenge.bin");
+        out_file = vm["challenge_out_file"].as<std::string>();
     }
 
     void subcommand_usage() override
     {
         std::cout << "Usage:\n  " << subcommand_name
-                  << " [<options>] <linear_combination_file>\n\n";
+                  << " [<options>] <linear_combination_file> "
+                     "<challenge_out_file>\n\n";
     }
 
     int execute_subcommand() override

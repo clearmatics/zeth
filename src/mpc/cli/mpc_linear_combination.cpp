@@ -15,12 +15,12 @@ namespace
 {
 
 // Usage:
-//     mpc linear-combination [<option>] <powersoftau file> <lagrange file>
+//     mpc linear-combination [<option>]
+//         <powersoftau file> <lagrange file> <linear_comb_file>
 //
 // Options:
 //     -h,--help        This message
 //     --pot-degree     powersoftau degree (assumed equal to lagrange file)
-//     --out <file>     Linear combination output (mpc-linear-combination.bin)
 //     --verify         Skip computation.  Load and verify input data.
 class mpc_linear_combination : public subcommand
 {
@@ -51,14 +51,16 @@ private:
             "pot-degree",
             po::value<size_t>(),
             "powersoftau degree (assumed equal to lagrange file)")(
-            "out,o",
-            po::value<std::string>(),
-            "linear combination output (mpc-linear-combination.bin)")(
             "verify", "Skip compuation. Load and verify input data");
         all_options.add(options).add_options()(
             "powersoftau_file", po::value<std::string>(), "powersoftau file")(
-            "lagrange_file", po::value<std::string>(), "lagrange file");
-        pos.add("powersoftau_file", 1).add("lagrange_file", 1);
+            "lagrange_file", po::value<std::string>(), "lagrange file")(
+            "linear_comb_file",
+            po::value<std::string>(),
+            "linear combination output");
+        pos.add("powersoftau_file", 1)
+            .add("lagrange_file", 1)
+            .add("linear_comb_file", 1);
     }
 
     void parse_suboptions(const po::variables_map &vm) override
@@ -69,14 +71,15 @@ private:
         if (0 == vm.count("lagrange_file")) {
             throw po::error("lagrange_file not specified");
         }
+        if (0 == vm.count("linear_comb_file")) {
+            throw po::error("linear_comb_file not specified");
+        }
 
         powersoftau_file = vm["powersoftau_file"].as<std::string>();
         lagrange_file = vm["lagrange_file"].as<std::string>();
+        out_file = vm["linear_comb_file"].as<std::string>();
         powersoftau_degree =
             vm.count("pot-degree") ? vm["pot-degree"].as<size_t>() : 0;
-        out_file = vm.count("out")
-                       ? vm["out"].as<std::string>()
-                       : trusted_setup_file("mpc-linear-combination.bin");
         verify = (bool)vm.count("verify");
     }
 
@@ -84,7 +87,8 @@ private:
     {
         std::cout << "Usage:\n"
                   << "  " << subcommand_name
-                  << " [<options>] <powersoftau file> <lagrange file>\n";
+                  << " [<options>] <powersoftau file> <lagrange file> "
+                     "<linear_comb_file>\n";
     }
 
     int execute_subcommand() override
