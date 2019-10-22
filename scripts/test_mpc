@@ -37,16 +37,16 @@ ${POT} --dummy ${pot_file} ${QAP_DEGREE}
 ${POT} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
 
 # Generate the linear combination
-${MPC} linear-combination --out ${linear_combination_file} \
-       ${pot_file} ${lagrange_file}
+${MPC} linear-combination \
+       ${pot_file} ${lagrange_file} ${linear_combination_file}
 
 # Begin Phase2 MPC and run some rounds, accumulating transcript.
-${MPC} phase2-begin --out ${challenge_0_file} ${linear_combination_file}
+${MPC} phase2-begin ${linear_combination_file} ${challenge_0_file}
 
 ${MPC} phase2-contribute \
        --skip-user-input \
        --digest ${response_digest_1_file} \
-       --out ${response_1_file} ${challenge_0_file}
+       ${challenge_0_file} ${response_1_file}
 ${MPC} phase2-verify-contribution \
        --transcript ${transcript_file} \
        --new-challenge ${challenge_1_file} \
@@ -55,7 +55,7 @@ ${MPC} phase2-verify-contribution \
 ${MPC} phase2-contribute \
        --skip-user-input \
        --digest ${response_digest_2_file} \
-       --out ${response_2_file} ${challenge_1_file}
+       ${challenge_1_file} ${response_2_file}
 ${MPC} phase2-verify-contribution \
        --transcript ${transcript_file} \
        --new-challenge ${challenge_2_file} \
@@ -64,7 +64,7 @@ ${MPC} phase2-verify-contribution \
 ${MPC} phase2-contribute \
        --skip-user-input \
        --digest ${response_digest_3_file} \
-       --out ${response_3_file} ${challenge_2_file}
+       ${challenge_2_file} ${response_3_file}
 ${MPC} phase2-verify-contribution \
        --transcript ${transcript_file} \
        --new-challenge ${challenge_3_file} \
@@ -96,8 +96,9 @@ if (${MPC} phase2-verify-transcript \
 fi
 
 # Create the keypair
-${MPC} create-keypair --out ${keypair_file} \
-       ${pot_file} ${linear_combination_file} ${final_phase2_file}
+${MPC} create-keypair \
+       ${pot_file} ${linear_combination_file} ${final_phase2_file} \
+       ${keypair_file}
 
 # Clean up files
 rm ${pot_file} ${lagrange_file} ${linear_combination_file}

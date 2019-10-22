@@ -11,10 +11,9 @@ namespace
 {
 
 // Usage:
-//     mpc dummy_phase2 [<option>] <linear_combination_file>
-//
-// Options:
-//     --out <file>    Write dummy final-challenge to <file> (mpc-challenge.bin)
+//     mpc dummy_phase2 [<option>]
+//         <linear_combination_file>
+//         <final_challenge_file>
 class mpc_dummy_phase2 : public subcommand
 {
     std::string linear_combination_file;
@@ -32,15 +31,15 @@ private:
         po::options_description &all_options,
         po::positional_options_description &pos) override
     {
-        options.add_options()(
-            "out,o",
-            po::value<std::string>(),
-            "phase2 output file (mpc-phase2.bin)");
         all_options.add(options).add_options()(
             "linear_combination_file",
             po::value<std::string>(),
-            "Linear combination file");
+            "Linear combination file")(
+            "final_challenge_file",
+            po::value<std::string>(),
+            "Final challenge file");
         pos.add("linear_combination_file", 1);
+        pos.add("final_challenge_file", 1);
     }
 
     void parse_suboptions(const po::variables_map &vm) override
@@ -48,18 +47,20 @@ private:
         if (0 == vm.count("linear_combination_file")) {
             throw po::error("linear_combination file not specified");
         }
+        if (0 == vm.count("final_challenge_file")) {
+            throw po::error("final_challenge_file not specified");
+        }
         linear_combination_file =
             vm["linear_combination_file"].as<std::string>();
-
-        out_file = vm.count("out") ? vm["out"].as<std::string>()
-                                   : trusted_setup_file("mpc-phase2.bin");
+        out_file = vm["final_challenge_file"].as<std::string>();
     }
 
     void subcommand_usage() override
     {
         std::cout << "Usage:" << std::endl
                   << "  " << subcommand_name
-                  << " [<options>] <linear_combination_file>\n";
+                  << " [<options>] <linear_combination_file> "
+                     "<final_challenge_file>\n";
     }
 
     int execute_subcommand() override

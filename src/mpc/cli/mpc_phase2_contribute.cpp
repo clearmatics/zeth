@@ -8,10 +8,9 @@ namespace
 {
 
 // Usage:
-//   $0 phase2-contribute [<options>] <challenge_file>
+//   $0 phase2-contribute [<options>] <challenge_file> <response_file>
 //
 // Options:
-//   --out <file>        Response output file (mpc-response.bin)
 //   --digest <file>     Write contribution hash to file
 //   --skip-user-input   Use only system randomness
 class mpc_phase2_contribute : public subcommand
@@ -39,16 +38,14 @@ private:
         po::positional_options_description &pos) override
     {
         options.add_options()(
-            "out,o",
-            po::value<std::string>(),
-            "Reponse output file (mpc-response.bin)")(
             "digest",
             po::value<std::string>(),
             "Write contribution digest to file")(
             "skip-user-input", "Use only system randomness");
         all_options.add(options).add_options()(
-            "challenge_file", po::value<std::string>(), "challenge file");
-        pos.add("challenge_file", 1);
+            "challenge_file", po::value<std::string>(), "challenge file")(
+            "response_file", po::value<std::string>(), "response output file");
+        pos.add("challenge_file", 1).add("response_file", 1);
     }
 
     void parse_suboptions(const po::variables_map &vm) override
@@ -56,9 +53,11 @@ private:
         if (0 == vm.count("challenge_file")) {
             throw po::error("challenge_file not specified");
         }
+        if (0 == vm.count("response_file")) {
+            throw po::error("response_file not specified");
+        }
         challenge_file = vm["challenge_file"].as<std::string>();
-        out_file = vm.count("out") ? vm["out"].as<std::string>()
-                                   : trusted_setup_file("mpc-response.bin");
+        out_file = vm["response_file"].as<std::string>();
         digest = vm.count("digest") ? vm["digest"].as<std::string>() : "";
         skip_user_input = (bool)vm.count("skip-user-input");
     }
@@ -66,7 +65,7 @@ private:
     void subcommand_usage() override
     {
         std::cout << "Usage:\n  " << subcommand_name
-                  << " [<options>] <challenge_file>\n\n";
+                  << " [<options>] <challenge_file> <response_file>\n\n";
     }
 
     int execute_subcommand() override
