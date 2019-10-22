@@ -91,7 +91,8 @@ template<typename FieldT> FieldT string_to_field(std::string input)
     return element;
 }
 
-template<typename V> bool container_is_well_formed(const V &values)
+template<typename StructuredTs>
+bool container_is_well_formed(const StructuredTs &values)
 {
     for (const auto &v : values) {
         if (!v.is_well_formed()) {
@@ -102,14 +103,16 @@ template<typename V> bool container_is_well_formed(const V &values)
     return true;
 }
 
-template<typename T> void check_well_formed(const T &v, const char *name)
+template<typename StructuredT>
+void check_well_formed(const StructuredT &v, const char *name)
 {
     if (!v.is_well_formed()) {
         throw std::invalid_argument(std::string(name) + " not well-formed");
     }
 }
 
-template<typename T> void check_well_formed_(const T &v, const char *name)
+template<typename StructuredT>
+void check_well_formed_(const StructuredT &v, const char *name)
 {
     if (!is_well_formed(v)) {
         throw std::invalid_argument(std::string(name) + " not well-formed");
