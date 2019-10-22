@@ -66,13 +66,3 @@ TEST(TestMiMCMp, TestFalse)
 }
 
 } // namespace
-
-int main(int argc, char **argv)
-{
-    // /!\ WARNING: Do once for all tests. Do not
-    // forget to do this !!!!
-    ppT::init_public_params();
-
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
