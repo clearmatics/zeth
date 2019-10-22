@@ -44,7 +44,10 @@ create a directory for each contribution.)
 (env) $ cd mpc_contrib
 ```
 
-Generate a contributor secret key to identify youself.
+All commands below are assumed to be executed in the working directory for the
+contribution.
+
+Generate a contributor secret key to identify youself:
 
 ```console
 (env) $ generate_key contributor.key > contributor.pub
@@ -58,8 +61,9 @@ your place in the list of contributors, rendering your contribution invalid.
 
 ## Contributing (during MPC)
 
-When requested, invoke the contribution computation from inside the working
-directory, specifying the URL (received from the coordinator, usually by email
+When requested, invoke the contribution computation (ensure the env is
+activated, and that commands are executed inside the working directory).
+Specify the URL (you should reveive this from the coordinator, usually by email
 or during registration), and the contributor secret key.
 
 For phase1:
@@ -88,18 +92,20 @@ Digest written to: response.bin.digest
 ...
 ```
 
-(The coordinator may specify other flags to these commands, to control details
-of the MPC).
+(The coordinator may request that you specify other flags to these commands, to
+control details of the MPC.  See `phase1_contribute --help` for all available
+flags.)
 
-You may be asked to provide randomness by entering a random string and pressing
-ENTER.  Once this is complete, the command will automatically perform all
-necessary computation, write the results to a local file and upload to the
+You will be asked to provide randomness by entering a random string and
+pressing ENTER.  Once this is complete, the command will automatically perform
+all necessary computation, write the results to a local file and upload to the
 coordinator.
 
 As part of the execution, the contribution digest is written to stdout, as
-shown above.  It is also written to `response.bin.digest`.  Keep this file (or
-make a note of the digest).  It can be used to verify that your contribution is
-correctly included in the final MPC output.
+shown above.  It is also written to `response.bin.digest` in the working dir.
+Keep this file (or make a note of the digest).  It can be used at the end of
+the process to verify that your contribution is correctly included in the final
+MPC output.
 
 # Coordinator Instructions
 
