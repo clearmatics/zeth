@@ -36,9 +36,25 @@ std::string trusted_setup_path(const std::string &fallback = "");
 // related to trusted setup.
 std::string trusted_setup_file(const std::string &file_name);
 
-template<typename V> bool container_is_well_formed(const V &values);
-template<typename T> void check_well_formed(const T &v, const char *name);
-template<typename T> void check_well_formed_(const T &v, const char *name);
+// interface for StructuredT typed below:
+// {
+//   bool is_well_formed() const;
+// }
+
+//  Throw if input is not well-formed.  The type being checked should conform
+//  to the StructuredT interface above.
+template<typename StructuredT>
+void check_well_formed(const StructuredT &v, const char *name);
+
+//  Throw if input is not well-formed.  The type being checked should conform
+//  to the StructuredT interface above.
+template<typename StructuredT>
+void check_well_formed_(const StructuredT &v, const char *name);
+
+//  For some iterable container of objects comforming to StructuredT, throw if
+//  any entry is not well-formed.
+template<typename StructuredTs>
+bool container_is_well_formed(const StructuredTs &values);
 
 } // namespace libzeth
 #include "util.tcc"
