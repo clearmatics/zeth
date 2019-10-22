@@ -5,7 +5,7 @@ Tools and scripts for SRS generation via an MPC.
 # Dependencies
 
 - zeth mpc executables (built from this repo, or from a binary distribution)
-- python3 (>=3.6) and venv (`pip install venv`).
+- python3 (>=3.7) and venv (`pip install venv`).
 - (Phase1 only) clone and build https://github.com/clearmatics/poweroftau
   - requires the rust build environment, including cargo
 
@@ -16,7 +16,7 @@ executables.  Execute the following to install all further packages required
 for the MPC:
 
 ```console
-$ pyton -m venv env                     # create virtualenv
+$ python -m venv env                     # create virtualenv
 $ . env/bin/activate                    # activate virtualenv
 (env) $ make setup                      # install
 ```
@@ -44,7 +44,10 @@ create a directory for each contribution.)
 (env) $ cd mpc_contrib
 ```
 
-Generate a contributor secret key to identify youself.
+All commands below are assumed to be executed in the working directory for the
+contribution.
+
+Generate a contributor secret key to identify yourself:
 
 ```console
 (env) $ generate_key contributor.key > contributor.pub
@@ -58,8 +61,9 @@ your place in the list of contributors, rendering your contribution invalid.
 
 ## Contributing (during MPC)
 
-When requested, invoke the contribution computation from inside the working
-directory, specifying the URL (received from the coordinator, usually by email
+When requested, invoke the contribution computation (ensure the env is
+activated, and that commands are executed inside the working directory).
+Specify the URL (you should reveive this from the coordinator, usually by email
 or during registration), and the contributor secret key.
 
 For phase1:
@@ -88,18 +92,20 @@ Digest written to: response.bin.digest
 ...
 ```
 
-(The coordinator may specify other flags to these commands, to control details
-of the MPC).
+(The coordinator may request that you specify other flags to these commands, to
+control details of the MPC.  See `phase1_contribute --help` for all available
+flags.)
 
-You may be asked to provide randomness by entering a random string and pressing
-ENTER.  Once this is complete, the command will automatically perform all
-necessary computation, write the results to a local file and upload to the
+You will be asked to provide randomness by entering a random string and
+pressing ENTER.  Once this is complete, the command will automatically perform
+all necessary computation, write the results to a local file and upload to the
 coordinator.
 
 As part of the execution, the contribution digest is written to stdout, as
-shown above.  It is also written to `response.bin.digest`.  Keep this file (or
-make a note of the digest).  It can be used to verify that your contribution is
-correctly included in the final MPC output.
+shown above.  It is also written to `response.bin.digest` in the working dir.
+Keep this file (or make a note of the digest).  It can be used at the end of
+the process to verify that your contribution is correctly included in the final
+MPC output.
 
 # Coordinator Instructions
 
@@ -115,11 +121,12 @@ or
 (env) $ cd phase2_coordinator
 ```
 
-## Generate a key and certificate
+## Generate a contribution key and certificate
 
-Either self-signed (in which case, the certificate should be published and
+Either self-signed or with a certificate chain from a trusted CA.  (If using
+self-signed certificates, the autority's certificate should be published and
 clients instructed to download it and use the `--server-cert` flag when
-contributing), or with a certificate chain from a trusted CA.
+contributing),
 
 A self-signed certificate can be generated as below
 ```console
@@ -131,7 +138,7 @@ A self-signed certificate can be generated as below
            -days 365
 ```
 
-## Gather contributor registration
+## Gather contributors
 
 Contributors should submit their email address and contribution verification
 keys before the MPC begins.
@@ -173,7 +180,7 @@ MPC:
 The server can notify participants by email when their contribution time slot
 begins (when the previous contributor either finishes his contribution, or his
 timeslot expires).  To enable email notifications, set the `email_server`,
-`email_address` and `email_password` fields to point to an (tls enabled) mail
+`email_address` and `email_password` fields to point to a (tls enabled) mail
 server.
 
 See the [test configuration](../testdata/mpc_server_config.json) for an example
@@ -182,12 +189,14 @@ configuration file.
 ## Prepare initial challenge (Phase2 only)
 
 Phase2 requires the output from Phase1 to be processed before Phase2 can begin.
-The following assumes that the phase1 server directory is located
+The following assumes that the Phase1 server directory is located
 `../phase1_coordinator`, and contains phase1 output `pot-2097152.bin`.
 
 ```console
-(env) $ phase2_prepare .../phase1_coordinator/pot-2097152.bin
+(env) $ phase2_prepare ../phase1_coordinator/pot-2097152.bin 2097152
 ```
+
+Note that this process can take a significant amount of time.
 
 ## Launch the server
 
