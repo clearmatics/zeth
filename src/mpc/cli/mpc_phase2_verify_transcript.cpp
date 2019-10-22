@@ -27,7 +27,9 @@ private:
 
 public:
     mpc_phase2_verify_transcript()
-        : subcommand("phase2-verify-transcript")
+        : subcommand(
+              "phase2-verify-transcript",
+              "Verify full transcript, check specific contribution")
         , challenge_0_file()
         , transcript_file()
         , final_challenge_file()

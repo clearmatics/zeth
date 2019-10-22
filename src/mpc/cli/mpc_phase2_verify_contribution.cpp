@@ -23,7 +23,9 @@ private:
 
 public:
     mpc_phase2_verify_contribution()
-        : subcommand("mpc_phase2_verify_contribution")
+        : subcommand(
+              "mpc_phase2_verify_contribution",
+              "Verify contribution and optionally output next challenge")
         , challenge_file()
         , response_file()
         , transcript_file()

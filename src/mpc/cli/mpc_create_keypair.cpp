@@ -33,7 +33,7 @@ private:
 
 public:
     mpc_create_keypair()
-        : subcommand("create-keypair")
+        : subcommand("create-keypair", "Create a full keypair from MPC output")
         , powersoftau_file()
         , lin_comb_file()
         , phase2_challenge_file()
