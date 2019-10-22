@@ -23,7 +23,9 @@ private:
 
 public:
     mpc_phase2_contribute()
-        : subcommand("phase2-contribute")
+        : subcommand(
+              "phase2-contribute",
+              "Create response (MPC contribution) from challenge")
         , challenge_file()
         , out_file()
         , digest()

@@ -4,8 +4,12 @@
 
 namespace po = boost::program_options;
 
-subcommand::subcommand(const std::string &subcommand_name)
-    : subcommand_name(subcommand_name), verbose(false), help(false)
+subcommand::subcommand(
+    const std::string &subcommand_name, const std::string &description)
+    : subcommand_name(subcommand_name)
+    , subcommand_description(description)
+    , verbose(false)
+    , help(false)
 {
 }
 
@@ -56,6 +60,11 @@ int subcommand::execute(const std::vector<std::string> &args)
     }
 }
 
+const std::string &subcommand::description() const
+{
+    return subcommand_description;
+}
+
 void subcommand::init_protoboard(libsnark::protoboard<FieldT> &pb) const
 {
     protoboard_init(pb);
@@ -64,7 +73,27 @@ void subcommand::init_protoboard(libsnark::protoboard<FieldT> &pb) const
 void subcommand::usage(const po::options_description &options)
 {
     subcommand_usage();
+    std::cout << description() << "\n\n";
     std::cout << options << std::endl;
+}
+
+void list_commands(const std::map<std::string, subcommand *> &commands)
+{
+    using entry_t = std::pair<std::string, subcommand *>;
+    const size_t cmd_name_padded =
+        4 + std::max_element(
+                commands.begin(),
+                commands.end(),
+                [](const entry_t &a, const entry_t &b) {
+                    return a.first.size() < b.first.size();
+                })
+                ->first.size();
+
+    for (const auto &cmd : commands) {
+        const size_t padding = cmd_name_padded - cmd.first.size();
+        std::cout << "  " << cmd.first << std::string(padding, ' ')
+                  << cmd.second->description() << "\n";
+    }
 }
 
 int mpc_main(
@@ -94,9 +123,7 @@ int mpc_main(
                   << global;
 
         std::cout << "\nCommands:\n";
-        for (const auto &cmd : commands) {
-            std::cout << "  " << cmd.first;
-        }
+        list_commands(commands);
         std::cout << std::endl;
     };
 
