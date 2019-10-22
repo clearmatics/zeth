@@ -15,6 +15,7 @@ class subcommand
 {
 protected:
     std::string subcommand_name;
+    std::string subcommand_description;
     bool verbose;
     ProtoboardInitFn protoboard_init;
 
@@ -22,9 +23,11 @@ private:
     bool help;
 
 public:
-    subcommand(const std::string &subcommand_name);
+    subcommand(
+        const std::string &subcommand_name, const std::string &description);
     void set_global_options(bool verbose, ProtoboardInitFn protoboard_init);
     int execute(const std::vector<std::string> &args);
+    const std::string &description() const;
 
 protected:
     void init_protoboard(libsnark::protoboard<FieldT> &pb) const;
