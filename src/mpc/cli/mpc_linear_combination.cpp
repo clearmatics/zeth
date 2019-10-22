@@ -31,7 +31,8 @@ class mpc_linear_combination : public subcommand
 
 public:
     mpc_linear_combination()
-        : subcommand("linear-combination")
+        : subcommand(
+              "linear-combination", "Create linear combination for our circuit")
         , powersoftau_file()
         , lagrange_file()
         , powersoftau_degree(0)
