@@ -43,4 +43,4 @@ template<typename T> void check_well_formed_(const T &v, const char *name);
 } // namespace libzeth
 #include "util.tcc"
 
-#endif
+#endif // __ZETH_UTIL_HPP__

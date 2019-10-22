@@ -3,8 +3,8 @@
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/merkle_tree.hpp
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/merkle_tree.cpp
 
-#ifndef __ZETH_MERKLE_PATH_AUTHENTICATOR_TCC__
-#define __ZETH_MERKLE_PATH_AUTHENTICATOR_TCC__
+#ifndef __ZETH_CIRCUITS_MERKLE_PATH_AUTHENTICATOR_TCC__
+#define __ZETH_CIRCUITS_MERKLE_PATH_AUTHENTICATOR_TCC__
 
 namespace libzeth
 {
@@ -54,4 +54,4 @@ bool merkle_path_authenticator<FieldT, HashTreeT>::is_valid()
 
 } // namespace libzeth
 
-#endif // __ZETH_MERKLE_PATH_AUTHENTICATOR_TCC__
+#endif // __ZETH_CIRCUITS_MERKLE_PATH_AUTHENTICATOR_TCC__

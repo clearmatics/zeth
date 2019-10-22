@@ -1,11 +1,11 @@
-#ifndef __ZETH_JOINSPLIT_CIRCUIT_TCC__
-#define __ZETH_JOINSPLIT_CIRCUIT_TCC__
+#ifndef __ZETH_CIRCUITS_JOINSPLIT_TCC__
+#define __ZETH_CIRCUITS_JOINSPLIT_TCC__
 
-#include "circuits/notes/note.hpp" // Contains the circuits for the notes
-#include "circuits/sha256/sha256_ethereum.hpp"
-#include "libsnark_helpers/libsnark_helpers.hpp"
+// Contains the circuits for the notes
+#include "circuits/notes/note.hpp"
 #include "types/joinsplit.hpp"
-#include "zeth.h" // Contains the definitions of the constants we use
+// Contains the definitions of the constants we use
+#include "zeth.h"
 
 #include <boost/static_assert.hpp>
 #include <src/types/merkle_tree_field.hpp>
@@ -26,8 +26,8 @@ private:
     // because we pack the nullifiers (Inputs of JS = NumInputs), the
     // commitments (Output of JS = NumOutputs) AND the v_pub_out taken out of
     // the mix (+1) AND the public value v_pub_in that is put into the mix (+1)
-    // AND the signature hash h_sig (+1) AND the malleability tags h_iS (+
-    // NumInputs)
+    // AND the signature hash h_sig (+1) AND the message authentication tags
+    // h_iS (+NumInputs)
     std::array<
         libsnark::pb_variable_array<FieldT>,
         NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs>
@@ -64,7 +64,7 @@ private:
     // Sighash h_sig := hSigCRH(randomSeed, {nf_old},
     // joinSplitPubKey) (p.53 ZCash proto. spec.)
     std::shared_ptr<libsnark::digest_variable<FieldT>> h_sig;
-    // List of malleability tags
+    // List of message authentication tags
     std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumInputs>
         h_is;
 
@@ -164,7 +164,8 @@ public:
             packed_inputs[NumInputs + NumOutputs + 1 + 1].allocate(
                 pb, 1 + 1, FMT(this->annotation_prefix, " h_sig"));
 
-            // We allocate 2 field elements to pack each malleability tags h_iS
+            // We allocate 2 field elements to pack each message authentication
+            // tags h_iS
             for (size_t i = NumInputs + NumOutputs + 1 + 1 + 1;
                  i < NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs;
                  i++) {
@@ -513,7 +514,7 @@ public:
             bits64 left_side_acc = vpub_in;
             for (size_t i = 0; i < NumInputs; i++) {
                 left_side_acc =
-                    binaryAddition<64>(left_side_acc, inputs[i].note.value());
+                    binary_addition<64>(left_side_acc, inputs[i].note.value());
             }
 
             zk_total_uint64.fill_with_bits(
@@ -619,14 +620,20 @@ public:
         // < FieldT::capacity()
         nb_elements += 1;
 
-        // We allocate 2 field elements to pack the value of h_sig
-        nb_elements += 2;
+        // h_sig is represented by 2 field elements (if we consider a digest_len
+        // of 256 bits)
+        nb_elements +=
+            libff::div_ceil(HashT::get_digest_len(), FieldT::capacity());
 
-        // We allocate 2 field elements to pack each malleability tags h_iS
-        nb_elements += NumInputs * 2;
+        // Each message authentication tags (h_i) is represented by 2 field
+        // elements (if we consider a digest_len of 256 bits)
+        for (size_t i = 0; i < NumInputs; i++) {
+            nb_elements +=
+                libff::div_ceil(HashT::get_digest_len(), FieldT::capacity());
+        }
 
         return nb_elements;
     }
 };
 
-#endif // __ZETH_JOINSPLIT_CIRCUIT_TCC__
+#endif // __ZETH_CIRCUITS_JOINSPLIT_TCC__

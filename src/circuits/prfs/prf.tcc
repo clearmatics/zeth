@@ -1,5 +1,5 @@
-#ifndef __ZETH_PRFS_CIRCUITS_TCC__
-#define __ZETH_PRFS_CIRCUITS_TCC__
+#ifndef __ZETH_CIRCUITS_PRF_TCC__
+#define __ZETH_CIRCUITS_PRF_TCC__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
@@ -47,7 +47,7 @@ libsnark::pb_variable_array<FieldT> gen_256_zeroes(
     }
 
     // Check that we correctly built a 256-bit (half a block) string since we
-    // use sha256
+    // use blake2sCompress 256
     assert(ret.size() == 256);
 
     return ret;
@@ -174,8 +174,8 @@ libsnark::pb_variable_array<FieldT> get_tag_rho(
 }
 
 // PRF to generate the public addresses
-// a_pk = sha256(1100 || [a_sk]_252 || 0^256): See ZCash protocol specification
-// paper, page 57
+// a_pk = blake2sCompress(1100 || [a_sk]_252 || 0^256): See ZCash protocol
+// specification paper, page 57
 template<typename FieldT, typename HashT>
 PRF_addr_a_pk_gadget<FieldT, HashT>::PRF_addr_a_pk_gadget(
     libsnark::protoboard<FieldT> &pb,
@@ -194,8 +194,8 @@ PRF_addr_a_pk_gadget<FieldT, HashT>::PRF_addr_a_pk_gadget(
 }
 
 // PRF to generate the nullifier
-// nf = sha256(1110 || [a_sk]_252 || rho): See ZCash protocol specification
-// paper, page 57
+// nf = blake2sCompress(1110 || [a_sk]_252 || rho): See ZCash protocol
+// specification paper, page 57
 template<typename FieldT, typename HashT>
 PRF_nf_gadget<FieldT, HashT>::PRF_nf_gadget(
     libsnark::protoboard<FieldT> &pb,
@@ -211,8 +211,8 @@ PRF_nf_gadget<FieldT, HashT>::PRF_nf_gadget(
 }
 
 // PRF to generate the h_i
-// h_i = sha256(0 || i || 00 || [a_sk]_252 || h_sig): See ZCash protocol
-// specification paper, page 57
+// h_i = blake2sCompress(0 || i || 00 || [a_sk]_252 || h_sig): See ZCash
+// protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 PRF_pk_gadget<FieldT, HashT>::PRF_pk_gadget(
     libsnark::protoboard<FieldT> &pb,
@@ -229,8 +229,8 @@ PRF_pk_gadget<FieldT, HashT>::PRF_pk_gadget(
 }
 
 // PRF to generate rho
-// rho_i = sha256(0 || i || 10 || [a_sk]_252 || h_sig): See ZCash protocol
-// specification paper, page 57
+// rho_i = blake2sCompress(0 || i || 10 || [a_sk]_252 || h_sig): See ZCash
+// protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 PRF_rho_gadget<FieldT, HashT>::PRF_rho_gadget(
     libsnark::protoboard<FieldT> &pb,
@@ -248,4 +248,4 @@ PRF_rho_gadget<FieldT, HashT>::PRF_rho_gadget(
 
 } // namespace libzeth
 
-#endif // __ZETH_PRFS_CIRCUITS_TCC__
+#endif // __ZETH_CIRCUITS_PRF_TCC__

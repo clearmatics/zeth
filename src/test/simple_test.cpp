@@ -83,8 +83,10 @@ TEST(SimpleTests, SimpleCircuitProofPow2Domain)
 
 int main(int argc, char **argv)
 {
-    // !!! WARNING: Do not forget to do this once for all tests !!!
+    // /!\ WARNING: Do once for all tests. Do not
+    // forget to do this !!!!
     ppT::init_public_params();
+
     // Remove stdout noise from libff
     libff::inhibit_profiling_counters = true;
     libff::inhibit_profiling_info = true;

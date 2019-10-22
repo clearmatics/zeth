@@ -1,11 +1,11 @@
-#ifndef __ZETH_PRFS_CIRCUITS_HPP__
-#define __ZETH_PRFS_CIRCUITS_HPP__
+#ifndef __ZETH_CIRCUITS_PRF_HPP__
+#define __ZETH_CIRCUITS_PRF_HPP__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
 
-#include "circuits/sha256/sha256_ethereum.hpp"
+#include "circuits/circuits-utils.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 
@@ -26,7 +26,7 @@ public:
         libsnark::pb_variable_array<FieldT> x,
         libsnark::pb_variable_array<FieldT> y,
         std::shared_ptr<libsnark::digest_variable<FieldT>>
-            result, // sha256(x || y)
+            result, // blake2sCompress(x || y)
         const std::string &annotation_prefix = "PRF_gadget");
 
     void generate_r1cs_constraints();
@@ -34,8 +34,8 @@ public:
 };
 
 // This function is useful as the generation of a_pk is done via a_pk =
-// sha256(a_sk || 0^256) See Zerocash extended paper, page 22, paragraph
-// "Instantiating the NP statement POUR"
+// blake2sCompress(a_sk || 0^256) See Zerocash extended paper, page 22,
+// paragraph "Instantiating the NP statement POUR"
 template<typename FieldT, typename HashT>
 libsnark::pb_variable_array<FieldT> gen_256_zeroes(
     libsnark::pb_variable<FieldT> &ZERO);
@@ -63,7 +63,7 @@ libsnark::pb_variable_array<FieldT> get_tag_rho(
     size_t index);
 
 // PRF to generate the public addresses
-// a_pk = sha256("1100" || [a_sk]_252 || 0^256): See ZCash protocol
+// a_pk = blake2sCompress("1100" || [a_sk]_252 || 0^256): See ZCash protocol
 // specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_addr_a_pk_gadget : public PRF_gadget<FieldT, HashT>
@@ -78,8 +78,8 @@ public:
 };
 
 // PRF to generate the nullifier
-// nf = sha256("1110" || [a_sk]_252 || rho): See ZCash protocol specification
-// paper, page 57
+// nf = blake2sCompress("1110" || [a_sk]_252 || rho): See ZCash protocol
+// specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_nf_gadget : public PRF_gadget<FieldT, HashT>
 {
@@ -90,13 +90,13 @@ public:
         libsnark::pb_variable_array<FieldT> &a_sk,
         libsnark::pb_variable_array<FieldT> &rho,
         std::shared_ptr<libsnark::digest_variable<FieldT>>
-            result, // sha256(a_sk || 01 || [rho]_254)
+            result, // blake2sCompress(a_sk || 01 || [rho]_254)
         const std::string &annotation_prefix = "PRF_nf_gadget");
 };
 
 // PRF to generate the h_i
-// h_i = sha256("0" || index || "00" || [a_sk]_252 || h_sig): See ZCash protocol
-// specification paper, page 57
+// h_i = blake2sCompress("0" || index || "00" || [a_sk]_252 || h_sig): See ZCash
+// protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_pk_gadget : public PRF_gadget<FieldT, HashT>
 {
@@ -112,8 +112,8 @@ public:
 };
 
 // PRF to generate rho
-// rho_i = sha256( "0" || index || "10" || [phi]_252 || h_sig): See ZCash
-// protocol specification paper, page 57
+// rho_i = blake2sCompress( "0" || index || "10" || [phi]_252 || h_sig): See
+// ZCash protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_rho_gadget : public PRF_gadget<FieldT, HashT>
 {
@@ -129,6 +129,6 @@ public:
 };
 
 } // namespace libzeth
-#include "circuits/prfs/prfs.tcc"
+#include "circuits/prfs/prf.tcc"
 
-#endif // __ZETH_PRFS_CIRCUITS_HPP__
+#endif // __ZETH_CIRCUITS_PRF_HPP__

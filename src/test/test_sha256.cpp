@@ -15,7 +15,7 @@
 #include "circuits/sha256/sha256_ethereum.hpp"
 
 // Access the `from_bits` function and other utils
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 #include "util.hpp"
 
 // Use the bits256 type util functions
@@ -25,9 +25,12 @@ using namespace libsnark;
 using namespace libzeth;
 
 typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT; // Should be alt_bn128 in the CMakeLists.txt
-typedef sha256_ethereum<FieldT>
-    HashT; // We use our hash function to do the tests
+
+// Should be alt_bn128 in the CMakeLists.txt
+typedef libff::Fr<ppT> FieldT;
+
+// We use our hash function to do the tests
+typedef sha256_ethereum<FieldT> HashT;
 
 // Note on the instantiation of the FieldT template type
 //
@@ -218,8 +221,10 @@ TEST(TestSHA256, TestHashWithZeroLeg)
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params(); // /!\ WARNING: Do once for all tests. Do not
-                               // forget to do this !!!!
+    // /!\ WARNING: Do once for all tests. Do not
+    // forget to do this !!!!
+    ppT::init_public_params();
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

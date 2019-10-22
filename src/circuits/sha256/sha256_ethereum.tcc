@@ -1,12 +1,12 @@
-#ifndef __ZETH_SHA256_ETHEREUM_TCC__
-#define __ZETH_SHA256_ETHEREUM_TCC__
+#ifndef __ZETH_CIRCUITS_SHA256_ETHEREUM_TCC__
+#define __ZETH_CIRCUITS_SHA256_ETHEREUM_TCC__
 
 // DISCLAIMER:
 // Content taken and adapted from:
 // https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
 
 // Get the from_bits function
-#include "circuits/circuits-util.hpp"
+#include "circuits/circuits-utils.hpp"
 
 // This gadget implements the interface of the HashT template
 
@@ -235,4 +235,4 @@ libff::bit_vector sha256_ethereum<FieldT>::get_hash(
 
 } // namespace libzeth
 
-#endif // __ZETH_SHA256_ETHEREUM_TCC__
+#endif // __ZETH_CIRCUITS_SHA256_ETHEREUM_TCC__
