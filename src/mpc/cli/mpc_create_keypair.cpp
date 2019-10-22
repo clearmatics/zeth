@@ -17,19 +17,19 @@ namespace
 //      <powersoftau_file>
 //      <linear_combination_file>
 //      <phase2_challenge_file>
+//      <keypair_output_file>
 //
 // Options:
 //  -h,--help           This message
 //  --pot-degree        powersoftau degree (assumed to match linear comb)
-//  --out <file>        Write key-pair to <file> (mpc-keypair.bin)
 class mpc_create_keypair : public subcommand
 {
 private:
     std::string powersoftau_file;
     std::string lin_comb_file;
     std::string phase2_challenge_file;
+    std::string keypair_out_file;
     size_t powersoftau_degree;
-    std::string out_file;
 
 public:
     mpc_create_keypair()
@@ -37,8 +37,8 @@ public:
         , powersoftau_file()
         , lin_comb_file()
         , phase2_challenge_file()
+        , keypair_out_file()
         , powersoftau_degree(0)
-        , out_file()
     {
     }
 
@@ -51,10 +51,7 @@ private:
         options.add_options()(
             "pot-degree",
             po::value<size_t>(),
-            "powersoftau degree (assumed to match linear comb)")(
-            "out,o",
-            po::value<std::string>(),
-            "Write key-pair to file (mpc-keypair.bin)");
+            "powersoftau degree (assumed to match linear comb)");
         all_options.add(options).add_options()(
             "powersoftau_file", po::value<std::string>(), "powersoftau file")(
             "linear_combination_file",
@@ -62,10 +59,14 @@ private:
             "linear combination file")(
             "phase2_challenge_file",
             po::value<std::string>(),
-            "phase2 final challenge file");
+            "phase2 final challenge file")(
+            "keypair_out_file",
+            po::value<std::string>(),
+            "keypair output file");
         pos.add("powersoftau_file", 1)
             .add("linear_combination_file", 1)
-            .add("phase2_challenge_file", 1);
+            .add("phase2_challenge_file", 1)
+            .add("keypair_out_file", 1);
     }
 
     void parse_suboptions(const po::variables_map &vm) override
@@ -79,22 +80,24 @@ private:
         if (0 == vm.count("phase2_challenge_file")) {
             throw po::error("phase2_challenge_file not specified");
         }
+        if (0 == vm.count("keypair_out_file")) {
+            throw po::error("keypair_out_file not specified");
+        }
 
         powersoftau_file = vm["powersoftau_file"].as<std::string>();
         lin_comb_file = vm["linear_combination_file"].as<std::string>();
         phase2_challenge_file = vm["phase2_challenge_file"].as<std::string>();
+        keypair_out_file = vm["keypair_out_file"].as<std::string>();
         powersoftau_degree =
             vm.count("pot-degree") ? vm["pot-degree"].as<size_t>() : 0;
-        out_file = vm.count("out") ? vm["out"].as<std::string>()
-                                   : trusted_setup_file("mpc-keypair.bin");
     }
 
     void subcommand_usage() override
     {
         std::cout << "Usage:\n"
                   << "  " << subcommand_name << " [<options>]  \\\n"
-                  << "        <powersoftau_file> <linear_combination_file> "
-                     "<phase2_challenge_file>\n\n";
+                  << "        <powersoftau_file> <linear_combination_file> \\\n"
+                  << "        <phase2_challenge_file> <keypair_out_file>\n\n";
     }
 
     int execute_subcommand() override
@@ -105,7 +108,7 @@ private:
                       << "phase2_challenge_file: " << phase2_challenge_file
                       << "\n"
                       << "powersoftau_degree: " << powersoftau_degree << "\n"
-                      << "out_file: " << out_file << std::endl;
+                      << "out_file: " << keypair_out_file << std::endl;
         }
 
         // Load all data
@@ -160,11 +163,11 @@ private:
         libff::enter_block("Writing keypair file");
         if (!libff::inhibit_profiling_info) {
             libff::print_indent();
-            std::cout << out_file << std::endl;
+            std::cout << keypair_out_file << std::endl;
         }
         {
             std::ofstream out(
-                out_file, std::ios_base::binary | std::ios_base::out);
+                keypair_out_file, std::ios_base::binary | std::ios_base::out);
             mpc_write_keypair(out, keypair);
         }
         libff::leave_block("Writing keypair file");
