@@ -30,12 +30,12 @@ private:
         libff::div_ceil(length_bit_residual, FieldT::capacity());
 
     // Multipacking gadgets for the inputs (nullifierS, commitmentS, hsig,
-    // malleability tags and the residual bits (comprising the previous variables'
-    // bits not containable in a single field element as well as the public
-    // values) (the root is a field element) because we pack the nullifiers
-    // (Inputs of JS = NumInputs), the commitments (Output of JS = NumOutputs)
-    // AND the signature hash h_sig (+1) AND the malleability tags h_iS (+
-    // NumInputs) AND aggregate the extra bits and public values (+1)
+    // malleability tags and the residual bits (comprising the previous
+    // variables' bits not containable in a single field element as well as the
+    // public values) (the root is a field element) because we pack the
+    // nullifiers (Inputs of JS = NumInputs), the commitments (Output of JS =
+    // NumOutputs) AND the signature hash h_sig (+1) AND the malleability tags
+    // h_iS (+ NumInputs) AND aggregate the extra bits and public values (+1)
 
     std::array<
         libsnark::pb_variable_array<FieldT>,
