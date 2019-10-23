@@ -15,6 +15,20 @@ class MPCCommand(object):
         self.mpc_exe = mpc_exe or _default_mpc_bin()
         assert exists(self.mpc_exe)
 
+    def linear_combination(
+            self,
+            powersoftau_file: str,
+            lagrange_file: str,
+            linear_comb_out_file: str,
+            degree: Optional[int] = None) -> bool:
+        args = ["linear-combination"]
+        args += ["--pot-degree", str(degree)] if degree else []
+        args += [powersoftau_file, lagrange_file, linear_comb_out_file]
+        return self._exec(args)
+
+    def phase2_begin(self, linear_comb_file: str, challenge_0_file: str) -> bool:
+        return self._exec(["phase2-begin", linear_comb_file, challenge_0_file])
+
     def phase2_verify_contribution(
             self,
             orig_challenge: str,

@@ -8,6 +8,27 @@ set -x
 # Test an mpc server that has been set up with a test handler, using the
 # configuration in ./testdata.
 
+function prepare_server_phase2() {
+    # Perform the phase2-specific setup based on POT data
+    pushd ${PHASE2_SERVER_DIR}
+    if ! [ -e ${CHALLENGE_0_FILE} ] ; then
+
+        if [ -e ${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE} ] ; then
+            echo "Creating initial challenge (from POT MPC) ..."
+           pot_file=${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE}
+        else
+            echo "Creating initial challenge (from dummy POT) ..."
+           pot_file=_test_pot-${QAP_DEGREE}.bin
+           ${POT_PROCESS} --dummy ${pot_file} ${QAP_DEGREE}
+        fi
+
+        phase2_prepare \
+            --mpc-executable ${MPC} \
+            ${pot_file} ${QAP_DEGREE}
+    fi
+    popd
+}
+
 # Upload contribution
 # 1 - private key
 # 2 - client id
@@ -28,6 +49,7 @@ function contribute() {
 
 root_dir=`pwd`
 stop_server_phase2 || echo -n
+prepare_server_common ${PHASE2_SERVER_DIR} ${PHASE2_PORT}
 prepare_server_phase2
 start_server_phase2
 
