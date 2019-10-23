@@ -197,6 +197,11 @@ class Server(object):
         if not verify(sig, verification_key, digest):
             return Response("signature check failed", 403)
 
+        # TODO: `digest` now represents the contribution digest, which is not
+        # simple the digest fo the response file.  The contribution handler
+        # must make this check (probably by passing the expected digest to the
+        # POT or mpc tool).
+
         # Accept the upload (if the digest matches).  If successful,
         # pass the file to the handler.
         if exists(self.upload_file):
