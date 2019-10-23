@@ -137,38 +137,6 @@ function get_state_phase2() {
         --fail https://${HOST}:${PHASE2_PORT}/state
 }
 
-function prepare_server_phase1() {
-    prepare_server_common ${PHASE1_SERVER_DIR} ${PHASE1_PORT}
-}
-
-function prepare_server_phase2() {
-    prepare_server_common ${PHASE2_SERVER_DIR} ${PHASE2_PORT}
-
-    # Perform the phase2-specific setup based on POT data
-    pushd ${PHASE2_SERVER_DIR}
-    if ! [ -e ${CHALLENGE_0_FILE} ] ; then
-
-        if [ -e ${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE} ] ; then
-            echo "Creating initial challenge (from POT MPC) ..."
-           pot_file=${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE}
-        else
-            echo "Creating initial challenge (from dummy POT) ..."
-           pot_file=_test_pot-${QAP_DEGREE}.bin
-           ${POT_PROCESS} --dummy ${pot_file} ${QAP_DEGREE}
-        fi
-
-        lagrange_file=_test_lagrange-${QAP_DEGREE}.bin
-        linear_combination_file=_test_linear_combination-${QAP_DEGREE}.bin
-
-        ${POT_PROCESS} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
-        ${MPC} linear-combination \
-               ${pot_file} ${lagrange_file} ${linear_combination_file}
-        ${MPC} phase2-begin \
-               ${linear_combination_file} ${CHALLENGE_0_FILE}
-    fi
-    popd
-}
-
 function start_server_phase1() {
     start_server_common \
         ${PHASE1_SERVER_DIR} \

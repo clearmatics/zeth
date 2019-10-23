@@ -28,7 +28,7 @@ function contribute() {
 }
 
 stop_server_phase1 || echo -n
-prepare_server_phase1
+prepare_server_common ${PHASE1_SERVER_DIR} ${PHASE1_PORT}
 start_server_phase1
 
 # make 4 contributions

@@ -28,6 +28,7 @@ setup(
     scripts=[
         "commands/phase1_server",
         "commands/phase1_contribute",
+        "commands/phase2_prepare",
         "commands/phase2_server",
         "commands/phase2_contribute",
         "commands/get_challenge",
