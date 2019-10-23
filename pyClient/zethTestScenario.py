@@ -307,8 +307,7 @@ def charlie_double_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path
     hash_proof = sha256(zethGRPC.encodeToHash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zethGRPC.encodeToHash(proof_json["inputs"])
-    hash_inputs = sha256(encoded_inputs).hexdigest()
+    hash_inputs = sha256(zethGRPC.encodeToHash(proof_json["inputs"])).hexdigest()
 
     # Compute the joinSplit signature
     joinsplit_sig = zethGRPC.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)

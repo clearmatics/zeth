@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 library Bytes {
-     function sha256_digest_from_field_elements(uint input, bytes1 bits) internal pure returns (bytes32) {
+    function sha256_digest_from_field_elements(uint input, bytes1 bits) internal pure returns (bytes32) {
         // We know that input[0] is a field element
         // Thus, it is encoded on 253 bits, and it should be the biggest between inputs[0] and inputs[1]
         // Inputs[0] actually contains 253 bits from the digest
@@ -45,12 +45,14 @@ library Bytes {
         );
         uint8 shifted = reversed / 2 ** n;
         bytes1 shifted_byte = bytes1(shifted);
+
         bytes1 res = last_byte_prefix ^ shifted_byte;
 
         bytes memory bytes_digest = new bytes(32);
         for (uint i = 0; i < 31; i++) {
             bytes_digest[i] = inverted_input1[i];
         }
+
         bytes_digest[31] = res;
         bytes32 sha256_digest = bytes_to_bytes32(bytes_digest, 0);
 

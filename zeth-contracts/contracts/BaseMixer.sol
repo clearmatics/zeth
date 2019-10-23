@@ -115,7 +115,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     //
     // Reminder: Remember that the primary inputs are ordered as follows:
     // We make sure to have the primary inputs ordered as follow:
-    // [Root, NullifierS, CommitmentS, h_sig, H_iS, Residual Field Element(S)]
+    // [Root, NullifierS, CommitmentS, h_sig, h_iS, Residual Field Element(S)]
     // ie, below is the index mapping of the primary input elements on the protoboard:
     // - Index of the "Root" field elements: {0}
     // - Index of the "NullifierS" field elements: [1, NumInputs + 1[
