@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from unittest import TestCase
-from coordinator.crypto import import_verification_key, export_verification_key
+from coordinator.crypto import HASH, import_verification_key, \
+    export_verification_key, import_contribution_digest
 
 
 TEST_VK = \
@@ -20,3 +21,14 @@ class TestCrypto(TestCase):
         self.assertEqual(
             TEST_VK,
             export_verification_key(vk))
+
+    def test_contribution_digest_import(self) -> None:
+        hash_string = \
+            "786a02f7 42015903 c6c6fd85 2552d272\n" \
+            "912f4740 e1584761 8a86e217 f71f5419\n" \
+            "d25e1031 afee5853 13896444 934eb04b\n" \
+            "903a685b 1448b755 d56f701a fe9be2ce\n"
+        h = HASH()
+        expect_digest = h.digest()
+        digest = import_contribution_digest(hash_string)
+        self.assertEqual(expect_digest, digest)

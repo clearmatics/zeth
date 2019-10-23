@@ -2,7 +2,7 @@
 
 from coordinator.mpc_command import MPCCommand
 from coordinator.contribute import contribute
-from typing import Optional
+from typing import Optional, Tuple
 from click import command, option, argument, ClickException
 
 # Note, in phase2, the tools support files with any names, but default to the
@@ -37,7 +37,7 @@ def phase2_contribute(
     """
 
     # Callback to compute contribution
-    def _contribute() -> str:
+    def _contribute() -> Tuple[str, str]:
         mpc = MPCCommand(mpc_executable)
         contribution_success = mpc.phase2_contribute(
             challenge,
@@ -46,7 +46,7 @@ def phase2_contribute(
             skip_user_input)
         if not contribution_success:
             raise ClickException("failed to generate response")
-        return response
+        return response, response_digest
 
     # Run
     contribute(

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import ecdsa                    # type: ignore
-from Crypto.Hash import SHA512
+from hashlib import blake2b
 
 
-HASH = SHA512
+HASH = blake2b
 HASH_LENGTH = 64
 CURVE = ecdsa.NIST521p
 VerificationKey = ecdsa.VerifyingKey
@@ -16,7 +16,7 @@ def export_digest(digest: bytes) -> str:
     """
     Digest to string
     """
-    assert len(digest) == HASH_LENGTH
+    assert(len(digest) == HASH_LENGTH)
     return digest.hex()
 
 
@@ -28,6 +28,25 @@ def import_digest(digest_s: str) -> bytes:
         raise Exception(f"unexpected digest string length: {len(digest_s)}")
     assert len(digest_s) == 2 * HASH_LENGTH
     return bytes.fromhex(digest_s)
+
+
+def import_contribution_digest(digest_str: str) -> bytes:
+    """
+    Digest from string, as output by contribution tools: abcdef01 23456789 ...
+    """
+    assert(len(digest_str) == 16 * 9)
+    digest = bytearray(HASH_LENGTH)
+    for i in range(0, 4):
+        str_offset = i * 4 * 9
+        line = digest_str[str_offset:str_offset + 4*9]
+        words = line.rstrip().split(" ")
+        digest_offset = 16 * i
+        digest[digest_offset:digest_offset+4] = bytes.fromhex(words[0])
+        digest[digest_offset+4:digest_offset+8] = bytes.fromhex(words[1])
+        digest[digest_offset+8:digest_offset+12] = bytes.fromhex(words[2])
+        digest[digest_offset+12:digest_offset+16] = bytes.fromhex(words[3])
+    assert(len(digest) == HASH_LENGTH)
+    return digest
 
 
 def generate_signing_key() -> ecdsa.SigningKey:
@@ -62,14 +81,10 @@ def import_signature(sig_s: str) -> bytes:
     return bytes.fromhex(sig_s)
 
 
-def compute_file_digest(file_name: str) -> bytes:
-    import subprocess
-    digest_output = subprocess.run(
-        ["shasum", "-a", "512", file_name],
-        check=True,
-        capture_output=True).stdout
-    digest_str = digest_output.split(b" ")[0].decode()
-    return import_digest(digest_str)
+def read_contribution_digest(file_name: str) -> bytes:
+    with open(file_name, "r") as digest_f:
+        digest_str = digest_f.read()
+    return import_contribution_digest(digest_str)
 
 
 def sign(sk: ecdsa.SigningKey, digest: bytes) -> bytes:

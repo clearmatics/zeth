@@ -10,12 +10,14 @@ from typing import Optional
 @argument("base-url")
 @argument("key-file")
 @argument("response-file")
+@argument("response-digest-file")
 @option("--server-certificate", default=None, help="server certificate")
 @option("--insecure", is_flag=True, help="allow missing certificate chain")
 def upload_response(
         base_url: str,
         key_file: str,
         response_file: str,
+        response_digest_file: str,
         server_certificate: Optional[str],
         insecure: bool) -> None:
     """
@@ -23,7 +25,8 @@ def upload_response(
     contribute command).
     """
     client = Client(base_url, server_certificate, insecure)
-    contribute.upload_response(client, response_file, key_file)
+    contribute.upload_response(
+        client, response_file, response_digest_file, key_file)
 
 
 if __name__ == "__main__":

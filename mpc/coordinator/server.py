@@ -4,8 +4,6 @@
 server command
 """
 
-from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher  # type: ignore
-from cheroot.ssl.builtin import BuiltinSSLAdapter                  # type: ignore
 from .icontributionhandler import IContributionHandler
 from .interval import Interval
 from .server_configuration import Configuration
@@ -16,6 +14,8 @@ from .crypto import \
 from typing import cast, Optional, Callable
 from flask import Flask, request, Request, Response
 from threading import Thread, Lock
+from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher  # type: ignore
+from cheroot.ssl.builtin import BuiltinSSLAdapter                  # type: ignore
 import io
 import time
 import logging

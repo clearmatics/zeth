@@ -3,7 +3,7 @@
 from coordinator.contribute import contribute
 from coordinator.powersoftau_command import \
     CHALLENGE_FILE, RESPONSE_FILE, PowersOfTauCommand
-from typing import Optional
+from typing import Optional, Tuple
 from click import command, option, argument, ClickException
 from os.path import exists
 
@@ -33,7 +33,7 @@ def phase1_contribute(
     """
 
     # Compute contribution
-    def _contribute() -> str:
+    def _contribute() -> Tuple[str, str]:
         pot = PowersOfTauCommand(pot_path, num_powers)
         contribution_success = pot.contribute(response_digest, skip_user_input)
         if not contribution_success:
@@ -43,7 +43,7 @@ def phase1_contribute(
 
         # TODO: how to handle the digest file?
 
-        return RESPONSE_FILE
+        return RESPONSE_FILE, response_digest
 
     contribute(
         base_url,

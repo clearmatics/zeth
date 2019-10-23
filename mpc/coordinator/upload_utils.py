@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from Crypto.Hash import SHA512
+# from Crypto.Hash import BLAKE2b
+from hashlib import blake2b
 from typing import Optional
 import io
 
@@ -34,7 +35,7 @@ def _read_to_file(
 
     CHUNK_SIZE = 4096
 
-    h = SHA512.new()
+    h = blake2b()
     with open(file_name, "wb") as out_f:
         while bytes_to_read > 0:
             read_size = min(CHUNK_SIZE, bytes_to_read)
