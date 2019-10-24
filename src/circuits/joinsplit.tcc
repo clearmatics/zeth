@@ -22,8 +22,8 @@ template<
 class joinsplit_gadget : libsnark::gadget<FieldT>
 {
 private:
-    // Number of residual bits from packing of 256-bit long string into 253-bit
-    // long field elements to which are added the public value of size 64 bits
+    // Number of residual bits from packing of hash digests into smaller
+    // field elements to which are added the public value of size 64 bits
     const size_t length_bit_residual =
         2 * 64 + (HashT::get_digest_len() - FieldT::capacity()) *
                      (1 + 2 * NumInputs + NumOutputs);
