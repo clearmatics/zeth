@@ -42,6 +42,7 @@ contract ERC223ReceivingContract {
 **/
 contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     using Bytes for *;
+
     // The roots of the different updated trees
     mapping(bytes32 => bool) roots;
 
@@ -121,7 +122,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // - Index of the "NullifierS" field elements: [1, NumInputs + 1[
     // - Index of the "CommitmentS" field elements: [NumInputs + 1, NumOutputs + NumInputs + 1[
     // - Index of the "h_sig" field element: {NumOutputs + NumInputs + 1}
-    // - Index of the "Message Authenticatoin TagS" (h_i) field elements: [NumOutputs + NumInputs + 1 + 1, NumOutputs + NumInputs + 1 + NumOuputs [
+    // - Index of the "Message Authentication TagS" (h_i) field elements: [NumOutputs + NumInputs + 1 + 1, NumOutputs + NumInputs + 1 + NumOuputs [
     // - Index of the "Residual Field Element(s)" field elements: [NumOutputs + NumInputs + 1 + NumOuputs + 1 , NumOutputs + NumInputs + 1 + NumOuputs + 1 + nb_field_residual]
     //
     // The Residual field elements are structured as follows:

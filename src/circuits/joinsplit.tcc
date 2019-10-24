@@ -32,13 +32,13 @@ private:
         libff::div_ceil(length_bit_residual, FieldT::capacity());
 
     // Multipacking gadgets for the inputs (nullifierS, commitmentS, hsig,
-    // malleability tags and the residual bits (comprising the previous
-    // variables' bits not containable in a single field element as well as the
-    // public values) (the root is a field element) because we pack the
-    // nullifiers (Inputs of JS = NumInputs), the commitments (Output of JS =
-    // NumOutputs) AND the signature hash h_sig (+1) AND the malleability tags
-    // h_iS (+ NumInputs) AND aggregate the extra bits and public values (+1)
-
+    // message authentication tags (h_is) and the residual bits (comprising the
+    // previous variables' bits not containable in a single field element as
+    // well as the public values) (the root is a field element) because we pack
+    // the nullifiers (Inputs of JS = NumInputs), the commitments (Output of JS
+    // = NumOutputs) AND the signature hash h_sig (+1) AND the message
+    // authentication tags h_iS (+ NumInputs) AND the residual field elements
+    // which aggregate the extra bits and public values (+1)
     std::array<
         libsnark::pb_variable_array<FieldT>,
         NumInputs + NumOutputs + 1 + NumInputs + 1>
@@ -49,9 +49,7 @@ private:
         unpacked_inputs;
 
     // We use an array of multipackers here instead of a single packer that
-    // packs everything. This leads to more public inputs (and thus affects a
-    // little bit the verification time) but this makes easier to retrieve the
-    // root and each nullifiers from the public inputs
+    // packs everything.
     std::array<
         std::shared_ptr<libsnark::multipacking_gadget<FieldT>>,
         NumInputs + NumOutputs + 1 + NumInputs + 1>
@@ -72,7 +70,7 @@ private:
     libsnark::pb_variable_array<FieldT> zk_vpub_in;
     // Value that is taken out of the mix
     libsnark::pb_variable_array<FieldT> zk_vpub_out;
-    // sighash h Sig := hSigCRH(randomSeed, {nf_old}, joinSplitPubKey) (p.53
+    // sighash h_Sig := hSigCRH(randomSeed, {nf_old}, joinSplitPubKey) (p.53
     // ZCash proto. spec.)
     std::shared_ptr<libsnark::digest_variable<FieldT>> h_sig;
     // List of message authentication tags
@@ -96,12 +94,14 @@ private:
         std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT>>,
         NumInputs>
         input_notes;
+    // Message authentication tag gadgets
     std::array<std::shared_ptr<PRF_pk_gadget<FieldT, HashT>>, NumInputs>
         h_i_gadgets;
 
-    // Output note gadgets
+    // Rho PRF gadgets
     std::array<std::shared_ptr<PRF_rho_gadget<FieldT, HashT>>, NumOutputs>
         rho_i_gadgets;
+    // Output note gadgets
     std::array<std::shared_ptr<output_note_gadget<FieldT, HashT>>, NumOutputs>
         output_notes;
 
@@ -128,21 +128,21 @@ public:
 
             // --------- ALLOCATION OF PRIMARY INPUTS -------- //
             // We make sure to have the primary inputs ordered as follow:
-            // [Root, NullifierS, CommitmentS, value_pub_in, value_pub_out]
-            // ie, below is the index mapping of the primary input elements on
-            // the protoboard:
+            // [Root, NullifierS, CommitmentS, h_sig, h_iS, Residual field
+            // element(S)] ie, below is the index mapping of the primary input
+            // elements on the protoboard:
             // - Index of the "Root" field element: {0}
             // - Index of the "NullifierS" field elements: [1, NumInputs + 1[
             // - Index of the "CommitmentS" field elements: [NumInputs + 1,
             //   NumOutputs + NumInputs + 1[
-            // - Index of the "h_sig" field element: {NumOutputs + NumInputs + 1
-            //   }
+            // - Index of the "h_sig" field element: {NumOutputs + NumInputs +
+            //   1}
             // - Index of the "h_iS" field elements: [NumOutputs + NumInputs + 1
-            //   + 1,  NumOutputs + NumInputs + 1 + NumInputs[
-            // - Index of the "v_pub_in", "v_pub_out", and bits of previous
-            //   variables not fitting within FieldT::capacity() [NumOutputs +
-            //   NumInputs + 1 + NumInputs, NumOutputs + NumInputs + 1 +
-            //   NumInputs + nb_field_residual[
+            //   + 1, NumOutputs + NumInputs + 1 + NumInputs[
+            // - Index of the "Residual field element(S)", ie "v_pub_in",
+            //   "v_pub_out", and bits of previous variables not fitting within
+            //   FieldT::capacity() [NumOutputs + NumInputs + 1 + NumInputs,
+            //   NumOutputs + NumInputs + 1 + NumInputs + nb_field_residual[
 
             // We first allocate the root
             merkle_root.reset(new libsnark::pb_variable<FieldT>);
@@ -164,7 +164,7 @@ public:
                     FMT(this->annotation_prefix, " out_commitment[%zu]", i));
             }
 
-            // We allocate a field element FOR h_sig to pack its first
+            // We allocate a field element for h_sig to pack its first
             // FieldT::capacity() bits
             packed_inputs[NumInputs + NumOutputs].allocate(
                 pb, 1, FMT(this->annotation_prefix, " h_sig"));
@@ -183,12 +183,13 @@ public:
             packed_inputs[NumInputs + NumOutputs + 1 + NumInputs].allocate(
                 pb, nb_field_residual, FMT(this->annotation_prefix, " bits"));
 
-            // The primary inputs are: [Root, NullifierS, CommitmentS,
-            // value_pub_in, value_pub_out, h_sig, h_iS] The root is represented
-            // on a single field element H_sig, as well as each nullifier,
-            // commitment and h_i are in {0,1}^256 and thus take 2 field
-            // elements to be represented, while value_pub_in, and value_pub_out
-            // are in {0,1}^64, and thus take a single field element to be
+            // The primary inputs are:
+            // [Root, NullifierS, CommitmentS, h_sig, h_iS, Residual Field
+            // Element(S)]. The root is represented on a single field element.
+            // H_sig, as well as each nullifier, commitment and h_i are in
+            // {0,1}^256 and thus take 1 field element and a few bits to be
+            // represented. The aggregation of these bits plus of value_pub_in,
+            // and value_pub_out take `nb_field_residual` field element(s) to be
             // represented
             const size_t nb_packed_inputs =
                 2 * NumInputs + NumOutputs + 1 + nb_field_residual;
@@ -269,7 +270,7 @@ public:
             // size different to 253 bits (smaller inputs and residual bits).
             // We obtain an unpacked value equal to v_in || v_out || h_sig ||
             // nf_{1..NumInputs} || cm_{1..NumOutputs} || h_i_{1..NumInput}.
-            // We fill them here in reverse order because of  the use of
+            // We fill them here in reverse order because of the use of
             // .insert() function which adds a variable before a given position
             {
                 // Filling with the residual bits of the h_is
@@ -415,7 +416,7 @@ public:
                     unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs],
                     packed_inputs[NumInputs + NumOutputs + 1 + NumInputs],
                     FieldT::capacity(),
-                    FMT(this->annotation_prefix, " packer_bits")));
+                    FMT(this->annotation_prefix, " packer_residual_bits")));
 
         } // End of the block dedicated to generate the verifier inputs
 
