@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
 
-from coordinator.crypto import \
-    generate_signing_key, get_verification_key, export_signing_key, \
-    export_verification_key
-from click import command, argument
+from commands.public_key_operations import public_key_information
+from coordinator.crypto import generate_signing_key, export_signing_key
+from click import command, argument, option
+from typing import Optional
 
 
 @command()
 @argument("key-file")
-def generate_key(key_file: str) -> None:
+@option("--public-key", "public_key_file", default=None, help="Public key file")
+@option("--evidence", "evidence_file", default=None, help="Evidence file")
+def generate_key(
+        key_file: str,
+        public_key_file: Optional[str],
+        evidence_file: Optional[str]) -> None:
     """
     Generate new private key to key-file.  Public key is written to stdout.
     """
-    signing_key = generate_signing_key()
-    verification_key = get_verification_key(signing_key)
 
+    signing_key = generate_signing_key()
+    public_key_information(signing_key, public_key_file, evidence_file)
     with open(key_file, "wb") as out_f:
         out_f.write(export_signing_key(signing_key))
-
-    print(export_verification_key(verification_key))
 
 
 if __name__ == "__main__":

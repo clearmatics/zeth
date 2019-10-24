@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 from .crypto import \
-    VerificationKey, import_verification_key, export_verification_key
+    VerificationKey, import_verification_key, export_verification_key, \
+    Signature, import_signature, export_signature, check_key_evidence
 import json
 import time
 from typing import List, Dict, cast, Optional
@@ -16,21 +17,28 @@ class Contributor(object):
     """
     Details of a specific contributor
     """
-    def __init__(self, email: str, verification_key: VerificationKey):
+    def __init__(
+            self,
+            email: str,
+            verification_key: VerificationKey,
+            key_evidence: Signature):
         self.email = email
         self.verification_key = verification_key
+        self.key_evidence = key_evidence
 
     def _to_json_dict(self) -> JsonDict:
         return {
             "email": self.email,
             "verification_key": export_verification_key(self.verification_key),
+            "key_evidence": export_signature(self.key_evidence),
         }
 
     @staticmethod
     def _from_json_dict(json_dict: JsonDict) -> Contributor:
         return Contributor(
             cast(str, json_dict["email"]),
-            import_verification_key(cast(str, json_dict["verification_key"])))
+            import_verification_key(cast(str, json_dict["verification_key"])),
+            import_signature(cast(str, json_dict["key_evidence"])))
 
 
 class Configuration(object):
@@ -72,6 +80,19 @@ class Configuration(object):
     @staticmethod
     def from_json(config_json: str) -> Configuration:
         return Configuration._from_json_dict(json.loads(config_json))
+
+    def ensure_validity(self) -> None:
+        """
+        Checks the server configuration.  If there are any problems, throw an
+        exception with a message.
+        """
+
+        # Evidence is expected to be the signature of
+        # KEY_VALIDATION_CHECK_STRING.  Check this for all the contributors
+        # keys
+        for c in self.contributors:
+            if not check_key_evidence(c.verification_key, c.key_evidence):
+                raise Exception(f"Key for {c.email} has invalid evidence")
 
     def _to_json_dict(self) -> JsonDict:
         start_local = time.localtime(self.start_time)

@@ -47,17 +47,18 @@ create a directory for each contribution.)
 All commands below are assumed to be executed in the working directory for the
 contribution.
 
-Generate a contributor secret key to identify yourself:
+Generate a contributor secret key to identify yourself, and evidence of
+validity:
 
 ```console
-(env) $ generate_key contributor.key > contributor.pub
+(env) $ generate_key contributor.key
 ```
 
-`contributor.pub` should contain contribution verification key (public key) for
-the contributor.  Use the contents when registering as a participant in the
-MPC.  `contributor.key` is the contributor secret key for signing your
-contribution.  Keep this protected - it could be used by an attacker to steal
-your place in the list of contributors, rendering your contribution invalid.
+Use the output (public key and key evidence) when registering as a participant
+in the MPC.  The file `contributor.key` is the contributor secret key for
+signing your contribution.  Keep this protected - it could be used by an
+attacker to steal your place in the list of contributors, rendering your
+contribution invalid.
 
 ## Contributing (during MPC)
 
