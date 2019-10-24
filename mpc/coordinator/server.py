@@ -51,10 +51,12 @@ class Server(object):
         self.state: ServerState
         self.processing = False
 
-        # Try to open config file and state files
+        # Try to open config file and state files.  Perform sanity checks on
+        # the config.
         config_file_name = join(server_dir, CONFIGURATION_FILE)
         with open(config_file_name, "r") as config_f:
             self.config = Configuration.from_json(config_f.read())
+        self.config.ensure_validity()
 
         if exists(STATE_FILE):
             info(f"run_server: using existing state file: {STATE_FILE}")

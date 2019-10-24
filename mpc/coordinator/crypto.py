@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import ecdsa                    # type: ignore
+from __future__ import annotations
+import ecdsa  # type: ignore
 from Crypto.Hash import SHA512
 
 
@@ -10,6 +11,16 @@ CURVE = ecdsa.NIST521p
 VerificationKey = ecdsa.VerifyingKey
 SigningKey = ecdsa.SigningKey
 Signature = bytes
+
+
+def _compute_key_validation_digest() -> bytes:
+    h = HASH.new()
+    h.update(KEY_VALIDATION_CHECK_STRING.encode())
+    return h.digest()
+
+
+KEY_VALIDATION_CHECK_STRING: str = "Zeth MPC"
+KEY_VALIDATION_CHECK_DIGEST: bytes = _compute_key_validation_digest()
 
 
 def export_digest(digest: bytes) -> str:
@@ -77,4 +88,17 @@ def sign(sk: ecdsa.SigningKey, digest: bytes) -> bytes:
 
 
 def verify(sig: bytes, vk: ecdsa.VerifyingKey, digest: bytes) -> bool:
-    return vk.verify_digest(sig, digest)
+    try:
+        return vk.verify_digest(sig, digest)
+    except Exception:
+        return False
+
+
+def create_key_evidence(key: ecdsa.SigningKey) -> Signature:
+    return sign(key, KEY_VALIDATION_CHECK_DIGEST)
+
+
+def check_key_evidence(
+        verification_key: ecdsa.VerificationKey,
+        key_evidence: Signature) -> bool:
+    return verify(key_evidence, verification_key, KEY_VALIDATION_CHECK_DIGEST)
