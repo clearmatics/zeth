@@ -1,6 +1,8 @@
 #ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_TCC__
 #define __ZETH_CIRCUITS_BLAKE2S_COMP_TCC__
 
+// This gadget implements the interface of the HashT template
+
 namespace libzeth
 {
 
