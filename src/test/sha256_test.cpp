@@ -116,10 +116,7 @@ TEST(TestSHA256, TestHash)
 
     std::shared_ptr<sha256_ethereum<FieldT>> hasher;
     hasher.reset(new sha256_ethereum<FieldT>(
-        pb,
-        *input_block,
-        *result,
-        "Sha256_ethereum"));
+        pb, *input_block, *result, "Sha256_ethereum"));
 
     // result should equal:
     // 0xa4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3 Since
@@ -191,10 +188,7 @@ TEST(TestSHA256, TestHashWithZeroLeg)
 
     std::shared_ptr<sha256_ethereum<FieldT>> hasher;
     hasher.reset(new sha256_ethereum<FieldT>(
-        pb,
-        *input_block,
-        *result,
-        "Sha256_ethereum"));
+        pb, *input_block, *result, "Sha256_ethereum"));
 
     hasher->generate_r1cs_constraints(true);
     hasher->generate_r1cs_witness();
