@@ -156,5 +156,11 @@ function stop_server_phase2() {
     stop_server_common ${PHASE2_SERVER_DIR}
 }
 
+function passed() {
+    echo "============================================================"
+    echo "==                        PASSED                          =="
+    echo "============================================================"
+}
+
 set +x
 set +e
