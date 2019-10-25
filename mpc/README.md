@@ -12,7 +12,7 @@ Tools and scripts for SRS generation via an MPC.
 # Setup
 
 If necessary, follow instructions to [build zeth binary](../README.md)
-executables.  Execute the following to install all further packages required
+executables. Execute the following to install all further packages required
 for the MPC:
 
 ```console
@@ -21,7 +21,7 @@ $ . env/bin/activate                    # activate virtualenv
 (env) $ make setup                      # install
 ```
 
-All commands given below assume the above virtualenv is active.  If the console
+All commands given below assume the above virtualenv is active. If the console
 has been closed between actions, reactivate the virtualenv as follows:
 
 ```console
@@ -35,7 +35,7 @@ $ . mpc/env/bin/activate
 
 ## Preparation (before MPC begins)
 
-Create a working directory for the contribution.  (Note that when contributing
+Create a working directory for the contribution. (Note that when contributing
 multiple times to a single phase, or to multiple phases, it is recommended to
 create a directory for each contribution.)
 
@@ -55,8 +55,8 @@ validity:
 ```
 
 Use the output (public key and key evidence) when registering as a participant
-in the MPC.  The file `contributor.key` is the contributor secret key for
-signing your contribution.  Keep this protected - it could be used by an
+in the MPC. The file `contributor.key` is the contributor secret key for
+signing your contribution. Keep this protected - it could be used by an
 attacker to steal your place in the list of contributors, rendering your
 contribution invalid.
 
@@ -94,17 +94,17 @@ Digest written to: response.bin.digest
 ```
 
 (The coordinator may request that you specify other flags to these commands, to
-control details of the MPC.  See `phase1_contribute --help` for all available
+control details of the MPC. See `phase1_contribute --help` for all available
 flags.)
 
 You will be asked to provide randomness by entering a random string and
-pressing ENTER.  Once this is complete, the command will automatically perform
+pressing ENTER. Once this is complete, the command will automatically perform
 all necessary computation, write the results to a local file and upload to the
 coordinator.
 
 As part of the execution, the contribution digest is written to stdout, as
-shown above.  It is also written to `response.bin.digest` in the working dir.
-Keep this file (or make a note of the digest).  It can be used at the end of
+shown above. It is also written to `response.bin.digest` in the working dir.
+Keep this file (or make a note of the digest). It can be used at the end of
 the process to verify that your contribution is correctly included in the final
 MPC output.
 
@@ -124,7 +124,7 @@ or
 
 ## Generate a contribution key and certificate
 
-Either self-signed or with a certificate chain from a trusted CA.  (If using
+Either self-signed or with a certificate chain from a trusted CA. (If using
 self-signed certificates, the autority's certificate should be published and
 clients instructed to download it and use the `--server-cert` flag when
 contributing),
@@ -146,7 +146,9 @@ keys before the MPC begins.
 
 ## Create a configuration file
 
-Create the file `server_config.json` in the server working directory.  This
+### Configuration file overview
+
+Create the file `server_config.json` in the server working directory. This
 should list the ordered set of contributors, as well as other properties of the
 MPC:
 ```console
@@ -155,19 +157,23 @@ MPC:
     "contributors": [
         {
             "email": "c1@mpc.com",
-            "public_key": "3081...eed4"
+            "public_key": "3081...eed4",
+            "key_evidence": "015b...71d8"
         },
         {
             "email": "c2@mpc.com",
-            "public_key": "3081...0650"
+            "public_key": "3081...0650",
+            "key_evidence": "0015...25d6"
         },
         {
             "email": "c3@mpc.com",
-            "public_key": "3081...f876"
+            "public_key": "3081...f876",
+            "key_evidence": "00f1...e0bd"
         },
         {
             "email": "c4@mpc.com",
-            "public_key": "3081...0118"
+            "public_key": "3081...0118",
+            "key_evidence": "0156...6c85"
         }
     ],
     "start_time": "2019-10-02 17:00:00",   # Time (server-local)
@@ -178,14 +184,29 @@ MPC:
 }
 ```
 
-The server can notify participants by email when their contribution time slot
-begins (when the previous contributor either finishes his contribution, or his
-timeslot expires).  To enable email notifications, set the `email_server`,
-`email_address` and `email_password` fields to point to a (tls enabled) mail
-server.
+See the [test configuration](../testdata/mpc_server_config.json) for a full
+example configuration file.
 
-See the [test configuration](../testdata/mpc_server_config.json) for an example
-configuration file.
+### Registration via Google Forms
+
+The `make_config` command can be used to create a template configuration file
+from a csv file of contributors. Administrators can open this template, which
+has the list of contributors populated, and set just the fields relating to
+their MPC setup. `make_config` is designed to support participant registration
+via Google Forms.
+
+Ensure that email, public key, and evidence fields are present in the form, and
+download the response data as a csv file. Flags to `make_config` can be used
+to specify the exact names of each field (see `make_config --help` for
+details).
+
+### Mail notifications
+
+The MPC coordinator server can notify participants by email when their
+contribution time slot begins (when the previous contributor either finishes
+his contribution, or his timeslot expires). To enable email notifications, set
+the `email_server`, `email_address` and `email_password` fields to point to a
+(tls enabled) mail server.
 
 ## Prepare initial challenge (Phase2 only)
 
