@@ -27,15 +27,13 @@ library Bytes {
         // This can overflow. Here this is fine as n is NOT a user input, and does not aim to be changed.
         // Nevertheless we need to keep this in mind. As a consequence we add the "dummy" require below that
         // should fail if we manually change the value of n to be > 8.
-        uint8 aInt = uint8(bits);
-        uint8 reversed = uint8(reverse_byte(aInt));
+        uint8 reversed = uint8(reverse_byte(uint8(bits)));
         uint8 n = 5;
         require(
             n < 8,
             "The number of right shifts should be inferior to 8"
         );
-        uint8 shifted = reversed / 2 ** n;
-        bytes1 shifted_byte = bytes1(shifted);
+        bytes1 shifted_byte = bytes1(reversed) >> n;
 
         // We know that the last 3 bits of `input` are '0' bits that have been padded to create a byte32 out of a 253 bit string
         // Thus now, we have the last byte of `input` being something like XXXX X000 (where X represent meangful bits)

@@ -267,11 +267,12 @@ public:
             }
 
             // Initialize the unpacked input corresponding to the variables of
-            // size different to 253 bits (smaller inputs and residual bits).
-            // We obtain an unpacked value equal to v_in || v_out || h_sig ||
-            // nf_{1..NumInputs} || cm_{1..NumOutputs} || h_i_{1..NumInput}.
-            // We fill them here in reverse order because of the use of
-            // .insert() function which adds a variable before a given position
+            // size different to 253 (FieldT::capacity()) bits (smaller inputs
+            // and residual bits). We obtain an unpacked value equal to v_in ||
+            // v_out || h_sig || nf_{1..NumInputs} || cm_{1..NumOutputs} ||
+            // h_i_{1..NumInput}. We fill them here in reverse order because of
+            // the use of .insert() function which adds a variable before a
+            // given position
             {
                 // Filling with the residual bits of the h_is
                 for (size_t i = 0; i < NumInputs; i++) {

@@ -198,7 +198,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         if (digest_length < field_capacity) {
             size_extra_bits = 0;
         }
-        for(uint i = 1; i < 1 + jsIn; i ++) {
+        for(uint i = 1; i < 1 + jsIn; i++) {
             digest_input = primary_inputs[i];
             index = (digest_length-field_capacity)*(i-1);
             bits_input = extract_extra_bits(index, index+(size_extra_bits-1), primary_inputs);
