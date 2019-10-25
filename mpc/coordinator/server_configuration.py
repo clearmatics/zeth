@@ -74,8 +74,36 @@ class Configuration(object):
         self.tls_certificate: str = tls_certificate
         self.port = port
 
+    @staticmethod
+    def template(contributors: List[Contributor]) -> Configuration:
+        """
+        Populate contributors field, and other fields with sensible defaults
+        for a configuration template.  All fields are expected to be
+        overridden.
+        """
+        return Configuration(
+            contributors=contributors,
+            start_time=time.time() + 6 * 60 * 60,
+            contribution_interval=24 * 60 * 60,
+            tls_key="key.pem",
+            tls_certificate="cert.pem",
+            port=5000,
+            email_server="smtp.mymail.com:465",
+            email_address="mpc_coordinator@mymail.com",
+            email_password="*")
+
     def to_json(self) -> str:
-        return json.dumps(self._to_json_dict())
+        return json.dumps(self._to_json_dict(), indent=4)
+
+    def to_json_template(self) -> str:
+        """
+        For the case where ana administrator has a list of contributors (e.g.
+        from an online form) and keys and wants to import it into a
+        server_config.json file. This function writes the contributors
+        correctly, and places dummy data / descriptions in other fields,
+        prefixed with '_', for the admin to fill in later.
+        """
+        return json.dumps(self._to_json_template_dict(), indent=4)
 
     @staticmethod
     def from_json(config_json: str) -> Configuration:
@@ -106,6 +134,23 @@ class Configuration(object):
             "tls_key": self.tls_key,
             "tls_certificate": self.tls_certificate,
             "port": self.port,
+        }
+
+    def _to_json_template_dict(self) -> JsonDict:
+        start_local = time.localtime(self.start_time)
+        return {
+            "contributors": [c._to_json_dict() for c in self.contributors],
+            "help":
+            "This is a generated template. Populate the fields below, " +
+            "removing _REQUIRED_ and _OPTIONAL_ prefixes as necessary.",
+            "_REQUIRED_start_time": time.strftime(TIME_FORMAT, start_local),
+            "_REQUIRED_contribution_interval": str(self.contribution_interval),
+            "_OPTIONAL_email_server": self.email_server,
+            "_OPTIONAL_email_address": self.email_address,
+            "_OPTIONAL_email_password": self.email_password,
+            "_REQUIRED_tls_key": self.tls_key,
+            "_REQUIRED_tls_certificate": self.tls_certificate,
+            "_REQUIRED_port": self.port,
         }
 
     @staticmethod
