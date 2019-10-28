@@ -13,7 +13,7 @@ from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 
-zero_wei_hex = "0000000000000000"
+zero_units_hex = "0000000000000000"
 
 def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, keystore, mk_tree_depth, zksnark):
     print("=== Bob deposits 4 ETH for himself and splits his deposited funds into note1: 2ETH, note2: 2ETH ===")
@@ -24,23 +24,28 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
-        test_grpc_endpoint,
-        mk_root,
-        input_note1,
-        input_address1,
-        dummy_mk_path,
-        input_note2,
-        input_address2,
-        dummy_mk_path,
-        bob_ask, # sender
-        bob_apk, # recipient1
-        bob_apk, # recipient2
-        zethGRPC.int64ToHexadecimal(Web3.toWei('2', 'ether')), # value output note 1
-        zethGRPC.int64ToHexadecimal(Web3.toWei('2', 'ether')), # value output note 2
-        zethGRPC.int64ToHexadecimal(Web3.toWei('4', 'ether')), # v_in
-        zero_wei_hex, # v_out
-        zksnark
+    note1_value = zethUtils.toZethUnits('2', 'ether')
+    note2_value = zethUtils.toZethUnits('2', 'ether')
+    v_in = zethUtils.toZethUnits('4', 'ether')
+
+    (output_note1, output_note2, proof_json, joinsplit_keypair) = \
+        zethGRPC.getProofJoinsplit2By2(
+            test_grpc_endpoint,
+            mk_root,
+            input_note1,
+            input_address1,
+            dummy_mk_path,
+            input_note2,
+            input_address2,
+            dummy_mk_path,
+            bob_ask, # sender
+            bob_apk, # recipient1
+            bob_apk, # recipient2
+            zethGRPC.int64ToHexadecimal(note1_value), # value output note 1
+            zethGRPC.int64ToHexadecimal(note2_value), # value output note 2
+            zethGRPC.int64ToHexadecimal(v_in), # v_in
+            zero_units_hex, # v_out
+            zksnark
     )
 
     output_note1_str = json.dumps(zethGRPC.parseZethNote(output_note1))
@@ -102,6 +107,9 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
+    note1_value = zethUtils.toZethUnits('1', 'ether')
+    note2_value = zethUtils.toZethUnits('1', 'ether')
+
     (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
@@ -114,10 +122,10 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
         bob_ask, # sender
         bob_apk, # recipient1 (change)
         charlie_apk, # recipient2 (transfer)
-        zethGRPC.int64ToHexadecimal(Web3.toWei('1', 'ether')), # value output note 1
-        zethGRPC.int64ToHexadecimal(Web3.toWei('1', 'ether')), # value output note 2
-        zero_wei_hex, # v_in
-        zero_wei_hex, # v_out
+        zethGRPC.int64ToHexadecimal(note1_value), # value output note 1
+        zethGRPC.int64ToHexadecimal(note2_value), # value output note 2
+        zero_units_hex, # v_in
+        zero_units_hex, # v_out
         zksnark
     )
 
@@ -178,6 +186,9 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(charlie_apk, charlie_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
+    note1_value = zethUtils.toZethUnits('0.1', 'ether')
+    v_out = zethUtils.toZethUnits('0.9', 'ether')
+
     (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
         mk_root,
@@ -190,10 +201,10 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
         charlie_ask, # sender
         charlie_apk, # recipient1
         charlie_apk, # recipient2
-        zethGRPC.int64ToHexadecimal(Web3.toWei('0.1', 'ether')), # value output note 1
-        zero_wei_hex, # value output note 2
-        zero_wei_hex, # v_in
-        zethGRPC.int64ToHexadecimal(Web3.toWei('0.9', 'ether')), # v_out
+        zethGRPC.int64ToHexadecimal(note1_value), # value output note 1
+        zero_units_hex, # value output note 2
+        zero_units_hex, # v_in
+        zethGRPC.int64ToHexadecimal(v_out), # v_out
         zksnark
     )
 
@@ -254,24 +265,28 @@ def charlie_double_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(charlie_apk, charlie_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
-        test_grpc_endpoint,
-        mk_root,
-        input_note1,
-        input_address1,
-        mk_path1,
-        input_note2,
-        input_address2,
-        dummy_mk_path,
-        charlie_ask, # sender
-        charlie_apk, # recipient1
-        charlie_apk, # recipient2
-        zethGRPC.int64ToHexadecimal(Web3.toWei('0.1', 'ether')), # value output note 1
-        zero_wei_hex, # value output note 2
-        zero_wei_hex, # v_in
-        zethGRPC.int64ToHexadecimal(Web3.toWei('0.9', 'ether')), # v_out
-        zksnark
-    )
+    note1_value = zethUtils.toZethUnits('0.1', 'ether')
+    v_out = zethUtils.toZethUnits('0.9', 'ether')
+
+    (output_note1, output_note2, proof_json, joinsplit_keypair) = \
+        zethGRPC.getProofJoinsplit2By2(
+            test_grpc_endpoint,
+            mk_root,
+            input_note1,
+            input_address1,
+            mk_path1,
+            input_note2,
+            input_address2,
+            dummy_mk_path,
+            charlie_ask, # sender
+            charlie_apk, # recipient1
+            charlie_apk, # recipient2
+            zethGRPC.int64ToHexadecimal(note1_value), # value output note 1
+            zero_units_hex, # value output note 2
+            zero_units_hex, # v_in
+            zethGRPC.int64ToHexadecimal(v_out), # v_out
+            zksnark
+        )
 
     ##### ATTACK BLOCK
     # Add malicious nullifiers (located at index 2 and 4 in the array of inputs)
