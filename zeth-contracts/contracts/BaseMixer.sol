@@ -64,9 +64,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // If token = address(0) then the mixer works with ether
     address public token;
 
-    // The unit used for public values (ether in and out), in Wei.  Must match
-    // the python wrappers.
-    uint64 constant public_unit_value_wei = 1;
+    // The unit used for public values (ether in and out), in Wei. Must match
+    // the python wrappers. Use Szabos (10^12 Wei).
+    uint64 constant public_unit_value_wei = 1 szabo;
 
     // Event to emit the address of a commitment in the merke tree
     // Allows for faster execution of the "Receive" functions on the receiver side.
