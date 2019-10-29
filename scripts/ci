@@ -18,10 +18,24 @@ function format_check() {
     fi
 }
 
-function build() {
-    dir_name=$1
-    build_type=$2
+function pyclient_check() {
+    if [ "${platform}" == "Linux" ] ; then
+        sudo apt install -y python3-venv
+    fi
 
+    pushd pyClient
+
+        python3.7 -m venv env
+        . env/bin/activate
+        pip install --upgrade pip
+        make setup
+        make syntax
+
+        deactivate
+        popd
+}
+
+function build() {
     # Enable warnings-as-errors
     cxx_flags="-Werror"
 
@@ -35,8 +49,12 @@ function build() {
         cxx_flags="${cxx_flags} -Wno-deprecated-declarations"
     fi
 
-    cmake_flags="-DCMAKE_BUILD_TYPE=${build_type}"
+    cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG}"
+    if ! [ "${full_build}" == "1" ] ; then
+        cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
+    fi
 
+    # Build and run unit tests
     . setup_env.sh
     mkdir -p build
     cd build
@@ -47,15 +65,22 @@ function build() {
 
     make -j 2 VERBOSE=1 all build_tests
     make -j 2 check
+    cd ..
 }
 
-function build_release() {
-    build build-release Release
-}
+ci_task=$1
+full_build=$2
+if [ "${full_build}" == "" ] ; then
+    if [ "${TRAVIS_PULL_REQUEST}" == "false" ] || [ "${TRAVIS_PULL_REQUEST}" == "" ] ; then
+        full_build=0
+    else
+        full_build=1
+    fi
+fi
 
-function build_debug() {
-    build build-debug Debug
-}
+echo ci_task = ${ci_task}
+echo full_build=${full_build}
+echo CI_CONFIG=${CI_CONFIG}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
     format_check
@@ -66,7 +91,12 @@ fi
 if [ "${CI_USE_DOCKER}" == "1" ] ; then
     docker pull clearmatics/zeth-base:latest
     docker build -f Dockerfile-zeth -t zeth-dev .
-    docker run -t -p 50051:50051 --name zeth zeth-dev:latest $0 $@
+    docker run \
+           -t \
+           -p 50051:50051 \
+           --name zeth \
+           --env CI_CONFIG=${CI_CONFIG} \
+           zeth-dev:latest $0 ${ci_task} ${full_build}
 else
-    eval $@
+    ${ci_task}
 fi
