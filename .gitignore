@@ -1,39 +1,36 @@
-jsClient/node_modules/*
-jsClient/package-lock.json
-
-# Ignore the virtualenv in the python client
-pyClient/zeth-devenv/
+/jsClient/node_modules/*
+/jsClient/package-lock.json
 
 # Ignore the build repo
-build/
+/build/
 
 # Ignore the coins we created
-coinstore/*.json
+/coinstore/*.json
 
 # Ignore the content of the keystore
-keystore/*.pem
-keystore/*.json
+/keystore/*.pem
+/keystore/*.json
 
 # Ignore the output of the trusted setup (ie: Proving and Verifying key)
-trusted_setup/*.raw
-trusted_setup/*.json
+/trusted_setup/*.raw
+/trusted_setup/*.json
 
 # Ignore the content of the debug folder
 debug/*json
 
 # Ignore node_modules
-zeth-contracts/node_modules/*
+/zeth-contracts/node_modules/*
 
-# Ignore grpc code
-pyClient/prover_pb2.py
-pyClient/prover_pb2_grpc.py
-pyClient/pghr13_messages_pb2.py
-pyClient/pghr13_messages_pb2_grpc.py
-pyClient/groth16_messages_pb2.py
-pyClient/groth16_messages_pb2_grpc.py
-pyClient/util_pb2.py
-pyClient/util_pb2_grpc.py
+# Ignore pyClient env and build directories
+/pyClient/env/
+/pyClient/api/*_pb2.py
+/pyClient/api/*_pb2_grpc.py
 
-# Ignore pycash
-pyClient/__pycache__/
+# Ignore python cache dirs
+__pycache__
+.mypy_cache
+*.egg-info/
 
+# Ignore some unix temp files
+*~
+\#*\#
