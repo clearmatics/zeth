@@ -1,32 +1,35 @@
-import zethUtils
+import zeth.utils
+from unittest import TestCase
 
-from nacl.public import PrivateKey, PublicKey
 
-# Tests the correct encrypt-decrypt flow: decrypt(encrypt(m)) == m
-def test_encrypt_decrypt():
-  message = "Join Clearmatics, we are hiring!"
+class TestZethConstants(TestCase):
 
-  keypair_alice_bytes, keypair_bob_bytes, _ = zethUtils.gen_keys_utility()
+    def test_encrypt_decrypt(self):
+        """
+        Tests the correct encrypt-decrypt flow: decrypt(encrypt(m)) == m
+        """
+        message = "Join Clearmatics, we are hiring!"
 
-  pk_alice = zethUtils.get_public_key_from_bytes(keypair_alice_bytes[0])
-  sk_alice = zethUtils.get_private_key_from_bytes(keypair_alice_bytes[1])
+        keypair_alice_bytes, keypair_bob_bytes, _ = zeth.utils.gen_keys_utility()
 
-  pk_bob = zethUtils.get_public_key_from_bytes(keypair_bob_bytes[0])
-  sk_bob = zethUtils.get_private_key_from_bytes(keypair_bob_bytes[1])
+        pk_alice = zeth.utils.get_public_key_from_bytes(keypair_alice_bytes[0])
+        sk_alice = zeth.utils.get_private_key_from_bytes(keypair_alice_bytes[1])
 
-  # Subtest 1: Alice to Alice
-  ciphertext_alice_alice = zethUtils.encrypt(message, pk_alice, sk_alice)
-  plaintext_alice_alice = zethUtils.decrypt(ciphertext_alice_alice, pk_alice, sk_alice)
-  assert plaintext_alice_alice == message, "Error in Alice to Alice test"
+        pk_bob = zeth.utils.get_public_key_from_bytes(keypair_bob_bytes[0])
+        sk_bob = zeth.utils.get_private_key_from_bytes(keypair_bob_bytes[1])
 
-  # Subest 2: Bob to Alice
-  ciphertext_bob_alice = zethUtils.encrypt(message, pk_alice, sk_bob)
-  plaintext_bob_alice = zethUtils.decrypt(ciphertext_bob_alice, pk_alice, sk_bob)
-  assert plaintext_bob_alice == message, "Error in Bob to Alice test: pk_alice, sk_bob"
-  plaintext_bob_alice = zethUtils.decrypt(ciphertext_bob_alice, pk_bob, sk_alice)
-  assert plaintext_bob_alice == message, "Error in Bob to Alice test: pk_bob, sk_alice"
+        # Subtest 1: Alice to Alice
+        ciphertext_alice_alice = zeth.utils.encrypt(message, pk_alice, sk_alice)
+        plaintext_alice_alice = zeth.utils.decrypt(
+            ciphertext_alice_alice, pk_alice, sk_alice)
+        self.assertEqual(plaintext_alice_alice, message)
 
-  print("Tests encrypt_decrypt passed")
+        # Subest 2: Bob to Alice
+        ciphertext_bob_alice = zeth.utils.encrypt(message, pk_alice, sk_bob)
+        plaintext_bob_alice = zeth.utils.decrypt(
+            ciphertext_bob_alice, pk_alice, sk_bob)
+        self.assertEqual(plaintext_bob_alice, message)
 
-if __name__ == "__main__":
-  test_encrypt_decrypt()
+        plaintext_bob_alice = zeth.utils.decrypt(
+            ciphertext_bob_alice, pk_bob, sk_alice)
+        self.assertEqual(plaintext_bob_alice, message)

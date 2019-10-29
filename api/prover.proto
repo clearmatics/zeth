@@ -3,8 +3,8 @@ syntax = "proto3";
 package proverpkg;
 
 import "google/protobuf/empty.proto";
-import "pghr13_messages.proto";
-import "groth16_messages.proto";
+import "api/pghr13_messages.proto";
+import "api/groth16_messages.proto";
 
 service Prover {
     // Run the setup on the prover side (Don't needed as the setup is ran when the server starts)
