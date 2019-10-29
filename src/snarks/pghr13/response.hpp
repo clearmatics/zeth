@@ -1,8 +1,8 @@
 #ifndef __ZETH_RESPONSE_HPP__
 #define __ZETH_RESPONSE_HPP__
 
+#include "api/prover.grpc.pb.h"
 #include "libsnark_helpers/extended_proof.hpp"
-#include "prover.grpc.pb.h"
 #include "util_api.hpp"
 
 using proverpkg::ExtendedProof;
