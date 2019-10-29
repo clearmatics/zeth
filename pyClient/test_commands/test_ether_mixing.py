@@ -106,12 +106,34 @@ if __name__ == '__main__':
     sk_alice = zethUtils.get_private_key_from_bytes(keystore["Alice"]["AddrSk"]["encSK"])
     pk_sender = zethUtils.get_public_key_from_bytes(pk_sender_ciphertext_bob_to_bob)
 
+    # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
+    # was the recipient But she wasn't the recipient (Bob was), so she fails to
+    # decrypt
+    recovered_plaintext1 = zeth.utils.receive(
+        ciphertext_bob_to_bob1, pk_sender, sk_alice, "alice")
+    recovered_plaintext2 = zeth.utils.receive(
+        ciphertext_bob_to_bob2, pk_sender, sk_alice, "alice")
+    assert(recovered_plaintext1 == ""), \
+        "Alice decrypted a ciphertext that was not encrypted with her key!"
+    assert(recovered_plaintext2 == ""),\
+        "Alice decrypted a ciphertext that was not encrypted with her key!"
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she was the recipient
     # But she wasn't the recipient (Bob was), so she fails to decrypt
     recovered_plaintext1 = zethUtils.receive(ciphertext_bob_to_bob1, pk_sender, sk_alice, "alice")
     recovered_plaintext2 = zethUtils.receive(ciphertext_bob_to_bob2, pk_sender, sk_alice, "alice")
     assert (recovered_plaintext1 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
     assert (recovered_plaintext2 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
+    # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
+    # was the recipient but she wasn't the recipient (Bob was), so she fails to
+    # decrypt
+    recovered_plaintext1 = zeth.utils.receive(
+        ciphertext_bob_to_bob1, pk_sender, sk_alice, "alice")
+    recovered_plaintext2 = zeth.utils.receive(
+        ciphertext_bob_to_bob2, pk_sender, sk_alice, "alice")
+    assert(recovered_plaintext1 == ""), \
+        "Alice decrypted a ciphertext that was not encrypted with her key!"
+    assert(recovered_plaintext2 == ""),\
+        "Alice decrypted a ciphertext that was not encrypted with her key!"
 
     # Bob does a transfer to Charlie on the mixer
     #
