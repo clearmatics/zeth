@@ -14,7 +14,7 @@ if sys.version_info < (3, 7):
     exit(1)
 
 setup(
-    name='pyzeth',
+    name='zeth',
     version='0.1',
     description='Interface to zeth operations',
     packages=find_packages(),
@@ -33,8 +33,8 @@ setup(
         "eth-rlp==0.1.2",
         "eth-typing==2.1.0",
         "eth-utils==1.4.1",
-        "grpcio==1.18.0",
-        "grpcio-tools==1.18.0",
+        "grpcio==1.24",
+        "grpcio-tools==1.24",
         "hexbytes==0.1.0",
         "idna==2.8",
         "lru-dict==1.1.6",
@@ -54,7 +54,7 @@ setup(
         "websockets==6.0",
     ],
     scripts=[
-        "test/testEtherMixing",
-        "test/testERCTokenMixing",
+        "test_commands/test_ether_mixing.py",
+        "test_commands/test_erc_token_mixing.py",
     ]
 )

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package proverpkg;
 
-import public "util.proto";
+import public "api/util.proto";
 
 message R1csGgPpzksnarkVerificationKey {
     HexadecimalPointBaseGroup1Affine alpha_g1 = 1;
