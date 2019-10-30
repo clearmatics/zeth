@@ -29,7 +29,7 @@ grpc: $(PROTOBUF_OUTPUT)
 	@echo -n
 
 syntax: ${PROTOBUF_OUTPUT}
-	flake8 `git ls-files 'zeth/**.py' 'test/**.py'`
+	flake8 `git ls-files '**.py'`
 	mypy `git ls-files 'test/**.py' 'test_commands/**.py' 'zeth/**.py'`
 
 test: ${PROTOBUF_OUTPUT}
