@@ -149,7 +149,7 @@ zeth_test(test_note test/note_test.cpp TRUE)
 zeth_test(test_prover test/prover_test.cpp TRUE)
 
 # Old Tests
-# zeth_test(test_sha256 test/test_sha256.cpp TRUE)
+# zeth_test(test_sha256 test/sha256_test.cpp TRUE)
 
 # prover test has extra dependencies
 target_link_libraries(
