@@ -16,7 +16,8 @@ import api.prover_pb2_grpc as prover_pb2_grpc  # type: ignore
 
 import zeth.constants as constants
 import zeth.errors as errors
-from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes
+from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
+    hex_digest_to_binary_string
 
 # Import elliptic curve operations
 from py_ecc import bn128 as ec
@@ -199,21 +200,11 @@ def computeCommitment(zethNoteGRPCObj):
     return cm
 
 
-def hexadecimalDigestToBinaryString(digest):
-    def binary(x):
-        zipped = zip(
-            *[["{0:04b}".format(int(c, 16)) for c in reversed("0"+x)][n::2]
-              for n in [1, 0]])
-        return "".join(reversed(
-            [i+j for i, j in zipped]))
-    return binary(digest)
-
-
 def computeNullifier(zethNote, spendingAuthAsk):
     """
     Returns nf = blake2s(1110 || [a_sk]_252 || rho)
     """
-    binaryAsk = hexadecimalDigestToBinaryString(spendingAuthAsk)
+    binaryAsk = hex_digest_to_binary_string(spendingAuthAsk)
     first252Ask = binaryAsk[:252]
     leftLegBin = "1110" + first252Ask
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
@@ -237,7 +228,7 @@ def computeHi(ask, hsig, i):
         return -1
 
     # Append PRF^{pk} tag to a_sk
-    binaryAsk = hexadecimalDigestToBinaryString(ask)
+    binaryAsk = hex_digest_to_binary_string(ask)
     first252Ask = binaryAsk[:252]
     leftLegBin = "0" + str(i) + "00" + first252Ask
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
@@ -262,7 +253,7 @@ def computeRhoi(phi, hsig, i):
         return -1
 
     # Append PRF^{rho} tag to a_sk
-    binaryPhi = hexadecimalDigestToBinaryString(phi)
+    binaryPhi = hex_digest_to_binary_string(phi)
     first252Phi = binaryPhi[:252]
     leftLegBin = "0" + str(i) + "10" + first252Phi
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
@@ -275,15 +266,11 @@ def computeRhoi(phi, hsig, i):
     return rho_i
 
 
-def int64ToHexadecimal(number):
-    return '{:016x}'.format(number)
-
-
 def deriveAPK(ask):
     """
     Returns a_pk = blake2s(1100 || [a_sk]_252 || 0^256)
     """
-    binaryAsk = hexadecimalDigestToBinaryString(ask)
+    binaryAsk = hex_digest_to_binary_string(ask)
     first252Ask = binaryAsk[:252]
     leftLegBin = "1100" + first252Ask
     leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
@@ -327,42 +314,6 @@ def generateOTSchnorrVkSkpair():
         "vk": [X, Y]
     }
     return keypair
-
-
-def encodeToHash(messages):
-    """
-    Encode a list of variables, or list of lists of variables into a byte
-    vector
-    """
-    input_sha = bytearray()
-
-    # Flatten messages
-    if any(isinstance(el, list) for el in messages):
-        new_list = []
-        for el in messages:
-            if type(el) == list:
-                new_list.extend(el)
-            else:
-                new_list.append(el)
-        messages = new_list
-
-    for m in messages:
-        # For each element
-        m_hex = m
-
-        # Convert it into a hex
-        if type(m) == int:
-            m_hex = "{0:0>4X}".format(m)
-        elif (type(m) == str) and (m[1] == "x"):
-            m_hex = m[2:]
-
-        # [SANITY CHECK] Make sure the hex is 32 byte long
-        m_hex = hex_extend_32bytes(m_hex)
-
-        # Encode the hex into a byte array and append it to result
-        input_sha += encode_single("bytes32", bytes.fromhex(m_hex))
-
-    return input_sha
 
 
 def encodeInputToHash(messages):

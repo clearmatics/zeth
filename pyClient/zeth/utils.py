@@ -25,6 +25,16 @@ def int64_to_hex(number):
     return '{:016x}'.format(number)
 
 
+def hex_digest_to_binary_string(digest):
+    def binary(x):
+        zipped = zip(
+            *[["{0:04b}".format(int(c, 16)) for c in reversed("0"+x)][n::2]
+              for n in [1, 0]])
+        return "".join(reversed(
+            [i+j for i, j in zipped]))
+    return binary(digest)
+
+
 def hex2int(elements):
     """
     Given an error of hex strings, return an array of int values
@@ -215,7 +225,7 @@ def gen_keys_utility(to_print=False):
     return alice_keys_bytes, bob_keys_bytes, charlie_keys_bytes
 
 
-def toZethUnits(value, unit):
+def to_zeth_units(value, unit):
     return int(Web3.toWei(value, unit) / ZETH_PUBLIC_UNIT_VALUE)
 
 
