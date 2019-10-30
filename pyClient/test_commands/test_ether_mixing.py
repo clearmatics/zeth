@@ -5,8 +5,8 @@ import zeth.contracts
 import zeth.grpc
 import zeth.utils
 import zeth.constants as constants
-from . import mock
-from . import scenario
+import test_commands.mock as mock
+import test_commands.scenario as scenario
 
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 test_grpc_endpoint = constants.RPC_ENDPOINT
