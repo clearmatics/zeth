@@ -13,6 +13,7 @@ from eth_abi import encode_single
 import nacl.utils  # type: ignore
 from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
+from typing import List, Tuple
 
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
@@ -25,7 +26,7 @@ def int64_to_hex(number):
     return '{:016x}'.format(number)
 
 
-def hex_digest_to_binary_string(digest):
+def hex_digest_to_binary_string(digest: str) -> str:
     def binary(x):
         zipped = zip(
             *[["{0:04b}".format(int(c, 16)) for c in reversed("0"+x)][n::2]
@@ -35,7 +36,7 @@ def hex_digest_to_binary_string(digest):
     return binary(digest)
 
 
-def hex2int(elements):
+def hex2int(elements: List[str]) -> List[int]:
     """
     Given an error of hex strings, return an array of int values
     """
@@ -45,7 +46,7 @@ def hex2int(elements):
     return(ints)
 
 
-def hex_extend_32bytes(element):
+def hex_extend_32bytes(element: str) -> str:
     """
     Extend a hex string to represent 32 bytes
     """
@@ -63,23 +64,23 @@ def hex_digest_to_bits(digest):
     return "".join(reversed([i+j for i, j in zipped]))
 
 
-def get_private_key_from_bytes(sk_bytes):
+def get_private_key_from_bytes(sk_hex: str) -> PrivateKey:
     """
     Gets PrivateKey object from hexadecimal representation
     (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
     """
-    return PrivateKey(sk_bytes, encoder=nacl.encoding.RawEncoder)
+    return PrivateKey(sk_hex, encoder=nacl.encoding.RawEncoder)
 
 
-def get_public_key_from_bytes(pk_bytes):
+def get_public_key_from_bytes(pk_hex: str) -> PublicKey:
     """
     Gets PublicKey object from hexadecimal representation
     (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
     """
-    return PublicKey(pk_bytes, encoder=nacl.encoding.RawEncoder)
+    return PublicKey(pk_hex, encoder=nacl.encoding.RawEncoder)
 
 
-def encrypt(message, pk_receiver, sk_sender):
+def encrypt(message: str, pk_receiver: PublicKey, sk_sender: PrivateKey) -> bytes:
     """
     Encrypts a string message by using valid ec25519 public key and
     private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
@@ -91,14 +92,19 @@ def encrypt(message, pk_receiver, sk_sender):
     message_bytes = message.encode('utf-8')
 
     # Encrypt the message. The nonce is chosen randomly.
-    encrypted = encryption_box.encrypt(message_bytes, encoder=nacl.encoding.RawEncoder)
+    encrypted = encryption_box.encrypt(
+        message_bytes,
+        encoder=nacl.encoding.RawEncoder)
 
     # Need to cast to the parent class Bytes of nacl.utils.EncryptedMessage
     # to make it accepted from `Mix` Solidity function
     return bytes(encrypted)
 
 
-def decrypt(encrypted_message, pk_sender, sk_receiver):
+def decrypt(
+        encrypted_message: bytes,
+        pk_sender: PublicKey,
+        sk_receiver: PrivateKey) -> str:
     """
     Decrypts a string message by using valid ec25519 public key and private key
     objects.  See: https://pynacl.readthedocs.io/en/stable/public/
@@ -112,7 +118,8 @@ def decrypt(encrypted_message, pk_sender, sk_receiver):
     return str(message, encoding='utf-8')
 
 
-def convert_leaf_address_to_node_address(address_leaf, tree_depth):
+def convert_leaf_address_to_node_address(
+        address_leaf: int, tree_depth: int) -> int:
     """
     Converts the relative address of a leaf to an absolute address in the tree
     Important note: The merkle root index is 0 (not 1!)
@@ -123,8 +130,11 @@ def convert_leaf_address_to_node_address(address_leaf, tree_depth):
     return address
 
 
-def compute_merkle_path(address_commitment, tree_depth, byte_tree):
-    merkle_path = []
+def compute_merkle_path(
+        address_commitment: int,
+        tree_depth: int,
+        byte_tree: List[bytes]) -> List[str]:
+    merkle_path: List[str] = []
     address_bits = []
     address = convert_leaf_address_to_node_address(address_commitment, tree_depth)
     if(address == -1):
@@ -145,7 +155,11 @@ def compute_merkle_path(address_commitment, tree_depth, byte_tree):
     return merkle_path
 
 
-def receive(ciphertext, pk_sender, sk_receiver, username):
+def receive(
+        ciphertext: bytes,
+        pk_sender: PublicKey,
+        sk_receiver: PrivateKey,
+        username: str) -> str:
     recovered_plaintext = ""
     try:
         recovered_plaintext = decrypt(ciphertext, pk_sender, sk_receiver)
@@ -165,7 +179,7 @@ def receive(ciphertext, pk_sender, sk_receiver, username):
     return recovered_plaintext
 
 
-def parse_zksnark_arg():
+def parse_zksnark_arg() -> str:
     """
     Parse the zksnark argument and return its value
     """
@@ -184,19 +198,19 @@ def to_zeth_units(value, unit):
     return int(Web3.toWei(value, unit) / ZETH_PUBLIC_UNIT_VALUE)
 
 
-def get_zeth_dir():
+def get_zeth_dir() -> str:
     return os.environ.get(
         'ZETH',
         normpath(join(dirname(__file__), "..", "..")))
 
 
-def get_trusted_setup_dir():
+def get_trusted_setup_dir() -> str:
     return os.environ.get(
         'ZETH_TRUSTED_SETUP_DIR',
         join(get_zeth_dir(), "trusted_setup"))
 
 
-def get_contracts_dir():
+def get_contracts_dir() -> str:
     return os.environ.get(
         'ZETH_CONTRACTS_DIR',
         join(get_zeth_dir(), "zeth-contracts", "contracts"))
