@@ -8,7 +8,7 @@ from eth_abi import encode_single, encode_abi
 from hashlib import blake2s, sha256
 
 # Access the gRPC service and the proto messages
-import grpc
+import grpc  # type: ignore
 from google.protobuf import empty_pb2
 import api.util_pb2 as util_pb2  # type: ignore
 import api.prover_pb2 as prover_pb2  # type: ignore
