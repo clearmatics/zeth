@@ -1,8 +1,8 @@
-# Zeth - Zerocash on Ethereum 
+# Zeth - Zerocash on Ethereum
 
 :rotating_light: **WARNING** This project is a Proof of Concept. It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
 
-**Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git). 
+**Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git).
 It follows and extends the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by [Zcash](https://github.com/zcash/zcash).
 
 :point_right: Check our [paper](https://arxiv.org/pdf/1904.00905.pdf) for more information about Zeth.
@@ -66,6 +66,9 @@ where `$ZKSNARK` is `PGHR13`(see https://eprint.iacr.org/2013/279, http://eprint
 ```bash
 # Start the ethereum test net by running the following commands
 cd zeth-contracts
+
+# If the install below fails with python errors, try running:
+npm config set python python2.7
 
 # Install dependencies
 npm install
