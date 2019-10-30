@@ -63,7 +63,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     uint constant size_value = 64;
 
     // Number of residual bits from packing of 256-bit long string into 253-bit long field elements to which are added the public value of size 64 bits
-    uint constant length_bit_residual = 2 * 64 + (digest_length - field_capacity) * (1 + 2 * jsIn + jsOut);
+    uint constant length_bit_residual = 2 * size_value + (digest_length - field_capacity) * (1 + 2 * jsIn + jsOut);
     // Number of field elements needed to pack this number of bits
     uint constant nb_field_residual = (length_bit_residual + field_capacity - 1) / field_capacity;
 
@@ -153,11 +153,16 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         uint index_end_bytes32 = 1 + 1 + 2*jsIn + jsOut + (offset+end)/field_capacity;
 
         // We compute the padding length in the field elements containing the remaining bits
+        // The padding is either digest_length - field_capacity (if we fill a whole field element)
+        // or digest_length - len(v_in || v_out || hsig || {sn} || {cm} || {h})
         uint padding_start = digest_length - field_capacity;
         uint padding_end = padding_start;
+        // We check if we index_end_bytes32 points to the last byte.
+        // The last byte may not be full, and thus have more padding.
         if (primary_inputs.length-1 == index_end_bytes32) {
             padding_end = digest_length - ( (offset + (digest_length - field_capacity)*(2*jsIn + jsOut)) % field_capacity);
         }
+        // We check if the last byte is the same as the first byte, if so we update the padding.
         if (index_end_bytes32 == index_start_bytes32) {
             padding_start = padding_end;
         }
@@ -195,7 +200,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         bytes1 bits_input;
         uint index;
         uint size_extra_bits = digest_length % field_capacity;
-        if (digest_length < field_capacity) {
+        if (digest_length <= field_capacity) {
             size_extra_bits = 0;
         }
         for(uint i = 1; i < 1 + jsIn; i++) {
@@ -213,7 +218,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     function assemble_commitments_and_append_to_state(uint[] memory primary_inputs) internal {
         // We re-assemble the commitments (JSOutputs)
-        uint256 digest_input;
         uint index;
         bytes1 bits_input;
         uint size_extra_bits = digest_length % field_capacity;
@@ -222,10 +226,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
         for(uint i = 1 + jsIn ; i < 1 + jsIn + jsOut; i ++) {
             // See the way the inputs are ordered in the extended proof
-            digest_input = primary_inputs[i];
             index = (digest_length-field_capacity)*(i-1);
             bits_input = extract_extra_bits(index, index+(size_extra_bits-1), primary_inputs);
-            bytes32 current_commitment = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
+            bytes32 current_commitment = Bytes.sha256_digest_from_field_elements(primary_inputs[i], bits_input);
             uint commitmentAddress = insert(current_commitment);
             emit LogAddress(commitmentAddress);
         }

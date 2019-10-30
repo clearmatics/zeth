@@ -1,17 +1,12 @@
-const Bytes_tests = artifacts.require("./Bytes_tests.sol");
+const BaseMixer_tests = artifacts.require("./BaseMixer_tests.sol");
 
 const testContracts = {
-  Bytes_tests: Bytes_tests
+    BaseMixer_tests: BaseMixer_tests
 };
 
 const allSimpleTests = {
-  Bytes_tests:  [
-    "testReverseByte",
-    "testGetLastByte",
-    "testFlipEndiannessBytes32",
-    "testBytesToBytes32",
-    "testSha256DigestFromFieldElements",
-    "testSwapBitOrder"
+    BaseMixer_tests:  [
+    "test_extract_extra_bits"
   ]
 };
 
