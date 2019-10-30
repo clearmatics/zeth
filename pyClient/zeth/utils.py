@@ -27,13 +27,10 @@ def int64_to_hex(number):
 
 
 def hex_digest_to_binary_string(digest: str) -> str:
-    def binary(x):
-        zipped = zip(
-            *[["{0:04b}".format(int(c, 16)) for c in reversed("0"+x)][n::2]
-              for n in [1, 0]])
-        return "".join(reversed(
-            [i+j for i, j in zipped]))
-    return binary(digest)
+    padded = "0" + digest
+    digest_bits = ["{0:04b}".format(int(c, 16)) for c in reversed(padded)]
+    zipped = zip(*[digest_bits[n::2] for n in [1, 0]])
+    return "".join(reversed([i+j for i, j in zipped]))
 
 
 def hex2int(elements: List[str]) -> List[int]:
@@ -55,13 +52,6 @@ def hex_extend_32bytes(element: str) -> str:
         res = "0" + res
     res = "00"*int((64-len(res))/2) + res
     return res
-
-
-def hex_digest_to_bits(digest):
-    padded = "0" + digest
-    digest_bits = ["{0:04b}".format(int(c, 16)) for c in reversed(padded)]
-    zipped = zip(*[digest_bits[n::2] for n in [1, 0]])
-    return "".join(reversed([i+j for i, j in zipped]))
 
 
 def get_private_key_from_bytes(sk_hex: str) -> PrivateKey:
@@ -194,7 +184,7 @@ def parse_zksnark_arg() -> str:
     return args.zksnark
 
 
-def to_zeth_units(value, unit):
+def to_zeth_units(value: str, unit: str) -> int:
     return int(Web3.toWei(value, unit) / ZETH_PUBLIC_UNIT_VALUE)
 
 

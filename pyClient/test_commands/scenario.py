@@ -1,13 +1,16 @@
-import zeth.utils
-import zeth.grpc
+import zeth.joinsplit as joinsplit
 import zeth.contracts
+from zeth.prover_client import ProverClient
 import test_commands.mock as mock
+from zeth.utils import to_zeth_units, int64_to_hex, get_public_key_from_bytes, \
+    encrypt, encode_to_hash
 
 import json
 from hashlib import sha256
 import nacl.utils  # type: ignore
 from nacl.public import PrivateKey  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
+from typing import List
 
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 
@@ -24,7 +27,7 @@ CHARLIE_WITHDRAW_CHANGE_ETH = 39.5
 
 
 def bob_deposit(
-        test_grpc_endpoint,
+        prover_client: ProverClient,
         mixer_instance,
         mk_root,
         bob_eth_address,
@@ -46,8 +49,8 @@ def bob_deposit(
     v_in = zeth.utils.to_zeth_units(str(BOB_DEPOSIT_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        zeth.grpc.getProofJoinsplit2By2(
-            test_grpc_endpoint,
+        zeth.joinsplit.getProofJoinsplit2By2(
+            prover_client,
             mk_root,
             input_note1,
             input_address1,
@@ -58,25 +61,25 @@ def bob_deposit(
             bob_ask,  # sender
             bob_apk,  # recipient1
             bob_apk,  # recipient2
-            zeth.utils.int64_to_hex(note1_value),  # value output note 1
-            zeth.utils.int64_to_hex(note2_value),  # value output note 2
-            zeth.utils.int64_to_hex(v_in),  # v_in
+            int64_to_hex(note1_value),  # value output note 1
+            int64_to_hex(note2_value),  # value output note 2
+            int64_to_hex(v_in),  # v_in
             zero_units_hex,  # v_out
             zksnark
     )
 
-    output_note1_str = json.dumps(zeth.grpc.parseZethNote(output_note1))
-    output_note2_str = json.dumps(zeth.grpc.parseZethNote(output_note2))
+    output_note1_str = json.dumps(joinsplit.parseZethNote(output_note1))
+    output_note2_str = json.dumps(joinsplit.parseZethNote(output_note2))
 
     # generate ephemeral ec25519 key
     eph_sk_bob = PrivateKey.generate()
 
     # construct pk object from bytes
-    pk_bob = zeth.utils.get_public_key_from_bytes(keystore["Bob"]["AddrPk"]["encPK"])
+    pk_bob = get_public_key_from_bytes(keystore["Bob"]["AddrPk"]["encPK"])
 
     # encrypt the coins
-    ciphertext1 = zeth.utils.encrypt(output_note1_str, pk_bob, eph_sk_bob)
-    ciphertext2 = zeth.utils.encrypt(output_note2_str, pk_bob, eph_sk_bob)
+    ciphertext1 = encrypt(output_note1_str, pk_bob, eph_sk_bob)
+    ciphertext2 = encrypt(output_note2_str, pk_bob, eph_sk_bob)
 
     # get the ephemeral public key of the sender in bytes
     eph_pk_sender_bytes = eph_sk_bob.public_key.encode(encoder=nacl.encoding.RawEncoder)
@@ -86,18 +89,18 @@ def bob_deposit(
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
-    proof = []
+    proof: List[str] = []
     for key in proof_json.keys():
         if key != "inputs":
             proof.extend(proof_json[key])
     hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zeth.grpc.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
-    joinsplit_sig = zeth.grpc.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+    joinsplit_sig = joinsplit.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return zeth.contracts.mix(
         mixer_instance,
@@ -105,7 +108,7 @@ def bob_deposit(
         ciphertext1,
         ciphertext2,
         proof_json,
-        joinsplit_keypair["vk"],
+        joinsplit_keypair.vk,
         joinsplit_sig,
         bob_eth_address,
         w3.toWei(BOB_DEPOSIT_ETH, 'ether'),
@@ -115,7 +118,7 @@ def bob_deposit(
 
 
 def bob_to_charlie(
-        test_grpc_endpoint,
+        prover_client: ProverClient,
         mixer_instance,
         mk_root,
         mk_path1,
@@ -139,12 +142,12 @@ def bob_to_charlie(
         bob_apk, bob_ask)
     dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
 
-    note1_value = zeth.utils.to_zeth_units(str(BOB_TO_CHARLIE_ETH), 'ether')
-    note2_value = zeth.utils.to_zeth_units(str(BOB_TO_CHARLIE_CHANGE_ETH), 'ether')
+    note1_value = to_zeth_units(str(BOB_TO_CHARLIE_ETH), 'ether')
+    note2_value = to_zeth_units(str(BOB_TO_CHARLIE_CHANGE_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        zeth.grpc.getProofJoinsplit2By2(
-            test_grpc_endpoint,
+        joinsplit.getProofJoinsplit2By2(
+            prover_client,
             mk_root,
             input_note1,
             input_address1,
@@ -155,15 +158,15 @@ def bob_to_charlie(
             bob_ask,  # sender
             bob_apk,  # recipient1 (change)
             charlie_apk,  # recipient2 (transfer)
-            zeth.utils.int64_to_hex(note1_value),  # value output note 1
-            zeth.utils.int64_to_hex(note2_value),  # value output note 2
+            int64_to_hex(note1_value),  # value output note 1
+            int64_to_hex(note2_value),  # value output note 2
             zero_units_hex,  # v_in
             zero_units_hex,  # v_out
             zksnark
         )
 
-    output_note1_str = json.dumps(zeth.grpc.parseZethNote(output_note1))
-    output_note2_str = json.dumps(zeth.grpc.parseZethNote(output_note2))
+    output_note1_str = json.dumps(joinsplit.parseZethNote(output_note1))
+    output_note2_str = json.dumps(joinsplit.parseZethNote(output_note2))
 
     # generate ephemeral ec25519 key
     eph_sk_bob = PrivateKey.generate()
@@ -174,9 +177,9 @@ def bob_to_charlie(
 
     # encrypt the coins
     # Bob is the recipient
-    ciphertext1 = zeth.utils.encrypt(output_note1_str, pk_bob, eph_sk_bob)
+    ciphertext1 = encrypt(output_note1_str, pk_bob, eph_sk_bob)
     # Charlie is the recipient
-    ciphertext2 = zeth.utils.encrypt(output_note2_str, pk_charlie, eph_sk_bob)
+    ciphertext2 = encrypt(output_note2_str, pk_charlie, eph_sk_bob)
     pk_sender = eph_sk_bob.public_key.encode(encoder=nacl.encoding.RawEncoder)
 
     # Hash the pk_sender and cipher-texts
@@ -184,18 +187,19 @@ def bob_to_charlie(
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
-    proof = []
+    proof: List[int] = []
     for key in proof_json.keys():
         if key != "inputs":
             proof.extend(proof_json[key])
-    hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
+    hash_proof = sha256(encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zeth.grpc.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
-    joinsplit_sig = zeth.grpc.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+    joinsplit_sig = joinsplit.sign(
+        joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return zeth.contracts.mix(
         mixer_instance,
@@ -203,7 +207,7 @@ def bob_to_charlie(
         ciphertext1,
         ciphertext2,
         proof_json,
-        joinsplit_keypair["vk"],
+        joinsplit_keypair.vk,
         joinsplit_sig,
         bob_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
@@ -215,7 +219,7 @@ def bob_to_charlie(
 
 
 def charlie_withdraw(
-        test_grpc_endpoint,
+        prover_client: ProverClient,
         mixer_instance,
         mk_root,
         mk_path1,
@@ -235,12 +239,12 @@ def charlie_withdraw(
         charlie_apk, charlie_ask)
     dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
 
-    note1_value = zeth.utils.to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
-    v_out = zeth.utils.to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
+    note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
+    v_out = to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        zeth.grpc.getProofJoinsplit2By2(
-            test_grpc_endpoint,
+        joinsplit.getProofJoinsplit2By2(
+            prover_client,
             mk_root,
             input_note1,
             input_address1,
@@ -251,28 +255,28 @@ def charlie_withdraw(
             charlie_ask,  # sender
             charlie_apk,  # recipient1
             charlie_apk,  # recipient2
-            zeth.utils.int64_to_hex(note1_value),  # value output note 1
+            int64_to_hex(note1_value),  # value output note 1
             zero_units_hex,  # value output note 2
             zero_units_hex,  # v_in
-            zeth.utils.int64_to_hex(v_out),  # v_out
+            int64_to_hex(v_out),  # v_out
             zksnark
         )
 
-    output_note1_str = json.dumps(zeth.grpc.parseZethNote(output_note1))
-    output_note2_str = json.dumps(zeth.grpc.parseZethNote(output_note2))
+    output_note1_str = json.dumps(joinsplit.parseZethNote(output_note1))
+    output_note2_str = json.dumps(joinsplit.parseZethNote(output_note2))
 
     # generate ephemeral ec25519 key
     eph_sk_charlie = PrivateKey.generate()
 
     # construct pk object from bytes
-    pk_charlie = zeth.utils.get_public_key_from_bytes(
+    pk_charlie = get_public_key_from_bytes(
         keystore["Charlie"]["AddrPk"]["encPK"])
 
     # encrypt the coins
     # Charlie is the recipient
-    ciphertext1 = zeth.utils.encrypt(output_note1_str, pk_charlie, eph_sk_charlie)
+    ciphertext1 = encrypt(output_note1_str, pk_charlie, eph_sk_charlie)
     # Charlie is the recipient
-    ciphertext2 = zeth.utils.encrypt(output_note2_str, pk_charlie, eph_sk_charlie)
+    ciphertext2 = encrypt(output_note2_str, pk_charlie, eph_sk_charlie)
     pk_sender = eph_sk_charlie.public_key.encode(encoder=nacl.encoding.RawEncoder)
 
     # Hash the pk_sender and cipher-texts
@@ -280,18 +284,19 @@ def charlie_withdraw(
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
-    proof = []
+    proof: List[str] = []
     for key in proof_json.keys():
         if key != "inputs":
             proof.extend(proof_json[key])
     hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zeth.grpc.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
-    joinsplit_sig = zeth.grpc.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+    joinsplit_sig = joinsplit.sign(
+        joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return zeth.contracts.mix(
         mixer_instance,
@@ -299,7 +304,7 @@ def charlie_withdraw(
         ciphertext1,
         ciphertext2,
         proof_json,
-        joinsplit_keypair["vk"],
+        joinsplit_keypair.vk,
         joinsplit_sig,
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
@@ -311,7 +316,7 @@ def charlie_withdraw(
 
 
 def charlie_double_withdraw(
-        test_grpc_endpoint,
+        prover_client: ProverClient,
         mixer_instance,
         mk_root,
         mk_path1,
@@ -337,12 +342,12 @@ def charlie_double_withdraw(
         mock.getDummyInput(charlie_apk, charlie_ask)
     dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
 
-    note1_value = zeth.utils.to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
-    v_out = zeth.utils.to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
+    note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
+    v_out = to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        zeth.grpc.getProofJoinsplit2By2(
-            test_grpc_endpoint,
+        joinsplit.getProofJoinsplit2By2(
+            prover_client,
             mk_root,
             input_note1,
             input_address1,
@@ -353,10 +358,10 @@ def charlie_double_withdraw(
             charlie_ask,  # sender
             charlie_apk,  # recipient1
             charlie_apk,  # recipient2
-            zeth.utils.int64_to_hex(note1_value),  # value output note 1
+            int64_to_hex(note1_value),  # value output note 1
             zero_units_hex,  # value output note 2
             zero_units_hex,  # v_in
-            zeth.utils.int64_to_hex(v_out),  # v_out
+            int64_to_hex(v_out),  # v_out
             zksnark
         )
 
@@ -371,8 +376,8 @@ def charlie_double_withdraw(
     proof_json["inputs"][4] = hex(int(proof_json["inputs"][4], 16) + r)
     # ### ATTACK BLOCK
 
-    output_note1_str = json.dumps(zeth.grpc.parseZethNote(output_note1))
-    output_note2_str = json.dumps(zeth.grpc.parseZethNote(output_note2))
+    output_note1_str = json.dumps(joinsplit.parseZethNote(output_note1))
+    output_note2_str = json.dumps(joinsplit.parseZethNote(output_note2))
 
     # generate ephemeral ec25519 key
     eph_sk_charlie = PrivateKey.generate()
@@ -392,18 +397,18 @@ def charlie_double_withdraw(
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
-    proof = []
+    proof: List[str] = []
     for key in proof_json.keys():
         if key != "inputs":
             proof.extend(proof_json[key])
     hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zeth.grpc.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
-    joinsplit_sig = zeth.grpc.sign(
+    joinsplit_sig = joinsplit.sign(
         joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return zeth.contracts.mix(
@@ -412,7 +417,7 @@ def charlie_double_withdraw(
         ciphertext1,
         ciphertext2,
         proof_json,
-        joinsplit_keypair["vk"],
+        joinsplit_keypair.vk,
         joinsplit_sig,
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the

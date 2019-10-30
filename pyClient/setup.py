@@ -20,6 +20,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "mypy==0.720",
+        "mypy-protobuf",
         "flake8==3.7.8",
         "attrdict==2.0.1",
         "certifi==2018.11.29",
