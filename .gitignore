@@ -25,6 +25,7 @@ debug/*json
 /pyClient/env/
 /pyClient/api/*_pb2.py
 /pyClient/api/*_pb2_grpc.py
+/pyClient/api/*_pb2.pyi
 
 # Ignore python cache dirs
 __pycache__

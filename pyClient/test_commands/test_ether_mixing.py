@@ -2,14 +2,15 @@ import json
 from web3 import Web3, HTTPProvider  # type: ignore
 
 import zeth.contracts
-import zeth.grpc
+import zeth.joinsplit
 import zeth.utils
 import zeth.constants as constants
 import test_commands.mock as mock
 import test_commands.scenario as scenario
+from zeth.prover_client import ProverClient
 
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
-test_grpc_endpoint = constants.RPC_ENDPOINT
+TEST_GRPC_ENDPOINT = constants.RPC_ENDPOINT
 
 
 def print_balances(bob, alice, charlie, mixer):
@@ -40,11 +41,13 @@ def main():
     alice_eth_address = w3.eth.accounts[2]
     charlie_eth_address = w3.eth.accounts[3]
 
+    prover_client = ProverClient(TEST_GRPC_ENDPOINT)
+
     print("[INFO] 1. Fetching the verification key from the proving server")
-    vk = zeth.grpc.getVerificationKey(test_grpc_endpoint)
+    vk = prover_client.get_verification_key()
 
     print("[INFO] 2. Received VK, writing the key...")
-    zeth.grpc.writeVerificationKey(vk, zksnark)
+    zeth.joinsplit.writeVerificationKey(vk, zksnark)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     (proof_verifier_interface, otsig_verifier_interface, mixer_interface) = \
@@ -75,7 +78,7 @@ def main():
 
     # Bob deposits ETH, split in 2 notes on the mixer
     result_deposit_bob_to_bob = scenario.bob_deposit(
-        test_grpc_endpoint,
+        prover_client,
         mixer_instance,
         initial_root,
         bob_eth_address,
@@ -141,10 +144,11 @@ def main():
         keystore["Bob"]["AddrSk"]["encSK"])
     input_note_json = json.loads(
         zeth.utils.decrypt(ciphertext_bob_to_bob1, pk_sender, sk_bob))
-    input_note_bob_to_charlie = zeth.grpc.zethNoteObjFromParsed(input_note_json)
+    input_note_bob_to_charlie = \
+        zeth.joinsplit.zethNoteObjFromParsed(input_note_json)
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
-        test_grpc_endpoint,
+        prover_client,
         mixer_instance,
         new_merkle_root_bob_to_bob,
         mk_path,
@@ -169,7 +173,7 @@ def main():
     result_double_spending = ""
     try:
         result_double_spending = scenario.bob_to_charlie(
-            test_grpc_endpoint,
+            prover_client,
             mixer_instance,
             new_merkle_root_bob_to_bob,
             mk_path,
@@ -213,10 +217,10 @@ def main():
     mk_byte_tree = get_merkle_tree(mixer_instance)
     mk_path = zeth.utils.compute_merkle_path(
         cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
-    input_note_charlie_withdraw = zeth.grpc.zethNoteObjFromParsed(
+    input_note_charlie_withdraw = zeth.joinsplit.zethNoteObjFromParsed(
         json.loads(recovered_plaintext2))
     result_charlie_withdrawal = scenario.charlie_withdraw(
-        test_grpc_endpoint,
+        prover_client,
         mixer_instance,
         new_merkle_root_bob_to_charlie,
         mk_path,
@@ -245,7 +249,7 @@ def main():
         mk_path = zeth.utils.compute_merkle_path(
             cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
         result_double_spending = scenario.charlie_double_withdraw(
-            test_grpc_endpoint,
+            prover_client,
             mixer_instance,
             new_merkle_root_charlie_withdrawal,
             mk_path,

@@ -1,18 +1,18 @@
-import zeth.grpc
 import zeth.constants as constants
 import zeth.errors as errors
-from zeth.utils import get_trusted_setup_dir, get_contracts_dir
+from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex2int
 
 import json
 import os
 import sys
 from web3 import Web3, HTTPProvider  # type: ignore
 from solcx import compile_files  # type: ignore
+from typing import Tuple, Dict, Any
 
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
 
-def get_zksnark_files(zksnark):
+def get_zksnark_files(zksnark) -> Tuple[str, str]:
     """
     Returns the files to use for the given zkSNARK (verifier_contract,
     mixer_contract)
@@ -27,7 +27,7 @@ def get_zksnark_files(zksnark):
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
-def compile_contracts(zksnark):
+def compile_contracts(zksnark: str) -> Tuple[str, str, str]:
     contracts_dir = get_contracts_dir()
     (proof_verifier_name, mixer_name) = get_zksnark_files(zksnark)
     otsig_verifier_name = constants.SCHNORR_VERIFIER_CONTRACT
@@ -50,7 +50,7 @@ def compile_contracts(zksnark):
     return (proof_verifier_interface, otsig_verifier_interface, mixer_interface)
 
 
-def compile_util_contracts():
+def compile_util_contracts() -> Tuple[str, str]:
     contracts_dir = get_contracts_dir()
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
     path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
@@ -62,25 +62,29 @@ def compile_util_contracts():
     return mimc_interface, tree_interface
 
 
-def deploy_pghr13_verifier(vk, verifier, deployer_address, deployment_gas):
+def deploy_pghr13_verifier(
+        vk: Dict[str, Any],
+        verifier: Any,
+        deployer_address: str,
+        deployment_gas: int) -> str:
     """
     Deploy the verifier used with PGHR13
     """
     # Deploy the verifier contract with the good verification key
     tx_hash = verifier.constructor(
-        A1=zeth.utils.hex2int(vk["a"][0]),
-        A2=zeth.utils.hex2int(vk["a"][1]),
-        B=zeth.utils.hex2int(vk["b"]),
-        C1=zeth.utils.hex2int(vk["c"][0]),
-        C2=zeth.utils.hex2int(vk["c"][1]),
-        gamma1=zeth.utils.hex2int(vk["g"][0]),
-        gamma2=zeth.utils.hex2int(vk["g"][1]),
-        gammaBeta1=zeth.utils.hex2int(vk["gb1"]),
-        gammaBeta2_1=zeth.utils.hex2int(vk["gb2"][0]),
-        gammaBeta2_2=zeth.utils.hex2int(vk["gb2"][1]),
-        Z1=zeth.utils.hex2int(vk["z"][0]),
-        Z2=zeth.utils.hex2int(vk["z"][1]),
-        IC_coefficients=zeth.utils.hex2int(sum(vk["IC"], []))
+        A1=hex2int(vk["a"][0]),
+        A2=hex2int(vk["a"][1]),
+        B=hex2int(vk["b"]),
+        C1=hex2int(vk["c"][0]),
+        C2=hex2int(vk["c"][1]),
+        gamma1=hex2int(vk["g"][0]),
+        gamma2=hex2int(vk["g"][1]),
+        gammaBeta1=hex2int(vk["gb1"]),
+        gammaBeta2_1=hex2int(vk["gb2"][0]),
+        gammaBeta2_2=hex2int(vk["gb2"][1]),
+        Z1=hex2int(vk["z"][0]),
+        Z2=hex2int(vk["z"][1]),
+        IC_coefficients=hex2int(sum(vk["IC"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address
@@ -90,21 +94,21 @@ def deploy_pghr13_verifier(vk, verifier, deployer_address, deployment_gas):
 
 
 def deploy_mixer(
-        proof_verifier_address,
-        otsig_verifier_address,
-        mixer_interface,
-        mk_tree_depth,
-        deployer_address,
-        deployment_gas,
-        token_address,
-        hasher_address):
+        proof_verifier_address: str,
+        otsig_verifier_address: str,
+        mixer_interface: Dict[str, Any],
+        mk_tree_depth: int,
+        deployer_address: str,
+        deployment_gas: int,
+        token_address: str,
+        hasher_address: str) -> Tuple[Any, str]:
     """
     Common function to deploy a mixer contract. Returns the mixer and the
     initial merkle root of the commitment tree
     """
     # Deploy the Mixer contract once the Verifier is successfully deployed
     mixer = w3.eth.contract(
-            abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
+        abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
 
     tx_hash = mixer.constructor(
         snark_ver=proof_verifier_address,
@@ -125,21 +129,22 @@ def deploy_mixer(
     ef_logMerkleRoot = mixer.eventFilter("LogMerkleRoot", {'fromBlock': 'latest'})
     event_logs_logMerkleRoot = ef_logMerkleRoot.get_all_entries()
     initialRoot = w3.toHex(event_logs_logMerkleRoot[0].args.root)
-    return(mixer, initialRoot[2:])
+    return (mixer, initialRoot[2:])
 
 
-def deploy_groth16_verifier(vk, verifier, deployer_address, deployment_gas):
+def deploy_groth16_verifier(
+        vk, verifier, deployer_address, deployment_gas) -> str:
     """
     Deploy the verifier and the mixer used with GROTH16
     """
     # Deploy the verifier contract with the good verification key
     tx_hash = verifier.constructor(
-        Alpha=zeth.utils.hex2int(vk["alpha_g1"]),
-        Beta1=zeth.utils.hex2int(vk["beta_g2"][0]),
-        Beta2=zeth.utils.hex2int(vk["beta_g2"][1]),
-        Delta1=zeth.utils.hex2int(vk["delta_g2"][0]),
-        Delta2=zeth.utils.hex2int(vk["delta_g2"][1]),
-        ABC_coords=zeth.utils.hex2int(sum(vk["abc_g1"], []))
+        Alpha=hex2int(vk["alpha_g1"]),
+        Beta1=hex2int(vk["beta_g2"][0]),
+        Beta2=hex2int(vk["beta_g2"][1]),
+        Delta1=hex2int(vk["delta_g2"][0]),
+        Delta2=hex2int(vk["delta_g2"][1]),
+        ABC_coords=hex2int(sum(vk["abc_g1"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address
@@ -268,18 +273,18 @@ def mix_pghr13(
     Call to the mixer's mix function to do zero knowledge payments
     """
     tx_hash = mixer_instance.functions.mix(
-        zeth.utils.hex2int(parsed_proof["a"]),
-        zeth.utils.hex2int(parsed_proof["a_p"]),
-        [zeth.utils.hex2int(parsed_proof["b"][0]),
-         zeth.utils.hex2int(parsed_proof["b"][1])],
-        zeth.utils.hex2int(parsed_proof["b_p"]),
-        zeth.utils.hex2int(parsed_proof["c"]),
-        zeth.utils.hex2int(parsed_proof["c_p"]),
-        zeth.utils.hex2int(parsed_proof["h"]),
-        zeth.utils.hex2int(parsed_proof["k"]),
+        hex2int(parsed_proof["a"]),
+        hex2int(parsed_proof["a_p"]),
+        [hex2int(parsed_proof["b"][0]),
+         hex2int(parsed_proof["b"][1])],
+        hex2int(parsed_proof["b_p"]),
+        hex2int(parsed_proof["c"]),
+        hex2int(parsed_proof["c_p"]),
+        hex2int(parsed_proof["h"]),
+        hex2int(parsed_proof["k"]),
         [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
         int(sigma),
-        zeth.utils.hex2int(parsed_proof["inputs"]),
+        hex2int(parsed_proof["inputs"]),
         pk_sender,
         ciphertext1,
         ciphertext2,
@@ -301,13 +306,12 @@ def mix_groth16(
         wei_pub_value,
         call_gas):
     tx_hash = mixer_instance.functions.mix(
-        zeth.utils.hex2int(parsed_proof["a"]),
-        [zeth.utils.hex2int(parsed_proof["b"][0]),
-         zeth.utils.hex2int(parsed_proof["b"][1])],
-        zeth.utils.hex2int(parsed_proof["c"]),
+        hex2int(parsed_proof["a"]),
+        [hex2int(parsed_proof["b"][0]), hex2int(parsed_proof["b"][1])],
+        hex2int(parsed_proof["c"]),
         [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
         int(sigma),
-        zeth.utils.hex2int(parsed_proof["inputs"]),
+        hex2int(parsed_proof["inputs"]),
         pk_sender,
         ciphertext1,
         ciphertext2,
@@ -359,7 +363,9 @@ def mix(
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
-def parse_mix_call(mixer_instance, tx_receipt):
+def parse_mix_call(
+        mixer_instance,
+        tx_receipt) -> Tuple[str, str, str, str, str, str]:
     """
     Get the logs data associated with this mixing
     """

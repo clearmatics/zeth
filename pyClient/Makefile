@@ -22,7 +22,8 @@ PROTOBUF_OUTPUT := \
 
 api/%_pb2.py api/%_pb2_grpc.py: ../api/%.proto
 	python -m grpc_tools.protoc \
-      -I.. --proto_path .. --python_out=. --grpc_python_out=. api/$*.proto
+      -I.. --proto_path .. --python_out=. --grpc_python_out=. --mypy_out=. \
+      api/$*.proto
 
 grpc: $(PROTOBUF_OUTPUT)
 	@# suppress "Nothing to do for ..." warning
@@ -30,7 +31,11 @@ grpc: $(PROTOBUF_OUTPUT)
 
 syntax: ${PROTOBUF_OUTPUT}
 	flake8 `git ls-files '**.py'`
-	mypy `git ls-files 'test/**.py' 'test_commands/**.py' 'zeth/**.py'`
+	mypy -p api
+	mypy -p zeth
+	mypy -p test
+	mypy -p test_commands
+	# mypy `git ls-files 'test/**.py' 'test_commands/**.py' 'zeth/**.py'`
 
 test: ${PROTOBUF_OUTPUT}
 	python -m unittest

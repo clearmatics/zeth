@@ -3,49 +3,55 @@ import os
 import json
 import sys
 
+import zeth.constants as constants
+import zeth.errors as errors
+# from .prover_client import ProverClient
+from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
+    hex_digest_to_binary_string
+from zeth.prover_client import ProverClient
+
+# Import elliptic curve operations
 # Access the encoding and hash functions
 from eth_abi import encode_single, encode_abi
 from hashlib import blake2s, sha256
 
 # Access the gRPC service and the proto messages
-import grpc  # type: ignore
-from google.protobuf import empty_pb2
-import api.util_pb2 as util_pb2  # type: ignore
-import api.prover_pb2 as prover_pb2  # type: ignore
-import api.prover_pb2_grpc as prover_pb2_grpc  # type: ignore
-
-import zeth.constants as constants
-import zeth.errors as errors
-from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
-    hex_digest_to_binary_string
-
-# Import elliptic curve operations
+import api.util_pb2 as util_pb2
+import api.prover_pb2 as prover_pb2
 from py_ecc import bn128 as ec
+from typing import Tuple, Dict, Any
+
+FQ = ec.FQ
+G1 = Tuple[ec.FQ, ec.FQ]
 
 
-def getVerificationKey(grpcEndpoint):
-    """
-    Fetch the verification key from the proving service
-    """
-    with grpc.insecure_channel(grpcEndpoint) as channel:
-        stub = prover_pb2_grpc.ProverStub(channel)
-        print("-------------- Get the verification key --------------")
-        verificationkey = stub.GetVerificationKey(makeEmptyMessage())
-        return verificationkey
+# ASK = str
+
+# APK
+
+class ApkAskPair(object):
+    def __init__(self, aSK: str, aPK: str):
+        self.aPK = aPK
+        self.aSK = aSK
 
 
-def getProof(grpcEndpoint, proofInputs):
-    """
-    Request a proof generation to the proving service
-    """
-    with grpc.insecure_channel(grpcEndpoint) as channel:
-        stub = prover_pb2_grpc.ProverStub(channel)
-        print("-------------- Get the proof --------------")
-        proof = stub.Prove(proofInputs)
-        return proof
+SK = Tuple[int, int]
+VK = Tuple[G1, G1]
 
 
-def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
+class VkSkPair(object):
+    def __init__(self, x: int, y: int, x_g1: G1, y_g1: G1):
+        self.vk = (x_g1, y_g1)
+        self.sk = (x, y)
+
+
+class NoteRandomness(object):
+    def __init__(self, rho: str, trapR: str):
+        self.rho = rho
+        self.trapR = trapR
+
+
+def _computeHSig(randomSeed: bytes, nf0, nf1, joinSplitPubKey) -> str:
     """
     Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
     Flatten the verification key
@@ -61,7 +67,7 @@ def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
         encode_abi(
             ['bytes32', 'bytes32', 'bytes32', 'bytes'],
             (
-                bytes.fromhex(randomSeed),
+                randomSeed,
                 bytes.fromhex(nf0),
                 bytes.fromhex(nf1),
                 bytes.fromhex(vk_hex)
@@ -72,15 +78,15 @@ def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
     return h_sig
 
 
-def signatureRandomness():
+def _signatureRandomness() -> bytes:
     """
     Compute the signature randomness "randomSeed", used for computing h_sig
     """
-    randomSeed = bytes(Random.get_random_bytes(32)).hex()
+    randomSeed = bytes(Random.get_random_bytes(32))
     return randomSeed
 
 
-def transactionRandomness():
+def transactionRandomness() -> str:
     """
     Compute the transaction randomness "phi", used for computing the new rhoS
     """
@@ -88,7 +94,7 @@ def transactionRandomness():
     return rand_phi
 
 
-def noteRandomness():
+def noteRandomness() -> NoteRandomness:
     """
     Compute the note randomness: the trapdoor trapR and rho. Starting the
     Non-Malleability update, rho is computed from phi (see above), the rho
@@ -96,14 +102,13 @@ def noteRandomness():
     """
     rand_rho = bytes(Random.get_random_bytes(32)).hex()
     rand_trapR = bytes(Random.get_random_bytes(48)).hex()
-    randomness = {
-        "rho": rand_rho,
-        "trapR": rand_trapR
-    }
-    return randomness
+    return NoteRandomness(rand_rho, rand_trapR)
 
 
-def createZethNote(randomness, recipientApk, value):
+def createZethNote(
+        randomness: NoteRandomness,
+        recipientApk: str,
+        value: str) -> util_pb2.ZethNote:
     """
     We follow the formatting of the proto file. Create a ZethNote description
     Starting the Non-Malleability update, this function is used only for dummy
@@ -112,13 +117,18 @@ def createZethNote(randomness, recipientApk, value):
     note = util_pb2.ZethNote(
         aPK=recipientApk,
         value=value,
-        rho=randomness["rho"],
-        trapR=randomness["trapR"]
+        rho=randomness.rho,
+        trapR=randomness.trapR
     )
     return note
 
 
-def createZethNotes(phi, hsig, recipientApk0, value0, recipientApk1, value1):
+def createZethNotes(
+        phi: str,
+        hsig, recipientApk0,
+        value0,
+        recipientApk1,
+        value1) -> Tuple[util_pb2.ZethNote, util_pb2.ZethNote]:
     """
     Create two ordered ZethNotes. This function is used to generate new output
     notes.
@@ -129,7 +139,7 @@ def createZethNotes(phi, hsig, recipientApk0, value0, recipientApk1, value1):
         aPK=recipientApk0,
         value=value0,
         rho=rho0,
-        trapR=randomness0["trapR"]
+        trapR=randomness0.trapR
     )
 
     rho1 = computeRhoi(phi, hsig, 1)
@@ -138,7 +148,7 @@ def createZethNotes(phi, hsig, recipientApk0, value0, recipientApk1, value1):
         aPK=recipientApk1,
         value=value1,
         rho=rho1,
-        trapR=randomness1["trapR"]
+        trapR=randomness1.trapR
     )
 
     return note0, note1
@@ -200,7 +210,7 @@ def computeCommitment(zethNoteGRPCObj):
     return cm
 
 
-def computeNullifier(zethNote, spendingAuthAsk):
+def computeNullifier(zethNote: util_pb2.ZethNote, spendingAuthAsk: str) -> str:
     """
     Returns nf = blake2s(1110 || [a_sk]_252 || rho)
     """
@@ -266,7 +276,7 @@ def computeRhoi(phi, hsig, i):
     return rho_i
 
 
-def deriveAPK(ask):
+def deriveAPK(ask: str) -> str:
     """
     Returns a_pk = blake2s(1100 || [a_sk]_252 || 0^256)
     """
@@ -283,13 +293,10 @@ def deriveAPK(ask):
     return a_pk
 
 
-def generateApkAskKeypair():
+def generateApkAskPair() -> ApkAskPair:
     a_sk = bytes(Random.get_random_bytes(32)).hex()
     a_pk = deriveAPK(a_sk)
-    keypair = {
-        "aSK": a_sk,
-        "aPK": a_pk
-    }
+    keypair = ApkAskPair(a_sk, a_pk)
     return keypair
 
 
@@ -304,16 +311,12 @@ def createJSInput(merklePath, address, note, ask, nullifier):
     return jsInput
 
 
-def generateOTSchnorrVkSkpair():
+def generateOTSchnorrVkSkpair() -> VkSkPair:
     x = int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME
     X = ec.multiply(ec.G1, x)
     y = int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME
     Y = ec.multiply(ec.G1, y)
-    keypair = {
-        "sk": [x, y],
-        "vk": [X, Y]
-    }
-    return keypair
+    return VkSkPair(x, y, X, Y)
 
 
 def encodeInputToHash(messages):
@@ -342,13 +345,13 @@ def encodeInputToHash(messages):
 
     # Encode the given input nullifiers
     for i in range(1, 1 + 2*(constants.JS_INPUTS), 2):
-        nf = fieldsToThex(messages[i], messages[i+1])
+        nf = _fields_to_hex(messages[i], messages[i+1])
         nf_encoded = encode_single("bytes32", bytes.fromhex(nf))
         input_sha += nf_encoded
 
     # Encode the given output commitments
     for i in range(1 + 2*(constants.JS_INPUTS), 1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS), 2):
-        cm = fieldsToThex(messages[i], messages[i+1])
+        cm = _fields_to_hex(messages[i], messages[i+1])
         cm_encoded = encode_single("bytes32", bytes.fromhex(cm))
         input_sha += cm_encoded
 
@@ -365,7 +368,7 @@ def encodeInputToHash(messages):
     input_sha += vout_encoded
 
     # Encode the h_sig
-    hsig = fieldsToThex(
+    hsig = _fields_to_hex(
         messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1],
         messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1 + 1])
     hsig_encoded = encode_single("bytes32", bytes.fromhex(hsig))
@@ -378,14 +381,14 @@ def encodeInputToHash(messages):
                constants.JS_INPUTS),
         2
     ):
-        hi = fieldsToThex(messages[i], messages[i+1])
+        hi = _fields_to_hex(messages[i], messages[i+1])
         hi_encoded = encode_single("bytes32", bytes.fromhex(hi))
         input_sha += hi_encoded
 
     return input_sha
 
 
-def fieldsToThex(longfield, shortfield):
+def _fields_to_hex(longfield: str, shortfield: str) -> str:
     """
     Encode a 256 bit array written over two field elements into a single 32
     byte long hex
@@ -415,7 +418,11 @@ def fieldsToThex(longfield, shortfield):
     return res
 
 
-def sign(keypair, hash_ciphers, hash_proof, hash_inputs):
+def sign(
+        keypair: VkSkPair,
+        hash_ciphers: str,
+        hash_proof: str,
+        hash_inputs: str) -> int:
     """
     Generate a Schnorr one-time signature of the ciphertexts, proofs and
     primary inputs We chose to sign the hash of the proof for modularity (to
@@ -423,8 +430,8 @@ def sign(keypair, hash_ciphers, hash_proof, hash_inputs):
     chosen), and sign the hash of the ciphers and inputs for consistency.
     """
     # Parse the signature key pair
-    vk = keypair["vk"]
-    sk = keypair["sk"]
+    vk = keypair.vk
+    sk = keypair.sk
 
     # Format part of the public key as an hex
     y0_hex = hex_extend_32bytes("{0:0>4X}".format(int(vk[1][0])))
@@ -461,10 +468,6 @@ def parseHexadecimalPointBaseGroup2Affine(point):
         [point.xC1Coord, point.xC0Coord],
         [point.yC1Coord, point.yC0Coord]
     ]
-
-
-def makeEmptyMessage():
-    return empty_pb2.Empty()
 
 
 def parseVerificationKeyPGHR13(vkObj):
@@ -516,18 +519,6 @@ def writeVerificationKey(vkObj, zksnark):
         json.dump(vkJSON, outfile)
 
 
-def makeProofInputs(root, jsInputs, jsOutputs, inPubValue, outPubValue, hsig, phi):
-    return prover_pb2.ProofInputs(
-        root=root,
-        jsInputs=jsInputs,
-        jsOutputs=jsOutputs,
-        inPubValue=inPubValue,
-        outPubValue=outPubValue,
-        hSig=hsig,
-        phi=phi
-    )
-
-
 def parseProofPGHR13(proofObj):
     proofJSON = {}
     proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.a)
@@ -560,8 +551,7 @@ def parseProof(proofObj, zksnark):
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
-def getProofJoinsplit2By2(
-        grpcEndpoint,
+def compute_joinsplit2x2_inputs(
         mk_root,
         input_note0,
         input_address0,
@@ -576,7 +566,10 @@ def getProofJoinsplit2By2(
         output_note_value1,
         public_in_value,
         public_out_value,
-        zksnark):
+        joinsplit_vk) -> prover_pb2.ProofInputs:
+    """
+    Create a ProofInput object for joinsplit parameters
+    """
     input_nullifier0 = computeNullifier(input_note0, sender_ask)
     input_nullifier1 = computeNullifier(input_note1, sender_ask)
     js_inputs = [
@@ -586,10 +579,12 @@ def getProofJoinsplit2By2(
             mk_path1, input_address1, input_note1, sender_ask, input_nullifier1)
     ]
 
-    randomSeed = signatureRandomness()
-    # Generate (joinSplitPubKey, joinSplitPrivKey) key pair
-    joinsplit_keypair = generateOTSchnorrVkSkpair()
-    h_sig = computeHSig(randomSeed, input_nullifier0, input_nullifier1, joinsplit_keypair["vk"])
+    randomSeed = _signatureRandomness()
+    h_sig = _computeHSig(
+        randomSeed,
+        input_nullifier0,
+        input_nullifier1,
+        joinsplit_vk)
     phi = transactionRandomness()
 
     output_note0, output_note1 = createZethNotes(
@@ -606,10 +601,61 @@ def getProofJoinsplit2By2(
         output_note1
     ]
 
-    proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value, h_sig, phi)
-    proof_obj = getProof(grpcEndpoint, proof_input)
+    return prover_pb2.ProofInputs(
+        root=mk_root,
+        jsInputs=js_inputs,
+        jsOutputs=js_outputs,
+        inPubValue=public_in_value,
+        outPubValue=public_out_value,
+        hSig=h_sig,
+        phi=phi)
+
+
+def getProofJoinsplit2By2(
+        prover_client: ProverClient,
+        mk_root,
+        input_note0,
+        input_address0,
+        mk_path0,
+        input_note1,
+        input_address1,
+        mk_path1,
+        sender_ask,
+        recipient0_apk,
+        recipient1_apk,
+        output_note_value0,
+        output_note_value1,
+        public_in_value,
+        public_out_value,
+        zksnark) -> Tuple[util_pb2.ZethNote, util_pb2.ZethNote, Dict[str, Any], VkSkPair]:
+    """
+    Query the prover server to generate a proof for the given joinsplit
+    parameters.
+    """
+    joinsplit_keypair = generateOTSchnorrVkSkpair()
+    proof_input = compute_joinsplit2x2_inputs(
+        mk_root,
+        input_note0,
+        input_address0,
+        mk_path0,
+        input_note1,
+        input_address1,
+        mk_path1,
+        sender_ask,
+        recipient0_apk,
+        recipient1_apk,
+        output_note_value0,
+        output_note_value1,
+        public_in_value,
+        public_out_value,
+        joinsplit_keypair.vk)
+    proof_obj = prover_client.get_proof(proof_input)
     proof_json = parseProof(proof_obj, zksnark)
 
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
-    return (output_note0, output_note1, proof_json, joinsplit_keypair)
+    return (
+        proof_input.jsOutputs[0],
+        proof_input.jsOutputs[1],
+        proof_json,
+        joinsplit_keypair)
