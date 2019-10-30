@@ -9,6 +9,7 @@ import json
 import os
 from web3 import Web3, HTTPProvider  # type: ignore
 from solcx import compile_files  # type: ignore
+from os.path import join
 
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 test_grpc_endpoint = constants.RPC_ENDPOINT
@@ -19,12 +20,13 @@ def compile_token():
     Compile the testing ERC20 token contract
     """
 
-    contracts_dir = zeth.utils.get_contracts_dir()
-    allowed_path = os.path.join(
-        contracts_dir, "node_modules/openzeppelin-solidity/contracts")
+    zeth_dir = zeth.utils.get_zeth_dir()
+    allowed_path = join(
+        zeth_dir,
+        "zeth-contracts/node_modules/openzeppelin-solidity/contracts")
     path_to_token = os.path.join(
-        contracts_dir,
-        "node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol")
+        zeth_dir,
+        "zeth-contracts/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol")
     # Compilation
     compiled_sol = compile_files([path_to_token], allow_paths=allowed_path)
     token_interface = compiled_sol[path_to_token + ":ERC20Mintable"]

@@ -16,7 +16,7 @@ import api.prover_pb2_grpc as prover_pb2_grpc  # type: ignore
 
 import zeth.constants as constants
 import zeth.errors as errors
-from zeth.utils import get_trusted_setup_dir
+from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes
 
 # Import elliptic curve operations
 from py_ecc import bn128 as ec
@@ -44,21 +44,6 @@ def getProof(grpcEndpoint, proofInputs):
         return proof
 
 
-def hex2int(elements):
-    ints = []
-    for el in elements:
-        ints.append(int(el, 16))
-    return(ints)
-
-
-def hex32bytes(element):
-    res = str(element)
-    if len(res) % 2 != 0:
-        res = "0" + res
-    res = "00"*int((64-len(res))/2) + res
-    return res
-
-
 def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
     """
     Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
@@ -69,7 +54,7 @@ def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
     vk_hex = ""
     for item in JSPubKeyHex:
         # For each element of the list, convert it to an hex and append it
-        vk_hex += hex32bytes("{0:0>4X}".format(int(item)))
+        vk_hex += hex_extend_32bytes("{0:0>4X}".format(int(item)))
 
     h_sig = blake2s(
         encode_abi(
@@ -372,7 +357,7 @@ def encodeToHash(messages):
             m_hex = m[2:]
 
         # [SANITY CHECK] Make sure the hex is 32 byte long
-        m_hex = hex32bytes(m_hex)
+        m_hex = hex_extend_32bytes(m_hex)
 
         # Encode the hex into a byte array and append it to result
         input_sha += encode_single("bytes32", bytes.fromhex(m_hex))
@@ -400,7 +385,7 @@ def encodeInputToHash(messages):
         messages = new_list
 
     # Encode the given Merkle Tree root
-    root = hex32bytes(messages[0][2:])
+    root = hex_extend_32bytes(messages[0][2:])
     root_encoded = encode_single("bytes32", bytes.fromhex(root))
     input_sha += root_encoded
 
@@ -418,13 +403,13 @@ def encodeInputToHash(messages):
 
     # Encode the public value in
     v_in = messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS)][2:]
-    v_in = hex32bytes(v_in)
+    v_in = hex_extend_32bytes(v_in)
     vin_encoded = encode_single("bytes32", bytes.fromhex(v_in))
     input_sha += vin_encoded
 
     # Encode the public value out
     v_out = messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1][2:]
-    v_out = hex32bytes(v_out)
+    v_out = hex_extend_32bytes(v_out)
     vout_encoded = encode_single("bytes32", bytes.fromhex(v_out))
     input_sha += vout_encoded
 
@@ -474,7 +459,7 @@ def fieldsToThex(longfield, shortfield):
     # Fill the result 256 bit long array
     res = reversed_long[:253]
     res += reversed_short[:3]
-    res = hex32bytes("{0:0>4X}".format(int(res, 2)))
+    res = hex_extend_32bytes("{0:0>4X}".format(int(res, 2)))
 
     return res
 
@@ -491,8 +476,8 @@ def sign(keypair, hash_ciphers, hash_proof, hash_inputs):
     sk = keypair["sk"]
 
     # Format part of the public key as an hex
-    y0_hex = hex32bytes("{0:0>4X}".format(int(vk[1][0])))
-    y1_hex = hex32bytes("{0:0>4X}".format(int(vk[1][1])))
+    y0_hex = hex_extend_32bytes("{0:0>4X}".format(int(vk[1][0])))
+    y1_hex = hex_extend_32bytes("{0:0>4X}".format(int(vk[1][1])))
 
     # Encode and hash the verifying key and input hashes
     data_to_sign = encode_abi(
