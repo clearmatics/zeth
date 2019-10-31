@@ -5,6 +5,11 @@ import './BaseMixer.sol';
 contract BaseMixer_tests {
 	using Bytes for *;
 
+    BaseMixer bm = new BaseMixer(
+        3,
+        0x0000000000000000000000000000000000000000,
+        0x0000000000000000000000000000000000000000);
+
 	constructor() public {
         // Nothing
     }
@@ -30,13 +35,13 @@ contract BaseMixer_tests {
         // cm1   = 011
         // h0    = 100
         // h1    = 101
-		test_bytes[8] = [713623846352979940490457358497079434602616037]; // residual bits
+		test_bytes[8] = 713623846352979940490457358497079434602616037; // residual bits
         bool ok = true;
         uint start;
         uint end = 2;
 
         for (uint i; i<6; i++) {
-            bytes1 res = extract_extra_bits(start, end, test_bytes);
+            bytes1 res = bm.extract_extra_bits(start, end, test_bytes);
             ok = ( uint(uint8(res)) == i );
             start += 3;
             end += 3;

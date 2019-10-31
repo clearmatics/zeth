@@ -43,12 +43,13 @@ contract Pghr13Mixer is BaseMixer {
         );
 
         // 2.b Verify the signature
+        bytes32 hash_proof = sha256(abi.encodePacked(a, a_p, b, b_p, c, c_p, h, k));
         require(
             otsig_verifier.verify(
                 vk,
                 sigma,
                 sha256(abi.encodePacked(pk_sender, ciphertext0, ciphertext1)),
-                sha256(abi.encodePacked(a, a_p, b, b_p, c, c_p, h, k)),
+                hash_proof,
                 sha256(abi.encodePacked(input))
                 ),
             "Invalid signature: Unable to verify the signature correctly"

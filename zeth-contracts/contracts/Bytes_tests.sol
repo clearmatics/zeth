@@ -85,7 +85,7 @@ contract Bytes_tests {
         bytes32 test_input0 = 0x6e5de26af37be1194e95b5f19d6f9df7e08628e49669e8a6aaecb6ebf0c72cf4;
         bytes32 test_res = Bytes.swap_bit_order(test_input0);
 
-        bool ok = (test_res == bytes32(0x6e5de26af37be1194e95b5f19d6f9df7e08628e49669e8a6aaecb6ebf0c72cf4));
+        bool ok = (test_res == bytes32(0x2f34e30fd76d37556517966927146107efb9f6b98fada9729887decf5647ba76));
         require(
              ok,
             "[testSwapBitOrder] Failed"
