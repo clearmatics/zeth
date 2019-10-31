@@ -122,6 +122,19 @@ class Configuration(object):
             if not check_key_evidence(c.verification_key, c.key_evidence):
                 raise Exception(f"Key for {c.email} has invalid evidence")
 
+    def get_contributor_index(
+            self,
+            verification_key: VerificationKey) -> Optional[int]:
+        """
+        Return the index of the contributor, if present.
+        """
+        key = export_verification_key(verification_key)
+        try:
+            return [export_verification_key(c.verification_key)
+                    for c in self.contributors].index(key)
+        except ValueError:
+            return None
+
     def _to_json_dict(self) -> JsonDict:
         start_local = time.localtime(self.start_time)
         return {

@@ -127,14 +127,14 @@ function get_state_phase1() {
     curl \
         -k \
         --cacert ${PHASE1_SERVER_DIR}/${SERVER_CERT} \
-        --fail https://${HOST}:${PHASE1_PORT}/state
+        --fail https://${HOST}:${PHASE1_PORT}/status
 }
 
 function get_state_phase2() {
     curl \
         -k \
         --cacert ${PHASE2_SERVER_DIR}/${SERVER_CERT} \
-        --fail https://${HOST}:${PHASE2_PORT}/state
+        --fail https://${HOST}:${PHASE2_PORT}/status
 }
 
 function start_server_phase1() {
