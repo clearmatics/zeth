@@ -10,12 +10,8 @@ contract BaseMixer_tests {
         0x0000000000000000000000000000000000000000,
         0x0000000000000000000000000000000000000000);
 
-	constructor() public {
-        // Nothing
-    }
-
-    function test_extract_extra_bits() public returns (bool) {
-        // test_bytes = primary inputs
+    function test_extract_extra_bits() public view returns (bool) {
+        // The variable `test_bytes` represent a dummy primary input array
         uint[] memory test_bytes = new uint[](9);
 		test_bytes[0] = 0; // merkle root
 		test_bytes[1] = 1; // sn 0
@@ -50,7 +46,6 @@ contract BaseMixer_tests {
 			ok,
 			"[test_extract_extra_bits] Failed"
 		);
-
 		return ok;
 	}
 
