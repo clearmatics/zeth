@@ -34,19 +34,18 @@ contract BaseMixer_tests {
         bool ok = true;
         bytes1 res;
         uint start;
-        uint end = 2;
+        uint length = 3; // digest_length % field_capacity
 
         for (uint i; i<6; i++) {
-            res = bm.extract_extra_bits(start, end, test_bytes);
+            res = bm.extract_extra_bits(start, length, test_bytes);
             ok = ( uint(uint8(res)) == i );
-            start += 3;
-            end += 3;
+            start += length;
         }
         require(
             ok,
             "[test_extract_extra_bits] Failed"
         );
-        
+
         return ok;
     }
 }

@@ -13,8 +13,13 @@ library Bytes {
         // NB. the formatting changed the endianness of the variables so we have to fix it when recombining them together/
 
         // After fixing the endianess of `input`, the byte comprising the (256-253) meaningful bits and padding is the last one
-        bytes32 inverted_input1 = flip_endianness_bytes32(bytes32(input));
-        bytes1 last_byte_prefix = get_last_byte(inverted_input1);
+        bytes32 inverted_input = flip_endianness_bytes32(bytes32(input));
+        // If `bits` is 0, we do not need to recombine (the input's padding is equal to the value to recombine).
+        if (uint8(bits) == 0) {
+            return inverted_input;
+        }
+        // Else, we continue
+        bytes1 last_byte_prefix = get_last_byte(inverted_input);
 
         // We similarly inverse `bits` and we shift 5 times because we have something like:
         // 0x4 initally, which is in reality 0x04 --> 0000 0100 (in binary).
@@ -45,7 +50,7 @@ library Bytes {
         // We now recombine the first 31 bytes of the flipped `input` with the recombine byte `res`
         bytes memory bytes_digest = new bytes(32);
         for (uint i = 0; i < 31; i++) {
-            bytes_digest[i] = inverted_input1[i];
+            bytes_digest[i] = inverted_input[i];
         }
 
         bytes_digest[31] = res;
