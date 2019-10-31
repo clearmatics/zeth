@@ -33,6 +33,7 @@ function prepare_server_phase2() {
 # 1 - private key
 # 2 - client id
 # 3 - server dir
+# 4 - flags
 function contribute() {
     contributor_dir=_test_contrib_$2
     rm -rf ${contributor_dir}
@@ -43,6 +44,7 @@ function contribute() {
         --mpc-executable ${MPC} \
         --server-certificate $3/${SERVER_CERT} \
         --insecure \
+        $4 \
         https://${HOST}:${PHASE2_PORT} $1
     popd
 }
@@ -53,11 +55,12 @@ prepare_server_common ${PHASE2_SERVER_DIR} ${PHASE2_PORT}
 prepare_server_phase2
 start_server_phase2
 
-# make 4 contributions
+# make 4 contributions.  contribution 3 is launched first in the background,
+# polling.
+contribute ${PRV_KEY_3} 3 ${PHASE2_SERVER_DIR} "--wait-interval 1" &
 contribute ${PRV_KEY_1} 1 ${PHASE2_SERVER_DIR}
 contribute ${PRV_KEY_2} 2 ${PHASE2_SERVER_DIR}
-contribute ${PRV_KEY_3} 3 ${PHASE2_SERVER_DIR}
-contribute ${PRV_KEY_4} 4 ${PHASE2_SERVER_DIR}
+contribute ${PRV_KEY_4} 4 ${PHASE2_SERVER_DIR} "--wait-interval 1"
 
 pushd ${PHASE2_SERVER_DIR}
 

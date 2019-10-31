@@ -3,6 +3,7 @@
 from .crypto import \
     VerificationKey, Signature, export_digest, export_verification_key, \
     export_signature
+from .server_status import ServerStatus
 from typing import Optional, Union
 from requests import post, get, Response
 from os.path import join, exists
@@ -21,6 +22,21 @@ class Client(object):
         assert not cert_path or exists(cert_path)
         self.base_url = base_url
         self.verify: Union[bool, str, None] = False if insecure else cert_path
+
+    def get_status(self) -> ServerStatus:
+        """
+        GET /status
+        Get the status of the server.
+        """
+        while True:
+            resp = get(join(self.base_url, "status"), verify=self.verify)
+            if 503 == resp.status_code:
+                print("server is busy.  retrying ...")
+                time.sleep(5.0)
+                continue
+
+            resp.raise_for_status()
+            return ServerStatus.from_json(resp.content.decode())
 
     def get_challenge(self, challenge_file: str) -> None:
         """

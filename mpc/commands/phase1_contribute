@@ -13,6 +13,11 @@ RESPONSE_DIGEST_FILE = "response.bin.digest"
 @command()
 @argument("base-url")
 @argument("key-file")
+@option(
+    "--wait-interval",
+    type=int,
+    default=60,
+    help="poll server every interval, waiting our turn (0 = don't wait)")
 @option("--pot-path", default=None, help="path to powersoftau repo")
 @option("--response-digest", default=RESPONSE_DIGEST_FILE)
 @option("--num-powers", "-n", default=None, type=int, help="number of powers")
@@ -22,6 +27,7 @@ RESPONSE_DIGEST_FILE = "response.bin.digest"
 def phase1_contribute(
         base_url: str,
         key_file: str,
+        wait_interval: int,
         pot_path: Optional[str],
         response_digest: str,
         num_powers: Optional[int],
@@ -47,6 +53,7 @@ def phase1_contribute(
         key_file,
         CHALLENGE_FILE,
         _contribute,
+        wait_interval,
         server_certificate,
         insecure)
 

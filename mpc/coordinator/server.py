@@ -10,6 +10,7 @@ from .icontributionhandler import IContributionHandler
 from .interval import Interval
 from .server_configuration import Configuration
 from .server_state import ServerState
+from .server_status import ServerStatus
 from .upload_utils import handle_upload_request
 from .crypto import \
     import_digest, export_verification_key, import_signature, verify
@@ -118,12 +119,8 @@ class Server(object):
         finally:
             self.state_lock.release()
 
-    def _state(self, _req: Request) -> Response:
-        from json import dumps as json_dumps
-        return Response(json_dumps({
-            "config": self.config._to_json_dict(),
-            "state": self.state._to_json_dict(),
-            }), 200)
+    def _status(self, _req: Request) -> Response:
+        return Response(ServerStatus(self.config, self.state).to_json(), 200)
 
     def _challenge(self, _req: Request) -> Response:
         # TODO: Require authentication here, to avoid DoS?
@@ -263,9 +260,9 @@ class Server(object):
             finally:
                 self.state_lock.release()
 
-        @app.route('/state', methods=['GET'])
-        def state() -> Response:
-            return _with_state_lock(request, self._state)
+        @app.route('/status', methods=['GET'])
+        def status() -> Response:
+            return _with_state_lock(request, self._status)
 
         @app.route('/challenge', methods=['GET'])
         def challenge() -> Response:
