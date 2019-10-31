@@ -1,4 +1,4 @@
-import zeth.contracts
+import zeth.contracts as contracts
 import zeth.joinsplit
 from zeth.prover_client import ProverClient
 import zeth.utils
@@ -11,12 +11,13 @@ import os
 from web3 import Web3, HTTPProvider  # type: ignore
 from solcx import compile_files  # type: ignore
 from os.path import join
+from typing import List, Any
 
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 test_grpc_endpoint = constants.RPC_ENDPOINT
 
 
-def compile_token():
+def compile_token() -> contracts.Interface:
     """
     Compile the testing ERC20 token contract
     """
@@ -34,13 +35,17 @@ def compile_token():
     return token_interface
 
 
-def deploy_token(deployer_address, deployment_gas):
+def deploy_token(
+        deployer_address: str,
+        deployment_gas: int) -> Any:
     """
     Deploy the testing ERC20 token contract
     """
     token_interface = compile_token()
-    token = w3.eth.contract(abi=token_interface['abi'], bytecode=token_interface['bin'])
-    tx_hash = token.constructor().transact({'from': deployer_address, 'gas': deployment_gas})
+    token = w3.eth.contract(
+        abi=token_interface['abi'], bytecode=token_interface['bin'])
+    tx_hash = token.constructor().transact(
+        {'from': deployer_address, 'gas': deployment_gas})
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
 
     token = w3.eth.contract(
@@ -50,7 +55,7 @@ def deploy_token(deployer_address, deployment_gas):
     return token
 
 
-def get_merkle_tree(mixer_instance):
+def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
     mk_byte_tree = mixer_instance.functions.getTree().call()
     print("[DEBUG] Displaying the Merkle tree of commitments: ")
     for node in mk_byte_tree:
@@ -58,23 +63,36 @@ def get_merkle_tree(mixer_instance):
     return mk_byte_tree
 
 
-def print_token_balances(bob, alice, charlie, mixer):
+def print_token_balances(bob: str, alice: str, charlie: str, mixer: str) -> None:
     print("Alice's Token balance: {}".format(token_instance.functions.balanceOf(alice).call()))
     print("Bob's Token balance: {}".format(token_instance.functions.balanceOf(bob).call()))
     print("Charlie's Token balance: {}".format(token_instance.functions.balanceOf(charlie).call()))
     print("Mixer's Token balance: {}".format(token_instance.functions.balanceOf(mixer).call()))
 
 
-def approve(token_instance, owner_address, spender_address, token_amount):
+def approve(
+        token_instance: Any,
+        owner_address: str,
+        spender_address: str,
+        token_amount: int) -> str:
     return token_instance.functions.approve(spender_address, w3.toWei(token_amount, 'ether')).transact({'from': owner_address})
 
 
-def allowance(token_instance, owner_address, spender_address):
+def allowance(
+        token_instance: Any,
+        owner_address: str,
+        spender_address: str) -> str:
     return token_instance.functions.allowance(owner_address, spender_address).call()
 
 
-def mint_token(token_instance, spender_address, deployer_address, token_amount):
-    return token_instance.functions.mint(spender_address, w3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
+def mint_token(
+        token_instance: Any,
+        spender_address: str,
+        deployer_address: str,
+        token_amount: int) -> bytes:
+    return token_instance.functions.mint(
+        spender_address,
+        w3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
 
 
 if __name__ == '__main__':
@@ -188,7 +206,7 @@ if __name__ == '__main__':
 
     # Construct sk and pk objects from bytes
     alice_sk = zeth.utils.get_private_key_from_bytes(
-        keystore["Alice"]["AddrSk"]["encSK"])
+        keystore["Alice"].addr_sk.encSK)
     pk_sender = zeth.utils.get_public_key_from_bytes(pk_sender_bob_to_bob)
 
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she was the recipient
@@ -212,7 +230,7 @@ if __name__ == '__main__':
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
     bob_sk = zeth.utils.get_private_key_from_bytes(
-        keystore["Bob"]["AddrSk"]["encSK"])
+        keystore["Bob"].addr_sk.encSK)
     input_note_json = json.loads(
         zeth.utils.decrypt(ciphertext_bob_to_bob1, pk_sender, bob_sk))
     input_note_bob_to_charlie = \
@@ -241,7 +259,7 @@ if __name__ == '__main__':
     ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[5]
 
     # Bob tries to spend `input_note_bob_to_charlie` twice
-    result_double_spending = ""
+    result_double_spending = None
     try:
         result_double_spending = scenario.bob_to_charlie(
             prover_client,
@@ -257,7 +275,7 @@ if __name__ == '__main__':
         )
     except Exception as e:
         print(f"Bob's double spending successfully rejected! (msg: {e})")
-    assert(result_double_spending == ""), "Bob spent the same note twice!"
+    assert(result_double_spending is None), "Bob spent the same note twice!"
 
     print("- Balances after Bob's transfer to Charlie: ")
     print_token_balances(
@@ -269,7 +287,7 @@ if __name__ == '__main__':
 
     # Construct sk and pk objects from bytes
     charlie_sk = zeth.utils.get_private_key_from_bytes(
-        keystore["Charlie"]["AddrSk"]["encSK"])
+        keystore["Charlie"].addr_sk.encSK)
     pk_sender = zeth.utils.get_public_key_from_bytes(pk_sender_bob_to_charlie)
 
     # Charlie tries to decrypt the ciphertexts from Bob's previous transaction
@@ -312,7 +330,7 @@ if __name__ == '__main__':
 
     # Charlie tries to carry out a double spend by withdrawing twice the same
     # note
-    result_double_spending = ""
+    result_double_spending = None
     try:
         # New commitments are added in the tree at each withdraw so we
         # recompiute the path to have the updated nodes
@@ -334,7 +352,7 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Charlie's double spending successfully rejected! (msg: {e})")
     print("Balances after Charlie's double withdrawal attempt: ")
-    assert(result_double_spending == ""), \
+    assert(result_double_spending is None), \
         "Charlie managed to withdraw the same note twice!"
     print_token_balances(
         bob_eth_address,

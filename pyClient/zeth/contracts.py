@@ -1,18 +1,22 @@
 import zeth.constants as constants
 import zeth.errors as errors
 from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex2int
+from zeth.joinsplit import GenericVerificationKey, GenericProof, VK
 
 import json
 import os
 import sys
 from web3 import Web3, HTTPProvider  # type: ignore
 from solcx import compile_files  # type: ignore
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, List, Any
 
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
 
-def get_zksnark_files(zksnark) -> Tuple[str, str]:
+Interface = Dict[str, Any]
+
+
+def get_zksnark_files(zksnark: str) -> Tuple[str, str]:
     """
     Returns the files to use for the given zkSNARK (verifier_contract,
     mixer_contract)
@@ -27,7 +31,7 @@ def get_zksnark_files(zksnark) -> Tuple[str, str]:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
-def compile_contracts(zksnark: str) -> Tuple[str, str, str]:
+def compile_contracts(zksnark: str) -> Tuple[Interface, Interface, Interface]:
     contracts_dir = get_contracts_dir()
     (proof_verifier_name, mixer_name) = get_zksnark_files(zksnark)
     otsig_verifier_name = constants.SCHNORR_VERIFIER_CONTRACT
@@ -50,7 +54,7 @@ def compile_contracts(zksnark: str) -> Tuple[str, str, str]:
     return (proof_verifier_interface, otsig_verifier_interface, mixer_interface)
 
 
-def compile_util_contracts() -> Tuple[str, str]:
+def compile_util_contracts() -> Tuple[Interface, Interface]:
     contracts_dir = get_contracts_dir()
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
     path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
@@ -96,7 +100,7 @@ def deploy_pghr13_verifier(
 def deploy_mixer(
         proof_verifier_address: str,
         otsig_verifier_address: str,
-        mixer_interface: Dict[str, Any],
+        mixer_interface: Interface,
         mk_tree_depth: int,
         deployer_address: str,
         deployment_gas: int,
@@ -133,7 +137,10 @@ def deploy_mixer(
 
 
 def deploy_groth16_verifier(
-        vk, verifier, deployer_address, deployment_gas) -> str:
+        vk: GenericVerificationKey,
+        verifier: Any,
+        deployer_address: str,
+        deployment_gas: int) -> str:
     """
     Deploy the verifier and the mixer used with GROTH16
     """
@@ -153,7 +160,10 @@ def deploy_groth16_verifier(
     return verifier_address
 
 
-def deploy_otschnorr_contracts(verifier, deployer_address, deployment_gas):
+def deploy_otschnorr_contracts(
+        verifier: Any,
+        deployer_address: str,
+        deployment_gas: int) -> str:
     """
     Deploy the verifier used with OTSCHNORR
     """
@@ -168,15 +178,15 @@ def deploy_otschnorr_contracts(verifier, deployer_address, deployment_gas):
 
 
 def deploy_contracts(
-        mk_tree_depth,
-        proof_verifier_interface,
-        otsig_verifier_interface,
-        mixer_interface,
-        hasher_interface,
-        deployer_address,
-        deployment_gas,
-        token_address,
-        zksnark):
+        mk_tree_depth: int,
+        proof_verifier_interface: Interface,
+        otsig_verifier_interface: Interface,
+        mixer_interface: Interface,
+        hasher_interface: Interface,
+        deployer_address: str,
+        deployment_gas: int,
+        token_address: str,
+        zksnark: str) -> Tuple[Any, str]:
     """
     Deploy the mixer contract with the given merkle tree depth and returns an
     instance of the mixer along with the initial merkle tree root to use for
@@ -203,7 +213,7 @@ def deploy_contracts(
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
     # Deploy MiMC contract
-    _, hasher_address = deploy_mimc_contract(hasher_interface)
+    _, hasher_address = deploy_mimc_contract(hasher_interface)  # type: ignore
 
     # Deploy the one-time signature verifier contract
     otsig_verifier = w3.eth.contract(
@@ -222,7 +232,7 @@ def deploy_contracts(
             hasher_address)
 
 
-def deploy_mimc_contract(interface):
+def deploy_mimc_contract(interface: Interface) -> Tuple[Any, str]:
     """
     Deploy mimc contract
     """
@@ -239,7 +249,10 @@ def deploy_mimc_contract(interface):
     return instance, address
 
 
-def deploy_tree_contract(interface, depth, hasher_address):
+def deploy_tree_contract(
+        interface: Interface,
+        depth: int,
+        hasher_address: str) -> Any:
     """
     Deploy tree contract
     """
@@ -259,16 +272,16 @@ def deploy_tree_contract(interface, depth, hasher_address):
 
 
 def mix_pghr13(
-        mixer_instance,
-        pk_sender,
-        ciphertext1,
-        ciphertext2,
-        parsed_proof,
-        vk,
-        sigma,
-        sender_address,
-        wei_pub_value,
-        call_gas):
+        mixer_instance: Any,
+        pk_sender: str,
+        ciphertext1: bytes,
+        ciphertext2: bytes,
+        parsed_proof: GenericProof,
+        vk: VK,
+        sigma: int,
+        sender_address: str,
+        wei_pub_value: int,
+        call_gas: int) -> Tuple[int, int, str, bytes, bytes, bytes]:
     """
     Call to the mixer's mix function to do zero knowledge payments
     """
@@ -295,16 +308,16 @@ def mix_pghr13(
 
 
 def mix_groth16(
-        mixer_instance,
-        pk_sender,
-        ciphertext1,
-        ciphertext2,
-        parsed_proof,
-        vk,
-        sigma,
-        sender_address,
-        wei_pub_value,
-        call_gas):
+        mixer_instance: Any,
+        pk_sender: str,
+        ciphertext1: bytes,
+        ciphertext2: bytes,
+        parsed_proof: GenericProof,
+        vk: VK,
+        sigma: int,
+        sender_address: str,
+        wei_pub_value: int,
+        call_gas: int) -> Tuple[int, int, str, bytes, bytes, bytes]:
     tx_hash = mixer_instance.functions.mix(
         hex2int(parsed_proof["a"]),
         [hex2int(parsed_proof["b"][0]), hex2int(parsed_proof["b"][1])],
@@ -322,17 +335,17 @@ def mix_groth16(
 
 
 def mix(
-        mixer_instance,
-        pk_sender,
-        ciphertext1,
-        ciphertext2,
-        parsed_proof,
-        vk,
-        sigma,
-        sender_address,
-        wei_pub_value,
-        call_gas,
-        zksnark):
+        mixer_instance: Any,
+        pk_sender: str,
+        ciphertext1: bytes,
+        ciphertext2: bytes,
+        parsed_proof: GenericProof,
+        vk: VK,
+        sigma: int,
+        sender_address: str,
+        wei_pub_value: int,
+        call_gas: int,
+        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
     if zksnark == constants.PGHR13_ZKSNARK:
         return mix_pghr13(
             mixer_instance,
@@ -364,8 +377,8 @@ def mix(
 
 
 def parse_mix_call(
-        mixer_instance,
-        tx_receipt) -> Tuple[str, str, str, str, str, str]:
+        mixer_instance: Any,
+        tx_receipt: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
     """
     Get the logs data associated with this mixing
     """
@@ -390,21 +403,21 @@ def parse_mix_call(
     return (commitment_address1, commitment_address2, new_mk_root, pk_sender, ciphertext1, ciphertext2)
 
 
-def mimcHash(instance, m, k, seed):
+def mimcHash(instance: Any, m: bytes, k: bytes, seed: bytes) -> bytes:
     """
     Call the hash method of MiMC contract
     """
     return instance.functions.hash(m, k, seed).call()
 
 
-def getTree(instance):
+def getTree(instance: Any) -> List[bytes]:
     """
     Return the Merkle tree
     """
     return instance.functions.getTree().call()
 
 
-def getRoot(instance):
+def getRoot(instance: Any) -> bytes:
     """
     Return the Merkle tree root
     """

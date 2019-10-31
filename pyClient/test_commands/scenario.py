@@ -1,16 +1,17 @@
 import zeth.joinsplit as joinsplit
-import zeth.contracts
+import zeth.contracts as contracts
 from zeth.prover_client import ProverClient
 import test_commands.mock as mock
 from zeth.utils import to_zeth_units, int64_to_hex, get_public_key_from_bytes, \
     encrypt, encode_to_hash
+import api.util_pb2 as util_pb2
 
 import json
 from hashlib import sha256
 import nacl.utils  # type: ignore
 from nacl.public import PrivateKey  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
-from typing import List
+from typing import Tuple, List, Any
 
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 
@@ -28,28 +29,29 @@ CHARLIE_WITHDRAW_CHANGE_ETH = 39.5
 
 def bob_deposit(
         prover_client: ProverClient,
-        mixer_instance,
-        mk_root,
-        bob_eth_address,
-        keystore,
-        mk_tree_depth,
-        zksnark):
+        mixer_instance: Any,
+        mk_root: str,
+        bob_eth_address: str,
+        keystore: mock.Keystore,
+        mk_tree_depth: int,
+        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
     print(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and splits into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
-    bob_apk = keystore["Bob"]["AddrPk"]["aPK"]
-    bob_ask = keystore["Bob"]["AddrSk"]["aSK"]
+    bob_apk = keystore["Bob"].addr_pk.aPK
+    bob_ask = keystore["Bob"].addr_sk.aSK
     # Create the JoinSplit dummy inputs for the deposit
-    (input_note1, input_nullifier1, input_address1) = mock.getDummyInput(bob_apk, bob_ask)
+    (input_note1, input_nullifier1, input_address1) = mock.getDummyInput(
+        bob_apk, bob_ask)
     (input_note2, input_nullifier2, input_address2) = mock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
 
-    note1_value = zeth.utils.to_zeth_units(str(BOB_SPLIT_1_ETH), 'ether')
-    note2_value = zeth.utils.to_zeth_units(str(BOB_SPLIT_2_ETH), 'ether')
-    v_in = zeth.utils.to_zeth_units(str(BOB_DEPOSIT_ETH), 'ether')
+    note1_value = to_zeth_units(str(BOB_SPLIT_1_ETH), 'ether')
+    note2_value = to_zeth_units(str(BOB_SPLIT_2_ETH), 'ether')
+    v_in = to_zeth_units(str(BOB_DEPOSIT_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        zeth.joinsplit.getProofJoinsplit2By2(
+        joinsplit.getProofJoinsplit2By2(
             prover_client,
             mk_root,
             input_note1,
@@ -75,7 +77,7 @@ def bob_deposit(
     eph_sk_bob = PrivateKey.generate()
 
     # construct pk object from bytes
-    pk_bob = get_public_key_from_bytes(keystore["Bob"]["AddrPk"]["encPK"])
+    pk_bob = get_public_key_from_bytes(keystore["Bob"].addr_pk.encPK)
 
     # encrypt the coins
     ciphertext1 = encrypt(output_note1_str, pk_bob, eph_sk_bob)
@@ -93,16 +95,17 @@ def bob_deposit(
     for key in proof_json.keys():
         if key != "inputs":
             proof.extend(proof_json[key])
-    hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
+    hash_proof = sha256(encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
     encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
-    joinsplit_sig = joinsplit.sign(joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+    joinsplit_sig = joinsplit.sign(
+        joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
-    return zeth.contracts.mix(
+    return contracts.mix(
         mixer_instance,
         eph_pk_sender_bytes,
         ciphertext1,
@@ -119,23 +122,23 @@ def bob_deposit(
 
 def bob_to_charlie(
         prover_client: ProverClient,
-        mixer_instance,
-        mk_root,
-        mk_path1,
-        input_note1,
-        input_address1,
-        bob_eth_address,
-        keystore,
-        mk_tree_depth,
-        zksnark):
+        mixer_instance: Any,
+        mk_root: str,
+        mk_path1: List[str],
+        input_note1: util_pb2.ZethNote,
+        input_address1: int,
+        bob_eth_address: str,
+        keystore: mock.Keystore,
+        mk_tree_depth: int,
+        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
     print(f"=== Bob transfers {BOB_TO_CHARLIE_ETH}ETH to Charlie from his funds on the mixer ===")
 
     # We generate a coin for Charlie (recipient1)
-    charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
+    charlie_apk = keystore["Charlie"].addr_pk.aPK
     # We generate a coin for Bob: the change (recipient2)
-    bob_apk = keystore["Bob"]["AddrPk"]["aPK"]
+    bob_apk = keystore["Bob"].addr_pk.aPK
     # Bob is the sender
-    bob_ask = keystore["Bob"]["AddrSk"]["aSK"]
+    bob_ask = keystore["Bob"].addr_sk.aSK
 
     # Create the an additional dummy input for the JoinSplit
     (input_note2, input_nullifier2, input_address2) = mock.getDummyInput(
@@ -172,8 +175,8 @@ def bob_to_charlie(
     eph_sk_bob = PrivateKey.generate()
 
     # construct pk objects from bytes
-    pk_bob = zeth.utils.get_public_key_from_bytes(keystore["Bob"]["AddrPk"]["encPK"])
-    pk_charlie = zeth.utils.get_public_key_from_bytes(keystore["Charlie"]["AddrPk"]["encPK"])
+    pk_bob = get_public_key_from_bytes(keystore["Bob"].addr_pk.encPK)
+    pk_charlie = get_public_key_from_bytes(keystore["Charlie"].addr_pk.encPK)
 
     # encrypt the coins
     # Bob is the recipient
@@ -201,7 +204,7 @@ def bob_to_charlie(
     joinsplit_sig = joinsplit.sign(
         joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
-    return zeth.contracts.mix(
+    return contracts.mix(
         mixer_instance,
         pk_sender,
         ciphertext1,
@@ -220,19 +223,19 @@ def bob_to_charlie(
 
 def charlie_withdraw(
         prover_client: ProverClient,
-        mixer_instance,
-        mk_root,
-        mk_path1,
-        input_note1,
-        input_address1,
-        charlie_eth_address,
-        keystore,
-        mk_tree_depth,
-        zksnark):
+        mixer_instance: Any,
+        mk_root: str,
+        mk_path1: List[str],
+        input_note1: util_pb2.ZethNote,
+        input_address1: int,
+        charlie_eth_address: str,
+        keystore: mock.Keystore,
+        mk_tree_depth: int,
+        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
     print(f" === Charlie withdraws {CHARLIE_WITHDRAW_ETH}ETH from his funds on the Mixer ===")
 
-    charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
-    charlie_ask = keystore["Charlie"]["AddrSk"]["aSK"]
+    charlie_apk = keystore["Charlie"].addr_pk.aPK
+    charlie_ask = keystore["Charlie"].addr_sk.aSK
 
     # Create the an additional dummy input for the JoinSplit
     (input_note2, input_nullifier2, input_address2) = mock.getDummyInput(
@@ -270,7 +273,7 @@ def charlie_withdraw(
 
     # construct pk object from bytes
     pk_charlie = get_public_key_from_bytes(
-        keystore["Charlie"]["AddrPk"]["encPK"])
+        keystore["Charlie"].addr_pk.encPK)
 
     # encrypt the coins
     # Charlie is the recipient
@@ -288,7 +291,7 @@ def charlie_withdraw(
     for key in proof_json.keys():
         if key != "inputs":
             proof.extend(proof_json[key])
-    hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
+    hash_proof = sha256(encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
     encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
@@ -298,7 +301,7 @@ def charlie_withdraw(
     joinsplit_sig = joinsplit.sign(
         joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
-    return zeth.contracts.mix(
+    return contracts.mix(
         mixer_instance,
         pk_sender,
         ciphertext1,
@@ -317,15 +320,15 @@ def charlie_withdraw(
 
 def charlie_double_withdraw(
         prover_client: ProverClient,
-        mixer_instance,
-        mk_root,
-        mk_path1,
-        input_note1,
-        input_address1,
-        charlie_eth_address,
-        keystore,
-        mk_tree_depth,
-        zksnark):
+        mixer_instance: Any,
+        mk_root: str,
+        mk_path1: List[str],
+        input_note1: util_pb2.ZethNote,
+        input_address1: int,
+        charlie_eth_address: str,
+        keystore: mock.Keystore,
+        mk_tree_depth: int,
+        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
     """
     Charlie tries to carry out a double spending by modifying the value of the
     nullifier of the previous payment
@@ -334,8 +337,8 @@ def charlie_double_withdraw(
         f" === Charlie attempts to withdraw {CHARLIE_WITHDRAW_ETH}ETH once more " +
         "(double spend) one of his note on the Mixer ===")
 
-    charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
-    charlie_ask = keystore["Charlie"]["AddrSk"]["aSK"]
+    charlie_apk = keystore["Charlie"].addr_pk.aPK
+    charlie_ask = keystore["Charlie"].addr_sk.aSK
 
     # Create the an additional dummy input for the JoinSplit
     (input_note2, input_nullifier2, input_address2) = \
@@ -383,13 +386,13 @@ def charlie_double_withdraw(
     eph_sk_charlie = PrivateKey.generate()
 
     # construct pk object from bytes
-    pk_charlie = zeth.utils.get_public_key_from_bytes(keystore["Charlie"]["AddrPk"]["encPK"])
+    pk_charlie = get_public_key_from_bytes(keystore["Charlie"].addr_pk.encPK)
 
     # encrypt the coins
     # Charlie is the recipient
-    ciphertext1 = zeth.utils.encrypt(output_note1_str, pk_charlie, eph_sk_charlie)
+    ciphertext1 = encrypt(output_note1_str, pk_charlie, eph_sk_charlie)
     # Charlie is the recipient
-    ciphertext2 = zeth.utils.encrypt(output_note2_str, pk_charlie, eph_sk_charlie)
+    ciphertext2 = encrypt(output_note2_str, pk_charlie, eph_sk_charlie)
     pk_sender = eph_sk_charlie.public_key.encode(encoder=nacl.encoding.RawEncoder)
 
     # Hash the pk_sender and cipher-texts
@@ -401,7 +404,7 @@ def charlie_double_withdraw(
     for key in proof_json.keys():
         if key != "inputs":
             proof.extend(proof_json[key])
-    hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
+    hash_proof = sha256(encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
     encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
@@ -411,7 +414,7 @@ def charlie_double_withdraw(
     joinsplit_sig = joinsplit.sign(
         joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
 
-    return zeth.contracts.mix(
+    return contracts.mix(
         mixer_instance,
         pk_sender,
         ciphertext1,
