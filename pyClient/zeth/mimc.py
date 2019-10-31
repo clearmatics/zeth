@@ -1,49 +1,51 @@
-
-from Crypto.Hash import keccak
 from zeth.constants import ZETH_PRIME
+from Crypto.Hash import keccak
+from typing import Any, Tuple, Iterable, cast
 
 
-def keccak_256():
-    keccak.new(digest_bits=256)
+def keccak_256(data: bytes) -> keccak.Keccak_Hash:
+    return keccak.new(data, digest_bits=256)
 
 
 class MiMC7:
-    def __init__(self, seed="clearmatics_mt_seed", prime=ZETH_PRIME):
+    def __init__(
+            self,
+            seed: str = "clearmatics_mt_seed",
+            prime: int = ZETH_PRIME):
         self.prime = prime
         self.seed = seed
 
-    def mimc_round(self, message, key, rc):
+    def mimc_round(self, message: int, key: int, rc: int) -> int:
         xored = (message + key + rc) % self.prime
         return xored ** 7 % self.prime
 
     def mimc_encrypt(
             self,
-            message,
-            ek,
-            seed="clearmatics_mt_seed",
-            rounds=91):
+            message: int,
+            ek: int,
+            seed: str = "clearmatics_mt_seed",
+            rounds: int = 91) -> int:
         res = message % self.prime
         key = ek % self.prime
 
         # In the paper the first round constant is set to 0
         res = self.mimc_round(res, key,  0)
 
-        round_constant = sha3_256(seed)
+        round_constant: int = sha3_256(seed)  # type: ignore
 
         for i in range(rounds - 1):
-            round_constant = sha3_256(round_constant)
+            round_constant = sha3_256(round_constant)  # type: ignore
             res = self.mimc_round(res, key, round_constant)
 
         return (res + key) % self.prime
 
-    def mimc_mp(self, x, y):
-
+    def mimc_mp(self, x: int, y: int) -> int:
         x = x % self.prime
         y = y % self.prime
         return (self.mimc_encrypt(x, y, self.seed) + x + y) % self.prime
 
 
-def to_bytes(*args):
+def to_bytes(*args: Tuple[Any]) -> Iterable[bytes]:
     for i, _ in enumerate(args):
         if isinstance(_, str):
             yield _.encode('ascii')
@@ -57,7 +59,7 @@ def to_bytes(*args):
             yield int(_).to_bytes(32, 'big')
 
 
-def to_int(value):
+def to_int(value: Any) -> int:
     if type(value) != int:
         if type(value) == bytes:
             return int.from_bytes(value, "big")
@@ -69,7 +71,7 @@ def to_int(value):
         return value
 
 
-def sha3_256(*args):
+def sha3_256(*args: Tuple[Any]) -> int:
     data = b''.join(to_bytes(*args))
     hashed = keccak_256(data).digest()
     return int.from_bytes(hashed, 'big')
@@ -77,7 +79,7 @@ def sha3_256(*args):
 # Tests
 
 
-def test_round():
+def test_round() -> None:
     m = MiMC7("Clearmatics")
     x = 340282366920938463463374607431768211456
     k = 28948022309329048855892746252171976963317496166410141009864396001978282409983
@@ -86,13 +88,13 @@ def test_round():
     print("Test Round passed")
 
 
-def test_sha3():
-    assert sha3_256(b"Clearmatics") == \
+def test_sha3() -> None:
+    assert sha3_256(cast(Tuple[Any], b"Clearmatics")) == \
         14220067918847996031108144435763672811050758065945364308986253046354060608451
     print("Test Sha3 passed")
 
 
-def main():
+def main() -> int:
     test_round()
     test_sha3()
 
@@ -126,6 +128,7 @@ def main():
     res = m.mimc_mp(res, res)
     print("Root")
     print(res)
+    return 0
 
 
 if __name__ == "__main__":

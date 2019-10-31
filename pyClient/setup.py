@@ -43,7 +43,7 @@ setup(
         "protobuf==3.6.1",
         "py_ecc==1.7.1",
         "py-solc-x==0.1.1",
-        "pycryptodome==3.7.3",
+        "pycryptodome==3.9.0",
         "pynacl==1.3.0",
         "requests==2.21.0",
         "rlp==1.1.0",

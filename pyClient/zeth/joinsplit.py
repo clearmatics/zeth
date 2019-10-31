@@ -1,33 +1,24 @@
-from Crypto import Random
+import zeth.constants as constants
+import zeth.errors as errors
+from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
+    hex_digest_to_binary_string, string_list_flatten, encode_single, \
+    encode_abi
+from zeth.prover_client import ProverClient
+import api.util_pb2 as util_pb2
+import api.prover_pb2 as prover_pb2
+
 import os
 import json
 import sys
-
-import zeth.constants as constants
-import zeth.errors as errors
-# from .prover_client import ProverClient
-from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
-    hex_digest_to_binary_string
-from zeth.prover_client import ProverClient
-
-# Import elliptic curve operations
-# Access the encoding and hash functions
-from eth_abi import encode_single, encode_abi
+from Crypto import Random
 from hashlib import blake2s, sha256
-
-# Access the gRPC service and the proto messages
-import api.util_pb2 as util_pb2
-import api.prover_pb2 as prover_pb2
 from py_ecc import bn128 as ec
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, List, Union, Any
+
 
 FQ = ec.FQ
 G1 = Tuple[ec.FQ, ec.FQ]
 
-
-# ASK = str
-
-# APK
 
 class ApkAskPair(object):
     def __init__(self, aSK: str, aPK: str):
@@ -45,13 +36,21 @@ class VkSkPair(object):
         self.sk = (x, y)
 
 
+# Dictionary representing a VerificationKey from any supported snark
+GenericVerificationKey = Dict[str, Any]
+
+
+# Dictionary representing a Proof from any supported snark
+GenericProof = Dict[str, Any]
+
+
 class NoteRandomness(object):
     def __init__(self, rho: str, trapR: str):
         self.rho = rho
         self.trapR = trapR
 
 
-def _computeHSig(randomSeed: bytes, nf0, nf1, joinSplitPubKey) -> str:
+def _computeHSig(randomSeed: bytes, nf0: str, nf1: str, joinSplitPubKey: VK) -> str:
     """
     Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
     Flatten the verification key
@@ -66,12 +65,12 @@ def _computeHSig(randomSeed: bytes, nf0, nf1, joinSplitPubKey) -> str:
     h_sig = blake2s(
         encode_abi(
             ['bytes32', 'bytes32', 'bytes32', 'bytes'],
-            (
+            [
                 randomSeed,
                 bytes.fromhex(nf0),
                 bytes.fromhex(nf1),
                 bytes.fromhex(vk_hex)
-            )
+            ]
         )
     ).hexdigest()
 
@@ -125,10 +124,11 @@ def createZethNote(
 
 def createZethNotes(
         phi: str,
-        hsig, recipientApk0,
-        value0,
-        recipientApk1,
-        value1) -> Tuple[util_pb2.ZethNote, util_pb2.ZethNote]:
+        hsig: str,
+        recipientApk0: str,
+        value0: str,
+        recipientApk1: str,
+        value1: str) -> Tuple[util_pb2.ZethNote, util_pb2.ZethNote]:
     """
     Create two ordered ZethNotes. This function is used to generate new output
     notes.
@@ -154,7 +154,7 @@ def createZethNotes(
     return note0, note1
 
 
-def parseZethNote(zethNoteGRPCObj):
+def parseZethNote(zethNoteGRPCObj: util_pb2.ZethNote) -> Dict[str, str]:
     noteJSON = {
         "aPK": zethNoteGRPCObj.aPK,
         "value": zethNoteGRPCObj.value,
@@ -164,7 +164,7 @@ def parseZethNote(zethNoteGRPCObj):
     return noteJSON
 
 
-def zethNoteObjFromParsed(parsedZethNote):
+def zethNoteObjFromParsed(parsedZethNote: Dict[str, str]) -> util_pb2.ZethNote:
     note = util_pb2.ZethNote(
         aPK=parsedZethNote["aPK"],
         value=parsedZethNote["value"],
@@ -174,11 +174,7 @@ def zethNoteObjFromParsed(parsedZethNote):
     return note
 
 
-def hexFmt(string):
-    return "0x" + string
-
-
-def computeCommitment(zethNoteGRPCObj):
+def computeCommitment(zethNoteGRPCObj: util_pb2.ZethNote) -> str:
     """
     Used by the recipient of a payment to recompute the commitment and check
     the membership in the tree to confirm the validity of a payment
@@ -187,8 +183,8 @@ def computeCommitment(zethNoteGRPCObj):
     inner_k = blake2s(
         encode_abi(
             ['bytes32', 'bytes32'],
-            (bytes.fromhex(zethNoteGRPCObj.aPK),
-             bytes.fromhex(zethNoteGRPCObj.rho)))
+            [bytes.fromhex(zethNoteGRPCObj.aPK),
+             bytes.fromhex(zethNoteGRPCObj.rho)])
     ).hexdigest()
 
     # outer_k = blake2s(r || [inner_k]_128)
@@ -196,16 +192,16 @@ def computeCommitment(zethNoteGRPCObj):
     outer_k = blake2s(
         encode_abi(
             ['bytes', 'bytes'],
-            (bytes.fromhex(zethNoteGRPCObj.trapR),
-             bytes.fromhex(first128InnerComm)))).hexdigest()
+            [bytes.fromhex(zethNoteGRPCObj.trapR),
+             bytes.fromhex(first128InnerComm)])).hexdigest()
 
     # cm = blake2s(outer_k || 0^192 || value_v)
     frontPad = "000000000000000000000000000000000000000000000000"
     cm = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
-            (bytes.fromhex(outer_k),
-             bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
+            [bytes.fromhex(outer_k),
+             bytes.fromhex(frontPad + zethNoteGRPCObj.value)])
     ).hexdigest()
     return cm
 
@@ -221,37 +217,12 @@ def computeNullifier(zethNote: util_pb2.ZethNote, spendingAuthAsk: str) -> str:
     nullifier = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
-            (bytes.fromhex(leftLegHex), bytes.fromhex(zethNote.rho)))
+            [bytes.fromhex(leftLegHex), bytes.fromhex(zethNote.rho)])
     ).hexdigest()
     return nullifier
 
 
-def computeHi(ask, hsig, i):
-    """
-    Returns h_i = blake2s(0 || i || 00 || [a_sk]_252 || hsig)
-    See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
-    """
-
-    # [SANITY CHECK] make sure i is in the interval [0, 1]
-    # Since we only allow for 2 input notes in the joinsplit
-    if i not in [0, 1]:
-        return -1
-
-    # Append PRF^{pk} tag to a_sk
-    binaryAsk = hex_digest_to_binary_string(ask)
-    first252Ask = binaryAsk[:252]
-    leftLegBin = "0" + str(i) + "00" + first252Ask
-    leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
-
-    h_i = blake2s(
-        encode_abi(
-            ["bytes32", "bytes32"],
-            (bytes.fromhex(leftLegHex), bytes.fromhex(hsig)))
-    ).hexdigest()
-    return h_i
-
-
-def computeRhoi(phi, hsig, i):
+def computeRhoi(phi: str, hsig: str, i: int) -> str:
     """
     Returns rho_i = blake2s(0 || i || 10 || [phi]_252 || hsig)
     See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
@@ -259,8 +230,7 @@ def computeRhoi(phi, hsig, i):
 
     # [SANITY CHECK] make sure i is in the interval [0, 1]
     # Since we only allow for 2 input notes in the joinsplit
-    if i not in [0, 1]:
-        return -1
+    assert(i < constants.JS_INPUTS)
 
     # Append PRF^{rho} tag to a_sk
     binaryPhi = hex_digest_to_binary_string(phi)
@@ -271,7 +241,7 @@ def computeRhoi(phi, hsig, i):
     rho_i = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
-            (bytes.fromhex(leftLegHex), bytes.fromhex(hsig)))
+            [bytes.fromhex(leftLegHex), bytes.fromhex(hsig)])
     ).hexdigest()
     return rho_i
 
@@ -288,7 +258,7 @@ def deriveAPK(ask: str) -> str:
     a_pk = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
-            (bytes.fromhex(leftLegHex), bytes.fromhex(zeroes)))
+            [bytes.fromhex(leftLegHex), bytes.fromhex(zeroes)])
     ).hexdigest()
     return a_pk
 
@@ -300,7 +270,12 @@ def generateApkAskPair() -> ApkAskPair:
     return keypair
 
 
-def createJSInput(merklePath, address, note, ask, nullifier):
+def createJSInput(
+        merklePath: List[str],
+        address: int,
+        note: util_pb2.ZethNote,
+        ask: str,
+        nullifier: str) -> util_pb2.JSInput:
     jsInput = util_pb2.JSInput(
         merkleNode=merklePath,
         address=address,
@@ -319,7 +294,7 @@ def generateOTSchnorrVkSkpair() -> VkSkPair:
     return VkSkPair(x, y, X, Y)
 
 
-def encodeInputToHash(messages):
+def encodeInputToHash(message_list: List[Union[str, List[str]]]) -> bytes:
     """
     Encode the primary inputs as defined in ZCash chapter 4.15.1 into a byte
     array (https://github.com/zcash/zips/blob/master/protocol/protocol.pdf) The
@@ -329,14 +304,7 @@ def encodeInputToHash(messages):
     input_sha = bytearray()
 
     # Flatten the input list
-    if any(isinstance(el, list) for el in messages):
-        new_list = []
-        for el in messages:
-            if type(el) == list:
-                new_list.extend(el)
-            else:
-                new_list.append(el)
-        messages = new_list
+    messages = string_list_flatten(message_list)
 
     # Encode the given Merkle Tree root
     root = hex_extend_32bytes(messages[0][2:])
@@ -440,13 +408,13 @@ def sign(
     # Encode and hash the verifying key and input hashes
     data_to_sign = encode_abi(
         ["bytes32", "bytes32", "bytes32", "bytes32", "bytes32"],
-        (
+        [
             bytes.fromhex(y0_hex),
             bytes.fromhex(y1_hex),
             bytes.fromhex(hash_ciphers),
             bytes.fromhex(hash_proof),
             bytes.fromhex(hash_inputs)
-        )
+        ]
     )
     data_hex = sha256(data_to_sign).hexdigest()
 
@@ -459,19 +427,23 @@ def sign(
     return sigma
 
 
-def parseHexadecimalPointBaseGroup1Affine(point):
-    return [point.xCoord, point.yCoord]
+def parseHexadecimalPointBaseGroup1Affine(
+        point: util_pb2.HexadecimalPointBaseGroup1Affine) -> Tuple[str, str]:
+    return (point.xCoord, point.yCoord)
 
 
-def parseHexadecimalPointBaseGroup2Affine(point):
-    return [
-        [point.xC1Coord, point.xC0Coord],
-        [point.yC1Coord, point.yC0Coord]
-    ]
+def parseHexadecimalPointBaseGroup2Affine(
+        point: util_pb2.HexadecimalPointBaseGroup2Affine
+) -> Tuple[Tuple[str, str], Tuple[str, str]]:
+    return (
+        (point.xC1Coord, point.xC0Coord),
+        (point.yC1Coord, point.yC0Coord)
+    )
 
 
-def parseVerificationKeyPGHR13(vkObj):
-    vkJSON = {}
+def parseVerificationKeyPGHR13(
+        vkObj: prover_pb2.VerificationKey) -> GenericVerificationKey:
+    vkJSON: GenericVerificationKey = {}
     vkJSON["a"] = parseHexadecimalPointBaseGroup2Affine(
         vkObj.r1csPpzksnarkVerificationKey.a)
     vkJSON["b"] = parseHexadecimalPointBaseGroup1Affine(
@@ -490,16 +462,22 @@ def parseVerificationKeyPGHR13(vkObj):
     return vkJSON
 
 
-def parseVerificationKeyGROTH16(vkObj):
-    vkJSON = {}
-    vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
-    vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
-    vkJSON["delta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.delta_g2)
+def parseVerificationKeyGROTH16(
+        vkObj: prover_pb2.VerificationKey) -> GenericVerificationKey:
+    vkJSON: GenericVerificationKey = {}
+    vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(
+        vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
+    vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(
+        vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
+    vkJSON["delta_g2"] = parseHexadecimalPointBaseGroup2Affine(
+        vkObj.r1csGgPpzksnarkVerificationKey.delta_g2)
     vkJSON["abc_g1"] = json.loads(vkObj.r1csGgPpzksnarkVerificationKey.abc_g1)
     return vkJSON
 
 
-def parseVerificationKey(vkObj, zksnark):
+def parseVerificationKey(
+        vkObj: prover_pb2.VerificationKey,
+        zksnark: str) -> GenericVerificationKey:
     if zksnark == constants.PGHR13_ZKSNARK:
         return parseVerificationKeyPGHR13(vkObj)
     elif zksnark == constants.GROTH16_ZKSNARK:
@@ -508,7 +486,9 @@ def parseVerificationKey(vkObj, zksnark):
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
-def writeVerificationKey(vkObj, zksnark):
+def writeVerificationKey(
+        vkObj: prover_pb2.VerificationKey,
+        zksnark: str) -> None:
     """
     Writes the verification key (object) in a json file
     """
@@ -519,30 +499,43 @@ def writeVerificationKey(vkObj, zksnark):
         json.dump(vkJSON, outfile)
 
 
-def parseProofPGHR13(proofObj):
-    proofJSON = {}
-    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.a)
-    proofJSON["a_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.aP)
-    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csPpzksnarkExtendedProof.b)
-    proofJSON["b_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.bP)
-    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.c)
-    proofJSON["c_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.cP)
-    proofJSON["h"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.h)
-    proofJSON["k"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.k)
+def parseProofPGHR13(proofObj: prover_pb2.ExtendedProof) -> GenericProof:
+    proofJSON: GenericProof = {}
+    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(
+        proofObj.r1csPpzksnarkExtendedProof.a)
+    proofJSON["a_p"] = parseHexadecimalPointBaseGroup1Affine(
+        proofObj.r1csPpzksnarkExtendedProof.aP)
+    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(
+        proofObj.r1csPpzksnarkExtendedProof.b)
+    proofJSON["b_p"] = parseHexadecimalPointBaseGroup1Affine(
+        proofObj.r1csPpzksnarkExtendedProof.bP)
+    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(
+        proofObj.r1csPpzksnarkExtendedProof.c)
+    proofJSON["c_p"] = parseHexadecimalPointBaseGroup1Affine(
+        proofObj.r1csPpzksnarkExtendedProof.cP)
+    proofJSON["h"] = parseHexadecimalPointBaseGroup1Affine(
+        proofObj.r1csPpzksnarkExtendedProof.h)
+    proofJSON["k"] = parseHexadecimalPointBaseGroup1Affine(
+        proofObj.r1csPpzksnarkExtendedProof.k)
     proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
     return proofJSON
 
 
-def parseProofGROTH16(proofObj):
-    proofJSON = {}
-    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.a)
-    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csGgPpzksnarkExtendedProof.b)
-    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.c)
+def parseProofGROTH16(proofObj: prover_pb2.ExtendedProof) -> GenericProof:
+    proofJSON: GenericProof = {}
+    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(
+        proofObj.r1csGgPpzksnarkExtendedProof.a)
+    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(
+        proofObj.r1csGgPpzksnarkExtendedProof.b)
+    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(
+        proofObj.r1csGgPpzksnarkExtendedProof.c)
     proofJSON["inputs"] = json.loads(proofObj.r1csGgPpzksnarkExtendedProof.inputs)
     return proofJSON
 
 
-def parseProof(proofObj, zksnark):
+def parseProof(
+        proofObj: prover_pb2.ExtendedProof,
+        zksnark: str) -> GenericProof:
     if zksnark == constants.PGHR13_ZKSNARK:
         return parseProofPGHR13(proofObj)
     elif zksnark == constants.GROTH16_ZKSNARK:
@@ -552,21 +545,21 @@ def parseProof(proofObj, zksnark):
 
 
 def compute_joinsplit2x2_inputs(
-        mk_root,
-        input_note0,
-        input_address0,
-        mk_path0,
-        input_note1,
-        input_address1,
-        mk_path1,
-        sender_ask,
-        recipient0_apk,
-        recipient1_apk,
-        output_note_value0,
-        output_note_value1,
-        public_in_value,
-        public_out_value,
-        joinsplit_vk) -> prover_pb2.ProofInputs:
+        mk_root: str,
+        input_note0: util_pb2.ZethNote,
+        input_address0: int,
+        mk_path0: List[str],
+        input_note1: util_pb2.ZethNote,
+        input_address1: int,
+        mk_path1: List[str],
+        sender_ask: str,
+        recipient0_apk: str,
+        recipient1_apk: str,
+        output_note_value0: str,
+        output_note_value1: str,
+        public_in_value: str,
+        public_out_value: str,
+        joinsplit_vk: VK) -> prover_pb2.ProofInputs:
     """
     Create a ProofInput object for joinsplit parameters
     """
@@ -613,21 +606,21 @@ def compute_joinsplit2x2_inputs(
 
 def getProofJoinsplit2By2(
         prover_client: ProverClient,
-        mk_root,
-        input_note0,
-        input_address0,
-        mk_path0,
-        input_note1,
-        input_address1,
-        mk_path1,
-        sender_ask,
-        recipient0_apk,
-        recipient1_apk,
-        output_note_value0,
-        output_note_value1,
-        public_in_value,
-        public_out_value,
-        zksnark) -> Tuple[util_pb2.ZethNote, util_pb2.ZethNote, Dict[str, Any], VkSkPair]:
+        mk_root: str,
+        input_note0: util_pb2.ZethNote,
+        input_address0: int,
+        mk_path0: List[str],
+        input_note1: util_pb2.ZethNote,
+        input_address1: int,
+        mk_path1: List[str],
+        sender_ask: str,
+        recipient0_apk: str,
+        recipient1_apk: str,
+        output_note_value0: str,
+        output_note_value1: str,
+        public_in_value: str,
+        public_out_value: str,
+        zksnark: str) -> Tuple[util_pb2.ZethNote, util_pb2.ZethNote, Dict[str, Any], VkSkPair]:
     """
     Query the prover server to generate a proof for the given joinsplit
     parameters.

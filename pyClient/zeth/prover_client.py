@@ -14,7 +14,7 @@ class ProverClient(object):
         Fetch the verification key from the proving service
         """
         with grpc.insecure_channel(self.endpoint) as channel:
-            stub = prover_pb2_grpc.ProverStub(channel)
+            stub = prover_pb2_grpc.ProverStub(channel)  # type: ignore
             print("-------------- Get the verification key --------------")
             verificationkey = stub.GetVerificationKey(_make_empty_message())
             return verificationkey
@@ -26,7 +26,7 @@ class ProverClient(object):
         Request a proof generation to the proving service
         """
         with grpc.insecure_channel(self.endpoint) as channel:
-            stub = prover_pb2_grpc.ProverStub(channel)
+            stub = prover_pb2_grpc.ProverStub(channel)  # type: ignore
             print("-------------- Get the proof --------------")
             proof = stub.Prove(proof_inputs)
             return proof

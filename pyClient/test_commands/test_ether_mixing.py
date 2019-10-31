@@ -1,6 +1,3 @@
-import json
-from web3 import Web3, HTTPProvider  # type: ignore
-
 import zeth.contracts
 import zeth.joinsplit
 import zeth.utils
@@ -9,18 +6,22 @@ import test_commands.mock as mock
 import test_commands.scenario as scenario
 from zeth.prover_client import ProverClient
 
+import json
+from web3 import Web3, HTTPProvider  # type: ignore
+from typing import List, Any
+
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 TEST_GRPC_ENDPOINT = constants.RPC_ENDPOINT
 
 
-def print_balances(bob, alice, charlie, mixer):
+def print_balances(bob: str, alice: str, charlie: str, mixer: str) -> None:
     print("Bob's ETH balance: ", w3.eth.getBalance(bob))
     print("Alice's ETH balance: ", w3.eth.getBalance(alice))
     print("Charlie's ETH balance: ", w3.eth.getBalance(charlie))
     print("Mixer's ETH balance: ", w3.eth.getBalance(mixer))
 
 
-def get_merkle_tree(mixer_instance):
+def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
     mk_byte_tree = mixer_instance.functions.getTree().call()
     print("[DEBUG] Displaying the Merkle tree of commitments: ")
     for node in mk_byte_tree:
@@ -28,7 +29,7 @@ def get_merkle_tree(mixer_instance):
     return mk_byte_tree
 
 
-def main():
+def main() -> None:
     zksnark = zeth.utils.parse_zksnark_arg()
 
     # Zeth addresses
@@ -103,7 +104,7 @@ def main():
 
     # Construct sk and pk objects from bytes
     sk_alice = zeth.utils.get_private_key_from_bytes(
-        keystore["Alice"]["AddrSk"]["encSK"])
+        keystore["Alice"].addr_sk.encSK)
     pk_sender = zeth.utils.get_public_key_from_bytes(
         pk_sender_ciphertext_bob_to_bob)
 
@@ -141,7 +142,7 @@ def main():
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
     sk_bob = zeth.utils.get_private_key_from_bytes(
-        keystore["Bob"]["AddrSk"]["encSK"])
+        keystore["Bob"].addr_sk.encSK)
     input_note_json = json.loads(
         zeth.utils.decrypt(ciphertext_bob_to_bob1, pk_sender, sk_bob))
     input_note_bob_to_charlie = \
@@ -170,7 +171,7 @@ def main():
     ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[5]
 
     # Bob tries to spend `input_note_bob_to_charlie` twice
-    result_double_spending = ""
+    result_double_spending = None
     try:
         result_double_spending = scenario.bob_to_charlie(
             prover_client,
@@ -186,7 +187,7 @@ def main():
         )
     except Exception as e:
         print(f"Bob's double spending successfully rejected! (msg: {e})")
-    assert(result_double_spending == ""), \
+    assert(result_double_spending is None), \
         "Bob managed to spend the same note twice!"
 
     print("- Balances after Bob's transfer to Charlie: ")
@@ -199,7 +200,7 @@ def main():
 
     # Construct sk and pk objects from bytes
     sk_charlie = zeth.utils.get_private_key_from_bytes(
-        keystore["Charlie"]["AddrSk"]["encSK"])
+        keystore["Charlie"].addr_sk.encSK)
     pk_sender = zeth.utils.get_public_key_from_bytes(
         pk_sender_ciphertext_bob_to_charlie)
 
@@ -241,7 +242,7 @@ def main():
     )
 
     # Charlie tries to double-spend by withdrawing twice the same note
-    result_double_spending = ""
+    result_double_spending = None
     try:
         # New commitments are added in the tree at each withdraw so we
         # recompiute the path to have the updated nodes
@@ -263,7 +264,7 @@ def main():
     except Exception as e:
         print(f"Charlie's double spending successfully rejected! (msg: {e})")
     print("Balances after Charlie's double withdrawal attempt: ")
-    assert(result_double_spending == ""), \
+    assert(result_double_spending is None), \
         "Charlie managed to withdraw the same note twice!"
     print_balances(
         bob_eth_address,

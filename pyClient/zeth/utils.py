@@ -9,11 +9,11 @@ import os
 import time
 from os.path import join, dirname, normpath
 # Import Pynacl required modules
-from eth_abi import encode_single
+import eth_abi
 import nacl.utils  # type: ignore
 from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
-from typing import List, Tuple
+from typing import List, Union, Any, cast
 
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
@@ -22,7 +22,21 @@ w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 ZETH_PUBLIC_UNIT_VALUE = 1000000000000
 
 
-def int64_to_hex(number):
+def encode_single(type_name: str, data: bytes) -> bytes:
+    """
+    Typed wrapper around eth_abi.encode_single
+    """
+    return eth_abi.encode_single(type_name, data)  # type: ignore
+
+
+def encode_abi(type_names: List[str], data: List[bytes]) -> bytes:
+    """
+    Typed wrapper around eth_abi.encode_abi
+    """
+    return eth_abi.encode_abi(type_names, data)  # type: ignore
+
+
+def int64_to_hex(number: int) -> str:
     return '{:016x}'.format(number)
 
 
@@ -40,7 +54,7 @@ def hex2int(elements: List[str]) -> List[int]:
     ints = []
     for el in elements:
         ints.append(int(el, 16))
-    return(ints)
+    return ints
 
 
 def hex_extend_32bytes(element: str) -> str:
@@ -54,20 +68,20 @@ def hex_extend_32bytes(element: str) -> str:
     return res
 
 
-def get_private_key_from_bytes(sk_hex: str) -> PrivateKey:
+def get_private_key_from_bytes(sk_bytes: bytes) -> PrivateKey:
     """
-    Gets PrivateKey object from hexadecimal representation
+    Gets PrivateKey object from raw representation
     (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
     """
-    return PrivateKey(sk_hex, encoder=nacl.encoding.RawEncoder)
+    return PrivateKey(sk_bytes, encoder=nacl.encoding.RawEncoder)
 
 
-def get_public_key_from_bytes(pk_hex: str) -> PublicKey:
+def get_public_key_from_bytes(pk_bytes: bytes) -> PublicKey:
     """
-    Gets PublicKey object from hexadecimal representation
+    Gets PublicKey object from raw representation
     (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
     """
-    return PublicKey(pk_hex, encoder=nacl.encoding.RawEncoder)
+    return PublicKey(pk_bytes, encoder=nacl.encoding.RawEncoder)
 
 
 def encrypt(message: str, pk_receiver: PublicKey, sk_sender: PrivateKey) -> bytes:
@@ -206,23 +220,34 @@ def get_contracts_dir() -> str:
         join(get_zeth_dir(), "zeth-contracts", "contracts"))
 
 
-def encode_to_hash(messages):
+def string_list_flatten(
+        strs_list: Union[List[str], List[Union[str, List[str]]]]) -> List[str]:
+    """
+    Flatten a list containing strings or lists of strings.
+    """
+    if any(isinstance(el, (list, tuple)) for el in strs_list):
+        strs: List[str] = []
+        for el in strs_list:
+            if isinstance(el, (list, tuple)):
+                strs.extend(el)
+            else:
+                strs.append(cast(str, el))
+        return strs
+
+    return cast(List[str], strs_list)
+
+
+def encode_to_hash(message_list: Any) -> bytes:
+    # message_list: Union[List[str], List[Union[int, str, List[str]]]]) -> bytes:
+
     """
     Encode a list of variables, or list of lists of variables into a byte
     vector
     """
+
+    messages = string_list_flatten(message_list)
+
     input_sha = bytearray()
-
-    # Flatten messages
-    if any(isinstance(el, list) for el in messages):
-        new_list = []
-        for el in messages:
-            if type(el) == list:
-                new_list.extend(el)
-            else:
-                new_list.append(el)
-        messages = new_list
-
     for m in messages:
         # For each element
         m_hex = m

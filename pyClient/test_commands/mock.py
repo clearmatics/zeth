@@ -1,7 +1,34 @@
 import zeth.joinsplit as joinsplit
+import api.util_pb2 as util_pb2
+from typing import Tuple, Dict, List
 
 
-def initTestKeystore():
+class AddrPk(object):
+    def __init__(self, encPK: bytes, aPK: str):
+        self.encPK = encPK
+        self.aPK = aPK
+
+
+class AddrSk(object):
+    def __init__(self, encSK: bytes, aSK: str):
+        self.encSK = encSK
+        self.aSK = aSK
+
+
+class KeyEntry(object):
+    def __init__(
+            self,
+            keypair: joinsplit.ApkAskPair,
+            encPK: bytes,
+            encSK: bytes):
+        self.addr_pk = AddrPk(encPK, keypair.aPK)
+        self.addr_sk = AddrSk(encSK, keypair.aSK)
+
+
+Keystore = Dict[str, KeyEntry]
+
+
+def initTestKeystore() -> Keystore:
     """
     Keystore for the tests
     """
@@ -32,42 +59,17 @@ def initTestKeystore():
     Charlie25519EncPrivateKey = b'zH\xb66q\x97\x0bO\xcb\xb9q\x9b\xbd-1`I' + \
         b'\xae\x00-\x11\xb9\xed}\x18\x9f\xf6\x8dr\xaa\xd4R'
 
-    keystore = {
-        "Alice": {
-            "AddrPk": {
-                "encPK": Alice25519EncPublicKey,
-                "aPK": AliceOwnershipKeys.aPK
-            },
-            "AddrSk": {
-                "encSK": Alice25519EncPrivateKey,
-                "aSK": AliceOwnershipKeys.aSK
-            }
-        },
-        "Bob": {
-            "AddrPk": {
-                "encPK": Bob25519EncPublicKey,
-                "aPK": BobOwnershipKeys.aPK
-            },
-            "AddrSk": {
-                "encSK": Bob25519EncPrivateKey,
-                "aSK": BobOwnershipKeys.aSK
-            }
-        },
-        "Charlie": {
-            "AddrPk": {
-                "encPK": Charlie25519EncPublicKey,
-                "aPK": CharlieOwnershipKeys.aPK
-            },
-            "AddrSk": {
-                "encSK": Charlie25519EncPrivateKey,
-                "aSK": CharlieOwnershipKeys.aSK
-            }
-        }
+    return {
+        "Alice": KeyEntry(
+            AliceOwnershipKeys, Alice25519EncPublicKey, Alice25519EncPrivateKey),
+        "Bob": KeyEntry(
+            BobOwnershipKeys, Bob25519EncPublicKey, Bob25519EncPrivateKey),
+        "Charlie": KeyEntry(
+            CharlieOwnershipKeys, Charlie25519EncPublicKey, Charlie25519EncPrivateKey),
     }
-    return keystore
 
 
-def getDummyMerklePath(length):
+def getDummyMerklePath(length: int) -> List[str]:
     mkPath = []
     # Arbitrary sha256 digest used to build the dummy merkle path
     dummyNode = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
@@ -76,7 +78,9 @@ def getDummyMerklePath(length):
     return mkPath
 
 
-def getDummyInput(recipient_apk, recipient_ask):
+def getDummyInput(
+        recipient_apk: str,
+        recipient_ask: str) -> Tuple[util_pb2.ZethNote, str, int]:
     zero_wei_hex = "0000000000000000"
     dummy_note = joinsplit.createZethNote(
         joinsplit.noteRandomness(), recipient_apk, zero_wei_hex)
