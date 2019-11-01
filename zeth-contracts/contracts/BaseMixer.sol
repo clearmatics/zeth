@@ -62,10 +62,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // uint r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     // field_capacity = ceil ( log_2(r) ) - 1
     uint constant field_capacity = 253;
-    uint length_extra_bits = digest_length>field_capacity? digest_length % field_capacity:0;
+    uint packing_residue_length = digest_length > field_capacity ? digest_length % field_capacity : 0;
 
     // Number of residual bits from packing of 256-bit long string into 253-bit long field elements to which are added the public value of size 64 bits
-    uint length_bit_residual = 2 * size_value + length_extra_bits * (1 + 2 * jsIn + jsOut);
+    uint length_bit_residual = 2 * size_value + packing_residue_length * (1 + 2 * jsIn + jsOut);
     // Number of field elements needed to pack this number of bits
     uint nb_field_residual = (length_bit_residual + field_capacity - 1) / field_capacity;
 
@@ -136,12 +136,25 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // - message authentication tagS remaining bits [2*size_value + (1+NumInputs+NumOutputs)*(digest_length-field_capacity) + 1, 2*size_value + (1+2*NumInputs+NumOutputs)*(digest_length-field_capacity)]
     // ============================================================================================ //
 
-    // This function extract the remaining bits of the nullifierS, commitmentS or h_iS from the residual field element(S)
+    // This function is used to extract the remaining bits of the nullifierS and commitmentS from the residual field element(S)
+    //
+    // We first compute the offset (to forego the v_pubs and h_sig remaining bits)
+    // (v_pub_in || v_pub_out || h_sig_packing_residual_bits || nullifierS_packing_residual_bits || commitmentS_packing_residual_bits || hiS_packing_residual_bits)
+    //   64 bits      64 bits             3 bits                            3 bits                                3 bits                           3 bits
+    //                                                        ^
+    //                                                        |
+    //                                                      offset
+    //                                                        ^                ^
+    //                                                        | >            < | >
+    //                                                      start             end
+    // The position `start` points to the index of the first bit to extract, and `length` specifies the number of bits to extract.
+    // Thus, the position `end` points to the index `start + length - 1` which is the index of the last bit to extract.
     function extract_extra_bits(uint start, uint length, uint[] memory primary_inputs) public view returns (bytes1) {
-        // We assume we extract less than 2 bytes
+        // The residual bits from the packing of a digest may be written over (at most) two field elements
+        // as such, we will (at most) manipulate 2 bytes during the extraction
         require(
             length < 16,
-            "invalid range"
+            "More than 2 bytes extracted"
         );
 
         // If we do not want to extract any bits, return 0
@@ -150,34 +163,70 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
 
         // We first compute the offset (to forego the v_pubs and h_sig remaining bits)
-        uint offset = 2 * size_value + length_extra_bits;
+        uint offset = 2 * size_value + packing_residue_length;
 
         // We then compute the position of the last bit to retrieve
         uint end = start + length - 1;
 
-        // The remaining bits could be written over two field elements
-        // as such we compute the indices of the first and last field elements
-        // they are located at
-        uint index_start_bytes32 = 1 + 1 + 2*jsIn + jsOut + (offset+start)/field_capacity;
-        uint index_end_bytes32 = index_start_bytes32 + (length-1)/field_capacity;
+        // The residual bits from the packing of a digest may be written over (at most) two field elements
+        // (if residual_bits_length > field_capacity) as such we compute the indices of the
+        // first and last field elements they are located at
+        //
+        // Here we retreive the indices of the primary inputs containing the bits we want to extract
+        uint first_residual_field_element_index = 1 + 1 + 2 * jsIn + jsOut + (offset + start)/field_capacity;
+        uint second_residual_field_element_index = first_residual_field_element_index;
+        if (nb_field_residual > 1) {
+            // Multiple field elements were needed to represent all the residual bits
+            // hence we may need to extract bits written in 2 field elements
+            second_residual_field_element_index = 1 + 1 + 2 * jsIn + jsOut + (offset + start + length-1)/field_capacity;
+        }
 
-        // We compute the padding length in the field elements containing the remaining bits
-        // The padding is either length_extra_bits (if we fill a whole field element)
-        // or digest_length - len(v_in || v_out || hsig || {sn} || {cm} || {h})
-        uint potential_padding = digest_length - ((offset + length_extra_bits*(2*jsIn + jsOut)) % field_capacity);
-        uint padded_start = start + offset + ((primary_inputs.length-1 == index_start_bytes32) ? potential_padding : length_extra_bits);
-        uint padded_end = end + offset + ((primary_inputs.length-1 == index_end_bytes32) ? potential_padding : length_extra_bits);
+        // Since every Ethereum word is encoded on 256-bits, and since each primary input
+        // is a field element which may be encoded on a different number of bits (253 bits
+        // in the context of the bn256 curve for eg.), every field element may be front-padded
+        // by 0's when represented as Ethereum words.
+        // Following the example of the bn256 scalar field element, we would have:
+        //                      Ethereum word = [000 10101....1]
+        //                                       ^^^  ^^^^^^^^^
+        //                                        |       |
+        //                                     padding   Field element encoding
+        //
+        // Here, we compute the padding length in the field elements containing the remaining bits
+        // The padding is either `packing_residue_length` (if we fill a whole field element)
+        // or `digest_length - len(v_in || v_out || hsig || {sn} || {cm} || {h})`
+        uint padding_start = packing_residue_length;
+        uint padding_end = padding_start;
+        // We check if `second_residual_field_element_index` points to the last byte.
+        // The last byte may not be full, and thus have more padding.
+        if (primary_inputs.length - 1 == second_residual_field_element_index) {
+            padding_end = digest_length - ((offset + packing_residue_length*(2*jsIn + jsOut)) % field_capacity);
+        }
+        // We check if the last byte is the same as the first byte, if so we update the padding.
+        if (second_residual_field_element_index == first_residual_field_element_index) {
+            padding_start = padding_end;
+        }
 
         // We can now compute the bytes; indices of the remaining bits in both field elements
-        // and retrieve them
-        uint8 start_byte = uint8(bytes32(primary_inputs[index_start_bytes32])[padded_start/8]);
-        uint8 end_byte = uint8(bytes32(primary_inputs[index_end_bytes32])[padded_end/8]);
+        // and retrieve them.
+        // Remember that our field element is represented as an Ethereum word as:
+        //                      Ethereum word = [000 v_in||v_out||h_sig||{nf}||{cm}||{h_i}]
+        //                                       ^^^  ^^^^^^^^^^^^^^^^  ^  ^^^^^^^^^^^^^^^
+        //                                        |                  ___|
+        //                                     padding               |
+        //                                                           |
+        //                                                         offset
+        //
+        uint index_start_byte = (padding_start + offset + start)/8;
+        uint8 start_byte = uint8(bytes32(primary_inputs[first_residual_field_element_index])[index_start_byte]);
+        uint index_end_byte = (padding_end + offset + end)/8;
+        uint8 end_byte = uint8(bytes32(primary_inputs[second_residual_field_element_index])[index_end_byte]);
 
         // We now recombine the two bytes
         // We multiply start_byte by 256 = 2**8.
-        uint16 res = start_byte*(2**8) + end_byte;
+        uint16 res = start_byte * (2**8) + end_byte;
         // And remove any unneeded bits
-        res = res * uint16(2**(padded_start % 8));
+        uint index_start_bit = (padding_start + offset + start) % 8;
+        res = res * uint16(2**index_start_bit);
         res = res / uint16(2**(16 - length));
 
         return bytes2(res)[1];
@@ -199,8 +248,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         uint index;
         for(uint i = 1; i < 1 + jsIn; i++) {
             digest_input = primary_inputs[i];
-            index = length_extra_bits*(i-1);
-            bits_input = extract_extra_bits(index, length_extra_bits, primary_inputs);
+            index = packing_residue_length*(i-1);
+            bits_input = extract_extra_bits(index, packing_residue_length, primary_inputs);
             bytes32 current_nullifier = Bytes.sha256_digest_from_field_elements(digest_input, bits_input);
             require(
                 !nullifiers[current_nullifier],
@@ -216,8 +265,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         bytes1 bits_input;
         for(uint i = 1 + jsIn ; i < 1 + jsIn + jsOut; i ++) {
             // See the way the inputs are ordered in the extended proof
-            index = length_extra_bits*(i-1);
-            bits_input = extract_extra_bits(index, length_extra_bits, primary_inputs);
+            index = packing_residue_length*(i-1);
+            bits_input = extract_extra_bits(index, packing_residue_length, primary_inputs);
             bytes32 current_commitment = Bytes.sha256_digest_from_field_elements(primary_inputs[i], bits_input);
             uint commitmentAddress = insert(current_commitment);
             emit LogAddress(commitmentAddress);
@@ -228,10 +277,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // 1. We get the vpub_in in wei
         // We know vpub_in corresponds to the first 64 bits of the first residual field element after padding.
         // We start by computing the padding .
-        uint padding = length_extra_bits;
+        uint padding = packing_residue_length;
         // Update the padding if the public values and remainder bits fit in one field element
         if (2*size_value+padding*(1+2*jsIn+jsOut) < field_capacity) {
-            padding = digest_length - (2*size_value + length_extra_bits*(1+2*jsIn+jsOut));
+            padding = digest_length - (2*size_value + packing_residue_length*(1+2*jsIn+jsOut));
         }
 
         // We retrieve the public value in, remove any extra bits (due to the padding) and inverse the bit order
