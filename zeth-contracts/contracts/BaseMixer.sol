@@ -172,7 +172,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // (if residual_bits_length > field_capacity) as such we compute the indices of the
         // first and last field elements they are located at
         //
-        // Here we retreive the indices of the primary inputs containing the bits we want to extract
+        // Here we retrieve the indices of the primary inputs containing the bits we want to extract
         uint first_residual_field_element_index = 1 + 1 + 2 * jsIn + jsOut + (offset + start)/field_capacity;
         uint second_residual_field_element_index = first_residual_field_element_index;
         if (nb_field_residual > 1) {
@@ -217,16 +217,47 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         //                                                         offset
         //
         uint index_start_byte = (padding_start + offset + start)/8;
-        uint8 start_byte = uint8(bytes32(primary_inputs[first_residual_field_element_index])[index_start_byte]);
+        bytes1 start_byte = bytes32(primary_inputs[first_residual_field_element_index])[index_start_byte];
         uint index_end_byte = (padding_end + offset + end)/8;
-        uint8 end_byte = uint8(bytes32(primary_inputs[second_residual_field_element_index])[index_end_byte]);
+        bytes1 end_byte = bytes32(primary_inputs[second_residual_field_element_index])[index_end_byte];
 
-        // We now recombine the two bytes
-        // We multiply start_byte by 256 = 2**8.
-        uint16 res = start_byte * (2**8) + end_byte;
-        // And remove any unneeded bits
-        uint index_start_bit = (padding_start + offset + start) % 8;
-        res = res * uint16(2**index_start_bit);
+        // We now can recombine the two bytes.
+        // To do so, we consider the binary array res_byte = start_byte || end_byte as the bit encoding of a number `res`
+        // Note that the we are in big-endian, as such the most significant bit of res_byte is the first bit.
+        // By definition of binary encoding we have,
+        // res = Sum_{i=0}^{16-1} res_byte[i] * 2**(16-1-i)
+        // ------- let's split the sum in two to make start_byte and end_byte appear
+        //     = Sum_{i=0}^{8-1} res_byte[i] * 2**(16-1-i) + Sum_{i=8}^{16-1} res_byte[i] * 2**(16-1-i)
+        // ------- now the first sum corresponds to encoding end_byte and the second start_byte
+        //         we note that res_byte[i] = start_byte[i] for i < 8
+        //         likewise, res_byte[i] = end_byte[i - 8] for 7 < i < 16
+        //     = Sum_{i=0}^{8-1} start_byte[i] * 2**(16-1-i) + Sum_{i=8}^{16-1} end_byte[i-8] * 2**(16-1-i)
+        // ------- we reorder the indices to have have end_byte[i] (we have j = i - 8), and factorise by 2**8 in the left sum
+        //     = 2**8 * Sum_{i=0}^{8-1} end_byte[i] * 2**(8-1-i) +Sum_{j=0}^{8-1} start_byte[j] * 2**(8-1-j)
+        // ------- we can now see the relationship between the encoding of res_byte and the encodings of end_byte and start_byte
+        //     = 2**8 * uint8(start_byte) + uint8(end_byte)
+        uint16 res = (2**8) * uint8(start_byte) + uint8(end_byte);
+        // The bit representation of res is now something like this (b_x representing the x^{th} bit):
+        // b_0 || ... || b_{start-1} || b_{start} || ... || b_{end} || b_{end + 1} || ... || b_15
+        //                              ^                         ^
+        //                              |_________________________|
+        //                                           |
+        //                                  (length) asked bits
+        // To get the needed bits, we need to discard the unneeded ones before and after.
+        // First we compute the index of the first bit needed (bit_start) in start_byte.
+        uint index_bit_start = (padding_start + offset + start) % 8;
+        // We need to remove all the bits before this index.
+        // As the most significant bit of the byte is the first, the binary operation
+        // "res << index_bit_start" corresponds to multiplying by 2**index_bit_start.
+        res = res * uint16(2**index_bit_start);
+        // We now have something like this:
+        // b_{start} || ... || b_{end} || b_{end + 1} || ... || b_15 || 0 || ... || 0
+        // ^                         ^                                  ^           ^
+        // |_________________________|                                  |___________|
+        //              |                                                     |
+        //     (length) asked bits                                          padding
+        // We need to remove all the bits after b_end which is at location length-1, hence discard (16 - length) bits on the right.
+        // Similarly, the binary operation "res >> 16-length" corresponds to dividing by 2**(16 - length)
         res = res / uint16(2**(16 - length));
 
         return bytes2(res)[1];
