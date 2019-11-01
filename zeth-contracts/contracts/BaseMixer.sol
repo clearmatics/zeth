@@ -150,13 +150,14 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // The position `start` points to the index of the first bit to extract, and `length` specifies the number of bits to extract.
     // Thus, the position `end` points to the index `start + length - 1` which is the index of the last bit to extract.
     function extract_extra_bits(uint start, uint length, uint[] memory primary_inputs) public view returns (bytes1) {
-        // The residual bits from the packing of a digest may be written over (at most) two field elements
-        // as such, we will (at most) manipulate 2 bytes during the extraction
+        // The residual bits from the packing of a digest may be written over (at most) two field elements.
+        // As such, we will (at most) manipulate 2 field elements during the extraction.
+        // We intend to extract at most 8 consecutive bits (c.f. `returns (bytes1)`), as such we check that `length` is lower than 8.
+        // Futhermore, as 8 consecutive bits are at most written on 2 bytes, we will (at most) manipulate 2 bytes during the extraction.
         require(
-            length < 16,
-            "More than 2 bytes extracted"
+            length < 8,
+            "More than 1 bytes extracted"
         );
-
         // If we do not want to extract any bits, return 0
         if (length == 0) {
             return bytes1(0x0);
@@ -165,20 +166,30 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // We first compute the offset (to forego the v_pubs and h_sig remaining bits)
         uint offset = 2 * size_value + packing_residue_length;
 
-        // We then compute the position of the last bit to retrieve
+        // We then check that the bits asked for are within primary inputs and
+        // compute the position of the last bit to retrieve
         uint end = start + length - 1;
+        require(
+            (start < length_bit_residual - offset) && (end < length_bit_residual - offset),
+            "Buffer overflow: asking for bits outside primary inputs"
+        );
 
         // The residual bits from the packing of a digest may be written over (at most) two field elements
         // (if residual_bits_length > field_capacity) as such we compute the indices of the
         // first and last field elements they are located at
         //
         // Here we retrieve the indices of the primary inputs containing the bits we want to extract
+        // We first check that we have the right amount of field elements in `primary_inputs`
+        require(
+            primary_inputs.length == 1 + 1 + 2 * jsIn + jsOut + nb_field_residual,
+            "Received incorrect number of primary inputs"
+        );
         uint first_residual_field_element_index = 1 + 1 + 2 * jsIn + jsOut + (offset + start)/field_capacity;
         uint second_residual_field_element_index = first_residual_field_element_index;
         if (nb_field_residual > 1) {
             // Multiple field elements were needed to represent all the residual bits
             // hence we may need to extract bits written in 2 field elements
-            second_residual_field_element_index = 1 + 1 + 2 * jsIn + jsOut + (offset + start + length-1)/field_capacity;
+            second_residual_field_element_index = 1 + 1 + 2 * jsIn + jsOut + (offset + end)/field_capacity;
         }
 
         // Since every Ethereum word is encoded on 256-bits, and since each primary input
@@ -216,10 +227,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         //                                                           |
         //                                                         offset
         //
-        uint index_start_byte = (padding_start + offset + start)/8;
-        bytes1 start_byte = bytes32(primary_inputs[first_residual_field_element_index])[index_start_byte];
-        uint index_end_byte = (padding_end + offset + end)/8;
-        bytes1 end_byte = bytes32(primary_inputs[second_residual_field_element_index])[index_end_byte];
+        // The index of the start_byte is computed by dividing by 8 the index of the first bit to extract.
+        // Similarly, the index of the end_byte is by dividing by 8 the index of the last bit to extract.
+        bytes1 start_byte = bytes32(primary_inputs[first_residual_field_element_index])[(padding_start + offset + start)/8];
+        bytes1 end_byte = bytes32(primary_inputs[second_residual_field_element_index])[(padding_end + offset + end)/8];
 
         // We now can recombine the two bytes.
         // To do so, we consider the binary array `res_bin = [start_byte || end_byte]` as the bit encoding of a number `res`
