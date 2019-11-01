@@ -260,6 +260,13 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // Similarly, the binary operation "res >> 16-length" corresponds to dividing by 2**(16 - length)
         res = res / uint16(2**(16 - length));
 
+        // We now have something like this:
+        // 0 || ... || 0 || b_{start} || ... || b_{end}
+        //                  ^                         ^
+        //                  |_________________________|
+        //                               |
+        //                      (length) asked bits
+        // All the asked bits are in the second byte, we thus return this one.
         return bytes2(res)[1];
     }
 
