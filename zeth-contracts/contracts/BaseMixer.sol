@@ -55,18 +55,23 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     uint constant jsIn = 2; // Nb of nullifiers
     uint constant jsOut = 2; // Nb of commitments/ciphertexts
 
+    // Size of the public values in bits
     uint constant size_value = 64;
 
     // Constants regarding the hash digest length, the prime number used and its associated length in bits and the max values (v_in and v_out)
-    uint constant digest_length = 256;
     // uint r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     // field_capacity = ceil ( log_2(r) ) - 1
+    uint constant digest_length = 256;
     uint constant field_capacity = 253;
+
+    // Variable representing the number of "residual" bits we can expect from converting a hash digest into a field element
+    // see primary input `residual_bits` in Reminder below
     uint packing_residue_length = digest_length > field_capacity ? digest_length % field_capacity : 0;
 
-    // Number of residual bits from packing of 256-bit long string into 253-bit long field elements to which are added the public value of size 64 bits
+    // Total number of residual bits from packing of 256-bit long string into 253-bit long field elements
+    // to which are added the public value of size 64 bits
     uint length_bit_residual = 2 * size_value + packing_residue_length * (1 + 2 * jsIn + jsOut);
-    // Number of field elements needed to pack this number of bits
+    // Number of field elements needed to pack this number of bits (the operation (a+b-1)/b represents div_ceil(a,b))
     uint nb_field_residual = (length_bit_residual + field_capacity - 1) / field_capacity;
 
     // The number of public inputs is:
@@ -158,7 +163,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
             length < 8,
             "More than 1 bytes extracted"
         );
-        // If we do not want to extract any bits, return 0
+
+        // If we do not want to extract any bits, return 0 (so that we recombine later an element with itself).
         if (length == 0) {
             return bytes1(0x0);
         }
@@ -269,6 +275,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         //     (length) asked bits                                          padding
         // We need to remove all the bits after b_end which is at location length-1, hence discard (16 - length) bits on the right.
         // Similarly, the binary operation "res >> 16-length" corresponds to dividing by 2**(16 - length)
+
         res = res / uint16(2**(16 - length));
 
         // We now have something like this:
