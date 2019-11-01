@@ -104,9 +104,12 @@ if __name__ == '__main__':
     )
 
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
-    # We define 1 ETH Token as 10^18 balance value (as the ratio ETH/wei)
-    # We assign 4 ETHToken to Bob
-    mint_token(token_instance, bob_eth_address, deployer_eth_address, 4)
+    # We assign ETHToken to Bob
+    mint_token(
+        token_instance,
+        bob_eth_address,
+        deployer_eth_address,
+        zethTest.BOB_DEPOSIT_ETH)
     print("- Initial balances: ")
     print_token_balances(
         bob_eth_address,
@@ -115,7 +118,7 @@ if __name__ == '__main__':
         mixer_instance.address
     )
 
-    # Bob tries to deposit 4 ETHToken split in 2 notes of denominations of 2 ETHToken and 2 ETHToken on the mixer (without approving)
+    # Bob tries to deposit ETHToken, split in 2 notes on the mixer (without approving)
     try:
         result_deposit_bob_to_bob = zethTest.bob_deposit(
             test_grpc_endpoint,
@@ -132,12 +135,16 @@ if __name__ == '__main__':
         print("The allowance for Mixer from Bob is: ", allowance_mixer)
 
     # Bob approves the transfer
-    print("- Bob approves the transfer of 4 ETHToken to the Mixer")
-    tx_hash = approve(token_instance, bob_eth_address, mixer_instance.address, 4)
+    print("- Bob approves the transfer of ETHToken to the Mixer")
+    tx_hash = approve(
+        token_instance,
+        bob_eth_address,
+        mixer_instance.address,
+        zethTest.BOB_DEPOSIT_ETH)
     w3.eth.waitForTransactionReceipt(tx_hash)
     allowance_mixer = allowance(token_instance, bob_eth_address, mixer_instance.address)
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
-    # Bob deposits 4ETH split in 2 notes of denominations of 2ETh and 2ETH on the mixer
+    # Bob deposits ETHToken, split in 2 notes on the mixer
     result_deposit_bob_to_bob = zethTest.bob_deposit(
         test_grpc_endpoint,
         mixer_instance,
@@ -173,7 +180,7 @@ if __name__ == '__main__':
     assert (recovered_plaintext1 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
     assert (recovered_plaintext2 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
 
-    # Bob does a transfer of 1 ETHToken to Charlie on the mixer
+    # Bob does a transfer of ETHToken to Charlie on the mixer
     #
     # Bob looks in the merkle tree and gets the merkle path to the commitment he wants to spend
     mk_byte_tree = get_merkle_tree(mixer_instance)

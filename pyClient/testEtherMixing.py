@@ -77,7 +77,7 @@ if __name__ == '__main__':
         mixer_instance.address
     )
 
-    # Bob deposits 4ETH split in 2 notes of denominations of 2ETh and 2ETH on the mixer
+    # Bob deposits ETH, split in 2 notes on the mixer
     result_deposit_bob_to_bob = zethTest.bob_deposit(
         test_grpc_endpoint,
         mixer_instance,
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     assert (recovered_plaintext1 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
     assert (recovered_plaintext2 == ""),"Alice managed to decrypt a ciphertext that was not encrypted with her key!"
 
-    # Bob does a transfer of 1ETH to Charlie on the mixer
+    # Bob does a transfer to Charlie on the mixer
     #
     # Bob looks in the merkle tree and gets the merkle path to the commitment he wants to spend
     mk_byte_tree = get_merkle_tree(mixer_instance)

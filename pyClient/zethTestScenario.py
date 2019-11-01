@@ -14,9 +14,19 @@ from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 
 zero_units_hex = "0000000000000000"
+BOB_DEPOSIT_ETH = 200
+BOB_SPLIT_1_ETH = 100
+BOB_SPLIT_2_ETH = 100
+
+BOB_TO_CHARLIE_ETH = 50
+BOB_TO_CHARLIE_CHANGE_ETH = BOB_SPLIT_1_ETH - BOB_TO_CHARLIE_ETH
+
+CHARLIE_WITHDRAW_ETH = 10.5
+CHARLIE_WITHDRAW_CHANGE_ETH = 39.5
+
 
 def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, keystore, mk_tree_depth, zksnark):
-    print("=== Bob deposits 4 ETH for himself and splits his deposited funds into note1: 2ETH, note2: 2ETH ===")
+    print(f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and splits into note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
     bob_apk = keystore["Bob"]["AddrPk"]["aPK"]
     bob_ask = keystore["Bob"]["AddrSk"]["aSK"]
     # Create the JoinSplit dummy inputs for the deposit
@@ -24,9 +34,9 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    note1_value = zethUtils.toZethUnits('2', 'ether')
-    note2_value = zethUtils.toZethUnits('2', 'ether')
-    v_in = zethUtils.toZethUnits('4', 'ether')
+    note1_value = zethUtils.toZethUnits(str(BOB_SPLIT_1_ETH), 'ether')
+    note2_value = zethUtils.toZethUnits(str(BOB_SPLIT_2_ETH), 'ether')
+    v_in = zethUtils.toZethUnits(str(BOB_DEPOSIT_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
         zethGRPC.getProofJoinsplit2By2(
@@ -91,13 +101,13 @@ def bob_deposit(test_grpc_endpoint, mixer_instance, mk_root, bob_eth_address, ke
         joinsplit_keypair["vk"],
         joinsplit_sig,
         bob_eth_address,
-        w3.toWei(4, 'ether'),
+        w3.toWei(BOB_DEPOSIT_ETH, 'ether'),
         4000000,
         zksnark
     )
 
 def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_note1, input_address1, bob_eth_address, keystore, mk_tree_depth, zksnark):
-    print("=== Bob transfers 1ETH to Charlie from his funds on the mixer ===")
+    print(f"=== Bob transfers {BOB_TO_CHARLIE_ETH}ETH to Charlie from his funds on the mixer ===")
 
     charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"] # We generate a coin for Charlie (recipient1)
     bob_apk = keystore["Bob"]["AddrPk"]["aPK"] # We generate a coin for Bob: the change (recipient2)
@@ -107,8 +117,8 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(bob_apk, bob_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    note1_value = zethUtils.toZethUnits('1', 'ether')
-    note2_value = zethUtils.toZethUnits('1', 'ether')
+    note1_value = zethUtils.toZethUnits(str(BOB_TO_CHARLIE_ETH), 'ether')
+    note2_value = zethUtils.toZethUnits(str(BOB_TO_CHARLIE_CHANGE_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
@@ -177,7 +187,7 @@ def bob_to_charlie(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_
     )
 
 def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_note1, input_address1, charlie_eth_address, keystore, mk_tree_depth, zksnark):
-    print(" === Charlie withdraws 0.9 from his funds on the Mixer ===")
+    print(f" === Charlie withdraws {CHARLIE_WITHDRAW_ETH}ETH from his funds on the Mixer ===")
 
     charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
     charlie_ask = keystore["Charlie"]["AddrSk"]["aSK"]
@@ -186,8 +196,8 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(charlie_apk, charlie_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    note1_value = zethUtils.toZethUnits('0.1', 'ether')
-    v_out = zethUtils.toZethUnits('0.9', 'ether')
+    note1_value = zethUtils.toZethUnits(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
+    v_out = zethUtils.toZethUnits(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = zethGRPC.getProofJoinsplit2By2(
         test_grpc_endpoint,
@@ -256,7 +266,7 @@ def charlie_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, inpu
 
 # Charlie tries to carry out a double spending by modifying the value of the nullifier of the previous payment
 def charlie_double_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path1, input_note1, input_address1, charlie_eth_address, keystore, mk_tree_depth, zksnark):
-    print(" === Charlie attempts to withdraw 0.9 once more (double spend) one of his note on the Mixer ===")
+    print(f" === Charlie attempts to withdraw {CHARLIE_WITHDRAW_ETH}ETH once more (double spend) one of his note on the Mixer ===")
 
     charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
     charlie_ask = keystore["Charlie"]["AddrSk"]["aSK"]
@@ -265,8 +275,8 @@ def charlie_double_withdraw(test_grpc_endpoint, mixer_instance, mk_root, mk_path
     (input_note2, input_nullifier2, input_address2) = zethMock.getDummyInput(charlie_apk, charlie_ask)
     dummy_mk_path = zethMock.getDummyMerklePath(mk_tree_depth)
 
-    note1_value = zethUtils.toZethUnits('0.1', 'ether')
-    v_out = zethUtils.toZethUnits('0.9', 'ether')
+    note1_value = zethUtils.toZethUnits(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
+    v_out = zethUtils.toZethUnits(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
         zethGRPC.getProofJoinsplit2By2(
