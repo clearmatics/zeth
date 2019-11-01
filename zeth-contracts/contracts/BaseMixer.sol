@@ -222,19 +222,19 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         bytes1 end_byte = bytes32(primary_inputs[second_residual_field_element_index])[index_end_byte];
 
         // We now can recombine the two bytes.
-        // To do so, we consider the binary array res_byte = start_byte || end_byte as the bit encoding of a number `res`
-        // Note that the we are in big-endian, as such the most significant bit of res_byte is the first bit.
+        // To do so, we consider the binary array `res_bin = [start_byte || end_byte]` as the bit encoding of a number `res`
+        // Note that the we are in big-endian, as such the most significant bit of `res_bin` is the first bit.
         // By definition of binary encoding we have,
-        // res = Sum_{i=0}^{16-1} res_byte[i] * 2**(16-1-i)
+        // res = Sum_{i=0}^{16-1} res_bin[i] * 2**(16-1-i)
         // ------- let's split the sum in two to make start_byte and end_byte appear
-        //     = Sum_{i=0}^{8-1} res_byte[i] * 2**(16-1-i) + Sum_{i=8}^{16-1} res_byte[i] * 2**(16-1-i)
+        //     = Sum_{i=0}^{8-1} res_bin[i] * 2**(16-1-i) + Sum_{i=8}^{16-1} res_bin[i] * 2**(16-1-i)
         // ------- now the first sum corresponds to encoding end_byte and the second start_byte
-        //         we note that res_byte[i] = start_byte[i] for i < 8
-        //         likewise, res_byte[i] = end_byte[i - 8] for 7 < i < 16
+        //         we note that res_bin[i] = start_byte[i] for i < 8
+        //         likewise, res_bin[i] = end_byte[i - 8] for 7 < i < 16
         //     = Sum_{i=0}^{8-1} start_byte[i] * 2**(16-1-i) + Sum_{i=8}^{16-1} end_byte[i-8] * 2**(16-1-i)
-        // ------- we reorder the indices to have have end_byte[i] (we have j = i - 8), and factorise by 2**8 in the left sum
-        //     = 2**8 * Sum_{i=0}^{8-1} end_byte[i] * 2**(8-1-i) +Sum_{j=0}^{8-1} start_byte[j] * 2**(8-1-j)
-        // ------- we can now see the relationship between the encoding of res_byte and the encodings of end_byte and start_byte
+        // ------- we reorder the indices to have end_byte[i] (we have j = i - 8), and factorise by 2**8 in the left sum
+        //     = 2**8 * Sum_{i=0}^{8-1} end_byte[i] * 2**(8-1-i) + Sum_{j=0}^{8-1} start_byte[j] * 2**(8-1-j)
+        // ------- we can now see the relationship between the encoding of res_bin and the encodings of end_byte and start_byte
         //     = 2**8 * uint8(start_byte) + uint8(end_byte)
         uint16 res = (2**8) * uint8(start_byte) + uint8(end_byte);
         // The bit representation of res is now something like this (b_x representing the x^{th} bit):
