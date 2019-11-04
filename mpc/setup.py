@@ -40,6 +40,6 @@ setup(
         "commands/sign_contribution",
         "commands/generate_key",
         "commands/public_key",
-        "commands/make_config",
+        "commands/contributors_from_csv",
     ]
 )

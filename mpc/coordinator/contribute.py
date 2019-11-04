@@ -41,10 +41,11 @@ def wait_for_turn(
     Wait until our turn, returning when we can contribute.  If anything goes
     wrong, an exception is thrown.
     """
+    contributors = client.get_contributors()
+    our_idx = contributors.get_contributor_index(verification_key)
     while True:
-        status = client.get_status()
-        current_index = status.state.next_contributor_index
-        our_idx = status.config.get_contributor_index(verification_key)
+        state = client.get_state()
+        current_index = state.next_contributor_index
         if our_idx is None:
             raise Exception("contributor is not in the server list")
         elif our_idx < current_index:

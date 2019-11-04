@@ -148,34 +148,12 @@ keys before the MPC begins.
 
 ### Configuration file overview
 
-Create the file `server_config.json` in the server working directory. This
-should list the ordered set of contributors, as well as other properties of the
-MPC:
-```console
+Create the file `server_config.json` in the server working directory,
+specifying properties of the MPC:
+```json
 // server_config.json
 {
-    "contributors": [
-        {
-            "email": "c1@mpc.com",
-            "public_key": "3081...eed4",
-            "key_evidence": "015b...71d8"
-        },
-        {
-            "email": "c2@mpc.com",
-            "public_key": "3081...0650",
-            "key_evidence": "0015...25d6"
-        },
-        {
-            "email": "c3@mpc.com",
-            "public_key": "3081...f876",
-            "key_evidence": "00f1...e0bd"
-        },
-        {
-            "email": "c4@mpc.com",
-            "public_key": "3081...0118",
-            "key_evidence": "0156...6c85"
-        }
-    ],
+    "contributors_file": "contributors.json",
     "start_time": "2019-10-02 17:00:00",   # Time (server-local)
     "contribution_interval": "86400",   # 24 hours (in seconds)
     "tls_key": "key.pem",
@@ -187,18 +165,38 @@ MPC:
 See the [test configuration](../testdata/mpc_server_config.json) for a full
 example configuration file.
 
-### Registration via Google Forms
+The `contributors_file` field must point to a file specifying the ordered set
+of contributors in the MPC.  This file takes the form:
+```json
+{
+    "contributors": [
+        {
+            "email": "c1@mpc.com",
+            "verification_key": "308...eed4",
+            "key_evidence": "015b...71d8"
+        },
+        {
+            "email": "c2@mpc.com",
+            "verification_key": "3081...0650",
+            "key_evidence": "0015...25d6"
+        },
+        ...
+    ]
+}
+```
 
-The `make_config` command can be used to create a template configuration file
-from a csv file of contributors. Administrators can open this template, which
-has the list of contributors populated, and set just the fields relating to
-their MPC setup. `make_config` is designed to support participant registration
-via Google Forms.
+See `testdata/mpc_contributors.json` for an example contributors file.
+
+### Contributor Registration via Google Forms
+
+The `contributors_from_csv` command can be used to generate a
+`contributors.json` file from csv data output from Google Forms. Administrators
+can thereby use Google Forms to allow participants to register and use this
+command to automatically populate their `contributors.json` file.
 
 Ensure that email, public key, and evidence fields are present in the form, and
-download the response data as a csv file. Flags to `make_config` can be used
-to specify the exact names of each field (see `make_config --help` for
-details).
+download the response data as a csv file. Flags to `contributors_from_csv_` can
+be used to specify the exact names of each field (see `--help` for details).
 
 ### Mail notifications
 
