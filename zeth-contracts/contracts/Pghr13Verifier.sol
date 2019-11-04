@@ -181,7 +181,7 @@ contract Pghr13Verifier {
             require(
                 primaryInputs[i] < r,
                 "Input is not is scalar field"
-            )
+            );
             inputValues[i] = primaryInputs[i];
         }
 

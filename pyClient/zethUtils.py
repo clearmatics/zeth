@@ -18,6 +18,10 @@ import zethErrors as errors
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
 w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
+# Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
+# Wei).
+ZETH_PUBLIC_UNIT_VALUE = 1000000000000
+
 # Gets PrivateKey object from hexadecimal representation
 # (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
 def get_private_key_from_bytes(sk_bytes):
@@ -147,3 +151,7 @@ def gen_keys_utility(to_print=False):
     print(sk_charlie_bytes)
 
   return alice_keys_bytes, bob_keys_bytes, charlie_keys_bytes
+
+
+def toZethUnits(value, unit):
+  return int(Web3.toWei(value, unit) / ZETH_PUBLIC_UNIT_VALUE)
