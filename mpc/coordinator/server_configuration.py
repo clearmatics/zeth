@@ -1,44 +1,13 @@
 #!/usr/bin/env python3
 
 from __future__ import annotations
-from .crypto import \
-    VerificationKey, import_verification_key, export_verification_key, \
-    Signature, import_signature, export_signature, check_key_evidence
 import json
 import time
-from typing import List, Dict, cast, Optional
+from typing import Dict, cast, Optional
 
 JsonDict = Dict[str, object]
 
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-
-class Contributor(object):
-    """
-    Details of a specific contributor
-    """
-    def __init__(
-            self,
-            email: str,
-            verification_key: VerificationKey,
-            key_evidence: Signature):
-        self.email = email
-        self.verification_key = verification_key
-        self.key_evidence = key_evidence
-
-    def _to_json_dict(self) -> JsonDict:
-        return {
-            "email": self.email,
-            "verification_key": export_verification_key(self.verification_key),
-            "key_evidence": export_signature(self.key_evidence),
-        }
-
-    @staticmethod
-    def _from_json_dict(json_dict: JsonDict) -> Contributor:
-        return Contributor(
-            cast(str, json_dict["email"]),
-            import_verification_key(cast(str, json_dict["verification_key"])),
-            import_signature(cast(str, json_dict["key_evidence"])))
 
 
 class Configuration(object):
@@ -47,7 +16,7 @@ class Configuration(object):
     """
     def __init__(
             self,
-            contributors: List[Contributor],
+            contributors_file: str,
             start_time: float,
             contribution_interval: float,
             tls_key: str,
@@ -56,6 +25,8 @@ class Configuration(object):
             email_server: Optional[str] = None,
             email_address: Optional[str] = None,
             email_password: Optional[str] = None):
+        if not contributors_file:
+            raise Exception("no contributors file specified")
         if 0 == start_time:
             raise Exception("invalid start time")
         if (email_server or email_address or email_password) and \
@@ -64,7 +35,7 @@ class Configuration(object):
                 "must all or none of email server, address and password " +
                 "in config")
 
-        self.contributors: List[Contributor] = contributors
+        self.contributors_file: str = contributors_file
         self.start_time: float = float(start_time)
         self.contribution_interval: float = float(contribution_interval)
         self.email_server: Optional[str] = email_server
@@ -75,14 +46,14 @@ class Configuration(object):
         self.port = port
 
     @staticmethod
-    def template(contributors: List[Contributor]) -> Configuration:
+    def template() -> Configuration:
         """
         Populate contributors field, and other fields with sensible defaults
         for a configuration template.  All fields are expected to be
         overridden.
         """
         return Configuration(
-            contributors=contributors,
+            contributors_file="contributors.json",
             start_time=time.time() + 6 * 60 * 60,
             contribution_interval=24 * 60 * 60,
             tls_key="key.pem",
@@ -109,36 +80,10 @@ class Configuration(object):
     def from_json(config_json: str) -> Configuration:
         return Configuration._from_json_dict(json.loads(config_json))
 
-    def ensure_validity(self) -> None:
-        """
-        Checks the server configuration.  If there are any problems, throw an
-        exception with a message.
-        """
-
-        # Evidence is expected to be the signature of
-        # KEY_VALIDATION_CHECK_STRING.  Check this for all the contributors
-        # keys
-        for c in self.contributors:
-            if not check_key_evidence(c.verification_key, c.key_evidence):
-                raise Exception(f"Key for {c.email} has invalid evidence")
-
-    def get_contributor_index(
-            self,
-            verification_key: VerificationKey) -> Optional[int]:
-        """
-        Return the index of the contributor, if present.
-        """
-        key = export_verification_key(verification_key)
-        try:
-            return [export_verification_key(c.verification_key)
-                    for c in self.contributors].index(key)
-        except ValueError:
-            return None
-
     def _to_json_dict(self) -> JsonDict:
         start_local = time.localtime(self.start_time)
         return {
-            "contributors": [c._to_json_dict() for c in self.contributors],
+            "contributors_file": self.contributors_file,
             "start_time": time.strftime(TIME_FORMAT, start_local),
             "contribution_interval": str(self.contribution_interval),
             "email_server": self.email_server,
@@ -152,7 +97,7 @@ class Configuration(object):
     def _to_json_template_dict(self) -> JsonDict:
         start_local = time.localtime(self.start_time)
         return {
-            "contributors": [c._to_json_dict() for c in self.contributors],
+            "contributors_file": self.contributors_file,
             "help":
             "This is a generated template. Populate the fields below, " +
             "removing _REQUIRED_ and _OPTIONAL_ prefixes as necessary.",
@@ -168,12 +113,11 @@ class Configuration(object):
 
     @staticmethod
     def _from_json_dict(json_dict: JsonDict) -> Configuration:
-        contributors_json_list = cast(List[JsonDict], json_dict["contributors"])
         start_local = time.strptime(
             cast(str, json_dict["start_time"]),
             TIME_FORMAT)
         return Configuration(
-            [Contributor._from_json_dict(c) for c in contributors_json_list],
+            cast(str, json_dict["contributors_file"]),
             time.mktime(start_local),
             float(cast(str, json_dict["contribution_interval"])),
             email_server=cast(str, json_dict.get("email_server", None)),

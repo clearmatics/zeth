@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from coordinator.server_configuration import Contributor, Configuration
+from coordinator.contributor_list import ContributorList, Contributor
 from coordinator.crypto import \
     import_verification_key, import_signature, check_key_evidence
 from click import command, argument, option, ClickException
-from typing import List, Dict
+from typing import Dict
 import csv
 
 DEFAULT_EMAIL_FIELD_NAME = "Email"
@@ -14,7 +14,7 @@ DEFAULT_EVIDENCE_FIELD_NAME = "Key Evidence"
 
 @command()
 @argument("contributors-csv")
-@argument("output-configuration-template")
+@argument("output-contributors")
 @option(
     "--email-field",
     default=DEFAULT_EMAIL_FIELD_NAME,
@@ -27,32 +27,31 @@ DEFAULT_EVIDENCE_FIELD_NAME = "Key Evidence"
     "--evidence-field",
     default=DEFAULT_EVIDENCE_FIELD_NAME,
     help=f"evidence field name (default: \"{DEFAULT_EVIDENCE_FIELD_NAME}\")")
-def make_config(
+def contributors_from_csv(
         contributors_csv: str,
-        output_configuration_template: str,
+        output_contributors: str,
         email_field: str,
         key_field: str,
         evidence_field: str) -> None:
     """
-    Parse a csv list of contributors and create a server config template.
+    Parse a csv list of contributors and create a contributors json file.
+    Check the key evidence to ensure claimed verification keys are valid.
     """
-
     contributors = read_contributors_from_csv(
         contributors_csv,
         email_field=email_field,
         key_field=key_field,
         evidence_field=evidence_field)
-    config = Configuration.template(contributors)
 
-    with open(output_configuration_template, "w") as config_f:
-        config_f.write(config.to_json_template())
+    with open(output_contributors, "w") as config_f:
+        config_f.write(contributors.to_json())
 
 
 def read_contributors_from_csv(
         csv_file: str,
         email_field: str,
         key_field: str,
-        evidence_field: str) -> List[Contributor]:
+        evidence_field: str) -> ContributorList:
     """
     Read a csv file (of the format output from Google Forms), and create a list
     of contributors from it.
@@ -71,8 +70,8 @@ def read_contributors_from_csv(
                 raise ClickException(f"contributor {email}: {ex}")
             return Contributor(email, key, evidence)
 
-        return [_row_to_contributor(row) for row in reader]
+        return ContributorList([_row_to_contributor(row) for row in reader])
 
 
 if __name__ == "__main__":
-    make_config()
+    contributors_from_csv()

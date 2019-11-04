@@ -32,7 +32,7 @@ function command_tests() {
     # Execute the test scripts for pot-process, mpc, mpc server and client
     scripts/test_pot_process
     scripts/test_phase2
-    scripts/test_mpc_make_config
+    scripts/test_mpc_contributors_from_csv
     scripts/test_mpc_server_phase2
 }
 
