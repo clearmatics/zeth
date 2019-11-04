@@ -12,6 +12,8 @@ VerificationKey = ecdsa.VerifyingKey
 SigningKey = ecdsa.SigningKey
 Signature = bytes
 
+HASH_FILE_BLOCK_SIZE = 4096
+
 
 def _compute_key_validation_digest() -> bytes:
     h = HASH.new()
@@ -74,13 +76,13 @@ def import_signature(sig_s: str) -> bytes:
 
 
 def compute_file_digest(file_name: str) -> bytes:
-    import subprocess
-    digest_output = subprocess.run(
-        ["shasum", "-a", "512", file_name],
-        check=True,
-        capture_output=True).stdout
-    digest_str = digest_output.split(b" ")[0].decode()
-    return import_digest(digest_str)
+    h = HASH.new()
+    with open(file_name, "rb") as f:
+        while True:
+            block = f.read(HASH_FILE_BLOCK_SIZE)
+            if not block:
+                return h.digest()
+            h.update(block)
 
 
 def sign(sk: ecdsa.SigningKey, digest: bytes) -> bytes:
