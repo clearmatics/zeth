@@ -8,6 +8,24 @@ set -x
 # Test an phase1 mpc server that has been set up with a test handler, using the
 # configuration in ./testdata.
 
+function prepare_server_phase1() {
+    prepare_server_common ${PHASE1_SERVER_DIR}
+
+    # Perform the phase1-specific setup
+    pushd ${PHASE1_SERVER_DIR}
+
+    # Config
+    now=`python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S"))'`
+    sed \
+        -e "s/TIME/${now}/g" \
+        -e "s/PORT/${PHASE1_PORT}/g" \
+        -e "s/QAP_DEGREE/${QAP_DEGREE}/g" \
+        ${PHASE1_CONFIG_TEMPLATE} \
+        > phase1_server_config.json
+
+    popd
+}
+
 # Upload contribution
 # 1 - private key
 # 2 - client id
@@ -27,9 +45,22 @@ function contribute() {
     popd
 }
 
-stop_server_phase1 || echo -n
-prepare_server_common ${PHASE1_SERVER_DIR} ${PHASE1_PORT}
-start_server_phase1
+function get_state_phase1() {
+    curl \
+        -k \
+        --cacert ${PHASE1_SERVER_DIR}/${SERVER_CERT} \
+        --fail https://${HOST}:${PHASE1_PORT}/state
+}
+
+stop_server_common ${PHASE1_SERVER_DIR} || echo -n
+
+prepare_server_phase1
+
+# Start server in background
+start_server_common \
+    ${PHASE1_SERVER_DIR} \
+    "phase1_server --config phase1_server_config.json" \
+    get_state_phase1
 
 # make 4 contributions
 contribute ${PRV_KEY_1} 1 ${PHASE1_SERVER_DIR}
@@ -69,7 +100,7 @@ done
 popd
 
 # Shut down the server
-stop_server_phase1
+stop_server_common ${PHASE1_SERVER_DIR}
 
 set +x
 set +e

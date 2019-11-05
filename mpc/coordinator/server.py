@@ -43,23 +43,19 @@ class Server(object):
     def __init__(
             self,
             handler: IContributionHandler,
+            server_config: Configuration,
             server_dir: str):
 
         logging.basicConfig(filename="server.log", level=logging.DEBUG)
         self.handler = handler
-        self.config: Configuration
+        self.config = server_config
         self.contributors: ContributorList
         self.upload_file = join(server_dir, UPLOAD_FILE)
         self.state_file_path = join(server_dir, STATE_FILE)
         self.state: ServerState
         self.processing = False
 
-        # Try to open config file, contributors file and state files.  Perform
-        # sanity checks on the config.
-        config_file_name = join(server_dir, CONFIGURATION_FILE)
-        with open(config_file_name, "r") as config_f:
-            self.config = Configuration.from_json(config_f.read())
-
+        # Try to open contributors file and state files.  Perform sanity checks.
         with open(self.config.contributors_file, "r") as contributors_f:
             self.contributors = ContributorList.from_json(contributors_f.read())
         print(f"Contributors: {self.contributors}")

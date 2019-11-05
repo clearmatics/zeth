@@ -4,17 +4,53 @@
 Implementation of Phase2ContributionHandler
 """
 
-from coordinator.icontributionhandler import IContributionHandler
-from coordinator.mpc_command import MPCCommand
-from coordinator.phase1_contribution_handler import \
+from __future__ import annotations
+from .server_configuration import Configuration, JsonDict
+from .icontributionhandler import IContributionHandler
+from .mpc_command import MPCCommand
+from .phase1_contribution_handler import \
     NEW_CHALLENGE_FILE, TRANSCRIPT_FILE, FINAL_OUTPUT, FINAL_TRANSCRIPT
 
-from os.path import exists, join
+from os.path import exists
 from os import rename
-from typing import Optional
+from typing import Optional, cast
+import json
 
 CHALLENGE_0_FILE = "challenge_0.bin"
 NEXT_CHALLENGE_FILE = "next_challenge.bin"
+
+
+class Phase2ServerConfig(object):
+    """
+    Configuration object for phase2 server.
+    """
+
+    def __init__(
+            self,
+            server_configuration: Configuration,
+            mpc_tool: Optional[str]):
+        self.server_configuration = server_configuration
+        self.mpc_tool = mpc_tool
+
+    def to_json(self) -> str:
+        return json.dumps(self._to_json_dict(), indent=4)
+
+    @staticmethod
+    def from_json(phase2_config_json: str) -> Phase2ServerConfig:
+        return Phase2ServerConfig._from_json_dict(json.loads(phase2_config_json))
+
+    def _to_json_dict(self) -> JsonDict:
+        return {
+            "server": self.server_configuration._to_json_dict(),
+            "mpc_tool": self.mpc_tool,
+        }
+
+    @staticmethod
+    def _from_json_dict(json_dict: JsonDict) -> Phase2ServerConfig:
+        return Phase2ServerConfig(
+            server_configuration=Configuration._from_json_dict(
+                cast(JsonDict, json_dict["server"])),
+            mpc_tool=cast(Optional[str], json_dict.get("mpc_tool", None)))
 
 
 class Phase2ContributionHandler(IContributionHandler):
@@ -22,7 +58,7 @@ class Phase2ContributionHandler(IContributionHandler):
     Handler processing phase2 challenges and contributions.
     """
 
-    def __init__(self, bin_path: Optional[str] = None) -> None:
+    def __init__(self, phase2_config: Phase2ServerConfig):
         # Sanity check
         if not exists(CHALLENGE_0_FILE):
             raise Exception(f"no {CHALLENGE_0_FILE} found in server dir")
@@ -32,8 +68,7 @@ class Phase2ContributionHandler(IContributionHandler):
             if exists(TRANSCRIPT_FILE):
                 raise Exception(f"unexpected {TRANSCRIPT_FILE} in server dir")
 
-        mpc_exe = join(bin_path, "mpc") if bin_path else None
-        self.mpc = MPCCommand(mpc_exe)
+        self.mpc = MPCCommand(phase2_config.mpc_tool)
 
     def get_current_challenge_file(self, contributor_idx: int) -> str:
         # If there is no NEXT_CHALLENGE_FILE, use CHALLENGE_0_FILE.  (Note,

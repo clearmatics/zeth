@@ -13,23 +13,23 @@ LINEAR_COMBINATION_FILE = "linear_combination.bin"
 @command()
 @argument("pot-file")
 @argument("degree", type=int)
-@option("--pot-executable", default=None, help="path to pot-process executable")
-@option("--mpc-executable", default=None, help="path to mpc executable")
+@option("--pot-tool", default=None, help="path to pot-process tool")
+@option("--mpc-tool", default=None, help="path to mpc tool")
 def phase2_prepare(
         pot_file: str,
         degree: int,
-        pot_executable: Optional[str],
-        mpc_executable: Optional[str]) -> None:
+        pot_tool: Optional[str],
+        mpc_tool: Optional[str]) -> None:
     """
     Process powersoftau (Phase1) output to create input data required for
     Phase2.
     """
 
-    pot_process = PowersOfTauProcessCommand(pot_executable)
+    pot_process = PowersOfTauProcessCommand(pot_tool)
     if not pot_process.compute_lagrange(pot_file, degree, LAGRANGE_FILE):
         raise Exception("Lagrange computation failed")
 
-    mpc = MPCCommand(mpc_executable)
+    mpc = MPCCommand(mpc_tool)
     if not mpc.linear_combination(
             pot_file, LAGRANGE_FILE, LINEAR_COMBINATION_FILE):
         raise Exception("linear combination failed")
