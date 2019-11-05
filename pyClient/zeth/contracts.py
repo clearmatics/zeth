@@ -16,6 +16,26 @@ w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 Interface = Dict[str, Any]
 
 
+class MixResult(object):
+    """
+    Data structure representing the result of the mix call.
+    """
+    def __init__(
+            self,
+            cm_address_1: int,
+            cm_address_2: int,
+            new_merkle_root: str,
+            pk_sender: bytes,
+            ciphertext_1: bytes,
+            ciphertext_2: bytes):
+        self.cm_address_1 = cm_address_1
+        self.cm_address_2 = cm_address_2
+        self.new_merkle_root = new_merkle_root
+        self.pk_sender = pk_sender
+        self.ciphertext_1 = ciphertext_1
+        self.ciphertext_2 = ciphertext_2
+
+
 def get_zksnark_files(zksnark: str) -> Tuple[str, str]:
     """
     Returns the files to use for the given zkSNARK (verifier_contract,
@@ -281,7 +301,7 @@ def mix_pghr13(
         sigma: int,
         sender_address: str,
         wei_pub_value: int,
-        call_gas: int) -> Tuple[int, int, str, bytes, bytes, bytes]:
+        call_gas: int) -> MixResult:
     """
     Call to the mixer's mix function to do zero knowledge payments
     """
@@ -317,7 +337,7 @@ def mix_groth16(
         sigma: int,
         sender_address: str,
         wei_pub_value: int,
-        call_gas: int) -> Tuple[int, int, str, bytes, bytes, bytes]:
+        call_gas: int) -> MixResult:
     tx_hash = mixer_instance.functions.mix(
         hex2int(parsed_proof["a"]),
         [hex2int(parsed_proof["b"][0]), hex2int(parsed_proof["b"][1])],
@@ -345,7 +365,7 @@ def mix(
         sender_address: str,
         wei_pub_value: int,
         call_gas: int,
-        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
+        zksnark: str) -> MixResult:
     if zksnark == constants.PGHR13_ZKSNARK:
         return mix_pghr13(
             mixer_instance,
@@ -378,7 +398,7 @@ def mix(
 
 def parse_mix_call(
         mixer_instance: Any,
-        tx_receipt: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
+        tx_receipt: str) -> MixResult:
     """
     Get the logs data associated with this mixing
     """
@@ -392,15 +412,13 @@ def parse_mix_call(
     event_filter_logSecretCiphers = mixer_instance.eventFilter("LogSecretCiphers", {'fromBlock': 'latest'})
     event_logs_logSecretCiphers = event_filter_logSecretCiphers.get_all_entries()
 
-    commitment_address1 = event_logs_logAddress[0].args.commAddr
-    commitment_address2 = event_logs_logAddress[1].args.commAddr
-    # [2:] to strip the '0x' prefix
-    new_mk_root = w3.toHex(event_logs_logMerkleRoot[0].args.root)[2:]
-    ciphertext1 = event_logs_logSecretCiphers[0].args.ciphertext
-    ciphertext2 = event_logs_logSecretCiphers[1].args.ciphertext
-    pk_sender = event_logs_logSecretCiphers[0].args.pk_sender
-
-    return (commitment_address1, commitment_address2, new_mk_root, pk_sender, ciphertext1, ciphertext2)
+    return MixResult(
+        cm_address_1=event_logs_logAddress[0].args.commAddr,
+        cm_address_2=event_logs_logAddress[1].args.commAddr,
+        new_merkle_root=w3.toHex(event_logs_logMerkleRoot[0].args.root)[2:],  # '0x'
+        pk_sender=event_logs_logSecretCiphers[0].args.pk_sender,
+        ciphertext_1=event_logs_logSecretCiphers[0].args.ciphertext,
+        ciphertext_2=event_logs_logSecretCiphers[1].args.ciphertext)
 
 
 def mimcHash(instance: Any, m: bytes, k: bytes, seed: bytes) -> bytes:
