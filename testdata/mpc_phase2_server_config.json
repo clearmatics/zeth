@@ -1,0 +1,14 @@
+{
+    "server": {
+        "contributors_file": "../testdata/mpc_contributors.json",
+        "start_time": "TIME",
+        "contribution_interval": "10.0",
+        "_email_server": "smtp.myorg.com:465",
+        "_email_address": "mpc.coordinator@myorg.com",
+        "_email_password": "account_password_on_server",
+        "tls_key": "key.pem",
+        "tls_certificate": "cert.pem",
+        "port": PORT
+    },
+    "mpc_tool": "../build/src/mpc/mpc-test"
+}

@@ -11,9 +11,9 @@ class MPCCommand(object):
     Wrapper around the 'mpc' utility.
     """
 
-    def __init__(self, mpc_exe: Optional[str] = ""):
-        self.mpc_exe = mpc_exe or _default_mpc_bin()
-        assert exists(self.mpc_exe)
+    def __init__(self, mpc_tool: Optional[str] = ""):
+        self.mpc_tool = mpc_tool or _default_mpc_tool()
+        assert exists(self.mpc_tool)
 
     def linear_combination(
             self,
@@ -65,12 +65,12 @@ class MPCCommand(object):
         return self._exec(args)
 
     def _exec(self, args: List[str]) -> bool:
-        cmd = [self.mpc_exe] + args
+        cmd = [self.mpc_tool] + args
         print(f"CMD: {' '.join(cmd)}")
         comp = subprocess.run(cmd)
         return 0 == comp.returncode
 
 
-def _default_mpc_bin() -> str:
+def _default_mpc_tool() -> str:
     return os.path.join(
         os.path.dirname(__file__), "..", "..", "build", "src", "mpc", "mpc")

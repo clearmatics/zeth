@@ -153,17 +153,21 @@ specifying properties of the MPC:
 ```json
 // server_config.json
 {
-    "contributors_file": "contributors.json",
-    "start_time": "2019-10-02 17:00:00",   # Time (server-local)
-    "contribution_interval": "86400",   # 24 hours (in seconds)
-    "tls_key": "key.pem",
-    "tls_certificate": "cert.pem",
-    "port": 8001
+    "server": {
+        "contributors_file": "contributors.json",
+        "start_time": "2019-10-02 17:00:00",   # Time (server-local)
+        "contribution_interval": "86400",   # 24 hours (in seconds)
+        "tls_key": "key.pem",
+        "tls_certificate": "cert.pem",
+        "port": 8001
+    }
 }
 ```
 
-See the [test configuration](../testdata/mpc_server_config.json) for a full
-example configuration file.
+The servers for each phase (phase1 and phase2) also support options specific to
+that phase, which can be set in the config file. See the test configurations for
+[phase1](../testdata/mpc_phase1_server_config.json) and
+[phase2](../testdata/mpc_phase2_server_config.json) for full examples.
 
 The `contributors_file` field must point to a file specifying the ordered set
 of contributors in the MPC.  This file takes the form:

@@ -18,7 +18,8 @@ PHASE1_SERVER_DIR=`pwd`/_test_server_phase1
 PHASE2_SERVER_DIR=`pwd`/_test_server_phase2
 
 # Server files
-SERVER_CONFIG_TEMPLATE=${TEST_DATA_DIR}/mpc_server_config.json
+PHASE1_CONFIG_TEMPLATE=${TEST_DATA_DIR}/mpc_phase1_server_config.json
+PHASE2_CONFIG_TEMPLATE=${TEST_DATA_DIR}/mpc_phase2_server_config.json
 CHALLENGE_0_FILE=challenge_0.bin
 TRANSCRIPT_FILE=transcript
 FINAL_OUTPUT_FILE=final_output.bin
@@ -49,7 +50,6 @@ PRV_KEY_4=${TEST_DATA_DIR}/mpc_key4.bin
 PUB_KEY_4=${TEST_DATA_DIR}/mpc_key4.pub
 
 # 1 - server_dir
-# 2 - port
 function prepare_server_common() {
 
     mkdir -p $1
@@ -59,11 +59,6 @@ function prepare_server_common() {
     rm -rf server_config.json
     rm -rf ${TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE} ${FINAL_TRANSCRIPT_FILE} \
        next_challenge.bin phase1_state.json
-
-    # Config
-    now=`python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S"))'`
-    sed -e "s/TIME/${now}/g" -e "s/PORT/$2/g" ${SERVER_CONFIG_TEMPLATE} \
-        > server_config.json
 
     # TLS server certs
     if ! [ -e ${SERVER_KEY} ] || ! [ -e ${SERVER_CERT} ] ; then
@@ -121,39 +116,6 @@ function stop_server_common() {
         fi
         popd
     fi
-}
-
-function get_state_phase1() {
-    curl \
-        -k \
-        --cacert ${PHASE1_SERVER_DIR}/${SERVER_CERT} \
-        --fail https://${HOST}:${PHASE1_PORT}/state
-}
-
-function get_state_phase2() {
-    curl \
-        -k \
-        --cacert ${PHASE2_SERVER_DIR}/${SERVER_CERT} \
-        --fail https://${HOST}:${PHASE2_PORT}/state
-}
-
-function start_server_phase1() {
-    start_server_common \
-        ${PHASE1_SERVER_DIR} \
-        "phase1_server -n ${QAP_DEGREE}" \
-        get_state_phase1
-}
-
-function start_server_phase2() {
-    start_server_common ${PHASE2_SERVER_DIR} phase2_server get_state_phase2
-}
-
-function stop_server_phase1() {
-    stop_server_common ${PHASE1_SERVER_DIR}
-}
-
-function stop_server_phase2() {
-    stop_server_common ${PHASE2_SERVER_DIR}
 }
 
 function passed() {

@@ -5,7 +5,7 @@ Implementation of Phase1ContributionHandler
 """
 
 from __future__ import annotations
-from .server_configuration import JsonDict
+from .server_configuration import Configuration, JsonDict
 from .icontributionhandler import IContributionHandler
 from .powersoftau_command import \
     PowersOfTauCommand, CHALLENGE_FILE, NEW_CHALLENGE_FILE, RESPONSE_FILE
@@ -19,6 +19,42 @@ PHASE1_STATE_FILE = "phase1_state.json"
 TRANSCRIPT_FILE = "transcript"
 FINAL_OUTPUT = "final_output.bin"
 FINAL_TRANSCRIPT = "final_transcript.bin"
+
+
+class Phase1ServerConfig(object):
+    """
+    Configuration for Phase1 server
+    """
+    def __init__(
+            self,
+            server_configuration: Configuration,
+            pot_path: Optional[str],
+            num_powers: Optional[int]):
+        self.server_configuration = server_configuration
+        self.powersoftau_path = pot_path
+        self.num_powers = num_powers
+
+    def to_json(self) -> str:
+        return json.dumps(self._to_json_dict(), indent=4)
+
+    @staticmethod
+    def from_json(phase1_config_json: str) -> Phase1ServerConfig:
+        return Phase1ServerConfig._from_json_dict(json.loads(phase1_config_json))
+
+    def _to_json_dict(self) -> JsonDict:
+        return {
+            "server": self.server_configuration._to_json_dict(),
+            "powersoftau_path": self.powersoftau_path,
+            "num_powers": self.num_powers,
+        }
+
+    @staticmethod
+    def _from_json_dict(json_dict: JsonDict) -> Phase1ServerConfig:
+        return Phase1ServerConfig(
+            server_configuration=Configuration._from_json_dict(
+                cast(JsonDict, json_dict["server"])),
+            pot_path=cast(Optional[str], json_dict.get("powersoftau_path", None)),
+            num_powers=cast(Optional[int], json_dict.get("num_powers", None)))
 
 
 class _Phase1State(object):
@@ -61,12 +97,9 @@ class Phase1ContributionHandler(IContributionHandler):
     contributions that have been made.
     """
 
-    def __init__(
-            self,
-            powersoftau_path: Optional[str] = None,
-            num_powers: Optional[int] = None) -> None:
-
-        self.powersoftau = PowersOfTauCommand(powersoftau_path, num_powers)
+    def __init__(self, phase1_config: Phase1ServerConfig):
+        self.powersoftau = PowersOfTauCommand(
+            phase1_config.powersoftau_path, phase1_config.num_powers)
 
         if exists(PHASE1_STATE_FILE):
             with open(PHASE1_STATE_FILE, "r") as state_f:
