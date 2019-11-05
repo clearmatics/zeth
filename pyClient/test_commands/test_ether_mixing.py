@@ -87,12 +87,12 @@ def main() -> None:
         mk_tree_depth,
         zksnark
     )
-    cm_address_bob_to_bob1 = result_deposit_bob_to_bob[0]
-    # cm_address_bob_to_bob2 = result_deposit_bob_to_bob[1]   # Unused
-    new_merkle_root_bob_to_bob = result_deposit_bob_to_bob[2]
-    pk_sender_ciphertext_bob_to_bob = result_deposit_bob_to_bob[3]
-    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob[4]
-    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob[5]
+    cm_address_bob_to_bob1 = result_deposit_bob_to_bob.cm_address_1
+    # cm_address_bob_to_bob2 = result_deposit_bob_to_bob.cm_address_2 (unused)
+    new_merkle_root_bob_to_bob = result_deposit_bob_to_bob.new_merkle_root
+    pk_sender_ciphertext_bob_to_bob = result_deposit_bob_to_bob.pk_sender
+    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob.ciphertext_1
+    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob.ciphertext_2
 
     print("- Balances after Bob's deposit: ")
     print_balances(
@@ -162,13 +162,15 @@ def main() -> None:
     )
 
     # Bob -> Bob (Change - unused)
-    # cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie[0]
+    # cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie.cm_address_1
     # Bob -> Charlie (payment to Charlie)
-    cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie[1]
-    new_merkle_root_bob_to_charlie = result_transfer_bob_to_charlie[2]
-    pk_sender_ciphertext_bob_to_charlie = result_transfer_bob_to_charlie[3]
-    ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie[4]
-    ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie[5]
+    cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie.cm_address_2
+    new_merkle_root_bob_to_charlie = \
+        result_transfer_bob_to_charlie.new_merkle_root
+    pk_sender_ciphertext_bob_to_charlie = \
+        result_transfer_bob_to_charlie.pk_sender
+    ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie.ciphertext_1
+    ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie.ciphertext_2
 
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = None
@@ -232,7 +234,7 @@ def main() -> None:
         mk_tree_depth,
         zksnark
     )
-    new_merkle_root_charlie_withdrawal = result_charlie_withdrawal[2]
+    new_merkle_root_charlie_withdrawal = result_charlie_withdrawal.new_merkle_root
     print("Balances after Charlie's withdrawal: ")
     print_balances(
         bob_eth_address,

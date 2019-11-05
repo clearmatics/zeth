@@ -11,7 +11,7 @@ from hashlib import sha256
 import nacl.utils  # type: ignore
 from nacl.public import PrivateKey  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
-from typing import Tuple, List, Any
+from typing import List, Any
 
 w3 = Web3(HTTPProvider("http://localhost:8545"))
 
@@ -34,7 +34,7 @@ def bob_deposit(
         bob_eth_address: str,
         keystore: mock.Keystore,
         mk_tree_depth: int,
-        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
+        zksnark: str) -> contracts.MixResult:
     print(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and splits into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
@@ -130,7 +130,7 @@ def bob_to_charlie(
         bob_eth_address: str,
         keystore: mock.Keystore,
         mk_tree_depth: int,
-        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
+        zksnark: str) -> contracts.MixResult:
     print(f"=== Bob transfers {BOB_TO_CHARLIE_ETH}ETH to Charlie from his funds on the mixer ===")
 
     # We generate a coin for Charlie (recipient1)
@@ -231,7 +231,7 @@ def charlie_withdraw(
         charlie_eth_address: str,
         keystore: mock.Keystore,
         mk_tree_depth: int,
-        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
+        zksnark: str) -> contracts.MixResult:
     print(f" === Charlie withdraws {CHARLIE_WITHDRAW_ETH}ETH from his funds on the Mixer ===")
 
     charlie_apk = keystore["Charlie"].addr_pk.aPK
@@ -328,7 +328,7 @@ def charlie_double_withdraw(
         charlie_eth_address: str,
         keystore: mock.Keystore,
         mk_tree_depth: int,
-        zksnark: str) -> Tuple[int, int, str, bytes, bytes, bytes]:
+        zksnark: str) -> contracts.MixResult:
     """
     Charlie tries to carry out a double spending by modifying the value of the
     nullifier of the previous payment
