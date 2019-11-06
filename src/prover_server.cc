@@ -80,7 +80,9 @@ public:
     }
 
     grpc::Status GetVerificationKey(
-        grpc::ServerContext *, const proto::Empty *, prover_proto::VerificationKey *response) override
+        grpc::ServerContext *,
+        const proto::Empty *,
+        prover_proto::VerificationKey *response) override
     {
         std::cout << "[ACK] Received the request to get the verification key"
                   << std::endl;
@@ -114,8 +116,8 @@ public:
         try {
             FieldT root =
                 libzeth::string_to_field<FieldT>(proof_inputs->mk_root());
-            libzeth::bits64 vpub_in =
-                libzeth::hexadecimal_value_to_bits64(proof_inputs->pub_in_value());
+            libzeth::bits64 vpub_in = libzeth::hexadecimal_value_to_bits64(
+                proof_inputs->pub_in_value());
             libzeth::bits64 vpub_out = libzeth::hexadecimal_value_to_bits64(
                 proof_inputs->pub_out_value());
             libzeth::bits256 h_sig_in =
@@ -132,9 +134,11 @@ public:
 
             std::cout << "[DEBUG] Process every inputs of the JoinSplit"
                       << std::endl;
-            std::array<libzeth::joinsplit_input<FieldT>, ZETH_NUM_JS_INPUTS> joinsplit_inputs;
+            std::array<libzeth::joinsplit_input<FieldT>, ZETH_NUM_JS_INPUTS>
+                joinsplit_inputs;
             for (int i = 0; i < ZETH_NUM_JS_INPUTS; i++) {
-                prover_proto::JoinsplitInput received_input = proof_inputs->js_inputs(i);
+                prover_proto::JoinsplitInput received_input =
+                    proof_inputs->js_inputs(i);
                 libzeth::joinsplit_input<FieldT> parsed_input =
                     parse_joinsplit_input<FieldT>(received_input);
                 joinsplit_inputs[i] = parsed_input;
@@ -142,10 +146,13 @@ public:
 
             std::cout << "[DEBUG] Process every outputs of the JoinSplit"
                       << std::endl;
-            std::array<libzeth::zeth_note, ZETH_NUM_JS_OUTPUTS> joinsplit_outputs;
+            std::array<libzeth::zeth_note, ZETH_NUM_JS_OUTPUTS>
+                joinsplit_outputs;
             for (int i = 0; i < ZETH_NUM_JS_OUTPUTS; i++) {
-                prover_proto::ZethNote received_output = proof_inputs->js_outputs(i);
-                libzeth::zeth_note parsed_output = parse_zeth_note(received_output);
+                prover_proto::ZethNote received_output =
+                    proof_inputs->js_outputs(i);
+                libzeth::zeth_note parsed_output =
+                    parse_zeth_note(received_output);
                 joinsplit_outputs[i] = parsed_output;
             }
 

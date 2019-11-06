@@ -46,7 +46,8 @@ std::string get_point_g1_affine_as_hex_str(libff::alt_bn128_G1 _p)
     libff::alt_bn128_G1 aff = _p;
     aff.to_affine_coordinates();
     return "\"0x" + hex_string_from_libsnark_bigint(aff.X.as_bigint()) +
-           "\", \"0x" + hex_string_from_libsnark_bigint(aff.Y.as_bigint()) + "\"";
+           "\", \"0x" + hex_string_from_libsnark_bigint(aff.Y.as_bigint()) +
+           "\"";
 }
 
 std::string get_point_g2_affine_as_hex_str(libff::alt_bn128_G2 _p)
@@ -55,9 +56,9 @@ std::string get_point_g2_affine_as_hex_str(libff::alt_bn128_G2 _p)
     aff.to_affine_coordinates();
     return "[\"0x" + hex_string_from_libsnark_bigint(aff.X.c1.as_bigint()) +
            "\", \"0x" + hex_string_from_libsnark_bigint(aff.X.c0.as_bigint()) +
-           "\"],\n [\"0x" + hex_string_from_libsnark_bigint(aff.Y.c1.as_bigint()) +
-           "\", \"0x" + hex_string_from_libsnark_bigint(aff.Y.c0.as_bigint()) +
-           "\"]";
+           "\"],\n [\"0x" +
+           hex_string_from_libsnark_bigint(aff.Y.c1.as_bigint()) + "\", \"0x" +
+           hex_string_from_libsnark_bigint(aff.Y.c0.as_bigint()) + "\"]";
 }
 
 boost::filesystem::path get_path_to_setup_directory()
