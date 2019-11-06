@@ -83,7 +83,7 @@ def getDummyInput(
         recipient_ask: str) -> Tuple[util_pb2.ZethNote, str, int]:
     zero_wei_hex = "0000000000000000"
     dummy_note = joinsplit.createZethNote(
-        joinsplit.noteRandomness(), recipient_apk, zero_wei_hex)
+        joinsplit.NoteRandomness.new(), recipient_apk, zero_wei_hex)
     dummy_note_nullifier = joinsplit.computeNullifier(dummy_note, recipient_ask)
     dummy_note_address = 7
     return (dummy_note, dummy_note_nullifier, dummy_note_address)

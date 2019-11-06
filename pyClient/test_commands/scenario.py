@@ -3,13 +3,10 @@ import zeth.contracts as contracts
 from zeth.prover_client import ProverClient
 import test_commands.mock as mock
 from zeth.utils import to_zeth_units, int64_to_hex, get_public_key_from_bytes, \
-    encrypt, encode_to_hash
+    encode_to_hash
 import api.util_pb2 as util_pb2
 
-import json
 from hashlib import sha256
-import nacl.utils  # type: ignore
-from nacl.public import PrivateKey  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Any
 
@@ -70,24 +67,16 @@ def bob_deposit(
             zksnark
     )
 
-    output_note1_str = json.dumps(joinsplit.parseZethNote(output_note1))
-    output_note2_str = json.dumps(joinsplit.parseZethNote(output_note2))
-
-    # generate ephemeral ec25519 key
-    eph_sk_bob = PrivateKey.generate()
-
     # construct pk object from bytes
     pk_bob = get_public_key_from_bytes(keystore["Bob"].addr_pk.encPK)
 
     # encrypt the coins
-    ciphertext1 = encrypt(output_note1_str, pk_bob, eph_sk_bob)
-    ciphertext2 = encrypt(output_note2_str, pk_bob, eph_sk_bob)
-
-    # get the ephemeral public key of the sender in bytes
-    eph_pk_sender_bytes = eph_sk_bob.public_key.encode(encoder=nacl.encoding.RawEncoder)
+    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+        (output_note1, pk_bob),
+        (output_note2, pk_bob)])
 
     # Hash the pk_sender and cipher-texts
-    ciphers = eph_pk_sender_bytes + ciphertext1 + ciphertext2
+    ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
@@ -107,9 +96,9 @@ def bob_deposit(
 
     return contracts.mix(
         mixer_instance,
-        eph_pk_sender_bytes,
-        ciphertext1,
-        ciphertext2,
+        pk_sender,
+        ciphertexts[0],
+        ciphertexts[1],
         proof_json,
         joinsplit_keypair.vk,
         joinsplit_sig,
@@ -168,25 +157,13 @@ def bob_to_charlie(
             zksnark
         )
 
-    output_note1_str = json.dumps(joinsplit.parseZethNote(output_note1))
-    output_note2_str = json.dumps(joinsplit.parseZethNote(output_note2))
-
-    # generate ephemeral ec25519 key
-    eph_sk_bob = PrivateKey.generate()
-
-    # construct pk objects from bytes
-    pk_bob = get_public_key_from_bytes(keystore["Bob"].addr_pk.encPK)
-    pk_charlie = get_public_key_from_bytes(keystore["Charlie"].addr_pk.encPK)
-
-    # encrypt the coins
-    # Bob is the recipient
-    ciphertext1 = encrypt(output_note1_str, pk_bob, eph_sk_bob)
-    # Charlie is the recipient
-    ciphertext2 = encrypt(output_note2_str, pk_charlie, eph_sk_bob)
-    pk_sender = eph_sk_bob.public_key.encode(encoder=nacl.encoding.RawEncoder)
+    # Encrypt the output notes for the senders
+    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+        (output_note1, get_public_key_from_bytes(keystore["Bob"].addr_pk.encPK)),
+        (output_note2, get_public_key_from_bytes(keystore["Charlie"].addr_pk.encPK))])
 
     # Hash the pk_sender and cipher-texts
-    ciphers = pk_sender + ciphertext1 + ciphertext2
+    ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
@@ -207,8 +184,8 @@ def bob_to_charlie(
     return contracts.mix(
         mixer_instance,
         pk_sender,
-        ciphertext1,
-        ciphertext2,
+        ciphertexts[0],
+        ciphertexts[1],
         proof_json,
         joinsplit_keypair.vk,
         joinsplit_sig,
@@ -265,25 +242,17 @@ def charlie_withdraw(
             zksnark
         )
 
-    output_note1_str = json.dumps(joinsplit.parseZethNote(output_note1))
-    output_note2_str = json.dumps(joinsplit.parseZethNote(output_note2))
-
-    # generate ephemeral ec25519 key
-    eph_sk_charlie = PrivateKey.generate()
-
     # construct pk object from bytes
     pk_charlie = get_public_key_from_bytes(
         keystore["Charlie"].addr_pk.encPK)
 
     # encrypt the coins
-    # Charlie is the recipient
-    ciphertext1 = encrypt(output_note1_str, pk_charlie, eph_sk_charlie)
-    # Charlie is the recipient
-    ciphertext2 = encrypt(output_note2_str, pk_charlie, eph_sk_charlie)
-    pk_sender = eph_sk_charlie.public_key.encode(encoder=nacl.encoding.RawEncoder)
+    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+        (output_note1, pk_charlie),
+        (output_note2, pk_charlie)])
 
     # Hash the pk_sender and cipher-texts
-    ciphers = pk_sender + ciphertext1 + ciphertext2
+    ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
@@ -304,8 +273,8 @@ def charlie_withdraw(
     return contracts.mix(
         mixer_instance,
         pk_sender,
-        ciphertext1,
-        ciphertext2,
+        ciphertexts[0],
+        ciphertexts[1],
         proof_json,
         joinsplit_keypair.vk,
         joinsplit_sig,
@@ -379,24 +348,16 @@ def charlie_double_withdraw(
     proof_json["inputs"][4] = hex(int(proof_json["inputs"][4], 16) + r)
     # ### ATTACK BLOCK
 
-    output_note1_str = json.dumps(joinsplit.parseZethNote(output_note1))
-    output_note2_str = json.dumps(joinsplit.parseZethNote(output_note2))
-
-    # generate ephemeral ec25519 key
-    eph_sk_charlie = PrivateKey.generate()
-
     # construct pk object from bytes
     pk_charlie = get_public_key_from_bytes(keystore["Charlie"].addr_pk.encPK)
 
     # encrypt the coins
-    # Charlie is the recipient
-    ciphertext1 = encrypt(output_note1_str, pk_charlie, eph_sk_charlie)
-    # Charlie is the recipient
-    ciphertext2 = encrypt(output_note2_str, pk_charlie, eph_sk_charlie)
-    pk_sender = eph_sk_charlie.public_key.encode(encoder=nacl.encoding.RawEncoder)
+    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+        (output_note1, pk_charlie),
+        (output_note2, pk_charlie)])
 
     # Hash the pk_sender and cipher-texts
-    ciphers = pk_sender + ciphertext1 + ciphertext2
+    ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
@@ -417,8 +378,8 @@ def charlie_double_withdraw(
     return contracts.mix(
         mixer_instance,
         pk_sender,
-        ciphertext1,
-        ciphertext2,
+        ciphertexts[0],
+        ciphertexts[1],
         proof_json,
         joinsplit_keypair.vk,
         joinsplit_sig,

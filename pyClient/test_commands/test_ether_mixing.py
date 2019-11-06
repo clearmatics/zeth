@@ -5,8 +5,9 @@ import zeth.constants as constants
 import test_commands.mock as mock
 import test_commands.scenario as scenario
 from zeth.prover_client import ProverClient
+from zeth.wallet import Wallet
 
-import json
+import os
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Any
 
@@ -15,10 +16,11 @@ TEST_GRPC_ENDPOINT = constants.RPC_ENDPOINT
 
 
 def print_balances(bob: str, alice: str, charlie: str, mixer: str) -> None:
-    print("Bob's ETH balance: ", w3.eth.getBalance(bob))
-    print("Alice's ETH balance: ", w3.eth.getBalance(alice))
-    print("Charlie's ETH balance: ", w3.eth.getBalance(charlie))
-    print("Mixer's ETH balance: ", w3.eth.getBalance(mixer))
+    print("BALANCES:")
+    print(f"  Alice   : {w3.eth.getBalance(bob)}")
+    print(f"  Bob     : {w3.eth.getBalance(alice)}")
+    print(f"  Charlie : {w3.eth.getBalance(charlie)}")
+    print(f"  Mixer   : {w3.eth.getBalance(mixer)}")
 
 
 def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
@@ -43,6 +45,20 @@ def main() -> None:
     charlie_eth_address = w3.eth.accounts[3]
 
     prover_client = ProverClient(TEST_GRPC_ENDPOINT)
+
+    coinstore_dir = os.environ['ZETH_COINSTORE']
+
+    # Keys and wallets
+    sk_alice = zeth.utils.get_private_key_from_bytes(
+        keystore["Alice"].addr_sk.encSK)
+    sk_bob = zeth.utils.get_private_key_from_bytes(
+        keystore["Bob"].addr_sk.encSK)
+    sk_charlie = zeth.utils.get_private_key_from_bytes(
+        keystore["Charlie"].addr_sk.encSK)
+
+    alice_wallet = Wallet("alice", coinstore_dir, sk_alice)
+    bob_wallet = Wallet("bob", coinstore_dir, sk_bob)
+    charlie_wallet = Wallet("charlie", coinstore_dir, sk_charlie)
 
     print("[INFO] 1. Fetching the verification key from the proving server")
     vk = prover_client.get_verification_key()
@@ -90,7 +106,7 @@ def main() -> None:
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob.cm_address_1
     # cm_address_bob_to_bob2 = result_deposit_bob_to_bob.cm_address_2 (unused)
     new_merkle_root_bob_to_bob = result_deposit_bob_to_bob.new_merkle_root
-    pk_sender_ciphertext_bob_to_bob = result_deposit_bob_to_bob.pk_sender
+    pk_sender_bob_to_bob = result_deposit_bob_to_bob.pk_sender
     ciphertext_bob_to_bob1 = result_deposit_bob_to_bob.ciphertext_1
     ciphertext_bob_to_bob2 = result_deposit_bob_to_bob.ciphertext_2
 
@@ -102,33 +118,13 @@ def main() -> None:
         mixer_instance.address
     )
 
-    # Construct sk and pk objects from bytes
-    sk_alice = zeth.utils.get_private_key_from_bytes(
-        keystore["Alice"].addr_sk.encSK)
-    pk_sender = zeth.utils.get_public_key_from_bytes(
-        pk_sender_ciphertext_bob_to_bob)
-
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
     # was the recipient but she wasn't the recipient (Bob was), so she fails to
     # decrypt
-    recovered_plaintext1 = zeth.utils.receive(
-        ciphertext_bob_to_bob1, pk_sender, sk_alice, "alice")
-    recovered_plaintext2 = zeth.utils.receive(
-        ciphertext_bob_to_bob2, pk_sender, sk_alice, "alice")
-    assert(recovered_plaintext1 == ""), \
-        "Alice decrypted a ciphertext that was not encrypted with her key!"
-    assert(recovered_plaintext2 == ""),\
-        "Alice decrypted a ciphertext that was not encrypted with her key!"
-    # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
-    # was the recipient but she wasn't the recipient (Bob was), so she fails to
-    # decrypt
-    recovered_plaintext1 = zeth.utils.receive(
-        ciphertext_bob_to_bob1, pk_sender, sk_alice, "alice")
-    recovered_plaintext2 = zeth.utils.receive(
-        ciphertext_bob_to_bob2, pk_sender, sk_alice, "alice")
-    assert(recovered_plaintext1 == ""), \
-        "Alice decrypted a ciphertext that was not encrypted with her key!"
-    assert(recovered_plaintext2 == ""),\
+    recovered_notes_alice = alice_wallet.receive_notes(
+        [ciphertext_bob_to_bob1, ciphertext_bob_to_bob2],
+        pk_sender_bob_to_bob)
+    assert(len(recovered_notes_alice) == 0), \
         "Alice decrypted a ciphertext that was not encrypted with her key!"
 
     # Bob does a transfer to Charlie on the mixer
@@ -141,12 +137,13 @@ def main() -> None:
 
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
-    sk_bob = zeth.utils.get_private_key_from_bytes(
-        keystore["Bob"].addr_sk.encSK)
-    input_note_json = json.loads(
-        zeth.utils.decrypt(ciphertext_bob_to_bob1, pk_sender, sk_bob))
-    input_note_bob_to_charlie = \
-        zeth.joinsplit.zethNoteObjFromParsed(input_note_json)
+    recovered_notes_bob = bob_wallet.receive_notes(
+        [ciphertext_bob_to_bob1, ciphertext_bob_to_bob2],
+        pk_sender_bob_to_bob)
+    assert(len(recovered_notes_bob) == 2), \
+        f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
+    input_note_bob_to_charlie = recovered_notes_bob[0]
+
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         prover_client,
@@ -167,7 +164,7 @@ def main() -> None:
     cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie.cm_address_2
     new_merkle_root_bob_to_charlie = \
         result_transfer_bob_to_charlie.new_merkle_root
-    pk_sender_ciphertext_bob_to_charlie = \
+    pk_sender_bob_to_charlie = \
         result_transfer_bob_to_charlie.pk_sender
     ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie.ciphertext_1
     ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie.ciphertext_2
@@ -200,28 +197,18 @@ def main() -> None:
         mixer_instance.address
     )
 
-    # Construct sk and pk objects from bytes
-    sk_charlie = zeth.utils.get_private_key_from_bytes(
-        keystore["Charlie"].addr_sk.encSK)
-    pk_sender = zeth.utils.get_public_key_from_bytes(
-        pk_sender_ciphertext_bob_to_charlie)
-
-    # Charlie tries to decrypt the ciphertexts from Bob's previous transaction
-    recovered_plaintext1 = zeth.utils.receive(
-        ciphertext_bob_to_charlie1, pk_sender, sk_charlie, "charlie")
-    recovered_plaintext2 = zeth.utils.receive(
-        ciphertext_bob_to_charlie2, pk_sender, sk_charlie, "charlie")
-    assert(recovered_plaintext1 == ""), \
-        "Charlie decrypted a ciphertext that was not encrypted with his key!"
-    assert(recovered_plaintext2 != ""), \
-        "Charlie was unable to decrypt the ciphertext obtained with his key!"
+    # Charlie recovers his notes.
+    notes_charlie = charlie_wallet.receive_notes(
+        [ciphertext_bob_to_charlie1, ciphertext_bob_to_charlie2],
+        pk_sender_bob_to_charlie)
+    assert(len(notes_charlie) == 1), \
+        f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
 
     # Charlie now gets the merkle path for the commitment he wants to spend
     mk_byte_tree = get_merkle_tree(mixer_instance)
     mk_path = zeth.utils.compute_merkle_path(
         cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
-    input_note_charlie_withdraw = zeth.joinsplit.zethNoteObjFromParsed(
-        json.loads(recovered_plaintext2))
+    input_note_charlie_withdraw = notes_charlie[0]
     result_charlie_withdrawal = scenario.charlie_withdraw(
         prover_client,
         mixer_instance,

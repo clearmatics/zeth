@@ -293,7 +293,7 @@ def deploy_tree_contract(
 
 def mix_pghr13(
         mixer_instance: Any,
-        pk_sender: str,
+        pk_sender: bytes,
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
@@ -329,7 +329,7 @@ def mix_pghr13(
 
 def mix_groth16(
         mixer_instance: Any,
-        pk_sender: str,
+        pk_sender: bytes,
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
@@ -356,7 +356,7 @@ def mix_groth16(
 
 def mix(
         mixer_instance: Any,
-        pk_sender: str,
+        pk_sender: bytes,
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
