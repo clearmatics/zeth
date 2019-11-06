@@ -6,7 +6,6 @@ from . import errors
 import argparse
 import sys
 import os
-import time
 from os.path import join, dirname, normpath
 # Import Pynacl required modules
 import eth_abi
@@ -113,6 +112,10 @@ def decrypt(
     Decrypts a string message by using valid ec25519 public key and private key
     objects.  See: https://pynacl.readthedocs.io/en/stable/public/
     """
+    assert(isinstance(pk_sender, PublicKey)), \
+        f"PublicKey: {pk_sender} ({type(pk_sender)})"
+    assert(isinstance(sk_receiver, PrivateKey)), \
+        f"PrivateKey: {sk_receiver} ({type(sk_receiver)})"
 
     # Init encryption box instance
     decryption_box = Box(sk_receiver, pk_sender)
@@ -157,30 +160,6 @@ def compute_merkle_path(
             merkle_path.append(w3.toHex(byte_tree[address + 1])[2:])
             address = int(address/2)
     return merkle_path
-
-
-def receive(
-        ciphertext: bytes,
-        pk_sender: PublicKey,
-        sk_receiver: PrivateKey,
-        username: str) -> str:
-    recovered_plaintext = ""
-    try:
-        recovered_plaintext = decrypt(ciphertext, pk_sender, sk_receiver)
-        print("[INFO] {} recovered one plaintext".format(username.capitalize()))
-        print("[INFO] {} received a payment!".format(username.capitalize()))
-        # Just as an example we write the received coin in the coinstore
-        print("[INFO] Writing the received note in the coinstore")
-        coinstore_dir = os.environ['ZETH_COINSTORE']
-        coin_filename = \
-            "{}_{}.json".format(username, int(round(time.time() * 1000)))
-        path_to_coin = os.path.join(coinstore_dir, coin_filename)
-        file = open(path_to_coin, "w")
-        file.write(recovered_plaintext)
-        file.close()
-    except Exception as e:
-        print(f"[ERROR] in receive. Might not be the recipient! (msg: {e})")
-    return recovered_plaintext
 
 
 def parse_zksnark_arg() -> str:
