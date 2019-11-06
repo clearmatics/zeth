@@ -2,35 +2,39 @@ syntax = "proto3";
 
 package proverpkg;
 
-message PackedDigest {
-    string part1 = 1; // First 253bits of the digest
-    string part2 = 2; // Last 3bits of the digest
-}
-
 message ZethNote {
     string aPK = 1;
-    string value = 2; // Hexadecimal string representing a int64
+    // Hex string representing a int64 value
+    string value = 2;
     string rho = 3;
     string trapR = 4;
 }
 
 message JSInput {
-    repeated string merkleNode = 1; // Merkle path to the commitment
+    // Merkle authentication path to the commitment
+    // of the note in the Merkle tree. Each node of
+    // the merkle tree is treated as a string here
+    repeated string merklePath = 1;
     int64 address = 2;
     ZethNote note = 3;
     string spendingASK = 4;
     string nullifier = 5;
 }
 
-// All the data is given as hexadecimal strings
+// Every point coordinate (ie: base field element)
+// is treated as an hexadecimal string here
 message HexadecimalPointBaseGroup1Affine {
+    // First point coordinate
     string xCoord = 1;
+    // Second point coordinate
     string yCoord = 2;
 }
 
 message HexadecimalPointBaseGroup2Affine {
+    // First point coordinate
     string xC1Coord = 1;
     string xC0Coord = 2;
+    // Second point coordinate
     string yC1Coord = 3;
     string yC0Coord = 4;
 }

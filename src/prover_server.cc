@@ -47,7 +47,6 @@ using grpc::StatusCode;
 using proverpkg::Prover;
 
 // Use the messages defined in the proto file
-using proverpkg::PackedDigest;
 using proverpkg::ProofInputs;
 
 // Instantiate the templates with the right types
