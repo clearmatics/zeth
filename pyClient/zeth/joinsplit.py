@@ -283,7 +283,7 @@ def create_joinsplit_input(
         ask: str,
         nullifier: str) -> JSInput:
     return JSInput(
-        merkleNode=merkle_path,
+        merklePath=merkle_path,
         address=address,
         note=note,
         spendingASK=ask,
