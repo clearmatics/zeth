@@ -37,7 +37,8 @@ template<typename ppT>
 void serialize_proving_key_to_file(
     provingKeyT<ppT> &pk, boost::filesystem::path pk_path);
 template<typename ppT>
-provingKeyT<ppT> deserialize_proving_key_from_file(boost::filesystem::path pk_path);
+provingKeyT<ppT> deserialize_proving_key_from_file(
+    boost::filesystem::path pk_path);
 template<typename ppT>
 void serialize_verification_key_to_file(
     verificationKeyT<ppT> &vk, boost::filesystem::path vk_path);

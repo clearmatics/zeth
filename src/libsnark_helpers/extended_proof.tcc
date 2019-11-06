@@ -52,7 +52,8 @@ void extended_proof<ppT>::write_primary_input(boost::filesystem::path path)
        << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < *this->primary_inputs.size(); ++i) {
         ss << "\"0x"
-           << hex_string_from_libsnark_bigint(*this->primary_inputs[i].as_bigint())
+           << hex_string_from_libsnark_bigint(
+                  *this->primary_inputs[i].as_bigint())
            << "\"";
         if (i < *this->primary_inputs.size() - 1) {
             ss << ", ";

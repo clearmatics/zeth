@@ -18,7 +18,8 @@ void prepare_proof_response(
         new prover_proto::HexadecimalPointBaseGroup1Affine();
 
     a->CopyFrom(format_hexadecimalPointBaseGroup1Affine(proof_obj.g_A));
-    b->CopyFrom(format_hexadecimalPointBaseGroup2Affine(proof_obj.g_B)); // in G2
+    b->CopyFrom(
+        format_hexadecimalPointBaseGroup2Affine(proof_obj.g_B)); // in G2
     c->CopyFrom(format_hexadecimalPointBaseGroup1Affine(proof_obj.g_C));
 
     libsnark::r1cs_ppzksnark_primary_input<ppT> public_inputs =
@@ -26,7 +27,8 @@ void prepare_proof_response(
     std::stringstream ss;
     ss << "[";
     for (size_t i = 0; i < public_inputs.size(); ++i) {
-        ss << "\"0x" << hex_string_from_libsnark_bigint(public_inputs[i].as_bigint())
+        ss << "\"0x"
+           << hex_string_from_libsnark_bigint(public_inputs[i].as_bigint())
            << "\"";
         if (i < public_inputs.size() - 1) {
             ss << ", ";
@@ -67,7 +69,8 @@ void prepare_verification_key_response(
     unsigned abc_length = vk.ABC_g1.rest.indices.size() + 1;
     ss << "[[" << get_point_g1_affine_as_hex_str(vk.ABC_g1.first) << "]";
     for (size_t i = 1; i < abc_length; ++i) {
-        auto vk_abc_i = get_point_g1_affine_as_hex_str(vk.ABC_g1.rest.values[i - 1]);
+        auto vk_abc_i =
+            get_point_g1_affine_as_hex_str(vk.ABC_g1.rest.values[i - 1]);
         ss << ",[" << vk_abc_i << "]";
     }
     ss << "]";

@@ -20,12 +20,13 @@ zeth_note parse_zeth_note(const prover_proto::ZethNote &note);
 template<typename FieldT> FieldT parse_merkle_node(std::string mk_node);
 
 template<typename FieldT>
-joinsplit_input<FieldT> parse_joinsplit_input(const prover_proto::JoinsplitInput &input);
+joinsplit_input<FieldT> parse_joinsplit_input(
+    const prover_proto::JoinsplitInput &input);
 
-prover_proto::HexadecimalPointBaseGroup1Affine format_hexadecimalPointBaseGroup1Affine(
-    libff::alt_bn128_G1 point);
-prover_proto::HexadecimalPointBaseGroup2Affine format_hexadecimalPointBaseGroup2Affine(
-    libff::alt_bn128_G2 point);
+prover_proto::HexadecimalPointBaseGroup1Affine
+format_hexadecimalPointBaseGroup1Affine(libff::alt_bn128_G1 point);
+prover_proto::HexadecimalPointBaseGroup2Affine
+format_hexadecimalPointBaseGroup2Affine(libff::alt_bn128_G2 point);
 
 } // namespace libzeth
 #include "util_api.tcc"

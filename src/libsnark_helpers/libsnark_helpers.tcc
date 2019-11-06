@@ -61,7 +61,8 @@ void serialize_proving_key_to_file(
 };
 
 template<typename ppT>
-provingKeyT<ppT> deserialize_proving_key_from_file(boost::filesystem::path pk_path)
+provingKeyT<ppT> deserialize_proving_key_from_file(
+    boost::filesystem::path pk_path)
 {
     return load_from_file<provingKeyT<ppT>>(pk_path);
 };
@@ -159,7 +160,7 @@ void array_to_json(
     libsnark::protoboard<libff::Fr<ppT>> pb, uint, boost::filesystem::path path)
 {
     if (path.empty()) {
-         // Used for debugging purpose
+        // Used for debugging purpose
         boost::filesystem::path tmp_path = get_path_to_debug_directory();
         boost::filesystem::path array_json_file("array.json");
         path = tmp_path / array_json_file;
@@ -226,11 +227,14 @@ void r1cs_to_json(
 
     for (size_t c = 0; c < constraints.num_constraints(); ++c) {
         ss << "["; // << "\"A\"=";
-        fill_stringstream_with_json_constraints<ppT>(constraints.constraints[c].a, ss);
+        fill_stringstream_with_json_constraints<ppT>(
+            constraints.constraints[c].a, ss);
         ss << ","; // << "\"B\"=";
-        fill_stringstream_with_json_constraints<ppT>(constraints.constraints[c].b, ss);
+        fill_stringstream_with_json_constraints<ppT>(
+            constraints.constraints[c].b, ss);
         ss << ","; // << "\"A\"=";;
-        fill_stringstream_with_json_constraints<ppT>(constraints.constraints[c].c, ss);
+        fill_stringstream_with_json_constraints<ppT>(
+            constraints.constraints[c].c, ss);
         if (c == constraints.num_constraints() - 1) {
             ss << "]\n";
         } else {
@@ -251,7 +255,7 @@ void primary_input_to_json(
     boost::filesystem::path path)
 {
     if (path.empty()) {
-         // Used for debugging purpose
+        // Used for debugging purpose
         boost::filesystem::path tmp_path = get_path_to_debug_directory();
         boost::filesystem::path primary_input_json_file("primary_input.json");
         path = tmp_path / primary_input_json_file;
