@@ -1,4 +1,5 @@
 import zeth.utils
+from . import test_utils
 from unittest import TestCase
 
 
@@ -10,7 +11,7 @@ class TestZethConstants(TestCase):
         """
         message = "Join Clearmatics, we are hiring!"
 
-        keypair_alice_bytes, keypair_bob_bytes, _ = zeth.utils.gen_keys_utility()
+        keypair_alice_bytes, keypair_bob_bytes, _ = test_utils.gen_keys_utility()
 
         pk_alice = zeth.utils.get_public_key_from_bytes(keypair_alice_bytes[0])
         sk_alice = zeth.utils.get_private_key_from_bytes(keypair_alice_bytes[1])
