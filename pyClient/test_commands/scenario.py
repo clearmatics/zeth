@@ -48,7 +48,7 @@ def bob_deposit(
     v_in = to_zeth_units(str(BOB_DEPOSIT_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        joinsplit.getProofJoinsplit2By2(
+        joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
             input_note1,
@@ -87,7 +87,7 @@ def bob_deposit(
     hash_proof = sha256(encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = joinsplit.encode_pub_input_to_hash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
@@ -130,15 +130,15 @@ def bob_to_charlie(
     bob_ask = keystore["Bob"].addr_sk.aSK
 
     # Create the an additional dummy input for the JoinSplit
-    (input_note2, input_nullifier2, input_address2) = mock.getDummyInput(
+    (input_note2, input_nullifier2, input_address2) = mock.get_dummy_input(
         bob_apk, bob_ask)
-    dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
+    dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(BOB_TO_CHARLIE_ETH), 'ether')
     note2_value = to_zeth_units(str(BOB_TO_CHARLIE_CHANGE_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        joinsplit.getProofJoinsplit2By2(
+        joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
             input_note1,
@@ -174,7 +174,7 @@ def bob_to_charlie(
     hash_proof = sha256(encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = joinsplit.encode_pub_input_to_hash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
@@ -215,15 +215,15 @@ def charlie_withdraw(
     charlie_ask = keystore["Charlie"].addr_sk.aSK
 
     # Create the an additional dummy input for the JoinSplit
-    (input_note2, input_nullifier2, input_address2) = mock.getDummyInput(
+    (input_note2, input_nullifier2, input_address2) = mock.get_dummy_input(
         charlie_apk, charlie_ask)
-    dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
+    dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
     v_out = to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        joinsplit.getProofJoinsplit2By2(
+        joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
             input_note1,
@@ -263,7 +263,7 @@ def charlie_withdraw(
     hash_proof = sha256(encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = joinsplit.encode_pub_input_to_hash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
@@ -311,14 +311,14 @@ def charlie_double_withdraw(
 
     # Create the an additional dummy input for the JoinSplit
     (input_note2, input_nullifier2, input_address2) = \
-        mock.getDummyInput(charlie_apk, charlie_ask)
-    dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
+        mock.get_dummy_input(charlie_apk, charlie_ask)
+    dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
     v_out = to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        joinsplit.getProofJoinsplit2By2(
+        joinsplit.getProofJoinspliget_proof_joinsplit_2_by_2t2By2(
             prover_client,
             mk_root,
             input_note1,
@@ -368,7 +368,7 @@ def charlie_double_withdraw(
     hash_proof = sha256(encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = joinsplit.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = joinsplit.encode_pub_input_to_hash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature

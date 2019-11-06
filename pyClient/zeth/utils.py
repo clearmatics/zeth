@@ -46,7 +46,7 @@ def hex_digest_to_binary_string(digest: str) -> str:
     return "".join(reversed([i+j for i, j in zipped]))
 
 
-def hex2int(elements: List[str]) -> List[int]:
+def hex_to_int(elements: List[str]) -> List[int]:
     """
     Given an error of hex strings, return an array of int values
     """

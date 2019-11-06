@@ -96,19 +96,19 @@ def deploy_pghr13_verifier(
     """
     # Deploy the verifier contract with the good verification key
     tx_hash = verifier.constructor(
-        A1=hex2int(vk["a"][0]),
-        A2=hex2int(vk["a"][1]),
-        B=hex2int(vk["b"]),
-        C1=hex2int(vk["c"][0]),
-        C2=hex2int(vk["c"][1]),
-        gamma1=hex2int(vk["g"][0]),
-        gamma2=hex2int(vk["g"][1]),
-        gammaBeta1=hex2int(vk["gb1"]),
-        gammaBeta2_1=hex2int(vk["gb2"][0]),
-        gammaBeta2_2=hex2int(vk["gb2"][1]),
-        Z1=hex2int(vk["z"][0]),
-        Z2=hex2int(vk["z"][1]),
-        IC_coefficients=hex2int(sum(vk["IC"], []))
+        A1=zeth.utils.hex_to_int(vk["a"][0]),
+        A2=zeth.utils.hex_to_int(vk["a"][1]),
+        B=zeth.utils.hex_to_int(vk["b"]),
+        C1=zeth.utils.hex_to_int(vk["c"][0]),
+        C2=zeth.utils.hex_to_int(vk["c"][1]),
+        gamma1=zeth.utils.hex_to_int(vk["g"][0]),
+        gamma2=zeth.utils.hex_to_int(vk["g"][1]),
+        gammaBeta1=zeth.utils.hex_to_int(vk["gb1"]),
+        gammaBeta2_1=zeth.utils.hex_to_int(vk["gb2"][0]),
+        gammaBeta2_2=zeth.utils.hex_to_int(vk["gb2"][1]),
+        Z1=zeth.utils.hex_to_int(vk["z"][0]),
+        Z2=zeth.utils.hex_to_int(vk["z"][1]),
+        IC_coefficients=zeth.utils.hex_to_int(sum(vk["IC"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address
@@ -166,12 +166,12 @@ def deploy_groth16_verifier(
     """
     # Deploy the verifier contract with the good verification key
     tx_hash = verifier.constructor(
-        Alpha=hex2int(vk["alpha_g1"]),
-        Beta1=hex2int(vk["beta_g2"][0]),
-        Beta2=hex2int(vk["beta_g2"][1]),
-        Delta1=hex2int(vk["delta_g2"][0]),
-        Delta2=hex2int(vk["delta_g2"][1]),
-        ABC_coords=hex2int(sum(vk["abc_g1"], []))
+        Alpha=zeth.utils.hex_to_int(vk["alpha_g1"]),
+        Beta1=zeth.utils.hex_to_int(vk["beta_g2"][0]),
+        Beta2=zeth.utils.hex_to_int(vk["beta_g2"][1]),
+        Delta1=zeth.utils.hex_to_int(vk["delta_g2"][0]),
+        Delta2=zeth.utils.hex_to_int(vk["delta_g2"][1]),
+        ABC_coords=zeth.utils.hex_to_int(sum(vk["abc_g1"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address
@@ -306,18 +306,18 @@ def mix_pghr13(
     Call to the mixer's mix function to do zero knowledge payments
     """
     tx_hash = mixer_instance.functions.mix(
-        hex2int(parsed_proof["a"]),
-        hex2int(parsed_proof["a_p"]),
-        [hex2int(parsed_proof["b"][0]),
-         hex2int(parsed_proof["b"][1])],
-        hex2int(parsed_proof["b_p"]),
-        hex2int(parsed_proof["c"]),
-        hex2int(parsed_proof["c_p"]),
-        hex2int(parsed_proof["h"]),
-        hex2int(parsed_proof["k"]),
+        zeth.utils.hex_to_int(parsed_proof["a"]),
+        zeth.utils.hex_to_int(parsed_proof["a_p"]),
+        [zeth.utils.hex_to_int(parsed_proof["b"][0]),
+         zeth.utils.hex_to_int(parsed_proof["b"][1])],
+        zeth.utils.hex_to_int(parsed_proof["b_p"]),
+        zeth.utils.hex_to_int(parsed_proof["c"]),
+        zeth.utils.hex_to_int(parsed_proof["c_p"]),
+        zeth.utils.hex_to_int(parsed_proof["h"]),
+        zeth.utils.hex_to_int(parsed_proof["k"]),
         [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
         int(sigma),
-        hex2int(parsed_proof["inputs"]),
+        zeth.utils.hex_to_int(parsed_proof["inputs"]),
         pk_sender,
         ciphertext1,
         ciphertext2,
@@ -339,12 +339,13 @@ def mix_groth16(
         wei_pub_value: int,
         call_gas: int) -> MixResult:
     tx_hash = mixer_instance.functions.mix(
-        hex2int(parsed_proof["a"]),
-        [hex2int(parsed_proof["b"][0]), hex2int(parsed_proof["b"][1])],
-        hex2int(parsed_proof["c"]),
+        zeth.utils.hex_to_int(parsed_proof["a"]),
+        [zeth.utils.hex_to_int(parsed_proof["b"][0]),
+         zeth.utils.hex_to_int(parsed_proof["b"][1])],
+        zeth.utils.hex_to_int(parsed_proof["c"]),
         [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
         int(sigma),
-        hex2int(parsed_proof["inputs"]),
+        zeth.utils.hex_to_int(parsed_proof["inputs"]),
         pk_sender,
         ciphertext1,
         ciphertext2,

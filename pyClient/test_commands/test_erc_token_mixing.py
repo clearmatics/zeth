@@ -110,7 +110,7 @@ def main() -> None:
     alice_eth_address = w3.eth.accounts[2]
     charlie_eth_address = w3.eth.accounts[3]
     # Zeth addresses
-    keystore = mock.initTestKeystore()
+    keystore = mock.init_test_keystore()
     # Depth of the merkle tree (need to match the one used in the cpp prover)
     mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
 
@@ -134,7 +134,7 @@ def main() -> None:
     vk = prover_client.get_verification_key()
 
     print("[INFO] 2. Received VK, writing the key...")
-    zeth.joinsplit.writeVerificationKey(vk, zksnark)
+    zeth.joinsplit.write_verification_key(vk, zksnark)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     (proof_verifier_interface, otsig_verifier_interface, mixer_interface) = \
