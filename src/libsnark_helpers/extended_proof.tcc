@@ -35,10 +35,10 @@ template<typename ppT>
 void extended_proof<ppT>::write_primary_input(boost::filesystem::path path)
 {
     if (path.empty()) {
-        boost::filesystem::path tmp_path =
-            getPathToDebugDir(); // Used for a debug purpose
-        boost::filesystem::path primary_input_json("primary_input.json");
-        path = tmp_path / primary_input_json;
+        // Used for debugging purpose
+        boost::filesystem::path tmp_path = get_path_to_debug_directory();
+        boost::filesystem::path primary_input_json_file("primary_input.json");
+        path = tmp_path / primary_input_json_file;
     }
     // Convert the boost path into char*
     const char *str_path = path.string().c_str();
@@ -52,7 +52,7 @@ void extended_proof<ppT>::write_primary_input(boost::filesystem::path path)
        << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < *this->primary_inputs.size(); ++i) {
         ss << "\"0x"
-           << HexStringFromLibsnarkBigint(*this->primary_inputs[i].as_bigint())
+           << hex_string_from_libsnark_bigint(*this->primary_inputs[i].as_bigint())
            << "\"";
         if (i < *this->primary_inputs.size() - 1) {
             ss << ", ";
@@ -74,7 +74,7 @@ template<typename ppT> void extended_proof<ppT>::dump_primary_inputs()
               << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < (*this->primary_inputs).size(); ++i) {
         std::cout << "\"0x"
-                  << HexStringFromLibsnarkBigint(
+                  << hex_string_from_libsnark_bigint(
                          (*this->primary_inputs)[i].as_bigint())
                   << "\"";
         if (i < (*this->primary_inputs).size() - 1) {
@@ -88,18 +88,18 @@ template<typename ppT> void extended_proof<ppT>::dump_primary_inputs()
 template<typename ppT>
 void extended_proof<ppT>::write_proof(boost::filesystem::path path)
 {
-    proofToJson<ppT>(*this->proof, path);
+    proof_to_json<ppT>(*this->proof, path);
 };
 
 template<typename ppT>
 void extended_proof<ppT>::write_extended_proof(boost::filesystem::path path)
 {
-    proofAndInputToJson<ppT>(*this->proof, *this->primary_inputs, path);
+    proof_and_inputs_to_json<ppT>(*this->proof, *this->primary_inputs, path);
 };
 
 template<typename ppT> void extended_proof<ppT>::dump_proof()
 {
-    displayProof<ppT>(*this->proof);
+    display_proof<ppT>(*this->proof);
 };
 
 } // namespace libzeth

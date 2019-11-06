@@ -34,7 +34,7 @@ namespace
 {
 
 bool TestValidJS2In2Case1(
-    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
@@ -55,7 +55,7 @@ bool TestValidJS2In2Case1(
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("Create JSInput", true);
+    libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -92,9 +92,9 @@ bool TestValidJS2In2Case1(
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs: 1 note of value > 0 to spend, and a dummy note
-    ZethNote note_input(
+    zeth_note note_input(
         a_pk_bits256, value_bits64, rho_bits256, trap_r_bits384);
-    ZethNote note_dummy_input(
+    zeth_note note_dummy_input(
         a_pk_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("0000000000000000")),
@@ -102,27 +102,27 @@ bool TestValidJS2In2Case1(
             "AAAA00000000000000000000000000000000000000000000000000000000EEE"
             "E")),
         trap_r_bits384);
-    JSInput<FieldT> input(
+    joinsplit_input<FieldT> input(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_input,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    JSInput<FieldT> input_dummy(
+    joinsplit_input<FieldT> input_dummy(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_dummy_input,
         a_sk_bits256,
         nf_bits256);
-    std::array<JSInput<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT>, 2> inputs;
     inputs[0] = input;
     inputs[1] = input_dummy;
-    libff::leave_block("Create JSInput", true);
+    libff::leave_block("Create joinsplit_input", true);
 
-    libff::enter_block("Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/zeth_note", true);
     bits64 value_out_bits64 = get_bits64_from_vector(
         hexadecimal_str_to_binary_vector("1800000000000008"));
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
@@ -134,12 +134,12 @@ bool TestValidJS2In2Case1(
             "11000000000000990000000000000099000000000000007700000000000000FF00"
             "000000000000FF0000000000000777"));
 
-    ZethNote note_output(
+    zeth_note note_output(
         a_pk_out_bits256,
         value_out_bits64,
         rho_out_bits256,
         trap_r_out_bits384);
-    ZethNote note_dummy_output(
+    zeth_note note_dummy_output(
         a_pk_out_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("0000000000000000")),
@@ -147,10 +147,10 @@ bool TestValidJS2In2Case1(
         trap_r_out_bits384);
     bits64 value_pub_out_bits64 = get_bits64_from_vector(
         hexadecimal_str_to_binary_vector("1700000000000007"));
-    std::array<ZethNote, 2> outputs;
+    std::array<zeth_note, 2> outputs;
     outputs[0] = note_output;
     outputs[1] = note_dummy_output;
-    libff::leave_block("Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate proof", true);
     extended_proof<ppT> ext_proof = prover.prove(
@@ -180,7 +180,7 @@ bool TestValidJS2In2Case1(
 }
 
 bool TestValidJS2In2Case2(
-    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     libff::print_header(
@@ -200,7 +200,7 @@ bool TestValidJS2In2Case2(
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("Create JSInput", true);
+    libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -237,38 +237,38 @@ bool TestValidJS2In2Case2(
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
-    ZethNote note_input0(
+    zeth_note note_input0(
         a_pk_bits256,
         value_bits64, // value associated with the commitment cm_field
         rho_bits256,
         trap_r_bits384);
-    ZethNote note_input1(
+    zeth_note note_input1(
         a_pk_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    JSInput<FieldT> input0(
+    joinsplit_input<FieldT> input0(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_input0,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    JSInput<FieldT> input1(
+    joinsplit_input<FieldT> input1(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<JSInput<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
-    libff::leave_block("Create JSInput", true);
+    libff::leave_block("Create joinsplit_input", true);
 
-    libff::enter_block("Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/zeth_note", true);
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("7777f753bfe21ba2219ced74875b8dbd8c"
                                             "114c3c79d7e41306dd82118de1895b"));
@@ -277,22 +277,22 @@ bool TestValidJS2In2Case2(
         get_bits384_from_vector(hexadecimal_str_to_binary_vector(
             "11000000000000990000000000000099000000000000007700000000000000FF00"
             "000000000000FF0000000000000777"));
-    ZethNote note_output0(
+    zeth_note note_output0(
         a_pk_out_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("1A00000000000002")),
         rho_out_bits256,
         trap_r_out_bits384);
-    ZethNote note_output1(
+    zeth_note note_output1(
         a_pk_out_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("1500000000000002")),
         rho_out_bits256,
         trap_r_out_bits384);
-    std::array<ZethNote, 2> outputs;
+    std::array<zeth_note, 2> outputs;
     outputs[0] = note_output0;
     outputs[1] = note_output1;
-    libff::leave_block("Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate proof", true);
     // RHS = 0x1A00000000000002 + 0x1500000000000002 + 0x000000000000000B =
@@ -321,7 +321,7 @@ bool TestValidJS2In2Case2(
 }
 
 bool TestValidJS2In2Case3(
-    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
@@ -342,7 +342,7 @@ bool TestValidJS2In2Case3(
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("Create JSInput", true);
+    libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -379,38 +379,38 @@ bool TestValidJS2In2Case3(
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
-    ZethNote note_input0(
+    zeth_note note_input0(
         a_pk_bits256,
         value_bits64, // value associated with the commitment cm_field
         rho_bits256,
         trap_r_bits384);
-    ZethNote note_input1(
+    zeth_note note_input1(
         a_pk_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    JSInput<FieldT> input0(
+    joinsplit_input<FieldT> input0(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_input0,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    JSInput<FieldT> input1(
+    joinsplit_input<FieldT> input1(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<JSInput<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
-    libff::leave_block("Create JSInput", true);
+    libff::leave_block("Create joinsplit_input", true);
 
-    libff::enter_block("Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/zeth_note", true);
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("7777f753bfe21ba2219ced74875b8dbd8c"
                                             "114c3c79d7e41306dd82118de1895b"));
@@ -420,22 +420,22 @@ bool TestValidJS2In2Case3(
             "11000000000000990000000000000099000000000000007700000000000000FF00"
             "000000000000FF0000000000000777"));
 
-    ZethNote note_output0(
+    zeth_note note_output0(
         a_pk_out_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("1A00000000000012")),
         rho_out_bits256,
         trap_r_out_bits384);
-    ZethNote note_output1(
+    zeth_note note_output1(
         a_pk_out_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("1500000000000002")),
         rho_out_bits256,
         trap_r_out_bits384);
-    std::array<ZethNote, 2> outputs;
+    std::array<zeth_note, 2> outputs;
     outputs[0] = note_output0;
     outputs[1] = note_output1;
-    libff::leave_block("Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate proof", true);
     // (RHS) 0x1A00000000000012 + 0x1500000000000002 + 0x000000000000000B =
@@ -464,7 +464,7 @@ bool TestValidJS2In2Case3(
 }
 
 bool TestValidJS2In2Deposit(
-    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
@@ -484,7 +484,7 @@ bool TestValidJS2In2Deposit(
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("Create JSInput", true);
+    libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -520,39 +520,39 @@ bool TestValidJS2In2Deposit(
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
-    ZethNote note_input0(
+    zeth_note note_input0(
         a_pk_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    ZethNote note_input1(
+    zeth_note note_input1(
         a_pk_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    JSInput<FieldT> input0(
+    joinsplit_input<FieldT> input0(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_input0,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    JSInput<FieldT> input1(
+    joinsplit_input<FieldT> input1(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<JSInput<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
-    libff::leave_block("Create JSInput", true);
+    libff::leave_block("Create joinsplit_input", true);
 
-    libff::enter_block("Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/zeth_note", true);
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("7777f753bfe21ba2219ced74875b8dbd8c"
                                             "114c3c79d7e41306dd82118de1895b"));
@@ -561,22 +561,22 @@ bool TestValidJS2In2Deposit(
         get_bits384_from_vector(hexadecimal_str_to_binary_vector(
             "11000000000000990000000000000099000000000000007700000000000000FF00"
             "000000000000FF0000000000000777"));
-    ZethNote note_output0(
+    zeth_note note_output0(
         a_pk_out_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("3782DACE9D900000")),
         rho_out_bits256,
         trap_r_out_bits384);
-    ZethNote note_output1(
+    zeth_note note_output1(
         a_pk_out_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("29A2241AF62C0000")),
         rho_out_bits256,
         trap_r_out_bits384);
-    std::array<ZethNote, 2> outputs;
+    std::array<zeth_note, 2> outputs;
     outputs[0] = note_output0;
     outputs[1] = note_output1;
-    libff::leave_block("Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate proof", true);
     // RHS = 0x0 + 0x3782DACE9D900000 + 0x29A2241AF62C0000 = 0x6124FEE993BC0000
@@ -607,7 +607,7 @@ bool TestValidJS2In2Deposit(
 }
 
 bool TestInvalidJS2In2(
-    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
@@ -627,7 +627,7 @@ bool TestInvalidJS2In2(
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
     // -- //
-    libff::enter_block("Create JSInput", true);
+    libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
     bits384 trap_r_bits384 =
@@ -662,39 +662,39 @@ bool TestInvalidJS2In2(
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // JS Inputs
-    ZethNote note_input0(
+    zeth_note note_input0(
         a_pk_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    ZethNote note_input1(
+    zeth_note note_input1(
         a_pk_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    JSInput<FieldT> input0(
+    joinsplit_input<FieldT> input0(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_input0,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    JSInput<FieldT> input1(
+    joinsplit_input<FieldT> input1(
         path,
-        get_bitsAddr_from_vector(address_bits),
+        get_bits_addr_from_vector(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<JSInput<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
-    libff::leave_block("Create JSInput", true);
+    libff::leave_block("Create joinsplit_input", true);
 
-    libff::enter_block("Create JSOutput/ZethNote", true);
+    libff::enter_block("Create JSOutput/zeth_note", true);
     bits256 a_pk_out_bits256 = get_bits256_from_vector(
         hexadecimal_digest_to_binary_vector("7777f753bfe21ba2219ced74875b8dbd8c"
                                             "114c3c79d7e41306dd82118de1895b"));
@@ -705,23 +705,23 @@ bool TestInvalidJS2In2(
             "000000000000FF0000000000000777"));
 
     // 0x8530000A00000000 = 9.597170848876199937 ETH
-    ZethNote note_output0(
+    zeth_note note_output0(
         a_pk_out_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("8530000A00000001")),
         rho_out_bits256,
         trap_r_out_bits384);
     // 0x7550000A00000000 = 8.453256543524093952 ETH
-    ZethNote note_output1(
+    zeth_note note_output1(
         a_pk_out_bits256,
         get_bits64_from_vector(
             hexadecimal_str_to_binary_vector("7550000A00000000")),
         rho_out_bits256,
         trap_r_out_bits384);
-    std::array<ZethNote, 2> outputs;
+    std::array<zeth_note, 2> outputs;
     outputs[0] = note_output0;
     outputs[1] = note_output1;
-    libff::leave_block("Create JSOutput/ZethNote", true);
+    libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate proof", true);
     // LHS = 0xFA80001400000000 (18.050427392400293888 ETH) =/=
@@ -756,7 +756,7 @@ TEST(MainTests, ProofGenAndVerifJS2to2)
 {
     // Run the trusted setup once for all tests, and keep the keypair in memory
     // for the duration of the tests
-    CircuitWrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> proverJS2to2;
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> proverJS2to2;
 
     libzeth::keyPairT<ppT> keypair = proverJS2to2.generate_trusted_setup();
     bool res = false;

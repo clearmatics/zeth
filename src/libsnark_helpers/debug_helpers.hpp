@@ -17,15 +17,15 @@
 namespace libzeth
 {
 
-libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(
+libff::bigint<libff::alt_bn128_r_limbs> libsnark_bigint_from_bytes(
     const uint8_t *_x);
-std::string HexStringFromLibsnarkBigint(
+std::string hex_string_from_libsnark_bigint(
     libff::bigint<libff::alt_bn128_r_limbs> _x);
-std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p);
-std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p);
+std::string get_point_g1_affine_as_hex_str(libff::alt_bn128_G1 _p);
+std::string get_point_g2_affine_as_hex_str(libff::alt_bn128_G2 _p);
 
-boost::filesystem::path getPathToSetupDir();
-boost::filesystem::path getPathToDebugDir();
+boost::filesystem::path get_path_to_setup_directory();
+boost::filesystem::path get_path_to_debug_directory();
 
 bool replace(std::string &str, const std::string &from, const std::string &to);
 

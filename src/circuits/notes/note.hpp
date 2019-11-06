@@ -15,7 +15,7 @@
 
 // Get the bits typedefs and associated functions
 #include "types/bits.hpp"
-// Get the ZethNote class
+// Get the zeth_note class
 #include "types/note.hpp"
 
 namespace libzeth
@@ -36,7 +36,7 @@ public:
         libsnark::protoboard<FieldT> &pb,
         const std::string &annotation_prefix = "note_gadget");
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(const ZethNote &note);
+    void generate_r1cs_witness(const zeth_note &note);
 };
 
 // Gadget that makes sure that all conditions are met in order to spend a note:
@@ -101,7 +101,7 @@ public:
     void generate_r1cs_witness(
         const std::vector<FieldT> merkle_path,
         libff::bit_vector address_bits,
-        const ZethNote &note);
+        const zeth_note &note);
 };
 
 // Commit to the output notes of the JS
@@ -127,7 +127,7 @@ public:
         std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
         const std::string &annotation_prefix = "output_note_gadget");
     void generate_r1cs_constraints();
-    void generate_r1cs_witness(const ZethNote &note);
+    void generate_r1cs_witness(const zeth_note &note);
 };
 
 } // namespace libzeth
