@@ -12,7 +12,7 @@ template<typename FieldT> FieldT ParseMerkleNode(std::string mk_node)
 template<typename FieldT>
 libzeth::JSInput<FieldT> ParseJSInput(const proverpkg::JSInput &input)
 {
-    if (ZETH_MERKLE_TREE_DEPTH != input.merklenode_size()) {
+    if (ZETH_MERKLE_TREE_DEPTH != input.merklepath_size()) {
         throw std::invalid_argument("Invalid merkle path length");
     }
 
@@ -28,7 +28,7 @@ libzeth::JSInput<FieldT> ParseJSInput(const proverpkg::JSInput &input)
 
     std::vector<FieldT> inputMerklePath;
     for (int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
-        FieldT mk_node = ParseMerkleNode<FieldT>(input.merklenode(i));
+        FieldT mk_node = ParseMerkleNode<FieldT>(input.merklepath(i));
         inputMerklePath.push_back(mk_node);
     }
 
