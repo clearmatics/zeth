@@ -35,7 +35,7 @@ def hex_digest_to_binary_string(digest):
     return binary(digest)
 
 
-def hex2int(elements):
+def hex_to_int(elements):
     """
     Given an error of hex strings, return an array of int values
     """

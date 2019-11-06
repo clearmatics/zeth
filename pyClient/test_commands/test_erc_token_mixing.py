@@ -85,15 +85,15 @@ if __name__ == '__main__':
     alice_eth_address = w3.eth.accounts[2]
     charlie_eth_address = w3.eth.accounts[3]
     # Zeth addresses
-    keystore = mock.initTestKeystore()
+    keystore = mock.init_test_keystore()
     # Depth of the merkle tree (need to match the one used in the cpp prover)
     mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
 
     print("[INFO] 1. Fetching the verification key from the proving server")
-    vk = zeth.grpc.getVerificationKey(test_grpc_endpoint)
+    vk = zeth.grpc.get_verification_key(test_grpc_endpoint)
 
     print("[INFO] 2. Received VK, writing the key...")
-    zeth.grpc.writeVerificationKey(vk, zksnark)
+    zeth.grpc.write_verification_key(vk, zksnark)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     token_interface = compile_token()
@@ -185,7 +185,7 @@ if __name__ == '__main__':
 
     # Construct sk and pk objects from bytes
     alice_sk = zeth.utils.get_private_key_from_bytes(
-        keystore["Alice"]["AddrSk"]["encSK"])
+        keystore["Alice"]["addr_sk"]["enc_sk"])
     pk_sender = zeth.utils.get_public_key_from_bytes(pk_sender_bob_to_bob)
 
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she was the recipient
@@ -209,11 +209,11 @@ if __name__ == '__main__':
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
     bob_sk = zeth.utils.get_private_key_from_bytes(
-        keystore["Bob"]["AddrSk"]["encSK"])
+        keystore["Bob"]["addr_sk"]["enc_sk"])
     input_note_json = json.loads(
         zeth.utils.decrypt(ciphertext_bob_to_bob1, pk_sender, bob_sk))
     input_note_bob_to_charlie = \
-        zeth.grpc.zethNoteObjFromParsed(input_note_json)
+        zeth.grpc.zeth_note_obj_from_parsed(input_note_json)
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         test_grpc_endpoint,
@@ -266,7 +266,7 @@ if __name__ == '__main__':
 
     # Construct sk and pk objects from bytes
     charlie_sk = zeth.utils.get_private_key_from_bytes(
-        keystore["Charlie"]["AddrSk"]["encSK"])
+        keystore["Charlie"]["addr_sk"]["enc_sk"])
     pk_sender = zeth.utils.get_public_key_from_bytes(pk_sender_bob_to_charlie)
 
     # Charlie tries to decrypt the ciphertexts from Bob's previous transaction
@@ -283,7 +283,7 @@ if __name__ == '__main__':
     mk_byte_tree = get_merkle_tree(mixer_instance)
     mk_path = zeth.utils.compute_merkle_path(
         cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
-    input_note_charlie_withdraw = zeth.grpc.zethNoteObjFromParsed(
+    input_note_charlie_withdraw = zeth.grpc.zeth_note_obj_from_parsed(
         json.loads(recovered_plaintext2))
     result_charlie_withdrawal = scenario.charlie_withdraw(
         test_grpc_endpoint,

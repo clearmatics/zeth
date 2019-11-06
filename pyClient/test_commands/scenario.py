@@ -34,19 +34,19 @@ def bob_deposit(
     print(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and splits into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
-    bob_apk = keystore["Bob"]["AddrPk"]["aPK"]
-    bob_ask = keystore["Bob"]["AddrSk"]["aSK"]
+    bob_apk = keystore["Bob"]["addr_pk"]["apk"]
+    bob_ask = keystore["Bob"]["addr_sk"]["ask"]
     # Create the JoinSplit dummy inputs for the deposit
-    (input_note1, input_nullifier1, input_address1) = mock.getDummyInput(bob_apk, bob_ask)
-    (input_note2, input_nullifier2, input_address2) = mock.getDummyInput(bob_apk, bob_ask)
-    dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
+    (input_note1, input_nullifier1, input_address1) = mock.get_dummy_input(bob_apk, bob_ask)
+    (input_note2, input_nullifier2, input_address2) = mock.get_dummy_input(bob_apk, bob_ask)
+    dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = zeth.utils.to_zeth_units(str(BOB_SPLIT_1_ETH), 'ether')
     note2_value = zeth.utils.to_zeth_units(str(BOB_SPLIT_2_ETH), 'ether')
     v_in = zeth.utils.to_zeth_units(str(BOB_DEPOSIT_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        zeth.grpc.getProofJoinsplit2By2(
+        zeth.grpc.get_proof_joinsplit_2_by_2(
             test_grpc_endpoint,
             mk_root,
             input_note1,
@@ -65,14 +65,14 @@ def bob_deposit(
             zksnark
     )
 
-    output_note1_str = json.dumps(zeth.grpc.parseZethNote(output_note1))
-    output_note2_str = json.dumps(zeth.grpc.parseZethNote(output_note2))
+    output_note1_str = json.dumps(zeth.grpc.parse_zeth_note(output_note1))
+    output_note2_str = json.dumps(zeth.grpc.parse_zeth_note(output_note2))
 
     # generate ephemeral ec25519 key
     eph_sk_bob = PrivateKey.generate()
 
     # construct pk object from bytes
-    pk_bob = zeth.utils.get_public_key_from_bytes(keystore["Bob"]["AddrPk"]["encPK"])
+    pk_bob = zeth.utils.get_public_key_from_bytes(keystore["Bob"]["addr_pk"]["enc_pk"])
 
     # encrypt the coins
     ciphertext1 = zeth.utils.encrypt(output_note1_str, pk_bob, eph_sk_bob)
@@ -93,7 +93,7 @@ def bob_deposit(
     hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zeth.grpc.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = zeth.grpc.encode_pub_input_to_hash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
@@ -128,22 +128,22 @@ def bob_to_charlie(
     print(f"=== Bob transfers {BOB_TO_CHARLIE_ETH}ETH to Charlie from his funds on the mixer ===")
 
     # We generate a coin for Charlie (recipient1)
-    charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
+    charlie_apk = keystore["Charlie"]["addr_pk"]["apk"]
     # We generate a coin for Bob: the change (recipient2)
-    bob_apk = keystore["Bob"]["AddrPk"]["aPK"]
+    bob_apk = keystore["Bob"]["addr_pk"]["apk"]
     # Bob is the sender
-    bob_ask = keystore["Bob"]["AddrSk"]["aSK"]
+    bob_ask = keystore["Bob"]["addr_sk"]["ask"]
 
     # Create the an additional dummy input for the JoinSplit
-    (input_note2, input_nullifier2, input_address2) = mock.getDummyInput(
+    (input_note2, input_nullifier2, input_address2) = mock.get_dummy_input(
         bob_apk, bob_ask)
-    dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
+    dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = zeth.utils.to_zeth_units(str(BOB_TO_CHARLIE_ETH), 'ether')
     note2_value = zeth.utils.to_zeth_units(str(BOB_TO_CHARLIE_CHANGE_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        zeth.grpc.getProofJoinsplit2By2(
+        zeth.grpc.get_proof_joinsplit_2_by_2(
             test_grpc_endpoint,
             mk_root,
             input_note1,
@@ -162,15 +162,15 @@ def bob_to_charlie(
             zksnark
         )
 
-    output_note1_str = json.dumps(zeth.grpc.parseZethNote(output_note1))
-    output_note2_str = json.dumps(zeth.grpc.parseZethNote(output_note2))
+    output_note1_str = json.dumps(zeth.grpc.parse_zeth_note(output_note1))
+    output_note2_str = json.dumps(zeth.grpc.parse_zeth_note(output_note2))
 
     # generate ephemeral ec25519 key
     eph_sk_bob = PrivateKey.generate()
 
     # construct pk objects from bytes
-    pk_bob = zeth.utils.get_public_key_from_bytes(keystore["Bob"]["AddrPk"]["encPK"])
-    pk_charlie = zeth.utils.get_public_key_from_bytes(keystore["Charlie"]["AddrPk"]["encPK"])
+    pk_bob = zeth.utils.get_public_key_from_bytes(keystore["Bob"]["addr_pk"]["enc_pk"])
+    pk_charlie = zeth.utils.get_public_key_from_bytes(keystore["Charlie"]["addr_pk"]["enc_pk"])
 
     # encrypt the coins
     # Bob is the recipient
@@ -191,7 +191,7 @@ def bob_to_charlie(
     hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zeth.grpc.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = zeth.grpc.encode_pub_input_to_hash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
@@ -227,19 +227,19 @@ def charlie_withdraw(
         zksnark):
     print(f" === Charlie withdraws {CHARLIE_WITHDRAW_ETH}ETH from his funds on the Mixer ===")
 
-    charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
-    charlie_ask = keystore["Charlie"]["AddrSk"]["aSK"]
+    charlie_apk = keystore["Charlie"]["addr_pk"]["apk"]
+    charlie_ask = keystore["Charlie"]["addr_sk"]["ask"]
 
     # Create the an additional dummy input for the JoinSplit
-    (input_note2, input_nullifier2, input_address2) = mock.getDummyInput(
+    (input_note2, input_nullifier2, input_address2) = mock.get_dummy_input(
         charlie_apk, charlie_ask)
-    dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
+    dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = zeth.utils.to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
     v_out = zeth.utils.to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        zeth.grpc.getProofJoinsplit2By2(
+        zeth.grpc.get_proof_joinsplit_2_by_2(
             test_grpc_endpoint,
             mk_root,
             input_note1,
@@ -258,15 +258,15 @@ def charlie_withdraw(
             zksnark
         )
 
-    output_note1_str = json.dumps(zeth.grpc.parseZethNote(output_note1))
-    output_note2_str = json.dumps(zeth.grpc.parseZethNote(output_note2))
+    output_note1_str = json.dumps(zeth.grpc.parse_zeth_note(output_note1))
+    output_note2_str = json.dumps(zeth.grpc.parse_zeth_note(output_note2))
 
     # generate ephemeral ec25519 key
     eph_sk_charlie = PrivateKey.generate()
 
     # construct pk object from bytes
     pk_charlie = zeth.utils.get_public_key_from_bytes(
-        keystore["Charlie"]["AddrPk"]["encPK"])
+        keystore["Charlie"]["addr_pk"]["enc_pk"])
 
     # encrypt the coins
     # Charlie is the recipient
@@ -287,7 +287,7 @@ def charlie_withdraw(
     hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zeth.grpc.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = zeth.grpc.encode_pub_input_to_hash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature
@@ -329,19 +329,19 @@ def charlie_double_withdraw(
         f" === Charlie attempts to withdraw {CHARLIE_WITHDRAW_ETH}ETH once more " +
         "(double spend) one of his note on the Mixer ===")
 
-    charlie_apk = keystore["Charlie"]["AddrPk"]["aPK"]
-    charlie_ask = keystore["Charlie"]["AddrSk"]["aSK"]
+    charlie_apk = keystore["Charlie"]["addr_pk"]["apk"]
+    charlie_ask = keystore["Charlie"]["addr_sk"]["ask"]
 
     # Create the an additional dummy input for the JoinSplit
     (input_note2, input_nullifier2, input_address2) = \
-        mock.getDummyInput(charlie_apk, charlie_ask)
-    dummy_mk_path = mock.getDummyMerklePath(mk_tree_depth)
+        mock.get_dummy_input(charlie_apk, charlie_ask)
+    dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = zeth.utils.to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
     v_out = zeth.utils.to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
-        zeth.grpc.getProofJoinsplit2By2(
+        zeth.grpc.get_proof_joinsplit_2_by_2(
             test_grpc_endpoint,
             mk_root,
             input_note1,
@@ -371,14 +371,14 @@ def charlie_double_withdraw(
     proof_json["inputs"][4] = hex(int(proof_json["inputs"][4], 16) + r)
     # ### ATTACK BLOCK
 
-    output_note1_str = json.dumps(zeth.grpc.parseZethNote(output_note1))
-    output_note2_str = json.dumps(zeth.grpc.parseZethNote(output_note2))
+    output_note1_str = json.dumps(zeth.grpc.parse_zeth_note(output_note1))
+    output_note2_str = json.dumps(zeth.grpc.parse_zeth_note(output_note2))
 
     # generate ephemeral ec25519 key
     eph_sk_charlie = PrivateKey.generate()
 
     # construct pk object from bytes
-    pk_charlie = zeth.utils.get_public_key_from_bytes(keystore["Charlie"]["AddrPk"]["encPK"])
+    pk_charlie = zeth.utils.get_public_key_from_bytes(keystore["Charlie"]["addr_pk"]["enc_pk"])
 
     # encrypt the coins
     # Charlie is the recipient
@@ -399,7 +399,7 @@ def charlie_double_withdraw(
     hash_proof = sha256(zeth.utils.encode_to_hash(proof)).hexdigest()
 
     # Encode and hash the primary inputs
-    encoded_inputs = zeth.grpc.encodeInputToHash(proof_json["inputs"])
+    encoded_inputs = zeth.grpc.encode_pub_input_to_hash(proof_json["inputs"])
     hash_inputs = sha256(encoded_inputs).hexdigest()
 
     # Compute the joinSplit signature

@@ -96,7 +96,7 @@ def main():
     test_round()
     test_sha3()
 
-    # Generating test vector for mimc encrypt
+    # Generating test vector for MiMC encrypt
     m = MiMC7("clearmatics_mt_seed")
     ct = m.mimc_encrypt(
       3703141493535563179657531719960160174296085208671919316200479060314459804651,
@@ -104,7 +104,7 @@ def main():
     print("Ciphertext:")
     print(ct)
 
-    # Generating test vector for MimC Hash
+    # Generating test vector for MiMC Hash
     m = MiMC7("clearmatics_mt_seed")
     hash = m.mimc_mp(
         3703141493535563179657531719960160174296085208671919316200479060314459804651,
@@ -112,7 +112,7 @@ def main():
     print("Hash result:")
     print(hash)
 
-    # Generating test vectors for testing the MimC Merkle Tree contract
+    # Generating test vectors for testing the MiMC Merkle Tree contract
     print("Test vector for testMimCHash")
 
     res = m.mimc_mp(0, 0)

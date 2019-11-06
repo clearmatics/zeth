@@ -23,37 +23,37 @@ from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
 from py_ecc import bn128 as ec
 
 
-def getVerificationKey(grpcEndpoint):
+def get_verification_key(grpc_endpoint):
     """
     Fetch the verification key from the proving service
     """
-    with grpc.insecure_channel(grpcEndpoint) as channel:
+    with grpc.insecure_channel(grpc_endpoint) as channel:
         stub = prover_pb2_grpc.ProverStub(channel)
         print("-------------- Get the verification key --------------")
-        verificationkey = stub.GetVerificationKey(makeEmptyMessage())
-        return verificationkey
+        verification_key = stub.GetVerificationKey(make_empty_message())
+        return verification_key
 
 
-def getProof(grpcEndpoint, proofInputs):
+def get_proof(grpc_endpoint, proof_inputs):
     """
     Request a proof generation to the proving service
     """
-    with grpc.insecure_channel(grpcEndpoint) as channel:
+    with grpc.insecure_channel(grpc_endpoint) as channel:
         stub = prover_pb2_grpc.ProverStub(channel)
         print("-------------- Get the proof --------------")
-        proof = stub.Prove(proofInputs)
+        proof = stub.Prove(proof_inputs)
         return proof
 
 
-def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
+def compute_h_sig(random_seed, nf0, nf1, joinsplit_pub_key):
     """
-    Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
+    Compute h_sig = blake2s(random_seed, nf0, nf1, joinsplit_pub_key)
     Flatten the verification key
     """
-    JSPubKeyHex = [item for sublist in joinSplitPubKey for item in sublist]
+    joinsplit_pub_key_hex = [item for sublist in joinsplit_pub_key for item in sublist]
 
     vk_hex = ""
-    for item in JSPubKeyHex:
+    for item in joinsplit_pub_key_hex:
         # For each element of the list, convert it to an hex and append it
         vk_hex += hex_extend_32bytes("{0:0>4X}".format(int(item)))
 
@@ -61,7 +61,7 @@ def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
         encode_abi(
             ['bytes32', 'bytes32', 'bytes32', 'bytes'],
             (
-                bytes.fromhex(randomSeed),
+                bytes.fromhex(random_seed),
                 bytes.fromhex(nf0),
                 bytes.fromhex(nf1),
                 bytes.fromhex(vk_hex)
@@ -72,15 +72,15 @@ def computeHSig(randomSeed, nf0, nf1, joinSplitPubKey):
     return h_sig
 
 
-def signatureRandomness():
+def gen_signature_randomness():
     """
-    Compute the signature randomness "randomSeed", used for computing h_sig
+    Compute the signature randomness "random_seed", used for computing h_sig
     """
-    randomSeed = bytes(Random.get_random_bytes(32)).hex()
-    return randomSeed
+    random_seed = bytes(Random.get_random_bytes(32)).hex()
+    return random_seed
 
 
-def transactionRandomness():
+def gen_transaction_randomness():
     """
     Compute the transaction randomness "phi", used for computing the new rhoS
     """
@@ -88,7 +88,7 @@ def transactionRandomness():
     return rand_phi
 
 
-def noteRandomness():
+def gen_note_randomness():
     """
     Compute the note randomness: the trapdoor trapR and rho. Starting the
     Non-Malleability update, rho is computed from phi (see above), the rho
@@ -103,14 +103,14 @@ def noteRandomness():
     return randomness
 
 
-def createZethNote(randomness, recipientApk, value):
+def create_zeth_note(randomness, recipient_apk, value):
     """
     We follow the formatting of the proto file.  Create a ZethNote description
     Starting the Non-Malleability update, this function is used only for dummy
     input notes as rhoS are now structured ( rho = PRF_{phi}(i, phi, h_sig) ).
     """
     note = util_pb2.ZethNote(
-        aPK=recipientApk,
+        aPK=recipient_apk,
         value=value,
         rho=randomness["rho"],
         trapR=randomness["trapR"]
@@ -118,24 +118,24 @@ def createZethNote(randomness, recipientApk, value):
     return note
 
 
-def createZethNotes(phi, hsig, recipientApk0, value0, recipientApk1, value1):
+def create_zeth_notes(phi, hsig, recipient_apk0, value0, recipient_apk1, value1):
     """
     Create two ordered ZethNotes.  This function is used to generate new output
     notes.
     """
-    rho0 = computeRhoi(phi, hsig, 0)
-    randomness0 = noteRandomness()
+    rho0 = compute_rho_i(phi, hsig, 0)
+    randomness0 = gen_note_randomness()
     note0 = util_pb2.ZethNote(
-        aPK=recipientApk0,
+        aPK=recipient_apk0,
         value=value0,
         rho=rho0,
         trapR=randomness0["trapR"]
     )
 
-    rho1 = computeRhoi(phi, hsig, 1)
-    randomness1 = noteRandomness()
+    rho1 = compute_rho_i(phi, hsig, 1)
+    randomness1 = gen_note_randomness()
     note1 = util_pb2.ZethNote(
-        aPK=recipientApk1,
+        aPK=recipient_apk1,
         value=value1,
         rho=rho1,
         trapR=randomness1["trapR"]
@@ -144,31 +144,31 @@ def createZethNotes(phi, hsig, recipientApk0, value0, recipientApk1, value1):
     return note0, note1
 
 
-def parseZethNote(zethNoteGRPCObj):
-    noteJSON = {
-        "aPK": zethNoteGRPCObj.aPK,
-        "value": zethNoteGRPCObj.value,
-        "rho": zethNoteGRPCObj.rho,
-        "trapR": zethNoteGRPCObj.trapR,
+def parse_zeth_note(zeth_note_grpc_obj):
+    note_json = {
+        "aPK": zeth_note_grpc_obj.aPK,
+        "value": zeth_note_grpc_obj.value,
+        "rho": zeth_note_grpc_obj.rho,
+        "trapR": zeth_note_grpc_obj.trapR,
     }
-    return noteJSON
+    return note_json
 
 
-def zethNoteObjFromParsed(parsedZethNote):
+def zeth_note_obj_from_parsed(parsed_zeth_note):
     note = util_pb2.ZethNote(
-        aPK=parsedZethNote["aPK"],
-        value=parsedZethNote["value"],
-        rho=parsedZethNote["rho"],
-        trapR=parsedZethNote["trapR"]
+        aPK=parsed_zeth_note["aPK"],
+        value=parsed_zeth_note["value"],
+        rho=parsed_zeth_note["rho"],
+        trapR=parsed_zeth_note["trapR"]
     )
     return note
 
 
-def hexFmt(string):
+def hex_fmt(string):
     return "0x" + string
 
 
-def computeCommitment(zethNoteGRPCObj):
+def compute_commitment(zeth_note_grpc_obj):
     """
     Used by the recipient of a payment to recompute the commitment and check
     the membership in the tree to confirm the validity of a payment
@@ -177,46 +177,46 @@ def computeCommitment(zethNoteGRPCObj):
     inner_k = blake2s(
         encode_abi(
             ['bytes32', 'bytes32'],
-            (bytes.fromhex(zethNoteGRPCObj.aPK),
-             bytes.fromhex(zethNoteGRPCObj.rho)))
+            (bytes.fromhex(zeth_note_grpc_obj.aPK),
+             bytes.fromhex(zeth_note_grpc_obj.rho)))
     ).hexdigest()
 
     # outer_k = blake2s(r || [inner_k]_128)
-    first128InnerComm = inner_k[0:128]
+    first_128bits_inner_comm = inner_k[0:128]
     outer_k = blake2s(
         encode_abi(
             ['bytes', 'bytes'],
-            (bytes.fromhex(zethNoteGRPCObj.trapR),
-             bytes.fromhex(first128InnerComm)))).hexdigest()
+            (bytes.fromhex(zeth_note_grpc_obj.trapR),
+             bytes.fromhex(first_128bits_inner_comm)))).hexdigest()
 
     # cm = blake2s(outer_k || 0^192 || value_v)
-    frontPad = "000000000000000000000000000000000000000000000000"
+    front_pad = "000000000000000000000000000000000000000000000000"
     cm = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
             (bytes.fromhex(outer_k),
-             bytes.fromhex(frontPad + zethNoteGRPCObj.value)))
+             bytes.fromhex(front_pad + zeth_note_grpc_obj.value)))
     ).hexdigest()
     return cm
 
 
-def computeNullifier(zethNote, spendingAuthAsk):
+def compute_nullifier(zeth_note, spending_authority_ask):
     """
     Returns nf = blake2s(1110 || [a_sk]_252 || rho)
     """
-    binaryAsk = hex_digest_to_binary_string(spendingAuthAsk)
-    first252Ask = binaryAsk[:252]
-    leftLegBin = "1110" + first252Ask
-    leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
+    binary_ask = hex_digest_to_binary_string(spending_authority_ask)
+    first_252bits_ask = binary_ask[:252]
+    left_leg_bin = "1110" + first_252bits_ask
+    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
     nullifier = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
-            (bytes.fromhex(leftLegHex), bytes.fromhex(zethNote.rho)))
+            (bytes.fromhex(left_leg_hex), bytes.fromhex(zeth_note.rho)))
     ).hexdigest()
     return nullifier
 
 
-def computeHi(ask, hsig, i):
+def compute_h_i(ask, hsig, i):
     """
     Returns h_i = blake2s(0 || i || 00 || [a_sk]_252 || hsig)
     See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
@@ -228,20 +228,20 @@ def computeHi(ask, hsig, i):
         return -1
 
     # Append PRF^{pk} tag to a_sk
-    binaryAsk = hex_digest_to_binary_string(ask)
-    first252Ask = binaryAsk[:252]
-    leftLegBin = "0" + str(i) + "00" + first252Ask
-    leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
+    binary_ask = hex_digest_to_binary_string(ask)
+    first_252bits_ask = binary_ask[:252]
+    left_leg_bin = "0" + str(i) + "00" + first_252bits_ask
+    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
 
     h_i = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
-            (bytes.fromhex(leftLegHex), bytes.fromhex(hsig)))
+            (bytes.fromhex(left_leg_hex), bytes.fromhex(hsig)))
     ).hexdigest()
     return h_i
 
 
-def computeRhoi(phi, hsig, i):
+def compute_rho_i(phi, hsig, i):
     """
     Returns rho_i = blake2s(0 || i || 10 || [phi]_252 || hsig)
     See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
@@ -253,49 +253,49 @@ def computeRhoi(phi, hsig, i):
         return -1
 
     # Append PRF^{rho} tag to a_sk
-    binaryPhi = hex_digest_to_binary_string(phi)
-    first252Phi = binaryPhi[:252]
-    leftLegBin = "0" + str(i) + "10" + first252Phi
-    leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
+    binary_phi = hex_digest_to_binary_string(phi)
+    first_252bits_phi = binary_phi[:252]
+    left_leg_bin = "0" + str(i) + "10" + first_252bits_phi
+    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
 
     rho_i = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
-            (bytes.fromhex(leftLegHex), bytes.fromhex(hsig)))
+            (bytes.fromhex(left_leg_hex), bytes.fromhex(hsig)))
     ).hexdigest()
     return rho_i
 
 
-def deriveAPK(ask):
+def derive_apk(ask):
     """
     Returns a_pk = blake2s(1100 || [a_sk]_252 || 0^256)
     """
-    binaryAsk = hex_digest_to_binary_string(ask)
-    first252Ask = binaryAsk[:252]
-    leftLegBin = "1100" + first252Ask
-    leftLegHex = "{0:0>4X}".format(int(leftLegBin, 2))
+    binary_ask = hex_digest_to_binary_string(ask)
+    first_252bits_ask = binary_ask[:252]
+    left_leg_bin = "1100" + first_252bits_ask
+    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
     zeroes = "0000000000000000000000000000000000000000000000000000000000000000"
-    a_pk = blake2s(
+    apk = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
-            (bytes.fromhex(leftLegHex), bytes.fromhex(zeroes)))
+            (bytes.fromhex(left_leg_hex), bytes.fromhex(zeroes)))
     ).hexdigest()
-    return a_pk
+    return apk
 
 
-def generateApkAskKeypair():
-    a_sk = bytes(Random.get_random_bytes(32)).hex()
-    a_pk = deriveAPK(a_sk)
+def gen_apk_ask_keypair():
+    ask = bytes(Random.get_random_bytes(32)).hex()
+    apk = derive_apk(ask)
     keypair = {
-        "aSK": a_sk,
-        "aPK": a_pk
+        "ask": ask,
+        "apk": apk
     }
     return keypair
 
 
-def createJSInput(merklePath, address, note, ask, nullifier):
+def create_joinsplit_input(merkle_path, address, note, ask, nullifier):
     jsInput = util_pb2.JSInput(
-        merkleNode=merklePath,
+        merkleNode=merkle_path,
         address=address,
         note=note,
         spendingASK=ask,
@@ -304,7 +304,7 @@ def createJSInput(merklePath, address, note, ask, nullifier):
     return jsInput
 
 
-def generateOTSchnorrVkSkpair():
+def gen_one_time_schnorr_vk_sk_pair():
     x = int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME
     X = ec.multiply(ec.G1, x)
     y = int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME
@@ -316,7 +316,7 @@ def generateOTSchnorrVkSkpair():
     return keypair
 
 
-def encodeInputToHash(messages):
+def encode_pub_input_to_hash(messages):
     """
     Encode the primary inputs as defined in ZCash chapter 4.15.1 into a byte
     array (https://github.com/zcash/zips/blob/master/protocol/protocol.pdf) The
@@ -342,13 +342,13 @@ def encodeInputToHash(messages):
 
     # Encode the given input nullifiers
     for i in range(1, 1 + 2*(constants.JS_INPUTS), 2):
-        nf = fieldsToThex(messages[i], messages[i+1])
+        nf = field_elements_to_hex(messages[i], messages[i+1])
         nf_encoded = encode_single("bytes32", bytes.fromhex(nf))
         input_sha += nf_encoded
 
     # Encode the given output commitments
     for i in range(1 + 2*(constants.JS_INPUTS), 1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS), 2):
-        cm = fieldsToThex(messages[i], messages[i+1])
+        cm = field_elements_to_hex(messages[i], messages[i+1])
         cm_encoded = encode_single("bytes32", bytes.fromhex(cm))
         input_sha += cm_encoded
 
@@ -365,7 +365,7 @@ def encodeInputToHash(messages):
     input_sha += vout_encoded
 
     # Encode the h_sig
-    hsig = fieldsToThex(
+    hsig = field_elements_to_hex(
         messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1],
         messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1 + 1])
     hsig_encoded = encode_single("bytes32", bytes.fromhex(hsig))
@@ -378,14 +378,14 @@ def encodeInputToHash(messages):
                constants.JS_INPUTS),
         2
     ):
-        hi = fieldsToThex(messages[i], messages[i+1])
+        hi = field_elements_to_hex(messages[i], messages[i+1])
         hi_encoded = encode_single("bytes32", bytes.fromhex(hi))
         input_sha += hi_encoded
 
     return input_sha
 
 
-def fieldsToThex(longfield, shortfield):
+def field_elements_to_hex(longfield, shortfield):
     """
     Encode a 256 bit array written over two field elements into a single 32
     byte long hex
@@ -452,116 +452,116 @@ def sign(keypair, hash_ciphers, hash_proof, hash_inputs):
     return sigma
 
 
-def parseHexadecimalPointBaseGroup1Affine(point):
+def parse_hexadecimalPointBaseGroup1Affine(point):
     return [point.xCoord, point.yCoord]
 
 
-def parseHexadecimalPointBaseGroup2Affine(point):
+def parse_hexadecimalPointBaseGroup2Affine(point):
     return [
         [point.xC1Coord, point.xC0Coord],
         [point.yC1Coord, point.yC0Coord]
     ]
 
 
-def makeEmptyMessage():
+def make_empty_message():
     return empty_pb2.Empty()
 
 
-def parseVerificationKeyPGHR13(vkObj):
-    vkJSON = {}
-    vkJSON["a"] = parseHexadecimalPointBaseGroup2Affine(
-        vkObj.r1csPpzksnarkVerificationKey.a)
-    vkJSON["b"] = parseHexadecimalPointBaseGroup1Affine(
-        vkObj.r1csPpzksnarkVerificationKey.b)
-    vkJSON["c"] = parseHexadecimalPointBaseGroup2Affine(
-        vkObj.r1csPpzksnarkVerificationKey.c)
-    vkJSON["g"] = parseHexadecimalPointBaseGroup2Affine(
-        vkObj.r1csPpzksnarkVerificationKey.g)
-    vkJSON["gb1"] = parseHexadecimalPointBaseGroup1Affine(
-        vkObj.r1csPpzksnarkVerificationKey.gb1)
-    vkJSON["gb2"] = parseHexadecimalPointBaseGroup2Affine(
-        vkObj.r1csPpzksnarkVerificationKey.gb2)
-    vkJSON["z"] = parseHexadecimalPointBaseGroup2Affine(
-        vkObj.r1csPpzksnarkVerificationKey.z)
-    vkJSON["IC"] = json.loads(vkObj.r1csPpzksnarkVerificationKey.IC)
-    return vkJSON
+def parse_verification_key_PGHR13(vk_obj):
+    vk_json = {}
+    vk_json["a"] = parse_hexadecimalPointBaseGroup2Affine(
+        vk_obj.r1csPpzksnarkVerificationKey.a)
+    vk_json["b"] = parse_hexadecimalPointBaseGroup1Affine(
+        vk_obj.r1csPpzksnarkVerificationKey.b)
+    vk_json["c"] = parse_hexadecimalPointBaseGroup2Affine(
+        vk_obj.r1csPpzksnarkVerificationKey.c)
+    vk_json["g"] = parse_hexadecimalPointBaseGroup2Affine(
+        vk_obj.r1csPpzksnarkVerificationKey.g)
+    vk_json["gb1"] = parse_hexadecimalPointBaseGroup1Affine(
+        vk_obj.r1csPpzksnarkVerificationKey.gb1)
+    vk_json["gb2"] = parse_hexadecimalPointBaseGroup2Affine(
+        vk_obj.r1csPpzksnarkVerificationKey.gb2)
+    vk_json["z"] = parse_hexadecimalPointBaseGroup2Affine(
+        vk_obj.r1csPpzksnarkVerificationKey.z)
+    vk_json["IC"] = json.loads(vk_obj.r1csPpzksnarkVerificationKey.IC)
+    return vk_json
 
 
-def parseVerificationKeyGROTH16(vkObj):
-    vkJSON = {}
-    vkJSON["alpha_g1"] = parseHexadecimalPointBaseGroup1Affine(vkObj.r1csGgPpzksnarkVerificationKey.alpha_g1)
-    vkJSON["beta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.beta_g2)
-    vkJSON["delta_g2"] = parseHexadecimalPointBaseGroup2Affine(vkObj.r1csGgPpzksnarkVerificationKey.delta_g2)
-    vkJSON["abc_g1"] = json.loads(vkObj.r1csGgPpzksnarkVerificationKey.abc_g1)
-    return vkJSON
+def parse_verification_key_GROTH16(vk_obj):
+    vk_json = {}
+    vk_json["alpha_g1"] = parse_hexadecimalPointBaseGroup1Affine(vk_obj.r1csGgPpzksnarkVerificationKey.alpha_g1)
+    vk_json["beta_g2"] = parse_hexadecimalPointBaseGroup2Affine(vk_obj.r1csGgPpzksnarkVerificationKey.beta_g2)
+    vk_json["delta_g2"] = parse_hexadecimalPointBaseGroup2Affine(vk_obj.r1csGgPpzksnarkVerificationKey.delta_g2)
+    vk_json["abc_g1"] = json.loads(vk_obj.r1csGgPpzksnarkVerificationKey.abc_g1)
+    return vk_json
 
 
-def parseVerificationKey(vkObj, zksnark):
+def parse_verification_key(vk_obj, zksnark):
     if zksnark == constants.PGHR13_ZKSNARK:
-        return parseVerificationKeyPGHR13(vkObj)
+        return parse_verification_key_PGHR13(vk_obj)
     elif zksnark == constants.GROTH16_ZKSNARK:
-        return parseVerificationKeyGROTH16(vkObj)
+        return parse_verification_key_GROTH16(vk_obj)
     else:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
-def writeVerificationKey(vkObj, zksnark):
+def write_verification_key(vk_obj, zksnark):
     """
     Writes the verification key (object) in a json file
     """
-    vkJSON = parseVerificationKey(vkObj, zksnark)
-    setupDir = get_trusted_setup_dir()
-    filename = os.path.join(setupDir, "vk.json")
+    vk_json = parse_verification_key(vk_obj, zksnark)
+    setup_dir = get_trusted_setup_dir()
+    filename = os.path.join(setup_dir, "vk.json")
     with open(filename, 'w') as outfile:
-        json.dump(vkJSON, outfile)
+        json.dump(vk_json, outfile)
 
 
-def makeProofInputs(root, jsInputs, jsOutputs, inPubValue, outPubValue, hsig, phi):
+def make_proofInputs(root, joinsplit_inputs, joinsplit_outputs, public_input_value, public_output_value, hsig, phi):
     return prover_pb2.ProofInputs(
         root=root,
-        jsInputs=jsInputs,
-        jsOutputs=jsOutputs,
-        inPubValue=inPubValue,
-        outPubValue=outPubValue,
+        jsInputs=joinsplit_inputs,
+        jsOutputs=joinsplit_outputs,
+        inPubValue=public_input_value,
+        outPubValue=public_output_value,
         hSig=hsig,
         phi=phi
     )
 
 
-def parseProofPGHR13(proofObj):
-    proofJSON = {}
-    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.a)
-    proofJSON["a_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.aP)
-    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csPpzksnarkExtendedProof.b)
-    proofJSON["b_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.bP)
-    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.c)
-    proofJSON["c_p"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.cP)
-    proofJSON["h"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.h)
-    proofJSON["k"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csPpzksnarkExtendedProof.k)
-    proofJSON["inputs"] = json.loads(proofObj.r1csPpzksnarkExtendedProof.inputs)
-    return proofJSON
+def parse_proof_PGHR13(proof_obj):
+    proof_json = {}
+    proof_json["a"] = parse_hexadecimalPointBaseGroup1Affine(proof_obj.r1csPpzksnarkExtendedProof.a)
+    proof_json["a_p"] = parse_hexadecimalPointBaseGroup1Affine(proof_obj.r1csPpzksnarkExtendedProof.aP)
+    proof_json["b"] = parse_hexadecimalPointBaseGroup2Affine(proof_obj.r1csPpzksnarkExtendedProof.b)
+    proof_json["b_p"] = parse_hexadecimalPointBaseGroup1Affine(proof_obj.r1csPpzksnarkExtendedProof.bP)
+    proof_json["c"] = parse_hexadecimalPointBaseGroup1Affine(proof_obj.r1csPpzksnarkExtendedProof.c)
+    proof_json["c_p"] = parse_hexadecimalPointBaseGroup1Affine(proof_obj.r1csPpzksnarkExtendedProof.cP)
+    proof_json["h"] = parse_hexadecimalPointBaseGroup1Affine(proof_obj.r1csPpzksnarkExtendedProof.h)
+    proof_json["k"] = parse_hexadecimalPointBaseGroup1Affine(proof_obj.r1csPpzksnarkExtendedProof.k)
+    proof_json["inputs"] = json.loads(proof_obj.r1csPpzksnarkExtendedProof.inputs)
+    return proof_json
 
 
-def parseProofGROTH16(proofObj):
-    proofJSON = {}
-    proofJSON["a"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.a)
-    proofJSON["b"] = parseHexadecimalPointBaseGroup2Affine(proofObj.r1csGgPpzksnarkExtendedProof.b)
-    proofJSON["c"] = parseHexadecimalPointBaseGroup1Affine(proofObj.r1csGgPpzksnarkExtendedProof.c)
-    proofJSON["inputs"] = json.loads(proofObj.r1csGgPpzksnarkExtendedProof.inputs)
-    return proofJSON
+def parse_proof_GROTH16(proof_obj):
+    proof_json = {}
+    proof_json["a"] = parse_hexadecimalPointBaseGroup1Affine(proof_obj.r1csGgPpzksnarkExtendedProof.a)
+    proof_json["b"] = parse_hexadecimalPointBaseGroup2Affine(proof_obj.r1csGgPpzksnarkExtendedProof.b)
+    proof_json["c"] = parse_hexadecimalPointBaseGroup1Affine(proof_obj.r1csGgPpzksnarkExtendedProof.c)
+    proof_json["inputs"] = json.loads(proof_obj.r1csGgPpzksnarkExtendedProof.inputs)
+    return proof_json
 
 
-def parseProof(proofObj, zksnark):
+def parse_proof(proof_obj, zksnark):
     if zksnark == constants.PGHR13_ZKSNARK:
-        return parseProofPGHR13(proofObj)
+        return parse_proof_PGHR13(proof_obj)
     elif zksnark == constants.GROTH16_ZKSNARK:
-        return parseProofGROTH16(proofObj)
+        return parse_proof_GROTH16(proof_obj)
     else:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
-def getProofJoinsplit2By2(
-        grpcEndpoint,
+def get_proof_joinsplit_2_by_2(
+        grpc_endpoint,
         mk_root,
         input_note0,
         input_address0,
@@ -577,22 +577,22 @@ def getProofJoinsplit2By2(
         public_in_value,
         public_out_value,
         zksnark):
-    input_nullifier0 = computeNullifier(input_note0, sender_ask)
-    input_nullifier1 = computeNullifier(input_note1, sender_ask)
+    input_nullifier0 = compute_nullifier(input_note0, sender_ask)
+    input_nullifier1 = compute_nullifier(input_note1, sender_ask)
     js_inputs = [
-        createJSInput(
+        create_joinsplit_input(
             mk_path0, input_address0, input_note0, sender_ask, input_nullifier0),
-        createJSInput(
+        create_joinsplit_input(
             mk_path1, input_address1, input_note1, sender_ask, input_nullifier1)
     ]
 
-    randomSeed = signatureRandomness()
-    # Generate (joinSplitPubKey, joinSplitPrivKey) key pair
-    joinsplit_keypair = generateOTSchnorrVkSkpair()
-    h_sig = computeHSig(randomSeed, input_nullifier0, input_nullifier1, joinsplit_keypair["vk"])
-    phi = transactionRandomness()
+    random_seed = gen_signature_randomness()
+    # Generate (joinsplit_pub_key, joinSplitPrivKey) key pair
+    joinsplit_keypair = gen_one_time_schnorr_vk_sk_pair()
+    h_sig = compute_h_sig(random_seed, input_nullifier0, input_nullifier1, joinsplit_keypair["vk"])
+    phi = gen_transaction_randomness()
 
-    output_note0, output_note1 = createZethNotes(
+    output_note0, output_note1 = create_zeth_notes(
         phi,
         h_sig,
         recipient0_apk,
@@ -606,9 +606,9 @@ def getProofJoinsplit2By2(
         output_note1
     ]
 
-    proof_input = makeProofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value, h_sig, phi)
-    proof_obj = getProof(grpcEndpoint, proof_input)
-    proof_json = parseProof(proof_obj, zksnark)
+    proof_input = make_proofInputs(mk_root, js_inputs, js_outputs, public_in_value, public_out_value, h_sig, phi)
+    proof_obj = get_proof(grpc_endpoint, proof_input)
+    proof_json = parse_proof(proof_obj, zksnark)
 
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
