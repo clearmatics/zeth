@@ -1,17 +1,17 @@
 syntax = "proto3";
 
-package proverpkg;
+package prover_proto;
 
 import public "api/util.proto";
 
-message R1csGgPpzksnarkVerificationKey {
+message VerificationKeyGROTH16 {
     HexadecimalPointBaseGroup1Affine alpha_g1 = 1;
     HexadecimalPointBaseGroup2Affine beta_g2 = 2;
     HexadecimalPointBaseGroup2Affine delta_g2 = 4;
     string abc_g1 = 5;
 }
 
-message R1csGgPpzksnarkExtendedProof {
+message ExtendedProofGROTH16 {
     HexadecimalPointBaseGroup1Affine a = 1;
     HexadecimalPointBaseGroup2Affine b = 2;
     HexadecimalPointBaseGroup1Affine c = 3;

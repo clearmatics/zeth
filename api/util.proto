@@ -1,40 +1,42 @@
 syntax = "proto3";
 
-package proverpkg;
+package prover_proto;
 
 message ZethNote {
-    string aPK = 1;
+    string apk = 1;
     // Hex string representing a int64 value
     string value = 2;
     string rho = 3;
-    string trapR = 4;
+    string trap_r = 4;
 }
 
-message JSInput {
+message JoinsplitInput {
     // Merkle authentication path to the commitment
     // of the note in the Merkle tree. Each node of
-    // the merkle tree is treated as a string here
-    repeated string merklePath = 1;
+    // the merkle tree is treated as a string
+    repeated string merkle_path = 1;
     int64 address = 2;
     ZethNote note = 3;
-    string spendingASK = 4;
+    string spending_ask = 4;
     string nullifier = 5;
 }
 
 // Every point coordinate (ie: base field element)
-// is treated as an hexadecimal string here
+// is treated as an hexadecimal string.
+// The points in G1 are represented in affine form.
 message HexadecimalPointBaseGroup1Affine {
-    // First point coordinate
-    string xCoord = 1;
-    // Second point coordinate
-    string yCoord = 2;
+    // First coordinate of the point
+    string x_coord = 1;
+    // Second coordinate of the point
+    string y_coord = 2;
 }
 
+// The points in G2 are represented in affine form.
 message HexadecimalPointBaseGroup2Affine {
-    // First point coordinate
-    string xC1Coord = 1;
-    string xC0Coord = 2;
-    // Second point coordinate
-    string yC1Coord = 3;
-    string yC0Coord = 4;
+    // First coordinate of the point
+    string x_c1_coord = 1;
+    string x_c0_coord = 2;
+    // Second coordinate of the point
+    string y_c1_coord = 3;
+    string y_c0_coord = 4;
 }
