@@ -5,7 +5,7 @@ from api import prover_pb2  # type: ignore
 from api import prover_pb2_grpc  # type: ignore
 
 
-class ProverClient(object):
+class ProverClient:
     def __init__(self, endpoint: str):
         self.endpoint = endpoint
 

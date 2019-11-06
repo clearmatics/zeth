@@ -26,43 +26,43 @@ def test_mimc() -> None:
     level_2 = 14099405974798296289089207144580827488086367232485193855461335777570080506647
 
     # MiMC contract unit test
-    hash = contracts.mimcHash(
+    digest = contracts.mimc_hash(
         mimc_instance,
         x.to_bytes(32, byteorder="big"),
         y.to_bytes(32, byteorder="big"),
         b'clearmatics_mt_seed')
 
-    assert int.from_bytes(hash, byteorder="big") == out
-    "Hash is NOT correct"
+    assert int.from_bytes(digest, byteorder="big") == out, \
+        "Hash is NOT correct"
 
     # MerkleTreeMiMCHash of depth 3 unit test
 
     # Recover root and merkle tree from the contract
-    tree = contracts.getTree(tree_instance)
-    recovered_root = contracts.getRoot(tree_instance)
+    tree = contracts.get_tree(tree_instance)
+    recovered_root = contracts.get_root(tree_instance)
 
     # Leaves
     for i in range(7, 15):
-        assert int.from_bytes(tree[i], byteorder="big") == 0
-        "MerkleTree Error Leaves"
+        assert int.from_bytes(tree[i], byteorder="big") == 0, \
+            "MerkleTree Error Leaves"
 
     # Level 2
     for i in range(3, 7):
-        assert int.from_bytes(tree[i], byteorder="big") == level_2
-        "MerkleTree Error Level 2"
+        assert int.from_bytes(tree[i], byteorder="big") == level_2, \
+            "MerkleTree Error Level 2"
 
     # Level 1
     for i in range(1, 3):
-        assert int.from_bytes(tree[i], byteorder="big") == level_1
-        "MerkleTree Error Level 1"
+        assert int.from_bytes(tree[i], byteorder="big") == level_1, \
+            "MerkleTree Error Level 1"
 
     # Root
-    assert int.from_bytes(tree[0], byteorder="big") == root
-    "MerkleTree Error Root"
+    assert int.from_bytes(tree[0], byteorder="big") == root, \
+        "MerkleTree Error Root"
 
     # Recovered root
-    assert int.from_bytes(recovered_root, byteorder="big") == root
-    "MerkleTree Error Computed Root"
+    assert int.from_bytes(recovered_root, byteorder="big") == root, \
+        "MerkleTree Error Computed Root"
 
     print("All test passed")
 

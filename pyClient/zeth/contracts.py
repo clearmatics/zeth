@@ -1,6 +1,6 @@
 import zeth.constants as constants
 import zeth.errors as errors
-from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex2int
+from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int
 from zeth.joinsplit import GenericVerificationKey, GenericProof, VK
 
 import json
@@ -10,13 +10,14 @@ from web3 import Web3, HTTPProvider  # type: ignore
 from solcx import compile_files  # type: ignore
 from typing import Tuple, Dict, List, Any
 
-w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
-
+W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+# pylint is not aware of W3.eth. This prevents it from complaining.
+eth = W3.eth  # pylint: disable=no-member, invalid-name
 
 Interface = Dict[str, Any]
 
 
-class MixResult(object):
+class MixResult:
     """
     Data structure representing the result of the mix call.
     """
@@ -44,11 +45,10 @@ def get_zksnark_files(zksnark: str) -> Tuple[str, str]:
     if zksnark == constants.PGHR13_ZKSNARK:
         return (
             constants.PGHR13_VERIFIER_CONTRACT, constants.PGHR13_MIXER_CONTRACT)
-    elif zksnark == constants.GROTH16_ZKSNARK:
+    if zksnark == constants.GROTH16_ZKSNARK:
         return (
             constants.GROTH16_VERIFIER_CONTRACT, constants.GROTH16_MIXER_CONTRACT)
-    else:
-        return sys.exit(errors.SNARK_NOT_SUPPORTED)
+    return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
 def compile_contracts(zksnark: str) -> Tuple[Interface, Interface, Interface]:
@@ -96,23 +96,23 @@ def deploy_pghr13_verifier(
     """
     # Deploy the verifier contract with the good verification key
     tx_hash = verifier.constructor(
-        A1=hex2int(vk["a"][0]),
-        A2=hex2int(vk["a"][1]),
-        B=hex2int(vk["b"]),
-        C1=hex2int(vk["c"][0]),
-        C2=hex2int(vk["c"][1]),
-        gamma1=hex2int(vk["g"][0]),
-        gamma2=hex2int(vk["g"][1]),
-        gammaBeta1=hex2int(vk["gb1"]),
-        gammaBeta2_1=hex2int(vk["gb2"][0]),
-        gammaBeta2_2=hex2int(vk["gb2"][1]),
-        Z1=hex2int(vk["z"][0]),
-        Z2=hex2int(vk["z"][1]),
-        IC_coefficients=hex2int(sum(vk["IC"], []))
+        A1=hex_to_int(vk["a"][0]),
+        A2=hex_to_int(vk["a"][1]),
+        B=hex_to_int(vk["b"]),
+        C1=hex_to_int(vk["c"][0]),
+        C2=hex_to_int(vk["c"][1]),
+        gamma1=hex_to_int(vk["g"][0]),
+        gamma2=hex_to_int(vk["g"][1]),
+        gammaBeta1=hex_to_int(vk["gb1"]),
+        gammaBeta2_1=hex_to_int(vk["gb2"][0]),
+        gammaBeta2_2=hex_to_int(vk["gb2"][1]),
+        Z1=hex_to_int(vk["z"][0]),
+        Z2=hex_to_int(vk["z"][1]),
+        IC_coefficients=hex_to_int(sum(vk["IC"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
     verifier_address = tx_receipt['contractAddress']
     return verifier_address
 
@@ -131,7 +131,7 @@ def deploy_mixer(
     initial merkle root of the commitment tree
     """
     # Deploy the Mixer contract once the Verifier is successfully deployed
-    mixer = w3.eth.contract(
+    mixer = eth.contract(
         abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
 
     tx_hash = mixer.constructor(
@@ -142,18 +142,18 @@ def deploy_mixer(
         hasher=hasher_address
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Mixer contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
     mixer_address = tx_receipt['contractAddress']
     # Get the mixer contract instance
-    mixer = w3.eth.contract(
+    mixer = eth.contract(
         address=mixer_address,
         abi=mixer_interface['abi']
     )
     # Get the initial merkle root to proceed to the first payments
-    ef_logMerkleRoot = mixer.eventFilter("LogMerkleRoot", {'fromBlock': 'latest'})
-    event_logs_logMerkleRoot = ef_logMerkleRoot.get_all_entries()
-    initialRoot = w3.toHex(event_logs_logMerkleRoot[0].args.root)
-    return (mixer, initialRoot[2:])
+    ef_log_merkle_root = mixer.eventFilter("LogMerkleRoot", {'fromBlock': 'latest'})
+    event_logs_log_merkle_root = ef_log_merkle_root.get_all_entries()
+    initial_root = W3.toHex(event_logs_log_merkle_root[0].args.root)
+    return(mixer, initial_root[2:])
 
 
 def deploy_groth16_verifier(
@@ -166,16 +166,16 @@ def deploy_groth16_verifier(
     """
     # Deploy the verifier contract with the good verification key
     tx_hash = verifier.constructor(
-        Alpha=hex2int(vk["alpha_g1"]),
-        Beta1=hex2int(vk["beta_g2"][0]),
-        Beta2=hex2int(vk["beta_g2"][1]),
-        Delta1=hex2int(vk["delta_g2"][0]),
-        Delta2=hex2int(vk["delta_g2"][1]),
-        ABC_coords=hex2int(sum(vk["abc_g1"], []))
+        Alpha=hex_to_int(vk["alpha_g1"]),
+        Beta1=hex_to_int(vk["beta_g2"][0]),
+        Beta2=hex_to_int(vk["beta_g2"][1]),
+        Delta1=hex_to_int(vk["delta_g2"][0]),
+        Delta2=hex_to_int(vk["delta_g2"][1]),
+        ABC_coords=hex_to_int(sum(vk["abc_g1"], []))
     ).transact({'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
     verifier_address = tx_receipt['contractAddress']
     return verifier_address
 
@@ -192,7 +192,7 @@ def deploy_otschnorr_contracts(
             {'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
     verifier_address = tx_receipt['contractAddress']
     return verifier_address
 
@@ -218,7 +218,7 @@ def deploy_contracts(
         vk = json.load(json_data)
 
     # Deploy the proof verifier contract with the good verification key
-    proof_verifier = w3.eth.contract(
+    proof_verifier = eth.contract(
         abi=proof_verifier_interface['abi'],
         bytecode=proof_verifier_interface['bin']
     )
@@ -236,7 +236,7 @@ def deploy_contracts(
     _, hasher_address = deploy_mimc_contract(hasher_interface)  # type: ignore
 
     # Deploy the one-time signature verifier contract
-    otsig_verifier = w3.eth.contract(
+    otsig_verifier = eth.contract(
             abi=otsig_verifier_interface['abi'], bytecode=otsig_verifier_interface['bin'])
     otsig_verifier_address = deploy_otschnorr_contracts(
             otsig_verifier, deployer_address, deployment_gas)
@@ -256,13 +256,13 @@ def deploy_mimc_contract(interface: Interface) -> Tuple[Any, str]:
     """
     Deploy mimc contract
     """
-    contract = w3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
-    tx_hash = contract.constructor().transact({'from': w3.eth.accounts[1]})
+    contract = eth.contract(abi=interface['abi'], bytecode=interface['bin'])
+    tx_hash = contract.constructor().transact({'from': eth.accounts[1]})
     # Get tx receipt to get Mixer contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
     address = tx_receipt['contractAddress']
     # Get the mixer contract instance
-    instance = w3.eth.contract(
+    instance = eth.contract(
         address=address,
         abi=interface['abi']
     )
@@ -276,15 +276,15 @@ def deploy_tree_contract(
     """
     Deploy tree contract
     """
-    contract = w3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
+    contract = eth.contract(abi=interface['abi'], bytecode=interface['bin'])
     tx_hash = contract \
         .constructor(hasher_address, depth) \
-        .transact({'from': w3.eth.accounts[1]})
+        .transact({'from': eth.accounts[1]})
     # Get tx receipt to get Mixer contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
     address = tx_receipt['contractAddress']
     # Get the mixer contract instance
-    instance = w3.eth.contract(
+    instance = eth.contract(
         address=address,
         abi=interface['abi']
     )
@@ -306,24 +306,24 @@ def mix_pghr13(
     Call to the mixer's mix function to do zero knowledge payments
     """
     tx_hash = mixer_instance.functions.mix(
-        hex2int(parsed_proof["a"]),
-        hex2int(parsed_proof["a_p"]),
-        [hex2int(parsed_proof["b"][0]),
-         hex2int(parsed_proof["b"][1])],
-        hex2int(parsed_proof["b_p"]),
-        hex2int(parsed_proof["c"]),
-        hex2int(parsed_proof["c_p"]),
-        hex2int(parsed_proof["h"]),
-        hex2int(parsed_proof["k"]),
+        hex_to_int(parsed_proof["a"]),
+        hex_to_int(parsed_proof["a_p"]),
+        [hex_to_int(parsed_proof["b"][0]),
+         hex_to_int(parsed_proof["b"][1])],
+        hex_to_int(parsed_proof["b_p"]),
+        hex_to_int(parsed_proof["c"]),
+        hex_to_int(parsed_proof["c_p"]),
+        hex_to_int(parsed_proof["h"]),
+        hex_to_int(parsed_proof["k"]),
         [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
         int(sigma),
-        hex2int(parsed_proof["inputs"]),
+        hex_to_int(parsed_proof["inputs"]),
         pk_sender,
         ciphertext1,
         ciphertext2,
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
 
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
     return parse_mix_call(mixer_instance, tx_receipt)
 
 
@@ -339,18 +339,19 @@ def mix_groth16(
         wei_pub_value: int,
         call_gas: int) -> MixResult:
     tx_hash = mixer_instance.functions.mix(
-        hex2int(parsed_proof["a"]),
-        [hex2int(parsed_proof["b"][0]), hex2int(parsed_proof["b"][1])],
-        hex2int(parsed_proof["c"]),
+        hex_to_int(parsed_proof["a"]),
+        [hex_to_int(parsed_proof["b"][0]),
+         hex_to_int(parsed_proof["b"][1])],
+        hex_to_int(parsed_proof["c"]),
         [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
         int(sigma),
-        hex2int(parsed_proof["inputs"]),
+        hex_to_int(parsed_proof["inputs"]),
         pk_sender,
         ciphertext1,
         ciphertext2,
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
 
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
     return parse_mix_call(mixer_instance, tx_receipt)
 
 
@@ -379,7 +380,7 @@ def mix(
             wei_pub_value,
             call_gas
         )
-    elif zksnark == constants.GROTH16_ZKSNARK:
+    if zksnark == constants.GROTH16_ZKSNARK:
         return mix_groth16(
             mixer_instance,
             pk_sender,
@@ -392,50 +393,53 @@ def mix(
             wei_pub_value,
             call_gas
         )
-    else:
-        return sys.exit(errors.SNARK_NOT_SUPPORTED)
+    return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
 def parse_mix_call(
         mixer_instance: Any,
-        tx_receipt: str) -> MixResult:
+        _tx_receipt: str) -> MixResult:
     """
     Get the logs data associated with this mixing
     """
     # Gather the addresses of the appended commitments
-    event_filter_logAddress = mixer_instance.eventFilter("LogAddress", {'fromBlock': 'latest'})
-    event_logs_logAddress = event_filter_logAddress.get_all_entries()
+    event_filter_log_address = mixer_instance.eventFilter(
+        "LogAddress",
+        {'fromBlock': 'latest'})
+    event_logs_log_address = event_filter_log_address.get_all_entries()
     # Get the new merkle root
-    event_filter_logMerkleRoot = mixer_instance.eventFilter("LogMerkleRoot", {'fromBlock': 'latest'})
-    event_logs_logMerkleRoot = event_filter_logMerkleRoot.get_all_entries()
+    event_filter_log_merkle_root = mixer_instance.eventFilter(
+        "LogMerkleRoot", {'fromBlock': 'latest'})
+    event_logs_log_merkle_root = event_filter_log_merkle_root.get_all_entries()
     # Get the ciphertexts
-    event_filter_logSecretCiphers = mixer_instance.eventFilter("LogSecretCiphers", {'fromBlock': 'latest'})
-    event_logs_logSecretCiphers = event_filter_logSecretCiphers.get_all_entries()
-
+    event_filter_log_secret_ciphers = mixer_instance.eventFilter(
+        "LogSecretCiphers", {'fromBlock': 'latest'})
+    event_logs_log_secret_ciphers = event_filter_log_secret_ciphers.get_all_entries()
+    new_merkle_root = W3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
     return MixResult(
-        cm_address_1=event_logs_logAddress[0].args.commAddr,
-        cm_address_2=event_logs_logAddress[1].args.commAddr,
-        new_merkle_root=w3.toHex(event_logs_logMerkleRoot[0].args.root)[2:],  # '0x'
-        pk_sender=event_logs_logSecretCiphers[0].args.pk_sender,
-        ciphertext_1=event_logs_logSecretCiphers[0].args.ciphertext,
-        ciphertext_2=event_logs_logSecretCiphers[1].args.ciphertext)
+        cm_address_1=event_logs_log_address[0].args.commAddr,
+        cm_address_2=event_logs_log_address[1].args.commAddr,
+        new_merkle_root=new_merkle_root,
+        pk_sender=event_logs_log_secret_ciphers[0].args.pk_sender,
+        ciphertext_1=event_logs_log_secret_ciphers[0].args.ciphertext,
+        ciphertext_2=event_logs_log_secret_ciphers[1].args.ciphertext)
 
 
-def mimcHash(instance: Any, m: bytes, k: bytes, seed: bytes) -> bytes:
+def mimc_hash(instance: Any, m: bytes, k: bytes, seed: bytes) -> bytes:
     """
     Call the hash method of MiMC contract
     """
     return instance.functions.hash(m, k, seed).call()
 
 
-def getTree(instance: Any) -> List[bytes]:
+def get_tree(instance: Any) -> List[bytes]:
     """
     Return the Merkle tree
     """
     return instance.functions.getTree().call()
 
 
-def getRoot(instance: Any) -> bytes:
+def get_root(instance: Any) -> bytes:
     """
     Return the Merkle tree root
     """
