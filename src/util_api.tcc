@@ -4,40 +4,41 @@
 namespace libzeth
 {
 
-template<typename FieldT> FieldT ParseMerkleNode(std::string mk_node)
+template<typename FieldT> FieldT parse_merkle_node(std::string mk_node)
 {
     return string_to_field<FieldT>(mk_node);
 }
 
 template<typename FieldT>
-libzeth::JSInput<FieldT> ParseJSInput(const proverpkg::JSInput &input)
+joinsplit_input<FieldT> parse_joinsplit_input(
+    const prover_proto::JoinsplitInput &input)
 {
-    if (ZETH_MERKLE_TREE_DEPTH != input.merklepath_size()) {
+    if (ZETH_MERKLE_TREE_DEPTH != input.merkle_path_size()) {
         throw std::invalid_argument("Invalid merkle path length");
     }
 
-    libzeth::ZethNote inputNote = ParseZethNote(input.note());
+    zeth_note input_note = parse_zeth_note(input.note());
     size_t inputAddress = input.address();
-    libzeth::bitsAddr inputAddressBits =
-        libzeth::get_bitsAddr_from_vector(libzeth::address_bits_from_address(
+    bits_addr input_address_bits =
+        get_bits_addr_from_vector(address_bits_from_address(
             inputAddress, ZETH_MERKLE_TREE_DEPTH));
-    libzeth::bits256 inputSpendingASK =
-        libzeth::hexadecimal_digest_to_bits256(input.spendingask());
-    libzeth::bits256 inputNullifier =
-        libzeth::hexadecimal_digest_to_bits256(input.nullifier());
+    bits256 input_spending_ask =
+        hexadecimal_digest_to_bits256(input.spending_ask());
+    bits256 input_nullifier =
+        hexadecimal_digest_to_bits256(input.nullifier());
 
-    std::vector<FieldT> inputMerklePath;
+    std::vector<FieldT> input_merkle_path;
     for (int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
-        FieldT mk_node = ParseMerkleNode<FieldT>(input.merklepath(i));
-        inputMerklePath.push_back(mk_node);
+        FieldT mk_node = parse_merkle_node<FieldT>(input.merkle_path(i));
+        input_merkle_path.push_back(mk_node);
     }
 
-    return libzeth::JSInput<FieldT>(
-        inputMerklePath,
-        inputAddressBits,
-        inputNote,
-        inputSpendingASK,
-        inputNullifier);
+    return joinsplit_input<FieldT>(
+        input_merkle_path,
+        input_address_bits,
+        input_note,
+        input_spending_ask,
+        input_nullifier);
 }
 
 } // namespace libzeth

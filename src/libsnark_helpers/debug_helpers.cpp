@@ -8,7 +8,7 @@ namespace libzeth
 {
 
 // Conversion byte[32] <-> libsnark bigint.
-libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(
+libff::bigint<libff::alt_bn128_r_limbs> libsnark_bigint_from_bytes(
     const uint8_t *_x)
 {
     libff::bigint<libff::alt_bn128_r_limbs> x;
@@ -21,7 +21,7 @@ libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(
     return x;
 }
 
-std::string HexStringFromLibsnarkBigint(
+std::string hex_string_from_libsnark_bigint(
     libff::bigint<libff::alt_bn128_r_limbs> _x)
 {
     uint8_t x[32];
@@ -41,46 +41,46 @@ std::string HexStringFromLibsnarkBigint(
     return str.erase(0, std::min(str.find_first_not_of('0'), str.size() - 1));
 }
 
-std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p)
+std::string get_point_g1_affine_as_hex_str(libff::alt_bn128_G1 _p)
 {
     libff::alt_bn128_G1 aff = _p;
     aff.to_affine_coordinates();
-    return "\"0x" + HexStringFromLibsnarkBigint(aff.X.as_bigint()) +
-           "\", \"0x" + HexStringFromLibsnarkBigint(aff.Y.as_bigint()) + "\"";
+    return "\"0x" + hex_string_from_libsnark_bigint(aff.X.as_bigint()) +
+           "\", \"0x" + hex_string_from_libsnark_bigint(aff.Y.as_bigint()) + "\"";
 }
 
-std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p)
+std::string get_point_g2_affine_as_hex_str(libff::alt_bn128_G2 _p)
 {
     libff::alt_bn128_G2 aff = _p;
     aff.to_affine_coordinates();
-    return "[\"0x" + HexStringFromLibsnarkBigint(aff.X.c1.as_bigint()) +
-           "\", \"0x" + HexStringFromLibsnarkBigint(aff.X.c0.as_bigint()) +
-           "\"],\n [\"0x" + HexStringFromLibsnarkBigint(aff.Y.c1.as_bigint()) +
-           "\", \"0x" + HexStringFromLibsnarkBigint(aff.Y.c0.as_bigint()) +
+    return "[\"0x" + hex_string_from_libsnark_bigint(aff.X.c1.as_bigint()) +
+           "\", \"0x" + hex_string_from_libsnark_bigint(aff.X.c0.as_bigint()) +
+           "\"],\n [\"0x" + hex_string_from_libsnark_bigint(aff.Y.c1.as_bigint()) +
+           "\", \"0x" + hex_string_from_libsnark_bigint(aff.Y.c0.as_bigint()) +
            "\"]";
 }
 
-boost::filesystem::path getPathToSetupDir()
+boost::filesystem::path get_path_to_setup_directory()
 {
-    const char *pathToSetupFolder = std::getenv("ZETH_TRUSTED_SETUP_DIR");
-    if (pathToSetupFolder == NULL) {
+    const char *path_to_setup_directory = std::getenv("ZETH_TRUSTED_SETUP_DIR");
+    if (path_to_setup_directory == NULL) {
         // Fallback destination if the ZETH_TRUSTED_SETUP_DIR env var is not set
-        pathToSetupFolder = "../trusted_setup";
+        path_to_setup_directory = "../trusted_setup";
     }
 
-    boost::filesystem::path setup_dir(pathToSetupFolder);
+    boost::filesystem::path setup_dir(path_to_setup_directory);
     return setup_dir;
 }
 
-boost::filesystem::path getPathToDebugDir()
+boost::filesystem::path get_path_to_debug_directory()
 {
-    const char *pathToDebugFolder = std::getenv("ZETH_DEBUG_DIR");
-    if (pathToDebugFolder == NULL) {
+    const char *path_to_debug_directory = std::getenv("ZETH_DEBUG_DIR");
+    if (path_to_debug_directory == NULL) {
         // Fallback destination if the ZETH_DEBUG_DIR env var is not set
-        pathToDebugFolder = "../debug";
+        path_to_debug_directory = "../debug";
     }
 
-    boost::filesystem::path setup_dir(pathToDebugFolder);
+    boost::filesystem::path setup_dir(path_to_debug_directory);
     return setup_dir;
 }
 

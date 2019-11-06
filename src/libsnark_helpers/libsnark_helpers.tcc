@@ -9,7 +9,7 @@ namespace libzeth
 // r1cs_ppzksnark_verifying_key implement these overloading, so both of them can
 // easily be writen and loaded from files
 template<typename serializableT>
-void writeToFile(boost::filesystem::path path, serializableT &obj)
+void write_to_file(boost::filesystem::path path, serializableT &obj)
 {
     // Convert the boost path into char*
     const char *str_path = path.string().c_str();
@@ -28,7 +28,7 @@ void writeToFile(boost::filesystem::path path, serializableT &obj)
 };
 
 template<typename serializableT>
-serializableT loadFromFile(boost::filesystem::path path)
+serializableT load_from_file(boost::filesystem::path path)
 {
     // Convert the boost path into char*
     const char *str_path = path.string().c_str();
@@ -54,37 +54,37 @@ serializableT loadFromFile(boost::filesystem::path path)
 };
 
 template<typename ppT>
-void serializeProvingKeyToFile(
+void serialize_proving_key_to_file(
     provingKeyT<ppT> &pk, boost::filesystem::path pk_path)
 {
-    writeToFile<provingKeyT<ppT>>(pk_path, pk);
+    write_to_file<provingKeyT<ppT>>(pk_path, pk);
 };
 
 template<typename ppT>
-provingKeyT<ppT> deserializeProvingKeyFromFile(boost::filesystem::path pk_path)
+provingKeyT<ppT> deserialize_proving_key_from_file(boost::filesystem::path pk_path)
 {
-    return loadFromFile<provingKeyT<ppT>>(pk_path);
+    return load_from_file<provingKeyT<ppT>>(pk_path);
 };
 
 template<typename ppT>
-void serializeVerificationKeyToFile(
+void serialize_verification_key_to_file(
     verificationKeyT<ppT> &vk, boost::filesystem::path vk_path)
 {
-    writeToFile<verificationKeyT<ppT>>(vk_path, vk);
+    write_to_file<verificationKeyT<ppT>>(vk_path, vk);
 };
 
 template<typename ppT>
-verificationKeyT<ppT> deserializeVerificationKeyFromFile(
+verificationKeyT<ppT> deserialize_verification_key_from_file(
     boost::filesystem::path vk_path)
 {
-    return loadFromFile<verificationKeyT<ppT>>(vk_path);
+    return load_from_file<verificationKeyT<ppT>>(vk_path);
 };
 
 template<typename ppT>
-void writeSetup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir)
+void write_setup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir)
 {
     if (setup_dir.empty()) {
-        setup_dir = getPathToSetupDir();
+        setup_dir = get_path_to_setup_directory();
     }
 
     boost::filesystem::path vk_json("vk.json");
@@ -98,22 +98,22 @@ void writeSetup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir)
     provingKeyT<ppT> proving_key = keypair.pk;
     verificationKeyT<ppT> verification_key = keypair.vk;
 
-    verificationKeyToJson<ppT>(verification_key, path_vk_json);
+    verification_key_to_json<ppT>(verification_key, path_vk_json);
 
-    serializeVerificationKeyToFile<ppT>(verification_key, path_vk_raw);
-    serializeProvingKeyToFile<ppT>(proving_key, path_pk_raw);
+    serialize_verification_key_to_file<ppT>(verification_key, path_vk_raw);
+    serialize_proving_key_to_file<ppT>(proving_key, path_pk_raw);
 };
 
 template<typename ppT>
-void r1csConstraintsToJson(
+void r1cs_constraints_to_json(
     libsnark::linear_combination<libff::Fr<ppT>> constraints,
     boost::filesystem::path path)
 {
     if (path.empty()) {
-        boost::filesystem::path tmp_path =
-            getPathToDebugDir(); // Used for a debug purpose
-        boost::filesystem::path constraints_json("constraints.json");
-        path = tmp_path / constraints_json;
+        // Used for debugging purpose
+        boost::filesystem::path tmp_path = get_path_to_debug_directory();
+        boost::filesystem::path constraints_json_file("constraints.json");
+        path = tmp_path / constraints_json_file;
     }
     // Convert the boost path into char*
     const char *str_path = path.string().c_str();
@@ -122,7 +122,7 @@ void r1csConstraintsToJson(
     std::ofstream fh;
     fh.open(str_path, std::ios::binary);
 
-    fillJsonConstraintsInSs(constraints, ss);
+    fill_stringstream_with_json_constraints(constraints, ss);
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::out);
 
@@ -132,7 +132,7 @@ void r1csConstraintsToJson(
 };
 
 template<typename ppT>
-void fillJsonConstraintsInSs(
+void fill_stringstream_with_json_constraints(
     libsnark::linear_combination<libff::Fr<ppT>> constraints,
     std::stringstream &ss)
 {
@@ -155,14 +155,14 @@ void fillJsonConstraintsInSs(
 };
 
 template<typename ppT>
-void arrayToJson(
+void array_to_json(
     libsnark::protoboard<libff::Fr<ppT>> pb, uint, boost::filesystem::path path)
 {
     if (path.empty()) {
-        boost::filesystem::path tmp_path =
-            getPathToDebugDir(); // Used for a debug purpose
-        boost::filesystem::path array_json("array.json");
-        path = tmp_path / array_json;
+         // Used for debugging purpose
+        boost::filesystem::path tmp_path = get_path_to_debug_directory();
+        boost::filesystem::path array_json_file("array.json");
+        path = tmp_path / array_json_file;
     }
     // Convert the boost path into char*
     const char *str_path = path.string().c_str();
@@ -191,16 +191,16 @@ void arrayToJson(
 };
 
 template<typename ppT>
-void r1csToJson(
+void r1cs_to_json(
     libsnark::protoboard<libff::Fr<ppT>> pb,
     uint input_variables,
     boost::filesystem::path path)
 {
     if (path.empty()) {
-        boost::filesystem::path tmp_path =
-            getPathToDebugDir(); // Used for a debug purpose
-        boost::filesystem::path r1cs_json("r1cs.json");
-        path = tmp_path / r1cs_json;
+        // Used for debugging purpose
+        boost::filesystem::path tmp_path = get_path_to_debug_directory();
+        boost::filesystem::path r1cs_json_file("r1cs.json");
+        path = tmp_path / r1cs_json_file;
     }
     // Convert the boost path into char*
     const char *str_path = path.string().c_str();
@@ -215,7 +215,6 @@ void r1csToJson(
     fh.open(str_path, std::ios::binary);
 
     ss << "\n{\"variables\":[";
-
     for (size_t i = 0; i < input_variables + 1; ++i) {
         ss << '"' << constraints.variable_annotations[i].c_str() << '"';
         if (i < input_variables) {
@@ -227,11 +226,11 @@ void r1csToJson(
 
     for (size_t c = 0; c < constraints.num_constraints(); ++c) {
         ss << "["; // << "\"A\"=";
-        fillJsonConstraintsInSs<ppT>(constraints.constraints[c].a, ss);
+        fill_stringstream_with_json_constraints<ppT>(constraints.constraints[c].a, ss);
         ss << ","; // << "\"B\"=";
-        fillJsonConstraintsInSs<ppT>(constraints.constraints[c].b, ss);
+        fill_stringstream_with_json_constraints<ppT>(constraints.constraints[c].b, ss);
         ss << ","; // << "\"A\"=";;
-        fillJsonConstraintsInSs<ppT>(constraints.constraints[c].c, ss);
+        fill_stringstream_with_json_constraints<ppT>(constraints.constraints[c].c, ss);
         if (c == constraints.num_constraints() - 1) {
             ss << "]\n";
         } else {
@@ -252,10 +251,10 @@ void primary_input_to_json(
     boost::filesystem::path path)
 {
     if (path.empty()) {
-        boost::filesystem::path tmp_path =
-            getPathToDebugDir(); // Used for a debug purpose
-        boost::filesystem::path primary_input_json("primary_input.json");
-        path = tmp_path / primary_input_json;
+         // Used for debugging purpose
+        boost::filesystem::path tmp_path = get_path_to_debug_directory();
+        boost::filesystem::path primary_input_json_file("primary_input.json");
+        path = tmp_path / primary_input_json_file;
     }
     // Convert the boost path into char*
     const char *str_path = path.string().c_str();
@@ -268,7 +267,7 @@ void primary_input_to_json(
     ss << " \"inputs\" :"
        << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < input.size(); ++i) {
-        ss << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint())
+        ss << "\"0x" << hex_string_from_libsnark_bigint(input[i].as_bigint())
            << "\"";
         if (i < input.size() - 1) {
             ss << ", ";

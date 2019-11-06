@@ -146,7 +146,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // Create a note from the coin's data
-    ZethNote note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits384);
+    zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits384);
 
     input_note_g->generate_r1cs_constraints();
     input_note_g->generate_r1cs_witness(path, address_bits, note);
@@ -211,7 +211,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
                 pb, ZERO, rho_digest, commitment));
 
     // Create a note from the coin's data
-    ZethNote note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits384);
+    zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits384);
 
     output_note_g->generate_r1cs_constraints();
     output_note_g->generate_r1cs_witness(note);

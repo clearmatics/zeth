@@ -37,7 +37,7 @@ template<typename FieldT> void note_gadget<FieldT>::generate_r1cs_constraints()
 }
 
 template<typename FieldT>
-void note_gadget<FieldT>::generate_r1cs_witness(const ZethNote &note)
+void note_gadget<FieldT>::generate_r1cs_witness(const zeth_note &note)
 {
     r.fill_with_bits(this->pb, get_vector_from_bits384(note.r));
     value.fill_with_bits(this->pb, get_vector_from_bits64(note.value()));
@@ -193,7 +193,7 @@ template<typename FieldT, typename HashT, typename HashTreeT>
 void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
     std::vector<FieldT> merkle_path,
     libff::bit_vector address_bits,
-    const ZethNote &note)
+    const zeth_note &note)
 {
     // Generate witness of parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
@@ -336,7 +336,7 @@ void output_note_gadget<FieldT, HashT>::generate_r1cs_constraints()
 
 template<typename FieldT, typename HashT>
 void output_note_gadget<FieldT, HashT>::generate_r1cs_witness(
-    const ZethNote &note)
+    const zeth_note &note)
 {
     // Generate witness of the parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
