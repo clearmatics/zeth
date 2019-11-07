@@ -11,7 +11,7 @@ namespace libzeth
 {
 
 // Takes an hexadecimal string and converts it into a binary vector
-std::vector<bool> hex_str_to_binary_vector(std::string hex_str)
+std::vector<bool> hex_to_binary_vector(std::string hex_str)
 {
     std::vector<bool> result;
     std::vector<bool> tmp;
@@ -122,7 +122,7 @@ std::vector<bool> hex_digest_to_binary_vector(std::string hex_str)
             "ZETH_DIGEST_HEX_SIZE)");
     }
 
-    return hex_str_to_binary_vector(hex_str);
+    return hex_to_binary_vector(hex_str);
 }
 
 bits256 hex_digest_to_bits256(std::string str)
@@ -132,7 +132,7 @@ bits256 hex_digest_to_bits256(std::string str)
 
 bits64 hex_value_to_bits64(std::string str)
 {
-    return get_bits64_from_vector(hex_str_to_binary_vector(str));
+    return get_bits64_from_vector(hex_to_binary_vector(str));
 }
 
 std::vector<bool> address_bits_from_address(int address, size_t tree_depth)

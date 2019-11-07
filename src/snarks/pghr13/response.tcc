@@ -41,8 +41,7 @@ void prepare_proof_response(
     std::stringstream ss;
     ss << "[";
     for (size_t i = 0; i < pub_inputs.size(); ++i) {
-        ss << "\"0x"
-           << hex_string_from_libsnark_bigint(pub_inputs[i].as_bigint())
+        ss << "\"0x" << hex_from_libsnark_bigint(pub_inputs[i].as_bigint())
            << "\"";
         if (i < pub_inputs.size() - 1) {
             ss << ", ";
@@ -98,11 +97,10 @@ void prepare_verification_key_response(
 
     std::stringstream ss;
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
-    ss << "[[" << get_point_g1_affine_as_hex_str(vk.encoded_IC_query.first)
-       << "]";
+    ss << "[[" << point_g1_affine_as_hex(vk.encoded_IC_query.first) << "]";
     for (size_t i = 1; i < ic_length; ++i) {
-        auto vk_ic_i = get_point_g1_affine_as_hex_str(
-            vk.encoded_IC_query.rest.values[i - 1]);
+        auto vk_ic_i =
+            point_g1_affine_as_hex(vk.encoded_IC_query.rest.values[i - 1]);
         ss << ",[" << vk_ic_i << "]";
     }
     ss << "]";
