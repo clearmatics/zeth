@@ -5,8 +5,8 @@ from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
     hex_digest_to_binary_string, string_list_flatten, encode_single, \
     encode_abi, encrypt, decrypt, get_public_key_from_bytes
 from zeth.prover_client import ProverClient
-from api.util_pb2 import ZethNote, JoinsplitInput, HexadecimalPointBaseGroup1Affine, \
-    HexadecimalPointBaseGroup2Affine
+from api.util_pb2 import ZethNote, JoinsplitInput, HexPointBaseGroup1Affine, \
+    HexPointBaseGroup2Affine
 from nacl.public import PrivateKey, PublicKey  # type: ignore
 import nacl.utils  # type: ignore
 import api.prover_pb2 as prover_pb2
@@ -76,10 +76,10 @@ def create_zeth_note(
     input notes as rhoS are now structured ( rho = PRF_{phi}(i, phi, h_sig) ).
     """
     note = ZethNote(
-        aPK=recipient_apk,
+        apk=recipient_apk,
         value=value,
         rho=randomness.rho,
-        trapR=randomness.trap_r
+        trap_r=randomness.trap_r
     )
     return note
 
@@ -98,19 +98,19 @@ def create_zeth_notes(
     rho0 = compute_rho_i(phi, hsig, 0)
     randomness0 = NoteRandomness.new()
     note0 = ZethNote(
-        aPK=recipient_apk0,
+        apk=recipient_apk0,
         value=value0,
         rho=rho0,
-        trapR=randomness0.trap_r
+        trap_r=randomness0.trap_r
     )
 
     rho1 = compute_rho_i(phi, hsig, 1)
     randomness1 = NoteRandomness.new()
     note1 = ZethNote(
-        aPK=recipient_apk1,
+        apk=recipient_apk1,
         value=value1,
         rho=rho1,
-        trapR=randomness1.trap_r
+        trap_r=randomness1.trap_r
     )
 
     return note0, note1
@@ -118,20 +118,20 @@ def create_zeth_notes(
 
 def parse_zeth_note(zeth_note_grpc_obj: ZethNote) -> Dict[str, str]:
     note_json = {
-        "aPK": zeth_note_grpc_obj.aPK,
+        "aPK": zeth_note_grpc_obj.apk,
         "value": zeth_note_grpc_obj.value,
         "rho": zeth_note_grpc_obj.rho,
-        "trapR": zeth_note_grpc_obj.trapR,
+        "trapR": zeth_note_grpc_obj.trap_r,
     }
     return note_json
 
 
 def zeth_note_obj_from_parsed(parsed_zeth_note: Dict[str, str]) -> ZethNote:
     note = ZethNote(
-        aPK=parsed_zeth_note["aPK"],
+        apk=parsed_zeth_note["aPK"],
         value=parsed_zeth_note["value"],
         rho=parsed_zeth_note["rho"],
-        trapR=parsed_zeth_note["trapR"]
+        trap_r=parsed_zeth_note["trapR"]
     )
     return note
 
@@ -145,7 +145,7 @@ def compute_commitment(zeth_note_grpc_obj: ZethNote) -> str:
     inner_k = blake2s(
         encode_abi(
             ['bytes32', 'bytes32'],
-            [bytes.fromhex(zeth_note_grpc_obj.aPK),
+            [bytes.fromhex(zeth_note_grpc_obj.apk),
              bytes.fromhex(zeth_note_grpc_obj.rho)])
     ).hexdigest()
 
@@ -154,7 +154,7 @@ def compute_commitment(zeth_note_grpc_obj: ZethNote) -> str:
     outer_k = blake2s(
         encode_abi(
             ['bytes', 'bytes'],
-            [bytes.fromhex(zeth_note_grpc_obj.trapR),
+            [bytes.fromhex(zeth_note_grpc_obj.trap_r),
              bytes.fromhex(first_128bits_inner_comm)])).hexdigest()
 
     # cm = blake2s(outer_k || 0^192 || value_v)
@@ -237,12 +237,12 @@ def create_joinsplit_input(
         address: int,
         note: ZethNote,
         ask: str,
-        nullifier: str) -> JSInput:
-    return JSInput(
-        merklePath=merkle_path,
+        nullifier: str) -> JoinsplitInput:
+    return JoinsplitInput(
+        merkle_path=merkle_path,
         address=address,
         note=note,
-        spendingASK=ask,
+        spending_ask=ask,
         nullifier=nullifier
     )
 
@@ -392,36 +392,28 @@ def sign(
 
 def parse_verification_key_pghr13(
         vk_obj: prover_pb2.VerificationKey) -> GenericVerificationKey:
-    vk_json: GenericVerificationKey = {}
-    vk_json["a"] = _parse_hex_point_base_group2_affine(
-        vk_obj.r1csPpzksnarkVerificationKey.a)
-    vk_json["b"] = _parse_hex_point_base_group1_affine(
-        vk_obj.r1csPpzksnarkVerificationKey.b)
-    vk_json["c"] = _parse_hex_point_base_group2_affine(
-        vk_obj.r1csPpzksnarkVerificationKey.c)
-    vk_json["g"] = _parse_hex_point_base_group2_affine(
-        vk_obj.r1csPpzksnarkVerificationKey.g)
-    vk_json["gb1"] = _parse_hex_point_base_group1_affine(
-        vk_obj.r1csPpzksnarkVerificationKey.gb1)
-    vk_json["gb2"] = _parse_hex_point_base_group2_affine(
-        vk_obj.r1csPpzksnarkVerificationKey.gb2)
-    vk_json["z"] = _parse_hex_point_base_group2_affine(
-        vk_obj.r1csPpzksnarkVerificationKey.z)
-    vk_json["IC"] = json.loads(vk_obj.r1csPpzksnarkVerificationKey.IC)
-    return vk_json
+    vk = vk_obj.pghr13_verification_key
+    return {
+        "a": _parse_hex_point_base_group2_affine(vk.a),
+        "b": _parse_hex_point_base_group1_affine(vk.b),
+        "c": _parse_hex_point_base_group2_affine(vk.c),
+        "g": _parse_hex_point_base_group2_affine(vk.gamma),
+        "gb1": _parse_hex_point_base_group1_affine(vk.gamma_beta_g1),
+        "gb2": _parse_hex_point_base_group2_affine(vk.gamma_beta_g2),
+        "z": _parse_hex_point_base_group2_affine(vk.z),
+        "IC": json.loads(vk.ic),
+    }
 
 
 def parse_verification_key_groth16(
         vk_obj: prover_pb2.VerificationKey) -> GenericVerificationKey:
-    vk_json: GenericVerificationKey = {}
-    vk_json["alpha_g1"] = _parse_hex_point_base_group1_affine(
-        vk_obj.r1csGgPpzksnarkVerificationKey.alpha_g1)
-    vk_json["beta_g2"] = _parse_hex_point_base_group2_affine(
-        vk_obj.r1csGgPpzksnarkVerificationKey.beta_g2)
-    vk_json["delta_g2"] = _parse_hex_point_base_group2_affine(
-        vk_obj.r1csGgPpzksnarkVerificationKey.delta_g2)
-    vk_json["abc_g1"] = json.loads(vk_obj.r1csGgPpzksnarkVerificationKey.abc_g1)
-    return vk_json
+    vk = vk_obj.groth16_verification_key
+    return {
+        "alpha_g1": _parse_hex_point_base_group1_affine(vk.alpha_g1),
+        "beta_g2": _parse_hex_point_base_group2_affine(vk.beta_g2),
+        "delta_g2": _parse_hex_point_base_group2_affine(vk.delta_g2),
+        "abc_g1": json.loads(vk.abc_g1),
+    }
 
 
 def parse_verification_key(
@@ -448,38 +440,28 @@ def write_verification_key(
 
 
 def parse_proof_pghr13(proof_obj: prover_pb2.ExtendedProof) -> GenericProof:
-    proof_json: GenericProof = {}
-    proof_json["a"] = _parse_hex_point_base_group1_affine(
-        proof_obj.r1csPpzksnarkExtendedProof.a)
-    proof_json["a_p"] = _parse_hex_point_base_group1_affine(
-        proof_obj.r1csPpzksnarkExtendedProof.aP)
-    proof_json["b"] = _parse_hex_point_base_group2_affine(
-        proof_obj.r1csPpzksnarkExtendedProof.b)
-    proof_json["b_p"] = _parse_hex_point_base_group1_affine(
-        proof_obj.r1csPpzksnarkExtendedProof.bP)
-    proof_json["c"] = _parse_hex_point_base_group1_affine(
-        proof_obj.r1csPpzksnarkExtendedProof.c)
-    proof_json["c_p"] = _parse_hex_point_base_group1_affine(
-        proof_obj.r1csPpzksnarkExtendedProof.cP)
-    proof_json["h"] = _parse_hex_point_base_group1_affine(
-        proof_obj.r1csPpzksnarkExtendedProof.h)
-    proof_json["k"] = _parse_hex_point_base_group1_affine(
-        proof_obj.r1csPpzksnarkExtendedProof.k)
-    proof_json["inputs"] = json.loads(proof_obj.r1csPpzksnarkExtendedProof.inputs)
-    return proof_json
+    proof = proof_obj.pghr13_extended_proof
+    return {
+        "a": _parse_hex_point_base_group1_affine(proof.a),
+        "a_p": _parse_hex_point_base_group1_affine(proof.a_p),
+        "b": _parse_hex_point_base_group2_affine(proof.b),
+        "b_p": _parse_hex_point_base_group1_affine(proof.b_p),
+        "c": _parse_hex_point_base_group1_affine(proof.c),
+        "c_p": _parse_hex_point_base_group1_affine(proof.c_p),
+        "h": _parse_hex_point_base_group1_affine(proof.h),
+        "k": _parse_hex_point_base_group1_affine(proof.k),
+        "inputs": json.loads(proof.inputs),
+    }
 
 
 def parse_proof_groth16(proof_obj: prover_pb2.ExtendedProof) -> GenericProof:
-    proof_json: GenericProof = {}
-    proof_json["a"] = _parse_hex_point_base_group1_affine(
-        proof_obj.r1csGgPpzksnarkExtendedProof.a)
-    proof_json["b"] = _parse_hex_point_base_group2_affine(
-        proof_obj.r1csGgPpzksnarkExtendedProof.b)
-    proof_json["c"] = _parse_hex_point_base_group1_affine(
-        proof_obj.r1csGgPpzksnarkExtendedProof.c)
-    proof_json["inputs"] = json.loads(
-        proof_obj.r1csGgPpzksnarkExtendedProof.inputs)
-    return proof_json
+    proof = proof_obj.groth16_extended_proof
+    return {
+        "a": _parse_hex_point_base_group1_affine(proof.a),
+        "b": _parse_hex_point_base_group2_affine(proof.b),
+        "c": _parse_hex_point_base_group1_affine(proof.c),
+        "inputs": json.loads(proof.inputs),
+    }
 
 
 def parse_proof(
@@ -543,12 +525,12 @@ def compute_joinsplit2x2_inputs(
     ]
 
     return prover_pb2.ProofInputs(
-        root=mk_root,
-        jsInputs=js_inputs,
-        jsOutputs=js_outputs,
-        inPubValue=public_in_value,
-        outPubValue=public_out_value,
-        hSig=h_sig,
+        mk_root=mk_root,
+        js_inputs=js_inputs,
+        js_outputs=js_outputs,
+        pub_in_value=public_in_value,
+        pub_out_value=public_out_value,
+        h_sig=h_sig,
         phi=phi)
 
 
@@ -596,8 +578,8 @@ def get_proof_joinsplit_2_by_2(
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
     return (
-        proof_input.jsOutputs[0],  # pylint: disable=no-member
-        proof_input.jsOutputs[1],  # pylint: disable=no-member
+        proof_input.js_outputs[0],  # pylint: disable=no-member
+        proof_input.js_outputs[1],  # pylint: disable=no-member
         proof_json,
         joinsplit_keypair)
 
@@ -686,14 +668,13 @@ def _transaction_randomness() -> str:
 
 
 def _parse_hex_point_base_group1_affine(
-        point: HexadecimalPointBaseGroup1Affine) -> Tuple[str, str]:
-    return (point.xCoord, point.yCoord)
+        point: HexPointBaseGroup1Affine) -> Tuple[str, str]:
+    return (point.x_coord, point.y_coord)
 
 
 def _parse_hex_point_base_group2_affine(
-        point: HexadecimalPointBaseGroup2Affine
+        point: HexPointBaseGroup2Affine
 ) -> Tuple[Tuple[str, str], Tuple[str, str]]:
     return (
-        (point.xC1Coord, point.xC0Coord),
-        (point.yC1Coord, point.yC0Coord)
-    )
+        (point.x_c1_coord, point.x_c0_coord),
+        (point.y_c1_coord, point.y_c0_coord))
