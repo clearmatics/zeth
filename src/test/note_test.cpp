@@ -46,18 +46,15 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
 
     libff::enter_block(
         "Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
-    bits384 trap_r_bits384 =
-        get_bits384_from_vector(hexadecimal_str_to_binary_vector(
-            "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
-            "000000000000FF00000000000000FF"));
-    bits64 value_bits64 = get_bits64_from_vector(
-        hexadecimal_str_to_binary_vector("2F0000000000000F"));
-    bits256 a_sk_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("FF00000000000000000000000000000000"
-                                            "00000000000000000000000000000F"));
-    bits256 rho_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000"
-                                            "000000000000000000000000009009"));
+    bits384 trap_r_bits384 = get_bits384_from_vector(hex_str_to_binary_vector(
+        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
+        "000000000000FF00000000000000FF"));
+    bits64 value_bits64 =
+        get_bits64_from_vector(hex_str_to_binary_vector("2F0000000000000F"));
+    bits256 a_sk_bits256 = get_bits256_from_vector(hex_digest_to_binary_vector(
+        "FF0000000000000000000000000000000000000000000000000000000000000F"));
+    bits256 rho_bits256 = get_bits256_from_vector(hex_digest_to_binary_vector(
+        "FFFF000000000000000000000000000000000000000000000000000000009009"));
 
     // Get a_pk from a_sk (PRF)
     //
@@ -68,8 +65,8 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // a_pk = blake2sCompress( 1100 || [a_sk]_252 || 0^256)
     // Generated directly from a_sk and hashlib blake2s
     bits256 a_pk_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("f172d7299ac8ac974ea59413e4a8769182"
-                                            "6df038ba24a2b52d5c5d15c2cc8c49"));
+        hex_digest_to_binary_vector("f172d7299ac8ac974ea59413e4a8769182"
+                                    "6df038ba24a2b52d5c5d15c2cc8c49"));
 
     // Get nf from a_sk and rho (PRF)
     //
@@ -78,9 +75,8 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // 0xEFF0000000000000000000000000000000000000000000000000000000000000
     // rho = FFFF000000000000000000000000000000000000000000000000000000009009
     // The test vector generated directly from a_sk and hashlib blake2s, gives:
-    bits256 nf_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("ff2f41920346251f6e7c67062149f98bc9"
-                                            "0c915d3d3020927ca01deab5da0fd7"));
+    bits256 nf_bits256 = get_bits256_from_vector(hex_digest_to_binary_vector(
+        "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7"));
 
     // Get the coin's commitment (COMM)
     //
@@ -169,27 +165,23 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
 
     libff::enter_block(
         "Initialize the output coins' data (a_pk, cm, rho)", true);
-    bits384 trap_r_bits384 =
-        get_bits384_from_vector(hexadecimal_str_to_binary_vector(
-            "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
-            "000000000000FF00000000000000FF"));
-    bits64 value_bits64 = get_bits64_from_vector(
-        hexadecimal_str_to_binary_vector("2F0000000000000F"));
-    bits256 rho_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("FFFF000000000000000000000000000000"
-                                            "000000000000000000000000009009"));
-    bits256 a_pk_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("6461f753bfe21ba2219ced74875b8dbd8c"
-                                            "114c3c79d7e41306dd82118de1895b"));
+    bits384 trap_r_bits384 = get_bits384_from_vector(hex_str_to_binary_vector(
+        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
+        "000000000000FF00000000000000FF"));
+    bits64 value_bits64 =
+        get_bits64_from_vector(hex_str_to_binary_vector("2F0000000000000F"));
+    bits256 rho_bits256 = get_bits256_from_vector(hex_digest_to_binary_vector(
+        "FFFF000000000000000000000000000000000000000000000000000000009009"));
+    bits256 a_pk_bits256 = get_bits256_from_vector(hex_digest_to_binary_vector(
+        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"));
 
     // Get the coin's commitment (COMM)
     //
     // inner_k = blake2sCompress(a_pk || rho)
     // outer_k = blake2sCompress(r || [inner_commitment]_128)
     // cm = blake2sCompress(outer_k || 0^192 || value_v)
-    bits256 cm_bits256 = get_bits256_from_vector(
-        hexadecimal_digest_to_binary_vector("626876b3e2747325f469df067b1f86c847"
-                                            "4ffe85e97f56f273c5798dcfccd925"));
+    bits256 cm_bits256 = get_bits256_from_vector(hex_digest_to_binary_vector(
+        "626876b3e2747325f469df067b1f86c8474ffe85e97f56f273c5798dcfccd925"));
     libff::leave_block(
         "Initialize the output coins' data (a_pk, cm, rho)", true);
 

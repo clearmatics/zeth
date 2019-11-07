@@ -24,7 +24,7 @@ message JoinsplitInput {
 // Every point coordinate (ie: base field element)
 // is treated as an hexadecimal string.
 // The points in G1 are represented in affine form.
-message HexadecimalPointBaseGroup1Affine {
+message HexPointBaseGroup1Affine {
     // First coordinate of the point
     string x_coord = 1;
     // Second coordinate of the point
@@ -32,7 +32,7 @@ message HexadecimalPointBaseGroup1Affine {
 }
 
 // The points in G2 are represented in affine form.
-message HexadecimalPointBaseGroup2Affine {
+message HexPointBaseGroup2Affine {
     // First coordinate of the point
     string x_c1_coord = 1;
     string x_c0_coord = 2;

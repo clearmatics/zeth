@@ -10,32 +10,31 @@ void prepare_proof_response(
 {
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
 
-    prover_proto::HexadecimalPointBaseGroup1Affine *a =
-        new prover_proto::HexadecimalPointBaseGroup1Affine();
-    prover_proto::HexadecimalPointBaseGroup1Affine *a_p =
-        new prover_proto::HexadecimalPointBaseGroup1Affine();
-    prover_proto::HexadecimalPointBaseGroup2Affine *b =
-        new prover_proto::HexadecimalPointBaseGroup2Affine(); // in G2
-    prover_proto::HexadecimalPointBaseGroup1Affine *b_p =
-        new prover_proto::HexadecimalPointBaseGroup1Affine();
-    prover_proto::HexadecimalPointBaseGroup1Affine *c =
-        new prover_proto::HexadecimalPointBaseGroup1Affine();
-    prover_proto::HexadecimalPointBaseGroup1Affine *c_p =
-        new prover_proto::HexadecimalPointBaseGroup1Affine();
-    prover_proto::HexadecimalPointBaseGroup1Affine *h =
-        new prover_proto::HexadecimalPointBaseGroup1Affine();
-    prover_proto::HexadecimalPointBaseGroup1Affine *k =
-        new prover_proto::HexadecimalPointBaseGroup1Affine();
+    prover_proto::HexPointBaseGroup1Affine *a =
+        new prover_proto::HexPointBaseGroup1Affine();
+    prover_proto::HexPointBaseGroup1Affine *a_p =
+        new prover_proto::HexPointBaseGroup1Affine();
+    prover_proto::HexPointBaseGroup2Affine *b =
+        new prover_proto::HexPointBaseGroup2Affine(); // in G2
+    prover_proto::HexPointBaseGroup1Affine *b_p =
+        new prover_proto::HexPointBaseGroup1Affine();
+    prover_proto::HexPointBaseGroup1Affine *c =
+        new prover_proto::HexPointBaseGroup1Affine();
+    prover_proto::HexPointBaseGroup1Affine *c_p =
+        new prover_proto::HexPointBaseGroup1Affine();
+    prover_proto::HexPointBaseGroup1Affine *h =
+        new prover_proto::HexPointBaseGroup1Affine();
+    prover_proto::HexPointBaseGroup1Affine *k =
+        new prover_proto::HexPointBaseGroup1Affine();
 
-    a->CopyFrom(format_hexadecimalPointBaseGroup1Affine(proofObj.g_A.g));
-    a_p->CopyFrom(format_hexadecimalPointBaseGroup1Affine(proofObj.g_A.h));
-    b->CopyFrom(
-        format_hexadecimalPointBaseGroup2Affine(proofObj.g_B.g)); // in G2
-    b_p->CopyFrom(format_hexadecimalPointBaseGroup1Affine(proofObj.g_B.h));
-    c->CopyFrom(format_hexadecimalPointBaseGroup1Affine(proofObj.g_C.g));
-    c_p->CopyFrom(format_hexadecimalPointBaseGroup1Affine(proofObj.g_C.h));
-    h->CopyFrom(format_hexadecimalPointBaseGroup1Affine(proofObj.g_H));
-    k->CopyFrom(format_hexadecimalPointBaseGroup1Affine(proofObj.g_K));
+    a->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_A.g));
+    a_p->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_A.h));
+    b->CopyFrom(format_hexPointBaseGroup2Affine(proofObj.g_B.g)); // in G2
+    b_p->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_B.h));
+    c->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_C.g));
+    c_p->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_C.h));
+    h->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_H));
+    k->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_K));
 
     libsnark::r1cs_ppzksnark_primary_input<ppT> pub_inputs =
         ext_proof.get_primary_input();
@@ -74,30 +73,28 @@ void prepare_verification_key_response(
     libsnark::r1cs_ppzksnark_verification_key<ppT> &vk,
     prover_proto::VerificationKey *message)
 {
-    prover_proto::HexadecimalPointBaseGroup2Affine *a =
-        new prover_proto::HexadecimalPointBaseGroup2Affine(); // in G2
-    prover_proto::HexadecimalPointBaseGroup1Affine *b =
-        new prover_proto::HexadecimalPointBaseGroup1Affine(); // in G1
-    prover_proto::HexadecimalPointBaseGroup2Affine *c =
-        new prover_proto::HexadecimalPointBaseGroup2Affine(); // in G2
-    prover_proto::HexadecimalPointBaseGroup2Affine *g =
-        new prover_proto::HexadecimalPointBaseGroup2Affine(); // in G2
-    prover_proto::HexadecimalPointBaseGroup1Affine *gb1 =
-        new prover_proto::HexadecimalPointBaseGroup1Affine(); // in G1
-    prover_proto::HexadecimalPointBaseGroup2Affine *gb2 =
-        new prover_proto::HexadecimalPointBaseGroup2Affine(); // in G2
-    prover_proto::HexadecimalPointBaseGroup2Affine *z =
-        new prover_proto::HexadecimalPointBaseGroup2Affine(); // in G2
+    prover_proto::HexPointBaseGroup2Affine *a =
+        new prover_proto::HexPointBaseGroup2Affine(); // in G2
+    prover_proto::HexPointBaseGroup1Affine *b =
+        new prover_proto::HexPointBaseGroup1Affine(); // in G1
+    prover_proto::HexPointBaseGroup2Affine *c =
+        new prover_proto::HexPointBaseGroup2Affine(); // in G2
+    prover_proto::HexPointBaseGroup2Affine *g =
+        new prover_proto::HexPointBaseGroup2Affine(); // in G2
+    prover_proto::HexPointBaseGroup1Affine *gb1 =
+        new prover_proto::HexPointBaseGroup1Affine(); // in G1
+    prover_proto::HexPointBaseGroup2Affine *gb2 =
+        new prover_proto::HexPointBaseGroup2Affine(); // in G2
+    prover_proto::HexPointBaseGroup2Affine *z =
+        new prover_proto::HexPointBaseGroup2Affine(); // in G2
 
-    a->CopyFrom(format_hexadecimalPointBaseGroup2Affine(vk.alphaA_g2)); // in G2
-    b->CopyFrom(format_hexadecimalPointBaseGroup1Affine(vk.alphaB_g1)); // in G1
-    c->CopyFrom(format_hexadecimalPointBaseGroup2Affine(vk.alphaC_g2)); // in G2
-    g->CopyFrom(format_hexadecimalPointBaseGroup2Affine(vk.gamma_g2));  // in G2
-    gb1->CopyFrom(
-        format_hexadecimalPointBaseGroup1Affine(vk.gamma_beta_g1)); // in G1
-    gb2->CopyFrom(
-        format_hexadecimalPointBaseGroup2Affine(vk.gamma_beta_g2));   // in G2
-    z->CopyFrom(format_hexadecimalPointBaseGroup2Affine(vk.rC_Z_g2)); // in G2
+    a->CopyFrom(format_hexPointBaseGroup2Affine(vk.alphaA_g2));       // in G2
+    b->CopyFrom(format_hexPointBaseGroup1Affine(vk.alphaB_g1));       // in G1
+    c->CopyFrom(format_hexPointBaseGroup2Affine(vk.alphaC_g2));       // in G2
+    g->CopyFrom(format_hexPointBaseGroup2Affine(vk.gamma_g2));        // in G2
+    gb1->CopyFrom(format_hexPointBaseGroup1Affine(vk.gamma_beta_g1)); // in G1
+    gb2->CopyFrom(format_hexPointBaseGroup2Affine(vk.gamma_beta_g2)); // in G2
+    z->CopyFrom(format_hexPointBaseGroup2Affine(vk.rC_Z_g2));         // in G2
 
     std::stringstream ss;
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;

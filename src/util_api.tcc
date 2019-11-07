@@ -21,9 +21,8 @@ joinsplit_input<FieldT> parse_joinsplit_input(
     size_t inputAddress = input.address();
     bits_addr input_address_bits = get_bits_addr_from_vector(
         address_bits_from_address(inputAddress, ZETH_MERKLE_TREE_DEPTH));
-    bits256 input_spending_ask =
-        hexadecimal_digest_to_bits256(input.spending_ask());
-    bits256 input_nullifier = hexadecimal_digest_to_bits256(input.nullifier());
+    bits256 input_spending_ask = hex_digest_to_bits256(input.spending_ask());
+    bits256 input_nullifier = hex_digest_to_bits256(input.nullifier());
 
     std::vector<FieldT> input_merkle_path;
     for (int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
