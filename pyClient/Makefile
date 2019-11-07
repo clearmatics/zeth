@@ -1,5 +1,5 @@
 
-.PHONY: setup check test syntax grpc
+.PHONY: setup setup-dev dev check test syntax grpc
 
 setup:
 	pip install --upgrade pip
@@ -35,7 +35,7 @@ syntax: ${PROTOBUF_OUTPUT}
 	mypy -p zeth
 	mypy -p test
 	mypy -p test_commands
-	# mypy `git ls-files 'test/**.py' 'test_commands/**.py' 'zeth/**.py'`
+	pylint zeth test test_commands
 
 test: ${PROTOBUF_OUTPUT}
 	python -m unittest
