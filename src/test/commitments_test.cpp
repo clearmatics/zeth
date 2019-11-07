@@ -514,11 +514,11 @@ TEST(TestCOMMs, TestCOMMALLCMGadget)
     ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
-    bits384 trap_r_bits384 = get_bits384_from_vector(hex_str_to_binary_vector(
+    bits384 trap_r_bits384 = get_bits384_from_vector(hex_to_binary_vector(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
         "000000000000FF00000000000000FF"));
     bits64 value_bits64 =
-        get_bits64_from_vector(hex_str_to_binary_vector("2F0000000000000F"));
+        get_bits64_from_vector(hex_to_binary_vector("2F0000000000000F"));
     bits256 rho_bits256 = get_bits256_from_vector(hex_digest_to_binary_vector(
         "FFFF000000000000000000000000000000000000000000000000000000009009"));
     bits256 a_pk_bits256 = get_bits256_from_vector(hex_digest_to_binary_vector(

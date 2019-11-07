@@ -21,8 +21,7 @@ libff::bigint<libff::alt_bn128_r_limbs> libsnark_bigint_from_bytes(
     return x;
 }
 
-std::string hex_string_from_libsnark_bigint(
-    libff::bigint<libff::alt_bn128_r_limbs> _x)
+std::string hex_from_libsnark_bigint(libff::bigint<libff::alt_bn128_r_limbs> _x)
 {
     uint8_t x[32];
     for (unsigned i = 0; i < 4; i++) {
@@ -41,24 +40,22 @@ std::string hex_string_from_libsnark_bigint(
     return str.erase(0, std::min(str.find_first_not_of('0'), str.size() - 1));
 }
 
-std::string get_point_g1_affine_as_hex_str(libff::alt_bn128_G1 _p)
+std::string point_g1_affine_as_hex(libff::alt_bn128_G1 _p)
 {
     libff::alt_bn128_G1 aff = _p;
     aff.to_affine_coordinates();
-    return "\"0x" + hex_string_from_libsnark_bigint(aff.X.as_bigint()) +
-           "\", \"0x" + hex_string_from_libsnark_bigint(aff.Y.as_bigint()) +
-           "\"";
+    return "\"0x" + hex_from_libsnark_bigint(aff.X.as_bigint()) + "\", \"0x" +
+           hex_from_libsnark_bigint(aff.Y.as_bigint()) + "\"";
 }
 
-std::string get_point_g2_affine_as_hex_str(libff::alt_bn128_G2 _p)
+std::string point_g2_affine_as_hex(libff::alt_bn128_G2 _p)
 {
     libff::alt_bn128_G2 aff = _p;
     aff.to_affine_coordinates();
-    return "[\"0x" + hex_string_from_libsnark_bigint(aff.X.c1.as_bigint()) +
-           "\", \"0x" + hex_string_from_libsnark_bigint(aff.X.c0.as_bigint()) +
-           "\"],\n [\"0x" +
-           hex_string_from_libsnark_bigint(aff.Y.c1.as_bigint()) + "\", \"0x" +
-           hex_string_from_libsnark_bigint(aff.Y.c0.as_bigint()) + "\"]";
+    return "[\"0x" + hex_from_libsnark_bigint(aff.X.c1.as_bigint()) +
+           "\", \"0x" + hex_from_libsnark_bigint(aff.X.c0.as_bigint()) +
+           "\"],\n [\"0x" + hex_from_libsnark_bigint(aff.Y.c1.as_bigint()) +
+           "\", \"0x" + hex_from_libsnark_bigint(aff.Y.c0.as_bigint()) + "\"]";
 }
 
 boost::filesystem::path get_path_to_setup_directory()

@@ -271,8 +271,7 @@ void primary_input_to_json(
     ss << " \"inputs\" :"
        << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < input.size(); ++i) {
-        ss << "\"0x" << hex_string_from_libsnark_bigint(input[i].as_bigint())
-           << "\"";
+        ss << "\"0x" << hex_from_libsnark_bigint(input[i].as_bigint()) << "\"";
         if (i < input.size() - 1) {
             ss << ", ";
         }
