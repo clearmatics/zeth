@@ -23,10 +23,10 @@ template<typename FieldT>
 joinsplit_input<FieldT> parse_joinsplit_input(
     const prover_proto::JoinsplitInput &input);
 
-prover_proto::HexadecimalPointBaseGroup1Affine
-format_hexadecimalPointBaseGroup1Affine(libff::alt_bn128_G1 point);
-prover_proto::HexadecimalPointBaseGroup2Affine
-format_hexadecimalPointBaseGroup2Affine(libff::alt_bn128_G2 point);
+prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
+    libff::alt_bn128_G1 point);
+prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
+    libff::alt_bn128_G2 point);
 
 } // namespace libzeth
 #include "util_api.tcc"

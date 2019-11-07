@@ -116,14 +116,14 @@ public:
         try {
             FieldT root =
                 libzeth::string_to_field<FieldT>(proof_inputs->mk_root());
-            libzeth::bits64 vpub_in = libzeth::hexadecimal_value_to_bits64(
-                proof_inputs->pub_in_value());
-            libzeth::bits64 vpub_out = libzeth::hexadecimal_value_to_bits64(
-                proof_inputs->pub_out_value());
+            libzeth::bits64 vpub_in =
+                libzeth::hex_value_to_bits64(proof_inputs->pub_in_value());
+            libzeth::bits64 vpub_out =
+                libzeth::hex_value_to_bits64(proof_inputs->pub_out_value());
             libzeth::bits256 h_sig_in =
-                libzeth::hexadecimal_digest_to_bits256(proof_inputs->h_sig());
+                libzeth::hex_digest_to_bits256(proof_inputs->h_sig());
             libzeth::bits256 phi_in =
-                libzeth::hexadecimal_digest_to_bits256(proof_inputs->phi());
+                libzeth::hex_digest_to_bits256(proof_inputs->phi());
 
             if (ZETH_NUM_JS_INPUTS != proof_inputs->js_inputs_size()) {
                 throw std::invalid_argument("Invalid number of JS inputs");

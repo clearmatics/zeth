@@ -5,8 +5,7 @@ from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
     hex_digest_to_binary_string, string_list_flatten, encode_single, \
     encode_abi, encrypt, decrypt, get_public_key_from_bytes
 from zeth.prover_client import ProverClient
-# import api.util_pb2 as util_pb2
-from api.util_pb2 import ZethNote, JSInput, HexadecimalPointBaseGroup1Affine, \
+from api.util_pb2 import ZethNote, JoinsplitInput, HexadecimalPointBaseGroup1Affine, \
     HexadecimalPointBaseGroup2Affine
 from nacl.public import PrivateKey, PublicKey  # type: ignore
 import nacl.utils  # type: ignore
