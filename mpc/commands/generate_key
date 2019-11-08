@@ -19,6 +19,9 @@ def generate_key(
     Generate new private key to key-file.  Public key is written to stdout.
     """
 
+    if exists(key_file):
+        raise ClickException(f"key file {key_file} already exists")
+
     signing_key = generate_signing_key()
     public_key_information(signing_key, public_key_file, evidence_file)
     with open(key_file, "wb") as out_f:
