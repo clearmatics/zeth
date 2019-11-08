@@ -30,12 +30,19 @@ class ApkAskPair:
         self.a_sk = a_sk
 
 
-SK = Tuple[int, int]
-VK = Tuple[G1, G1]
+# Joinsplit Secret Key
+JoinsplitSecretKey = Tuple[FQ, FQ]
 
 
-class VkSkPair:
-    def __init__(self, x: int, y: int, x_g1: G1, y_g1: G1):
+# Joinsplit Public Key
+JoinsplitPublicKey = Tuple[G1, G1]
+
+
+class JoinsplitKeypair:
+    """
+    A Joinsplit secret and public keypair.
+    """
+    def __init__(self, x: FQ, y: FQ, x_g1: G1, y_g1: G1):
         self.vk = (x_g1, y_g1)
         self.sk = (x, y)
 
@@ -247,12 +254,14 @@ def create_joinsplit_input(
     )
 
 
-def gen_one_time_schnorr_vk_sk_pair() -> VkSkPair:
-    x = int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME
-    X = ec.multiply(ec.G1, x)
-    y = int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME
-    Y = ec.multiply(ec.G1, y)
-    return VkSkPair(x, y, X, Y)
+def gen_one_time_schnorr_vk_sk_pair() -> JoinsplitKeypair:
+    x = FQ(
+        int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME)
+    X = ec.multiply(ec.G1, x.n)
+    y = FQ(
+        int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME)
+    Y = ec.multiply(ec.G1, y.n)
+    return JoinsplitKeypair(x, y, X, Y)
 
 
 def encode_pub_input_to_hash(message_list: List[Union[str, List[str]]]) -> bytes:
@@ -350,7 +359,7 @@ def field_elements_to_hex(longfield: str, shortfield: str) -> str:
 
 
 def sign(
-        keypair: VkSkPair,
+        keypair: JoinsplitKeypair,
         hash_ciphers: str,
         hash_proof: str,
         hash_inputs: str) -> int:
@@ -385,7 +394,7 @@ def sign(
     h = int(data_hex, 16) % constants.ZETH_PRIME
 
     # Compute the signature sigma
-    sigma = sk[1] + h * sk[0] % constants.ZETH_PRIME
+    sigma = sk[1].n + h * sk[0].n % constants.ZETH_PRIME
 
     return sigma
 
@@ -489,7 +498,7 @@ def compute_joinsplit2x2_inputs(
         output_note_value1: str,
         public_in_value: str,
         public_out_value: str,
-        joinsplit_vk: VK) -> prover_pb2.ProofInputs:
+        joinsplit_vk: JoinsplitPublicKey) -> prover_pb2.ProofInputs:
     """
     Create a ProofInput object for joinsplit parameters
     """
@@ -550,7 +559,8 @@ def get_proof_joinsplit_2_by_2(
         output_note_value1: str,
         public_in_value: str,
         public_out_value: str,
-        zksnark: str) -> Tuple[ZethNote, ZethNote, Dict[str, Any], VkSkPair]:
+        zksnark: str
+) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JoinsplitKeypair]:
     """
     Query the prover server to generate a proof for the given joinsplit
     parameters.
@@ -626,7 +636,7 @@ def _compute_h_sig(
         random_seed: bytes,
         nf0: str,
         nf1: str,
-        joinsplit_pub_key: VK) -> str:
+        joinsplit_pub_key: JoinsplitPublicKey) -> str:
     """
     Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
     Flatten the verification key
