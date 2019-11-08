@@ -1,15 +1,27 @@
 {
     "server": {
         "contributors_file": "../testdata/mpc_contributors.json",
+
+        "_start_time_example": "2019-11-05 13:33:13",
         "start_time": "TIME",
+
+        "_contribution_interval_description": "Interval time in seconds",
         "contribution_interval": "10.0",
+
         "_email_server": "smtp.myorg.com:465",
+
         "_email_address": "mpc.coordinator@myorg.com",
+
         "_email_password_file": "file containing password for email account",
+
         "tls_key": "key.pem",
+
         "tls_certificate": "cert.pem",
+
         "port": PORT
     },
+
     "pot_path": "../../powersoftau",
+
     "num_powers": QAP_DEGREE
 }
