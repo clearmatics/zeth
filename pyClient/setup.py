@@ -58,5 +58,6 @@ setup(
     scripts=[
         "test_commands/test_ether_mixing.py",
         "test_commands/test_erc_token_mixing.py",
+        "test_commands/test_mimc_hash.py",
     ]
 )

@@ -1,16 +1,18 @@
-from zeth.constants import ZETH_PRIME
+from zeth.constants import ZETH_PRIME, MIMC_MT_SEED
 from Crypto.Hash import keccak
-from typing import Any, Tuple, Iterable, cast
+from typing import Any, Iterable, Optional, Union
 
 
 def keccak_256(data: bytes) -> keccak.Keccak_Hash:
-    return keccak.new(data, digest_bits=256)
+    h = keccak.new(digest_bits=256)
+    h.update(data)
+    return h
 
 
 class MiMC7:
     def __init__(
             self,
-            seed: str = "clearmatics_mt_seed",
+            seed: str = MIMC_MT_SEED,
             prime: int = ZETH_PRIME):
         self.prime = prime
         self.seed = seed
@@ -23,8 +25,9 @@ class MiMC7:
             self,
             message: int,
             ek: int,
-            seed: str = "clearmatics_mt_seed",
+            seed: Optional[str] = None,
             rounds: int = 91) -> int:
+        seed = seed or self.seed
         res = message % self.prime
         key = ek % self.prime
 
@@ -45,7 +48,7 @@ class MiMC7:
         return (self.mimc_encrypt(x, y, self.seed) + x + y) % self.prime
 
 
-def to_bytes(*args: Tuple[Any]) -> Iterable[bytes]:
+def to_bytes(*args: Union[int, str]) -> Iterable[bytes]:
     for arg in args:
         if isinstance(arg, str):
             yield arg.encode('ascii')
@@ -69,67 +72,7 @@ def to_int(value: Any) -> int:
     return value
 
 
-def sha3_256(*args: Tuple[Any]) -> int:
-    data = b''.join(to_bytes(*args))
-    hashed = keccak_256(data).digest()
+def sha3_256(data: Union[int, str]) -> int:
+    data_bytes = b''.join(to_bytes(data))
+    hashed = keccak_256(data_bytes).digest()
     return int.from_bytes(hashed, 'big')
-
-# Tests
-
-
-def test_round() -> None:
-    m = MiMC7("Clearmatics")
-    x = 340282366920938463463374607431768211456
-    k = 28948022309329048855892746252171976963317496166410141009864396001978282409983  # noqa
-    c = 14220067918847996031108144435763672811050758065945364308986253046354060608451  # noqa
-    assert m.mimc_round(x, k, c) == \
-        7970444205539657036866618419973693567765196138501849736587140180515018751924  # noqa
-    print("Test Round passed")
-
-
-def test_sha3() -> None:
-    assert sha3_256(cast(Tuple[Any], b"Clearmatics")) == \
-        14220067918847996031108144435763672811050758065945364308986253046354060608451  # noqa
-    print("Test Sha3 passed")
-
-
-def main() -> int:
-    test_round()
-    test_sha3()
-
-    # Generating test vector for MiMC encrypt
-    m = MiMC7("clearmatics_mt_seed")
-    ct = m.mimc_encrypt(
-      3703141493535563179657531719960160174296085208671919316200479060314459804651,  # noqa
-      15683951496311901749339509118960676303290224812129752890706581988986633412003)  # noqa
-    print("Ciphertext:")
-    print(ct)
-
-    # Generating test vector for MiMC Hash
-    m = MiMC7("clearmatics_mt_seed")
-    digest = m.mimc_mp(
-        3703141493535563179657531719960160174296085208671919316200479060314459804651,  # noqa
-        15683951496311901749339509118960676303290224812129752890706581988986633412003)  # noqa
-    print("Hash result:")
-    print(digest)
-
-    # Generating test vectors for testing the MiMC Merkle Tree contract
-    print("Test vector for testMimCHash")
-
-    res = m.mimc_mp(0, 0)
-    print("Level 2")
-    print(res)
-
-    res = m.mimc_mp(res, res)
-    print("Level 1")
-    print(res)
-
-    res = m.mimc_mp(res, res)
-    print("Root")
-    print(res)
-    return 0
-
-
-if __name__ == "__main__":
-    import sys
-    sys.exit(main())

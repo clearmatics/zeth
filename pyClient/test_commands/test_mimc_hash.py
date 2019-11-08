@@ -1,4 +1,55 @@
+from zeth.mimc import MiMC7, sha3_256
+from zeth.constants import MIMC_MT_SEED
 import zeth.contracts as contracts
+
+
+def test_mimc_round() -> None:
+    m = MiMC7("Clearmatics")
+    x = 340282366920938463463374607431768211456
+    k = 28948022309329048855892746252171976963317496166410141009864396001978282409983  # noqa
+    c = 14220067918847996031108144435763672811050758065945364308986253046354060608451  # noqa
+    assert m.mimc_round(x, k, c) == \
+        7970444205539657036866618419973693567765196138501849736587140180515018751924  # noqa
+    print("Test Round passed")
+
+
+def test_sha3() -> None:
+    assert sha3_256("Clearmatics") == \
+        14220067918847996031108144435763672811050758065945364308986253046354060608451  # noqa
+    print("Test Sha3 passed")
+
+
+def test_mimc_encrypt() -> None:
+    # Generating test vector for MiMC encrypt
+    m = MiMC7()
+    ct = m.mimc_encrypt(
+      3703141493535563179657531719960160174296085208671919316200479060314459804651,  # noqa
+      15683951496311901749339509118960676303290224812129752890706581988986633412003)  # noqa
+    print("Ciphertext:")
+    print(ct)
+
+    # Generating test vector for MiMC Hash
+    m = MiMC7()
+    digest = m.mimc_mp(
+        3703141493535563179657531719960160174296085208671919316200479060314459804651,  # noqa
+        15683951496311901749339509118960676303290224812129752890706581988986633412003)  # noqa
+    print("Hash result:")
+    print(digest)
+
+    # Generating test vectors for testing the MiMC Merkle Tree contract
+    print("Test vector for testMimCHash")
+
+    res = m.mimc_mp(0, 0)
+    print("Level 2")
+    print(res)
+
+    res = m.mimc_mp(res, res)
+    print("Level 1")
+    print(res)
+
+    res = m.mimc_mp(res, res)
+    print("Root")
+    print(res)
 
 
 def test_mimc() -> None:
@@ -33,7 +84,7 @@ def test_mimc() -> None:
         mimc_instance,
         x.to_bytes(32, byteorder="big"),
         y.to_bytes(32, byteorder="big"),
-        b'clearmatics_mt_seed')
+        MIMC_MT_SEED.encode())
 
     assert int.from_bytes(digest, byteorder="big") == out, \
         "Hash is NOT correct"
@@ -67,8 +118,10 @@ def test_mimc() -> None:
     assert int.from_bytes(recovered_root, byteorder="big") == root, \
         "MerkleTree Error Computed Root"
 
-    print("All test passed")
-
 
 if __name__ == "__main__":
+    test_mimc_round()
+    test_sha3()
+    test_mimc_encrypt()
     test_mimc()
+    print("All test passed")
