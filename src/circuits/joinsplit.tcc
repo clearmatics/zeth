@@ -471,8 +471,8 @@ public:
 
     void generate_r1cs_witness(
         const FieldT &rt,
-        const std::array<JSInput<FieldT>, NumInputs> &inputs,
-        const std::array<ZethNote, NumOutputs> &outputs,
+        const std::array<joinsplit_input<FieldT>, NumInputs> &inputs,
+        const std::array<zeth_note, NumOutputs> &outputs,
         bits64 vpub_in,
         bits64 vpub_out,
         const bits256 h_sig_in,
@@ -525,7 +525,7 @@ public:
         for (size_t i = 0; i < NumInputs; i++) {
             std::vector<FieldT> merkle_path = inputs[i].witness_merkle_path;
             libff::bit_vector address_bits =
-                get_vector_from_bitsAddr(inputs[i].address_bits);
+                get_vector_from_bits_addr(inputs[i].address_bits);
             input_notes[i]->generate_r1cs_witness(
                 merkle_path, address_bits, inputs[i].note);
 
