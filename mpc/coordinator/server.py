@@ -127,7 +127,7 @@ class Server(object):
             _send_mail(
                 email_server=self.config.email_server,
                 email_address=cast(str, self.config.email_address),
-                email_password=cast(str, self.config.email_password),
+                email_password_file=cast(str, self.config.email_password_file),
                 to=contributor.email,
                 subject=f"[MPC] Your timeslot has begun ({idx_readable}/{total})",
                 body="Please contribute to the MPC using your key: " +
@@ -336,7 +336,7 @@ class Server(object):
 def _send_mail(
         email_server: str,
         email_address: str,
-        email_password: str,
+        email_password_file: str,
         to: str,
         subject: str,
         body: str) -> None:
@@ -356,7 +356,9 @@ def _send_mail(
 
     ssl_ctx = create_default_context()
     with SMTP_SSL(host, port, context=ssl_ctx) as smtp:
-        smtp.login(email_address, email_password)
+        with open(email_password_file, "r") as passwd_f:
+            password = passwd_f.readline().rstrip()
+        smtp.login(email_address, password)
         msg = EmailMessage()
         msg.set_content(f"Subject: {subject}\n\n{body}")
         msg['Subject'] = subject

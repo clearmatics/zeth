@@ -208,7 +208,7 @@ be used to specify the exact names of each field (see `--help` for details).
 The MPC coordinator server can notify participants by email when their
 contribution time slot begins (when the previous contributor either finishes
 his contribution, or his timeslot expires). To enable email notifications, set
-the `email_server`, `email_address` and `email_password` fields to point to a
+the `email_server`, `email_address` and `email_password_file` fields to point to a
 (tls enabled) mail server.
 
 ## Prepare initial challenge (Phase2 only)

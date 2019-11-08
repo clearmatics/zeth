@@ -2,7 +2,8 @@
 
 from commands.public_key_operations import public_key_information
 from coordinator.crypto import generate_signing_key, export_signing_key
-from click import command, argument, option
+from click import command, argument, option, ClickException
+from os.path import exists
 from typing import Optional
 
 
