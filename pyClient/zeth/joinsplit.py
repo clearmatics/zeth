@@ -55,42 +55,6 @@ GenericVerificationKey = Dict[str, Any]
 GenericProof = Dict[str, Any]
 
 
-class NoteRandomness:
-    def __init__(self, rho: str, trap_r: str):
-        self.rho = rho
-        self.trap_r = trap_r
-
-    @staticmethod
-    def new() -> NoteRandomness:
-        """
-        Compute the note randomness: the trapdoor trapR and rho. Starting the
-        Non-Malleability update, rho is computed from phi (see above), the rho
-        generated in this function is thus obsolete except for dummy input
-        notes.
-        """
-        rho = bytes(Random.get_random_bytes(32)).hex()
-        trap_r = bytes(Random.get_random_bytes(48)).hex()
-        return NoteRandomness(rho, trap_r)
-
-
-def create_zeth_note(
-        randomness: NoteRandomness,
-        recipient_apk: str,
-        value: str) -> ZethNote:
-    """
-    We follow the formatting of the proto file. Create a ZethNote description
-    Starting the Non-Malleability update, this function is used only for dummy
-    input notes as rhoS are now structured ( rho = PRF_{phi}(i, phi, h_sig) ).
-    """
-    note = ZethNote(
-        apk=recipient_apk,
-        value=value,
-        rho=randomness.rho,
-        trap_r=randomness.trap_r
-    )
-    return note
-
-
 def create_zeth_notes(
         phi: str,
         hsig: str,
@@ -103,21 +67,21 @@ def create_zeth_notes(
     notes.
     """
     rho0 = compute_rho_i(phi, hsig, 0)
-    randomness0 = NoteRandomness.new()
+    trap_r0 = trap_r_randomness()
     note0 = ZethNote(
         apk=recipient_apk0,
         value=value0,
         rho=rho0,
-        trap_r=randomness0.trap_r
+        trap_r=trap_r0
     )
 
     rho1 = compute_rho_i(phi, hsig, 1)
-    randomness1 = NoteRandomness.new()
+    trap_r1 = trap_r_randomness()
     note1 = ZethNote(
         apk=recipient_apk1,
         value=value1,
         rho=rho1,
-        trap_r=randomness1.trap_r
+        trap_r=trap_r1
     )
 
     return note0, note1
@@ -661,6 +625,13 @@ def _compute_h_sig(
     ).hexdigest()
 
     return h_sig
+
+
+def trap_r_randomness() -> str:
+    """
+    Compute randomness "r" as 48 random bytes
+    """
+    return bytes(Random.get_random_bytes(48)).hex()
 
 
 def _signature_randomness() -> bytes:

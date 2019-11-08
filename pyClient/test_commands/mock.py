@@ -1,5 +1,6 @@
 import zeth.joinsplit as joinsplit
 import api.util_pb2 as util_pb2
+from Crypto import Random
 from typing import Tuple, Dict, List
 
 
@@ -89,8 +90,17 @@ def get_dummy_input(
         recipient_apk: str,
         recipient_ask: str) -> Tuple[util_pb2.ZethNote, str, int]:
     zero_wei_hex = "0000000000000000"
-    dummy_note = joinsplit.create_zeth_note(
-        joinsplit.NoteRandomness.new(), recipient_apk, zero_wei_hex)
+    dummy_note = util_pb2.ZethNote(
+        apk=recipient_apk,
+        value=zero_wei_hex,
+        rho=get_dummy_rho(),
+        trap_r=joinsplit.trap_r_randomness(),
+
+    )
     dummy_note_nullifier = joinsplit.compute_nullifier(dummy_note, recipient_ask)
     dummy_note_address = 7
     return (dummy_note, dummy_note_nullifier, dummy_note_address)
+
+
+def get_dummy_rho() -> str:
+    return bytes(Random.get_random_bytes(32)).hex()
