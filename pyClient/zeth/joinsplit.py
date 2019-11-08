@@ -89,20 +89,20 @@ def create_zeth_notes(
 
 def parse_zeth_note(zeth_note_grpc_obj: ZethNote) -> Dict[str, str]:
     note_json = {
-        "aPK": zeth_note_grpc_obj.apk,
+        "a_pk": zeth_note_grpc_obj.apk,
         "value": zeth_note_grpc_obj.value,
         "rho": zeth_note_grpc_obj.rho,
-        "trapR": zeth_note_grpc_obj.trap_r,
+        "trap_r": zeth_note_grpc_obj.trap_r,
     }
     return note_json
 
 
 def zeth_note_obj_from_parsed(parsed_zeth_note: Dict[str, str]) -> ZethNote:
     note = ZethNote(
-        apk=parsed_zeth_note["aPK"],
+        apk=parsed_zeth_note["a_pk"],
         value=parsed_zeth_note["value"],
         rho=parsed_zeth_note["rho"],
-        trap_r=parsed_zeth_note["trapR"]
+        trap_r=parsed_zeth_note["trap_r"]
     )
     return note
 
