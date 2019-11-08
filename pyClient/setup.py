@@ -22,6 +22,7 @@ setup(
         "mypy==0.720",
         "mypy-protobuf",
         "flake8==3.7.8",
+        "pylint==2.4.3",
         "attrdict==2.0.1",
         "certifi==2018.11.29",
         "chardet==3.0.4",

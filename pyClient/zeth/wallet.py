@@ -9,7 +9,7 @@ import time
 import json
 
 
-class Wallet(object):
+class Wallet:
     def __init__(self, username: str, wallet_dir: str, sk_receiver: PrivateKey):
         self.username = username
         self.wallet_dir = wallet_dir
@@ -34,4 +34,4 @@ class Wallet(object):
             self.wallet_dir,
             f"note_{self.username}_{int(round(time.time() * 1000))}")
         with open(note_filename, "w") as note_f:
-            note_f.write(json.dumps(joinsplit.parseZethNote(note)))
+            note_f.write(json.dumps(joinsplit.parse_zeth_note(note)))

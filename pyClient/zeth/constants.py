@@ -31,7 +31,8 @@ JS_INPUTS: int = 2
 # Nb of output notes
 JS_OUTPUTS: int = 2
 
-# Order of the largest prime order subgroup of the elliptic curve group
-# See: https://github.com/ethereum/go-ethereum/blob/master/crypto/bn256/cloudflare/constants.go#L23 # noqa
+# Order of the largest prime order subgroup of the elliptic curve group.  See:
+# https://github.com/ethereum/go-ethereum/blob/master/crypto/bn256/cloudflare/constants.go#L23
+# # noqa
 ZETH_PRIME: int = \
     21888242871839275222246405745257275088548364400416034343698204186575808495617

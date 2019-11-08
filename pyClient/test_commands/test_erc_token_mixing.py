@@ -13,8 +13,9 @@ from solcx import compile_files  # type: ignore
 from os.path import join
 from typing import List, Any
 
-w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
-test_grpc_endpoint = constants.RPC_ENDPOINT
+W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+eth = W3.eth  # pylint: disable=no-member,invalid-name
+TEST_GRPC_ENDPOINT = constants.RPC_ENDPOINT
 
 
 def compile_token() -> contracts.Interface:
@@ -42,13 +43,13 @@ def deploy_token(
     Deploy the testing ERC20 token contract
     """
     token_interface = compile_token()
-    token = w3.eth.contract(
+    token = eth.contract(
         abi=token_interface['abi'], bytecode=token_interface['bin'])
     tx_hash = token.constructor().transact(
         {'from': deployer_address, 'gas': deployment_gas})
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    tx_receipt = eth.waitForTransactionReceipt(tx_hash)
 
-    token = w3.eth.contract(
+    token = eth.contract(
         address=tx_receipt.contractAddress,
         abi=token_interface['abi'],
     )
@@ -59,7 +60,7 @@ def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
     mk_byte_tree = mixer_instance.functions.getTree().call()
     print("[DEBUG] Displaying the Merkle tree of commitments: ")
     for node in mk_byte_tree:
-        print("Node: " + w3.toHex(node)[2:])
+        print("Node: " + W3.toHex(node)[2:])
     return mk_byte_tree
 
 
@@ -81,7 +82,9 @@ def approve(
         owner_address: str,
         spender_address: str,
         token_amount: int) -> str:
-    return token_instance.functions.approve(spender_address, w3.toWei(token_amount, 'ether')).transact({'from': owner_address})
+    return token_instance.functions.approve(
+        spender_address,
+        W3.toWei(token_amount, 'ether')).transact({'from': owner_address})
 
 
 def allowance(
@@ -98,33 +101,33 @@ def mint_token(
         token_amount: int) -> bytes:
     return token_instance.functions.mint(
         spender_address,
-        w3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
+        W3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
 
 
 def main() -> None:
     zksnark = zeth.utils.parse_zksnark_arg()
 
     # Ethereum addresses
-    deployer_eth_address = w3.eth.accounts[0]
-    bob_eth_address = w3.eth.accounts[1]
-    alice_eth_address = w3.eth.accounts[2]
-    charlie_eth_address = w3.eth.accounts[3]
+    deployer_eth_address = eth.accounts[0]
+    bob_eth_address = eth.accounts[1]
+    alice_eth_address = eth.accounts[2]
+    charlie_eth_address = eth.accounts[3]
     # Zeth addresses
-    keystore = mock.initTestKeystore()
+    keystore = mock.init_test_keystore()
     # Depth of the merkle tree (need to match the one used in the cpp prover)
     mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
 
-    prover_client = ProverClient(test_grpc_endpoint)
+    prover_client = ProverClient(TEST_GRPC_ENDPOINT)
 
     coinstore_dir = os.environ['ZETH_COINSTORE']
 
     # Keys and wallets
     sk_alice = zeth.utils.get_private_key_from_bytes(
-        keystore["Alice"].addr_sk.encSK)
+        keystore["Alice"].addr_sk.enc_sk)
     sk_bob = zeth.utils.get_private_key_from_bytes(
-        keystore["Bob"].addr_sk.encSK)
+        keystore["Bob"].addr_sk.enc_sk)
     sk_charlie = zeth.utils.get_private_key_from_bytes(
-        keystore["Charlie"].addr_sk.encSK)
+        keystore["Charlie"].addr_sk.enc_sk)
 
     alice_wallet = Wallet("alice", coinstore_dir, sk_alice)
     bob_wallet = Wallet("bob", coinstore_dir, sk_bob)
@@ -134,7 +137,7 @@ def main() -> None:
     vk = prover_client.get_verification_key()
 
     print("[INFO] 2. Received VK, writing the key...")
-    zeth.joinsplit.writeVerificationKey(vk, zksnark)
+    zeth.joinsplit.write_verification_key(vk, zksnark)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     (proof_verifier_interface, otsig_verifier_interface, mixer_interface) = \
@@ -195,7 +198,7 @@ def main() -> None:
         bob_eth_address,
         mixer_instance.address,
         scenario.BOB_DEPOSIT_ETH)
-    w3.eth.waitForTransactionReceipt(tx_hash)
+    eth.waitForTransactionReceipt(tx_hash)
     allowance_mixer = allowance(
         token_instance, bob_eth_address, mixer_instance.address)
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)

@@ -11,23 +11,24 @@ import os
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Any
 
-w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+eth = W3.eth  # pylint: disable=no-member,invalid-name
 TEST_GRPC_ENDPOINT = constants.RPC_ENDPOINT
 
 
 def print_balances(bob: str, alice: str, charlie: str, mixer: str) -> None:
     print("BALANCES:")
-    print(f"  Alice   : {w3.eth.getBalance(bob)}")
-    print(f"  Bob     : {w3.eth.getBalance(alice)}")
-    print(f"  Charlie : {w3.eth.getBalance(charlie)}")
-    print(f"  Mixer   : {w3.eth.getBalance(mixer)}")
+    print(f"  Alice   : {eth.getBalance(bob)}")
+    print(f"  Bob     : {eth.getBalance(alice)}")
+    print(f"  Charlie : {eth.getBalance(charlie)}")
+    print(f"  Mixer   : {eth.getBalance(mixer)}")
 
 
 def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
     mk_byte_tree = mixer_instance.functions.getTree().call()
     print("[DEBUG] Displaying the Merkle tree of commitments: ")
     for node in mk_byte_tree:
-        print("Node: " + w3.toHex(node)[2:])
+        print("Node: " + W3.toHex(node)[2:])
     return mk_byte_tree
 
 
@@ -35,14 +36,14 @@ def main() -> None:
     zksnark = zeth.utils.parse_zksnark_arg()
 
     # Zeth addresses
-    keystore = mock.initTestKeystore()
+    keystore = mock.init_test_keystore()
     # Depth of the merkle tree (need to match the one used in the cpp prover)
     mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
     # Ethereum addresses
-    deployer_eth_address = w3.eth.accounts[0]
-    bob_eth_address = w3.eth.accounts[1]
-    alice_eth_address = w3.eth.accounts[2]
-    charlie_eth_address = w3.eth.accounts[3]
+    deployer_eth_address = eth.accounts[0]
+    bob_eth_address = eth.accounts[1]
+    alice_eth_address = eth.accounts[2]
+    charlie_eth_address = eth.accounts[3]
 
     prover_client = ProverClient(TEST_GRPC_ENDPOINT)
 
@@ -50,11 +51,11 @@ def main() -> None:
 
     # Keys and wallets
     sk_alice = zeth.utils.get_private_key_from_bytes(
-        keystore["Alice"].addr_sk.encSK)
+        keystore["Alice"].addr_sk.enc_sk)
     sk_bob = zeth.utils.get_private_key_from_bytes(
-        keystore["Bob"].addr_sk.encSK)
+        keystore["Bob"].addr_sk.enc_sk)
     sk_charlie = zeth.utils.get_private_key_from_bytes(
-        keystore["Charlie"].addr_sk.encSK)
+        keystore["Charlie"].addr_sk.enc_sk)
 
     alice_wallet = Wallet("alice", coinstore_dir, sk_alice)
     bob_wallet = Wallet("bob", coinstore_dir, sk_bob)
@@ -64,7 +65,7 @@ def main() -> None:
     vk = prover_client.get_verification_key()
 
     print("[INFO] 2. Received VK, writing the key...")
-    zeth.joinsplit.writeVerificationKey(vk, zksnark)
+    zeth.joinsplit.write_verification_key(vk, zksnark)
 
     print("[INFO] 3. VK written, deploying the smart contracts...")
     (proof_verifier_interface, otsig_verifier_interface, mixer_interface) = \

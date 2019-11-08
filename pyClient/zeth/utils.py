@@ -14,11 +14,11 @@ from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Union, Any, cast
 
-w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
-
 # Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
 # Wei).
 ZETH_PUBLIC_UNIT_VALUE = 1000000000000
+
+W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
 
 def encode_single(type_name: str, data: bytes) -> bytes:
@@ -46,7 +46,7 @@ def hex_digest_to_binary_string(digest: str) -> str:
     return "".join(reversed([i+j for i, j in zipped]))
 
 
-def hex2int(elements: List[str]) -> List[int]:
+def hex_to_int(elements: List[str]) -> List[int]:
     """
     Given an error of hex strings, return an array of int values
     """
@@ -132,7 +132,7 @@ def convert_leaf_address_to_node_address(
     Important note: The merkle root index is 0 (not 1!)
     """
     address = address_leaf + (2 ** tree_depth - 1)
-    if(address > 2 ** (tree_depth + 1) - 1):
+    if address > (2 ** (tree_depth + 1) - 1):
         return -1
     return address
 
@@ -144,20 +144,20 @@ def compute_merkle_path(
     merkle_path: List[str] = []
     address_bits = []
     address = convert_leaf_address_to_node_address(address_commitment, tree_depth)
-    if(address == -1):
+    if address == -1:
         return merkle_path  # return empty merkle_path
-    for i in range(0, tree_depth):
+    for _ in range(0, tree_depth):
         address_bits.append(address % 2)
-        if (address % 2 == 0):
+        if (address % 2) == 0:
             print("append note at address: " + str(address - 1))
             # [2:] to strip the 0x prefix
-            merkle_path.append(w3.toHex(byte_tree[address - 1])[2:])
+            merkle_path.append(W3.toHex(byte_tree[address - 1])[2:])
             # -1 because we decided to start counting from 0 (which is the
             # index of the root node)
             address = int(address/2) - 1
         else:
             print("append note at address: " + str(address + 1))
-            merkle_path.append(w3.toHex(byte_tree[address + 1])[2:])
+            merkle_path.append(W3.toHex(byte_tree[address + 1])[2:])
             address = int(address/2)
     return merkle_path
 
@@ -232,9 +232,9 @@ def encode_to_hash(message_list: Any) -> bytes:
         m_hex = m
 
         # Convert it into a hex
-        if type(m) == int:
+        if isinstance(m, int):
             m_hex = "{0:0>4X}".format(m)
-        elif (type(m) == str) and (m[1] == "x"):
+        elif isinstance(m, str) and (m[1] == "x"):
             m_hex = m[2:]
 
         # [SANITY CHECK] Make sure the hex is 32 byte long
