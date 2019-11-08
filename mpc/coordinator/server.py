@@ -133,6 +133,7 @@ class Server(object):
                 body="Please contribute to the MPC using your key: " +
                 export_verification_key(contributor.verification_key))
         except Exception as ex:
+            print(f"Failed to notify: {contributor.email}: {ex}")
             error(f"Failed to notify: {contributor.email}: {ex}")
 
     def _tick(self) -> None:
