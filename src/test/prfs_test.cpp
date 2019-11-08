@@ -140,7 +140,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
     // function Note: (we want to make sure that we generate the same digests
     // both on-chain and off-chain)
     libsnark::pb_variable_array<FieldT> a_pk_expected = from_bits(
-        hexadecimal_digest_to_binary_vector(
+        hex_digest_to_binary_vector(
             "2390c9e5370be7355f220b29caf3912ef970d828b73976ae9bfeb1402ce4c1f9"),
         ZERO);
 
@@ -255,7 +255,7 @@ TEST(TestPRFs, TestPRFNFGadget)
     // blake2s function (we want to make sure that we generate the same digests
     // both on-chain and off-chain)
     libsnark::pb_variable_array<FieldT> nf_expected = from_bits(
-        hexadecimal_digest_to_binary_vector(
+        hex_digest_to_binary_vector(
             "ea43866d185e1bdb84713b699a2966d929d1392488c010c603e46a4cb92986f8"),
         ZERO);
 
@@ -370,7 +370,7 @@ TEST(TestPRFs, TestPRFPKGadget)
     // blake2s function (we want to make sure that we generate the same digests
     // both on-chain and off-chain)
     libsnark::pb_variable_array<FieldT> h_expected0 = from_bits(
-        hexadecimal_digest_to_binary_vector(
+        hex_digest_to_binary_vector(
             "8527fb92081cf832659a188163287f98b8c919401ba619d6ebd30dc0f1aedeff"),
         ZERO);
 
@@ -386,7 +386,7 @@ TEST(TestPRFs, TestPRFPKGadget)
     prf_pk_gadget0->generate_r1cs_witness();
 
     libsnark::pb_variable_array<FieldT> h_expected1 = from_bits(
-        hexadecimal_digest_to_binary_vector(
+        hex_digest_to_binary_vector(
             "aea510673ff50225bec4bd918c102ea0c9b117b93534644ee70b74522b204b29"),
         ZERO);
 
@@ -500,7 +500,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
     // function (we want to make sure that we generate the same digests both
     // on-chain and off-chain)
     libsnark::pb_variable_array<FieldT> rho_expected0 = from_bits(
-        hexadecimal_digest_to_binary_vector(
+        hex_digest_to_binary_vector(
             "d7b7c4536bbba1aaca684706ba0df170af95515d573ad93e30015e1c40ebc539"),
         ZERO);
 
@@ -516,7 +516,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
     prf_rho_gadget0->generate_r1cs_witness();
 
     libsnark::pb_variable_array<FieldT> rho_expected1 = from_bits(
-        hexadecimal_digest_to_binary_vector(
+        hex_digest_to_binary_vector(
             "bb17f6088e47a8b2ac8e3d57588d52fed63079dc2b7045561d6d5e7288384249"),
         ZERO);
 
