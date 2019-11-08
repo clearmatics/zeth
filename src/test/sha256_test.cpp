@@ -131,8 +131,8 @@ TEST(TestSHA256, TestHash)
     // on-chain and off-chain) Solidity version v0.5.0
     std::string test_vector_res_str =
         "a4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3";
-    libsnark::pb_variable_array<FieldT> expected = from_bits(
-        hexadecimal_digest_to_binary_vector(test_vector_res_str), ZERO);
+    libsnark::pb_variable_array<FieldT> expected =
+        from_bits(hex_digest_to_binary_vector(test_vector_res_str), ZERO);
 
     hasher->generate_r1cs_constraints(true);
     hasher->generate_r1cs_witness();
@@ -169,11 +169,11 @@ TEST(TestSHA256, TestHashWithZeroLeg)
         "a631eca6f9fc96e9b0135804aceb5e97df404c3877d14e7f5ea67b4c120cec44";
 
     libff::bit_vector left_bits =
-        libff::bit_vector(hexadecimal_digest_to_binary_vector(left_str));
+        libff::bit_vector(hex_digest_to_binary_vector(left_str));
     libff::bit_vector right_bits =
-        libff::bit_vector(hexadecimal_digest_to_binary_vector(right_str));
+        libff::bit_vector(hex_digest_to_binary_vector(right_str));
     libff::bit_vector expected_bits =
-        libff::bit_vector(hexadecimal_digest_to_binary_vector(expected_str));
+        libff::bit_vector(hex_digest_to_binary_vector(expected_str));
 
     left.fill_with_bits(pb, left_bits);
     right.fill_with_bits(pb, right_bits);

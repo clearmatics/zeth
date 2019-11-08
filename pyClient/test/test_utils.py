@@ -1,8 +1,10 @@
 from nacl.public import PrivateKey  # type: ignore
 import nacl.encoding  # type: ignore
+from typing import Tuple, List
 
 
-def gen_keys_utility(to_print=False):
+def gen_keys_utility(
+        to_print: bool = False) -> Tuple[List[bytes], List[bytes], List[bytes]]:
     """
     Generates private/public keys (kP, k) over Curve25519 for Alice, Bob and
     Charlie

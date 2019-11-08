@@ -19,17 +19,17 @@ template<
     typename ppT,
     size_t NumInputs,
     size_t NumOutputs>
-class CircuitWrapper
+class circuit_wrapper
 {
 public:
     libsnark::protoboard<FieldT> pb;
-    boost::filesystem::path setupPath;
+    boost::filesystem::path setup_path;
     std::shared_ptr<
         joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs>>
         joinsplit_g;
 
-    CircuitWrapper(const boost::filesystem::path setupPath = "")
-        : setupPath(setupPath){};
+    circuit_wrapper(const boost::filesystem::path setup_path = "")
+        : setup_path(setup_path){};
 
     // Generate the trusted setup
     keyPairT<ppT> generate_trusted_setup();
@@ -37,8 +37,8 @@ public:
     // Generate a proof and returns an extended proof
     extended_proof<ppT> prove(
         const FieldT &root,
-        const std::array<JSInput<FieldT>, NumInputs> &inputs,
-        const std::array<ZethNote, NumOutputs> &outputs,
+        const std::array<joinsplit_input<FieldT>, NumInputs> &inputs,
+        const std::array<zeth_note, NumOutputs> &outputs,
         bits64 vpub_in,
         bits64 vpub_out,
         const bits256 h_sig_in,

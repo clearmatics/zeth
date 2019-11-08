@@ -6,46 +6,57 @@ from . import errors
 import argparse
 import sys
 import os
-import time
 from os.path import join, dirname, normpath
 # Import Pynacl required modules
-from eth_abi import encode_single
+import eth_abi
 import nacl.utils  # type: ignore
 from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
-
-w3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+from typing import List, Union, Any, cast
 
 # Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
 # Wei).
 ZETH_PUBLIC_UNIT_VALUE = 1000000000000
 
+W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 
-def int64_to_hex(number):
+
+def encode_single(type_name: str, data: bytes) -> bytes:
+    """
+    Typed wrapper around eth_abi.encode_single
+    """
+    return eth_abi.encode_single(type_name, data)  # type: ignore
+
+
+def encode_abi(type_names: List[str], data: List[bytes]) -> bytes:
+    """
+    Typed wrapper around eth_abi.encode_abi
+    """
+    return eth_abi.encode_abi(type_names, data)  # type: ignore
+
+
+def int64_to_hex(number: int) -> str:
     return '{:016x}'.format(number)
 
 
-def hex_digest_to_binary_string(digest):
-    def binary(x):
-        zipped = zip(
-            *[["{0:04b}".format(int(c, 16)) for c in reversed("0"+x)][n::2]
-              for n in [1, 0]])
-        return "".join(reversed(
-            [i+j for i, j in zipped]))
-    return binary(digest)
+def hex_digest_to_binary_string(digest: str) -> str:
+    padded = "0" + digest
+    digest_bits = ["{0:04b}".format(int(c, 16)) for c in reversed(padded)]
+    zipped = zip(*[digest_bits[n::2] for n in [1, 0]])
+    return "".join(reversed([i+j for i, j in zipped]))
 
 
-def hex2int(elements):
+def hex_to_int(elements: List[str]) -> List[int]:
     """
     Given an error of hex strings, return an array of int values
     """
     ints = []
     for el in elements:
         ints.append(int(el, 16))
-    return(ints)
+    return ints
 
 
-def hex_extend_32bytes(element):
+def hex_extend_32bytes(element: str) -> str:
     """
     Extend a hex string to represent 32 bytes
     """
@@ -56,30 +67,23 @@ def hex_extend_32bytes(element):
     return res
 
 
-def hex_digest_to_bits(digest):
-    padded = "0" + digest
-    digest_bits = ["{0:04b}".format(int(c, 16)) for c in reversed(padded)]
-    zipped = zip(*[digest_bits[n::2] for n in [1, 0]])
-    return "".join(reversed([i+j for i, j in zipped]))
-
-
-def get_private_key_from_bytes(sk_bytes):
+def get_private_key_from_bytes(sk_bytes: bytes) -> PrivateKey:
     """
-    Gets PrivateKey object from hexadecimal representation
+    Gets PrivateKey object from raw representation
     (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
     """
     return PrivateKey(sk_bytes, encoder=nacl.encoding.RawEncoder)
 
 
-def get_public_key_from_bytes(pk_bytes):
+def get_public_key_from_bytes(pk_bytes: bytes) -> PublicKey:
     """
-    Gets PublicKey object from hexadecimal representation
+    Gets PublicKey object from raw representation
     (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
     """
     return PublicKey(pk_bytes, encoder=nacl.encoding.RawEncoder)
 
 
-def encrypt(message, pk_receiver, sk_sender):
+def encrypt(message: str, pk_receiver: PublicKey, sk_sender: PrivateKey) -> bytes:
     """
     Encrypts a string message by using valid ec25519 public key and
     private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
@@ -91,18 +95,27 @@ def encrypt(message, pk_receiver, sk_sender):
     message_bytes = message.encode('utf-8')
 
     # Encrypt the message. The nonce is chosen randomly.
-    encrypted = encryption_box.encrypt(message_bytes, encoder=nacl.encoding.RawEncoder)
+    encrypted = encryption_box.encrypt(
+        message_bytes,
+        encoder=nacl.encoding.RawEncoder)
 
     # Need to cast to the parent class Bytes of nacl.utils.EncryptedMessage
     # to make it accepted from `Mix` Solidity function
     return bytes(encrypted)
 
 
-def decrypt(encrypted_message, pk_sender, sk_receiver):
+def decrypt(
+        encrypted_message: bytes,
+        pk_sender: PublicKey,
+        sk_receiver: PrivateKey) -> str:
     """
     Decrypts a string message by using valid ec25519 public key and private key
     objects.  See: https://pynacl.readthedocs.io/en/stable/public/
     """
+    assert(isinstance(pk_sender, PublicKey)), \
+        f"PublicKey: {pk_sender} ({type(pk_sender)})"
+    assert(isinstance(sk_receiver, PrivateKey)), \
+        f"PrivateKey: {sk_receiver} ({type(sk_receiver)})"
 
     # Init encryption box instance
     decryption_box = Box(sk_receiver, pk_sender)
@@ -112,60 +125,44 @@ def decrypt(encrypted_message, pk_sender, sk_receiver):
     return str(message, encoding='utf-8')
 
 
-def convert_leaf_address_to_node_address(address_leaf, tree_depth):
+def convert_leaf_address_to_node_address(
+        address_leaf: int, tree_depth: int) -> int:
     """
     Converts the relative address of a leaf to an absolute address in the tree
     Important note: The merkle root index is 0 (not 1!)
     """
     address = address_leaf + (2 ** tree_depth - 1)
-    if(address > 2 ** (tree_depth + 1) - 1):
+    if address > (2 ** (tree_depth + 1) - 1):
         return -1
     return address
 
 
-def compute_merkle_path(address_commitment, tree_depth, byte_tree):
-    merkle_path = []
+def compute_merkle_path(
+        address_commitment: int,
+        tree_depth: int,
+        byte_tree: List[bytes]) -> List[str]:
+    merkle_path: List[str] = []
     address_bits = []
     address = convert_leaf_address_to_node_address(address_commitment, tree_depth)
-    if(address == -1):
+    if address == -1:
         return merkle_path  # return empty merkle_path
-    for i in range(0, tree_depth):
+    for _ in range(0, tree_depth):
         address_bits.append(address % 2)
-        if (address % 2 == 0):
+        if (address % 2) == 0:
             print("append note at address: " + str(address - 1))
             # [2:] to strip the 0x prefix
-            merkle_path.append(w3.toHex(byte_tree[address - 1])[2:])
+            merkle_path.append(W3.toHex(byte_tree[address - 1])[2:])
             # -1 because we decided to start counting from 0 (which is the
             # index of the root node)
             address = int(address/2) - 1
         else:
             print("append note at address: " + str(address + 1))
-            merkle_path.append(w3.toHex(byte_tree[address + 1])[2:])
+            merkle_path.append(W3.toHex(byte_tree[address + 1])[2:])
             address = int(address/2)
     return merkle_path
 
 
-def receive(ciphertext, pk_sender, sk_receiver, username):
-    recovered_plaintext = ""
-    try:
-        recovered_plaintext = decrypt(ciphertext, pk_sender, sk_receiver)
-        print("[INFO] {} recovered one plaintext".format(username.capitalize()))
-        print("[INFO] {} received a payment!".format(username.capitalize()))
-        # Just as an example we write the received coin in the coinstore
-        print("[INFO] Writing the received note in the coinstore")
-        coinstore_dir = os.environ['ZETH_COINSTORE']
-        coin_filename = \
-            "{}_{}.json".format(username, int(round(time.time() * 1000)))
-        path_to_coin = os.path.join(coinstore_dir, coin_filename)
-        file = open(path_to_coin, "w")
-        file.write(recovered_plaintext)
-        file.close()
-    except Exception as e:
-        print(f"[ERROR] in receive. Might not be the recipient! (msg: {e})")
-    return recovered_plaintext
-
-
-def parse_zksnark_arg():
+def parse_zksnark_arg() -> str:
     """
     Parse the zksnark argument and return its value
     """
@@ -180,53 +177,64 @@ def parse_zksnark_arg():
     return args.zksnark
 
 
-def to_zeth_units(value, unit):
+def to_zeth_units(value: str, unit: str) -> int:
     return int(Web3.toWei(value, unit) / ZETH_PUBLIC_UNIT_VALUE)
 
 
-def get_zeth_dir():
+def get_zeth_dir() -> str:
     return os.environ.get(
         'ZETH',
         normpath(join(dirname(__file__), "..", "..")))
 
 
-def get_trusted_setup_dir():
+def get_trusted_setup_dir() -> str:
     return os.environ.get(
         'ZETH_TRUSTED_SETUP_DIR',
         join(get_zeth_dir(), "trusted_setup"))
 
 
-def get_contracts_dir():
+def get_contracts_dir() -> str:
     return os.environ.get(
         'ZETH_CONTRACTS_DIR',
         join(get_zeth_dir(), "zeth-contracts", "contracts"))
 
 
-def encode_to_hash(messages):
+def string_list_flatten(
+        strs_list: Union[List[str], List[Union[str, List[str]]]]) -> List[str]:
+    """
+    Flatten a list containing strings or lists of strings.
+    """
+    if any(isinstance(el, (list, tuple)) for el in strs_list):
+        strs: List[str] = []
+        for el in strs_list:
+            if isinstance(el, (list, tuple)):
+                strs.extend(el)
+            else:
+                strs.append(cast(str, el))
+        return strs
+
+    return cast(List[str], strs_list)
+
+
+def encode_to_hash(message_list: Any) -> bytes:
+    # message_list: Union[List[str], List[Union[int, str, List[str]]]]) -> bytes:
+
     """
     Encode a list of variables, or list of lists of variables into a byte
     vector
     """
+
+    messages = string_list_flatten(message_list)
+
     input_sha = bytearray()
-
-    # Flatten messages
-    if any(isinstance(el, list) for el in messages):
-        new_list = []
-        for el in messages:
-            if type(el) == list:
-                new_list.extend(el)
-            else:
-                new_list.append(el)
-        messages = new_list
-
     for m in messages:
         # For each element
         m_hex = m
 
         # Convert it into a hex
-        if type(m) == int:
+        if isinstance(m, int):
             m_hex = "{0:0>4X}".format(m)
-        elif (type(m) == str) and (m[1] == "x"):
+        elif isinstance(m, str) and (m[1] == "x"):
             m_hex = m[2:]
 
         # [SANITY CHECK] Make sure the hex is 32 byte long

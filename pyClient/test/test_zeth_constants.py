@@ -5,7 +5,7 @@ from unittest import TestCase
 
 class TestZethConstants(TestCase):
 
-    def test_encrypt_decrypt(self):
+    def test_encrypt_decrypt(self) -> None:
         """
         Tests the correct encrypt-decrypt flow: decrypt(encrypt(m)) == m
         """

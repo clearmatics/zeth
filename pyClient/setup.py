@@ -20,7 +20,9 @@ setup(
     packages=find_packages(),
     install_requires=[
         "mypy==0.720",
+        "mypy-protobuf",
         "flake8==3.7.8",
+        "pylint==2.4.3",
         "attrdict==2.0.1",
         "certifi==2018.11.29",
         "chardet==3.0.4",
@@ -42,7 +44,7 @@ setup(
         "protobuf==3.6.1",
         "py_ecc==1.7.1",
         "py-solc-x==0.1.1",
-        "pycryptodome==3.7.3",
+        "pycryptodome==3.9.0",
         "pynacl==1.3.0",
         "requests==2.21.0",
         "rlp==1.1.0",

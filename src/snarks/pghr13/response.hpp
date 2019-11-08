@@ -5,21 +5,14 @@
 #include "libsnark_helpers/extended_proof.hpp"
 #include "util_api.hpp"
 
-using proverpkg::ExtendedProof;
-using proverpkg::HexadecimalPointBaseGroup1Affine;
-using proverpkg::HexadecimalPointBaseGroup2Affine;
-using proverpkg::R1csPpzksnarkExtendedProof;
-using proverpkg::R1csPpzksnarkVerificationKey;
-using proverpkg::VerificationKey;
-
 namespace libzeth
 {
 
 template<typename ppT>
-void PrepareProofResponse(
+void prepare_proof_response(
     extended_proof<ppT> &ext_proof, ExtendedProof *message);
 template<typename ppT>
-void PrepareVerifyingKeyResponse(
+void prepare_verification_key_response(
     libsnark::r1cs_ppzksnark_verification_key<ppT> &vk,
     VerificationKey *message);
 
