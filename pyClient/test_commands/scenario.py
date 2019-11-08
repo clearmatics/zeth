@@ -121,7 +121,9 @@ def bob_to_charlie(
         keystore: mock.Keystore,
         mk_tree_depth: int,
         zksnark: str) -> contracts.MixResult:
-    print(f"=== Bob transfers {BOB_TO_CHARLIE_ETH}ETH to Charlie from his funds on the mixer ===")
+    print(
+        f"=== Bob transfers {BOB_TO_CHARLIE_ETH}ETH to Charlie from his funds " +
+        "on the mixer ===")
 
     # We generate a coin for Charlie (recipient1)
     charlie_apk = keystore["Charlie"].addr_pk.a_pk
@@ -160,8 +162,10 @@ def bob_to_charlie(
 
     # Encrypt the output notes for the senders
     (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
-        (output_note1, get_public_key_from_bytes(keystore["Bob"].addr_pk.enc_pk)),
-        (output_note2, get_public_key_from_bytes(keystore["Charlie"].addr_pk.enc_pk))])
+        (output_note1,
+         get_public_key_from_bytes(keystore["Bob"].addr_pk.enc_pk)),
+        (output_note2,
+         get_public_key_from_bytes(keystore["Charlie"].addr_pk.enc_pk))])
 
     # Hash the pk_sender and cipher-texts
     ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
@@ -210,7 +214,9 @@ def charlie_withdraw(
         keystore: mock.Keystore,
         mk_tree_depth: int,
         zksnark: str) -> contracts.MixResult:
-    print(f" === Charlie withdraws {CHARLIE_WITHDRAW_ETH}ETH from his funds on the Mixer ===")
+    print(
+        f" === Charlie withdraws {CHARLIE_WITHDRAW_ETH}ETH from his funds " +
+        "on the Mixer ===")
 
     charlie_apk = keystore["Charlie"].addr_pk.a_pk
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
@@ -303,8 +309,8 @@ def charlie_double_withdraw(
     nullifier of the previous payment
     """
     print(
-        f" === Charlie attempts to withdraw {CHARLIE_WITHDRAW_ETH}ETH once more " +
-        "(double spend) one of his note on the Mixer ===")
+        f" === Charlie attempts to withdraw {CHARLIE_WITHDRAW_ETH}ETH once " +
+        "more (double spend) one of his note on the Mixer ===")
 
     charlie_apk = keystore["Charlie"].addr_pk.a_pk
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
@@ -340,7 +346,7 @@ def charlie_double_withdraw(
     # ### ATTACK BLOCK
     # Add malicious nullifiers (located at index 2 and 4 in the array of inputs)
     # See: https://github.com/clearmatics/zeth/issues/38
-    r = 21888242871839275222246405745257275088548364400416034343698204186575808495617
+    r = 21888242871839275222246405745257275088548364400416034343698204186575808495617  # noqa
     print("proof_json => ", proof_json)
     print("proof_json[inputs][2] => ", proof_json["inputs"][2])
     print("proof_json[inputs][4] => ", proof_json["inputs"][4])

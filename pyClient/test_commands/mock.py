@@ -78,7 +78,8 @@ def init_test_keystore() -> Keystore:
 def get_dummy_merkle_path(length: int) -> List[str]:
     mk_path = []
     # Arbitrary sha256 digest used to build the dummy merkle path
-    dummy_node = "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
+    dummy_node = \
+        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"
     for _ in range(length):
         mk_path.append(dummy_node)
     return mk_path

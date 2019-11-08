@@ -80,7 +80,8 @@ def compile_util_contracts() -> Tuple[Interface, Interface]:
     path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
     path_to_mimc7 = os.path.join(contracts_dir, "MiMC7.sol")
     path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMC7.sol")
-    compiled_sol = compile_files([path_to_pairing, path_to_bytes, path_to_mimc7, path_to_tree])
+    compiled_sol = compile_files(
+        [path_to_pairing, path_to_bytes, path_to_mimc7, path_to_tree])
     mimc_interface = compiled_sol[path_to_mimc7 + ':' + "MiMC7"]
     tree_interface = compiled_sol[path_to_tree + ':' + "MerkleTreeMiMC7"]
     return mimc_interface, tree_interface
@@ -150,7 +151,8 @@ def deploy_mixer(
         abi=mixer_interface['abi']
     )
     # Get the initial merkle root to proceed to the first payments
-    ef_log_merkle_root = mixer.eventFilter("LogMerkleRoot", {'fromBlock': 'latest'})
+    ef_log_merkle_root = \
+        mixer.eventFilter("LogMerkleRoot", {'fromBlock': 'latest'})
     event_logs_log_merkle_root = ef_log_merkle_root.get_all_entries()
     initial_root = W3.toHex(event_logs_log_merkle_root[0].args.root)
     return(mixer, initial_root[2:])
@@ -237,7 +239,8 @@ def deploy_contracts(
 
     # Deploy the one-time signature verifier contract
     otsig_verifier = eth.contract(
-            abi=otsig_verifier_interface['abi'], bytecode=otsig_verifier_interface['bin'])
+        abi=otsig_verifier_interface['abi'],
+        bytecode=otsig_verifier_interface['bin'])
     otsig_verifier_address = deploy_otschnorr_contracts(
             otsig_verifier, deployer_address, deployment_gas)
 
@@ -414,7 +417,8 @@ def parse_mix_call(
     # Get the ciphertexts
     event_filter_log_secret_ciphers = mixer_instance.eventFilter(
         "LogSecretCiphers", {'fromBlock': 'latest'})
-    event_logs_log_secret_ciphers = event_filter_log_secret_ciphers.get_all_entries()
+    event_logs_log_secret_ciphers = \
+        event_filter_log_secret_ciphers.get_all_entries()
     new_merkle_root = W3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
     return MixResult(
         cm_address_1=event_logs_log_address[0].args.commAddr,

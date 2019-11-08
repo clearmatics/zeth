@@ -29,7 +29,8 @@ def compile_token() -> contracts.Interface:
         "zeth-contracts/node_modules/openzeppelin-solidity/contracts")
     path_to_token = os.path.join(
         zeth_dir,
-        "zeth-contracts/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol")
+        "zeth-contracts/node_modules/openzeppelin-solidity/contracts",
+        "token/ERC20/ERC20Mintable.sol")
     # Compilation
     compiled_sol = compile_files([path_to_token], allow_paths=allowed_path)
     token_interface = compiled_sol[path_to_token + ":ERC20Mintable"]
@@ -91,7 +92,8 @@ def allowance(
         token_instance: Any,
         owner_address: str,
         spender_address: str) -> str:
-    return token_instance.functions.allowance(owner_address, spender_address).call()
+    return token_instance.functions.allowance(owner_address, spender_address) \
+        .call()
 
 
 def mint_token(
@@ -174,7 +176,8 @@ def main() -> None:
         mixer_instance.address
     )
 
-    # Bob tries to deposit ETHToken, split in 2 notes on the mixer (without approving)
+    # Bob tries to deposit ETHToken, split in 2 notes on the mixer (without
+    # approving)
     try:
         result_deposit_bob_to_bob = scenario.bob_deposit(
             prover_client,
