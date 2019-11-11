@@ -20,9 +20,9 @@ class MPCCommand(object):
             powersoftau_file: str,
             lagrange_file: str,
             linear_comb_out_file: str,
-            degree: Optional[int] = None) -> bool:
+            pot_degree: Optional[int] = None) -> bool:
         args = ["linear-combination"]
-        args += ["--pot-degree", str(degree)] if degree else []
+        args += ["--pot-degree", str(pot_degree)] if pot_degree else []
         args += [powersoftau_file, lagrange_file, linear_comb_out_file]
         return self._exec(args)
 

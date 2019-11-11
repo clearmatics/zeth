@@ -4,6 +4,7 @@ from click import command, argument, option
 from coordinator.powersoftau_process_command import PowersOfTauProcessCommand
 from coordinator.mpc_command import MPCCommand
 from coordinator.phase2_contribution_handler import CHALLENGE_0_FILE
+from os.path import exists
 from typing import Optional
 
 LAGRANGE_FILE = "lagrange.bin"
@@ -12,12 +13,16 @@ LINEAR_COMBINATION_FILE = "linear_combination.bin"
 
 @command()
 @argument("pot-file")
-@argument("degree", type=int)
+@argument("pot-degree", type=int)
+@option(
+    "--lagrange-degree", default=None, type=int,
+    help="degree of Lagrange polynomials (default: pot-degree)")
 @option("--pot-tool", default=None, help="path to pot-process tool")
 @option("--mpc-tool", default=None, help="path to mpc tool")
 def phase2_prepare(
         pot_file: str,
-        degree: int,
+        pot_degree: int,
+        lagrange_degree: Optional[int],
         pot_tool: Optional[str],
         mpc_tool: Optional[str]) -> None:
     """
@@ -25,17 +30,30 @@ def phase2_prepare(
     Phase2.
     """
 
-    pot_process = PowersOfTauProcessCommand(pot_tool)
-    if not pot_process.compute_lagrange(pot_file, degree, LAGRANGE_FILE):
-        raise Exception("Lagrange computation failed")
+    if not exists(pot_file):
+        raise Exception(f"No powersoftau file: {pot_file}")
+
+    if not exists(LAGRANGE_FILE):
+        pot_process = PowersOfTauProcessCommand(pot_tool)
+        if not pot_process.compute_lagrange(
+                pot_file, pot_degree, LAGRANGE_FILE, lagrange_degree):
+            raise Exception("Lagrange computation failed")
+    else:
+        print(f"Using existing lagrange evaluations: {LAGRANGE_FILE}")
 
     mpc = MPCCommand(mpc_tool)
-    if not mpc.linear_combination(
-            pot_file, LAGRANGE_FILE, LINEAR_COMBINATION_FILE):
-        raise Exception("linear combination failed")
+    if not exists(LINEAR_COMBINATION_FILE):
+        if not mpc.linear_combination(
+                pot_file, LAGRANGE_FILE, LINEAR_COMBINATION_FILE, pot_degree):
+            raise Exception("linear combination failed")
+    else:
+        print(f"Using existing linear-combination: {LINEAR_COMBINATION_FILE}")
 
-    if not mpc.phase2_begin(LINEAR_COMBINATION_FILE, CHALLENGE_0_FILE):
-        raise Exception("failed computing challenge 0")
+    if not exists(CHALLENGE_0_FILE):
+        if not mpc.phase2_begin(LINEAR_COMBINATION_FILE, CHALLENGE_0_FILE):
+            raise Exception("failed computing challenge 0")
+    else:
+        print(f"Using existing initial challenge: {CHALLENGE_0_FILE}")
 
 
 if __name__ == "__main__":

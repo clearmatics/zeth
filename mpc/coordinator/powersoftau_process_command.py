@@ -17,9 +17,15 @@ class PowersOfTauProcessCommand(object):
     def compute_lagrange(
             self,
             pot_file: str,
-            degree: int,
-            lagrange_output_file: str) -> bool:
-        return self._exec(["--out", lagrange_output_file, pot_file, str(degree)])
+            pot_degree: int,
+            lagrange_output_file: str,
+            lagrange_degree: Optional[int]) -> bool:
+        lagrange_degree = lagrange_degree or pot_degree
+        return self._exec(
+            ["--out", lagrange_output_file,
+             "--lagrange-degree", str(lagrange_degree),
+             pot_file,
+             str(pot_degree)])
 
     def _exec(self, args: List[str]) -> bool:
         import subprocess
