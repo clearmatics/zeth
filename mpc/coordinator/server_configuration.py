@@ -3,7 +3,7 @@
 from __future__ import annotations
 import json
 import time
-from os.path import exists
+from os.path import dirname, exists, join
 from typing import Dict, cast, Optional
 
 JsonDict = Dict[str, object]
@@ -115,18 +115,23 @@ class Configuration(object):
         }
 
     @staticmethod
-    def _from_json_dict(json_dict: JsonDict) -> Configuration:
+    def _from_json_dict(
+            json_dict: JsonDict,
+            config_path: Optional[str] = None) -> Configuration:
         start_local = time.strptime(
             cast(str, json_dict["start_time"]),
             TIME_FORMAT)
+        email_password_file = cast(
+            str, json_dict.get("email_password_file", None))
+        if email_password_file and config_path:
+            email_password_file = join(dirname(config_path), email_password_file)
         return Configuration(
             cast(str, json_dict["contributors_file"]),
             time.mktime(start_local),
             float(cast(str, json_dict["contribution_interval"])),
             email_server=cast(str, json_dict.get("email_server", None)),
             email_address=cast(str, json_dict.get("email_address", None)),
-            email_password_file=cast(
-                str, json_dict.get("email_password_file", None)),
+            email_password_file=email_password_file,
             tls_key=cast(str, json_dict["tls_key"]),
             tls_certificate=cast(str, json_dict["tls_certificate"]),
             port=int(cast(int, json_dict["port"])))
