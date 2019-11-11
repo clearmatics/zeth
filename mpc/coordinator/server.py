@@ -321,13 +321,15 @@ class Server(object):
             if not exists(self.config.tls_key):
                 raise Exception(f"no key file {self.config.tls_key}")
 
+            listen_addr = ('0.0.0.0', self.config.port)
             self.server = WSGIServer(
-                ('0.0.0.0', self.config.port),
+                listen_addr,
                 PathInfoDispatcher({'/': app}),
                 numthreads=1)
             self.server.ssl_adapter = BuiltinSSLAdapter(
                 self.config.tls_certificate,
                 self.config.tls_key)
+            print(f"Listening on {listen_addr} ...")
             self.server.start()
         finally:
             interval.stop()
