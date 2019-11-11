@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
-from commands.constants import LAGRANGE_FILE, LINEAR_COMBINATION_FILE
+from commands.constants import \
+    DEFAULT_CONFIG_FILE, LAGRANGE_FILE, LINEAR_COMBINATION_FILE
 from coordinator.powersoftau_process_command import PowersOfTauProcessCommand
 from coordinator.mpc_command import MPCCommand
+from coordinator.phase1_contribution_handler import \
+    Phase1ServerConfig, FINAL_OUTPUT
 from coordinator.phase2_contribution_handler import CHALLENGE_0_FILE
 from click import command, argument, option
-from os.path import exists
+from os.path import join, exists
 from typing import Optional
 
 
 @command()
-@argument("pot-file")
-@argument("pot-degree", type=int)
+@argument("phase1-dir")
 @option(
     "--lagrange-degree", default=None, type=int,
     help="degree of Lagrange polynomials (default: pot-degree)")
@@ -28,8 +30,17 @@ def phase2_prepare(
     Phase2.
     """
 
+    # Gather phase1 information
+    pot_file = join(phase1_dir, FINAL_OUTPUT)
     if not exists(pot_file):
         raise Exception(f"No powersoftau file: {pot_file}")
+    phase1_config_file = join(phase1_dir, DEFAULT_CONFIG_FILE)
+    with open(phase1_config_file, "r") as phase1_config_f:
+        phase1_config = Phase1ServerConfig.from_json(
+            phase1_config_f.read(), phase1_config_file)
+    pot_degree = phase1_config.num_powers
+    if not pot_degree:
+        raise Exception("powersoftau degree must be specified in config file")
 
     if not exists(LAGRANGE_FILE):
         pot_process = PowersOfTauProcessCommand(pot_tool)

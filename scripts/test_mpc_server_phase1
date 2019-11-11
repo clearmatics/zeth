@@ -21,7 +21,7 @@ function prepare_server_phase1() {
         -e "s/PORT/${PHASE1_PORT}/g" \
         -e "s/QAP_DEGREE/${QAP_DEGREE}/g" \
         ${PHASE1_CONFIG_TEMPLATE} \
-        > phase1_server_config.json
+        > server_config.json
 
     popd
 }
@@ -59,7 +59,7 @@ prepare_server_phase1
 # Start server in background
 start_server_common \
     ${PHASE1_SERVER_DIR} \
-    "phase1_server --config phase1_server_config.json" \
+    "phase1_server" \
     get_state_phase1
 
 # make 4 contributions
