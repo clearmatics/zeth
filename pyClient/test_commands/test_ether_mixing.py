@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import zeth.contracts
 import zeth.joinsplit
 import zeth.utils

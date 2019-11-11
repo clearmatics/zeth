@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import zeth.contracts as contracts
 import zeth.joinsplit
 from zeth.prover_client import ProverClient

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from zeth.mimc import MiMC7, sha3_256
 from zeth.constants import MIMC_MT_SEED
 import zeth.contracts as contracts
