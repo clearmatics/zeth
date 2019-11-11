@@ -15,20 +15,20 @@ namespace libzeth
 {
 
 template<typename ppT>
-void exportVerificationKey(libsnark::r1cs_ppzksnark_keypair<ppT> keypair);
+void export_verification_key(libsnark::r1cs_ppzksnark_keypair<ppT> keypair);
 template<typename ppT>
-void displayProof(libsnark::r1cs_ppzksnark_proof<ppT> proof);
+void display_proof(libsnark::r1cs_ppzksnark_proof<ppT> proof);
 template<typename ppT>
-void verificationKeyToJson(
+void verification_key_to_json(
     libsnark::r1cs_ppzksnark_keypair<ppT> keypair,
     boost::filesystem::path path = "");
 template<typename ppT>
-void proofAndInputToJson(
+void proof_and_inputs_to_json(
     libsnark::r1cs_ppzksnark_proof<ppT> proof,
     libsnark::r1cs_ppzksnark_primary_input<ppT> input,
     boost::filesystem::path path = "");
 template<typename ppT>
-void proofToJson(
+void proof_to_json(
     libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path);
 
 } // namespace libzeth

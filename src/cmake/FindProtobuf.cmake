@@ -52,18 +52,33 @@ function(PROTOBUF_GENERATE_CPP SRCS HDRS DEST)
     endforeach()
   endif()
 
+  # If we know that output files will be generated into a subdir of the output
+  # path, the caller can set this variable to ensure that the output files are
+  # correct.
+  if(DEFINED PROTOBUF_APPEND_DEST_PATH)
+    set(SRC_DEST "${DEST}${PROTOBUF_APPEND_DEST_PATH}")
+  else()
+    set(SRC_DEST "${DEST}")
+  endif()
+
+  # Set the --proto_path flag
+  if(DEFINED PROTOBUF_PROTO_PATH)
+    get_filename_component(ABS_PATH ${PROTOBUF_PROTO_PATH} ABSOLUTE)
+    list(APPEND _protobuf_include_path --proto_path ${ABS_PATH})
+  endif()
+
   set(${SRCS})
   set(${HDRS})
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
     get_filename_component(FIL_WE ${FIL} NAME_WE)
 
-    list(APPEND ${SRCS} "${DEST}/${FIL_WE}.pb.cc")
-    list(APPEND ${HDRS} "${DEST}/${FIL_WE}.pb.h")
+    list(APPEND ${SRCS} "${SRC_DEST}/${FIL_WE}.pb.cc")
+    list(APPEND ${HDRS} "${SRC_DEST}/${FIL_WE}.pb.h")
 
     add_custom_command(
-      OUTPUT "${DEST}/${FIL_WE}.pb.cc"
-             "${DEST}/${FIL_WE}.pb.h"
+      OUTPUT "${SRC_DEST}/${FIL_WE}.pb.cc"
+             "${SRC_DEST}/${FIL_WE}.pb.h"
       COMMAND protobuf::protoc
       ARGS --cpp_out ${DEST} ${_protobuf_include_path} ${ABS_FIL}
       DEPENDS ${ABS_FIL} protobuf::protoc

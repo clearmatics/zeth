@@ -5,84 +5,84 @@ namespace libzeth
 {
 
 template<typename ppT>
-void PrepareProofResponse(
-    extended_proof<ppT> &ext_proof, ExtendedProof *message)
+void prepare_proof_response(
+    extended_proof<ppT> &ext_proof, prover_proto::ExtendedProof *message)
 {
-    libsnark::r1cs_gg_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
+    libsnark::r1cs_gg_ppzksnark_proof<ppT> proof_obj = ext_proof.get_proof();
 
-    HexadecimalPointBaseGroup1Affine *a =
-        new HexadecimalPointBaseGroup1Affine();
-    HexadecimalPointBaseGroup2Affine *b =
-        new HexadecimalPointBaseGroup2Affine(); // in G2
-    HexadecimalPointBaseGroup1Affine *c =
-        new HexadecimalPointBaseGroup1Affine();
+    prover_proto::HexPointBaseGroup1Affine *a =
+        new prover_proto::HexPointBaseGroup1Affine();
+    prover_proto::HexPointBaseGroup2Affine *b =
+        new prover_proto::HexPointBaseGroup2Affine(); // in G2
+    prover_proto::HexPointBaseGroup1Affine *c =
+        new prover_proto::HexPointBaseGroup1Affine();
 
-    a->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.g_A));
-    b->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(proofObj.g_B)); // in G2
-    c->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(proofObj.g_C));
+    a->CopyFrom(format_hexPointBaseGroup1Affine(proof_obj.g_A));
+    b->CopyFrom(format_hexPointBaseGroup2Affine(proof_obj.g_B)); // in G2
+    c->CopyFrom(format_hexPointBaseGroup1Affine(proof_obj.g_C));
 
-    libsnark::r1cs_ppzksnark_primary_input<ppT> pubInputs =
+    libsnark::r1cs_ppzksnark_primary_input<ppT> public_inputs =
         ext_proof.get_primary_input();
     std::stringstream ss;
     ss << "[";
-    for (size_t i = 0; i < pubInputs.size(); ++i) {
-        ss << "\"0x" << HexStringFromLibsnarkBigint(pubInputs[i].as_bigint())
+    for (size_t i = 0; i < public_inputs.size(); ++i) {
+        ss << "\"0x" << hex_from_libsnark_bigint(public_inputs[i].as_bigint())
            << "\"";
-        if (i < pubInputs.size() - 1) {
+        if (i < public_inputs.size() - 1) {
             ss << ", ";
         }
     }
     ss << "]";
-    std::string inputs_json = ss.str();
+    std::string inputs_json_str = ss.str();
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    R1csGgPpzksnarkExtendedProof *r1csGgPpzksnarkExtendedProof =
-        message->mutable_r1csggppzksnarkextendedproof();
+    prover_proto::ExtendedProofGROTH16 *grpc_extended_groth16_proof_obj =
+        message->mutable_groth16_extended_proof();
 
-    r1csGgPpzksnarkExtendedProof->set_allocated_a(a);
-    r1csGgPpzksnarkExtendedProof->set_allocated_b(b);
-    r1csGgPpzksnarkExtendedProof->set_allocated_c(c);
-    r1csGgPpzksnarkExtendedProof->set_inputs(inputs_json);
+    grpc_extended_groth16_proof_obj->set_allocated_a(a);
+    grpc_extended_groth16_proof_obj->set_allocated_b(b);
+    grpc_extended_groth16_proof_obj->set_allocated_c(c);
+    grpc_extended_groth16_proof_obj->set_inputs(inputs_json_str);
 }
 
 template<typename ppT>
-void PrepareVerifyingKeyResponse(
+void prepare_verification_key_response(
     libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &vk,
-    VerificationKey *message)
+    prover_proto::VerificationKey *message)
 {
-    HexadecimalPointBaseGroup1Affine *a =
-        new HexadecimalPointBaseGroup1Affine(); // in G1
-    HexadecimalPointBaseGroup2Affine *b =
-        new HexadecimalPointBaseGroup2Affine(); // in G2
-    HexadecimalPointBaseGroup2Affine *d =
-        new HexadecimalPointBaseGroup2Affine(); // in G2
+    prover_proto::HexPointBaseGroup1Affine *a =
+        new prover_proto::HexPointBaseGroup1Affine(); // in G1
+    prover_proto::HexPointBaseGroup2Affine *b =
+        new prover_proto::HexPointBaseGroup2Affine(); // in G2
+    prover_proto::HexPointBaseGroup2Affine *d =
+        new prover_proto::HexPointBaseGroup2Affine(); // in G2
 
-    a->CopyFrom(FormatHexadecimalPointBaseGroup1Affine(vk.alpha_g1)); // in G1
-    b->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.beta_g2));  // in G2
-    d->CopyFrom(FormatHexadecimalPointBaseGroup2Affine(vk.delta_g2)); // in G2
+    a->CopyFrom(format_hexPointBaseGroup1Affine(vk.alpha_g1)); // in G1
+    b->CopyFrom(format_hexPointBaseGroup2Affine(vk.beta_g2));  // in G2
+    d->CopyFrom(format_hexPointBaseGroup2Affine(vk.delta_g2)); // in G2
 
     std::stringstream ss;
-    unsigned ABCLength = vk.ABC_g1.rest.indices.size() + 1;
-    ss << "[[" << outputPointG1AffineAsHex(vk.ABC_g1.first) << "]";
-    for (size_t i = 1; i < ABCLength; ++i) {
-        auto vkABCi = outputPointG1AffineAsHex(vk.ABC_g1.rest.values[i - 1]);
-        ss << ",[" << vkABCi << "]";
+    unsigned abc_length = vk.ABC_g1.rest.indices.size() + 1;
+    ss << "[[" << point_g1_affine_as_hex(vk.ABC_g1.first) << "]";
+    for (size_t i = 1; i < abc_length; ++i) {
+        auto vk_abc_i = point_g1_affine_as_hex(vk.ABC_g1.rest.values[i - 1]);
+        ss << ",[" << vk_abc_i << "]";
     }
     ss << "]";
-    std::string ABC_json = ss.str();
+    std::string abc_json_str = ss.str();
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    R1csGgPpzksnarkVerificationKey *r1csGgPpzksnarkVerificationKey =
-        message->mutable_r1csggppzksnarkverificationkey();
+    prover_proto::VerificationKeyGROTH16 *grpc_verification_key_groth16 =
+        message->mutable_groth16_verification_key();
 
-    r1csGgPpzksnarkVerificationKey->set_allocated_alpha_g1(a);
-    r1csGgPpzksnarkVerificationKey->set_allocated_beta_g2(b);
-    r1csGgPpzksnarkVerificationKey->set_allocated_delta_g2(d);
-    r1csGgPpzksnarkVerificationKey->set_abc_g1(ABC_json);
+    grpc_verification_key_groth16->set_allocated_alpha_g1(a);
+    grpc_verification_key_groth16->set_allocated_beta_g2(b);
+    grpc_verification_key_groth16->set_allocated_delta_g2(d);
+    grpc_verification_key_groth16->set_abc_g1(abc_json_str);
 };
 
 } // namespace libzeth

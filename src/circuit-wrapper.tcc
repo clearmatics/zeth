@@ -13,7 +13,7 @@ template<
     typename ppT,
     size_t NumInputs,
     size_t NumOutputs>
-keyPairT<ppT> CircuitWrapper<
+keyPairT<ppT> circuit_wrapper<
     FieldT,
     HashT,
     HashTreeT,
@@ -28,7 +28,7 @@ keyPairT<ppT> CircuitWrapper<
     // Generate a verification and proving key (trusted setup)
     // and write them in a file
     keyPairT<ppT> keypair = gen_trusted_setup<ppT>(pb);
-    writeSetup<ppT>(keypair, this->setupPath);
+    write_setup<ppT>(keypair, this->setup_path);
 
     return keypair;
 }
@@ -40,7 +40,7 @@ template<
     typename ppT,
     size_t NumInputs,
     size_t NumOutputs>
-extended_proof<ppT> CircuitWrapper<
+extended_proof<ppT> circuit_wrapper<
     FieldT,
     HashT,
     HashTreeT,
@@ -49,8 +49,8 @@ extended_proof<ppT> CircuitWrapper<
     NumOutputs>::
     prove(
         const FieldT &root,
-        const std::array<JSInput<FieldT>, NumInputs> &inputs,
-        const std::array<ZethNote, NumOutputs> &outputs,
+        const std::array<joinsplit_input<FieldT>, NumInputs> &inputs,
+        const std::array<zeth_note, NumOutputs> &outputs,
         bits64 vpub_in,
         bits64 vpub_out,
         const bits256 h_sig_in,

@@ -37,6 +37,15 @@ set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto-src)
 file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 include_directories(${PROTO_SRC_DIR})
 
+# Generating sensibly into a python module requires setting --proto_path to the
+# zeth root, and referencing files as 'api/prover.proto' etc.  This requires us
+# to tweak the references to the source files.
+set(PROTOBUF_IMPORT_DIRS ..)
+set(PROTOBUF_PROTO_PATH ..)
+set(PROTOBUF_APPEND_DEST_PATH "/api")
+set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
+set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
+
 # See cmake scripts in the cmake folder
 # Generate the grpc and protobuf files and set the result of the generation
 # in the given env var (PROTO_SRCS, PROTO_HDRS, GRPC_SRCS, GRPC_HDRS)
