@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-from click import command, argument, option
+from commands.constants import LAGRANGE_FILE, LINEAR_COMBINATION_FILE
 from coordinator.powersoftau_process_command import PowersOfTauProcessCommand
 from coordinator.mpc_command import MPCCommand
 from coordinator.phase2_contribution_handler import CHALLENGE_0_FILE
+from click import command, argument, option
 from os.path import exists
 from typing import Optional
-
-LAGRANGE_FILE = "lagrange.bin"
-LINEAR_COMBINATION_FILE = "linear_combination.bin"
 
 
 @command()

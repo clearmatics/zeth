@@ -25,7 +25,6 @@ from logging import info, warning, error
 from os import remove
 from os.path import exists, join
 
-CONFIGURATION_FILE = "server_config.json"
 STATE_FILE = "server_state.json"
 UPLOAD_FILE = "upload.raw"
 LOG_FILE = "server.log"

@@ -214,11 +214,11 @@ the `email_server`, `email_address` and `email_password_file` fields to point to
 ## Prepare initial challenge (Phase2 only)
 
 Phase2 requires the output from Phase1 to be processed before Phase2 can begin.
-The following assumes that the Phase1 server directory is located
-`../phase1_coordinator`, and contains phase1 output `pot-2097152.bin`.
+The following assumes that the Phase1 server directory is located in the
+directory `../phase1_coordinator`:
 
 ```console
-(env) $ phase2_prepare ../phase1_coordinator/pot-2097152.bin 2097152
+(env) $ phase2_prepare ../phase1_coordinator
 ```
 
 Note that this process can take a significant amount of time.
