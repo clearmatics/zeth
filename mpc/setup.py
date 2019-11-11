@@ -22,6 +22,7 @@ setup(
     install_requires=[
         "mypy==0.720",
         "flake8==3.7.8",
+        "pylint==2.4.3",
         "flask==1.1.1",
         "cheroot==7.0.0",
         "pycryptodome==3.9.0",

@@ -13,7 +13,7 @@ import time
 CHUNK_SIZE = 4096
 
 
-class Client(object):
+class Client:
 
     def __init__(
             self,
@@ -31,7 +31,7 @@ class Client(object):
         """
         while True:
             resp = get(join(self.base_url, "contributors"), verify=self.verify)
-            if 503 == resp.status_code:
+            if resp.status_code == 503:
                 print("server is busy.  retrying ...")
                 time.sleep(5.0)
                 continue
@@ -46,7 +46,7 @@ class Client(object):
         """
         while True:
             resp = get(join(self.base_url, "state"), verify=self.verify)
-            if 503 == resp.status_code:
+            if resp.status_code == 503:
                 print("server is busy.  retrying ...")
                 time.sleep(5.0)
                 continue
@@ -71,7 +71,7 @@ class Client(object):
 
         while True:
             with _get_challenge() as resp:
-                if 503 == resp.status_code:
+                if resp.status_code == 503:
                     print("server is busy.  retrying ...")
                     time.sleep(5.0)
                     continue
@@ -97,9 +97,9 @@ class Client(object):
             'X-MPC-Signature': export_signature(signature),
         }
         with open(response_file, "rb") as upload_f:
-            r = post(
+            resp = post(
                 join(self.base_url, "contribute"),
                 files={'response': upload_f},
                 headers=headers,
                 verify=self.verify)
-            r.raise_for_status()
+            resp.raise_for_status()

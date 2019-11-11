@@ -48,9 +48,9 @@ def wait_for_turn(
         current_index = state.next_contributor_index
         if our_idx is None:
             raise Exception("contributor is not in the server list")
-        elif our_idx < current_index:
+        if our_idx < current_index:
             raise Exception("contributor turn has passed")
-        elif our_idx == current_index:
+        if our_idx == current_index:
             return
         # Wait 1 minute and try again
         print(f"Waiting ... (current_idx: {current_index}.  our_idx: {our_idx})")
@@ -61,7 +61,7 @@ def contribute(
         base_url: str,
         key_file: str,
         challenge_file: str,
-        contribute: Callable[[], str],
+        contribute_cb: Callable[[], str],
         wait_interval: int,
         server_certificate: Optional[str],
         insecure: bool) -> None:
@@ -85,7 +85,7 @@ def contribute(
     print("got challenge")
 
     # Perform the contribution
-    response_file = contribute()
+    response_file = contribute_cb()
 
     # Sign and upload
     _upload_response(client, response_file, sk)

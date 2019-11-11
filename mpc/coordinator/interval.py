@@ -5,7 +5,7 @@ from threading import Condition, Thread
 from typing import Callable
 
 
-class Interval(object):
+class Interval:
     """
     Simple thread that periodically executes a callback (in a thread).
     """

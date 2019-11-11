@@ -6,7 +6,7 @@ from typing import Optional, List
 CONFIG = "release"
 
 
-class PowersOfTauProcessCommand(object):
+class PowersOfTauProcessCommand:
     """
     Wrapper around the pot-process command.
     """

@@ -30,7 +30,7 @@ UPLOAD_FILE = "upload.raw"
 LOG_FILE = "server.log"
 
 
-class Server(object):
+class Server:
     """
     Server to coordinate an MPC, that serves challenges and accepts responses
     from contributors.  Performs basic contribution management, ensuring
@@ -102,14 +102,14 @@ class Server(object):
 
     def _update_state(self, now: float) -> None:
         if self.state.update(now, self.config.contribution_interval):
-            self._on_next_contributor(now)
+            self._on_next_contributor()
 
     def _on_contribution(self, now: float) -> None:
         next_deadline = now + self.config.contribution_interval
         self.state.received_contribution(next_deadline)
-        self._on_next_contributor(now)
+        self._on_next_contributor()
 
-    def _on_next_contributor(self, now: float) -> None:
+    def _on_next_contributor(self) -> None:
         self._finalize_handler_once()
         self._write_state_file()
         self._notify_next_contributor()
@@ -127,7 +127,7 @@ class Server(object):
                 email_server=self.config.email_server,
                 email_address=cast(str, self.config.email_address),
                 email_password_file=cast(str, self.config.email_password_file),
-                to=contributor.email,
+                to_addr=contributor.email,
                 subject=f"[MPC] Your timeslot has begun ({idx_readable}/{total})",
                 body="Please contribute to the MPC using your key: " +
                 export_verification_key(contributor.verification_key))
@@ -165,9 +165,9 @@ class Server(object):
             open(challenge_file, "rb"),
             mimetype="application/octet-stream")
 
-    def _contribute(self, request: Request) -> Response:
+    def _contribute(self, req: Request) -> Response:
         # Basic request check
-        headers = request.headers
+        headers = req.headers
         if 'Content-Length' not in headers:
             raise Exception("no Content-Length header")
         if 'Content-Type' not in headers:
@@ -275,14 +275,14 @@ class Server(object):
 
         def _with_state_lock(
                 req: Request,
-                cb: Callable[[Request], Response]) -> Response:
+                callback: Callable[[Request], Response]) -> Response:
 
             if self.processing:
                 return Response("processing contribution.  retry later.", 503)
 
             self.state_lock.acquire()
             try:
-                return cb(req)
+                return callback(req)
             except Exception as ex:
                 warning(f"error in request: {ex}")
                 print(f"error in request: {ex}")
@@ -291,19 +291,19 @@ class Server(object):
                 self.state_lock.release()
 
         @app.route('/contributors', methods=['GET'])
-        def contributors() -> Response:
+        def contributors() -> Response:  # pylint: disable=unused-variable
             return _with_state_lock(request, self._contributors)
 
         @app.route('/state', methods=['GET'])
-        def state() -> Response:
+        def state() -> Response:  # pylint: disable=unused-variable
             return _with_state_lock(request, self._state)
 
         @app.route('/challenge', methods=['GET'])
-        def challenge() -> Response:
+        def challenge() -> Response:  # pylint: disable=unused-variable
             return _with_state_lock(request, self._challenge)
 
         @app.route('/contribute', methods=['POST'])
-        def contribute() -> Response:
+        def contribute() -> Response:  # pylint: disable=unused-variable
             return _with_state_lock(request, self._contribute)
 
         def _tick() -> None:
@@ -339,7 +339,7 @@ def _send_mail(
         email_server: str,
         email_address: str,
         email_password_file: str,
-        to: str,
+        to_addr: str,
         subject: str,
         body: str) -> None:
     """
@@ -365,6 +365,5 @@ def _send_mail(
         msg.set_content(f"Subject: {subject}\n\n{body}")
         msg['Subject'] = subject
         msg['From'] = email_address
-        msg['To'] = to
+        msg['To'] = to_addr
         smtp.send_message(msg)
-        # server.sendmail(email_address, to, body)

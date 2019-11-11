@@ -21,7 +21,7 @@ FINAL_OUTPUT = "final_output.bin"
 FINAL_TRANSCRIPT = "final_transcript.bin"
 
 
-class Phase1ServerConfig(object):
+class Phase1ServerConfig:
     """
     Configuration for Phase1 server
     """
@@ -62,7 +62,7 @@ class Phase1ServerConfig(object):
             num_powers=cast(Optional[int], json_dict.get("num_powers", None)))
 
 
-class _Phase1State(object):
+class _Phase1State:
     """
     Internal persisted state model for this handler.
     """

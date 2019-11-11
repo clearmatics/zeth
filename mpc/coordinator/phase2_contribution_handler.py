@@ -20,7 +20,7 @@ CHALLENGE_0_FILE = "challenge_0.bin"
 NEXT_CHALLENGE_FILE = "next_challenge.bin"
 
 
-class Phase2ServerConfig(object):
+class Phase2ServerConfig:
     """
     Configuration object for phase2 server.
     """
@@ -82,7 +82,7 @@ class Phase2ContributionHandler(IContributionHandler):
         # contributor_idx is 0, we MUST ONLY have the initial challenge.)
         have_next_challenge = exists(NEXT_CHALLENGE_FILE)
         if have_next_challenge:
-            if 0 == contributor_idx:
+            if contributor_idx == 0:
                 raise Exception(
                     f"unexpected {NEXT_CHALLENGE_FILE} for 0-th contributor")
             return NEXT_CHALLENGE_FILE

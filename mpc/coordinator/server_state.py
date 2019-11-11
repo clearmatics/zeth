@@ -7,7 +7,7 @@ from typing import cast
 import json
 
 
-class ServerState(object):
+class ServerState:
     """
     Current state of the server
     """

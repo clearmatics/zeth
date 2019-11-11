@@ -11,7 +11,7 @@ JsonDict = Dict[str, object]
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
-class Configuration(object):
+class Configuration:
     """
     Static configuration provided at startup
     """
@@ -28,7 +28,7 @@ class Configuration(object):
             email_password_file: Optional[str] = None):
         if not contributors_file:
             raise Exception("no contributors file specified")
-        if 0 == start_time:
+        if start_time == 0.0:
             raise Exception("invalid start time")
         if (email_server or email_address or email_password_file) and \
            (not (email_server and email_address and email_password_file)):

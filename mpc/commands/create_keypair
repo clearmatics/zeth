@@ -26,7 +26,6 @@ def create_keypair(
     with open(phase1_config_file, "r") as phase1_config_f:
         phase1_config = Phase1ServerConfig.from_json(
             phase1_config_f.read(), phase1_config_file)
-    pot_degree = phase1_config.num_powers
 
     pot_file = join(phase1_dir, FINAL_OUTPUT)
 

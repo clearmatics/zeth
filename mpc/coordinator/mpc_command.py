@@ -6,7 +6,7 @@ import os.path
 import subprocess
 
 
-class MPCCommand(object):
+class MPCCommand:
     """
     Wrapper around the 'mpc' utility.
     """
