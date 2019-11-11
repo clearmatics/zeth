@@ -11,8 +11,10 @@ class PowersOfTauProcessCommand(object):
     Wrapper around the pot-process command.
     """
 
-    def __init__(self, pot_process_tool: Optional[str] = None):
+    def __init__(
+            self, pot_process_tool: Optional[str] = None, dry_run: bool = False):
         self.pot_process_tool = pot_process_tool or _default_tool()
+        self.dry_run = dry_run
 
     def compute_lagrange(
             self,
@@ -31,7 +33,8 @@ class PowersOfTauProcessCommand(object):
         import subprocess
         args = [self.pot_process_tool] + args
         print(f"CMD: {' '.join(args)}")
-        return 0 == subprocess.run(args=args).returncode
+        return self.dry_run or \
+            subprocess.run(args=args, check=False).returncode == 0
 
 
 def _default_tool() -> str:

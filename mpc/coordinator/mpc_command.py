@@ -11,8 +11,9 @@ class MPCCommand(object):
     Wrapper around the 'mpc' utility.
     """
 
-    def __init__(self, mpc_tool: Optional[str] = ""):
+    def __init__(self, mpc_tool: Optional[str] = "", dry_run: bool = False):
         self.mpc_tool = mpc_tool or _default_mpc_tool()
+        self.dry_run = dry_run
         assert exists(self.mpc_tool)
 
     def linear_combination(
@@ -67,8 +68,8 @@ class MPCCommand(object):
     def _exec(self, args: List[str]) -> bool:
         cmd = [self.mpc_tool] + args
         print(f"CMD: {' '.join(cmd)}")
-        comp = subprocess.run(cmd)
-        return 0 == comp.returncode
+        return self.dry_run or \
+            subprocess.run(cmd, check=False).returncode == 0
 
 
 def _default_mpc_tool() -> str:
