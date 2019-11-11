@@ -7,11 +7,11 @@ from distutils.core import setup
 
 if not hasattr(sys, 'base_prefix') or sys.base_prefix == sys.prefix:
     print("ERROR: This is not production software, install inside a venv")
-    exit(1)
+    sys.exit(1)
 
 if sys.version_info < (3, 7):
     print("ERROR: requires python >=3.7")
-    exit(1)
+    sys.exit(1)
 
 setup(
     name='zeth',

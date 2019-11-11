@@ -5,7 +5,7 @@
 /build/
 
 # Ignore the coins we created
-/coinstore/*.json
+/coinstore/
 
 # Ignore the content of the keystore
 /keystore/*.pem
