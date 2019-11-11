@@ -236,6 +236,19 @@ or
 (env) $ phase2_server
 ```
 
+## Processing the final output (Phase2 only)
+
+In order the results of Phase1 and Phase2 to be used, they must be combined to
+produce a key-pair.  The `create_keypair` command can perform this operation
+when run in the Phase2 directory, assuming that the Phase1 direcetory is also
+available:
+
+```console
+(env) $ create_keypair ../phase1_coordinator
+```
+
+The above assumes that the Phase1 server directory is located in
+`../phase1_coordinator`, relative to the (Phase2) working directory.
 
 # Run tests
 

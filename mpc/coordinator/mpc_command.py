@@ -65,6 +65,22 @@ class MPCCommand(object):
         args += ["--skip-user-input"] if skip_user_input else []
         return self._exec(args)
 
+    def create_keypair(
+            self,
+            powersoftau_file: str,
+            linear_comb_file: str,
+            final_challenge: str,
+            keypair_out_file: str,
+            pot_degree: Optional[int] = None) -> bool:
+        args = ["create-keypair"]
+        args += ["--pot-degree", str(pot_degree)] if pot_degree else []
+        args += [
+            powersoftau_file,
+            linear_comb_file,
+            final_challenge,
+            keypair_out_file]
+        return self._exec(args)
+
     def _exec(self, args: List[str]) -> bool:
         cmd = [self.mpc_tool] + args
         print(f"CMD: {' '.join(cmd)}")

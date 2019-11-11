@@ -41,5 +41,6 @@ setup(
         "commands/generate_key",
         "commands/public_key",
         "commands/contributors_from_csv",
+        "commands/create_keypair",
     ]
 )
