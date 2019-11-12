@@ -34,9 +34,9 @@ class Server:
     """
     Server to coordinate an MPC, that serves challenges and accepts responses
     from contributors.  Performs basic contribution management, ensuring
-    contributions are from the correct party, contributed within the correct
-    interval.  MPC-specific operations (validation / challenge computation,
-    etc) is performed by an IContributionHandler object.
+    contributions are from the correct party and submitted within the correct
+    time window.  MPC-specific operations (validation / challenge computation,
+    etc) are performed by an IContributionHandler object.
     """
 
     def __init__(
@@ -212,12 +212,11 @@ class Server:
         if expect_pub_key_str != pub_key_str:
             return Response("contributor key mismatch", 403)
 
-        # Check signature correctness.  Ensures that the uploader is
-        # the owner of the correct key BEFORE the costly file upload.
-        # Gives limited protection against DoS attacks (intentional or
-        # otherwise) from people other than the next contributor.
-        # (Note that this pre-upload check requires the digest to be
-        # passed in the HTTP header.)
+        # Check signature correctness. Ensures that the uploader is the owner
+        # of the correct key BEFORE the costly file upload, taking as little
+        # time as possible with remote hosts other than the next contributor.
+        # (Note that this pre-upload check requires the digest to be passed in
+        # the HTTP header.)
         if not verify(sig, verification_key, digest):
             return Response("signature check failed", 403)
 
@@ -233,7 +232,7 @@ class Server:
             self.upload_file)
 
         # Mark this instance as busy, launch a processing thread, and
-        # return (releasing the state lock).  Until the processing thread
+        # return (releasing the state lock). Until the processing thread
         # has finished, further requests will just return 503.
         self.processing = True
         Thread(target=self._process_contribution).start()
