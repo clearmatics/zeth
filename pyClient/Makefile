@@ -3,14 +3,8 @@
 
 setup:
 	pip install --upgrade pip
-	pip install .
-	$(MAKE) grpc
-
-setup-dev dev:
-	pip install --upgrade pip
 	pip install -e .
 	$(MAKE) grpc
-	@echo "************** INSTALLED FOR DEVELOPMENT **************"
 
 check: syntax test
 

@@ -20,8 +20,8 @@ TEST_GRPC_ENDPOINT = constants.RPC_ENDPOINT
 
 def print_balances(bob: str, alice: str, charlie: str, mixer: str) -> None:
     print("BALANCES:")
-    print(f"  Alice   : {eth.getBalance(bob)}")
-    print(f"  Bob     : {eth.getBalance(alice)}")
+    print(f"  Alice   : {eth.getBalance(alice)}")
+    print(f"  Bob     : {eth.getBalance(bob)}")
     print(f"  Charlie : {eth.getBalance(charlie)}")
     print(f"  Mixer   : {eth.getBalance(mixer)}")
 
