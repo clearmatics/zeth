@@ -221,6 +221,13 @@ directory `../phase1_coordinator`:
 (env) $ phase2_prepare ../phase1_coordinator
 ```
 
+If the full phase1 server directory is not available, a directory should be
+created containing at least the `final_output.bin` file, and a
+`server_config.json` specifying the maximum degree used in phase1.
+
+This process also relies on the `pot-process` tool from the zeth build. See
+the output of `phase2_prepare --help` for how to specify this.
+
 Note that this process can take a significant amount of time.
 
 ## Launch the server
@@ -239,7 +246,7 @@ or
 ## Processing the final output (Phase2 only)
 
 In order the results of Phase1 and Phase2 to be used, they must be combined to
-produce a key-pair.  The `create_keypair` command can perform this operation
+produce a key-pair. The `create_keypair` command can perform this operation
 when run in the Phase2 directory, assuming that the Phase1 direcetory is also
 available:
 
