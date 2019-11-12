@@ -45,7 +45,10 @@ function prepare_server_phase2() {
                 ${QAP_DEGREE}
         fi
 
-        phase2_prepare --mpc-tool ${MPC} ${PHASE1_SERVER_DIR}
+        phase2_prepare \
+            --pot-tool ${POT_PROCESS} \
+            --mpc-tool ${MPC} \
+            ${PHASE1_SERVER_DIR}
     fi
 
     popd
