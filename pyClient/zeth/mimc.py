@@ -3,12 +3,6 @@ from Crypto.Hash import keccak
 from typing import Any, Iterable, Optional, Union
 
 
-def keccak_256(data: bytes) -> keccak.Keccak_Hash:
-    h = keccak.new(digest_bits=256)
-    h.update(data)
-    return h
-
-
 class MiMC7:
     def __init__(
             self,
@@ -34,10 +28,10 @@ class MiMC7:
         # In the paper the first round constant is set to 0
         res = self.mimc_round(res, key, 0)
 
-        round_constant: int = sha3_256(seed)  # type: ignore
+        round_constant: int = keccak_256(seed)  # type: ignore
 
         for _ in range(rounds - 1):
-            round_constant = sha3_256(round_constant)  # type: ignore
+            round_constant = keccak_256(round_constant)  # type: ignore
             res = self.mimc_round(res, key, round_constant)
 
         return (res + key) % self.prime
@@ -72,7 +66,9 @@ def to_int(value: Any) -> int:
     return value
 
 
-def sha3_256(data: Union[int, str]) -> int:
+def keccak_256(data: Union[int, str]) -> int:
     data_bytes = b''.join(to_bytes(data))
-    hashed = keccak_256(data_bytes).digest()
+    h = keccak.new(digest_bits=256)
+    h.update(data_bytes)
+    hashed = h.digest()
     return int.from_bytes(hashed, 'big')
