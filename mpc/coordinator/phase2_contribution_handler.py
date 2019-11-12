@@ -20,7 +20,7 @@ CHALLENGE_0_FILE = "challenge_0.bin"
 NEXT_CHALLENGE_FILE = "next_challenge.bin"
 
 
-class Phase2ServerConfig(object):
+class Phase2ServerConfig:
     """
     Configuration object for phase2 server.
     """
@@ -36,8 +36,11 @@ class Phase2ServerConfig(object):
         return json.dumps(self._to_json_dict(), indent=4)
 
     @staticmethod
-    def from_json(phase2_config_json: str) -> Phase2ServerConfig:
-        return Phase2ServerConfig._from_json_dict(json.loads(phase2_config_json))
+    def from_json(
+            phase2_config_json: str,
+            config_path: Optional[str] = None) -> Phase2ServerConfig:
+        return Phase2ServerConfig._from_json_dict(
+            json.loads(phase2_config_json), config_path)
 
     def _to_json_dict(self) -> JsonDict:
         return {
@@ -46,10 +49,12 @@ class Phase2ServerConfig(object):
         }
 
     @staticmethod
-    def _from_json_dict(json_dict: JsonDict) -> Phase2ServerConfig:
+    def _from_json_dict(
+            json_dict: JsonDict,
+            config_path: Optional[str]) -> Phase2ServerConfig:
         return Phase2ServerConfig(
             server_configuration=Configuration._from_json_dict(
-                cast(JsonDict, json_dict["server"])),
+                cast(JsonDict, json_dict["server"]), config_path),
             mpc_tool=cast(Optional[str], json_dict.get("mpc_tool", None)))
 
 
@@ -77,7 +82,7 @@ class Phase2ContributionHandler(IContributionHandler):
         # contributor_idx is 0, we MUST ONLY have the initial challenge.)
         have_next_challenge = exists(NEXT_CHALLENGE_FILE)
         if have_next_challenge:
-            if 0 == contributor_idx:
+            if contributor_idx == 0:
                 raise Exception(
                     f"unexpected {NEXT_CHALLENGE_FILE} for 0-th contributor")
             return NEXT_CHALLENGE_FILE

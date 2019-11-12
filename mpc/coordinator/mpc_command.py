@@ -6,13 +6,14 @@ import os.path
 import subprocess
 
 
-class MPCCommand(object):
+class MPCCommand:
     """
     Wrapper around the 'mpc' utility.
     """
 
-    def __init__(self, mpc_tool: Optional[str] = ""):
+    def __init__(self, mpc_tool: Optional[str] = "", dry_run: bool = False):
         self.mpc_tool = mpc_tool or _default_mpc_tool()
+        self.dry_run = dry_run
         assert exists(self.mpc_tool)
 
     def linear_combination(
@@ -20,9 +21,9 @@ class MPCCommand(object):
             powersoftau_file: str,
             lagrange_file: str,
             linear_comb_out_file: str,
-            degree: Optional[int] = None) -> bool:
+            pot_degree: Optional[int] = None) -> bool:
         args = ["linear-combination"]
-        args += ["--pot-degree", str(degree)] if degree else []
+        args += ["--pot-degree", str(pot_degree)] if pot_degree else []
         args += [powersoftau_file, lagrange_file, linear_comb_out_file]
         return self._exec(args)
 
@@ -64,11 +65,27 @@ class MPCCommand(object):
         args += ["--skip-user-input"] if skip_user_input else []
         return self._exec(args)
 
+    def create_keypair(
+            self,
+            powersoftau_file: str,
+            linear_comb_file: str,
+            final_challenge: str,
+            keypair_out_file: str,
+            pot_degree: Optional[int] = None) -> bool:
+        args = ["create-keypair"]
+        args += ["--pot-degree", str(pot_degree)] if pot_degree else []
+        args += [
+            powersoftau_file,
+            linear_comb_file,
+            final_challenge,
+            keypair_out_file]
+        return self._exec(args)
+
     def _exec(self, args: List[str]) -> bool:
         cmd = [self.mpc_tool] + args
         print(f"CMD: {' '.join(cmd)}")
-        comp = subprocess.run(cmd)
-        return 0 == comp.returncode
+        return self.dry_run or \
+            subprocess.run(cmd, check=False).returncode == 0
 
 
 def _default_mpc_tool() -> str:

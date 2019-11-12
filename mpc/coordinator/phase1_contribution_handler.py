@@ -21,7 +21,7 @@ FINAL_OUTPUT = "final_output.bin"
 FINAL_TRANSCRIPT = "final_transcript.bin"
 
 
-class Phase1ServerConfig(object):
+class Phase1ServerConfig:
     """
     Configuration for Phase1 server
     """
@@ -38,8 +38,11 @@ class Phase1ServerConfig(object):
         return json.dumps(self._to_json_dict(), indent=4)
 
     @staticmethod
-    def from_json(phase1_config_json: str) -> Phase1ServerConfig:
-        return Phase1ServerConfig._from_json_dict(json.loads(phase1_config_json))
+    def from_json(
+            phase1_config_json: str,
+            config_path: Optional[str] = None) -> Phase1ServerConfig:
+        return Phase1ServerConfig._from_json_dict(
+            json.loads(phase1_config_json), config_path)
 
     def _to_json_dict(self) -> JsonDict:
         return {
@@ -49,15 +52,17 @@ class Phase1ServerConfig(object):
         }
 
     @staticmethod
-    def _from_json_dict(json_dict: JsonDict) -> Phase1ServerConfig:
+    def _from_json_dict(
+            json_dict: JsonDict,
+            config_path: Optional[str]) -> Phase1ServerConfig:
         return Phase1ServerConfig(
             server_configuration=Configuration._from_json_dict(
-                cast(JsonDict, json_dict["server"])),
+                cast(JsonDict, json_dict["server"]), config_path),
             pot_path=cast(Optional[str], json_dict.get("powersoftau_path", None)),
             num_powers=cast(Optional[int], json_dict.get("num_powers", None)))
 
 
-class _Phase1State(object):
+class _Phase1State:
     """
     Internal persisted state model for this handler.
     """

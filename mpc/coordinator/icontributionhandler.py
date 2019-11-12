@@ -4,6 +4,8 @@
 IContributionHandler interface
 """
 
+# pylint: disable=unnecessary-pass
+
 from abc import (ABC, abstractmethod)
 
 

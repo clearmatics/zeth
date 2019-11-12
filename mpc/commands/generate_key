@@ -2,7 +2,8 @@
 
 from commands.public_key_operations import public_key_information
 from coordinator.crypto import generate_signing_key, export_signing_key
-from click import command, argument, option
+from click import command, argument, option, ClickException
+from os.path import exists
 from typing import Optional
 
 
@@ -17,6 +18,9 @@ def generate_key(
     """
     Generate new private key to key-file.  Public key is written to stdout.
     """
+
+    if exists(key_file):
+        raise ClickException(f"key file {key_file} already exists")
 
     signing_key = generate_signing_key()
     public_key_information(signing_key, public_key_file, evidence_file)

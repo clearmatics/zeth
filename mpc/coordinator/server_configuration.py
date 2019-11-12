@@ -3,6 +3,7 @@
 from __future__ import annotations
 import json
 import time
+from os.path import dirname, exists, join
 from typing import Dict, cast, Optional
 
 JsonDict = Dict[str, object]
@@ -10,7 +11,7 @@ JsonDict = Dict[str, object]
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
-class Configuration(object):
+class Configuration:
     """
     Static configuration provided at startup
     """
@@ -24,23 +25,25 @@ class Configuration(object):
             port: int = 5000,
             email_server: Optional[str] = None,
             email_address: Optional[str] = None,
-            email_password: Optional[str] = None):
+            email_password_file: Optional[str] = None):
         if not contributors_file:
             raise Exception("no contributors file specified")
-        if 0 == start_time:
+        if start_time == 0.0:
             raise Exception("invalid start time")
-        if (email_server or email_address or email_password) and \
-           (not (email_server and email_address and email_password)):
+        if (email_server or email_address or email_password_file) and \
+           (not (email_server and email_address and email_password_file)):
             raise Exception(
-                "must all or none of email server, address and password " +
+                "must all or none of email server, address and password file " +
                 "in config")
+        if email_password_file and not exists(email_password_file):
+            raise Exception(f"no email password file: {email_password_file}")
 
         self.contributors_file: str = contributors_file
         self.start_time: float = float(start_time)
         self.contribution_interval: float = float(contribution_interval)
         self.email_server: Optional[str] = email_server
         self.email_address: Optional[str] = email_address
-        self.email_password: Optional[str] = email_password
+        self.email_password_file: Optional[str] = email_password_file
         self.tls_key: str = tls_key
         self.tls_certificate: str = tls_certificate
         self.port = port
@@ -61,7 +64,7 @@ class Configuration(object):
             port=5000,
             email_server="smtp.mymail.com:465",
             email_address="mpc_coordinator@mymail.com",
-            email_password="*")
+            email_password_file="password.txt")
 
     def to_json(self) -> str:
         return json.dumps(self._to_json_dict(), indent=4)
@@ -88,7 +91,7 @@ class Configuration(object):
             "contribution_interval": str(self.contribution_interval),
             "email_server": self.email_server,
             "email_address": self.email_address,
-            "email_password": self.email_password,
+            "email_password_file": self.email_password_file,
             "tls_key": self.tls_key,
             "tls_certificate": self.tls_certificate,
             "port": self.port,
@@ -105,24 +108,30 @@ class Configuration(object):
             "_REQUIRED_contribution_interval": str(self.contribution_interval),
             "_OPTIONAL_email_server": self.email_server,
             "_OPTIONAL_email_address": self.email_address,
-            "_OPTIONAL_email_password": self.email_password,
+            "_OPTIONAL_email_password_file": self.email_password_file,
             "_REQUIRED_tls_key": self.tls_key,
             "_REQUIRED_tls_certificate": self.tls_certificate,
             "_REQUIRED_port": self.port,
         }
 
     @staticmethod
-    def _from_json_dict(json_dict: JsonDict) -> Configuration:
+    def _from_json_dict(
+            json_dict: JsonDict,
+            config_path: Optional[str] = None) -> Configuration:
         start_local = time.strptime(
             cast(str, json_dict["start_time"]),
             TIME_FORMAT)
+        email_password_file = cast(
+            str, json_dict.get("email_password_file", None))
+        if email_password_file and config_path:
+            email_password_file = join(dirname(config_path), email_password_file)
         return Configuration(
             cast(str, json_dict["contributors_file"]),
             time.mktime(start_local),
             float(cast(str, json_dict["contribution_interval"])),
             email_server=cast(str, json_dict.get("email_server", None)),
             email_address=cast(str, json_dict.get("email_address", None)),
-            email_password=cast(str, json_dict.get("email_password", None)),
+            email_password_file=email_password_file,
             tls_key=cast(str, json_dict["tls_key"]),
             tls_certificate=cast(str, json_dict["tls_certificate"]),
             port=int(cast(int, json_dict["port"])))

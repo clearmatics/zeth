@@ -11,7 +11,7 @@ RESPONSE_FILE = "response"
 CONFIG = "release"
 
 
-class PowersOfTauCommand(object):
+class PowersOfTauCommand:
     """
     Wrapper around the powersoftau commands
     """
@@ -31,8 +31,8 @@ class PowersOfTauCommand(object):
     def verify_contribution(self) -> bool:
         return self._exec("verify_transform")
 
+    @staticmethod
     def append_response_to_transcript(
-            self,
             response: str,
             transcript_file: str) -> None:
         import subprocess
@@ -64,14 +64,16 @@ class PowersOfTauCommand(object):
     def _exec(
             self,
             cmd: str,
-            args: List[str] = list(),
-            kwargs: Mapping[str, object] = {}) -> bool:
+            args: List[str] = None,
+            kwargs: Mapping[str, object] = None) -> bool:
         import subprocess
+        args = args or []
         args = [join(self.bin_path, cmd)] + args
+        kwargs = kwargs or {}
         if self.num_powers:
             args = args + ["-n", str(self.num_powers)]
         print(f"CMD: {' '.join(args)}")
-        return 0 == subprocess.run(args=args, **kwargs).returncode
+        return subprocess.run(args=args, check=False, **kwargs).returncode == 0
 
 
 def _default_powersoftau_path() -> str:

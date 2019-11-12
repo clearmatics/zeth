@@ -9,7 +9,7 @@ from typing import List, cast, Optional
 import json
 
 
-class Contributor(object):
+class Contributor:
     """
     Details of a specific contributor
     """
@@ -37,7 +37,7 @@ class Contributor(object):
             import_signature(cast(str, json_dict["key_evidence"])))
 
 
-class ContributorList(object):
+class ContributorList:
     """
     Model for contributors list file
     """
@@ -53,9 +53,9 @@ class ContributorList(object):
         # Evidence is expected to be the signature of
         # KEY_VALIDATION_CHECK_STRING.  Check this for all the contributors
         # keys
-        for c in self.contributors:
-            if not check_key_evidence(c.verification_key, c.key_evidence):
-                raise Exception(f"Key for {c.email} has invalid evidence")
+        for contr in self.contributors:
+            if not check_key_evidence(contr.verification_key, contr.key_evidence):
+                raise Exception(f"Key for {contr.email} has invalid evidence")
 
     def get_contributor_index(
             self,
@@ -85,7 +85,7 @@ class ContributorList(object):
 
     def _to_json_dict(self) -> JsonDict:
         return {
-            "contributors": [c._to_json_dict() for c in self.contributors]
+            "contributors": [contr._to_json_dict() for contr in self.contributors]
         }
 
     @staticmethod

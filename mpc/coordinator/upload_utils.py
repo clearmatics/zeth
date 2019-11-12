@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-from Crypto.Hash import SHA512
+from Crypto.Hash import SHA512  # pylint: disable=import-error,no-name-in-module
 from typing import Optional
 import io
+
+READ_CHUNK_SIZE = 4096
 
 
 def _read_part_headers(stream: io.IOBase) -> int:
@@ -15,7 +17,7 @@ def _read_part_headers(stream: io.IOBase) -> int:
         l_str = line.decode()
         # print(f"read_part_headers: line({len(line)} bytes): '{l_str}'")
         if bytes_read < 3:
-            if l_str == "\r\n" or l_str == "\n":
+            if l_str in ["\r\n", "\n"]:
                 break
             if bytes_read == 0:
                 raise Exception("unexpected 0-length line")
@@ -32,14 +34,12 @@ def _read_to_file(
     None if there is an error.
     """
 
-    CHUNK_SIZE = 4096
-
     h = SHA512.new()
     with open(file_name, "wb") as out_f:
         while bytes_to_read > 0:
-            read_size = min(CHUNK_SIZE, bytes_to_read)
+            read_size = min(READ_CHUNK_SIZE, bytes_to_read)
             chunk = stream.read(read_size)
-            if 0 == len(chunk):
+            if len(chunk) == 0:
                 return None
 
             h.update(chunk)
@@ -56,7 +56,7 @@ def _read_to_memory(
     data = io.BytesIO()
     while bytes_to_read > 0:
         chunk = stream.read(bytes_to_read)
-        if 0 == len(chunk):
+        if len(chunk) == 0:
             return None
 
         data.write(chunk)

@@ -4,7 +4,7 @@
 Script to launch a phase2 coordinator server.
 """
 
-from commands import DEFAULT_CONFIG_FILE
+from commands.constants import DEFAULT_CONFIG_FILE
 from click import command, option
 from typing import Optional
 

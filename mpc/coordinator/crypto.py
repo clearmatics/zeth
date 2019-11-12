@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import ecdsa  # type: ignore
-from Crypto.Hash import SHA512
+from Crypto.Hash import SHA512  # pylint: disable=no-name-in-module, import-error
 
 
 HASH = SHA512
@@ -77,9 +77,9 @@ def import_signature(sig_s: str) -> bytes:
 
 def compute_file_digest(file_name: str) -> bytes:
     h = HASH.new()
-    with open(file_name, "rb") as f:
+    with open(file_name, "rb") as file_f:
         while True:
-            block = f.read(HASH_FILE_BLOCK_SIZE)
+            block = file_f.read(HASH_FILE_BLOCK_SIZE)
             if not block:
                 return h.digest()
             h.update(block)
@@ -101,6 +101,6 @@ def create_key_evidence(key: ecdsa.SigningKey) -> Signature:
 
 
 def check_key_evidence(
-        verification_key: ecdsa.VerificationKey,
+        verification_key: ecdsa.VerificationKey,  # pylint: disable=no-member
         key_evidence: Signature) -> bool:
     return verify(key_evidence, verification_key, KEY_VALIDATION_CHECK_DIGEST)

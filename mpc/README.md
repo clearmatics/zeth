@@ -208,18 +208,25 @@ be used to specify the exact names of each field (see `--help` for details).
 The MPC coordinator server can notify participants by email when their
 contribution time slot begins (when the previous contributor either finishes
 his contribution, or his timeslot expires). To enable email notifications, set
-the `email_server`, `email_address` and `email_password` fields to point to a
+the `email_server`, `email_address` and `email_password_file` fields to point to a
 (tls enabled) mail server.
 
 ## Prepare initial challenge (Phase2 only)
 
 Phase2 requires the output from Phase1 to be processed before Phase2 can begin.
-The following assumes that the Phase1 server directory is located
-`../phase1_coordinator`, and contains phase1 output `pot-2097152.bin`.
+The following assumes that the Phase1 server directory is located in the
+directory `../phase1_coordinator`:
 
 ```console
-(env) $ phase2_prepare ../phase1_coordinator/pot-2097152.bin 2097152
+(env) $ phase2_prepare ../phase1_coordinator
 ```
+
+If the full phase1 server directory is not available, a directory should be
+created containing at least the `final_output.bin` file, and a
+`server_config.json` specifying the maximum degree used in phase1.
+
+This process also relies on the `pot-process` tool from the zeth build. See
+the output of `phase2_prepare --help` for how to specify this.
 
 Note that this process can take a significant amount of time.
 
@@ -236,6 +243,19 @@ or
 (env) $ phase2_server
 ```
 
+## Processing the final output (Phase2 only)
+
+In order the results of Phase1 and Phase2 to be used, they must be combined to
+produce a key-pair. The `create_keypair` command can perform this operation
+when run in the Phase2 directory, assuming that the Phase1 direcetory is also
+available:
+
+```console
+(env) $ create_keypair ../phase1_coordinator
+```
+
+The above assumes that the Phase1 server directory is located in
+`../phase1_coordinator`, relative to the (Phase2) working directory.
 
 # Run tests
 

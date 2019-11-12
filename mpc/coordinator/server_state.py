@@ -7,7 +7,7 @@ from typing import cast
 import json
 
 
-class ServerState(object):
+class ServerState:
     """
     Current state of the server
     """
@@ -49,7 +49,8 @@ class ServerState(object):
         return False.
         """
         # If the next contributor deadline has passed, update
-        if now < self.next_contributor_deadline:
+        if self.next_contributor_deadline <= 0.0 or \
+           now < self.next_contributor_deadline:
             return False
 
         self._next_contributor(now + interval)

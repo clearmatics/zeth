@@ -34,7 +34,7 @@ def public_key_information(
         with open(public_key_file, "w") as pk_f:
             pk_f.write(pub_key_str)
     if evidence_file:
-        with open(evidence_str, "w") as ev_f:
+        with open(evidence_file, "w") as ev_f:
             ev_f.write(evidence_str)
 
     print("Public Verification Key:")

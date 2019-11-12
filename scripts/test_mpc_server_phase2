@@ -14,22 +14,6 @@ function prepare_server_phase2() {
     # Perform the phase2-specific setup based on POT data
     pushd ${PHASE2_SERVER_DIR}
 
-    if ! [ -e ${CHALLENGE_0_FILE} ] ; then
-
-        if [ -e ${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE} ] ; then
-            echo "Creating initial challenge (from POT MPC) ..."
-           pot_file=${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE}
-        else
-            echo "Creating initial challenge (from dummy POT) ..."
-           pot_file=_test_pot-${QAP_DEGREE}.bin
-           ${POT_PROCESS} --dummy ${pot_file} ${QAP_DEGREE}
-        fi
-
-        phase2_prepare \
-            --mpc-tool ${MPC} \
-            ${pot_file} ${QAP_DEGREE}
-    fi
-
     # Config
     now=`python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S"))'`
     pot_dir=
@@ -37,7 +21,35 @@ function prepare_server_phase2() {
         -e "s/TIME/${now}/g" \
         -e "s/PORT/${PHASE2_PORT}/g" \
         ${PHASE2_CONFIG_TEMPLATE} \
-        > phase2_server_config.json
+        > server_config.json
+
+    if ! [ -e ${CHALLENGE_0_FILE} ] ; then
+
+        if [ -e ${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE} ] ; then
+            echo "Creating initial challenge (from POT MPC) ..."
+            pot_file=${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE}
+        else
+            echo "Creating initial challenge (from dummy POT) ..."
+
+            # Phase1 fake config and final powersoftau file
+            mkdir -p ${PHASE1_SERVER_DIR}
+            sed \
+                -e "s/TIME/${now}/g" \
+                -e "s/PORT/${PHASE1_PORT}/g" \
+                -e "s/QAP_DEGREE/${QAP_DEGREE}/g" \
+                ${PHASE1_CONFIG_TEMPLATE} \
+                > ${PHASE1_SERVER_DIR}/server_config.json
+            ${POT_PROCESS} \
+                --dummy \
+                ${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE} \
+                ${QAP_DEGREE}
+        fi
+
+        phase2_prepare \
+            --pot-tool ${POT_PROCESS} \
+            --mpc-tool ${MPC} \
+            ${PHASE1_SERVER_DIR}
+    fi
 
     popd
 }
@@ -76,7 +88,7 @@ prepare_server_phase2
 
 start_server_common\
     ${PHASE2_SERVER_DIR} \
-    "phase2_server --config phase2_server_config.json" \
+    "phase2_server" \
     get_state_phase2
 
 # make 4 contributions.  contribution 3 is launched first in the background,
