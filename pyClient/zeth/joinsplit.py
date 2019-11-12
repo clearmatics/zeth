@@ -1,19 +1,17 @@
 from __future__ import annotations
 import zeth.constants as constants
-import zeth.errors as errors
+from zeth.zksnark import IZKSnarkProvider
 from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
     hex_digest_to_binary_string, string_list_flatten, encode_single, \
     encode_abi, encrypt, decrypt, get_public_key_from_bytes
 from zeth.prover_client import ProverClient
-from api.util_pb2 import ZethNote, JoinsplitInput, HexPointBaseGroup1Affine, \
-    HexPointBaseGroup2Affine
+from api.util_pb2 import ZethNote, JoinsplitInput
 from nacl.public import PrivateKey, PublicKey  # type: ignore
 import nacl.utils  # type: ignore
 import api.prover_pb2 as prover_pb2
 
 import os
 import json
-import sys
 from Crypto import Random
 from hashlib import blake2s, sha256
 from py_ecc import bn128 as ec
@@ -45,14 +43,6 @@ class JoinsplitKeypair:
     def __init__(self, x: FQ, y: FQ, x_g1: G1, y_g1: G1):
         self.vk = (x_g1, y_g1)
         self.sk = (x, y)
-
-
-# Dictionary representing a VerificationKey from any supported snark
-GenericVerificationKey = Dict[str, Any]
-
-
-# Dictionary representing a Proof from any supported snark
-GenericProof = Dict[str, Any]
 
 
 def create_zeth_notes(
@@ -363,88 +353,17 @@ def sign(
     return sigma
 
 
-def parse_verification_key_pghr13(
-        vk_obj: prover_pb2.VerificationKey) -> GenericVerificationKey:
-    vk = vk_obj.pghr13_verification_key
-    return {
-        "a": _parse_hex_point_base_group2_affine(vk.a),
-        "b": _parse_hex_point_base_group1_affine(vk.b),
-        "c": _parse_hex_point_base_group2_affine(vk.c),
-        "g": _parse_hex_point_base_group2_affine(vk.gamma),
-        "gb1": _parse_hex_point_base_group1_affine(vk.gamma_beta_g1),
-        "gb2": _parse_hex_point_base_group2_affine(vk.gamma_beta_g2),
-        "z": _parse_hex_point_base_group2_affine(vk.z),
-        "IC": json.loads(vk.ic),
-    }
-
-
-def parse_verification_key_groth16(
-        vk_obj: prover_pb2.VerificationKey) -> GenericVerificationKey:
-    vk = vk_obj.groth16_verification_key
-    return {
-        "alpha_g1": _parse_hex_point_base_group1_affine(vk.alpha_g1),
-        "beta_g2": _parse_hex_point_base_group2_affine(vk.beta_g2),
-        "delta_g2": _parse_hex_point_base_group2_affine(vk.delta_g2),
-        "abc_g1": json.loads(vk.abc_g1),
-    }
-
-
-def parse_verification_key(
-        vk_obj: prover_pb2.VerificationKey,
-        zksnark: str) -> GenericVerificationKey:
-    if zksnark == constants.PGHR13_ZKSNARK:
-        return parse_verification_key_pghr13(vk_obj)
-    if zksnark == constants.GROTH16_ZKSNARK:
-        return parse_verification_key_groth16(vk_obj)
-    return sys.exit(errors.SNARK_NOT_SUPPORTED)
-
-
 def write_verification_key(
         vk_obj: prover_pb2.VerificationKey,
-        zksnark: str) -> None:
+        zksnark: IZKSnarkProvider) -> None:
     """
     Writes the verification key (object) in a json file
     """
-    vk_json = parse_verification_key(vk_obj, zksnark)
+    vk_json = zksnark.parse_verification_key(vk_obj)
     setup_dir = get_trusted_setup_dir()
     filename = os.path.join(setup_dir, "vk.json")
     with open(filename, 'w') as outfile:
         json.dump(vk_json, outfile)
-
-
-def parse_proof_pghr13(proof_obj: prover_pb2.ExtendedProof) -> GenericProof:
-    proof = proof_obj.pghr13_extended_proof
-    return {
-        "a": _parse_hex_point_base_group1_affine(proof.a),
-        "a_p": _parse_hex_point_base_group1_affine(proof.a_p),
-        "b": _parse_hex_point_base_group2_affine(proof.b),
-        "b_p": _parse_hex_point_base_group1_affine(proof.b_p),
-        "c": _parse_hex_point_base_group1_affine(proof.c),
-        "c_p": _parse_hex_point_base_group1_affine(proof.c_p),
-        "h": _parse_hex_point_base_group1_affine(proof.h),
-        "k": _parse_hex_point_base_group1_affine(proof.k),
-        "inputs": json.loads(proof.inputs),
-    }
-
-
-def parse_proof_groth16(proof_obj: prover_pb2.ExtendedProof) -> GenericProof:
-    proof = proof_obj.groth16_extended_proof
-    return {
-        "a": _parse_hex_point_base_group1_affine(proof.a),
-        "b": _parse_hex_point_base_group2_affine(proof.b),
-        "c": _parse_hex_point_base_group1_affine(proof.c),
-        "inputs": json.loads(proof.inputs),
-    }
-
-
-def parse_proof(
-        proof_obj: prover_pb2.ExtendedProof,
-        zksnark: str) -> GenericProof:
-    if zksnark == constants.PGHR13_ZKSNARK:
-        return parse_proof_pghr13(proof_obj)
-    if zksnark == constants.GROTH16_ZKSNARK:
-        return parse_proof_groth16(proof_obj)
-    return sys.exit(errors.SNARK_NOT_SUPPORTED)
 
 
 def compute_joinsplit2x2_inputs(
@@ -523,7 +442,7 @@ def get_proof_joinsplit_2_by_2(
         output_note_value1: str,
         public_in_value: str,
         public_out_value: str,
-        zksnark: str
+        zksnark: IZKSnarkProvider
 ) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JoinsplitKeypair]:
     """
     Query the prover server to generate a proof for the given joinsplit
@@ -547,7 +466,7 @@ def get_proof_joinsplit_2_by_2(
         public_out_value,
         joinsplit_keypair.vk)
     proof_obj = prover_client.get_proof(proof_input)
-    proof_json = parse_proof(proof_obj, zksnark)
+    proof_json = zksnark.parse_proof(proof_obj)
 
     # We return the zeth notes to be able to spend them later
     # and the proof used to create them
@@ -646,16 +565,3 @@ def _transaction_randomness() -> str:
     Compute the transaction randomness "phi", used for computing the new rhoS
     """
     return bytes(Random.get_random_bytes(32)).hex()
-
-
-def _parse_hex_point_base_group1_affine(
-        point: HexPointBaseGroup1Affine) -> Tuple[str, str]:
-    return (point.x_coord, point.y_coord)
-
-
-def _parse_hex_point_base_group2_affine(
-        point: HexPointBaseGroup2Affine
-) -> Tuple[Tuple[str, str], Tuple[str, str]]:
-    return (
-        (point.x_c1_coord, point.x_c0_coord),
-        (point.y_c1_coord, point.y_c0_coord))

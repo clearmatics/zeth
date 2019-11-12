@@ -2,6 +2,7 @@
 
 import zeth.contracts as contracts
 import zeth.joinsplit
+import zeth.zksnark
 from zeth.prover_client import ProverClient
 from zeth.wallet import Wallet
 import zeth.utils
@@ -109,7 +110,7 @@ def mint_token(
 
 
 def main() -> None:
-    zksnark = zeth.utils.parse_zksnark_arg()
+    zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
 
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]

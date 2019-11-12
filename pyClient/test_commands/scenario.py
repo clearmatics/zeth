@@ -1,6 +1,7 @@
 import zeth.joinsplit as joinsplit
 import zeth.contracts as contracts
 from zeth.prover_client import ProverClient
+from zeth.zksnark import IZKSnarkProvider
 from zeth.utils import to_zeth_units, int64_to_hex, get_public_key_from_bytes, \
     encode_to_hash
 import test_commands.mock as mock
@@ -31,7 +32,7 @@ def bob_deposit(
         bob_eth_address: str,
         keystore: mock.Keystore,
         mk_tree_depth: int,
-        zksnark: str) -> contracts.MixResult:
+        zksnark: IZKSnarkProvider) -> contracts.MixResult:
     print(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and splits into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
@@ -120,7 +121,7 @@ def bob_to_charlie(
         bob_eth_address: str,
         keystore: mock.Keystore,
         mk_tree_depth: int,
-        zksnark: str) -> contracts.MixResult:
+        zksnark: IZKSnarkProvider) -> contracts.MixResult:
     print(
         f"=== Bob transfers {BOB_TO_CHARLIE_ETH}ETH to Charlie from his funds " +
         "on the mixer ===")
@@ -213,7 +214,7 @@ def charlie_withdraw(
         charlie_eth_address: str,
         keystore: mock.Keystore,
         mk_tree_depth: int,
-        zksnark: str) -> contracts.MixResult:
+        zksnark: IZKSnarkProvider) -> contracts.MixResult:
     print(
         f" === Charlie withdraws {CHARLIE_WITHDRAW_ETH}ETH from his funds " +
         "on the Mixer ===")
@@ -303,7 +304,7 @@ def charlie_double_withdraw(
         charlie_eth_address: str,
         keystore: mock.Keystore,
         mk_tree_depth: int,
-        zksnark: str) -> contracts.MixResult:
+        zksnark: IZKSnarkProvider) -> contracts.MixResult:
     """
     Charlie tries to carry out a double spending by modifying the value of the
     nullifier of the previous payment

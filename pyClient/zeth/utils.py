@@ -48,12 +48,9 @@ def hex_digest_to_binary_string(digest: str) -> str:
 
 def hex_to_int(elements: List[str]) -> List[int]:
     """
-    Given an error of hex strings, return an array of int values
+    Given an array of hex strings, return an array of int values
     """
-    ints = []
-    for el in elements:
-        ints.append(int(el, 16))
-    return ints
+    return [int(x, 16) for x in elements]
 
 
 def hex_extend_32bytes(element: str) -> str:

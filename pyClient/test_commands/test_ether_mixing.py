@@ -2,6 +2,7 @@
 
 import zeth.contracts
 import zeth.joinsplit
+import zeth.zksnark
 import zeth.utils
 import zeth.constants as constants
 import test_commands.mock as mock
@@ -35,7 +36,7 @@ def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
 
 
 def main() -> None:
-    zksnark = zeth.utils.parse_zksnark_arg()
+    zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
 
     # Zeth addresses
     keystore = mock.init_test_keystore()
