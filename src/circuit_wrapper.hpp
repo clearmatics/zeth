@@ -46,6 +46,6 @@ public:
 };
 
 } // namespace libzeth
-#include "circuit-wrapper.tcc"
+#include "circuit_wrapper.tcc"
 
 #endif // __ZETH_CIRCUIT_WRAPPER_HPP__

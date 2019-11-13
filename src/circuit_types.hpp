@@ -1,7 +1,7 @@
 #ifndef __ZETH_CIRCUIT_TYPES_HPP__
 #define __ZETH_CIRCUIT_TYPES_HPP__
 
-#include "circuit-wrapper.hpp"
+#include "circuit_wrapper.hpp"
 #include "circuits/blake2s/blake2s_comp.hpp"
 #include "include_libsnark.hpp"
 

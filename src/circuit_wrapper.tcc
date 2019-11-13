@@ -1,7 +1,6 @@
 #ifndef __ZETH_CIRCUIT_WRAPPER_TCC__
 #define __ZETH_CIRCUIT_WRAPPER_TCC__
 
-#include "circuit-wrapper.hpp"
 #include "zeth.h"
 
 namespace libzeth
