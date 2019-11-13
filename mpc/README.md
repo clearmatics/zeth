@@ -22,9 +22,9 @@ $ . env/bin/activate # activate virtualenv
 (env) $ make setup # install
 ```
 
-All commands given below assume that you are located at `$ZETH/mpc`, and that
-the above virtualenv is active. If the console has been closed between
-actions, reactivate the virtualenv as follows:
+All commands given below assume that the above virtualenv is active.
+If the console has been closed between actions, reactivate the
+virtualenv as follows:
 
 ```console
 $ . env/bin/activate
@@ -196,9 +196,9 @@ See `testdata/mpc_contributors.json` for an example contributors file.
 ### Contributor Registration via Google Forms
 
 An easy way to allow contributors to register for the MPC is to publish
-a Google form online. Google form is a widely used and provides a way
+a form online. Google Forms are widely used and provide a way
 to export the results of the form in csv format. The section below assumes
-that the registration process has been carried out using Google form.
+that the registration process has been carried out using Google Forms.
 
 The `contributors_from_csv` command can be used to generate a
 `contributors.json` file from csv data output from Google Forms. Administrators
