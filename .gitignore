@@ -26,6 +26,13 @@ debug/*json
 /pyClient/api/*_pb2_grpc.py
 /pyClient/api/*_pb2.pyi
 
+# Ignore test files
+/_test_contrib_*/
+/_test_phase1_contrib_*/
+/_test_contributors_from_csv/
+/_test_server_phase*/
+/_test_phase2_data/
+
 # Ignore python cache dirs
 
 # Python temp files
