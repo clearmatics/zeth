@@ -76,7 +76,7 @@ class Phase2ContributionHandler(IContributionHandler):
         self.mpc = MPCCommand(phase2_config.mpc_tool)
 
     def get_current_challenge_file(self, contributor_idx: int) -> str:
-        # If there is no NEXT_CHALLENGE_FILE, use CHALLENGE_0_FILE.  (Note,
+        # If there is no NEXT_CHALLENGE_FILE, use CHALLENGE_0_FILE. (Note,
         # contributor_idx may be > 0, even if there is no NEXT_CHALLENGE_FILE.
         # The only condition related to contributor_idx is that, if
         # contributor_idx is 0, we MUST ONLY have the initial challenge.)
@@ -101,7 +101,7 @@ class Phase2ContributionHandler(IContributionHandler):
             if not exists(NEW_CHALLENGE_FILE):
                 raise Exception("unknown error creating new challenge")
 
-            # Contribution has been recorded in TRANSCRIPT_FILE.  Replace
+            # Contribution has been recorded in TRANSCRIPT_FILE. Replace
             # NEXT_CHALLENGE_FILE with NEW_CHALLENGE_FILE.
             rename(NEW_CHALLENGE_FILE, NEXT_CHALLENGE_FILE)
             return True

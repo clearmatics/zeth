@@ -33,9 +33,9 @@ LOG_FILE = "server.log"
 class Server:
     """
     Server to coordinate an MPC, that serves challenges and accepts responses
-    from contributors.  Performs basic contribution management, ensuring
+    from contributors. Performs basic contribution management, ensuring
     contributions are from the correct party and submitted within the correct
-    time window.  MPC-specific operations (validation / challenge computation,
+    time window. MPC-specific operations (validation / challenge computation,
     etc) are performed by an IContributionHandler object.
     """
 
@@ -45,7 +45,7 @@ class Server:
             server_config: Configuration,
             server_dir: str):
 
-        logging.basicConfig(filename="server.log", level=logging.DEBUG)
+        logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG)
         self.handler = handler
         self.config = server_config
         self.contributors: ContributorList
@@ -54,7 +54,7 @@ class Server:
         self.state: ServerState
         self.processing = False
 
-        # Try to open contributors file and state files.  Perform sanity checks.
+        # Try to open contributors file and state files. Perform sanity checks.
         with open(self.config.contributors_file, "r") as contributors_f:
             self.contributors = ContributorList.from_json(contributors_f.read())
         print(f"Contributors: {self.contributors}")
@@ -91,7 +91,7 @@ class Server:
             info("Server stopped.")
 
     def _write_state_file(self) -> None:
-        info(f"WRITING STATE: {self.state_file_path}")
+        info(f"Writing state: {self.state_file_path}")
         with open(self.state_file_path, "w") as state_f:
             state_f.write(self.state.to_json())
 
@@ -137,7 +137,7 @@ class Server:
 
     def _tick(self) -> None:
         if self.processing:
-            info("_tick: processing.  ignoring tick")
+            info("_tick: processing. Ignoring tick")
             return
 
         self.state_lock.acquire()
@@ -157,7 +157,7 @@ class Server:
         self._update_state(time.time())
         if self.state.have_all_contributions():
             return Response(
-                "MPC is complete.  No remaining challenges", 405)
+                "MPC is complete. No remaining challenges", 405)
 
         challenge_file = self.handler.get_current_challenge_file(
             self.state.next_contributor_index)
@@ -194,13 +194,13 @@ class Server:
             raise Exception("content-type contains no boundary")
 
         now = time.time()
-        info(f"contribute: current time = {now}")
+        info(f"Contribute: current time = {now}")
 
         # Update state using the current time and return an error if
         # the MPC is no longer active.
         self._update_state(now)
         if self.state.have_all_contributions():
-            return Response("MPC complete.  No contributions accepted.", 405)
+            return Response("MPC complete. No contributions accepted.", 405)
 
         # Check that the public key matches the expected next
         # contributor (as text, rather than relying on comparison
@@ -210,7 +210,7 @@ class Server:
         verification_key = contributor.verification_key
         expect_pub_key_str = export_verification_key(verification_key)
         if expect_pub_key_str != pub_key_str:
-            return Response("contributor key mismatch", 403)
+            return Response("Contributor key mismatch", 403)
 
         # Check signature correctness. Ensures that the uploader is the owner
         # of the correct key BEFORE the costly file upload, taking as little
@@ -218,9 +218,9 @@ class Server:
         # (Note that this pre-upload check requires the digest to be passed in
         # the HTTP header.)
         if not verify(sig, verification_key, digest):
-            return Response("signature check failed", 403)
+            return Response("Signature check failed", 403)
 
-        # Accept the upload (if the digest matches).  If successful,
+        # Accept the upload (if the digest matches). If successful,
         # pass the file to the handler.
         if exists(self.upload_file):
             remove(self.upload_file)
@@ -277,7 +277,7 @@ class Server:
                 callback: Callable[[Request], Response]) -> Response:
 
             if self.processing:
-                return Response("processing contribution.  retry later.", 503)
+                return Response("Processing contribution. Retry later.", 503)
 
             self.state_lock.acquire()
             try:

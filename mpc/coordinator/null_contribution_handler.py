@@ -12,8 +12,8 @@ FINAL_FILE_NAME = "final-upload"
 class NullContributionHandler(IContributionHandler):
     """
     A null handler that accepts contributions and simply stores them as
-    subsequent challenges.  When the MPC has completed, the latest contribution
-    is moved to 'final-upload'.  Can be used for testing coordinator
+    subsequent challenges. When the MPC has completed, the latest contribution
+    is moved to 'final-upload'. Can be used for testing coordinator
     configuration (certificate setup, etc).
     """
 

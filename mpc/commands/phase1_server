@@ -16,8 +16,8 @@ def phase1_server(
         pot_path: Optional[str],
         num_powers: Optional[int]) -> None:
     """
-    Phase1 MPC coordinator process.  Reads the given configuration file and
-    listens for contributor connections.  Command line parameters override
+    Phase1 MPC coordinator process. Reads the given configuration file and
+    listens for contributor connections. Command line parameters override
     any values set in the config file.
     """
 
