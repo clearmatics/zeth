@@ -22,6 +22,18 @@ FQ = ec.FQ
 G1 = Tuple[ec.FQ, ec.FQ]
 
 
+SigningPublicKey = Tuple[G1, G1]
+
+
+class SigningKeyPair:
+    """
+    Key-pair used for signing transaction data.
+    """
+    def __init__(self, sk: Tuple[FQ, FQ], pk: SigningPublicKey):
+        self.sk: Tuple[FQ, FQ] = sk
+        self.pk: SigningPublicKey = pk
+
+
 class ApkAskPair:
     def __init__(self, a_sk: str, a_pk: str):
         self.a_pk = a_pk
@@ -208,14 +220,14 @@ def create_joinsplit_input(
     )
 
 
-def gen_one_time_schnorr_vk_sk_pair() -> JoinsplitKeypair:
+def _gen_signing_keypair() -> SigningKeyPair:
     x = FQ(
         int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME)
     X = ec.multiply(ec.G1, x.n)
     y = FQ(
         int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME)
     Y = ec.multiply(ec.G1, y.n)
-    return JoinsplitKeypair(x, y, X, Y)
+    return SigningKeyPair((x, y), (X, Y))
 
 
 def encode_pub_input_to_hash(message_list: List[Union[str, List[str]]]) -> bytes:
@@ -313,7 +325,7 @@ def field_elements_to_hex(longfield: str, shortfield: str) -> str:
 
 
 def sign(
-        keypair: JoinsplitKeypair,
+        keypair: SigningKeyPair,
         hash_ciphers: str,
         hash_proof: str,
         hash_inputs: str) -> int:
@@ -324,12 +336,12 @@ def sign(
     chosen), and sign the hash of the ciphers and inputs for consistency.
     """
     # Parse the signature key pair
-    vk = keypair.vk
-    sk = keypair.sk
+    sign_pk = keypair.pk
+    sign_sk = keypair.sk
 
     # Format part of the public key as an hex
-    y0_hex = hex_extend_32bytes("{0:0>4X}".format(int(vk[1][0])))
-    y1_hex = hex_extend_32bytes("{0:0>4X}".format(int(vk[1][1])))
+    y0_hex = hex_extend_32bytes("{0:0>4X}".format(int(sign_pk[1][0])))
+    y1_hex = hex_extend_32bytes("{0:0>4X}".format(int(sign_pk[1][1])))
 
     # Encode and hash the verifying key and input hashes
     data_to_sign = encode_abi(
@@ -348,8 +360,7 @@ def sign(
     h = int(data_hex, 16) % constants.ZETH_PRIME
 
     # Compute the signature sigma
-    sigma = sk[1].n + h * sk[0].n % constants.ZETH_PRIME
-
+    sigma = sign_sk[1].n + h * sign_sk[0].n % constants.ZETH_PRIME
     return sigma
 
 
@@ -381,7 +392,7 @@ def compute_joinsplit2x2_inputs(
         output_note_value1: str,
         public_in_value: str,
         public_out_value: str,
-        joinsplit_vk: JoinsplitPublicKey) -> prover_pb2.ProofInputs:
+        sign_pk: Tuple[G1, G1]) -> prover_pb2.ProofInputs:
     """
     Create a ProofInput object for joinsplit parameters
     """
@@ -399,7 +410,7 @@ def compute_joinsplit2x2_inputs(
         random_seed,
         input_nullifier0,
         input_nullifier1,
-        joinsplit_vk)
+        sign_pk)
     phi = _transaction_randomness()
 
     output_note0, output_note1 = create_zeth_notes(
@@ -443,12 +454,12 @@ def get_proof_joinsplit_2_by_2(
         public_in_value: str,
         public_out_value: str,
         zksnark: IZKSnarkProvider
-) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JoinsplitKeypair]:
+) -> Tuple[ZethNote, ZethNote, Dict[str, Any], SigningKeyPair]:
     """
     Query the prover server to generate a proof for the given joinsplit
     parameters.
     """
-    joinsplit_keypair = gen_one_time_schnorr_vk_sk_pair()
+    signing_keypair = _gen_signing_keypair()
     proof_input = compute_joinsplit2x2_inputs(
         mk_root,
         input_note0,
@@ -464,7 +475,7 @@ def get_proof_joinsplit_2_by_2(
         output_note_value1,
         public_in_value,
         public_out_value,
-        joinsplit_keypair.vk)
+        signing_keypair.pk)
     proof_obj = prover_client.get_proof(proof_input)
     proof_json = zksnark.parse_proof(proof_obj)
 
@@ -474,7 +485,7 @@ def get_proof_joinsplit_2_by_2(
         proof_input.js_outputs[0],  # pylint: disable=no-member
         proof_input.js_outputs[1],  # pylint: disable=no-member
         proof_json,
-        joinsplit_keypair)
+        signing_keypair)
 
 
 def encrypt_notes(

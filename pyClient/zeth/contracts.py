@@ -1,7 +1,7 @@
 import zeth.constants as constants
 from zeth.zksnark import IZKSnarkProvider, GenericProof
 from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int
-from zeth.joinsplit import JoinsplitPublicKey
+from zeth.joinsplit import SigningPublicKey
 
 import json
 import os
@@ -228,7 +228,7 @@ def mix(
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
-        vk: JoinsplitPublicKey,
+        vk: SigningPublicKey,
         sigma: int,
         sender_address: str,
         wei_pub_value: int,

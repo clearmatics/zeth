@@ -49,7 +49,7 @@ def bob_deposit(
     note2_value = to_zeth_units(str(BOB_SPLIT_2_ETH), 'ether')
     v_in = to_zeth_units(str(BOB_DEPOSIT_ETH), 'ether')
 
-    (output_note1, output_note2, proof_json, joinsplit_keypair) = \
+    (output_note1, output_note2, proof_json, signing_keypair) = \
         joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
@@ -94,7 +94,7 @@ def bob_deposit(
 
     # Compute the joinSplit signature
     joinsplit_sig = joinsplit.sign(
-        joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+        signing_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return contracts.mix(
         mixer_instance,
@@ -102,7 +102,7 @@ def bob_deposit(
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
-        joinsplit_keypair.vk,
+        signing_keypair.pk,
         joinsplit_sig,
         bob_eth_address,
         W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
@@ -141,7 +141,7 @@ def bob_to_charlie(
     note1_value = to_zeth_units(str(BOB_TO_CHARLIE_ETH), 'ether')
     note2_value = to_zeth_units(str(BOB_TO_CHARLIE_CHANGE_ETH), 'ether')
 
-    (output_note1, output_note2, proof_json, joinsplit_keypair) = \
+    (output_note1, output_note2, proof_json, signing_keypair) = \
         joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
@@ -185,7 +185,7 @@ def bob_to_charlie(
 
     # Compute the joinSplit signature
     joinsplit_sig = joinsplit.sign(
-        joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+        signing_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return contracts.mix(
         mixer_instance,
@@ -193,7 +193,7 @@ def bob_to_charlie(
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
-        joinsplit_keypair.vk,
+        signing_keypair.pk,
         joinsplit_sig,
         bob_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
@@ -230,7 +230,7 @@ def charlie_withdraw(
     note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
     v_out = to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
-    (output_note1, output_note2, proof_json, joinsplit_keypair) = \
+    (output_note1, output_note2, proof_json, signing_keypair) = \
         joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
@@ -275,7 +275,7 @@ def charlie_withdraw(
 
     # Compute the joinSplit signature
     joinsplit_sig = joinsplit.sign(
-        joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+        signing_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return contracts.mix(
         mixer_instance,
@@ -283,7 +283,7 @@ def charlie_withdraw(
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
-        joinsplit_keypair.vk,
+        signing_keypair.pk,
         joinsplit_sig,
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
@@ -324,7 +324,7 @@ def charlie_double_withdraw(
     note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
     v_out = to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
 
-    (output_note1, output_note2, proof_json, joinsplit_keypair) = \
+    (output_note1, output_note2, proof_json, signing_keypair) = \
         joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
@@ -380,7 +380,7 @@ def charlie_double_withdraw(
 
     # Compute the joinSplit signature
     joinsplit_sig = joinsplit.sign(
-        joinsplit_keypair, hash_ciphers, hash_proof, hash_inputs)
+        signing_keypair, hash_ciphers, hash_proof, hash_inputs)
 
     return contracts.mix(
         mixer_instance,
@@ -388,7 +388,7 @@ def charlie_double_withdraw(
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
-        joinsplit_keypair.vk,
+        signing_keypair.pk,
         joinsplit_sig,
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
