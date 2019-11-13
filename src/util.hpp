@@ -32,10 +32,6 @@ std::string binary_str_to_hexadecimal_str(const std::string &s);
 // fallback.
 std::string trusted_setup_path(const std::string &fallback = "");
 
-// Check for environment variables defining the location of a specific file
-// related to trusted setup.
-std::string trusted_setup_file(const std::string &file_name);
-
 // interface for StructuredT typed below:
 // {
 //   bool is_well_formed() const;

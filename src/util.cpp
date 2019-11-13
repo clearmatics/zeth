@@ -255,14 +255,4 @@ std::string trusted_setup_path(const std::string &fallback)
     return path;
 }
 
-std::string trusted_setup_file(const std::string &file_name)
-{
-    const std::string path = trusted_setup_path();
-    if (!path.empty() && path.back() != '/') {
-        return path + "/" + file_name;
-    }
-
-    return path + file_name;
-}
-
 } // namespace libzeth
