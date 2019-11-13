@@ -62,7 +62,13 @@ std::string point_g2_affine_as_hex(libff::alt_bn128_G2 _p)
 
 boost::filesystem::path get_path_to_setup_directory()
 {
-    return boost::filesystem::path(trusted_setup_path("../trusted_setup"));
+    const char *path = std::getenv("ZETH_TRUSTED_SETUP_DIR");
+    if (nullptr == path) {
+        // Fallback destination if the ZETH_TRUSTED_SETUP_DIR env var is not set
+        return "../trusted_setup";
+    }
+
+    return boost::filesystem::path(path);
 }
 
 boost::filesystem::path get_path_to_debug_directory()

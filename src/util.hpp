@@ -28,10 +28,6 @@ std::string hexadecimal_str_to_binary_str(const std::string &s);
 std::string binary_str_to_hexadecimal_str(const void *s, const size_t size);
 std::string binary_str_to_hexadecimal_str(const std::string &s);
 
-// Attempt to find the default trusted setup path, given by env variables or
-// fallback.
-std::string trusted_setup_path(const std::string &fallback = "");
-
 // interface for StructuredT typed below:
 // {
 //   bool is_well_formed() const;
