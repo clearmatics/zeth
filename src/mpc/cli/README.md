@@ -1,7 +1,7 @@
 # mpc commands
 
 (Sub)commands to perform administrative operations related to the MPC for SRS
-generation.  Some operations relying on the circuit-agnostic `powersoftau` data
+generation. Some operations relying on the circuit-agnostic `powersoftau` data
 and pre-computed Lagrange polynomials evaluations, as computed by the
 `powersoftau` command.
 

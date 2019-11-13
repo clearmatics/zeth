@@ -10,7 +10,7 @@ namespace libzeth
 
 /// Given a sequence of powers of x (with some factor) encoded in
 /// GroupT, compute the values of various linear combination of
-/// Lagrange polynomials at x.  Note that this is not optimal, and
+/// Lagrange polynomials at x. Note that this is not optimal, and
 /// primarily intended for testing and validation.
 template<typename ppT, typename GroupT> class evaluator_from_lagrange
 {
