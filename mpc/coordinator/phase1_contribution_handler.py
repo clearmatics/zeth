@@ -97,7 +97,7 @@ class _Phase1State:
 
 class Phase1ContributionHandler(IContributionHandler):
     """
-    Handler processing phase1 (powersoftau) challenges and contributions.  Some
+    Handler processing phase1 (powersoftau) challenges and contributions. Some
     complexity is involved, because we need to track the number of valid
     contributions that have been made.
     """
@@ -116,7 +116,7 @@ class Phase1ContributionHandler(IContributionHandler):
         if not exists(CHALLENGE_FILE):
             assert not exists(NEW_CHALLENGE_FILE)
             assert not exists(TRANSCRIPT_FILE)
-            print("phase1: creating initial challenge ...")
+            print("Phase1: creating initial challenge ...")
             self.powersoftau.begin()
         assert exists(CHALLENGE_FILE)
 

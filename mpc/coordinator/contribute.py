@@ -38,7 +38,7 @@ def wait_for_turn(
         interval: int,
         verification_key: VerificationKey) -> None:
     """
-    Wait until our turn, returning when we can contribute.  If anything goes
+    Wait until our turn, returning when we can contribute. If anything goes
     wrong, an exception is thrown.
     """
     contributors = client.get_contributors()
@@ -53,7 +53,7 @@ def wait_for_turn(
         if our_idx == current_index:
             return
         # Wait 1 minute and try again
-        print(f"Waiting ... (current_idx: {current_index}.  our_idx: {our_idx})")
+        print(f"Waiting ... (current_idx: {current_index}, our_idx: {our_idx})")
         time.sleep(interval)
 
 
@@ -72,7 +72,7 @@ def contribute(
     # Check key upfront
     with open(key_file, "rb") as key_f:
         sk = import_signing_key(key_f.read())
-    print("got key")
+    print("Got key")
 
     client = Client(base_url, server_certificate, insecure)
 
@@ -82,7 +82,7 @@ def contribute(
 
     # Get challenge
     client.get_challenge(challenge_file)
-    print("got challenge")
+    print("Got challenge")
 
     # Perform the contribution
     response_file = contribute_cb()

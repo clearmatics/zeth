@@ -25,7 +25,7 @@ class IContributionHandler(ABC):
     def process_contribution(
             self, contribution_idx: int, file_name: str) -> bool:
         """
-        Process the given uploaded file as a contribution.  If any errors are
+        Process the given uploaded file as a contribution. If any errors are
         found, throw an exception with an appropriate message, or return false.
         """
         pass

@@ -19,7 +19,7 @@ def create_keypair(
         keypair_out_file: str,
         mpc_tool: Optional[str]) -> None:
     """
-    Create a keypair from the results of the Phase1 and Phase2 MPC.  This
+    Create a keypair from the results of the Phase1 and Phase2 MPC. This
     command should be executed in the Phase2 working directory, with the
     location of Phase1 data specified as the first argument.
     """

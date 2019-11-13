@@ -46,12 +46,12 @@ class ContributorList:
 
     def ensure_validity(self) -> None:
         """
-        Checks the server configuration.  If there are any problems, throw an
+        Checks the server configuration. If there are any problems, throw an
         exception with a message.
         """
 
         # Evidence is expected to be the signature of
-        # KEY_VALIDATION_CHECK_STRING.  Check this for all the contributors
+        # KEY_VALIDATION_CHECK_STRING. Check this for all the contributors
         # keys
         for contr in self.contributors:
             if not check_key_evidence(contr.verification_key, contr.key_evidence):

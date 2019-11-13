@@ -16,7 +16,7 @@ def generate_key(
         public_key_file: Optional[str],
         evidence_file: Optional[str]) -> None:
     """
-    Generate new private key to key-file.  Public key is written to stdout.
+    Generate new private key to key-file. Public key is written to stdout.
     """
 
     if exists(key_file):

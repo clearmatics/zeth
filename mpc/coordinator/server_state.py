@@ -45,7 +45,7 @@ class ServerState:
     def update(self, now: float, interval: float) -> bool:
         """
         Check whether a contributor has missed his chance and update internal
-        state accordingly.  If the deadline has passed, return True.  Otherwise
+        state accordingly. If the deadline has passed, return True. Otherwise
         return False.
         """
         # If the next contributor deadline has passed, update

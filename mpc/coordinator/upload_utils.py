@@ -30,7 +30,7 @@ def _read_to_file(
         file_name: str,
         bytes_to_read: int) -> Optional[bytes]:
     """
-    Stream bytes to a file, while computing the digest.  Return the digest or
+    Stream bytes to a file, while computing the digest. Return the digest or
     None if there is an error.
     """
 
