@@ -24,6 +24,30 @@ std::vector<bool> address_bits_from_address(int address, size_t tree_depth);
 
 template<typename FieldT> FieldT string_to_field(std::string input);
 
+std::string hexadecimal_str_to_binary_str(const std::string &s);
+std::string binary_str_to_hexadecimal_str(const void *s, const size_t size);
+std::string binary_str_to_hexadecimal_str(const std::string &s);
+
+// interface for StructuredT typed below:
+// {
+//   bool is_well_formed() const;
+// }
+
+//  Throw if input is not well-formed.  The type being checked should conform
+//  to the StructuredT interface above.
+template<typename StructuredT>
+void check_well_formed(const StructuredT &v, const char *name);
+
+//  Throw if input is not well-formed.  The type being checked should conform
+//  to the StructuredT interface above.
+template<typename StructuredT>
+void check_well_formed_(const StructuredT &v, const char *name);
+
+//  For some iterable container of objects comforming to StructuredT, throw if
+//  any entry is not well-formed.
+template<typename StructuredTs>
+bool container_is_well_formed(const StructuredTs &values);
+
 } // namespace libzeth
 #include "util.tcc"
 

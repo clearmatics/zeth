@@ -65,61 +65,73 @@ include_directories(
   libff/common/default_types
 )
 
-
 # Enable Boost for program_options
-find_package( Boost REQUIRED COMPONENTS system filesystem )
+find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
 include_directories( ${Boost_INCLUDE_DIR} )
+
+# libsodium
+ExternalProject_Get_Property(libsodium INSTALL_DIR)
+set(libsodium_INCLUDE_DIR "${INSTALL_DIR}/include")
+set(libsodium_LIBRARY "${INSTALL_DIR}/lib/libsodium.a")
 
 # Add the binary tree to the search path for include files
 # so that we will find zethConfig.h
 include_directories( ${PROJECT_BINARY_DIR} )
 
 # zeth library
-
 file(
   GLOB_RECURSE
   ZETH_SOURCE
   types/**.cpp types/**.hpp types/**.tcc
-  circuits/**.cpp circuits/**.hpp circuits/**.tcc circuit-wrapper.???
+  circuits/**.cpp circuits/**.hpp circuits/**.tcc circuit_wrapper.???
   commitments/**.?pp commitments/**.tcc
   libsnark_helpers/**.?pp libsnark_helpers/**.tcc
   snarks/**.?pp snarks/**.tcc
   snarks_alias.hpp snarks/**.tcc
   include_libsnark.hpp
   util.?pp util.tcc
+  util_api.?pp util_api.tcc
   zeth.h
 )
-
-add_library(
-  zeth
-  ${ZETH_SOURCE})
+add_library(zeth ${ZETH_SOURCE} ${PROTO_SRCS})
 target_include_directories(
   zeth
+
   PUBLIC
+  .
   ${DEPENDS_DIR}/libsnark
   ${DEPENDS_DIR}/libsnark/depends/libff
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+  ${libsodium_INCLUDE_DIR}
 )
-target_link_libraries(
-  zeth
-  snark)
+target_link_libraries(zeth snark ${libsodium_LIBRARY})
+add_dependencies(zeth libsodium)
 
-# Building the server
-add_executable(
-  prover_server
-
-  prover_server.cc util_api.hpp util_api.cpp util_api.tcc
-  ${PROTO_SRCS}
-  ${GRPC_SRCS}
+# prover_server executable
+file(
+  GLOB_RECURSE
+  PROVER_SERVER_SOURCE
+  prover_server/*.?pp prover_server/*.tcc
 )
+add_executable(prover_server ${PROVER_SERVER_SOURCE} ${GRPC_SRCS})
 target_link_libraries(
   prover_server
 
   zeth
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
   gRPC::grpc++_reflection
   protobuf::libprotobuf
+)
+
+# pot-process utility
+add_executable(pot-process pot_process/pot_process.cpp)
+target_link_libraries(
+  pot-process
+  zeth
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
 
 ## Tests
@@ -128,14 +140,18 @@ include(CTest)
 # A target which builds all tests, even if they will not be run.
 add_custom_target(build_tests)
 
-function(zeth_test TEST_NAME TEST_SOURCE IS_FAST_TEST)
-  add_executable(${TEST_NAME} EXCLUDE_FROM_ALL ${TEST_SOURCE})
+function(zeth_test TEST_NAME)
+  cmake_parse_arguments(zeth_test "FAST" "" "SOURCE" ${ARGN} )
+  file(GLOB test_src ${zeth_test_SOURCE})
+
+  # Test executable
+  add_executable(${TEST_NAME} EXCLUDE_FROM_ALL ${test_src})
   target_link_libraries(${TEST_NAME} zeth gtest_main)
 
   # Add all tests to the 'build_tests' target
   add_dependencies(build_tests ${TEST_NAME})
 
-  if((NOT FAST_TESTS_ONLY) OR IS_FAST_TEST)
+  if((NOT FAST_TESTS_ONLY) OR zeth_test_FAST)
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
     add_dependencies(check ${TEST_NAME})
   else()
@@ -143,19 +159,19 @@ function(zeth_test TEST_NAME TEST_SOURCE IS_FAST_TEST)
   endif()
 endfunction(zeth_test)
 
-zeth_test(test_simple test/simple_test.cpp TRUE)
-zeth_test(test_addition test/packed_addition_test.cpp TRUE)
-zeth_test(test_hex_to_field test/hex_to_field_test.cpp TRUE)
-zeth_test(test_binary_operation test/binary_operation_test.cpp TRUE)
-zeth_test(test_blake2s test/blake2s_test.cpp TRUE)
-zeth_test(test_mimc_round test/mimc_round_test.cpp TRUE)
-zeth_test(test_mimc test/mimc_test.cpp TRUE)
-zeth_test(test_mimc_mp test/mimc_mp_test.cpp TRUE)
-zeth_test(test_prfs test/prfs_test.cpp TRUE)
-zeth_test(test_commitments test/commitments_test.cpp TRUE)
-zeth_test(test_merkle_tree test/merkle_tree_test.cpp TRUE)
-zeth_test(test_note test/note_test.cpp TRUE)
-zeth_test(test_prover test/prover_test.cpp TRUE)
+zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
+zeth_test(test_powersoftau SOURCE test/powersoftau_test.cpp FAST)
+zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
+zeth_test(test_addition SOURCE test/packed_addition_test.cpp FAST)
+zeth_test(test_hex_to_field SOURCE test/hex_to_field_test.cpp FAST)
+zeth_test(test_binary_operation SOURCE test/binary_operation_test.cpp FAST)
+zeth_test(test_blake2s SOURCE test/blake2s_test.cpp FAST)
+zeth_test(test_mimc SOURCE test/mimc_*.cpp FAST)
+zeth_test(test_prfs SOURCE test/prfs_test.cpp FAST)
+zeth_test(test_commitments SOURCE test/commitments_test.cpp FAST)
+zeth_test(test_merkle_tree SOURCE test/merkle_tree_test.cpp FAST)
+zeth_test(test_note SOURCE test/note_test.cpp FAST)
+zeth_test(test_prover SOURCE test/prover_test.cpp)
 
 # Old Tests
 # zeth_test(test_sha256 test/sha256_test.cpp TRUE)
@@ -166,3 +182,10 @@ target_link_libraries(
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
 )
+target_link_libraries(
+  test_mpc
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+)
+
+add_subdirectory(mpc)

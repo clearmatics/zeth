@@ -1,6 +1,8 @@
 #ifndef __ZETH_UTIL_TCC__
 #define __ZETH_UTIL_TCC__
 
+#include "util.hpp"
+
 namespace libzeth
 {
 
@@ -87,6 +89,34 @@ template<typename FieldT> FieldT string_to_field(std::string input)
     // Construct field element from a bigint
     FieldT element = FieldT(n_big_int);
     return element;
+}
+
+template<typename StructuredTs>
+bool container_is_well_formed(const StructuredTs &values)
+{
+    for (const auto &v : values) {
+        if (!v.is_well_formed()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template<typename StructuredT>
+void check_well_formed(const StructuredT &v, const char *name)
+{
+    if (!v.is_well_formed()) {
+        throw std::invalid_argument(std::string(name) + " not well-formed");
+    }
+}
+
+template<typename StructuredT>
+void check_well_formed_(const StructuredT &v, const char *name)
+{
+    if (!is_well_formed(v)) {
+        throw std::invalid_argument(std::string(name) + " not well-formed");
+    }
 }
 
 } // namespace libzeth

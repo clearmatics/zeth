@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+from commands.constants import \
+    DEFAULT_CONFIG_FILE, LAGRANGE_FILE, LINEAR_COMBINATION_FILE
+from coordinator.powersoftau_process_command import PowersOfTauProcessCommand
+from coordinator.mpc_command import MPCCommand
+from coordinator.phase1_contribution_handler import \
+    Phase1ServerConfig, FINAL_OUTPUT
+from coordinator.phase2_contribution_handler import CHALLENGE_0_FILE
+from click import command, argument, option
+from os.path import join, exists
+from typing import Optional
+
+
+@command()
+@argument("phase1-dir")
+@option(
+    "--lagrange-degree", default=None, type=int,
+    help="degree of Lagrange polynomials (default: pot-degree)")
+@option("--pot-tool", default=None, help="path to pot-process tool")
+@option("--mpc-tool", default=None, help="path to mpc tool")
+@option("--dry-run", "-n", is_flag=True, help="do not execute commands")
+def phase2_prepare(
+        phase1_dir: str,
+        lagrange_degree: Optional[int],
+        pot_tool: Optional[str],
+        mpc_tool: Optional[str],
+        dry_run: bool) -> None:
+    """
+    Process powersoftau (Phase1) output to create input data required for
+    Phase2.
+    """
+
+    # Gather phase1 information
+    pot_file = join(phase1_dir, FINAL_OUTPUT)
+    if not exists(pot_file):
+        raise Exception(f"No powersoftau file: {pot_file}")
+    phase1_config_file = join(phase1_dir, DEFAULT_CONFIG_FILE)
+    with open(phase1_config_file, "r") as phase1_config_f:
+        phase1_config = Phase1ServerConfig.from_json(
+            phase1_config_f.read(), phase1_config_file)
+    pot_degree = phase1_config.num_powers
+    if not pot_degree:
+        raise Exception("powersoftau degree must be specified in config file")
+
+    if not exists(LAGRANGE_FILE):
+        pot_process = PowersOfTauProcessCommand(pot_tool, dry_run)
+        if not pot_process.compute_lagrange(
+                pot_file, pot_degree, LAGRANGE_FILE, lagrange_degree):
+            raise Exception("Lagrange computation failed")
+    else:
+        print(f"Using existing lagrange evaluations: {LAGRANGE_FILE}")
+
+    mpc = MPCCommand(mpc_tool, dry_run)
+    if not exists(LINEAR_COMBINATION_FILE):
+        if not mpc.linear_combination(
+                pot_file, LAGRANGE_FILE, LINEAR_COMBINATION_FILE, pot_degree):
+            raise Exception("linear combination failed")
+    else:
+        print(f"Using existing linear-combination: {LINEAR_COMBINATION_FILE}")
+
+    if not exists(CHALLENGE_0_FILE):
+        if not mpc.phase2_begin(LINEAR_COMBINATION_FILE, CHALLENGE_0_FILE):
+            raise Exception("failed computing challenge 0")
+    else:
+        print(f"Using existing initial challenge: {CHALLENGE_0_FILE}")
+
+
+if __name__ == "__main__":
+    phase2_prepare()

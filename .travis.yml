@@ -1,7 +1,9 @@
+services:
+    - docker
+
 addons:
     apt:
         packages:
-            - docker.io
             - clang-format
     homebrew:
         packages:
@@ -11,6 +13,10 @@ addons:
             - boost
             - openssl
             - cmake
+            - libtool
+            - autoconf
+            - automake
+            - python
             # - llvm
 
 matrix:

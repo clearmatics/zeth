@@ -2,7 +2,7 @@
 #define __ZETH_EXTENDED_PROOF_HPP__
 
 #include "debug_helpers.hpp"
-#include "snarks_alias.hpp" // Snark dependent alias for keyPairT, provingKeyT, verificationKeyT, and proofT
+#include "snarks_alias.hpp"
 #include "zeth.h"
 
 namespace libzeth
@@ -22,20 +22,22 @@ public:
     extended_proof(
         proofT<ppT> &in_proof,
         libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input);
-    proofT<ppT> get_proof();
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> get_primary_input();
+    const proofT<ppT> &get_proof() const;
+    const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_input()
+        const;
 
     // Write on disk
-    void write_primary_input(boost::filesystem::path path = "");
-    void write_proof(boost::filesystem::path path = "");
-    void write_extended_proof(boost::filesystem::path path = "");
+    void write_primary_input(boost::filesystem::path path = "") const;
+    void write_proof(boost::filesystem::path path = "") const;
+    void write_extended_proof(boost::filesystem::path path = "") const;
 
     // Display on stdout
-    void dump_proof();
-    void dump_primary_inputs();
+    void dump_proof() const;
+    void dump_primary_inputs() const;
 };
 
 } // namespace libzeth
+
 #include "libsnark_helpers/extended_proof.tcc"
 
 #endif

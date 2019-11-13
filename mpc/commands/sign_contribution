@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+from coordinator.crypto import \
+    import_digest, import_signing_key, sign, export_signature
+from click import command, argument
+
+
+@command()
+@argument("key-file")
+@argument("digest-hex")
+def sign_contribution(key_file: str, digest_hex: str) -> None:
+    """
+    Given a key file and a digest of a contribution (as hex), generate a
+    contribution signature.
+    """
+    digest = import_digest(digest_hex)
+    with open(key_file, "rb") as prv_f:
+        signing_key = import_signing_key(prv_f.read())
+
+    sig = sign(signing_key, digest)
+    print(export_signature(sig))
+
+
+if __name__ == "__main__":
+    sign_contribution()

@@ -43,7 +43,7 @@ docker run -ti -p 50051:50051 --name zeth zeth-dev:latest
 # Compile the proving server
 mkdir build
 cd build
-cmake ..
+cmake .. [<flags (see below)>]
 ## (optional) Run the tests
 make check # Builds and run the tests (once the tests are built, calling "make test" suffices to execute them)
 ## Compile
@@ -52,6 +52,9 @@ make
 # Start the proving server
 prover_server
 ```
+
+Note: *flags* in the cmake command may include `-DCMAKE_BUILD_TYPE=Release` for
+an optimized build.
 
 ##### Build Options
 
@@ -96,6 +99,10 @@ If you do not know where to start, you can just follow the instructions of the R
 These scripts implement a scenario where Alice, Bob and Charlie do confidential transfers using Ether and an ERC20 token, respectively.
 
 **Note:** These clients are very minimal and only used for testing purpose!
+
+## Secure SRS generation
+
+See [MPC for SRS generation documentation](mpc/README.md)
 
 ## References and useful links
 

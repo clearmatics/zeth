@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+
+. scripts/test_mpc_common.sh
+
+set -x
+set -e
+
+DATA_DIR=_test_phase2_data
+[ -e ${DATA_DIR} ] && rm -r ${DATA_DIR}
+mkdir -p ${DATA_DIR}
+
+pot_file=${DATA_DIR}/pot-${QAP_DEGREE}.bin
+lagrange_file=${DATA_DIR}/lagrange-${QAP_DEGREE}.bin
+linear_combination_file=${DATA_DIR}/linear_combination-${QAP_DEGREE}.bin
+
+transcript_file=${DATA_DIR}/transcript.bin
+challenge_0_file=${DATA_DIR}/challenge_0.bin
+response_1_file=${DATA_DIR}/response_1.bin
+response_digest_1_file=${DATA_DIR}/response_digest_1.bin
+challenge_1_file=${DATA_DIR}/challenge_1.bin
+response_2_file=${DATA_DIR}/response_2.bin
+response_digest_2_file=${DATA_DIR}/response_digest_2.bin
+challenge_2_file=${DATA_DIR}/challenge_2.bin
+response_3_file=${DATA_DIR}/response_3.bin
+response_digest_3_file=${DATA_DIR}/response_digest_3.bin
+challenge_3_file=${DATA_DIR}/challenge_3.bin
+final_phase2_file=${challenge_3_file}
+invalid_response_digest_file=${DATA_DIR}/response_digest_invalid.bin
+
+keypair_file=${DATA_DIR}/keypair-${QAP_DEGREE}.bin
+
+
+# Dummy pot data
+${POT_PROCESS} --dummy ${pot_file} ${QAP_DEGREE}
+
+# Compute lagrange points
+${POT_PROCESS} --out ${lagrange_file} ${pot_file} ${QAP_DEGREE}
+
+# Generate the linear combination
+${MPC} linear-combination \
+       ${pot_file} ${lagrange_file} ${linear_combination_file}
+
+# Begin Phase2 MPC and run some rounds, accumulating transcript.
+${MPC} phase2-begin ${linear_combination_file} ${challenge_0_file}
+
+${MPC} phase2-contribute \
+       --skip-user-input \
+       --digest ${response_digest_1_file} \
+       ${challenge_0_file} ${response_1_file}
+${MPC} phase2-verify-contribution \
+       --transcript ${transcript_file} \
+       --new-challenge ${challenge_1_file} \
+       ${challenge_0_file} ${response_1_file}
+
+${MPC} phase2-contribute \
+       --skip-user-input \
+       --digest ${response_digest_2_file} \
+       ${challenge_1_file} ${response_2_file}
+${MPC} phase2-verify-contribution \
+       --transcript ${transcript_file} \
+       --new-challenge ${challenge_2_file} \
+       ${challenge_1_file} ${response_2_file}
+
+${MPC} phase2-contribute \
+       --skip-user-input \
+       --digest ${response_digest_3_file} \
+       ${challenge_2_file} ${response_3_file}
+${MPC} phase2-verify-contribution \
+       --transcript ${transcript_file} \
+       --new-challenge ${challenge_3_file} \
+       ${challenge_2_file} ${response_3_file}
+
+# Verify the transcript
+${MPC} phase2-verify-transcript \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}
+
+# Verify the transcript, checking for each contribution
+${MPC} phase2-verify-transcript \
+       --digest ${response_digest_1_file} \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}
+${MPC} phase2-verify-transcript \
+       --digest ${response_digest_2_file} \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}
+${MPC} phase2-verify-transcript \
+       --digest ${response_digest_3_file} \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}
+
+# Invalid contribution check
+echo 00000000 >> ${invalid_response_digest_file}
+cat ${response_digest_3_file} >> ${invalid_response_digest_file}
+if (${MPC} phase2-verify-transcript \
+       --digest ${invalid_response_digest_file} \
+       ${challenge_0_file} ${transcript_file} ${challenge_3_file}) then
+   echo ERROR: expected failure
+   exit 1
+fi
+
+# Create the keypair
+${MPC} create-keypair \
+       ${pot_file} ${linear_combination_file} ${final_phase2_file} \
+       ${keypair_file}
+
+set +x
+passed

@@ -14,7 +14,7 @@
 
 #include <chrono>
 // Import only the core components of the SNARK (not the API components)
-#include "circuit-wrapper.hpp"
+#include "circuit_wrapper.hpp"
 #include "circuits/blake2s/blake2s_comp.hpp"
 #include "libsnark_helpers/libsnark_helpers.hpp"
 #include "snarks_core_imports.hpp"

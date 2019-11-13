@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+. scripts/test_mpc_common.sh
+. mpc/env/bin/activate
+
+set -e
+set -x
+
+VALID_CONTRIBUTORS_CSV=${TEST_DATA_DIR}/test_mpc_registration.csv
+INVALID_CONTRIBUTORS_CSV=${TEST_DATA_DIR}/test_mpc_registration_invalid.csv
+
+mkdir -p _test_contributors_from_csv
+
+pushd _test_contributors_from_csv
+# Valid contributors CSV
+contributors_from_csv ${VALID_CONTRIBUTORS_CSV} server_config.json
+
+# Invalid contributors CSV should fail
+if (contributors_from_csv ${INVALID_CONTRIBUTORS_CSV} server_config_invalid.json)
+then
+    echo "ERROR: invalid contributors file should generate an error"
+    exit 1
+fi
+popd
+
+set +x
+passed

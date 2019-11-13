@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+
+from commands.constants import DEFAULT_CONFIG_FILE, LINEAR_COMBINATION_FILE
+from coordinator.phase1_contribution_handler import \
+    Phase1ServerConfig, FINAL_OUTPUT
+from coordinator.mpc_command import MPCCommand
+
+from click import command, option, argument
+from typing import Optional
+from os.path import join, exists
+
+
+@command()
+@argument("phase1-dir")
+@argument("keypair-out-file")
+@option("--mpc-tool", default=None, help="path to mpc tool")
+def create_keypair(
+        phase1_dir: str,
+        keypair_out_file: str,
+        mpc_tool: Optional[str]) -> None:
+    """
+    Create a keypair from the results of the Phase1 and Phase2 MPC. This
+    command should be executed in the Phase2 working directory, with the
+    location of Phase1 data specified as the first argument.
+    """
+
+    if exists(keypair_out_file):
+        raise Exception(f"keypair file already exists: {keypair_out_file}")
+
+    # Read phase1 properties from phase1/server_config.json
+    phase1_config_file = join(phase1_dir, DEFAULT_CONFIG_FILE)
+    with open(phase1_config_file, "r") as phase1_config_f:
+        phase1_config = Phase1ServerConfig.from_json(
+            phase1_config_f.read(), phase1_config_file)
+
+    pot_file = join(phase1_dir, FINAL_OUTPUT)
+
+    mpc = MPCCommand(mpc_tool)
+    if not mpc.create_keypair(
+            pot_file,
+            LINEAR_COMBINATION_FILE,
+            FINAL_OUTPUT,
+            keypair_out_file,
+            phase1_config.num_powers):
+        raise Exception("create_keypair command failed")
+
+
+if __name__ == "__main__":
+    create_keypair()
