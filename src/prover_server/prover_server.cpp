@@ -259,9 +259,9 @@ int main(int argc, char **argv)
         "keypair,k", po::value<std::string>(), "file to load keypair from");
 
     auto usage = [&]() {
-        std::cout << "Usage:" << std::endl
-                  << "  " << argv[0] << " [<options>]" << std::endl
-                  << std::endl;
+        std::cout << "Usage:" << "\n"
+                  << "  " << argv[0] << " [<options>]\n"
+                  << "\n";
         std::cout << options;
         std::cout << std::endl;
     };
