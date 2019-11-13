@@ -11,7 +11,7 @@ function format_check() {
     scripts/format
     git diff --no-ext-diff | head -n 20 > format_errors
     num_lines=`cat format_errors | wc -l`
-    if [ "0" != "${num_lines}" ] ; then
+    if [ "${num_lines}" != "0" ] ; then
         echo CODE FORMATTING ERRORS:
         cat format_errors
         exit 1
@@ -20,15 +20,14 @@ function format_check() {
 
 function pyclient_check() {
     pushd pyClient
+    python3.7 -m venv env
+    . env/bin/activate
+    pip install --upgrade pip
+    make setup
+    make syntax
 
-        python3.7 -m venv env
-        . env/bin/activate
-        pip install --upgrade pip
-        make setup
-        make syntax
-
-        deactivate
-        popd
+    deactivate
+    popd
 }
 
 function command_tests() {
@@ -37,10 +36,10 @@ function command_tests() {
 
     # Execute checks on mpc python code
     pushd mpc
-        . env/bin/activate
-        make check
-        deactivate
-        popd
+    . env/bin/activate
+    make check
+    deactivate
+    popd
 
     # Execute the test scripts for pot-process, mpc, mpc server and client
     scripts/test_pot_process
@@ -53,7 +52,7 @@ function build() {
     # Enable warnings-as-errors
     cxx_flags="-Werror"
 
-    if [ "Darwin" == "${platform}" ] ; then
+    if [ "${platform}" == "Darwin" ] ; then
         export PATH="/usr/local/opt/llvm/bin:/usr/local/bin:${PATH}"
         export PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig"
         export LIBRARY_PATH="/usr/local/opt/openssl/lib"
