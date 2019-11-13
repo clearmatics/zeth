@@ -23,53 +23,63 @@ FQ = ec.FQ
 G1 = Tuple[ec.FQ, ec.FQ]
 
 
+# Secret key for signing joinsplit data
 SigningSecretKey = NewType('SigningSecretKey', Tuple[FQ, FQ])
 
 
+# Public key for signing joinsplit data
 SigningPublicKey = NewType('SigningPublicKey', Tuple[G1, G1])
 
 
 class SigningKeyPair:
     """
-    Key-pair used for signing transaction data.
+    Key-pair for signing joinsplit data.
     """
     def __init__(self, sk: SigningSecretKey, pk: SigningPublicKey):
         self.sk: SigningSecretKey = sk
         self.pk: SigningPublicKey = pk
 
 
-def ownership_key_as_hex(a_sk: bytes) -> str:
-    return hex_extend_32bytes(a_sk.hex())
-
-
+# Secret key for proving ownership
 OwnershipSecretKey = NewType('OwnershipSecretKey', bytes)
 
 
+# Public key for proving owenership
 OwnershipPublicKey = NewType('OwnershipPublicKey', bytes)
 
 
 class OwnershipKeyPair:
+    """
+    Key-pair for ownership proof
+    """
     def __init__(self, a_sk: OwnershipSecretKey, a_pk: OwnershipPublicKey):
         self.a_pk: OwnershipPublicKey = a_pk
         self.a_sk: OwnershipSecretKey = a_sk
 
 
+def ownership_key_as_hex(a_sk: bytes) -> str:
+    """
+    Convert either a secret or public ownership key to hex representation of the
+    underlying 32-byte object.
+    """
+    return hex_extend_32bytes(a_sk.hex())
+
+
 class EncryptionKeyPair:
+    """
+    Key-pair for encrypting joinsplit notes.
+    """
     def __init__(self, k_sk: PrivateKey, k_pk: PublicKey):
         self.k_pk: PublicKey = k_pk
         self.k_sk: PrivateKey = k_sk
 
 
-# # Joinsplit Secret Key
-# JoinsplitSecretKey = Tuple[FQ, FQ]
-
-
 class ZethAddressPub:
     """
-    Public addr_pk, consisting of a_pk and k_pk
+    Public half of a zethAddress.  addr_pk = (a_pk and k_pk)
     """
-    def __init__(self, a_pk: bytes, k_pk: PublicKey):
-        self.a_pk: bytes = a_pk
+    def __init__(self, a_pk: OwnershipPublicKey, k_pk: PublicKey):
+        self.a_pk: OwnershipPublicKey = a_pk
         self.k_pk: PublicKey = k_pk
 
 
@@ -77,8 +87,8 @@ class ZethAddressPriv:
     """
     Secret addr_sk, consisting of a_sk and k_sk
     """
-    def __init__(self, a_sk: bytes, k_sk: PrivateKey):
-        self.a_sk: bytes = a_sk
+    def __init__(self, a_sk: OwnershipSecretKey, k_sk: PrivateKey):
+        self.a_sk: OwnershipSecretKey = a_sk
         self.k_sk: PrivateKey = k_sk
 
 
@@ -88,7 +98,11 @@ class ZethAddress:
     "zethAddress" in the paper).
     """
     def __init__(
-            self, a_pk: bytes, k_pk: PublicKey, a_sk: bytes, k_sk: PrivateKey):
+            self,
+            a_pk: OwnershipPublicKey,
+            k_pk: PublicKey,
+            a_sk: OwnershipSecretKey,
+            k_sk: PrivateKey):
         self.addr_pk = ZethAddressPub(a_pk, k_pk)
         self.addr_sk = ZethAddressPriv(a_sk, k_sk)
 
