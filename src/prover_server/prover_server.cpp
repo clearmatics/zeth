@@ -33,15 +33,6 @@
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
 
-// Instantiate the templates with the right types
-//
-// Instantiated from the curve specified in the CMakelists.txt
-typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT;
-// Hash used in the merkle tree
-typedef MiMC_mp_gadget<FieldT> HashTreeT;
-// Hash used for the commitments and PRFs
-typedef BLAKE2s_256_comp<FieldT> HashT;
 /// The prover_server class inherits from the Prover service
 /// defined in the proto files, and provides an implementation
 /// of the service.
