@@ -83,7 +83,7 @@ file(
   GLOB_RECURSE
   ZETH_SOURCE
   types/**.cpp types/**.hpp types/**.tcc
-  circuits/**.cpp circuits/**.hpp circuits/**.tcc circuit-wrapper.???
+  circuits/**.cpp circuits/**.hpp circuits/**.tcc circuit_wrapper.???
   commitments/**.?pp commitments/**.tcc
   libsnark_helpers/**.?pp libsnark_helpers/**.tcc
   snarks/**.?pp snarks/**.tcc
