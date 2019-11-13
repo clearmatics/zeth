@@ -40,10 +40,9 @@ def int64_to_hex(number: int) -> str:
 
 
 def hex_digest_to_binary_string(digest: str) -> str:
-    padded = "0" + digest
-    digest_bits = ["{0:04b}".format(int(c, 16)) for c in reversed(padded)]
-    zipped = zip(*[digest_bits[n::2] for n in [1, 0]])
-    return "".join(reversed([i+j for i, j in zipped]))
+    if len(digest) % 2 == 1:
+        digest = "0" + digest
+    return "".join(["{0:04b}".format(int(c, 16)) for c in digest])
 
 
 def hex_to_int(elements: List[str]) -> List[int]:
