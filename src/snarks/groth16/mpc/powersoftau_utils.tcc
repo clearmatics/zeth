@@ -14,6 +14,7 @@ namespace
 
 // Use the technique described in Section 3 of "A multi-party protocol
 // for constructing the public parameters of the Pinocchio zk-SNARK"
+// (https://eprint.iacr.org/2017/602.pdf)
 // to efficiently evaluate Lagrange polynomials ${L_i(x)}_i$ for the
 // $d=2^n$-roots of unity, given powers ${x^i}_i$ for $i=0..d-1$.
 template<typename Fr, typename Gr>
