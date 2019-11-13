@@ -11,6 +11,7 @@ from os.path import join, exists
 import time
 
 CHUNK_SIZE = 4096
+SERVER_BUSY_503_CLIENT_MSG = "Server is busy. Retrying ..."
 
 
 class Client:
@@ -32,7 +33,7 @@ class Client:
         while True:
             resp = get(join(self.base_url, "contributors"), verify=self.verify)
             if resp.status_code == 503:
-                print("server is busy.  retrying ...")
+                print(SERVER_BUSY_503_CLIENT_MSG)
                 time.sleep(5.0)
                 continue
 
@@ -47,7 +48,7 @@ class Client:
         while True:
             resp = get(join(self.base_url, "state"), verify=self.verify)
             if resp.status_code == 503:
-                print("server is busy.  retrying ...")
+                print(SERVER_BUSY_503_CLIENT_MSG)
                 time.sleep(5.0)
                 continue
 
@@ -59,9 +60,9 @@ class Client:
         GET /challenge request, downloading to file
         """
         # Contributors should be notified of their turn AFTER processing has
-        # completed on the previous contribution.  However, it's possible for
+        # completed on the previous contribution. However, it's possible for
         # the next contributor, knowing his turn is next, to be waiting for
-        # processing to complete.  Hence we loop with a message if the server
+        # processing to complete. Hence we loop with a message if the server
         # claims to be temporarily unavailable.
         def _get_challenge() -> Response:
             return get(
@@ -72,7 +73,7 @@ class Client:
         while True:
             with _get_challenge() as resp:
                 if resp.status_code == 503:
-                    print("server is busy.  retrying ...")
+                    print(SERVER_BUSY_503_CLIENT_MSG)
                     time.sleep(5.0)
                     continue
 
