@@ -4,7 +4,7 @@ Tools and scripts for SRS generation via an MPC.
 
 # Dependencies
 
-- zeth mpc executables (an optimized build from this repo, or from a binary
+- Zeth mpc executables (an optimized build from this repo, or from a binary
   distribution).
 - python3 (>=3.7) and venv (`pip install venv`).
 - (Phase1 only) clone and build https://github.com/clearmatics/poweroftau
@@ -12,24 +12,25 @@ Tools and scripts for SRS generation via an MPC.
 
 # Setup
 
-If necessary, follow instructions to [build zeth binary](../README.md)
+If necessary, follow instructions to [build Zeth binary](../README.md)
 executables. Execute the following to install all further packages required
 for the MPC:
 
 ```console
-$ python -m venv env                    # create virtualenv
-$ . env/bin/activate                    # activate virtualenv
-(env) $ make setup                      # install
+$ python -m venv env # create virtualenv
+$ . env/bin/activate # activate virtualenv
+(env) $ make setup # install
 ```
 
-All commands given below assume the above virtualenv is active. If the console
-has been closed between actions, reactivate the virtualenv as follows:
+All commands given below assume that you are located at `$ZETH/mpc`, and that
+the above virtualenv is active. If the console has been closed between
+actions, reactivate the virtualenv as follows:
 
 ```console
-$ . mpc/env/bin/activate
+$ . env/bin/activate
 ```
 
-(Adjust the path if run from a directory other than the repo root)
+(Adjust the path to run the command from a directory other than `$ZETH/mpc`)
 
 
 # Contributor instructions
@@ -56,10 +57,10 @@ validity:
 ```
 
 Use the output (public key and key evidence) when registering as a participant
-in the MPC. The file `contributor.key` is the contributor secret key for
-signing your contribution. Keep this protected - it could be used by an
-attacker to steal your place in the list of contributors, rendering your
-contribution invalid.
+in the MPC. The file `contributor.key` is the contributor's secret key used
+to sign the contribution. Keep this protected - it could be used by an
+attacker to impersonate you and steal your place in the list of contributors,
+rendering your contribution invalid.
 
 ## Contributing (during MPC)
 
@@ -171,7 +172,7 @@ that phase, which can be set in the config file. See the test configurations for
 [phase2](../testdata/mpc_phase2_server_config.json) for full examples.
 
 The `contributors_file` field must point to a file specifying the ordered set
-of contributors in the MPC.  This file takes the form:
+of contributors in the MPC. This file takes the form:
 ```json
 {
     "contributors": [
@@ -193,6 +194,11 @@ of contributors in the MPC.  This file takes the form:
 See `testdata/mpc_contributors.json` for an example contributors file.
 
 ### Contributor Registration via Google Forms
+
+An easy way to allow contributors to register for the MPC is to publish
+a Google form online. Google form is a widely used and provides a way
+to export the results of the form in csv format. The section below assumes
+that the registration process has been carried out using Google form.
 
 The `contributors_from_csv` command can be used to generate a
 `contributors.json` file from csv data output from Google Forms. Administrators
@@ -221,11 +227,11 @@ directory `../phase1_coordinator`:
 (env) $ phase2_prepare ../phase1_coordinator
 ```
 
-If the full phase1 server directory is not available, a directory should be
+If the `phase1_coordinator` directory is not available, a directory should be
 created containing at least the `final_output.bin` file, and a
-`server_config.json` specifying the maximum degree used in phase1.
+`server_config.json` specifying the maximum degree used in Phase1.
 
-This process also relies on the `pot-process` tool from the zeth build. See
+This process also relies on the `pot-process` tool from the Zeth build. See
 the output of `phase2_prepare --help` for how to specify this.
 
 Note that this process can take a significant amount of time.
@@ -245,9 +251,9 @@ or
 
 ## Processing the final output (Phase2 only)
 
-In order the results of Phase1 and Phase2 to be used, they must be combined to
+In order for the results of Phase1 and Phase2 to be used, they must be combined to
 produce a key-pair. The `create_keypair` command can perform this operation
-when run in the Phase2 directory, assuming that the Phase1 direcetory is also
+when run in the Phase2 directory, assuming that the Phase1 directory is also
 available:
 
 ```console
@@ -259,7 +265,7 @@ The above assumes that the Phase1 server directory is located in
 
 # Run tests
 
-From the repository root, with the virutalenv activated:
+From the repository root, with the virtualenv activated:
 
 ```console
 (env) $ cd mpc
