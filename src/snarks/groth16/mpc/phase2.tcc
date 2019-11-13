@@ -303,7 +303,7 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
     libff::leave_block("computing H_g1");
 
     // In layer_L1 output, there should be num_variables+1 entries in
-    // ABC_g1.  Of these:
+    // ABC_g1. Of these:
     //
     //  - The first 1+num_inputs entries are used directly in the
     //    verification key.
@@ -359,12 +359,12 @@ bool srs_mpc_phase2_verify_publickey(
     const libff::G2<ppT> &r_delta_j_g2 = publickey.r_delta_j_g2;
     const libff::G1<ppT> &new_delta_g1 = publickey.new_delta_g1;
 
-    // Step 1 (from [BoweGM17]).  Check the proof of knowledge.
+    // Step 1 (from [BoweGM17]). Check the proof of knowledge.
     if (!same_ratio<ppT>(s_g1, s_delta_j_g1, out_r_g2, r_delta_j_g2)) {
         return false;
     }
 
-    // Step 2.  Check new_delta_g1 is correct.
+    // Step 2. Check new_delta_g1 is correct.
     if (!same_ratio<ppT>(last_delta_g1, new_delta_g1, out_r_g2, r_delta_j_g2)) {
         return false;
     }
@@ -460,7 +460,7 @@ bool srs_mpc_phase2_update_is_consistent(
         return false;
     }
 
-    // Step 3.  Check that the updates to L values are consistent.  Each
+    // Step 3. Check that the updates to L values are consistent. Each
     // entry should have been divided by $\delta_j$, so SameRatio((updated,
     // last), (old_delta_g2, new_delta_g2)) should hold.
     if (!same_ratio_vectors<ppT>(
@@ -468,7 +468,7 @@ bool srs_mpc_phase2_update_is_consistent(
         return false;
     }
 
-    // Step 4.  Similar consistency checks for H
+    // Step 4. Similar consistency checks for H
     if (!same_ratio_vectors<ppT>(
             updated.H_g1, last.H_g1, old_delta_g2, new_delta_g2)) {
         return false;
@@ -485,8 +485,8 @@ bool srs_mpc_phase2_verify_update(
     const srs_mpc_phase2_accumulator<ppT> &updated,
     const srs_mpc_phase2_publickey<ppT> &publickey)
 {
-    // Step 1 and 2 (from [BoweGM17]).  Check the proof-of-knowledge in the
-    // public key, and the updated delta value.  Obtain r_g2 to avoid
+    // Step 1 and 2 (from [BoweGM17]). Check the proof-of-knowledge in the
+    // public key, and the updated delta value. Obtain r_g2 to avoid
     // recomputing it.
     libff::G2<ppT> r_g2;
     if (!srs_mpc_phase2_verify_publickey(last.delta_g1, publickey, r_g2)) {
@@ -595,7 +595,7 @@ bool srs_mpc_phase2_verify_transcript(
             return false;
         }
 
-        // Contribution is valid.  Update state and read next publickey.
+        // Contribution is valid. Update state and read next publickey.
         delta = publickey.new_delta_g1;
     }
 

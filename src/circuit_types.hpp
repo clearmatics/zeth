@@ -5,8 +5,8 @@
 #include "circuits/blake2s/blake2s_comp.hpp"
 #include "include_libsnark.hpp"
 
-// Types that must be common across all executable, defined once here.  Outside
-// of tests, these should not be set anywhere else in the code.  Do not include
+// Types that must be common across all executable, defined once here. Outside
+// of tests, these should not be set anywhere else in the code. Do not include
 // this file in code that is generic (parameterized on ppT or FieldT).
 
 // Use the pairing from build configuration

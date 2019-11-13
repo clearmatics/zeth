@@ -51,7 +51,7 @@ private:
 // }
 
 // Utility function to load data objects from a file, using a static read
-// method.  Type must satisfy ReadableT constraints above.
+// method. Type must satisfy ReadableT constraints above.
 template<typename ReadableT>
 inline ReadableT read_from_file(const std::string &file_name)
 {
@@ -62,7 +62,7 @@ inline ReadableT read_from_file(const std::string &file_name)
 }
 
 // Load data objects from a file, similarly to read_from_file, while computing
-// the hash of the serialized structure.  Type must satisfy ReadableT
+// the hash of the serialized structure. Type must satisfy ReadableT
 // constraints above.
 template<typename ReadableT>
 inline ReadableT read_from_file_and_hash(

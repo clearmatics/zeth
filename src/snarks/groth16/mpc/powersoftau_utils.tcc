@@ -45,7 +45,7 @@ void random_linear_combination(
 
     // Split across threads, each one accumulating into its own thread-local
     // variable, and then (atomically) adding that to the global a1_accum and
-    // b1_accum values.  These final sums are then used in the final pairing
+    // b1_accum values. These final sums are then used in the final pairing
     // check.
 #ifdef MULTICORE
 #pragma omp parallel shared(a_accum, b_accum)
@@ -282,7 +282,7 @@ srs_powersoftau<ppT> dummy_powersoftau_from_secrets(
 {
     libff::enter_block("dummy_phase1_from_secrets");
 
-    // Compute powers.  Note zero-th power is included (alpha_g1 etc
+    // Compute powers. Note zero-th power is included (alpha_g1 etc
     // are provided in this way), so to support order N polynomials,
     // N+1 entries are required.
     const size_t num_tau_powers_g1 = 2 * n - 2 + 1;
@@ -405,7 +405,7 @@ bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot)
     // TODO: Cache precomputed g1, tau_g1, g2, tau_g2
     // TODO: Parallelize
 
-    // Check sizes are valid.  tau_powers_g1 should have 2n-1 elements, and
+    // Check sizes are valid. tau_powers_g1 should have 2n-1 elements, and
     // other vectors should have n entries.
     const size_t n = (pot.tau_powers_g1.size() + 1) / 2;
     if (n != 1ull << libff::log2(n) || n != pot.tau_powers_g2.size() ||
