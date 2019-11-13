@@ -53,16 +53,13 @@ def main() -> None:
     coinstore_dir = os.environ['ZETH_COINSTORE']
 
     # Keys and wallets
-    sk_alice = zeth.utils.get_private_key_from_bytes(
-        keystore["Alice"].addr_sk.enc_sk)
-    sk_bob = zeth.utils.get_private_key_from_bytes(
-        keystore["Bob"].addr_sk.enc_sk)
-    sk_charlie = zeth.utils.get_private_key_from_bytes(
-        keystore["Charlie"].addr_sk.enc_sk)
+    k_sk_alice = keystore["Alice"].addr_sk.k_sk
+    k_sk_bob = keystore["Bob"].addr_sk.k_sk
+    k_sk_charlie = keystore["Charlie"].addr_sk.k_sk
 
-    alice_wallet = Wallet("alice", coinstore_dir, sk_alice)
-    bob_wallet = Wallet("bob", coinstore_dir, sk_bob)
-    charlie_wallet = Wallet("charlie", coinstore_dir, sk_charlie)
+    alice_wallet = Wallet("alice", coinstore_dir, k_sk_alice)
+    bob_wallet = Wallet("bob", coinstore_dir, k_sk_bob)
+    charlie_wallet = Wallet("charlie", coinstore_dir, k_sk_charlie)
 
     print("[INFO] 1. Fetching the verification key from the proving server")
     vk = prover_client.get_verification_key()

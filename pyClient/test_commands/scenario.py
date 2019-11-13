@@ -2,8 +2,7 @@ import zeth.joinsplit as joinsplit
 import zeth.contracts as contracts
 from zeth.prover_client import ProverClient
 from zeth.zksnark import IZKSnarkProvider
-from zeth.utils import to_zeth_units, int64_to_hex, get_public_key_from_bytes, \
-    encode_to_hash
+from zeth.utils import to_zeth_units, int64_to_hex, encode_to_hash
 import test_commands.mock as mock
 import api.util_pb2 as util_pb2
 
@@ -30,7 +29,7 @@ def bob_deposit(
         mixer_instance: Any,
         mk_root: str,
         bob_eth_address: str,
-        keystore: mock.Keystore,
+        keystore: mock.KeyStore,
         mk_tree_depth: int,
         zksnark: IZKSnarkProvider) -> contracts.MixResult:
     print(
@@ -70,7 +69,7 @@ def bob_deposit(
     )
 
     # construct pk object from bytes
-    pk_bob = get_public_key_from_bytes(keystore["Bob"].addr_pk.enc_pk)
+    pk_bob = keystore["Bob"].addr_pk.k_pk
 
     # encrypt the coins
     (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
@@ -119,7 +118,7 @@ def bob_to_charlie(
         input_note1: util_pb2.ZethNote,
         input_address1: int,
         bob_eth_address: str,
-        keystore: mock.Keystore,
+        keystore: mock.KeyStore,
         mk_tree_depth: int,
         zksnark: IZKSnarkProvider) -> contracts.MixResult:
     print(
@@ -163,10 +162,8 @@ def bob_to_charlie(
 
     # Encrypt the output notes for the senders
     (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
-        (output_note1,
-         get_public_key_from_bytes(keystore["Bob"].addr_pk.enc_pk)),
-        (output_note2,
-         get_public_key_from_bytes(keystore["Charlie"].addr_pk.enc_pk))])
+        (output_note1, keystore["Bob"].addr_pk.k_pk),
+        (output_note2, keystore["Charlie"].addr_pk.k_pk)])
 
     # Hash the pk_sender and cipher-texts
     ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
@@ -212,7 +209,7 @@ def charlie_withdraw(
         input_note1: util_pb2.ZethNote,
         input_address1: int,
         charlie_eth_address: str,
-        keystore: mock.Keystore,
+        keystore: mock.KeyStore,
         mk_tree_depth: int,
         zksnark: IZKSnarkProvider) -> contracts.MixResult:
     print(
@@ -251,7 +248,7 @@ def charlie_withdraw(
         )
 
     # construct pk object from bytes
-    pk_charlie = get_public_key_from_bytes(keystore["Charlie"].addr_pk.enc_pk)
+    pk_charlie = keystore["Charlie"].addr_pk.k_pk
 
     # encrypt the coins
     (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
@@ -302,7 +299,7 @@ def charlie_double_withdraw(
         input_note1: util_pb2.ZethNote,
         input_address1: int,
         charlie_eth_address: str,
-        keystore: mock.Keystore,
+        keystore: mock.KeyStore,
         mk_tree_depth: int,
         zksnark: IZKSnarkProvider) -> contracts.MixResult:
     """
@@ -356,7 +353,7 @@ def charlie_double_withdraw(
     # ### ATTACK BLOCK
 
     # construct pk object from bytes
-    pk_charlie = get_public_key_from_bytes(keystore["Charlie"].addr_pk.enc_pk)
+    pk_charlie = keystore["Charlie"].addr_pk.k_pk
 
     # encrypt the coins
     (pk_sender, ciphertexts) = joinsplit.encrypt_notes([

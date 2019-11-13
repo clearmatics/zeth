@@ -45,6 +45,10 @@ def hex_digest_to_binary_string(digest: str) -> str:
     return "".join(["{0:04b}".format(int(c, 16)) for c in digest])
 
 
+def digest_to_binary_string(digest: bytes) -> str:
+    return "".join(["{0:08b}".format(b) for b in digest])
+
+
 def hex_to_int(elements: List[str]) -> List[int]:
     """
     Given an array of hex strings, return an array of int values

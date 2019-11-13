@@ -10,18 +10,19 @@ import json
 
 
 class Wallet:
-    def __init__(self, username: str, wallet_dir: str, sk_receiver: PrivateKey):
+    def __init__(self, username: str, wallet_dir: str, k_sk_receiver: PrivateKey):
         self.username = username
         self.wallet_dir = wallet_dir
-        self.sk_receiver = sk_receiver
-        self.sk_receiver_enc = sk_receiver.encode(encoder=encoding.RawEncoder)
+        self.k_sk_receiver = k_sk_receiver
+        self.k_sk_receiver_bytes = \
+            k_sk_receiver.encode(encoder=encoding.RawEncoder)
 
     def receive_notes(
             self,
             ciphertexts: List[bytes],
-            pk_sender_enc: bytes) -> List[ZethNote]:
+            k_pk_sender_bytes: bytes) -> List[ZethNote]:
         new_notes_iter = joinsplit.receive_notes(
-            ciphertexts, pk_sender_enc, self.sk_receiver)
+            ciphertexts, k_pk_sender_bytes, self.k_sk_receiver)
         new_notes = []
         for note in new_notes_iter:
             print(f"[INFO] {self.username} received payment: {note}")

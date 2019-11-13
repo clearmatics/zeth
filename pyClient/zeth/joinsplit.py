@@ -2,8 +2,9 @@ from __future__ import annotations
 import zeth.constants as constants
 from zeth.zksnark import IZKSnarkProvider
 from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
-    hex_digest_to_binary_string, string_list_flatten, encode_single, \
-    encode_abi, encrypt, decrypt, get_public_key_from_bytes
+    hex_digest_to_binary_string, digest_to_binary_string, \
+    string_list_flatten, encode_single, encode_abi, encrypt, decrypt, \
+    get_public_key_from_bytes
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 from nacl.public import PrivateKey, PublicKey  # type: ignore
@@ -15,54 +16,110 @@ import json
 from Crypto import Random
 from hashlib import blake2s, sha256
 from py_ecc import bn128 as ec
-from typing import Tuple, Dict, List, Iterable, Union, Any
+from typing import Tuple, Dict, List, Iterable, Union, Any, NewType
 
 
 FQ = ec.FQ
 G1 = Tuple[ec.FQ, ec.FQ]
 
 
-SigningPublicKey = Tuple[G1, G1]
+SigningSecretKey = NewType('SigningSecretKey', Tuple[FQ, FQ])
+
+
+SigningPublicKey = NewType('SigningPublicKey', Tuple[G1, G1])
 
 
 class SigningKeyPair:
     """
     Key-pair used for signing transaction data.
     """
-    def __init__(self, sk: Tuple[FQ, FQ], pk: SigningPublicKey):
-        self.sk: Tuple[FQ, FQ] = sk
+    def __init__(self, sk: SigningSecretKey, pk: SigningPublicKey):
+        self.sk: SigningSecretKey = sk
         self.pk: SigningPublicKey = pk
 
 
-class ApkAskPair:
-    def __init__(self, a_sk: str, a_pk: str):
-        self.a_pk = a_pk
-        self.a_sk = a_sk
+def ownership_key_as_hex(a_sk: bytes) -> str:
+    return hex_extend_32bytes(a_sk.hex())
 
 
-# Joinsplit Secret Key
-JoinsplitSecretKey = Tuple[FQ, FQ]
+OwnershipSecretKey = NewType('OwnershipSecretKey', bytes)
 
 
-# Joinsplit Public Key
-JoinsplitPublicKey = Tuple[G1, G1]
+OwnershipPublicKey = NewType('OwnershipPublicKey', bytes)
 
 
-class JoinsplitKeypair:
+class OwnershipKeyPair:
+    def __init__(self, a_sk: OwnershipSecretKey, a_pk: OwnershipPublicKey):
+        self.a_pk: OwnershipPublicKey = a_pk
+        self.a_sk: OwnershipSecretKey = a_sk
+
+
+class EncryptionKeyPair:
+    def __init__(self, k_sk: PrivateKey, k_pk: PublicKey):
+        self.k_pk: PublicKey = k_pk
+        self.k_sk: PrivateKey = k_sk
+
+
+# # Joinsplit Secret Key
+# JoinsplitSecretKey = Tuple[FQ, FQ]
+
+
+class ZethAddressPub:
     """
-    A Joinsplit secret and public keypair.
+    Public addr_pk, consisting of a_pk and k_pk
     """
-    def __init__(self, x: FQ, y: FQ, x_g1: G1, y_g1: G1):
-        self.vk = (x_g1, y_g1)
-        self.sk = (x, y)
+    def __init__(self, a_pk: bytes, k_pk: PublicKey):
+        self.a_pk: bytes = a_pk
+        self.k_pk: PublicKey = k_pk
+
+
+class ZethAddressPriv:
+    """
+    Secret addr_sk, consisting of a_sk and k_sk
+    """
+    def __init__(self, a_sk: bytes, k_sk: PrivateKey):
+        self.a_sk: bytes = a_sk
+        self.k_sk: PrivateKey = k_sk
+
+
+class ZethAddress:
+    """
+    Secret and public keys for both ownership and encryption (referrred to as
+    "zethAddress" in the paper).
+    """
+    def __init__(
+            self, a_pk: bytes, k_pk: PublicKey, a_sk: bytes, k_sk: PrivateKey):
+        self.addr_pk = ZethAddressPub(a_pk, k_pk)
+        self.addr_sk = ZethAddressPriv(a_sk, k_sk)
+
+    @staticmethod
+    def from_key_pairs(
+            ownership: OwnershipKeyPair,
+            encryption: EncryptionKeyPair) -> ZethAddress:
+        return ZethAddress(
+            ownership.a_pk,
+            encryption.k_pk,
+            ownership.a_sk,
+            encryption.k_sk)
+
+
+class JoinsplitInputNote:
+    """
+    A ZethNote, along with the nullifier and location in Merkle tree.
+    """
+
+    def __init__(self, note: ZethNote, nullifier: str, merkle_location: int):
+        self.note = note
+        self.nullifier = nullifier
+        self.merkle_location = merkle_location
 
 
 def create_zeth_notes(
         phi: str,
         hsig: str,
-        recipient_apk0: str,
+        recipient_apk0: bytes,
         value0: str,
-        recipient_apk1: str,
+        recipient_apk1: bytes,
         value1: str) -> Tuple[ZethNote, ZethNote]:
     """
     Create two ordered ZethNotes. This function is used to generate new output
@@ -71,7 +128,7 @@ def create_zeth_notes(
     rho0 = compute_rho_i(phi, hsig, 0)
     trap_r0 = trap_r_randomness()
     note0 = ZethNote(
-        apk=recipient_apk0,
+        apk=ownership_key_as_hex(recipient_apk0),
         value=value0,
         rho=rho0,
         trap_r=trap_r0
@@ -80,7 +137,7 @@ def create_zeth_notes(
     rho1 = compute_rho_i(phi, hsig, 1)
     trap_r1 = trap_r_randomness()
     note1 = ZethNote(
-        apk=recipient_apk1,
+        apk=ownership_key_as_hex(recipient_apk1),
         value=value1,
         rho=rho1,
         trap_r=trap_r1
@@ -141,11 +198,11 @@ def compute_commitment(zeth_note_grpc_obj: ZethNote) -> str:
     return cm
 
 
-def compute_nullifier(zeth_note: ZethNote, spending_authority_ask: str) -> str:
+def compute_nullifier(zeth_note: ZethNote, spending_authority_ask: bytes) -> str:
     """
     Returns nf = blake2s(1110 || [a_sk]_252 || rho)
     """
-    binary_ask = hex_digest_to_binary_string(spending_authority_ask)
+    binary_ask = digest_to_binary_string(spending_authority_ask)
     first_252bits_ask = binary_ask[:252]
     left_leg_bin = "1110" + first_252bits_ask
     left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
@@ -181,27 +238,27 @@ def compute_rho_i(phi: str, hsig: str, i: int) -> str:
     return rho_i
 
 
-def derive_apk(ask: str) -> str:
+def _derive_a_pk(a_sk: OwnershipSecretKey) -> OwnershipPublicKey:
     """
     Returns a_pk = blake2s(1100 || [a_sk]_252 || 0^256)
     """
-    binary_ask = hex_digest_to_binary_string(ask)
-    first_252bits_ask = binary_ask[:252]
+    binary_a_sk = digest_to_binary_string(a_sk)
+    first_252bits_ask = binary_a_sk[:252]
     left_leg_bin = "1100" + first_252bits_ask
     left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
     zeroes = "0000000000000000000000000000000000000000000000000000000000000000"
-    apk = blake2s(
+    a_pk = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
             [bytes.fromhex(left_leg_hex), bytes.fromhex(zeroes)])
-    ).hexdigest()
-    return apk
+    ).digest()
+    return OwnershipPublicKey(a_pk)
 
 
-def gen_apk_ask_keypair() -> ApkAskPair:
-    a_sk = bytes(Random.get_random_bytes(32)).hex()
-    a_pk = derive_apk(a_sk)
-    keypair = ApkAskPair(a_sk, a_pk)
+def gen_ownership_keypair() -> OwnershipKeyPair:
+    a_sk = OwnershipSecretKey(Random.get_random_bytes(32))
+    a_pk = _derive_a_pk(a_sk)
+    keypair = OwnershipKeyPair(a_sk, a_pk)
     return keypair
 
 
@@ -209,15 +266,14 @@ def create_joinsplit_input(
         merkle_path: List[str],
         address: int,
         note: ZethNote,
-        ask: str,
+        a_sk: bytes,
         nullifier: str) -> JoinsplitInput:
     return JoinsplitInput(
         merkle_path=merkle_path,
         address=address,
         note=note,
-        spending_ask=ask,
-        nullifier=nullifier
-    )
+        spending_ask=ownership_key_as_hex(a_sk),
+        nullifier=nullifier)
 
 
 def _gen_signing_keypair() -> SigningKeyPair:
@@ -227,7 +283,7 @@ def _gen_signing_keypair() -> SigningKeyPair:
     y = FQ(
         int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME)
     Y = ec.multiply(ec.G1, y.n)
-    return SigningKeyPair((x, y), (X, Y))
+    return SigningKeyPair(SigningSecretKey((x, y)), SigningPublicKey((X, Y)))
 
 
 def encode_pub_input_to_hash(message_list: List[Union[str, List[str]]]) -> bytes:
@@ -385,9 +441,9 @@ def compute_joinsplit2x2_inputs(
         input_note1: ZethNote,
         input_address1: int,
         mk_path1: List[str],
-        sender_ask: str,
-        recipient0_apk: str,
-        recipient1_apk: str,
+        sender_ask: bytes,
+        recipient0_apk: bytes,
+        recipient1_apk: bytes,
         output_note_value0: str,
         output_note_value1: str,
         public_in_value: str,
@@ -446,9 +502,9 @@ def get_proof_joinsplit_2_by_2(
         input_note1: ZethNote,
         input_address1: int,
         mk_path1: List[str],
-        sender_ask: str,
-        recipient0_apk: str,
-        recipient1_apk: str,
+        sender_ask: bytes,
+        recipient0_apk: bytes,
+        recipient1_apk: bytes,
         output_note_value0: str,
         output_note_value1: str,
         public_in_value: str,
@@ -530,15 +586,15 @@ def _compute_h_sig(
         random_seed: bytes,
         nf0: str,
         nf1: str,
-        joinsplit_pub_key: JoinsplitPublicKey) -> str:
+        sign_pk: Tuple[G1, G1]) -> str:
     """
     Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
     Flatten the verification key
     """
-    js_pub_key_hex = [item for sublist in joinsplit_pub_key for item in sublist]
+    sign_pk_hex = [item for sublist in sign_pk for item in sublist]
 
     vk_hex = ""
-    for item in js_pub_key_hex:
+    for item in sign_pk_hex:
         # For each element of the list, convert it to an hex and append it
         vk_hex += hex_extend_32bytes("{0:0>4X}".format(int(item)))
 
