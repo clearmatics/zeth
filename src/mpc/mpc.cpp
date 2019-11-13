@@ -1,4 +1,4 @@
-#include "circuit-wrapper.hpp"
+#include "circuit_wrapper.hpp"
 #include "mpc_common.hpp"
 
 void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
