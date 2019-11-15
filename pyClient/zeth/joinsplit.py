@@ -17,6 +17,9 @@ from py_ecc import bn128 as ec
 from typing import Tuple, Dict, List, Iterable, Union, Any, NewType
 
 
+ZERO_UNITS_HEX = "0000000000000000"
+
+
 FQ = ec.FQ
 G1 = Tuple[ec.FQ, ec.FQ]
 
@@ -448,6 +451,25 @@ def write_verification_key(
     filename = os.path.join(setup_dir, "vk.json")
     with open(filename, 'w') as outfile:
         json.dump(vk_json, outfile)
+
+
+def get_dummy_rho() -> str:
+    return bytes(Random.get_random_bytes(32)).hex()
+
+
+def get_dummy_input_and_address(
+        a_pk: OwnershipPublicKey) -> Tuple[int, ZethNote]:
+    """
+    Create a zeth note and address, for use as circuit inputs where there is no
+    real input.
+    """
+    dummy_note = ZethNote(
+        apk=ownership_key_as_hex(a_pk),
+        value=ZERO_UNITS_HEX,
+        rho=get_dummy_rho(),
+        trap_r=trap_r_randomness())
+    dummy_note_address = 7
+    return (dummy_note_address, dummy_note)
 
 
 def compute_joinsplit2x2_inputs(

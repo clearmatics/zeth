@@ -45,10 +45,9 @@ def bob_deposit(
     bob_apk = keystore["Bob"].addr_pk.a_pk
     bob_ask = keystore["Bob"].addr_sk.a_sk
     # Create the JoinSplit dummy inputs for the deposit
-    (input_note1, _input_nullifier1, input_address1) = mock.get_dummy_input(
-        bob_apk, bob_ask)
-    (input_note2, _input_nullifier2, input_address2) = mock.get_dummy_input(
-        bob_apk, bob_ask)
+
+    (input_address1, input_note1) = joinsplit.get_dummy_input_and_address(bob_apk)
+    (input_address2, input_note2) = joinsplit.get_dummy_input_and_address(bob_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(BOB_SPLIT_1_ETH), 'ether')
@@ -141,8 +140,7 @@ def bob_to_charlie(
     bob_ask = keystore["Bob"].addr_sk.a_sk
 
     # Create the an additional dummy input for the JoinSplit
-    (input_note2, _input_nullifier2, input_address2) = mock.get_dummy_input(
-        bob_apk, bob_ask)
+    (input_address2, input_note2) = joinsplit.get_dummy_input_and_address(bob_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(BOB_TO_CHARLIE_ETH), 'ether')
@@ -229,8 +227,8 @@ def charlie_withdraw(
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
 
     # Create the an additional dummy input for the JoinSplit
-    (input_note2, _input_nullifier2, input_address2) = mock.get_dummy_input(
-        charlie_apk, charlie_ask)
+    (input_address2, input_note2) = \
+        joinsplit.get_dummy_input_and_address(charlie_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
@@ -324,8 +322,8 @@ def charlie_double_withdraw(
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
 
     # Create the an additional dummy input for the JoinSplit
-    (input_note2, _input_nullifier2, input_address2) = \
-        mock.get_dummy_input(charlie_apk, charlie_ask)
+    (input_address2, input_note2) = \
+        joinsplit.get_dummy_input_and_address(charlie_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')

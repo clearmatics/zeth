@@ -1,11 +1,8 @@
 from zeth.joinsplit import \
-    EncryptionKeyPair, ZethAddress, gen_ownership_keypair, \
-    trap_r_randomness, compute_nullifier, ownership_key_as_hex
+    EncryptionKeyPair, ZethAddress, gen_ownership_keypair
 from zeth.utils import get_private_key_from_bytes, get_public_key_from_bytes
-import api.util_pb2 as util_pb2
 
-from Crypto import Random
-from typing import Tuple, Dict, List
+from typing import Dict, List
 
 
 KeyStore = Dict[str, ZethAddress]
@@ -72,21 +69,3 @@ def get_dummy_merkle_path(length: int) -> List[str]:
     for _ in range(length):
         mk_path.append(dummy_node)
     return mk_path
-
-
-def get_dummy_input(
-        recipient_apk: bytes,
-        recipient_ask: bytes) -> Tuple[util_pb2.ZethNote, str, int]:
-    zero_wei_hex = "0000000000000000"
-    dummy_note = util_pb2.ZethNote(
-        apk=ownership_key_as_hex(recipient_apk),
-        value=zero_wei_hex,
-        rho=get_dummy_rho(),
-        trap_r=trap_r_randomness())
-    dummy_note_nullifier = compute_nullifier(dummy_note, recipient_ask)
-    dummy_note_address = 7
-    return (dummy_note, dummy_note_nullifier, dummy_note_address)
-
-
-def get_dummy_rho() -> str:
-    return bytes(Random.get_random_bytes(32)).hex()
