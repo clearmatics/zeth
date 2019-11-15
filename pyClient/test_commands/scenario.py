@@ -25,6 +25,12 @@ CHARLIE_WITHDRAW_ETH = 10.5
 CHARLIE_WITHDRAW_CHANGE_ETH = 39.5
 
 
+def dump_merkle_tree(mk_tree: List[bytes]) -> None:
+    print("[DEBUG] Displaying the Merkle tree of commitments: ")
+    for node in mk_tree:
+        print("Node: " + W3.toHex(node)[2:])
+
+
 def bob_deposit(
         prover_client: ProverClient,
         mixer_instance: Any,

@@ -12,7 +12,6 @@ from zeth.wallet import Wallet
 
 import os
 from web3 import Web3, HTTPProvider  # type: ignore
-from typing import List, Any
 
 W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 eth = W3.eth  # pylint: disable=no-member,invalid-name
@@ -25,14 +24,6 @@ def print_balances(bob: str, alice: str, charlie: str, mixer: str) -> None:
     print(f"  Bob     : {eth.getBalance(bob)}")
     print(f"  Charlie : {eth.getBalance(charlie)}")
     print(f"  Mixer   : {eth.getBalance(mixer)}")
-
-
-def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
-    mk_byte_tree = mixer_instance.functions.getTree().call()
-    print("[DEBUG] Displaying the Merkle tree of commitments: ")
-    for node in mk_byte_tree:
-        print("Node: " + W3.toHex(node)[2:])
-    return mk_byte_tree
 
 
 def main() -> None:
@@ -133,7 +124,7 @@ def main() -> None:
     #
     # Bob looks in the merkle tree and gets the merkle path to the commitment
     # he wants to spend
-    mk_byte_tree = get_merkle_tree(mixer_instance)
+    mk_byte_tree = zeth.contracts.get_merkle_tree(mixer_instance)
     mk_path = zeth.utils.compute_merkle_path(
         cm_address_bob_to_bob1, mk_tree_depth, mk_byte_tree)
 
@@ -210,7 +201,7 @@ def main() -> None:
         f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
 
     # Charlie now gets the merkle path for the commitment he wants to spend
-    mk_byte_tree = get_merkle_tree(mixer_instance)
+    mk_byte_tree = zeth.contracts.get_merkle_tree(mixer_instance)
     mk_path = zeth.utils.compute_merkle_path(
         cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
     (input_note_charlie_withdraw_addr, input_note_charlie_withdraw) = \
@@ -243,7 +234,7 @@ def main() -> None:
     try:
         # New commitments are added in the tree at each withdraw so we
         # recompiute the path to have the updated nodes
-        mk_byte_tree = get_merkle_tree(mixer_instance)
+        mk_byte_tree = zeth.contracts.get_merkle_tree(mixer_instance)
         mk_path = zeth.utils.compute_merkle_path(
             cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
         result_double_spending = scenario.charlie_double_withdraw(

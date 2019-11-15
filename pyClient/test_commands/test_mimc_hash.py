@@ -94,8 +94,8 @@ def test_mimc() -> None:
     # MerkleTreeMiMCHash of depth 3 unit test
 
     # Recover root and merkle tree from the contract
-    tree = contracts.get_tree(tree_instance)
-    recovered_root = contracts.get_root(tree_instance)
+    tree = contracts.get_merkle_tree(tree_instance)
+    recovered_root = contracts.get_merkle_root(tree_instance)
 
     # Leaves
     for i in range(7, 15):

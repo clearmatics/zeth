@@ -292,15 +292,15 @@ def mimc_hash(instance: Any, m: bytes, k: bytes, seed: bytes) -> bytes:
     return instance.functions.hash(m, k, seed).call()
 
 
-def get_tree(instance: Any) -> List[bytes]:
+def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
     """
     Return the Merkle tree
     """
-    return instance.functions.getTree().call()
+    return mixer_instance.functions.getTree().call()
 
 
-def get_root(instance: Any) -> bytes:
+def get_merkle_root(mixer_instance: Any) -> bytes:
     """
     Return the Merkle tree root
     """
-    return instance.functions.getRoot().call()
+    return mixer_instance.functions.getRoot().call()
