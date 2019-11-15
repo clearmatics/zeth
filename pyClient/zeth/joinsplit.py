@@ -3,8 +3,7 @@ import zeth.constants as constants
 from zeth.zksnark import IZKSnarkProvider
 from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
     hex_digest_to_binary_string, digest_to_binary_string, \
-    string_list_flatten, encode_single, encode_abi, encrypt, decrypt, \
-    get_public_key_from_bytes
+    string_list_flatten, encode_single, encode_abi, encrypt, decrypt
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 from nacl.public import PrivateKey, PublicKey  # type: ignore
@@ -578,19 +577,17 @@ def encrypt_notes(
 
 
 def receive_notes(
-        ciphertexts: List[bytes],
-        pk_sender_enc: bytes,
-        sk_receiver: PrivateKey) -> Iterable[ZethNote]:
+        addrs_and_ciphertexts: List[Tuple[int, bytes]],
+        sender_k_pk: PublicKey,
+        receiver_k_sk: PrivateKey) -> Iterable[Tuple[int, ZethNote]]:
     """
     Given the receivers secret key, and the event data from a transaction
     (encrypted notes), decrypt any that are intended for the receiver.
     """
-    pk_sender: PublicKey = get_public_key_from_bytes(pk_sender_enc)
-
-    for ciphertext in ciphertexts:
+    for address, ciphertext in addrs_and_ciphertexts:
         try:
-            plaintext = decrypt(ciphertext, pk_sender, sk_receiver)
-            yield zeth_note_obj_from_parsed(json.loads(plaintext))
+            plaintext = decrypt(ciphertext, sender_k_pk, receiver_k_sk)
+            yield address, zeth_note_obj_from_parsed(json.loads(plaintext))
         except Exception as e:
             print(f"receive_notes: error: {e}")
             continue

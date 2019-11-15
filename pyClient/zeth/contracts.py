@@ -1,10 +1,12 @@
 import zeth.constants as constants
 from zeth.zksnark import IZKSnarkProvider, GenericProof
-from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int
+from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int, \
+    get_public_key_from_bytes
 from zeth.joinsplit import SigningPublicKey
 
 import json
 import os
+from nacl.public import PublicKey  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from solcx import compile_files  # type: ignore
 from typing import Tuple, Dict, List, Any
@@ -25,7 +27,7 @@ class MixResult:
             cm_address_1: int,
             cm_address_2: int,
             new_merkle_root: str,
-            pk_sender: bytes,
+            pk_sender: PublicKey,
             ciphertext_1: bytes,
             ciphertext_2: bytes):
         self.cm_address_1 = cm_address_1
@@ -273,7 +275,8 @@ def parse_mix_call(
         cm_address_1=event_logs_log_address[0].args.commAddr,
         cm_address_2=event_logs_log_address[1].args.commAddr,
         new_merkle_root=new_merkle_root,
-        pk_sender=event_logs_log_secret_ciphers[0].args.pk_sender,
+        pk_sender=get_public_key_from_bytes(
+            event_logs_log_secret_ciphers[0].args.pk_sender),
         ciphertext_1=event_logs_log_secret_ciphers[0].args.ciphertext,
         ciphertext_2=event_logs_log_secret_ciphers[1].args.ciphertext)
 
