@@ -7,7 +7,6 @@ from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 from nacl.public import PrivateKey, PublicKey  # type: ignore
-import nacl.utils  # type: ignore
 import api.prover_pb2 as prover_pb2
 
 import os
@@ -62,6 +61,11 @@ def ownership_key_as_hex(a_sk: bytes) -> str:
     underlying 32-byte object.
     """
     return hex_extend_32bytes(a_sk.hex())
+
+
+EncryptionSecretKey = PrivateKey
+
+EncryptionPublicKey = PublicKey
 
 
 class EncryptionKeyPair:
@@ -130,9 +134,9 @@ class JoinsplitInputNote:
 def create_zeth_notes(
         phi: str,
         hsig: str,
-        recipient_apk0: bytes,
+        recipient_apk0: OwnershipPublicKey,
         value0: str,
-        recipient_apk1: bytes,
+        recipient_apk1: OwnershipPublicKey,
         value1: str) -> Tuple[ZethNote, ZethNote]:
     """
     Create two ordered ZethNotes. This function is used to generate new output
@@ -144,8 +148,7 @@ def create_zeth_notes(
         apk=ownership_key_as_hex(recipient_apk0),
         value=value0,
         rho=rho0,
-        trap_r=trap_r0
-    )
+        trap_r=trap_r0)
 
     rho1 = compute_rho_i(phi, hsig, 1)
     trap_r1 = trap_r_randomness()
@@ -153,8 +156,7 @@ def create_zeth_notes(
         apk=ownership_key_as_hex(recipient_apk1),
         value=value1,
         rho=rho1,
-        trap_r=trap_r1
-    )
+        trap_r=trap_r1)
 
     return note0, note1
 
@@ -211,7 +213,9 @@ def compute_commitment(zeth_note_grpc_obj: ZethNote) -> str:
     return cm
 
 
-def compute_nullifier(zeth_note: ZethNote, spending_authority_ask: bytes) -> str:
+def compute_nullifier(
+        zeth_note: ZethNote,
+        spending_authority_ask: OwnershipSecretKey) -> str:
     """
     Returns nf = blake2s(1110 || [a_sk]_252 || rho)
     """
@@ -279,7 +283,7 @@ def create_joinsplit_input(
         merkle_path: List[str],
         address: int,
         note: ZethNote,
-        a_sk: bytes,
+        a_sk: OwnershipSecretKey,
         nullifier: str) -> JoinsplitInput:
     return JoinsplitInput(
         merkle_path=merkle_path,
@@ -454,9 +458,9 @@ def compute_joinsplit2x2_inputs(
         input_note1: ZethNote,
         input_address1: int,
         mk_path1: List[str],
-        sender_ask: bytes,
-        recipient0_apk: bytes,
-        recipient1_apk: bytes,
+        sender_ask: OwnershipSecretKey,
+        recipient0_apk: OwnershipPublicKey,
+        recipient1_apk: OwnershipPublicKey,
         output_note_value0: str,
         output_note_value1: str,
         public_in_value: str,
@@ -515,9 +519,9 @@ def get_proof_joinsplit_2_by_2(
         input_note1: ZethNote,
         input_address1: int,
         mk_path1: List[str],
-        sender_ask: bytes,
-        recipient0_apk: bytes,
-        recipient1_apk: bytes,
+        sender_ask: OwnershipSecretKey,
+        recipient0_apk: OwnershipPublicKey,
+        recipient1_apk: OwnershipPublicKey,
         output_note_value0: str,
         output_note_value1: str,
         public_in_value: str,
@@ -558,7 +562,8 @@ def get_proof_joinsplit_2_by_2(
 
 
 def encrypt_notes(
-        notes: List[Tuple[ZethNote, PublicKey]]) -> Tuple[bytes, List[bytes]]:
+        notes: List[Tuple[ZethNote, PublicKey]]
+) -> Tuple[PublicKey, List[bytes]]:
     """
     Encrypts a set of output notes to be decrypted by the respective receivers.
     Returns the senders (ephemeral) public key (encoded as bytes) and the
@@ -571,9 +576,8 @@ def encrypt_notes(
         out_note_str = json.dumps(parse_zeth_note(out_note))
         return encrypt(out_note_str, pub_key, eph_sk)
 
-    pk_sender = eph_sk.public_key.encode(encoder=nacl.encoding.RawEncoder)
     ciphertexts = [_encrypt_note(note, pk) for (note, pk) in notes]
-    return (pk_sender, ciphertexts)
+    return (eph_sk.public_key, ciphertexts)
 
 
 def receive_notes(

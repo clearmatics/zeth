@@ -9,6 +9,7 @@ import api.util_pb2 as util_pb2
 from hashlib import sha256
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Any
+import nacl.utils  # type: ignore
 
 W3 = Web3(HTTPProvider("http://localhost:8545"))
 
@@ -77,7 +78,8 @@ def bob_deposit(
         (output_note2, pk_bob)])
 
     # Hash the pk_sender and cipher-texts
-    ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
+    pk_sender_bytes = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
+    ciphers = pk_sender_bytes + ciphertexts[0] + ciphertexts[1]
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
@@ -166,7 +168,8 @@ def bob_to_charlie(
         (output_note2, keystore["Charlie"].addr_pk.k_pk)])
 
     # Hash the pk_sender and cipher-texts
-    ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
+    pk_sender_bytes = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
+    ciphers = pk_sender_bytes + ciphertexts[0] + ciphertexts[1]
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
@@ -256,7 +259,8 @@ def charlie_withdraw(
         (output_note2, pk_charlie)])
 
     # Hash the pk_sender and cipher-texts
-    ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
+    pk_sender_bytes = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
+    ciphers = pk_sender_bytes + ciphertexts[0] + ciphertexts[1]
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof
@@ -361,7 +365,8 @@ def charlie_double_withdraw(
         (output_note2, pk_charlie)])
 
     # Hash the pk_sender and cipher-texts
-    ciphers = pk_sender + ciphertexts[0] + ciphertexts[1]
+    pk_sender_bytes = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
+    ciphers = pk_sender_bytes + ciphertexts[0] + ciphertexts[1]
     hash_ciphers = sha256(ciphers).hexdigest()
 
     # Hash the proof

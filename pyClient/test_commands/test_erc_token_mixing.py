@@ -218,7 +218,7 @@ def main() -> None:
     cm_address_bob_to_bob1 = result_deposit_bob_to_bob.cm_address_1
     cm_address_bob_to_bob2 = result_deposit_bob_to_bob.cm_address_2
     new_merkle_root_bob_to_bob = result_deposit_bob_to_bob.new_merkle_root
-    pk_sender_bob_to_bob = result_deposit_bob_to_bob.pk_sender
+    pk_sender_bob_to_bob = result_deposit_bob_to_bob.sender_k_pk
     ciphertext_bob_to_bob1 = result_deposit_bob_to_bob.ciphertext_1
     ciphertext_bob_to_bob2 = result_deposit_bob_to_bob.ciphertext_2
 
@@ -280,7 +280,7 @@ def main() -> None:
     cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie.cm_address_2
     new_merkle_root_bob_to_charlie = \
         result_transfer_bob_to_charlie.new_merkle_root
-    pk_sender_bob_to_charlie = result_transfer_bob_to_charlie.pk_sender
+    pk_sender_bob_to_charlie = result_transfer_bob_to_charlie.sender_k_pk
     ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie.ciphertext_1
     ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie.ciphertext_2
 

@@ -2,12 +2,12 @@ import zeth.constants as constants
 from zeth.zksnark import IZKSnarkProvider, GenericProof
 from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int, \
     get_public_key_from_bytes
-from zeth.joinsplit import SigningPublicKey
+from zeth.joinsplit import SigningPublicKey, EncryptionPublicKey
 
 import json
 import os
-from nacl.public import PublicKey  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
+import nacl.encoding  # type: ignore
 from solcx import compile_files  # type: ignore
 from typing import Tuple, Dict, List, Any
 
@@ -27,13 +27,13 @@ class MixResult:
             cm_address_1: int,
             cm_address_2: int,
             new_merkle_root: str,
-            pk_sender: PublicKey,
+            sender_k_pk: EncryptionPublicKey,
             ciphertext_1: bytes,
             ciphertext_2: bytes):
         self.cm_address_1 = cm_address_1
         self.cm_address_2 = cm_address_2
         self.new_merkle_root = new_merkle_root
-        self.pk_sender = pk_sender
+        self.sender_k_pk = sender_k_pk
         self.ciphertext_1 = ciphertext_1
         self.ciphertext_2 = ciphertext_2
 
@@ -226,7 +226,7 @@ def deploy_tree_contract(
 
 def mix(
         mixer_instance: Any,
-        pk_sender: bytes,
+        pk_sender: EncryptionPublicKey,
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
@@ -236,13 +236,17 @@ def mix(
         wei_pub_value: int,
         call_gas: int,
         zksnark: IZKSnarkProvider) -> MixResult:
+    """
+    Run the mixer
+    """
+    pk_sender_encoded = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
     proof_params = zksnark.mixer_proof_parameters(parsed_proof)
     tx_hash = mixer_instance.functions.mix(
         *proof_params,
         [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
         int(sigma),
         hex_to_int(parsed_proof["inputs"]),
-        pk_sender,
+        pk_sender_encoded,
         ciphertext1,
         ciphertext2,
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
@@ -271,12 +275,12 @@ def parse_mix_call(
     event_logs_log_secret_ciphers = \
         event_filter_log_secret_ciphers.get_all_entries()
     new_merkle_root = W3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
+    sender_k_pk_bytes = event_logs_log_secret_ciphers[0].args.pk_sender
     return MixResult(
         cm_address_1=event_logs_log_address[0].args.commAddr,
         cm_address_2=event_logs_log_address[1].args.commAddr,
         new_merkle_root=new_merkle_root,
-        pk_sender=get_public_key_from_bytes(
-            event_logs_log_secret_ciphers[0].args.pk_sender),
+        sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes),
         ciphertext_1=event_logs_log_secret_ciphers[0].args.ciphertext,
         ciphertext_2=event_logs_log_secret_ciphers[1].args.ciphertext)
 
