@@ -21,11 +21,15 @@ contract OTSchnorrVerifier {
     function verify(
         uint[2][2] memory vk,
         uint sigma,
-        bytes32 hash_ciphers,
-        bytes32 hash_proof,
-        bytes32 hash_inputs
+        bytes32 hash_to_be_signed
     ) public returns (bool) {
-        bytes32 h_bytes = sha256(abi.encodePacked(vk[1][0], vk[1][1], hash_ciphers, hash_proof, hash_inputs));
+        bytes32 h_bytes = sha256(
+            abi.encodePacked(
+                vk[1][0],
+                vk[1][1],
+                hash_to_be_signed
+            )
+        );
         uint h = uint(h_bytes);
 
         // X = g^{x}, where g represents a generator of the cyclic group G

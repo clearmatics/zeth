@@ -168,7 +168,7 @@ def main() -> None:
         token_instance,
         bob_eth_address,
         deployer_eth_address,
-        scenario.BOB_DEPOSIT_ETH)
+        2*scenario.BOB_DEPOSIT_ETH)
     print("- Initial balances: ")
     print_token_balances(
         token_instance,
@@ -379,6 +379,55 @@ def main() -> None:
         charlie_eth_address,
         mixer_instance.address
     )
+
+    # Bob deposits once again ETH, split in 2 notes on the mixer
+    # But Charlie attempts to corrupt the transaction (malleability attack)
+
+    # Bob approves the transfer
+    print("- Bob approves the transfer of ETHToken to the Mixer")
+    tx_hash = approve(
+        token_instance,
+        bob_eth_address,
+        mixer_instance.address,
+        scenario.BOB_DEPOSIT_ETH)
+    eth.waitForTransactionReceipt(tx_hash)
+    allowance_mixer = allowance(
+        token_instance, bob_eth_address, mixer_instance.address)
+    print("- The allowance for the Mixer from Bob is:", allowance_mixer)
+
+    result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
+        prover_client,
+        mixer_instance,
+        new_merkle_root_charlie_withdrawal,
+        bob_eth_address,
+        charlie_eth_address,
+        keystore,
+        mk_tree_depth,
+        zksnark
+    )
+    cm_address_bob_to_bob1 = result_deposit_bob_to_bob.cm_address_1
+    # cm_address_bob_to_bob2 = result_deposit_bob_to_bob.cm_address_2 (unused)
+    new_merkle_root_bob_to_bob = result_deposit_bob_to_bob.new_merkle_root
+    pk_sender_bob_to_bob = result_deposit_bob_to_bob.pk_sender
+    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob.ciphertext_1
+    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob.ciphertext_2
+
+    print("- Balances after Bob's last deposit: ")
+    print_token_balances(
+        token_instance,
+        bob_eth_address,
+        alice_eth_address,
+        charlie_eth_address,
+        mixer_instance.address
+    )
+
+    # Bob decrypts one of the note he previously received (should fail if
+    # Charlie's attack succeeded)
+    recovered_notes_bob = bob_wallet.receive_notes(
+        [ciphertext_bob_to_bob1, ciphertext_bob_to_bob2],
+        pk_sender_bob_to_bob)
+    assert(len(recovered_notes_bob) == 2), \
+        f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
 
 
 if __name__ == '__main__':

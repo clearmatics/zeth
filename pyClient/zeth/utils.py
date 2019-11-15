@@ -13,6 +13,8 @@ import nacl.utils  # type: ignore
 from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Union, Any, cast
+from py_ecc import bn128 as ec
+FQ = ec.FQ
 
 # Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
 # Wei).
@@ -212,16 +214,16 @@ def string_list_flatten(
             else:
                 strs.append(cast(str, el))
         return strs
-
     return cast(List[str], strs_list)
 
 
 def encode_to_hash(message_list: Any) -> bytes:
     # message_list: Union[List[str], List[Union[int, str, List[str]]]]) -> bytes:
-
     """
     Encode a list of variables, or list of lists of variables into a byte
     vector
+    BEWARE //!\\ We rely on the fact that the prime (q of Fq) < 2**256-1
+    where 256 is the bit-size of an Ethereum word (bytes32)
     """
 
     messages = string_list_flatten(message_list)
@@ -232,9 +234,12 @@ def encode_to_hash(message_list: Any) -> bytes:
         m_hex = m
 
         # Convert it into a hex
-        if isinstance(m, int):
-            m_hex = "{0:0>4X}".format(m)
-        elif isinstance(m, str) and (m[1] == "x"):
+        if isinstance(m, (FQ, int)):
+            assert int(m) < 2**256, "The input cannot be encoded as " + \
+                "a bytes32 (longer than 256 bits)"
+
+            m_hex = "{0:0>64X}".format(int(m))
+        elif isinstance(m, str) and (m[0:2] == "0x"):
             m_hex = m[2:]
 
         # [SANITY CHECK] Make sure the hex is 32 byte long

