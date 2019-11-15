@@ -24,18 +24,20 @@ class MixResult:
     """
     def __init__(
             self,
-            cm_address_1: int,
-            cm_address_2: int,
+            encrypted_notes: List[Tuple[int, bytes]],
+            # cm_address_1: int,
+            # cm_address_2: int,
             new_merkle_root: str,
-            sender_k_pk: EncryptionPublicKey,
-            ciphertext_1: bytes,
-            ciphertext_2: bytes):
-        self.cm_address_1 = cm_address_1
-        self.cm_address_2 = cm_address_2
+            sender_k_pk: EncryptionPublicKey):
+        # ciphertext_1: bytes,
+        # ciphertext_2: bytes):
+        self.encrypted_notes = encrypted_notes
+        # self.cm_address_1 = cm_address_1
+        # self.cm_address_2 = cm_address_2
         self.new_merkle_root = new_merkle_root
         self.sender_k_pk = sender_k_pk
-        self.ciphertext_1 = ciphertext_1
-        self.ciphertext_2 = ciphertext_2
+        # self.ciphertext_1 = ciphertext_1
+        # self.ciphertext_2 = ciphertext_2
 
 
 def compile_contracts(
@@ -276,13 +278,22 @@ def parse_mix_call(
         event_filter_log_secret_ciphers.get_all_entries()
     new_merkle_root = W3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
     sender_k_pk_bytes = event_logs_log_secret_ciphers[0].args.pk_sender
+
+    encrypted_notes = _extract_encrypted_notes_from_logs(
+        event_logs_log_address, event_logs_log_secret_ciphers)
+
     return MixResult(
-        cm_address_1=event_logs_log_address[0].args.commAddr,
-        cm_address_2=event_logs_log_address[1].args.commAddr,
+        encrypted_notes=encrypted_notes,
         new_merkle_root=new_merkle_root,
-        sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes),
-        ciphertext_1=event_logs_log_secret_ciphers[0].args.ciphertext,
-        ciphertext_2=event_logs_log_secret_ciphers[1].args.ciphertext)
+        sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
+
+
+def _extract_encrypted_notes_from_logs(
+        log_addresses: List[Any],
+        log_ciphertexts: List[Any]) -> List[Tuple[int, bytes]]:
+    assert len(log_addresses) == len(log_ciphertexts)
+    return [(log_addr.args.commAddr, log_ciph.args.ciphertext) for
+            log_addr, log_ciph in zip(log_addresses, log_ciphertexts)]
 
 
 def mimc_hash(instance: Any, m: bytes, k: bytes, seed: bytes) -> bytes:

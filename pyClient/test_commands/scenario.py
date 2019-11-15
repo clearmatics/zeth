@@ -8,7 +8,7 @@ import api.util_pb2 as util_pb2
 
 from hashlib import sha256
 from web3 import Web3, HTTPProvider  # type: ignore
-from typing import List, Any
+from typing import List, Tuple, Any
 import nacl.utils  # type: ignore
 
 W3 = Web3(HTTPProvider("http://localhost:8545"))
@@ -44,10 +44,10 @@ def bob_deposit(
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
     bob_apk = keystore["Bob"].addr_pk.a_pk
     bob_ask = keystore["Bob"].addr_sk.a_sk
-    # Create the JoinSplit dummy inputs for the deposit
 
-    (input_address1, input_note1) = joinsplit.get_dummy_input_and_address(bob_apk)
-    (input_address2, input_note2) = joinsplit.get_dummy_input_and_address(bob_apk)
+    # Create the JoinSplit dummy inputs for the deposit
+    input1 = joinsplit.get_dummy_input_and_address(bob_apk)
+    input2 = joinsplit.get_dummy_input_and_address(bob_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(BOB_SPLIT_1_ETH), 'ether')
@@ -58,11 +58,9 @@ def bob_deposit(
         joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
-            input_note1,
-            input_address1,
+            input1,
             dummy_mk_path,
-            input_note2,
-            input_address2,
+            input2,
             dummy_mk_path,
             bob_ask,  # sender
             bob_apk,  # recipient1
@@ -122,8 +120,7 @@ def bob_to_charlie(
         mixer_instance: Any,
         mk_root: str,
         mk_path1: List[str],
-        input_note1: util_pb2.ZethNote,
-        input_address1: int,
+        input1: Tuple[int, util_pb2.ZethNote],
         bob_eth_address: str,
         keystore: mock.KeyStore,
         mk_tree_depth: int,
@@ -140,7 +137,7 @@ def bob_to_charlie(
     bob_ask = keystore["Bob"].addr_sk.a_sk
 
     # Create the an additional dummy input for the JoinSplit
-    (input_address2, input_note2) = joinsplit.get_dummy_input_and_address(bob_apk)
+    input2 = joinsplit.get_dummy_input_and_address(bob_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(BOB_TO_CHARLIE_ETH), 'ether')
@@ -150,11 +147,9 @@ def bob_to_charlie(
         joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
-            input_note1,
-            input_address1,
+            input1,
             mk_path1,
-            input_note2,
-            input_address2,
+            input2,
             dummy_mk_path,
             bob_ask,  # sender
             bob_apk,  # recipient1 (change)
@@ -213,8 +208,7 @@ def charlie_withdraw(
         mixer_instance: Any,
         mk_root: str,
         mk_path1: List[str],
-        input_note1: util_pb2.ZethNote,
-        input_address1: int,
+        input1: Tuple[int, util_pb2.ZethNote],
         charlie_eth_address: str,
         keystore: mock.KeyStore,
         mk_tree_depth: int,
@@ -227,8 +221,7 @@ def charlie_withdraw(
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
 
     # Create the an additional dummy input for the JoinSplit
-    (input_address2, input_note2) = \
-        joinsplit.get_dummy_input_and_address(charlie_apk)
+    input2 = joinsplit.get_dummy_input_and_address(charlie_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
@@ -238,11 +231,9 @@ def charlie_withdraw(
         joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
-            input_note1,
-            input_address1,
+            input1,
             mk_path1,
-            input_note2,
-            input_address2,
+            input2,
             dummy_mk_path,
             charlie_ask,  # sender
             charlie_apk,  # recipient1
@@ -304,8 +295,7 @@ def charlie_double_withdraw(
         mixer_instance: Any,
         mk_root: str,
         mk_path1: List[str],
-        input_note1: util_pb2.ZethNote,
-        input_address1: int,
+        input1: Tuple[int, util_pb2.ZethNote],
         charlie_eth_address: str,
         keystore: mock.KeyStore,
         mk_tree_depth: int,
@@ -322,8 +312,7 @@ def charlie_double_withdraw(
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
 
     # Create the an additional dummy input for the JoinSplit
-    (input_address2, input_note2) = \
-        joinsplit.get_dummy_input_and_address(charlie_apk)
+    input2 = joinsplit.get_dummy_input_and_address(charlie_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
     note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
@@ -333,11 +322,9 @@ def charlie_double_withdraw(
         joinsplit.get_proof_joinsplit_2_by_2(
             prover_client,
             mk_root,
-            input_note1,
-            input_address1,
+            input1,
             mk_path1,
-            input_note2,
-            input_address2,
+            input2,
             dummy_mk_path,
             charlie_ask,  # sender
             charlie_apk,  # recipient1

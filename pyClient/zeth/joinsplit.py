@@ -474,11 +474,9 @@ def get_dummy_input_and_address(
 
 def compute_joinsplit2x2_inputs(
         mk_root: str,
-        input_note0: ZethNote,
-        input_address0: int,
+        input0: Tuple[int, ZethNote],
         mk_path0: List[str],
-        input_note1: ZethNote,
-        input_address1: int,
+        input1: Tuple[int, ZethNote],
         mk_path1: List[str],
         sender_ask: OwnershipSecretKey,
         recipient0_apk: OwnershipPublicKey,
@@ -491,9 +489,12 @@ def compute_joinsplit2x2_inputs(
     """
     Create a ProofInput object for joinsplit parameters
     """
+    (input_address0, input_note0) = input0
+    (input_address1, input_note1) = input1
+
     input_nullifier0 = compute_nullifier(input_note0, sender_ask)
     input_nullifier1 = compute_nullifier(input_note1, sender_ask)
-    js_inputs = [
+    js_inputs: List[JoinsplitInput] = [
         create_joinsplit_input(
             mk_path0, input_address0, input_note0, sender_ask, input_nullifier0),
         create_joinsplit_input(
@@ -535,11 +536,9 @@ def compute_joinsplit2x2_inputs(
 def get_proof_joinsplit_2_by_2(
         prover_client: ProverClient,
         mk_root: str,
-        input_note0: ZethNote,
-        input_address0: int,
+        input0: Tuple[int, ZethNote],
         mk_path0: List[str],
-        input_note1: ZethNote,
-        input_address1: int,
+        input1: Tuple[int, ZethNote],
         mk_path1: List[str],
         sender_ask: OwnershipSecretKey,
         recipient0_apk: OwnershipPublicKey,
@@ -557,11 +556,9 @@ def get_proof_joinsplit_2_by_2(
     signing_keypair = _gen_signing_keypair()
     proof_input = compute_joinsplit2x2_inputs(
         mk_root,
-        input_note0,
-        input_address0,
+        input0,
         mk_path0,
-        input_note1,
-        input_address1,
+        input1,
         mk_path1,
         sender_ask,
         recipient0_apk,

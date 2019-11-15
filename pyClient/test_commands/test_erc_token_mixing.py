@@ -207,12 +207,7 @@ def main() -> None:
         mk_tree_depth,
         zksnark
     )
-    cm_address_bob_to_bob1 = result_deposit_bob_to_bob.cm_address_1
-    cm_address_bob_to_bob2 = result_deposit_bob_to_bob.cm_address_2
     new_merkle_root_bob_to_bob = result_deposit_bob_to_bob.new_merkle_root
-    pk_sender_bob_to_bob = result_deposit_bob_to_bob.sender_k_pk
-    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob.ciphertext_1
-    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob.ciphertext_2
 
     print("- Balances after Bob's deposit: ")
     print_token_balances(
@@ -226,9 +221,8 @@ def main() -> None:
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
     # was the recipient, but Bob was the recipient so Alice fails to decrypt
     recovered_notes_alice = alice_wallet.receive_notes(
-        [(cm_address_bob_to_bob1, ciphertext_bob_to_bob1),
-         (cm_address_bob_to_bob2, ciphertext_bob_to_bob2)],
-        pk_sender_bob_to_bob)
+        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_alice) == 0), \
         "Alice decrypted a ciphertext that was not encrypted with her key!"
 
@@ -238,19 +232,20 @@ def main() -> None:
     # he wants to spend
     mk_byte_tree = contracts.get_merkle_tree(mixer_instance)
     mk_path = zeth.utils.compute_merkle_path(
-        cm_address_bob_to_bob1, mk_tree_depth, mk_byte_tree)
+        result_deposit_bob_to_bob.encrypted_notes[0][0],
+        mk_tree_depth,
+        mk_byte_tree)
 
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
     recovered_notes_bob = bob_wallet.receive_notes(
-        [(cm_address_bob_to_bob1, ciphertext_bob_to_bob1),
-         (cm_address_bob_to_bob2, ciphertext_bob_to_bob2)],
-        pk_sender_bob_to_bob)
+        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_bob) == 2), \
         f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
-    (addr_input_note_bob_to_charlie, input_note_bob_to_charlie) = \
-        recovered_notes_bob[0]
-    assert addr_input_note_bob_to_charlie == cm_address_bob_to_bob1
+    input_bob_to_charlie = recovered_notes_bob[0]
+    assert input_bob_to_charlie[0] == \
+        result_deposit_bob_to_bob.encrypted_notes[0][0]
 
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
@@ -258,23 +253,15 @@ def main() -> None:
         mixer_instance,
         new_merkle_root_bob_to_bob,
         mk_path,
-        input_note_bob_to_charlie,
-        cm_address_bob_to_bob1,
+        input_bob_to_charlie,
         bob_eth_address,
         keystore,
         mk_tree_depth,
         zksnark
     )
 
-    # Bob -> Bob (Change)
-    cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie.cm_address_1
-    # Bob -> Charlie (payment to Charlie)
-    cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie.cm_address_2
     new_merkle_root_bob_to_charlie = \
         result_transfer_bob_to_charlie.new_merkle_root
-    pk_sender_bob_to_charlie = result_transfer_bob_to_charlie.sender_k_pk
-    ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie.ciphertext_1
-    ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie.ciphertext_2
 
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = None
@@ -284,8 +271,7 @@ def main() -> None:
             mixer_instance,
             new_merkle_root_bob_to_bob,
             mk_path,
-            input_note_bob_to_charlie,
-            cm_address_bob_to_bob1,
+            input_bob_to_charlie,
             bob_eth_address,
             keystore,
             mk_tree_depth,
@@ -306,27 +292,24 @@ def main() -> None:
 
     # Charlie tries to decrypt the notes from Bob's previous transaction.
     notes_charlie = charlie_wallet.receive_notes(
-        [(cm_address_bob_to_charlie1, ciphertext_bob_to_charlie1),
-         (cm_address_bob_to_charlie2, ciphertext_bob_to_charlie2)],
-        pk_sender_bob_to_charlie)
+        result_transfer_bob_to_charlie.encrypted_notes,
+        result_transfer_bob_to_charlie.sender_k_pk)
     assert(len(notes_charlie) == 1), \
         f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
 
     # Charlie now gets the merkle path for the commitment he wants to spend
     mk_byte_tree = contracts.get_merkle_tree(mixer_instance)
     mk_path = zeth.utils.compute_merkle_path(
-        cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
-    (addr_input_note_charlie_withdraw, input_note_charlie_withdraw) = \
-        notes_charlie[0]
-    assert addr_input_note_charlie_withdraw == cm_address_bob_to_charlie2
+        notes_charlie[0][0], mk_tree_depth, mk_byte_tree)
+    assert notes_charlie[0][0] == \
+        result_transfer_bob_to_charlie.encrypted_notes[1][0]
 
     result_charlie_withdrawal = scenario.charlie_withdraw(
         prover_client,
         mixer_instance,
         new_merkle_root_bob_to_charlie,
         mk_path,
-        input_note_charlie_withdraw,
-        cm_address_bob_to_charlie2,
+        notes_charlie[0],
         charlie_eth_address,
         keystore,
         mk_tree_depth,
@@ -352,14 +335,13 @@ def main() -> None:
         # recompiute the path to have the updated nodes
         mk_byte_tree = contracts.get_merkle_tree(mixer_instance)
         mk_path = zeth.utils.compute_merkle_path(
-            cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
+            notes_charlie[0][0], mk_tree_depth, mk_byte_tree)
         result_double_spending = scenario.charlie_double_withdraw(
             prover_client,
             mixer_instance,
             new_merkle_root_charlie_withdrawal,
             mk_path,
-            input_note_charlie_withdraw,
-            cm_address_bob_to_charlie2,
+            notes_charlie[0],
             charlie_eth_address,
             keystore,
             mk_tree_depth,
