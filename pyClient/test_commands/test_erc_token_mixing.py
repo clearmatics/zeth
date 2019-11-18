@@ -227,14 +227,6 @@ def main() -> None:
         "Alice decrypted a ciphertext that was not encrypted with her key!"
 
     # Bob does a transfer of ETHToken to Charlie on the mixer
-    #
-    # Bob looks in the merkle tree and gets the merkle path to the commitment
-    # he wants to spend
-    mk_byte_tree = contracts.get_merkle_tree(mixer_instance)
-    mk_path = zeth.utils.compute_merkle_path(
-        result_deposit_bob_to_bob.encrypted_notes[0][0],
-        mk_tree_depth,
-        mk_byte_tree)
 
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
@@ -252,7 +244,6 @@ def main() -> None:
         prover_client,
         mixer_instance,
         new_merkle_root_bob_to_bob,
-        mk_path,
         input_bob_to_charlie,
         bob_eth_address,
         keystore,
@@ -270,7 +261,6 @@ def main() -> None:
             prover_client,
             mixer_instance,
             new_merkle_root_bob_to_bob,
-            mk_path,
             input_bob_to_charlie,
             bob_eth_address,
             keystore,
@@ -297,10 +287,6 @@ def main() -> None:
     assert(len(notes_charlie) == 1), \
         f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
 
-    # Charlie now gets the merkle path for the commitment he wants to spend
-    mk_byte_tree = contracts.get_merkle_tree(mixer_instance)
-    mk_path = zeth.utils.compute_merkle_path(
-        notes_charlie[0][0], mk_tree_depth, mk_byte_tree)
     assert notes_charlie[0][0] == \
         result_transfer_bob_to_charlie.encrypted_notes[1][0]
 
@@ -308,7 +294,6 @@ def main() -> None:
         prover_client,
         mixer_instance,
         new_merkle_root_bob_to_charlie,
-        mk_path,
         notes_charlie[0],
         charlie_eth_address,
         keystore,
@@ -332,15 +317,11 @@ def main() -> None:
     result_double_spending = None
     try:
         # New commitments are added in the tree at each withdraw so we
-        # recompiute the path to have the updated nodes
-        mk_byte_tree = contracts.get_merkle_tree(mixer_instance)
-        mk_path = zeth.utils.compute_merkle_path(
-            notes_charlie[0][0], mk_tree_depth, mk_byte_tree)
+        # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
             prover_client,
             mixer_instance,
             new_merkle_root_charlie_withdrawal,
-            mk_path,
             notes_charlie[0],
             charlie_eth_address,
             keystore,

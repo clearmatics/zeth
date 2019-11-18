@@ -1,46 +1,26 @@
 from __future__ import annotations
+import zeth.contracts as contracts
 import zeth.constants as constants
+from zeth.encryption import EncryptionPublicKey, EncryptionSecretKey, \
+    EncryptionKeyPair, generate_encryption_keypair, encode_encryption_public_key
+from zeth.signing import SigningPublicKey, SigningKeyPair, gen_signing_keypair
 from zeth.zksnark import IZKSnarkProvider, GenericProof
 from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
     hex_digest_to_binary_string, digest_to_binary_string, \
     string_list_flatten, encode_single, encode_abi, encrypt, decrypt, \
-    int64_to_hex, encode_message_to_bytes
+    int64_to_hex, encode_message_to_bytes, compute_merkle_path
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
-from nacl.public import PrivateKey, PublicKey  # type: ignore
-import nacl.encoding  # type: ignore
 import api.prover_pb2 as prover_pb2
 
 import os
 import json
 from Crypto import Random
 from hashlib import blake2s, sha256
-from py_ecc import bn128 as ec
 from typing import Tuple, Dict, List, Iterable, Union, Any, NewType
 
 
 ZERO_UNITS_HEX = "0000000000000000"
-
-
-FQ = ec.FQ
-G1 = Tuple[ec.FQ, ec.FQ]
-
-
-# Secret key for signing joinsplit data
-SigningSecretKey = NewType('SigningSecretKey', Tuple[FQ, FQ])
-
-
-# Public key for signing joinsplit data
-SigningPublicKey = NewType('SigningPublicKey', Tuple[G1, G1])
-
-
-class SigningKeyPair:
-    """
-    Key-pair for signing joinsplit data.
-    """
-    def __init__(self, sk: SigningSecretKey, pk: SigningPublicKey):
-        self.sk: SigningSecretKey = sk
-        self.pk: SigningPublicKey = pk
 
 
 # Secret key for proving ownership
@@ -68,36 +48,22 @@ def ownership_key_as_hex(a_sk: bytes) -> str:
     return hex_extend_32bytes(a_sk.hex())
 
 
-EncryptionSecretKey = PrivateKey
-
-EncryptionPublicKey = PublicKey
-
-
-class EncryptionKeyPair:
-    """
-    Key-pair for encrypting joinsplit notes.
-    """
-    def __init__(self, k_sk: PrivateKey, k_pk: PublicKey):
-        self.k_pk: PublicKey = k_pk
-        self.k_sk: PrivateKey = k_sk
-
-
 class ZethAddressPub:
     """
     Public half of a zethAddress.  addr_pk = (a_pk and k_pk)
     """
-    def __init__(self, a_pk: OwnershipPublicKey, k_pk: PublicKey):
+    def __init__(self, a_pk: OwnershipPublicKey, k_pk: EncryptionPublicKey):
         self.a_pk: OwnershipPublicKey = a_pk
-        self.k_pk: PublicKey = k_pk
+        self.k_pk: EncryptionPublicKey = k_pk
 
 
 class ZethAddressPriv:
     """
     Secret addr_sk, consisting of a_sk and k_sk
     """
-    def __init__(self, a_sk: OwnershipSecretKey, k_sk: PrivateKey):
+    def __init__(self, a_sk: OwnershipSecretKey, k_sk: EncryptionSecretKey):
         self.a_sk: OwnershipSecretKey = a_sk
-        self.k_sk: PrivateKey = k_sk
+        self.k_sk: EncryptionSecretKey = k_sk
 
 
 class ZethAddress:
@@ -108,9 +74,9 @@ class ZethAddress:
     def __init__(
             self,
             a_pk: OwnershipPublicKey,
-            k_pk: PublicKey,
+            k_pk: EncryptionPublicKey,
             a_sk: OwnershipSecretKey,
-            k_sk: PrivateKey):
+            k_sk: EncryptionSecretKey):
         self.addr_pk = ZethAddressPub(a_pk, k_pk)
         self.addr_sk = ZethAddressPriv(a_sk, k_sk)
 
@@ -300,16 +266,6 @@ def create_joinsplit_input(
         nullifier=nullifier)
 
 
-def _gen_signing_keypair() -> SigningKeyPair:
-    x = FQ(
-        int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME)
-    X = ec.multiply(ec.G1, x.n)
-    y = FQ(
-        int(bytes(Random.get_random_bytes(32)).hex(), 16) % constants.ZETH_PRIME)
-    Y = ec.multiply(ec.G1, y.n)
-    return SigningKeyPair(SigningSecretKey((x, y)), SigningPublicKey((X, Y)))
-
-
 def encode_pub_input_to_hash(message_list: List[Union[str, List[str]]]) -> bytes:
     """
     Encode the primary inputs as defined in ZCash chapter 4.15.1 into a byte
@@ -487,7 +443,7 @@ def compute_joinsplit2x2_inputs(
         output1: Tuple[OwnershipPublicKey, int],
         public_in_value: str,
         public_out_value: str,
-        sign_pk: Tuple[G1, G1]) -> prover_pb2.ProofInputs:
+        sign_pk: SigningPublicKey) -> prover_pb2.ProofInputs:
     """
     Create a ProofInput object for joinsplit parameters
     """
@@ -550,7 +506,7 @@ def get_proof_joinsplit_2_by_2(
     Query the prover server to generate a proof for the given joinsplit
     parameters.
     """
-    signing_keypair = _gen_signing_keypair()
+    signing_keypair = gen_signing_keypair()
     proof_input = compute_joinsplit2x2_inputs(
         mk_root,
         input0,
@@ -575,29 +531,108 @@ def get_proof_joinsplit_2_by_2(
         signing_keypair)
 
 
+def zeth_spend(
+        prover_client: ProverClient,
+        mixer_instance: Any,
+        mk_root: str,
+        mk_tree: List[bytes],
+        mk_tree_depth: int,
+        zksnark: IZKSnarkProvider,
+        sender_ownership_keypair: OwnershipKeyPair,
+        sender_eth_address: str,
+        inputs: List[Tuple[int, ZethNote]],
+        outputs: List[Tuple[ZethAddressPub, int]],
+        v_in_zeth_units: str,
+        v_out_zeth_units: str,
+        tx_payment_wei: int
+) -> contracts.MixResult:
+    assert len(inputs) <= constants.JS_INPUTS
+    assert len(outputs) <= constants.JS_OUTPUTS
+
+    sender_a_sk = sender_ownership_keypair.a_sk
+    sender_a_pk = sender_ownership_keypair.a_pk
+    inputs = \
+        inputs + \
+        [get_dummy_input_and_address(sender_a_pk)
+         for _ in range(constants.JS_INPUTS - len(inputs))]
+    mk_paths = \
+        [compute_merkle_path(addr, mk_tree_depth, mk_tree)
+         for addr, _ in inputs]
+
+    # Generate output notes and proof.  Dummy outputs are constructed with value
+    # 0 to an invalid JoinsplitPublicKey, formed from the senders a_pk, and an
+    # ephemeral k_pk.
+    dummy_k_pk = generate_encryption_keypair().k_pk
+    dummy_addr_pk = ZethAddressPub(sender_a_pk, dummy_k_pk)
+    outputs = \
+        outputs + \
+        [(dummy_addr_pk, 0) for _ in range(constants.JS_OUTPUTS - len(outputs))]
+    outputs_with_a_pk = \
+        [(zeth_addr.a_pk, value) for (zeth_addr, value) in outputs]
+    (output_note1, output_note2, proof_json, signing_keypair) = \
+        get_proof_joinsplit_2_by_2(
+            prover_client,
+            mk_root,
+            inputs[0],
+            mk_paths[0],
+            inputs[1],
+            mk_paths[1],
+            sender_a_sk,
+            outputs_with_a_pk[0],
+            outputs_with_a_pk[1],
+            v_in_zeth_units,
+            v_out_zeth_units,
+            zksnark)
+
+    # Encrypt the notes
+    outputs_and_notes = zip(outputs, [output_note1, output_note2])
+    output_notes_with_k_pk = \
+        [(note, zeth_addr.k_pk) for ((zeth_addr, _), note) in outputs_and_notes]
+    (sender_eph_pk, ciphertexts) = encrypt_notes(output_notes_with_k_pk)
+
+    # Sign
+    signature = \
+        sign_mix_tx(sender_eph_pk, ciphertexts, proof_json, signing_keypair)
+
+    return contracts.mix(
+        mixer_instance,
+        sender_eph_pk,
+        ciphertexts[0],
+        ciphertexts[1],
+        proof_json,
+        signing_keypair.pk,
+        signature,
+        sender_eth_address,
+        tx_payment_wei,
+        4000000,
+        zksnark)
+
+
 def encrypt_notes(
-        notes: List[Tuple[ZethNote, PublicKey]]
-) -> Tuple[PublicKey, List[bytes]]:
+        notes: List[Tuple[ZethNote, EncryptionPublicKey]]
+) -> Tuple[EncryptionPublicKey, List[bytes]]:
     """
     Encrypts a set of output notes to be decrypted by the respective receivers.
     Returns the senders (ephemeral) public key (encoded as bytes) and the
     ciphertexts corresponding to each note.
     """
     # generate ephemeral ec25519 key
-    eph_sk = PrivateKey.generate()
+    eph_enc_key_pair = generate_encryption_keypair()
+    eph_sk = eph_enc_key_pair.k_sk
+    eph_pk = eph_enc_key_pair.k_pk
 
-    def _encrypt_note(out_note: ZethNote, pub_key: PublicKey) -> bytes:
+    def _encrypt_note(out_note: ZethNote, pub_key: EncryptionPublicKey) -> bytes:
         out_note_str = json.dumps(parse_zeth_note(out_note))
         return encrypt(out_note_str, pub_key, eph_sk)
 
     ciphertexts = [_encrypt_note(note, pk) for (note, pk) in notes]
-    return (eph_sk.public_key, ciphertexts)
+    return (eph_pk, ciphertexts)
 
 
 def receive_notes(
         addrs_and_ciphertexts: List[Tuple[int, bytes]],
-        sender_k_pk: PublicKey,
-        receiver_k_sk: PrivateKey) -> Iterable[Tuple[int, ZethNote]]:
+        sender_k_pk: EncryptionPublicKey,
+        receiver_k_sk: EncryptionSecretKey) -> Iterable[Tuple[int, ZethNote]]:
     """
     Given the receivers secret key, and the event data from a transaction
     (encrypted notes), decrypt any that are intended for the receiver.
@@ -627,14 +662,14 @@ def _compute_proof_hashes(proof_json: GenericProof) -> Tuple[bytes, bytes]:
 
 
 def sign_mix_tx(
-        sender_eph_pk: PublicKey,  # Ephemeral key used for encryption
+        sender_eph_pk: EncryptionPublicKey,  # Ephemeral key used for encryption
         ciphertexts: List[bytes],  # Encyrpted output notes
         proof_json: GenericProof,  # Proof for the mix transaction
         signing_keypair: SigningKeyPair  # Ephemeral signing key, tied to proof
 ) -> int:
     assert len(ciphertexts) == constants.JS_INPUTS
     # Hash the pk_sender and cipher-texts
-    sender_eph_pk_bytes = sender_eph_pk.encode(encoder=nacl.encoding.RawEncoder)
+    sender_eph_pk_bytes = encode_encryption_public_key(sender_eph_pk)
     ciphers = sender_eph_pk_bytes + ciphertexts[0] + ciphertexts[1]
     hash_ciphers = sha256(ciphers).digest()
 
@@ -649,7 +684,7 @@ def _compute_h_sig(
         random_seed: bytes,
         nf0: str,
         nf1: str,
-        sign_pk: Tuple[G1, G1]) -> str:
+        sign_pk: SigningPublicKey) -> str:
     """
     Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
     Flatten the verification key

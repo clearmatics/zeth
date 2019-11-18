@@ -177,7 +177,7 @@ def parse_zksnark_arg() -> str:
     return args.zksnark
 
 
-def to_zeth_units(value: str, unit: str) -> int:
+def to_zeth_units(value: Union[str, int], unit: str) -> int:
     return int(Web3.toWei(value, unit) / ZETH_PUBLIC_UNIT_VALUE)
 
 

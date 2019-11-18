@@ -1,13 +1,13 @@
 import zeth.constants as constants
+from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
+from zeth.signing import SigningPublicKey
 from zeth.zksnark import IZKSnarkProvider, GenericProof
 from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int, \
     get_public_key_from_bytes
-from zeth.joinsplit import SigningPublicKey, EncryptionPublicKey
 
 import json
 import os
 from web3 import Web3, HTTPProvider  # type: ignore
-import nacl.encoding  # type: ignore
 from solcx import compile_files  # type: ignore
 from typing import Tuple, Dict, List, Any
 
@@ -25,19 +25,11 @@ class MixResult:
     def __init__(
             self,
             encrypted_notes: List[Tuple[int, bytes]],
-            # cm_address_1: int,
-            # cm_address_2: int,
             new_merkle_root: str,
             sender_k_pk: EncryptionPublicKey):
-        # ciphertext_1: bytes,
-        # ciphertext_2: bytes):
         self.encrypted_notes = encrypted_notes
-        # self.cm_address_1 = cm_address_1
-        # self.cm_address_2 = cm_address_2
         self.new_merkle_root = new_merkle_root
         self.sender_k_pk = sender_k_pk
-        # self.ciphertext_1 = ciphertext_1
-        # self.ciphertext_2 = ciphertext_2
 
 
 def compile_contracts(
@@ -241,7 +233,7 @@ def mix(
     """
     Run the mixer
     """
-    pk_sender_encoded = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
+    pk_sender_encoded = encode_encryption_public_key(pk_sender)
     proof_params = zksnark.mixer_proof_parameters(parsed_proof)
     tx_hash = mixer_instance.functions.mix(
         *proof_params,
