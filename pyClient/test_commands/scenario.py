@@ -2,14 +2,12 @@ import zeth.joinsplit as joinsplit
 import zeth.contracts as contracts
 from zeth.prover_client import ProverClient
 from zeth.zksnark import IZKSnarkProvider
-from zeth.utils import to_zeth_units, int64_to_hex, encode_to_hash
+from zeth.utils import to_zeth_units, int64_to_hex
 import test_commands.mock as mock
 import api.util_pb2 as util_pb2
 
-from hashlib import sha256
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Tuple, Any
-import nacl.utils  # type: ignore
 
 W3 = Web3(HTTPProvider("http://localhost:8545"))
 
@@ -74,33 +72,17 @@ def bob_deposit(
     pk_bob = keystore["Bob"].addr_pk.k_pk
 
     # encrypt the coins for Bob
-    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+    (sender_eph_pk, ciphertexts) = joinsplit.encrypt_notes([
         (output_note1, pk_bob),
         (output_note2, pk_bob)])
 
-    # Hash the pk_sender and cipher-texts
-    pk_sender_bytes = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
-    ciphers = pk_sender_bytes + ciphertexts[0] + ciphertexts[1]
-    hash_ciphers = sha256(ciphers).hexdigest()
-
-    # Hash the proof
-    proof: List[str] = []
-    for key in proof_json.keys():
-        if key != "inputs":
-            proof.extend(proof_json[key])
-    hash_proof = sha256(encode_to_hash(proof)).hexdigest()
-
-    # Encode and hash the primary inputs
-    encoded_inputs = joinsplit.encode_pub_input_to_hash(proof_json["inputs"])
-    hash_inputs = sha256(encoded_inputs).hexdigest()
-
     # Compute the joinSplit signature
-    joinsplit_sig = joinsplit.sign(
-        signing_keypair, hash_ciphers, hash_proof, hash_inputs)
+    joinsplit_sig = joinsplit.sign_mix_tx(
+        sender_eph_pk, ciphertexts, proof_json, signing_keypair)
 
     return contracts.mix(
         mixer_instance,
-        pk_sender,
+        sender_eph_pk,
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
@@ -157,34 +139,17 @@ def bob_to_charlie(
             zksnark
         )
 
-    # Encrypt the output notes for the senders
-    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+    # Encrypt the output notes for the recipients
+    (sender_eph_pk, ciphertexts) = joinsplit.encrypt_notes([
         (output_note1, keystore["Bob"].addr_pk.k_pk),
         (output_note2, keystore["Charlie"].addr_pk.k_pk)])
 
-    # Hash the pk_sender and cipher-texts
-    pk_sender_bytes = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
-    ciphers = pk_sender_bytes + ciphertexts[0] + ciphertexts[1]
-    hash_ciphers = sha256(ciphers).hexdigest()
-
-    # Hash the proof
-    proof: List[int] = []
-    for key in proof_json.keys():
-        if key != "inputs":
-            proof.extend(proof_json[key])
-    hash_proof = sha256(encode_to_hash(proof)).hexdigest()
-
-    # Encode and hash the primary inputs
-    encoded_inputs = joinsplit.encode_pub_input_to_hash(proof_json["inputs"])
-    hash_inputs = sha256(encoded_inputs).hexdigest()
-
     # Compute the joinSplit signature
-    joinsplit_sig = joinsplit.sign(
-        signing_keypair, hash_ciphers, hash_proof, hash_inputs)
-
+    joinsplit_sig = joinsplit.sign_mix_tx(
+        sender_eph_pk, ciphertexts, proof_json, signing_keypair)
     return contracts.mix(
         mixer_instance,
-        pk_sender,
+        sender_eph_pk,
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
@@ -243,33 +208,17 @@ def charlie_withdraw(
     pk_charlie = keystore["Charlie"].addr_pk.k_pk
 
     # encrypt the coins
-    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+    (sender_eph_pk, ciphertexts) = joinsplit.encrypt_notes([
         (output_note1, pk_charlie),
         (output_note2, pk_charlie)])
 
-    # Hash the pk_sender and cipher-texts
-    pk_sender_bytes = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
-    ciphers = pk_sender_bytes + ciphertexts[0] + ciphertexts[1]
-    hash_ciphers = sha256(ciphers).hexdigest()
-
-    # Hash the proof
-    proof: List[str] = []
-    for key in proof_json.keys():
-        if key != "inputs":
-            proof.extend(proof_json[key])
-    hash_proof = sha256(encode_to_hash(proof)).hexdigest()
-
-    # Encode and hash the primary inputs
-    encoded_inputs = joinsplit.encode_pub_input_to_hash(proof_json["inputs"])
-    hash_inputs = sha256(encoded_inputs).hexdigest()
-
     # Compute the joinSplit signature
-    joinsplit_sig = joinsplit.sign(
-        signing_keypair, hash_ciphers, hash_proof, hash_inputs)
+    joinsplit_sig = joinsplit.sign_mix_tx(
+        sender_eph_pk, ciphertexts, proof_json, signing_keypair)
 
     return contracts.mix(
         mixer_instance,
-        pk_sender,
+        sender_eph_pk,
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
@@ -343,33 +292,17 @@ def charlie_double_withdraw(
     pk_charlie = keystore["Charlie"].addr_pk.k_pk
 
     # encrypt the coins
-    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+    (sender_eph_pk, ciphertexts) = joinsplit.encrypt_notes([
         (output_note1, pk_charlie),
         (output_note2, pk_charlie)])
 
-    # Hash the pk_sender and cipher-texts
-    pk_sender_bytes = pk_sender.encode(encoder=nacl.encoding.RawEncoder)
-    ciphers = pk_sender_bytes + ciphertexts[0] + ciphertexts[1]
-    hash_ciphers = sha256(ciphers).hexdigest()
-
-    # Hash the proof
-    proof: List[str] = []
-    for key in proof_json.keys():
-        if key != "inputs":
-            proof.extend(proof_json[key])
-    hash_proof = sha256(encode_to_hash(proof)).hexdigest()
-
-    # Encode and hash the primary inputs
-    encoded_inputs = joinsplit.encode_pub_input_to_hash(proof_json["inputs"])
-    hash_inputs = sha256(encoded_inputs).hexdigest()
-
     # Compute the joinSplit signature
-    joinsplit_sig = joinsplit.sign(
-        signing_keypair, hash_ciphers, hash_proof, hash_inputs)
+    joinsplit_sig = joinsplit.sign_mix_tx(
+        sender_eph_pk, ciphertexts, proof_json, signing_keypair)
 
     return contracts.mix(
         mixer_instance,
-        pk_sender,
+        sender_eph_pk,
         ciphertexts[0],
         ciphertexts[1],
         proof_json,

@@ -1,13 +1,14 @@
 from __future__ import annotations
 import zeth.constants as constants
-from zeth.zksnark import IZKSnarkProvider
+from zeth.zksnark import IZKSnarkProvider, GenericProof
 from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
     hex_digest_to_binary_string, digest_to_binary_string, \
     string_list_flatten, encode_single, encode_abi, encrypt, decrypt, \
-    int64_to_hex
+    int64_to_hex, encode_message_to_bytes
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 from nacl.public import PrivateKey, PublicKey  # type: ignore
+import nacl.encoding  # type: ignore
 import api.prover_pb2 as prover_pb2
 
 import os
@@ -403,11 +404,11 @@ def field_elements_to_hex(longfield: str, shortfield: str) -> str:
     return res
 
 
-def sign(
+def _sign(
         keypair: SigningKeyPair,
-        hash_ciphers: str,
-        hash_proof: str,
-        hash_inputs: str) -> int:
+        hash_ciphers: bytes,
+        hash_proof: bytes,
+        hash_inputs: bytes) -> int:
     """
     Generate a Schnorr one-time signature of the ciphertexts, proofs and
     primary inputs We chose to sign the hash of the proof for modularity (to
@@ -428,9 +429,9 @@ def sign(
         [
             bytes.fromhex(y0_hex),
             bytes.fromhex(y1_hex),
-            bytes.fromhex(hash_ciphers),
-            bytes.fromhex(hash_proof),
-            bytes.fromhex(hash_inputs)
+            hash_ciphers,
+            hash_proof,
+            hash_inputs
         ]
     )
     data_hex = sha256(data_to_sign).hexdigest()
@@ -608,6 +609,40 @@ def receive_notes(
         except Exception as e:
             print(f"receive_notes: error: {e}")
             continue
+
+
+def _compute_proof_hashes(proof_json: GenericProof) -> Tuple[bytes, bytes]:
+    """
+    Given a proof object, compute the hash of the properties excluding "inputs",
+    and the hash of the "inputs".
+    """
+
+    proof_elements: List[int] = []
+    for key in proof_json.keys():
+        if key != "inputs":
+            proof_elements.extend(proof_json[key])
+    return (
+        sha256(encode_message_to_bytes(proof_elements)).digest(),
+        sha256(encode_pub_input_to_hash(proof_json["inputs"])).digest())
+
+
+def sign_mix_tx(
+        sender_eph_pk: PublicKey,  # Ephemeral key used for encryption
+        ciphertexts: List[bytes],  # Encyrpted output notes
+        proof_json: GenericProof,  # Proof for the mix transaction
+        signing_keypair: SigningKeyPair  # Ephemeral signing key, tied to proof
+) -> int:
+    assert len(ciphertexts) == constants.JS_INPUTS
+    # Hash the pk_sender and cipher-texts
+    sender_eph_pk_bytes = sender_eph_pk.encode(encoder=nacl.encoding.RawEncoder)
+    ciphers = sender_eph_pk_bytes + ciphertexts[0] + ciphertexts[1]
+    hash_ciphers = sha256(ciphers).digest()
+
+    # Hash the proof
+    proof_hash, pub_inputs_hash = _compute_proof_hashes(proof_json)
+
+    # Compute the joinSplit signature
+    return _sign(signing_keypair, hash_ciphers, proof_hash, pub_inputs_hash)
 
 
 def _compute_h_sig(

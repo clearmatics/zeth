@@ -216,9 +216,8 @@ def string_list_flatten(
     return cast(List[str], strs_list)
 
 
-def encode_to_hash(message_list: Any) -> bytes:
+def encode_message_to_bytes(message_list: Any) -> bytes:
     # message_list: Union[List[str], List[Union[int, str, List[str]]]]) -> bytes:
-
     """
     Encode a list of variables, or list of lists of variables into a byte
     vector
@@ -226,7 +225,7 @@ def encode_to_hash(message_list: Any) -> bytes:
 
     messages = string_list_flatten(message_list)
 
-    input_sha = bytearray()
+    data_bytes = bytearray()
     for m in messages:
         # For each element
         m_hex = m
@@ -241,6 +240,6 @@ def encode_to_hash(message_list: Any) -> bytes:
         m_hex = hex_extend_32bytes(m_hex)
 
         # Encode the hex into a byte array and append it to result
-        input_sha += encode_single("bytes32", bytes.fromhex(m_hex))
+        data_bytes += encode_single("bytes32", bytes.fromhex(m_hex))
 
-    return input_sha
+    return data_bytes
