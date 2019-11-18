@@ -17,6 +17,6 @@ void prepare_verification_key_response(
     prover_proto::VerificationKey *message);
 
 } // namespace libzeth
-#include "snarks/pghr13/response.tcc"
+#include "snarks/pghr13/api/response.tcc"
 
 #endif // __ZETH_RESPONSE_HPP__

@@ -36,5 +36,8 @@ matrix:
         - env: CI_TASK=build CI_CONFIG=Debug
           os: osx
           osx_image: xcode11
+        - env: CI_TASK=build CI_CONFIG=Release CI_ZKSNARK=PGHR13 CI_USE_DOCKER=1
+          os: linux
+          language: minimal
 
-script: CI_USE_DOCKER=${CI_USE_DOCKER} CI_CONFIG=${CI_CONFIG} travis_wait 30 scripts/ci ${CI_TASK}
+script: CI_USE_DOCKER=${CI_USE_DOCKER} CI_CONFIG=${CI_CONFIG} CI_ZKSNARK=${CI_ZKSNARK} travis_wait 30 scripts/ci ${CI_TASK}

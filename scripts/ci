@@ -31,6 +31,12 @@ function pyclient_check() {
 }
 
 function command_tests() {
+
+    # These commands are only for the GROTH16 config
+    if ! [ "${CI_ZKSNARK}" == "GROTH16" ] ; then
+        return
+    fi
+
     # Setup the mpc python env and install dependencies
     scripts/mpc_setup
 
@@ -107,9 +113,14 @@ fi
 echo ci_task = ${ci_task}
 echo full_build=${full_build}
 echo CI_CONFIG=${CI_CONFIG}
+echo CI_ZKSNARK=${CI_ZKSNARK}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
     format_check
+fi
+
+if [ "${CI_ZKSNARK}" == "" ] ; then
+    CI_ZKSNARK="GROTH16"
 fi
 
 # The CI_USE_DOCKER variable determines whether we should
@@ -122,6 +133,7 @@ if [ "${CI_USE_DOCKER}" == "1" ] ; then
            -p 50051:50051 \
            --name zeth \
            --env CI_CONFIG=${CI_CONFIG} \
+           --env CI_ZKSNARK=${CI_ZKSNARK} \
            zeth-dev:latest $0 ${ci_task} ${full_build}
 else
     ci_setup

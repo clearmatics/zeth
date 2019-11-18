@@ -22,6 +22,6 @@ bool verify(
     const libsnark::r1cs_ppzksnark_verification_key<ppT> &verification_key);
 
 } // namespace libzeth
-#include "snarks/pghr13/computation.tcc"
+#include "snarks/pghr13/core/computation.tcc"
 
 #endif // __ZETH_COMPUTATION_HPP__
