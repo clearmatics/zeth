@@ -28,6 +28,6 @@ void proof_to_json(
     libsnark::r1cs_ppzksnark_proof<ppT> proof, boost::filesystem::path path);
 
 } // namespace libzeth
-#include "snarks/pghr13/helpers.tcc"
+#include "snarks/pghr13/core/helpers.tcc"
 
 #endif // __ZETH_HELPERS_HPP__

@@ -78,6 +78,8 @@ set(libsodium_LIBRARY "${INSTALL_DIR}/lib/libsodium.a")
 # so that we will find zethConfig.h
 include_directories( ${PROJECT_BINARY_DIR} )
 
+string(TOLOWER ${ZKSNARK} ZKSNARK_NAME)
+
 # zeth library
 file(
   GLOB_RECURSE
@@ -86,8 +88,8 @@ file(
   circuits/**.cpp circuits/**.hpp circuits/**.tcc circuit_wrapper.???
   commitments/**.?pp commitments/**.tcc
   libsnark_helpers/**.?pp libsnark_helpers/**.tcc
-  snarks/**.?pp snarks/**.tcc
-  snarks_alias.hpp snarks/**.tcc
+  snarks/**.hpp snarks/**.tcc snarks/${ZKSNARK_NAME}/**.cpp
+  snarks_alias.hpp
   include_libsnark.hpp
   util.?pp util.tcc
   util_api.?pp util_api.tcc
@@ -125,14 +127,16 @@ target_link_libraries(
   protobuf::libprotobuf
 )
 
-# pot-process utility
-add_executable(pot-process pot_process/pot_process.cpp)
-target_link_libraries(
-  pot-process
-  zeth
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-)
+# pot-process utility (GROTH16 only)
+if(${ZKSNARK} STREQUAL "GROTH16")
+  add_executable(pot-process pot_process/pot_process.cpp)
+  target_link_libraries(
+    pot-process
+    zeth
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  )
+endif()
 
 ## Tests
 include(CTest)
@@ -159,9 +163,6 @@ function(zeth_test TEST_NAME)
   endif()
 endfunction(zeth_test)
 
-zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
-zeth_test(test_powersoftau SOURCE test/powersoftau_test.cpp FAST)
-zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
 zeth_test(test_addition SOURCE test/packed_addition_test.cpp FAST)
 zeth_test(test_hex_to_field SOURCE test/hex_to_field_test.cpp FAST)
 zeth_test(test_binary_operation SOURCE test/binary_operation_test.cpp FAST)
@@ -182,10 +183,14 @@ target_link_libraries(
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
 )
-target_link_libraries(
-  test_mpc
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
-)
 
-add_subdirectory(mpc)
+# Groth16-only tests and MPC
+if(${ZKSNARK} STREQUAL "GROTH16")
+  zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
+  zeth_test(test_powersoftau SOURCE test/powersoftau_test.cpp FAST)
+  zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
+  target_link_libraries(
+    test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+
+  add_subdirectory(mpc)
+endif()

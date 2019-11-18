@@ -243,6 +243,7 @@ static void RunServer(
     server->Wait();
 }
 
+#ifdef ZKSNARK_GROTH16
 static keyPairT<ppT> load_keypair(const std::string &keypair_file)
 {
     std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
@@ -250,6 +251,7 @@ static keyPairT<ppT> load_keypair(const std::string &keypair_file)
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
     return libzeth::mpc_read_keypair<ppT>(in);
 }
+#endif
 
 int main(int argc, char **argv)
 {
