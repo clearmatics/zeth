@@ -63,19 +63,17 @@ def bob_deposit(
             input2,
             dummy_mk_path,
             bob_ask,  # sender
-            bob_apk,  # recipient1
-            bob_apk,  # recipient2
-            int64_to_hex(note1_value),  # value output note 1
-            int64_to_hex(note2_value),  # value output note 2
+            (bob_apk, note1_value),  # output1
+            (bob_apk, note2_value),  # output2
             int64_to_hex(v_in),  # v_in
             ZERO_UNITS_HEX,  # v_out
             zksnark
     )
 
-    # construct pk object from bytes
+    # k_pk object
     pk_bob = keystore["Bob"].addr_pk.k_pk
 
-    # encrypt the coins
+    # encrypt the coins for Bob
     (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
         (output_note1, pk_bob),
         (output_note2, pk_bob)])
@@ -152,10 +150,8 @@ def bob_to_charlie(
             input2,
             dummy_mk_path,
             bob_ask,  # sender
-            bob_apk,  # recipient1 (change)
-            charlie_apk,  # recipient2 (transfer)
-            int64_to_hex(note1_value),  # value output note 1
-            int64_to_hex(note2_value),  # value output note 2
+            (bob_apk, note1_value),  # recipient1 (change)
+            (charlie_apk, note2_value),  # recipient2 (transfer)
             ZERO_UNITS_HEX,  # v_in
             ZERO_UNITS_HEX,  # v_out
             zksnark
@@ -236,10 +232,8 @@ def charlie_withdraw(
             input2,
             dummy_mk_path,
             charlie_ask,  # sender
-            charlie_apk,  # recipient1
-            charlie_apk,  # recipient2
-            int64_to_hex(note1_value),  # value output note 1
-            ZERO_UNITS_HEX,  # value output note 2
+            (charlie_apk, note1_value),  # recipient1
+            (charlie_apk, 0),  # recipient2
             ZERO_UNITS_HEX,  # v_in
             int64_to_hex(v_out),  # v_out
             zksnark
@@ -327,10 +321,8 @@ def charlie_double_withdraw(
             input2,
             dummy_mk_path,
             charlie_ask,  # sender
-            charlie_apk,  # recipient1
-            charlie_apk,  # recipient2
-            int64_to_hex(note1_value),  # value output note 1
-            ZERO_UNITS_HEX,  # value output note 2
+            (charlie_apk, note1_value),  # recipient1
+            (charlie_apk, 0),  # recipient2
             ZERO_UNITS_HEX,  # v_in
             int64_to_hex(v_out),  # v_out
             zksnark

@@ -3,7 +3,8 @@ import zeth.constants as constants
 from zeth.zksnark import IZKSnarkProvider
 from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
     hex_digest_to_binary_string, digest_to_binary_string, \
-    string_list_flatten, encode_single, encode_abi, encrypt, decrypt
+    string_list_flatten, encode_single, encode_abi, encrypt, decrypt, \
+    int64_to_hex
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 from nacl.public import PrivateKey, PublicKey  # type: ignore
@@ -137,27 +138,29 @@ class JoinsplitInputNote:
 def create_zeth_notes(
         phi: str,
         hsig: str,
-        recipient_apk0: OwnershipPublicKey,
-        value0: str,
-        recipient_apk1: OwnershipPublicKey,
-        value1: str) -> Tuple[ZethNote, ZethNote]:
+        output0: Tuple[OwnershipPublicKey, int],
+        output1: Tuple[OwnershipPublicKey, int]
+) -> Tuple[ZethNote, ZethNote]:
     """
     Create two ordered ZethNotes. This function is used to generate new output
     notes.
     """
+    (recipient0, value0) = output0
+    (recipient1, value1) = output1
+
     rho0 = compute_rho_i(phi, hsig, 0)
     trap_r0 = trap_r_randomness()
     note0 = ZethNote(
-        apk=ownership_key_as_hex(recipient_apk0),
-        value=value0,
+        apk=ownership_key_as_hex(recipient0),
+        value=int64_to_hex(value0),
         rho=rho0,
         trap_r=trap_r0)
 
     rho1 = compute_rho_i(phi, hsig, 1)
     trap_r1 = trap_r_randomness()
     note1 = ZethNote(
-        apk=ownership_key_as_hex(recipient_apk1),
-        value=value1,
+        apk=ownership_key_as_hex(recipient1),
+        value=int64_to_hex(value1),
         rho=rho1,
         trap_r=trap_r1)
 
@@ -479,10 +482,8 @@ def compute_joinsplit2x2_inputs(
         input1: Tuple[int, ZethNote],
         mk_path1: List[str],
         sender_ask: OwnershipSecretKey,
-        recipient0_apk: OwnershipPublicKey,
-        recipient1_apk: OwnershipPublicKey,
-        output_note_value0: str,
-        output_note_value1: str,
+        output0: Tuple[OwnershipPublicKey, int],
+        output1: Tuple[OwnershipPublicKey, int],
         public_in_value: str,
         public_out_value: str,
         sign_pk: Tuple[G1, G1]) -> prover_pb2.ProofInputs:
@@ -512,11 +513,8 @@ def compute_joinsplit2x2_inputs(
     output_note0, output_note1 = create_zeth_notes(
         phi,
         h_sig,
-        recipient0_apk,
-        output_note_value0,
-        recipient1_apk,
-        output_note_value1
-    )
+        output0,
+        output1)
 
     js_outputs = [
         output_note0,
@@ -541,10 +539,8 @@ def get_proof_joinsplit_2_by_2(
         input1: Tuple[int, ZethNote],
         mk_path1: List[str],
         sender_ask: OwnershipSecretKey,
-        recipient0_apk: OwnershipPublicKey,
-        recipient1_apk: OwnershipPublicKey,
-        output_note_value0: str,
-        output_note_value1: str,
+        output0: Tuple[OwnershipPublicKey, int],
+        output1: Tuple[OwnershipPublicKey, int],
         public_in_value: str,
         public_out_value: str,
         zksnark: IZKSnarkProvider
@@ -561,10 +557,8 @@ def get_proof_joinsplit_2_by_2(
         input1,
         mk_path1,
         sender_ask,
-        recipient0_apk,
-        recipient1_apk,
-        output_note_value0,
-        output_note_value1,
+        output0,
+        output1,
         public_in_value,
         public_out_value,
         signing_keypair.pk)
