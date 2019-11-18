@@ -40,6 +40,32 @@ template<
     typename ppT,
     size_t NumInputs,
     size_t NumOutputs>
+void circuit_wrapper<
+    FieldT,
+    HashT,
+    HashTreeT,
+    ppT,
+    NumInputs,
+    NumOutputs>::dump_constraint_system() const
+{
+    libsnark::protoboard<FieldT> pb;
+    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
+    g.generate_r1cs_constraints();
+
+    libsnark::r1cs_constraint_system<FieldT> cs = pb->get_constraint_system();
+    cs.report_linear_constraint_statistics();
+
+    std::cout << "Dumping the r1cs:" << std::endl;
+    std::cout << cs << std::endl;
+}
+
+template<
+    typename FieldT,
+    typename HashT,
+    typename HashTreeT,
+    typename ppT,
+    size_t NumInputs,
+    size_t NumOutputs>
 extended_proof<ppT> circuit_wrapper<
     FieldT,
     HashT,

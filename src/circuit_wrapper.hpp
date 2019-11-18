@@ -33,6 +33,9 @@ public:
     // Generate the trusted setup
     keyPairT<ppT> generate_trusted_setup() const;
 
+    // Used to debug the constraint system
+    void dump_constraint_system() const;
+
     // Generate a proof and returns an extended proof
     extended_proof<ppT> prove(
         const FieldT &root,
