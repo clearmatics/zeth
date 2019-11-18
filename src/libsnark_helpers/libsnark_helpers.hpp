@@ -18,6 +18,9 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
+
+#include "libsnark_helpers/debug_helpers.hpp"
+
 // Contains required interfaces and types (keypair, proof, generator, prover,
 // verifier)
 #include "extended_proof.hpp"
@@ -68,7 +71,7 @@ void r1cs_to_json(
     uint input_variables,
     boost::filesystem::path path = "");
 template<typename ppT>
-void primaryInputToJson(
+void primary_input_to_json(
     libsnark::r1cs_primary_input<libff::Fr<ppT>> input,
     boost::filesystem::path = "");
 

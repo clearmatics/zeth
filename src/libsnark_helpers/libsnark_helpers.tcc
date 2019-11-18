@@ -145,10 +145,10 @@ void fill_stringstream_with_json_constraints(
         }
 
         if (lt.coeff != 0 && lt.coeff != 1) {
-            ss << '"' << lt.index << '"' << ":"
-               << "-1";
+            ss << '"' << lt.index << '"' << ":" << "-1";
         } else {
-            ss << '"' << lt.index << '"' << ":" << lt.coeff;
+            ss << '"' << lt.index << '"' << ":"
+                << "\"0x" + hex_from_libsnark_bigint(lt.coeff.as_bigint());
         }
         count++;
     }
@@ -209,7 +209,7 @@ void r1cs_to_json(
     // output inputs, right now need to compile with debug flag so that the
     // `variable_annotations` exists. Having trouble setting that up so will
     // leave for now.
-    libsnark::r1cs_constraint_system<ppT> constraints =
+    libsnark::r1cs_constraint_system<libff::Fr<ppT>> constraints =
         pb.get_constraint_system();
     std::stringstream ss;
     std::ofstream fh;
@@ -222,17 +222,18 @@ void r1cs_to_json(
             ss << ", ";
         }
     }
-    ss << "],\n";
+    ss << "],\n\n";
     ss << "\"constraints\":[";
 
     for (size_t c = 0; c < constraints.num_constraints(); ++c) {
-        ss << "["; // << "\"A\"=";
+	ss << '"' << constraints.constraint_annotations[c].c_str() << "\":\n";
+        ss << "[" << "\"A\"=";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].a, ss);
-        ss << ","; // << "\"B\"=";
+        ss << "," << "\"B\"=";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].b, ss);
-        ss << ","; // << "\"A\"=";;
+        ss << "," << "\"C\"=";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].c, ss);
         if (c == constraints.num_constraints() - 1) {
