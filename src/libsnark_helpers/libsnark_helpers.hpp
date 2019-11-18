@@ -5,6 +5,8 @@
 #ifndef __LIBSNARK_HELPERS_HPP__
 #define __LIBSNARK_HELPERS_HPP__
 
+#include "libsnark_helpers/debug_helpers.hpp"
+
 #include <boost/filesystem.hpp>
 #include <cassert>
 #include <fstream>
@@ -18,8 +20,6 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
-
-#include "libsnark_helpers/debug_helpers.hpp"
 
 // Contains required interfaces and types (keypair, proof, generator, prover,
 // verifier)

@@ -144,12 +144,9 @@ void fill_stringstream_with_json_constraints(
             ss << ",";
         }
 
-        if (lt.coeff != 0 && lt.coeff != 1) {
-            ss << '"' << lt.index << '"' << ":" << "-1";
-        } else {
-            ss << '"' << lt.index << '"' << ":"
-                << "\"0x" + hex_from_libsnark_bigint(lt.coeff.as_bigint());
-        }
+        ss << '"' << lt.index << '"' << ":"
+           << "\"0x" + hex_from_libsnark_bigint(lt.coeff.as_bigint());
+
         count++;
     }
     ss << "}";
@@ -226,14 +223,17 @@ void r1cs_to_json(
     ss << "\"constraints\":[";
 
     for (size_t c = 0; c < constraints.num_constraints(); ++c) {
-	ss << '"' << constraints.constraint_annotations[c].c_str() << "\":\n";
-        ss << "[" << "\"A\"=";
+        ss << '"' << constraints.constraint_annotations[c].c_str() << "\":\n";
+        ss << "["
+           << "\"A\"=";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].a, ss);
-        ss << "," << "\"B\"=";
+        ss << ","
+           << "\"B\"=";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].b, ss);
-        ss << "," << "\"C\"=";
+        ss << ","
+           << "\"C\"=";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].c, ss);
         if (c == constraints.num_constraints() - 1) {
