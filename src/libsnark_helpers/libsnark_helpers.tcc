@@ -193,7 +193,6 @@ void array_to_json(
 template<typename ppT>
 void r1cs_to_json(
     libsnark::protoboard<libff::Fr<ppT>> pb,
-    uint input_variables,
     boost::filesystem::path path)
 {
     if (path.empty()) {
@@ -221,14 +220,6 @@ void r1cs_to_json(
     ss << "\"num_variables\":" << pb.num_variables() << ",\n";
     ss << "\"num_constraints\":" << pb.num_constraints() << ",\n";
     ss << "\"num_inputs\": " << pb.num_inputs() << ",\n";
-    // ss << "\"input_variables\":[";
-    // for (size_t i = 0; i < input_variables + 1; ++i) {
-    //     ss << '"' << constraints.variable_annotations[i].c_str() << '"';
-    //     if (i < input_variables) {
-    //         ss << ", ";
-    //     }
-    // }
-    // ss << "],\n";
     ss << "\"variables_annotations\":[";
     for (size_t i = 0; i < constraints.num_variables(); ++i) {
         ss << "{";

@@ -288,7 +288,7 @@ int main(int argc, char **argv)
     }
 
     // We inititalize the curve parameters here
-    std::cout << "[DEBUG] Init params" << std::endl;
+    std::cout << "[INFO] Init params" << std::endl;
     ppT::init_public_params();
 
     libzeth::circuit_wrapper<
@@ -302,7 +302,7 @@ int main(int argc, char **argv)
     keyPairT<ppT> keypair = [&keypair_file, &prover]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
-            std::cout << "[DEBUG] Loading keypair: " << keypair_file
+            std::cout << "[INFO] Loading keypair: " << keypair_file
                       << std::endl;
             return load_keypair(keypair_file);
 #else
@@ -312,11 +312,16 @@ int main(int argc, char **argv)
 #endif
         }
 
-        std::cout << "[DEBUG] Generate new keypair" << std::endl;
+        std::cout << "[INFO] Generate new keypair" << std::endl;
         return prover.generate_trusted_setup();
     }();
 
-    std::cout << "[DEBUG] Setup successful, starting the server..."
+#ifdef DEBUG
+    std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
+    prover.dump_constraint_system();
+#endif
+
+    std::cout << "[INFO] Setup successful, starting the server..."
               << std::endl;
     RunServer(prover, keypair);
     return 0;

@@ -33,6 +33,12 @@ public:
     // Generate the trusted setup
     keyPairT<ppT> generate_trusted_setup() const;
 
+#ifdef DEBUG
+    // Used to debug the constraint system
+    // Exports the r1cs to json and write to debug folder
+    void dump_constraint_system() const;
+#endif
+
     // Generate a proof and returns an extended proof
     extended_proof<ppT> prove(
         const FieldT &root,

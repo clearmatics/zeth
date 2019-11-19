@@ -10,12 +10,12 @@ Basic set of functionalities to parse and run basic queries on the r1cs exported
     "num_variables": 549746, # Number of wires
     "num_constraints": 433391, # Number of gates
     "num_inputs": 17, # Number of primary inputs
-    "variables": [ # The wires
-        "ONE",
-        "joinsplit_gadget merkle_root",
-        "joinsplit_gadget in_nullifier[0]_0",
-        "joinsplit_gadget in_nullifier[0]_1",
-        "joinsplit_gadget in_nullifier[1]_0",
+    "variables_annotations": [ # The wires annotations
+        {"index":0,"annotation":"ONE"},
+        {"index":1,"annotation":"joinsplit_gadget merkle_root"},
+        {"index":2,"annotation":"joinsplit_gadget in_nullifier[0]_0"},
+        {"index":3,"annotation":"joinsplit_gadget in_nullifier[0]_1"},
+        {"index":4,"annotation":"joinsplit_gadget in_nullifier[1]_0"},
         ...
     ],
     "constraints": [ # The gates
