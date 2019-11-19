@@ -73,11 +73,31 @@ The set of constraints has the structure below:
         }
     ]
 """
-#def get_constraints(constraints_set, annotation_index):
-#    # Array of ID of the constraints using the provided annotation index
-#    constraints_id = []
-#    for i in range(len(constraints_set)):
-#        if constraints_set[i][]
+def get_constraints(constraints_set, annotation_index):
+    # Array of ID of the constraints using the provided annotation index
+    constraints_id = []
+    for i in range(len(constraints_set)):
+        lin_com_a = constraints_set[i]["linear_combination"]["A"]
+        lin_com_b = constraints_set[i]["linear_combination"]["B"]
+        lin_com_c = constraints_set[i]["linear_combination"]["C"]
+        found_in_a = is_in_lin_comb(lin_com_a, annotation_index)
+        found_in_b = is_in_lin_comb(lin_com_b, annotation_index)
+        found_in_c = is_in_lin_comb(lin_com_c, annotation_index)
+        if found_in_a or found_in_b or found_in_c:
+            constraints_id.append(constraints_set[i]["constraint_id"])
+            print("Constraint: ", str(constraints_set[i]))
+    return constraints_id
+
+"""
+Inspects all the elements of the linear combination and returns
+true is the variable corresponding to the annotation_index
+is used in the linear combination
+"""
+def is_in_lin_comb(linear_combination, annotation_index):
+    # Inspect all the linear terms
+    for i in range(len(linear_combination)):
+        if linear_combination[i]["index"] == annotation_index:
+            return True
 
 
 if __name__ == "__main__":
@@ -109,3 +129,8 @@ if __name__ == "__main__":
     # Index corresponding to the annotation
     annotation_code = get_index(var_annotations, annotation_to_check)
     print("Index of the annotation to check: ", annotation_code)
+
+    constraints_set = r1cs_obj["constraints"]
+    constraints_using_annotation = get_constraints(constraints_set, annotation_code)
+
+    print("Obtained set of constraints: ", constraints_using_annotation)

@@ -143,10 +143,11 @@ void fill_stringstream_with_json_constraints(
         if (count != 0) {
             ss << ",";
         }
-        
-	ss << "{";
+
+        ss << "{";
         ss << "\"index\":" << lt.index << ",";
-	ss << "\"value\":" << "\"0x" + hex_from_libsnark_bigint(lt.coeff.as_bigint()) << "\"";
+        ss << "\"value\":"
+           << "\"0x" + hex_from_libsnark_bigint(lt.coeff.as_bigint()) << "\"";
         ss << "}";
         count++;
     }
@@ -215,24 +216,25 @@ void r1cs_to_json(
 
     ss << "{\n";
     ss << "\"scalar_field_characteristic\":"
-	<< "\"Not yet supported. Should be bigint in hexadecimal\"" << ",\n";
+       << "\"Not yet supported. Should be bigint in hexadecimal\""
+       << ",\n";
     ss << "\"num_variables\":" << pb.num_variables() << ",\n";
     ss << "\"num_constraints\":" << pb.num_constraints() << ",\n";
     ss << "\"num_inputs\": " << pb.num_inputs() << ",\n";
-   // ss << "\"input_variables\":[";
-   // for (size_t i = 0; i < input_variables + 1; ++i) {
-   //     ss << '"' << constraints.variable_annotations[i].c_str() << '"';
-   //     if (i < input_variables) {
-   //         ss << ", ";
-   //     }
-   // }
-   // ss << "],\n";
+    // ss << "\"input_variables\":[";
+    // for (size_t i = 0; i < input_variables + 1; ++i) {
+    //     ss << '"' << constraints.variable_annotations[i].c_str() << '"';
+    //     if (i < input_variables) {
+    //         ss << ", ";
+    //     }
+    // }
+    // ss << "],\n";
     ss << "\"variables_annotations\":[";
     for (size_t i = 0; i < constraints.num_variables(); ++i) {
         ss << "{";
-	ss << "\"index\":" << i << ",";
-	ss << "\"annotation\":" 
-	   << "\"" << constraints.variable_annotations[i].c_str() << "\"";
+        ss << "\"index\":" << i << ",";
+        ss << "\"annotation\":"
+           << "\"" << constraints.variable_annotations[i].c_str() << "\"";
         if (i == constraints.num_variables() - 1) {
             ss << "}";
         } else {
@@ -242,24 +244,24 @@ void r1cs_to_json(
     ss << "],\n";
     ss << "\"constraints\":[";
     for (size_t c = 0; c < constraints.num_constraints(); ++c) {
-	ss << "{";
-	ss << "\"constraint_id\": " << c << ",";
-	ss << "\"constraint_annotation\": "
-	   << "\"" << constraints.constraint_annotations[c].c_str() << "\",";
-        ss << "\"linear_combination\":";	
         ss << "{";
-	ss << "\"A\":";
+        ss << "\"constraint_id\": " << c << ",";
+        ss << "\"constraint_annotation\": "
+           << "\"" << constraints.constraint_annotations[c].c_str() << "\",";
+        ss << "\"linear_combination\":";
+        ss << "{";
+        ss << "\"A\":";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].a, ss);
         ss << ",";
-	ss << "\"B\":";
+        ss << "\"B\":";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].b, ss);
         ss << ",";
-	ss << "\"C\":";
+        ss << "\"C\":";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].c, ss);
-	ss << "}";
+        ss << "}";
         if (c == constraints.num_constraints() - 1) {
             ss << "}";
         } else {
