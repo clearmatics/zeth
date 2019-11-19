@@ -137,24 +137,26 @@ if __name__ == "__main__":
     r1cs_variables_nb = r1cs_obj["num_variables"]
     r1cs_constraints_nb = r1cs_obj["num_constraints"]
 
-    print(f"R1CS succesfully loaded," \
-            "vars:{r1cs_variables_nb}," \
-            "constraints: {r1cs_constraints_nb}")
+    print("R1CS succesfully loaded, vars: {}, constraints: {}"
+            .format(r1cs_variables_nb, r1cs_variables_nb))
 
     variables_annotations_set = r1cs_obj["variables_annotations"]
     constraints_set = r1cs_obj["constraints"]
 
-    # Check the 31th bit of phi
+    # Some basic happy path tests are written below to try some of the
+    # functions defined above
+    #
+    # Eg: Check the 31th bit of phi
     annotation_to_check = "joinsplit_gadget phi bits_31"
     annotation_index = get_index(variables_annotations_set, annotation_to_check)
-    print(f"Index of the annotation to check: {annotation_index}")
+    print("Index of the annotation to check: {}".format(annotation_index))
 
-    print(f"Fetching constraints using annotation:"\
-            "{annotation_to_check} - index: {annotation_index}...")
+    print("Fetching constraints using annotation: {} of index: {}..."
+            .format(annotation_to_check, annotation_index))
     constraints_using_annotation = get_constraints(constraints_set, annotation_index)
-    print(f"Result: {constraints_using_annotation}")
+    print("Result: {}".format(constraints_using_annotation))
 
     regex = "rho"
-    print(f"Testing the regex matching. Query: {regex}")
+    print("Testing the regex matching. Query: {}".format(regex))
     res = get_constraints_from_annotation_pattern(constraints_set, regex)
-    print(f"Result: {res}")
+    #print(f"Result: {res}")
