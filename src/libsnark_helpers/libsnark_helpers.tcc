@@ -137,19 +137,20 @@ void fill_stringstream_with_json_constraints(
     libsnark::linear_combination<libff::Fr<ppT>> constraints,
     std::stringstream &ss)
 {
-    ss << "{";
+    ss << "[";
     uint count = 0;
     for (const libsnark::linear_term<libff::Fr<ppT>> &lt : constraints.terms) {
         if (count != 0) {
             ss << ",";
         }
-
-        ss << '"' << lt.index << '"' << ":"
-           << "\"0x" + hex_from_libsnark_bigint(lt.coeff.as_bigint());
-
+        
+	ss << "{";
+        ss << "\"index\":" << lt.index << ",";
+	ss << "\"value\":" << "\"0x" + hex_from_libsnark_bigint(lt.coeff.as_bigint()) << "\"";
+        ss << "}";
         count++;
     }
-    ss << "}";
+    ss << "]";
 };
 
 template<typename ppT>
@@ -212,37 +213,61 @@ void r1cs_to_json(
     std::ofstream fh;
     fh.open(str_path, std::ios::binary);
 
-    ss << "\n{\"variables\":[";
-    for (size_t i = 0; i < input_variables + 1; ++i) {
-        ss << '"' << constraints.variable_annotations[i].c_str() << '"';
-        if (i < input_variables) {
-            ss << ", ";
+    ss << "{\n";
+    ss << "\"scalar_field_characteristic\":"
+	<< "\"Not yet supported. Should be bigint in hexadecimal\"" << ",\n";
+    ss << "\"num_variables\":" << pb.num_variables() << ",\n";
+    ss << "\"num_constraints\":" << pb.num_constraints() << ",\n";
+    ss << "\"num_inputs\": " << pb.num_inputs() << ",\n";
+   // ss << "\"input_variables\":[";
+   // for (size_t i = 0; i < input_variables + 1; ++i) {
+   //     ss << '"' << constraints.variable_annotations[i].c_str() << '"';
+   //     if (i < input_variables) {
+   //         ss << ", ";
+   //     }
+   // }
+   // ss << "],\n";
+    ss << "\"variables_annotations\":[";
+    for (size_t i = 0; i < constraints.num_variables(); ++i) {
+        ss << "{";
+	ss << "\"index\":" << i << ",";
+	ss << "\"annotation\":" 
+	   << "\"" << constraints.variable_annotations[i].c_str() << "\"";
+        if (i == constraints.num_variables() - 1) {
+            ss << "}";
+        } else {
+            ss << "},";
         }
     }
-    ss << "],\n\n";
+    ss << "],\n";
     ss << "\"constraints\":[";
-
     for (size_t c = 0; c < constraints.num_constraints(); ++c) {
-        ss << '"' << constraints.constraint_annotations[c].c_str() << "\":\n";
-        ss << "["
-           << "\"A\"=";
+	ss << "{";
+	ss << "\"constraint_id\": " << c << ",";
+	ss << "\"constraint_annotation\": "
+	   << "\"" << constraints.constraint_annotations[c].c_str() << "\",";
+        ss << "\"linear_combination\":";	
+        ss << "{";
+	ss << "\"A\":";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].a, ss);
-        ss << ","
-           << "\"B\"=";
+        ss << ",";
+	ss << "\"B\":";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].b, ss);
-        ss << ","
-           << "\"C\"=";
+        ss << ",";
+	ss << "\"C\":";
         fill_stringstream_with_json_constraints<ppT>(
             constraints.constraints[c].c, ss);
+	ss << "}";
         if (c == constraints.num_constraints() - 1) {
-            ss << "]\n";
+            ss << "}";
         } else {
-            ss << "],\n";
+            ss << "},";
         }
     }
-    ss << "]}";
+    ss << "]\n";
+    ss << "}";
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::out);
     fh << ss.rdbuf();
