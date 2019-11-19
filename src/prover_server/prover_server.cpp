@@ -321,8 +321,7 @@ int main(int argc, char **argv)
     prover.dump_constraint_system();
 #endif
 
-    std::cout << "[INFO] Setup successful, starting the server..."
-              << std::endl;
+    std::cout << "[INFO] Setup successful, starting the server..." << std::endl;
     RunServer(prover, keypair);
     return 0;
 }

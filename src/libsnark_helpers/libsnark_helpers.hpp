@@ -53,27 +53,12 @@ template<typename ppT>
 void write_setup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir = "");
 
 template<typename ppT>
-void r1cs_constraints_to_json(
-    libsnark::linear_combination<libff::Fr<ppT>> constraints,
-    boost::filesystem::path path = "");
-template<typename ppT>
 void fill_stringstream_with_json_constraints(
     libsnark::linear_combination<libff::Fr<ppT>> constraints,
     std::stringstream &ss);
 template<typename ppT>
-void array_to_json(
-    libsnark::protoboard<libff::Fr<ppT>> pb,
-    uint input_variables,
-    boost::filesystem::path path = "");
-template<typename ppT>
 void r1cs_to_json(
-    libsnark::protoboard<libff::Fr<ppT>> pb,
-    uint input_variables,
-    boost::filesystem::path path = "");
-template<typename ppT>
-void primary_input_to_json(
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> input,
-    boost::filesystem::path = "");
+    libsnark::protoboard<libff::Fr<ppT>> pb, boost::filesystem::path path = "");
 
 } // namespace libzeth
 #include "libsnark_helpers/libsnark_helpers.tcc"

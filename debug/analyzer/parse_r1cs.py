@@ -4,10 +4,6 @@ import json
 import os
 import re
 
-# We can use some of the constants below to
-#refine the interpretation of the r1cs
-#import analyzer.constants as constants
-
 """
 Finds the index corresponding to `annotation`
 in the annotation set (which has the structure below)

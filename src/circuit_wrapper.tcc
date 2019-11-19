@@ -41,13 +41,8 @@ template<
     typename ppT,
     size_t NumInputs,
     size_t NumOutputs>
-void circuit_wrapper<
-    FieldT,
-    HashT,
-    HashTreeT,
-    ppT,
-    NumInputs,
-    NumOutputs>::dump_constraint_system() const
+void circuit_wrapper<FieldT, HashT, HashTreeT, ppT, NumInputs, NumOutputs>::
+    dump_constraint_system() const
 {
     libsnark::protoboard<FieldT> pb;
     joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
