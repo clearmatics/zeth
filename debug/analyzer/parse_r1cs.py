@@ -2,6 +2,11 @@
 
 import json
 import os
+import re
+
+# We can use some of the constants below to
+#refine the interpretation of the r1cs
+#import analyzer.constants as constants
 
 """
 Finds the index corresponding to `annotation`
@@ -89,6 +94,24 @@ def get_constraints(constraints_set, annotation_index):
     return constraints_id
 
 """
+Returns a set fo constraints which annotation matches the given pattern.
+The regex is given by the user (which can be quite dangerous but
+the goal of this script is not to be robust anyway)
+"""
+def get_constraints_from_annotation_pattern(constraints_set, annotation_pattern):
+    # Array of ID of the constraints using the provided annotation index
+    constraints_id = []
+    for i in range(len(constraints_set)):
+        constraint_annotation = constraints_set[i]["constraint_annotation"]
+        x = re.search(annotation_pattern, constraint_annotation)
+        # If there has been a match
+        if x is not None:
+            constraints_id.append(constraints_set[i]["constraint_id"])
+            print("Constraint: ", str(constraints_set[i]))
+    return constraints_id
+
+
+"""
 Inspects all the elements of the linear combination and returns
 true is the variable corresponding to the annotation_index
 is used in the linear combination
@@ -111,26 +134,27 @@ if __name__ == "__main__":
 
     # Parse file
     r1cs_obj = json.loads(data)
-    print("R1CS succesfully loaded")
+    r1cs_variables_nb = r1cs_obj["num_variables"]
+    r1cs_constraints_nb = r1cs_obj["num_constraints"]
 
-    nb_vars = r1cs_obj["num_variables"]
-    print("Number of variables: ", nb_vars)
-    nb_const = r1cs_obj["num_constraints"]
-    print("Number of constraints: ", nb_const)
+    print(f"R1CS succesfully loaded," \
+            "vars:{r1cs_variables_nb}," \
+            "constraints: {r1cs_constraints_nb}")
 
-    print("Display the first 20 entries of the variables annotations")
-    var_annotations = r1cs_obj["variables_annotations"]
-    for i in range(0,50):
-        print("Annotation: " + str(var_annotations[i]))
+    variables_annotations_set = r1cs_obj["variables_annotations"]
+    constraints_set = r1cs_obj["constraints"]
 
     # Check the 31th bit of phi
     annotation_to_check = "joinsplit_gadget phi bits_31"
-    # Return the constraints in which this variable/wire appears
-    # Index corresponding to the annotation
-    annotation_code = get_index(var_annotations, annotation_to_check)
-    print("Index of the annotation to check: ", annotation_code)
+    annotation_index = get_index(variables_annotations_set, annotation_to_check)
+    print(f"Index of the annotation to check: {annotation_index}")
 
-    constraints_set = r1cs_obj["constraints"]
-    constraints_using_annotation = get_constraints(constraints_set, annotation_code)
+    print(f"Fetching constraints using annotation:"\
+            "{annotation_to_check} - index: {annotation_index}...")
+    constraints_using_annotation = get_constraints(constraints_set, annotation_index)
+    print(f"Result: {constraints_using_annotation}")
 
-    print("Obtained set of constraints: ", constraints_using_annotation)
+    regex = "rho"
+    print(f"Testing the regex matching. Query: {regex}")
+    res = get_constraints_from_annotation_pattern(constraints_set, regex)
+    print(f"Result: {res}")
