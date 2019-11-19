@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // wraplibsnark.cpp (originally written by Jacob Eberhardt and Dennis Kuhnert)
 
-#ifndef __LIBSNARK_HELPERS_HPP__
-#define __LIBSNARK_HELPERS_HPP__
+#ifndef __ZETH_LIBSNARK_HELPERS_HPP__
+#define __ZETH_LIBSNARK_HELPERS_HPP__
 
 #include "libsnark_helpers/debug_helpers.hpp"
 
@@ -63,4 +63,4 @@ void r1cs_to_json(
 } // namespace libzeth
 #include "libsnark_helpers/libsnark_helpers.tcc"
 
-#endif
+#endif // __ZETH_LIBSNARK_HELPERS_HPP__
