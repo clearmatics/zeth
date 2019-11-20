@@ -36,7 +36,7 @@ public:
 #ifdef DEBUG
     // Used to debug the constraint system
     // Exports the r1cs to json and write to debug folder
-    void dump_constraint_system() const;
+    void dump_constraint_system(boost::filesystem::path file_path) const;
 #endif
 
     // Generate a proof and returns an extended proof
