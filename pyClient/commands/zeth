@@ -1,6 +1,12 @@
+#!/usr/bin/env python3
+
 from commands.zeth_deploy import deploy
 from commands.zeth_deposit import deposit
 from commands.zeth_sync import sync
+from commands.zeth_send import send
+from commands.zeth_withdraw import withdraw
+from commands.zeth_balance import balance
+from commands.zeth_notes import notes
 from click import group, option, pass_context
 from typing import Any, Optional
 
@@ -17,6 +23,10 @@ def zeth(ctx: Any, host: Optional[str]) -> None:
 zeth.add_command(deploy)
 zeth.add_command(deposit)
 zeth.add_command(sync)
+zeth.add_command(send)
+zeth.add_command(withdraw)
+zeth.add_command(balance)
+zeth.add_command(notes)
 
 
 if __name__ == "__main__":

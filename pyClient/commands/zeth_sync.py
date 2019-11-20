@@ -16,4 +16,6 @@ def sync(ctx: Any, key_file: str, notes_file: str) -> None:
     """
     Attempt to retrieve new notes for the key in <key-file>
     """
-    pass
+    print(f"sync: host={ctx.obj['HOST']}")
+    print(f"sync: key_file={key_file}")
+    print(f"sync: notes_file={notes_file}")
