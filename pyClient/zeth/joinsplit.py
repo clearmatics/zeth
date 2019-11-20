@@ -5,7 +5,7 @@ from zeth.encryption import EncryptionPublicKey, EncryptionSecretKey, \
     EncryptionKeyPair, generate_encryption_keypair, encode_encryption_public_key
 from zeth.signing import SigningPublicKey, SigningKeyPair, gen_signing_keypair
 from zeth.zksnark import IZKSnarkProvider, GenericProof
-from zeth.utils import get_trusted_setup_dir, hex_extend_32bytes, \
+from zeth.utils import EtherValue, get_trusted_setup_dir, hex_extend_32bytes, \
     hex_digest_to_binary_string, digest_to_binary_string, \
     string_list_flatten, encode_single, encode_abi, encrypt, decrypt, \
     int64_to_hex, encode_message_to_bytes, compute_merkle_path
@@ -18,6 +18,11 @@ import json
 from Crypto import Random
 from hashlib import blake2s, sha256
 from typing import Tuple, Dict, List, Iterable, Union, Any, NewType
+
+
+# Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
+# Wei).
+ZETH_PUBLIC_UNIT_VALUE = 1000000000000
 
 
 ZERO_UNITS_HEX = "0000000000000000"
@@ -100,6 +105,10 @@ class JoinsplitInputNote:
         self.note = note
         self.nullifier = nullifier
         self.merkle_location = merkle_location
+
+
+def to_zeth_units(value: EtherValue) -> int:
+    return int(value.wei / ZETH_PUBLIC_UNIT_VALUE)
 
 
 def create_zeth_notes(
@@ -436,8 +445,8 @@ def compute_joinsplit2x2_inputs(
         sender_ask: OwnershipSecretKey,
         output0: Tuple[OwnershipPublicKey, int],
         output1: Tuple[OwnershipPublicKey, int],
-        public_in_value: str,
-        public_out_value: str,
+        public_in_value_zeth_units: int,
+        public_out_value_zeth_units: int,
         sign_pk: SigningPublicKey) -> prover_pb2.ProofInputs:
     """
     Create a ProofInput object for joinsplit parameters
@@ -477,8 +486,8 @@ def compute_joinsplit2x2_inputs(
         mk_root=mk_root,
         js_inputs=js_inputs,
         js_outputs=js_outputs,
-        pub_in_value=public_in_value,
-        pub_out_value=public_out_value,
+        pub_in_value=int64_to_hex(public_in_value_zeth_units),
+        pub_out_value=int64_to_hex(public_out_value_zeth_units),
         h_sig=h_sig.hex(),
         phi=phi)
 
@@ -493,8 +502,8 @@ def get_proof_joinsplit_2_by_2(
         sender_ask: OwnershipSecretKey,
         output0: Tuple[OwnershipPublicKey, int],
         output1: Tuple[OwnershipPublicKey, int],
-        public_in_value: str,
-        public_out_value: str,
+        public_in_value_zeth_units: int,
+        public_out_value_zeth_units: int,
         zksnark: IZKSnarkProvider
 ) -> Tuple[ZethNote, ZethNote, Dict[str, Any], SigningKeyPair]:
     """
@@ -511,8 +520,8 @@ def get_proof_joinsplit_2_by_2(
         sender_ask,
         output0,
         output1,
-        public_in_value,
-        public_out_value,
+        public_in_value_zeth_units,
+        public_out_value_zeth_units,
         signing_keypair.pk)
     proof_obj = prover_client.get_proof(proof_input)
     proof_json = zksnark.parse_proof(proof_obj)
@@ -536,10 +545,10 @@ def zeth_spend(
         sender_ownership_keypair: OwnershipKeyPair,
         sender_eth_address: str,
         inputs: List[Tuple[int, ZethNote]],
-        outputs: List[Tuple[ZethAddressPub, int]],
-        v_in_zeth_units: str,
-        v_out_zeth_units: str,
-        tx_payment_wei: int
+        outputs: List[Tuple[ZethAddressPub, EtherValue]],
+        v_in: EtherValue,
+        v_out: EtherValue,
+        tx_payment: EtherValue
 ) -> contracts.MixResult:
     assert len(inputs) <= constants.JS_INPUTS
     assert len(outputs) <= constants.JS_OUTPUTS
@@ -561,9 +570,11 @@ def zeth_spend(
     dummy_addr_pk = ZethAddressPub(sender_a_pk, dummy_k_pk)
     outputs = \
         outputs + \
-        [(dummy_addr_pk, 0) for _ in range(constants.JS_OUTPUTS - len(outputs))]
+        [(dummy_addr_pk, EtherValue(0))
+         for _ in range(constants.JS_OUTPUTS - len(outputs))]
     outputs_with_a_pk = \
-        [(zeth_addr.a_pk, value) for (zeth_addr, value) in outputs]
+        [(zeth_addr.a_pk, to_zeth_units(value))
+         for (zeth_addr, value) in outputs]
     (output_note1, output_note2, proof_json, signing_keypair) = \
         get_proof_joinsplit_2_by_2(
             prover_client,
@@ -575,8 +586,8 @@ def zeth_spend(
             sender_a_sk,
             outputs_with_a_pk[0],
             outputs_with_a_pk[1],
-            v_in_zeth_units,
-            v_out_zeth_units,
+            to_zeth_units(v_in),
+            to_zeth_units(v_out),
             zksnark)
 
     # Encrypt the notes
@@ -598,7 +609,7 @@ def zeth_spend(
         signing_keypair.pk,
         signature,
         sender_eth_address,
-        tx_payment_wei,
+        tx_payment.wei,
         4000000,
         zksnark)
 

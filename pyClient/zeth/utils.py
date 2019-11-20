@@ -14,11 +14,19 @@ from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Union, Any, cast
 
-# Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
-# Wei).
-ZETH_PUBLIC_UNIT_VALUE = 1000000000000
-
 W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+
+
+class EtherValue:
+    """
+    Representation of some amount of Ether (or any token) in terms of Wei.
+    Disambiguates Ether values from other units such as zeth_units.
+    """
+    def __init__(self, val: Union[str, int, float], units: str = 'ether'):
+        self.wei = W3.toWei(val, units)
+
+    def __str__(self) -> str:
+        return str(self.wei)
 
 
 def encode_single(type_name: str, data: bytes) -> bytes:
@@ -175,10 +183,6 @@ def parse_zksnark_arg() -> str:
     if args.zksnark not in constants.VALID_ZKSNARKS:
         return sys.exit(errors.SNARK_NOT_SUPPORTED)
     return args.zksnark
-
-
-def to_zeth_units(value: Union[str, int, float], unit: str) -> int:
-    return int(Web3.toWei(value, unit) / ZETH_PUBLIC_UNIT_VALUE)
 
 
 def get_zeth_dir() -> str:

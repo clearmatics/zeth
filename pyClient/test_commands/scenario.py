@@ -2,7 +2,7 @@ import zeth.joinsplit as joinsplit
 import zeth.contracts as contracts
 from zeth.prover_client import ProverClient
 from zeth.zksnark import IZKSnarkProvider
-from zeth.utils import to_zeth_units, int64_to_hex, compute_merkle_path
+from zeth.utils import EtherValue, compute_merkle_path
 import test_commands.mock as mock
 import api.util_pb2 as util_pb2
 
@@ -45,8 +45,8 @@ def bob_deposit(
     bob_addr = keystore["Bob"].addr_pk
 
     outputs = [
-        (bob_addr, to_zeth_units(BOB_SPLIT_1_ETH, 'ether')),
-        (bob_addr, to_zeth_units(BOB_SPLIT_2_ETH, 'ether')),
+        (bob_addr, EtherValue(BOB_SPLIT_1_ETH)),
+        (bob_addr, EtherValue(BOB_SPLIT_2_ETH)),
     ]
 
     mk_tree = contracts.get_merkle_tree(mixer_instance)
@@ -61,9 +61,9 @@ def bob_deposit(
         bob_eth_address,
         [],
         outputs,
-        int64_to_hex(to_zeth_units(BOB_DEPOSIT_ETH, 'ether')),
-        ZERO_UNITS_HEX,
-        W3.toWei(BOB_DEPOSIT_ETH, 'ether'))
+        EtherValue(BOB_DEPOSIT_ETH),
+        EtherValue(0),
+        EtherValue(BOB_DEPOSIT_ETH))
 
 
 def bob_to_charlie(
@@ -84,11 +84,9 @@ def bob_to_charlie(
     bob_addr = keystore["Bob"].addr_pk
 
     # Coin for Bob (change)
-    value_to_bob = to_zeth_units(BOB_TO_CHARLIE_ETH, 'ether')
-    output0 = (bob_addr, value_to_bob)
+    output0 = (bob_addr, EtherValue(BOB_TO_CHARLIE_ETH))
     # Coin for Charlie
-    value_to_charlie = to_zeth_units(BOB_TO_CHARLIE_CHANGE_ETH, 'ether')
-    output1 = (charlie_addr, value_to_charlie)
+    output1 = (charlie_addr, EtherValue(BOB_TO_CHARLIE_CHANGE_ETH))
 
     # Send the tx
     mk_tree = contracts.get_merkle_tree(mixer_instance)
@@ -103,9 +101,9 @@ def bob_to_charlie(
         bob_eth_address,
         [input1],
         [output0, output1],
-        ZERO_UNITS_HEX,
-        ZERO_UNITS_HEX,
-        W3.toWei(1, 'wei'))
+        EtherValue(0),
+        EtherValue(0),
+        EtherValue(1, 'wei'))
 
 
 def charlie_withdraw(
@@ -138,10 +136,10 @@ def charlie_withdraw(
         charlie_ownership_key,
         charlie_eth_address,
         [input1],
-        [(charlie_pk, to_zeth_units(CHARLIE_WITHDRAW_CHANGE_ETH, 'ether'))],
-        ZERO_UNITS_HEX,
-        int64_to_hex(to_zeth_units(CHARLIE_WITHDRAW_ETH, 'ether')),
-        W3.toWei(1, 'wei'))
+        [(charlie_pk, EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH))],
+        EtherValue(0),
+        EtherValue(CHARLIE_WITHDRAW_ETH),
+        EtherValue(1, 'wei'))
 
 
 def charlie_double_withdraw(
@@ -171,8 +169,8 @@ def charlie_double_withdraw(
     input2 = joinsplit.get_dummy_input_and_address(charlie_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
-    note1_value = to_zeth_units(CHARLIE_WITHDRAW_CHANGE_ETH, 'ether')
-    v_out = to_zeth_units(CHARLIE_WITHDRAW_ETH, 'ether')
+    note1_value = joinsplit.to_zeth_units(EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH))
+    v_out = EtherValue(CHARLIE_WITHDRAW_ETH)
 
     (output_note1, output_note2, proof_json, signing_keypair) = \
         joinsplit.get_proof_joinsplit_2_by_2(
@@ -185,8 +183,8 @@ def charlie_double_withdraw(
             charlie_ask,  # sender
             (charlie_apk, note1_value),  # recipient1
             (charlie_apk, 0),  # recipient2
-            ZERO_UNITS_HEX,  # v_in
-            int64_to_hex(v_out),  # v_out
+            joinsplit.to_zeth_units(EtherValue(0)),  # v_in
+            joinsplit.to_zeth_units(v_out),  # v_out
             zksnark
         )
 
