@@ -1,5 +1,5 @@
-from zeth.joinsplit import \
-    EncryptionKeyPair, ZethAddress, gen_ownership_keypair
+from zeth.joinsplit import EncryptionKeyPair, ZethAddress
+from zeth.ownership import gen_ownership_keypair
 from zeth.utils import get_private_key_from_bytes, get_public_key_from_bytes
 
 from typing import Dict, List

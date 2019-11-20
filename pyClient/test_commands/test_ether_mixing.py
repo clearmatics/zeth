@@ -76,24 +76,24 @@ def main() -> None:
         zksnark
     )
 
+    zeth_client = zeth.joinsplit.ZethClient(
+        prover_client, mixer_instance, zksnark)
+
     print("[INFO] 4. Running tests (asset mixed: Ether)...")
     print("- Initial balances: ")
     print_balances(
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        mixer_instance.address
-    )
+        mixer_instance.address)
 
     # Bob deposits ETH, split in 2 notes on the mixer
     result_deposit_bob_to_bob = scenario.bob_deposit(
-        prover_client,
-        mixer_instance,
+        zeth_client,
         initial_root,
         bob_eth_address,
         keystore,
-        mk_tree_depth,
-        zksnark
+        mk_tree_depth
     )
     new_merkle_root_bob_to_bob = result_deposit_bob_to_bob.new_merkle_root
 
@@ -127,15 +127,12 @@ def main() -> None:
 
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
-        prover_client,
-        mixer_instance,
+        zeth_client,
         new_merkle_root_bob_to_bob,
         bob_to_charlie,
         bob_eth_address,
         keystore,
-        mk_tree_depth,
-        zksnark
-    )
+        mk_tree_depth)
 
     new_merkle_root_bob_to_charlie = \
         result_transfer_bob_to_charlie.new_merkle_root
@@ -144,15 +141,12 @@ def main() -> None:
     result_double_spending = None
     try:
         result_double_spending = scenario.bob_to_charlie(
-            prover_client,
-            mixer_instance,
+            zeth_client,
             new_merkle_root_bob_to_bob,
             bob_to_charlie,
             bob_eth_address,
             keystore,
-            mk_tree_depth,
-            zksnark
-        )
+            mk_tree_depth)
     except Exception as e:
         print(f"Bob's double spending successfully rejected! (msg: {e})")
     assert(result_double_spending is None), \
@@ -178,15 +172,12 @@ def main() -> None:
         result_transfer_bob_to_charlie.encrypted_notes[1][0]
 
     result_charlie_withdrawal = scenario.charlie_withdraw(
-        prover_client,
-        mixer_instance,
+        zeth_client,
         new_merkle_root_bob_to_charlie,
         input_charlie_withdraw,
         charlie_eth_address,
         keystore,
-        mk_tree_depth,
-        zksnark
-    )
+        mk_tree_depth)
     new_merkle_root_charlie_withdrawal = result_charlie_withdrawal.new_merkle_root
     print("Balances after Charlie's withdrawal: ")
     print_balances(
@@ -202,15 +193,12 @@ def main() -> None:
         # New commitments are added in the tree at each withdraw so we
         # recompiute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
-            prover_client,
-            mixer_instance,
+            zeth_client,
             new_merkle_root_charlie_withdrawal,
             input_charlie_withdraw,
             charlie_eth_address,
             keystore,
-            mk_tree_depth,
-            zksnark
-        )
+            mk_tree_depth)
     except Exception as e:
         print(f"Charlie's double spending successfully rejected! (msg: {e})")
     print("Balances after Charlie's double withdrawal attempt: ")

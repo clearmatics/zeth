@@ -1,13 +1,11 @@
 import zeth.joinsplit as joinsplit
 import zeth.contracts as contracts
-from zeth.prover_client import ProverClient
-from zeth.zksnark import IZKSnarkProvider
 from zeth.utils import EtherValue, compute_merkle_path
 import test_commands.mock as mock
 import api.util_pb2 as util_pb2
 
 from web3 import Web3, HTTPProvider  # type: ignore
-from typing import List, Tuple, Any
+from typing import List, Tuple
 
 W3 = Web3(HTTPProvider("http://localhost:8545"))
 
@@ -30,13 +28,11 @@ def dump_merkle_tree(mk_tree: List[bytes]) -> None:
 
 
 def bob_deposit(
-        prover_client: ProverClient,
-        mixer_instance: Any,
+        zeth_client: joinsplit.ZethClient,
         mk_root: str,
         bob_eth_address: str,
         keystore: mock.KeyStore,
-        mk_tree_depth: int,
-        zksnark: IZKSnarkProvider) -> contracts.MixResult:
+        mk_tree_depth: int) -> contracts.MixResult:
     print(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and splits into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
@@ -49,14 +45,11 @@ def bob_deposit(
         (bob_addr, EtherValue(BOB_SPLIT_2_ETH)),
     ]
 
-    mk_tree = contracts.get_merkle_tree(mixer_instance)
-    return joinsplit.zeth_spend(
-        prover_client,
-        mixer_instance,
+    mk_tree = zeth_client.get_merkle_tree()
+    return zeth_client.joinsplit(
         mk_root,
         mk_tree,
         mk_tree_depth,
-        zksnark,
         joinsplit.OwnershipKeyPair(bob_ask, bob_addr.a_pk),
         bob_eth_address,
         [],
@@ -67,14 +60,12 @@ def bob_deposit(
 
 
 def bob_to_charlie(
-        prover_client: ProverClient,
-        mixer_instance: Any,
+        zeth_client: joinsplit.ZethClient,
         mk_root: str,
         input1: Tuple[int, util_pb2.ZethNote],
         bob_eth_address: str,
         keystore: mock.KeyStore,
-        mk_tree_depth: int,
-        zksnark: IZKSnarkProvider) -> contracts.MixResult:
+        mk_tree_depth: int) -> contracts.MixResult:
     print(
         f"=== Bob transfers {BOB_TO_CHARLIE_ETH}ETH to Charlie from his funds " +
         "on the mixer ===")
@@ -89,14 +80,11 @@ def bob_to_charlie(
     output1 = (charlie_addr, EtherValue(BOB_TO_CHARLIE_CHANGE_ETH))
 
     # Send the tx
-    mk_tree = contracts.get_merkle_tree(mixer_instance)
-    return joinsplit.zeth_spend(
-        prover_client,
-        mixer_instance,
+    mk_tree = zeth_client.get_merkle_tree()
+    return zeth_client.joinsplit(
         mk_root,
         mk_tree,
         mk_tree_depth,
-        zksnark,
         joinsplit.OwnershipKeyPair(bob_ask, bob_addr.a_pk),
         bob_eth_address,
         [input1],
@@ -107,32 +95,27 @@ def bob_to_charlie(
 
 
 def charlie_withdraw(
-        prover_client: ProverClient,
-        mixer_instance: Any,
+        zeth_client: joinsplit.ZethClient,
         mk_root: str,
         input1: Tuple[int, util_pb2.ZethNote],
         charlie_eth_address: str,
         keystore: mock.KeyStore,
-        mk_tree_depth: int,
-        zksnark: IZKSnarkProvider) -> contracts.MixResult:
+        mk_tree_depth: int) -> contracts.MixResult:
     print(
         f" === Charlie withdraws {CHARLIE_WITHDRAW_ETH}ETH from his funds " +
         "on the Mixer ===")
 
-    mk_tree = contracts.get_merkle_tree(mixer_instance)
+    mk_tree = zeth_client.get_merkle_tree()
     charlie_pk = keystore["Charlie"].addr_pk
     charlie_apk = charlie_pk.a_pk
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
     charlie_ownership_key = \
         joinsplit.OwnershipKeyPair(charlie_ask, charlie_apk)
 
-    return joinsplit.zeth_spend(
-        prover_client,
-        mixer_instance,
+    return zeth_client.joinsplit(
         mk_root,
         mk_tree,
         mk_tree_depth,
-        zksnark,
         charlie_ownership_key,
         charlie_eth_address,
         [input1],
@@ -143,14 +126,12 @@ def charlie_withdraw(
 
 
 def charlie_double_withdraw(
-        prover_client: ProverClient,
-        mixer_instance: Any,
+        zeth_client: joinsplit.ZethClient,
         mk_root: str,
         input1: Tuple[int, util_pb2.ZethNote],
         charlie_eth_address: str,
         keystore: mock.KeyStore,
-        mk_tree_depth: int,
-        zksnark: IZKSnarkProvider) -> contracts.MixResult:
+        mk_tree_depth: int) -> contracts.MixResult:
     """
     Charlie tries to carry out a double spending by modifying the value of the
     nullifier of the previous payment
@@ -162,7 +143,7 @@ def charlie_double_withdraw(
     charlie_apk = keystore["Charlie"].addr_pk.a_pk
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
 
-    mk_byte_tree = contracts.get_merkle_tree(mixer_instance)
+    mk_byte_tree = zeth_client.get_merkle_tree()
     mk_path1 = compute_merkle_path(input1[0], mk_tree_depth, mk_byte_tree)
 
     # Create the an additional dummy input for the JoinSplit
@@ -173,8 +154,7 @@ def charlie_double_withdraw(
     v_out = EtherValue(CHARLIE_WITHDRAW_ETH)
 
     (output_note1, output_note2, proof_json, signing_keypair) = \
-        joinsplit.get_proof_joinsplit_2_by_2(
-            prover_client,
+        zeth_client.get_proof_joinsplit_2_by_2(
             mk_root,
             input1,
             mk_path1,
@@ -184,8 +164,7 @@ def charlie_double_withdraw(
             (charlie_apk, note1_value),  # recipient1
             (charlie_apk, 0),  # recipient2
             joinsplit.to_zeth_units(EtherValue(0)),  # v_in
-            joinsplit.to_zeth_units(v_out),  # v_out
-            zksnark
+            joinsplit.to_zeth_units(v_out)  # v_out
         )
 
     # ### ATTACK BLOCK
@@ -211,8 +190,7 @@ def charlie_double_withdraw(
     joinsplit_sig = joinsplit.sign_mix_tx(
         sender_eph_pk, ciphertexts, proof_json, signing_keypair)
 
-    return contracts.mix(
-        mixer_instance,
+    return zeth_client.mix(
         sender_eph_pk,
         ciphertexts[0],
         ciphertexts[1],
@@ -223,6 +201,4 @@ def charlie_double_withdraw(
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
         W3.toWei(1, 'wei'),
-        4000000,
-        zksnark
-    )
+        4000000)

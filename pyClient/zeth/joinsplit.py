@@ -1,14 +1,16 @@
 from __future__ import annotations
 import zeth.contracts as contracts
 import zeth.constants as constants
+from zeth.ownership import OwnershipPublicKey, OwnershipSecretKey, \
+    OwnershipKeyPair, ownership_key_as_hex
 from zeth.encryption import EncryptionPublicKey, EncryptionSecretKey, \
     EncryptionKeyPair, generate_encryption_keypair, encode_encryption_public_key
 from zeth.signing import SigningPublicKey, SigningKeyPair, gen_signing_keypair
 from zeth.zksnark import IZKSnarkProvider, GenericProof
 from zeth.utils import EtherValue, get_trusted_setup_dir, hex_extend_32bytes, \
-    hex_digest_to_binary_string, digest_to_binary_string, \
-    string_list_flatten, encode_single, encode_abi, encrypt, decrypt, \
-    int64_to_hex, encode_message_to_bytes, compute_merkle_path
+    hex_digest_to_binary_string, digest_to_binary_string, encode_abi, encrypt, \
+    string_list_flatten, encode_single, decrypt, int64_to_hex, \
+    encode_message_to_bytes, compute_merkle_path, field_elements_to_hex
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 import api.prover_pb2 as prover_pb2
@@ -17,7 +19,7 @@ import os
 import json
 from Crypto import Random
 from hashlib import blake2s, sha256
-from typing import Tuple, Dict, List, Iterable, Union, Any, NewType
+from typing import Tuple, Dict, List, Iterable, Union, Any
 
 
 # Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
@@ -26,31 +28,6 @@ ZETH_PUBLIC_UNIT_VALUE = 1000000000000
 
 
 ZERO_UNITS_HEX = "0000000000000000"
-
-
-# Secret key for proving ownership
-OwnershipSecretKey = NewType('OwnershipSecretKey', bytes)
-
-
-# Public key for proving owenership
-OwnershipPublicKey = NewType('OwnershipPublicKey', bytes)
-
-
-class OwnershipKeyPair:
-    """
-    Key-pair for ownership proof
-    """
-    def __init__(self, a_sk: OwnershipSecretKey, a_pk: OwnershipPublicKey):
-        self.a_pk: OwnershipPublicKey = a_pk
-        self.a_sk: OwnershipSecretKey = a_sk
-
-
-def ownership_key_as_hex(a_sk: bytes) -> str:
-    """
-    Convert either a secret or public ownership key to hex representation of the
-    underlying 32-byte object.
-    """
-    return hex_extend_32bytes(a_sk.hex())
 
 
 class ZethAddressPub:
@@ -108,6 +85,9 @@ class JoinsplitInputNote:
 
 
 def to_zeth_units(value: EtherValue) -> int:
+    """
+    Convert a quantity of ether / token to Zeth units
+    """
     return int(value.wei / ZETH_PUBLIC_UNIT_VALUE)
 
 
@@ -124,7 +104,7 @@ def create_zeth_notes(
     (recipient0, value0) = output0
     (recipient1, value1) = output1
 
-    rho0 = compute_rho_i(phi, hsig, 0)
+    rho0 = _compute_rho_i(phi, hsig, 0)
     trap_r0 = trap_r_randomness()
     note0 = ZethNote(
         apk=ownership_key_as_hex(recipient0),
@@ -132,7 +112,7 @@ def create_zeth_notes(
         rho=rho0.hex(),
         trap_r=trap_r0)
 
-    rho1 = compute_rho_i(phi, hsig, 1)
+    rho1 = _compute_rho_i(phi, hsig, 1)
     trap_r1 = trap_r_randomness()
     note1 = ZethNote(
         apk=ownership_key_as_hex(recipient1),
@@ -212,50 +192,6 @@ def compute_nullifier(
     return blake_hash.digest()
 
 
-def compute_rho_i(phi: str, hsig: bytes, i: int) -> bytes:
-    """
-    Returns rho_i = blake2s(0 || i || 10 || [phi]_252 || hsig)
-    See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
-    """
-    # [SANITY CHECK] make sure i is in the interval [0, 1]
-    # Since we only allow for 2 input notes in the joinsplit
-    assert i < constants.JS_INPUTS
-
-    blake_hash = blake2s()
-
-    # Append PRF^{rho} tag to a_sk
-    binary_phi = hex_digest_to_binary_string(phi)
-    first_252bits_phi = binary_phi[:252]
-    left_leg_bin = "0" + str(i) + "10" + first_252bits_phi
-    blake_hash.update(int(left_leg_bin, 2).to_bytes(32, byteorder='big'))
-    blake_hash.update(hsig)
-    return blake_hash.digest()
-
-
-def _derive_a_pk(a_sk: OwnershipSecretKey) -> OwnershipPublicKey:
-    """
-    Returns a_pk = blake2s(1100 || [a_sk]_252 || 0^256)
-    """
-    binary_a_sk = digest_to_binary_string(a_sk)
-    first_252bits_ask = binary_a_sk[:252]
-    left_leg_bin = "1100" + first_252bits_ask
-    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
-    zeroes = "0000000000000000000000000000000000000000000000000000000000000000"
-    a_pk = blake2s(
-        encode_abi(
-            ["bytes32", "bytes32"],
-            [bytes.fromhex(left_leg_hex), bytes.fromhex(zeroes)])
-    ).digest()
-    return OwnershipPublicKey(a_pk)
-
-
-def gen_ownership_keypair() -> OwnershipKeyPair:
-    a_sk = OwnershipSecretKey(Random.get_random_bytes(32))
-    a_pk = _derive_a_pk(a_sk)
-    keypair = OwnershipKeyPair(a_sk, a_pk)
-    return keypair
-
-
 def create_joinsplit_input(
         merkle_path: List[str],
         address: int,
@@ -322,46 +258,16 @@ def encode_pub_input_to_hash(message_list: List[Union[str, List[str]]]) -> bytes
 
     # Encode the h_iS
     for i in range(
-        1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + 1),
-        1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + 1 +
-               constants.JS_INPUTS),
-        2
+            1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + 1),
+            1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + 1 +
+                   constants.JS_INPUTS),
+            2
     ):
         h_i = field_elements_to_hex(messages[i], messages[i+1])
         h_i_encoded = encode_single("bytes32", bytes.fromhex(h_i))
         input_sha += h_i_encoded
 
     return input_sha
-
-
-def field_elements_to_hex(longfield: str, shortfield: str) -> str:
-    """
-    Encode a 256 bit array written over two field elements into a single 32
-    byte long hex
-
-    if A= x0 ... x255 and B = y0 ... y7, returns R = hex(x255 ... x3 || y7 y6 y5)
-    """
-    # Convert longfield into a 253 bit long array
-    long_bit = "{0:b}".format(int(longfield, 16))
-    if len(long_bit) > 253:
-        long_bit = long_bit[:253]
-    long_bit = "0"*(253-len(long_bit)) + long_bit
-
-    # Convert shortfield into a 3 bit long array
-    short_bit = "{0:b}".format(int(shortfield, 16))
-    if len(short_bit) < 3:
-        short_bit = "0"*(3-len(short_bit)) + short_bit
-
-    # Reverse the bit arrays
-    reversed_long = long_bit[::-1]
-    reversed_short = short_bit[::-1]
-
-    # Fill the result 256 bit long array
-    res = reversed_long[:253]
-    res += reversed_short[:3]
-    res = hex_extend_32bytes("{0:0>4X}".format(int(res, 2)))
-
-    return res
 
 
 def _sign(
@@ -492,126 +398,158 @@ def compute_joinsplit2x2_inputs(
         phi=phi)
 
 
-def get_proof_joinsplit_2_by_2(
-        prover_client: ProverClient,
-        mk_root: str,
-        input0: Tuple[int, ZethNote],
-        mk_path0: List[str],
-        input1: Tuple[int, ZethNote],
-        mk_path1: List[str],
-        sender_ask: OwnershipSecretKey,
-        output0: Tuple[OwnershipPublicKey, int],
-        output1: Tuple[OwnershipPublicKey, int],
-        public_in_value_zeth_units: int,
-        public_out_value_zeth_units: int,
-        zksnark: IZKSnarkProvider
-) -> Tuple[ZethNote, ZethNote, Dict[str, Any], SigningKeyPair]:
+class ZethClient:
     """
-    Query the prover server to generate a proof for the given joinsplit
-    parameters.
+    Context for zeth operations
     """
-    signing_keypair = gen_signing_keypair()
-    proof_input = compute_joinsplit2x2_inputs(
-        mk_root,
-        input0,
-        mk_path0,
-        input1,
-        mk_path1,
-        sender_ask,
-        output0,
-        output1,
-        public_in_value_zeth_units,
-        public_out_value_zeth_units,
-        signing_keypair.pk)
-    proof_obj = prover_client.get_proof(proof_input)
-    proof_json = zksnark.parse_proof(proof_obj)
+    def __init__(
+            self,
+            prover_client: ProverClient,
+            mixer_instance: Any,
+            zksnark: IZKSnarkProvider):
+        self._prover_client = prover_client
+        self._mixer_instance = mixer_instance
+        self._zksnark = zksnark
 
-    # We return the zeth notes to be able to spend them later
-    # and the proof used to create them
-    return (
-        proof_input.js_outputs[0],  # pylint: disable=no-member
-        proof_input.js_outputs[1],  # pylint: disable=no-member
-        proof_json,
-        signing_keypair)
+    def get_merkle_tree(self) -> List[bytes]:
+        return contracts.get_merkle_tree(self._mixer_instance)
 
+    def joinsplit(
+            self,
+            mk_root: str,
+            mk_tree: List[bytes],
+            mk_tree_depth: int,
+            sender_ownership_keypair: OwnershipKeyPair,
+            sender_eth_address: str,
+            inputs: List[Tuple[int, ZethNote]],
+            outputs: List[Tuple[ZethAddressPub, EtherValue]],
+            v_in: EtherValue,
+            v_out: EtherValue,
+            tx_payment: EtherValue) -> contracts.MixResult:
+        assert len(inputs) <= constants.JS_INPUTS
+        assert len(outputs) <= constants.JS_OUTPUTS
 
-def zeth_spend(
-        prover_client: ProverClient,
-        mixer_instance: Any,
-        mk_root: str,
-        mk_tree: List[bytes],
-        mk_tree_depth: int,
-        zksnark: IZKSnarkProvider,
-        sender_ownership_keypair: OwnershipKeyPair,
-        sender_eth_address: str,
-        inputs: List[Tuple[int, ZethNote]],
-        outputs: List[Tuple[ZethAddressPub, EtherValue]],
-        v_in: EtherValue,
-        v_out: EtherValue,
-        tx_payment: EtherValue
-) -> contracts.MixResult:
-    assert len(inputs) <= constants.JS_INPUTS
-    assert len(outputs) <= constants.JS_OUTPUTS
+        sender_a_sk = sender_ownership_keypair.a_sk
+        sender_a_pk = sender_ownership_keypair.a_pk
+        inputs = \
+            inputs + \
+            [get_dummy_input_and_address(sender_a_pk)
+             for _ in range(constants.JS_INPUTS - len(inputs))]
+        mk_paths = \
+            [compute_merkle_path(addr, mk_tree_depth, mk_tree)
+             for addr, _ in inputs]
 
-    sender_a_sk = sender_ownership_keypair.a_sk
-    sender_a_pk = sender_ownership_keypair.a_pk
-    inputs = \
-        inputs + \
-        [get_dummy_input_and_address(sender_a_pk)
-         for _ in range(constants.JS_INPUTS - len(inputs))]
-    mk_paths = \
-        [compute_merkle_path(addr, mk_tree_depth, mk_tree)
-         for addr, _ in inputs]
+        # Generate output notes and proof.  Dummy outputs are constructed with
+        # value 0 to an invalid ZethAddressPub, formed from the senders
+        # a_pk, and an ephemeral k_pk.
+        dummy_k_pk = generate_encryption_keypair().k_pk
+        dummy_addr_pk = ZethAddressPub(sender_a_pk, dummy_k_pk)
+        outputs = \
+            outputs + \
+            [(dummy_addr_pk, EtherValue(0))
+             for _ in range(constants.JS_OUTPUTS - len(outputs))]
+        outputs_with_a_pk = \
+            [(zeth_addr.a_pk, to_zeth_units(value))
+             for (zeth_addr, value) in outputs]
+        (output_note1, output_note2, proof_json, signing_keypair) = \
+            self.get_proof_joinsplit_2_by_2(
+                mk_root,
+                inputs[0],
+                mk_paths[0],
+                inputs[1],
+                mk_paths[1],
+                sender_a_sk,
+                outputs_with_a_pk[0],
+                outputs_with_a_pk[1],
+                to_zeth_units(v_in),
+                to_zeth_units(v_out))
 
-    # Generate output notes and proof.  Dummy outputs are constructed with value
-    # 0 to an invalid JoinsplitPublicKey, formed from the senders a_pk, and an
-    # ephemeral k_pk.
-    dummy_k_pk = generate_encryption_keypair().k_pk
-    dummy_addr_pk = ZethAddressPub(sender_a_pk, dummy_k_pk)
-    outputs = \
-        outputs + \
-        [(dummy_addr_pk, EtherValue(0))
-         for _ in range(constants.JS_OUTPUTS - len(outputs))]
-    outputs_with_a_pk = \
-        [(zeth_addr.a_pk, to_zeth_units(value))
-         for (zeth_addr, value) in outputs]
-    (output_note1, output_note2, proof_json, signing_keypair) = \
-        get_proof_joinsplit_2_by_2(
-            prover_client,
+        # Encrypt the notes
+        outputs_and_notes = zip(outputs, [output_note1, output_note2])
+        output_notes_with_k_pk = \
+            [(note, zeth_addr.k_pk)
+             for ((zeth_addr, _), note) in outputs_and_notes]
+        (sender_eph_pk, ciphertexts) = encrypt_notes(output_notes_with_k_pk)
+
+        # Sign
+        signature = \
+            sign_mix_tx(sender_eph_pk, ciphertexts, proof_json, signing_keypair)
+
+        return self.mix(
+            sender_eph_pk,
+            ciphertexts[0],
+            ciphertexts[1],
+            proof_json,
+            signing_keypair.pk,
+            signature,
+            sender_eth_address,
+            tx_payment.wei,
+            4000000)
+
+    def mix(
+            self,
+            pk_sender: EncryptionPublicKey,
+            ciphertext1: bytes,
+            ciphertext2: bytes,
+            parsed_proof: GenericProof,
+            vk: SigningPublicKey,
+            sigma: int,
+            sender_address: str,
+            wei_pub_value: int,
+            call_gas: int) -> contracts.MixResult:
+        return contracts.mix(
+            self._mixer_instance,
+            pk_sender,
+            ciphertext1,
+            ciphertext2,
+            parsed_proof,
+            vk,
+            sigma,
+            sender_address,
+            wei_pub_value,
+            call_gas,
+            self._zksnark)
+
+    def get_proof_joinsplit_2_by_2(
+            self,
+            mk_root: str,
+            input0: Tuple[int, ZethNote],
+            mk_path0: List[str],
+            input1: Tuple[int, ZethNote],
+            mk_path1: List[str],
+            sender_ask: OwnershipSecretKey,
+            output0: Tuple[OwnershipPublicKey, int],
+            output1: Tuple[OwnershipPublicKey, int],
+            public_in_value_zeth_units: int,
+            public_out_value_zeth_units: int
+    ) -> Tuple[ZethNote, ZethNote, Dict[str, Any], SigningKeyPair]:
+        """
+        Query the prover server to generate a proof for the given joinsplit
+        parameters.
+        """
+        signing_keypair = gen_signing_keypair()
+        proof_input = compute_joinsplit2x2_inputs(
             mk_root,
-            inputs[0],
-            mk_paths[0],
-            inputs[1],
-            mk_paths[1],
-            sender_a_sk,
-            outputs_with_a_pk[0],
-            outputs_with_a_pk[1],
-            to_zeth_units(v_in),
-            to_zeth_units(v_out),
-            zksnark)
+            input0,
+            mk_path0,
+            input1,
+            mk_path1,
+            sender_ask,
+            output0,
+            output1,
+            public_in_value_zeth_units,
+            public_out_value_zeth_units,
+            signing_keypair.pk)
+        proof_obj = self._prover_client.get_proof(proof_input)
+        proof_json = self._zksnark.parse_proof(proof_obj)
 
-    # Encrypt the notes
-    outputs_and_notes = zip(outputs, [output_note1, output_note2])
-    output_notes_with_k_pk = \
-        [(note, zeth_addr.k_pk) for ((zeth_addr, _), note) in outputs_and_notes]
-    (sender_eph_pk, ciphertexts) = encrypt_notes(output_notes_with_k_pk)
-
-    # Sign
-    signature = \
-        sign_mix_tx(sender_eph_pk, ciphertexts, proof_json, signing_keypair)
-
-    return contracts.mix(
-        mixer_instance,
-        sender_eph_pk,
-        ciphertexts[0],
-        ciphertexts[1],
-        proof_json,
-        signing_keypair.pk,
-        signature,
-        sender_eth_address,
-        tx_payment.wei,
-        4000000,
-        zksnark)
+        # We return the zeth notes to be able to spend them later
+        # and the proof used to create them
+        return (
+            proof_input.js_outputs[0],  # pylint: disable=no-member
+            proof_input.js_outputs[1],  # pylint: disable=no-member
+            proof_json,
+            signing_keypair)
 
 
 def encrypt_notes(
@@ -710,6 +648,26 @@ def trap_r_randomness() -> str:
     Compute randomness "r" as 48 random bytes
     """
     return bytes(Random.get_random_bytes(48)).hex()
+
+
+def _compute_rho_i(phi: str, hsig: bytes, i: int) -> bytes:
+    """
+    Returns rho_i = blake2s(0 || i || 10 || [phi]_252 || hsig)
+    See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
+    """
+    # [SANITY CHECK] make sure i is in the interval [0, JS_INPUTS]
+    # Since we only allow for 2 input notes in the joinsplit
+    assert i < constants.JS_INPUTS
+
+    blake_hash = blake2s()
+
+    # Append PRF^{rho} tag to a_sk
+    binary_phi = hex_digest_to_binary_string(phi)
+    first_252bits_phi = binary_phi[:252]
+    left_leg_bin = "0" + str(i) + "10" + first_252bits_phi
+    blake_hash.update(int(left_leg_bin, 2).to_bytes(32, byteorder='big'))
+    blake_hash.update(hsig)
+    return blake_hash.digest()
 
 
 def _h_sig_randomness() -> bytes:
