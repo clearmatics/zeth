@@ -259,6 +259,12 @@ int main(int argc, char **argv)
     po::options_description options("");
     options.add_options()(
         "keypair,k", po::value<std::string>(), "file to load keypair from");
+#ifdef DEBUG
+    options.add_options()(
+        "jr1cs,j",
+        po::value<boost::filesystem::path>(),
+        "file in which to export the r1cs in json format");
+#endif
 
     auto usage = [&]() {
         std::cout << "Usage:"
@@ -270,6 +276,9 @@ int main(int argc, char **argv)
     };
 
     std::string keypair_file;
+#ifdef DEBUG
+    boost::filesystem::path jr1cs_file;
+#endif
     try {
         po::variables_map vm;
         po::store(
@@ -281,6 +290,11 @@ int main(int argc, char **argv)
         if (vm.count("keypair")) {
             keypair_file = vm["keypair"].as<std::string>();
         }
+#ifdef DEBUG
+        if (vm.count("jr1cs")) {
+            jr1cs_file = vm["jr1cs"].as<boost::filesystem::path>();
+        }
+#endif
     } catch (po::error &error) {
         std::cerr << " ERROR: " << error.what() << std::endl;
         usage();
@@ -288,7 +302,7 @@ int main(int argc, char **argv)
     }
 
     // We inititalize the curve parameters here
-    std::cout << "[DEBUG] Init params" << std::endl;
+    std::cout << "[INFO] Init params" << std::endl;
     ppT::init_public_params();
 
     libzeth::circuit_wrapper<
@@ -302,7 +316,7 @@ int main(int argc, char **argv)
     keyPairT<ppT> keypair = [&keypair_file, &prover]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
-            std::cout << "[DEBUG] Loading keypair: " << keypair_file
+            std::cout << "[INFO] Loading keypair: " << keypair_file
                       << std::endl;
             return load_keypair(keypair_file);
 #else
@@ -312,12 +326,19 @@ int main(int argc, char **argv)
 #endif
         }
 
-        std::cout << "[DEBUG] Generate new keypair" << std::endl;
+        std::cout << "[INFO] Generate new keypair" << std::endl;
         return prover.generate_trusted_setup();
     }();
 
-    std::cout << "[DEBUG] Setup successful, starting the server..."
-              << std::endl;
+#ifdef DEBUG
+    // Run only if the flag is set
+    if (jr1cs_file != "") {
+        std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
+        prover.dump_constraint_system(jr1cs_file);
+    }
+#endif
+
+    std::cout << "[INFO] Setup successful, starting the server..." << std::endl;
     RunServer(prover, keypair);
     return 0;
 }

@@ -33,6 +33,26 @@ keyPairT<ppT> circuit_wrapper<
     return keypair;
 }
 
+#ifdef DEBUG
+template<
+    typename FieldT,
+    typename HashT,
+    typename HashTreeT,
+    typename ppT,
+    size_t NumInputs,
+    size_t NumOutputs>
+void circuit_wrapper<FieldT, HashT, HashTreeT, ppT, NumInputs, NumOutputs>::
+    dump_constraint_system(boost::filesystem::path file_path) const
+{
+    libsnark::protoboard<FieldT> pb;
+    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
+    g.generate_r1cs_constraints();
+
+    // Write the constraint system in the default location
+    r1cs_to_json<ppT>(pb, file_path);
+}
+#endif
+
 template<
     typename FieldT,
     typename HashT,

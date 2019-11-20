@@ -2,8 +2,10 @@
 // Content taken and adapted from:
 // wraplibsnark.cpp (originally written by Jacob Eberhardt and Dennis Kuhnert)
 
-#ifndef __LIBSNARK_HELPERS_HPP__
-#define __LIBSNARK_HELPERS_HPP__
+#ifndef __ZETH_LIBSNARK_HELPERS_HPP__
+#define __ZETH_LIBSNARK_HELPERS_HPP__
+
+#include "libsnark_helpers/debug_helpers.hpp"
 
 #include <boost/filesystem.hpp>
 #include <cassert>
@@ -18,6 +20,7 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
+
 // Contains required interfaces and types (keypair, proof, generator, prover,
 // verifier)
 #include "extended_proof.hpp"
@@ -50,29 +53,14 @@ template<typename ppT>
 void write_setup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir = "");
 
 template<typename ppT>
-void r1cs_constraints_to_json(
-    libsnark::linear_combination<libff::Fr<ppT>> constraints,
-    boost::filesystem::path path = "");
-template<typename ppT>
 void fill_stringstream_with_json_constraints(
     libsnark::linear_combination<libff::Fr<ppT>> constraints,
     std::stringstream &ss);
 template<typename ppT>
-void array_to_json(
-    libsnark::protoboard<libff::Fr<ppT>> pb,
-    uint input_variables,
-    boost::filesystem::path path = "");
-template<typename ppT>
 void r1cs_to_json(
-    libsnark::protoboard<libff::Fr<ppT>> pb,
-    uint input_variables,
-    boost::filesystem::path path = "");
-template<typename ppT>
-void primaryInputToJson(
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> input,
-    boost::filesystem::path = "");
+    libsnark::protoboard<libff::Fr<ppT>> pb, boost::filesystem::path path = "");
 
 } // namespace libzeth
 #include "libsnark_helpers/libsnark_helpers.tcc"
 
-#endif
+#endif // __ZETH_LIBSNARK_HELPERS_HPP__
