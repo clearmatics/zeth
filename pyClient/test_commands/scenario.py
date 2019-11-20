@@ -45,8 +45,8 @@ def bob_deposit(
     bob_addr = keystore["Bob"].addr_pk
 
     outputs = [
-        (bob_addr, to_zeth_units(str(BOB_SPLIT_1_ETH), 'ether')),
-        (bob_addr, to_zeth_units(str(BOB_SPLIT_2_ETH), 'ether')),
+        (bob_addr, to_zeth_units(BOB_SPLIT_1_ETH, 'ether')),
+        (bob_addr, to_zeth_units(BOB_SPLIT_2_ETH, 'ether')),
     ]
 
     mk_tree = contracts.get_merkle_tree(mixer_instance)
@@ -61,7 +61,7 @@ def bob_deposit(
         bob_eth_address,
         [],
         outputs,
-        int64_to_hex(to_zeth_units(str(BOB_DEPOSIT_ETH), 'ether')),
+        int64_to_hex(to_zeth_units(BOB_DEPOSIT_ETH, 'ether')),
         ZERO_UNITS_HEX,
         W3.toWei(BOB_DEPOSIT_ETH, 'ether'))
 
@@ -84,10 +84,10 @@ def bob_to_charlie(
     bob_addr = keystore["Bob"].addr_pk
 
     # Coin for Bob (change)
-    value_to_bob = to_zeth_units(str(BOB_TO_CHARLIE_ETH), 'ether')
+    value_to_bob = to_zeth_units(BOB_TO_CHARLIE_ETH, 'ether')
     output0 = (bob_addr, value_to_bob)
     # Coin for Charlie
-    value_to_charlie = to_zeth_units(str(BOB_TO_CHARLIE_CHANGE_ETH), 'ether')
+    value_to_charlie = to_zeth_units(BOB_TO_CHARLIE_CHANGE_ETH, 'ether')
     output1 = (charlie_addr, value_to_charlie)
 
     # Send the tx
@@ -138,9 +138,9 @@ def charlie_withdraw(
         charlie_ownership_key,
         charlie_eth_address,
         [input1],
-        [(charlie_pk, to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether'))],
+        [(charlie_pk, to_zeth_units(CHARLIE_WITHDRAW_CHANGE_ETH, 'ether'))],
         ZERO_UNITS_HEX,
-        int64_to_hex(to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')),
+        int64_to_hex(to_zeth_units(CHARLIE_WITHDRAW_ETH, 'ether')),
         W3.toWei(1, 'wei'))
 
 
@@ -171,8 +171,8 @@ def charlie_double_withdraw(
     input2 = joinsplit.get_dummy_input_and_address(charlie_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
 
-    note1_value = to_zeth_units(str(CHARLIE_WITHDRAW_CHANGE_ETH), 'ether')
-    v_out = to_zeth_units(str(CHARLIE_WITHDRAW_ETH), 'ether')
+    note1_value = to_zeth_units(CHARLIE_WITHDRAW_CHANGE_ETH, 'ether')
+    v_out = to_zeth_units(CHARLIE_WITHDRAW_ETH, 'ether')
 
     (output_note1, output_note2, proof_json, signing_keypair) = \
         joinsplit.get_proof_joinsplit_2_by_2(

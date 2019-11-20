@@ -104,7 +104,7 @@ class JoinsplitInputNote:
 
 def create_zeth_notes(
         phi: str,
-        hsig: str,
+        hsig: bytes,
         output0: Tuple[OwnershipPublicKey, int],
         output1: Tuple[OwnershipPublicKey, int]
 ) -> Tuple[ZethNote, ZethNote]:
@@ -120,7 +120,7 @@ def create_zeth_notes(
     note0 = ZethNote(
         apk=ownership_key_as_hex(recipient0),
         value=int64_to_hex(value0),
-        rho=rho0,
+        rho=rho0.hex(),
         trap_r=trap_r0)
 
     rho1 = compute_rho_i(phi, hsig, 1)
@@ -128,7 +128,7 @@ def create_zeth_notes(
     note1 = ZethNote(
         apk=ownership_key_as_hex(recipient1),
         value=int64_to_hex(value1),
-        rho=rho1,
+        rho=rho1.hex(),
         trap_r=trap_r1)
 
     return note0, note1
@@ -188,44 +188,39 @@ def compute_commitment(zeth_note_grpc_obj: ZethNote) -> str:
 
 def compute_nullifier(
         zeth_note: ZethNote,
-        spending_authority_ask: OwnershipSecretKey) -> str:
+        spending_authority_ask: OwnershipSecretKey) -> bytes:
     """
     Returns nf = blake2s(1110 || [a_sk]_252 || rho)
     """
     binary_ask = digest_to_binary_string(spending_authority_ask)
     first_252bits_ask = binary_ask[:252]
     left_leg_bin = "1110" + first_252bits_ask
-    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
-    nullifier = blake2s(
-        encode_abi(
-            ["bytes32", "bytes32"],
-            [bytes.fromhex(left_leg_hex), bytes.fromhex(zeth_note.rho)])
-    ).hexdigest()
-    return nullifier
+    left_leg = int(left_leg_bin, 2).to_bytes(32, byteorder='little')
+
+    blake_hash = blake2s()
+    blake_hash.update(left_leg)
+    blake_hash.update(bytes.fromhex(zeth_note.rho))
+    return blake_hash.digest()
 
 
-def compute_rho_i(phi: str, hsig: str, i: int) -> str:
+def compute_rho_i(phi: str, hsig: bytes, i: int) -> bytes:
     """
     Returns rho_i = blake2s(0 || i || 10 || [phi]_252 || hsig)
     See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
     """
-
     # [SANITY CHECK] make sure i is in the interval [0, 1]
     # Since we only allow for 2 input notes in the joinsplit
     assert i < constants.JS_INPUTS
+
+    blake_hash = blake2s()
 
     # Append PRF^{rho} tag to a_sk
     binary_phi = hex_digest_to_binary_string(phi)
     first_252bits_phi = binary_phi[:252]
     left_leg_bin = "0" + str(i) + "10" + first_252bits_phi
-    left_leg_hex = "{0:0>4X}".format(int(left_leg_bin, 2))
-
-    rho_i = blake2s(
-        encode_abi(
-            ["bytes32", "bytes32"],
-            [bytes.fromhex(left_leg_hex), bytes.fromhex(hsig)])
-    ).hexdigest()
-    return rho_i
+    blake_hash.update(int(left_leg_bin, 2).to_bytes(32, byteorder='big'))
+    blake_hash.update(hsig)
+    return blake_hash.digest()
 
 
 def _derive_a_pk(a_sk: OwnershipSecretKey) -> OwnershipPublicKey:
@@ -257,13 +252,13 @@ def create_joinsplit_input(
         address: int,
         note: ZethNote,
         a_sk: OwnershipSecretKey,
-        nullifier: str) -> JoinsplitInput:
+        nullifier: bytes) -> JoinsplitInput:
     return JoinsplitInput(
         merkle_path=merkle_path,
         address=address,
         note=note,
         spending_ask=ownership_key_as_hex(a_sk),
-        nullifier=nullifier)
+        nullifier=nullifier.hex())
 
 
 def encode_pub_input_to_hash(message_list: List[Union[str, List[str]]]) -> bytes:
@@ -459,7 +454,7 @@ def compute_joinsplit2x2_inputs(
             mk_path1, input_address1, input_note1, sender_ask, input_nullifier1)
     ]
 
-    random_seed = _signature_randomness()
+    random_seed = _h_sig_randomness()
     h_sig = _compute_h_sig(
         random_seed,
         input_nullifier0,
@@ -484,7 +479,7 @@ def compute_joinsplit2x2_inputs(
         js_outputs=js_outputs,
         pub_in_value=public_in_value,
         pub_out_value=public_out_value,
-        h_sig=h_sig,
+        h_sig=h_sig.hex(),
         phi=phi)
 
 
@@ -682,33 +677,21 @@ def sign_mix_tx(
 
 def _compute_h_sig(
         random_seed: bytes,
-        nf0: str,
-        nf1: str,
-        sign_pk: SigningPublicKey) -> str:
+        nf0: bytes,
+        nf1: bytes,
+        sign_pk: SigningPublicKey) -> bytes:
     """
     Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
     Flatten the verification key
     """
-    sign_pk_hex = [item for sublist in sign_pk for item in sublist]
-
-    vk_hex = ""
-    for item in sign_pk_hex:
-        # For each element of the list, convert it to an hex and append it
-        vk_hex += hex_extend_32bytes("{0:0>4X}".format(int(item)))
-
-    h_sig = blake2s(
-        encode_abi(
-            ['bytes32', 'bytes32', 'bytes32', 'bytes'],
-            [
-                random_seed,
-                bytes.fromhex(nf0),
-                bytes.fromhex(nf1),
-                bytes.fromhex(vk_hex)
-            ]
-        )
-    ).hexdigest()
-
-    return h_sig
+    blake_hash = blake2s()
+    blake_hash.update(random_seed)
+    blake_hash.update(nf0)
+    blake_hash.update(nf1)
+    for group_el in sign_pk:
+        for field_el in group_el:
+            blake_hash.update(field_el.n.to_bytes(32, byteorder="little"))
+    return blake_hash.digest()
 
 
 def trap_r_randomness() -> str:
@@ -718,7 +701,7 @@ def trap_r_randomness() -> str:
     return bytes(Random.get_random_bytes(48)).hex()
 
 
-def _signature_randomness() -> bytes:
+def _h_sig_randomness() -> bytes:
     """
     Compute the signature randomness "randomSeed", used for computing h_sig
     """
