@@ -4,77 +4,58 @@ import json
 import os
 import re
 
-"""
-Finds the index corresponding to `annotation`
-in the annotation set (which has the structure below)
-
-"variables_annotations":
-    [
-        {
-            "index": INDEX,
-            "annotation": ANNOTATION
-        },
-
-        ...
-
-        {
-            "index": INDEX,
-            "annotation": ANNOTATION
-        }
-    ]
-"""
 def get_index(annotation_set, annotation):
+    """
+    Finds the index corresponding to `annotation`
+    in the annotation set (which has the structure below)
+
+    "variables_annotations":
+        [
+            { "index": INDEX, "annotation": ANNOTATION },
+
+            ...
+
+            { "index": INDEX, "annotation": ANNOTATION }
+        ]
+    """
+
     for i in range(len(annotation_set)):
         if annotation_set[i]["annotation"] == annotation:
             return annotation_set[i]["index"]
 
 
-"""
-Returns the set of constraints in which a given wire figures
-(wire = index of a variable annotation)
-The set of constraints has the structure below:
-
-
-"constraints":
-    [
-        {
-            "constraint_id": ID,
-            "constraint_annotation": ANNOTATION
-            "linear_combination": {
-                "A":
-                    [
-                        {
-                            "index": "0", # Index of the wire/variable
-                            "value": "0x1" # Scalar by which the wire value is multiplied by in the linear combination A
-                        }
-                    ],
-                "B":
-                    [
-                        {
-                            "index": "530",
-                            "scalar": "0x1"
-                        },
-                        {
-                            "index": "531",
-                            "scalar": "0x2"
-                        },
-                        {
-                            "index": "532",
-                            "scalar": "0x4"
-                        }
-                    ],
-                "C":
-                    [
-                        {
-                            "index": "2",
-                            "scalar": "0x1"
-                        }
-                    ]
-            }
-        }
-    ]
-"""
 def get_constraints(constraints_set, annotation_index):
+    """
+    Returns the set of constraints in which a given wire figures
+    (wire = index of a variable annotation)
+    The set of constraints has the structure below:
+
+
+    "constraints":
+        [
+            {
+                "constraint_id": ID,
+                "constraint_annotation": ANNOTATION
+                "linear_combination": {
+                    # `index:` Index of the wire/variable
+                    # `value:` Scalar by which the wire value is multiplied
+                    # by in the linear combination A
+                    "A": [
+                            { "index": "0", "value": "0x1" }
+                        ],
+                    "B": [
+                            { "index": "530", "scalar": "0x1" },
+                            { "index": "531", "scalar": "0x2" },
+                            { "index": "532", "scalar": "0x4" }
+                        ],
+                    "C": [
+                            { "index": "2", "scalar": "0x1" }
+                        ]
+                }
+            }
+        ]
+    """
+
     # Array of ID of the constraints using the provided annotation index
     constraints_id = []
     for i in range(len(constraints_set)):
@@ -89,12 +70,13 @@ def get_constraints(constraints_set, annotation_index):
             print("Constraint: ", str(constraints_set[i]))
     return constraints_id
 
-"""
-Returns a set fo constraints which annotation matches the given pattern.
-The regex is given by the user (which can be quite dangerous but
-the goal of this script is not to be robust anyway)
-"""
 def get_constraints_from_annotation_pattern(constraints_set, annotation_pattern):
+    """
+    Returns a set fo constraints which annotation matches the given pattern.
+    The regex is given by the user (which can be quite dangerous but
+    the goal of this script is not to be robust anyway)
+    """
+
     # Array of ID of the constraints using the provided annotation index
     constraints_id = []
     for i in range(len(constraints_set)):
@@ -107,12 +89,13 @@ def get_constraints_from_annotation_pattern(constraints_set, annotation_pattern)
     return constraints_id
 
 
-"""
-Inspects all the elements of the linear combination and returns
-true is the variable corresponding to the annotation_index
-is used in the linear combination
-"""
 def is_in_lin_comb(linear_combination, annotation_index):
+    """
+    Inspects all the elements of the linear combination and returns
+    true is the variable corresponding to the annotation_index
+    is used in the linear combination
+    """
+
     # Inspect all the linear terms
     for i in range(len(linear_combination)):
         if linear_combination[i]["index"] == annotation_index:
