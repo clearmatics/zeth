@@ -115,8 +115,6 @@ def main() -> None:
     charlie_eth_address = eth.accounts[3]
     # Zeth addresses
     keystore = mock.init_test_keystore()
-    # Depth of the merkle tree (need to match the one used in the cpp prover)
-    mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
 
     prover_client = ProverClient(TEST_GRPC_ENDPOINT)
 
@@ -131,33 +129,16 @@ def main() -> None:
     bob_wallet = Wallet("bob", coinstore_dir, k_sk_bob)
     charlie_wallet = Wallet("charlie", coinstore_dir, k_sk_charlie)
 
-    print("[INFO] 1. Fetching the verification key from the proving server")
-    vk = prover_client.get_verification_key()
-
-    print("[INFO] 2. Received VK, writing the key...")
-    zeth.joinsplit.write_verification_key(vk, zksnark)
-
-    print("[INFO] 3. VK written, deploying the smart contracts...")
-    (proof_verifier_interface, otsig_verifier_interface, mixer_interface) = \
-        zeth.contracts.compile_contracts(zksnark)
-    hasher_interface, _ = zeth.contracts.compile_util_contracts()
+    # Deploy the token contract
     token_instance = deploy_token(deployer_eth_address, 4000000)
-    (mixer_instance, initial_root) = zeth.contracts.deploy_contracts(
-        mk_tree_depth,
-        proof_verifier_interface,
-        otsig_verifier_interface,
-        mixer_interface,
-        hasher_interface,
-        deployer_eth_address,
-        4000000,
-        # We mix Ether in this test, so we set the addr of the ERC20 contract
-        # to be 0x0
-        token_instance.address,
-        zksnark
-    )
 
-    zeth_client = zeth.joinsplit.ZethClient(
-        prover_client, mixer_instance, zksnark)
+    # Deploy Zeth contracts
+    zeth_client = zeth.joinsplit.ZethClient.deploy(
+        prover_client,
+        constants.ZETH_MERKLE_TREE_DEPTH,
+        deployer_eth_address,
+        zksnark,
+        token_instance.address)
 
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
     # We assign ETHToken to Bob
@@ -172,17 +153,19 @@ def main() -> None:
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        mixer_instance.address
+        zeth_client.mixer_instance.address
     )
 
     # Bob tries to deposit ETHToken, split in 2 notes on the mixer (without
     # approving)
     try:
         result_deposit_bob_to_bob = scenario.bob_deposit(
-            zeth_client, initial_root, bob_eth_address, keystore, mk_tree_depth)
+            zeth_client, bob_eth_address, keystore)
     except Exception as e:
         allowance_mixer = allowance(
-            token_instance, bob_eth_address, mixer_instance.address)
+            token_instance,
+            bob_eth_address,
+            zeth_client.mixer_instance.address)
         print(f"[ERROR] Bob deposit failed! (msg: {e})")
         print("The allowance for Mixer from Bob is: ", allowance_mixer)
 
@@ -191,16 +174,17 @@ def main() -> None:
     tx_hash = approve(
         token_instance,
         bob_eth_address,
-        mixer_instance.address,
+        zeth_client.mixer_instance.address,
         scenario.BOB_DEPOSIT_ETH)
     eth.waitForTransactionReceipt(tx_hash)
     allowance_mixer = allowance(
-        token_instance, bob_eth_address, mixer_instance.address)
+        token_instance,
+        bob_eth_address,
+        zeth_client.mixer_instance.address)
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
     # Bob deposits ETHToken, split in 2 notes on the mixer
     result_deposit_bob_to_bob = scenario.bob_deposit(
-        zeth_client, initial_root, bob_eth_address, keystore, mk_tree_depth)
-    new_merkle_root_bob_to_bob = result_deposit_bob_to_bob.new_merkle_root
+        zeth_client, bob_eth_address, keystore)
 
     print("- Balances after Bob's deposit: ")
     print_token_balances(
@@ -208,7 +192,7 @@ def main() -> None:
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        mixer_instance.address
+        zeth_client.mixer_instance.address
     )
 
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
@@ -235,25 +219,18 @@ def main() -> None:
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         zeth_client,
-        new_merkle_root_bob_to_bob,
         input_bob_to_charlie,
         bob_eth_address,
-        keystore,
-        mk_tree_depth)
-
-    new_merkle_root_bob_to_charlie = \
-        result_transfer_bob_to_charlie.new_merkle_root
+        keystore)
 
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = None
     try:
         result_double_spending = scenario.bob_to_charlie(
             zeth_client,
-            new_merkle_root_bob_to_bob,
             input_bob_to_charlie,
             bob_eth_address,
-            keystore,
-            mk_tree_depth)
+            keystore)
     except Exception as e:
         print(f"Bob's double spending successfully rejected! (msg: {e})")
     assert(result_double_spending is None), "Bob spent the same note twice!"
@@ -264,7 +241,7 @@ def main() -> None:
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        mixer_instance.address
+        zeth_client.mixer_instance.address
     )
 
     # Charlie tries to decrypt the notes from Bob's previous transaction.
@@ -277,23 +254,19 @@ def main() -> None:
     assert notes_charlie[0][0] == \
         result_transfer_bob_to_charlie.encrypted_notes[1][0]
 
-    result_charlie_withdrawal = scenario.charlie_withdraw(
+    _ = scenario.charlie_withdraw(
         zeth_client,
-        new_merkle_root_bob_to_charlie,
         notes_charlie[0],
         charlie_eth_address,
-        keystore,
-        mk_tree_depth)
+        keystore)
 
-    new_merkle_root_charlie_withdrawal = \
-        result_charlie_withdrawal.new_merkle_root
     print("- Balances after Charlie's withdrawal: ")
     print_token_balances(
         token_instance,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        mixer_instance.address
+        zeth_client.mixer_instance.address
     )
 
     # Charlie tries to carry out a double spend by withdrawing twice the same
@@ -304,11 +277,9 @@ def main() -> None:
         # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
             zeth_client,
-            new_merkle_root_charlie_withdrawal,
             notes_charlie[0],
             charlie_eth_address,
-            keystore,
-            mk_tree_depth)
+            keystore)
     except Exception as e:
         print(f"Charlie's double spending successfully rejected! (msg: {e})")
     print("Balances after Charlie's double withdrawal attempt: ")
@@ -319,7 +290,7 @@ def main() -> None:
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        mixer_instance.address)
+        zeth_client.mixer_instance.address)
 
     # Bob deposits once again ETH, split in 2 notes on the mixer
     # But Charlie attempts to corrupt the transaction (malleability attack)
@@ -329,20 +300,20 @@ def main() -> None:
     tx_hash = approve(
         token_instance,
         bob_eth_address,
-        mixer_instance.address,
+        zeth_client.mixer_instance.address,
         scenario.BOB_DEPOSIT_ETH)
     eth.waitForTransactionReceipt(tx_hash)
     allowance_mixer = allowance(
-        token_instance, bob_eth_address, mixer_instance.address)
+        token_instance,
+        bob_eth_address,
+        zeth_client.mixer_instance.address)
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
 
     result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
         zeth_client,
-        new_merkle_root_charlie_withdrawal,
         bob_eth_address,
         charlie_eth_address,
-        keystore,
-        mk_tree_depth)
+        keystore)
 
     # Bob decrypts one of the note he previously received (should fail if
     # Charlie's attack succeeded)
@@ -358,8 +329,7 @@ def main() -> None:
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        mixer_instance.address
-    )
+        zeth_client.mixer_instance.address)
 
     print(
         "========================================\n" +

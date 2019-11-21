@@ -7,11 +7,9 @@
 import zeth.constants as constants
 from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
 from zeth.signing import SigningVerificationKey
-from zeth.zksnark import IZKSnarkProvider, GenericProof
-from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int, \
-    get_public_key_from_bytes
+from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
+from zeth.utils import get_contracts_dir, hex_to_int, get_public_key_from_bytes
 
-import json
 import os
 from web3 import Web3, HTTPProvider  # type: ignore
 from solcx import compile_files  # type: ignore
@@ -111,8 +109,8 @@ def deploy_mixer(
     ef_log_merkle_root = \
         mixer.eventFilter("LogMerkleRoot", {'fromBlock': 'latest'})
     event_logs_log_merkle_root = ef_log_merkle_root.get_all_entries()
-    initial_root = W3.toHex(event_logs_log_merkle_root[0].args.root)
-    return(mixer, initial_root[2:])
+    initial_root = W3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
+    return(mixer, initial_root)
 
 
 def deploy_otschnorr_contracts(
@@ -138,6 +136,7 @@ def deploy_contracts(
         otsig_verifier_interface: Interface,
         mixer_interface: Interface,
         hasher_interface: Interface,
+        vk: GenericVerificationKey,
         deployer_address: str,
         deployment_gas: int,
         token_address: str,
@@ -147,11 +146,6 @@ def deploy_contracts(
     instance of the mixer along with the initial merkle tree root to use for
     the first zero knowledge payments
     """
-    setup_dir = get_trusted_setup_dir()
-    vk_json = os.path.join(setup_dir, "vk.json")
-    with open(vk_json) as json_data:
-        vk = json.load(json_data)
-
     # Deploy the proof verifier contract with the good verification key
     proof_verifier = eth.contract(
         abi=proof_verifier_interface['abi'],
