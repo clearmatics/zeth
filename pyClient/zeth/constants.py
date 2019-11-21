@@ -23,7 +23,7 @@ VALID_ZKSNARKS: List[str] = [GROTH16_ZKSNARK, PGHR13_ZKSNARK]
 SCHNORR_VERIFIER_CONTRACT: str = "OTSchnorrVerifier"
 
 # RPC endpoint
-RPC_ENDPOINT: str = "localhost:50051"
+PROVER_SERVER_RPC_ENDPOINT: str = "localhost:50051"
 
 # Web3 HTTP provider
 WEB3_HTTP_PROVIDER: str = "http://localhost:8545"

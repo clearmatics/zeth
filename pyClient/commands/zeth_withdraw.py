@@ -1,12 +1,12 @@
-from commands.constants import ZETH_KEYFILE_DEFAULT
+from commands.constants import KEYFILE_DEFAULT
 from click import command, option
 from typing import List, Any
 
 
 @command()
-@option("--in", multiple=True, target="inputs")
+@option("--in", "inputs", multiple=True)
 @option("--eth-address")
-@option("--key-file", default=ZETH_KEYFILE_DEFAULT)
+@option("--key-file", default=KEYFILE_DEFAULT)
 def withdraw(
         ctx: Any,
         inputs: List[str],

@@ -1,4 +1,4 @@
-from commands.constants import ZETH_KEYFILE_DEFAULT
+from commands.constants import KEYFILE_DEFAULT
 from click import command, argument, option
 from typing import Any
 
@@ -6,7 +6,7 @@ from typing import Any
 @command()
 @argument("eth-address")
 @argument("ether")
-@option("key-file", default=ZETH_KEYFILE_DEFAULT)
+@option("key-file", default=KEYFILE_DEFAULT)
 def deposit(ctx: Any, eth_address: str, ether: str) -> None:
     """
     Deposit <ether> ETH as a new Zeth note

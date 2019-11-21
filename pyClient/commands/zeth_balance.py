@@ -1,10 +1,10 @@
-from commands.constants import ZETH_NOTESFILE_DEFAULT
+from commands.constants import NOTESFILE_DEFAULT
 from click import command, option
 from typing import Any
 
 
 @command()
-@option("--notes-file", default=ZETH_NOTESFILE_DEFAULT)
+@option("--notes-file", default=NOTESFILE_DEFAULT)
 def balance(ctx: Any, notes_file: str) -> None:
     """
     Send notes to zethAddresses

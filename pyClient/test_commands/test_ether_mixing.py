@@ -19,7 +19,7 @@ from web3 import Web3, HTTPProvider  # type: ignore
 
 W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 eth = W3.eth  # pylint: disable=no-member,invalid-name
-TEST_GRPC_ENDPOINT = constants.RPC_ENDPOINT
+TEST_GRPC_ENDPOINT = constants.PROVER_SERVER_RPC_ENDPOINT
 
 
 def print_balances(bob: str, alice: str, charlie: str, mixer: str) -> None:

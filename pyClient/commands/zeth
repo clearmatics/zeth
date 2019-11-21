@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+from zeth.zksnark import get_zksnark_provider
+from zeth.prover_client import ProverClient
+from commands.constants import ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT
 from commands.zeth_deploy import deploy
 from commands.zeth_deposit import deposit
 from commands.zeth_sync import sync
@@ -13,10 +16,25 @@ from typing import Any, Optional
 
 @group()
 @option("--host", help="Ethereum node address host:rpc-port")
+@option(
+    "--prover-server",
+    default=PROVER_SERVER_ENDPOINT_DEFAULT,
+    help=f"Prover server endpoint (default={PROVER_SERVER_ENDPOINT_DEFAULT})")
+@option(
+    "--zksnark",
+    "zksnark_name",
+    default=ZKSNARK_DEFAULT,
+    help="GROTH16 or PGHR13 (default=GROTH16)")
 @pass_context
-def zeth(ctx: Any, host: Optional[str]) -> None:
+def zeth(
+        ctx: Any,
+        host: Optional[str],
+        prover_server: str,
+        zksnark_name: str) -> None:
     ctx.ensure_object(dict)
     ctx.obj["HOST"] = host
+    ctx.obj["PROVER_CLIENT"] = ProverClient(prover_server)
+    ctx.obj["ZKSNARK"] = get_zksnark_provider(zksnark_name)
     print(f"host is {host}")
 
 
