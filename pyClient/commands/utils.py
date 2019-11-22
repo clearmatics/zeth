@@ -1,6 +1,8 @@
+from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import \
     InstanceDescription, contract_instance, contract_description
-from zeth.joinsplit import ZethAddressPub, ZethAddressPriv
+from zeth.joinsplit import \
+    ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient
 from click import ClickException
 from os.path import exists
 from typing import Any
@@ -57,9 +59,19 @@ def write_zeth_address_secret(
         key_f.write(secret_key.to_json())
 
 
+def load_zeth_address(secret_key_file: str) -> ZethAddress:
+    """
+    Load a joinsplit secret key from a file, and the associated public key, as a
+    ZethAddress.
+    """
+    return ZethAddress.from_secret_public(
+        load_zeth_address_secret(secret_key_file),
+        load_zeth_address_public(pub_key_file_name(secret_key_file)))
+
+
 def pub_key_file_name(key_file: str) -> str:
     """
-    Ther name of a public key file, given the secret key file.
+    The name of a public key file, given the secret key file.
     """
     return key_file + ".pub"
 
@@ -76,3 +88,18 @@ def find_pub_key_file(base_file: str) -> str:
         return base_file
 
     raise ClickException(f"No public key file {pub_key_file} or {base_file}")
+
+
+def create_zeth_client(ctx: Any) -> ZethClient:
+    """
+    Create a ZethClient for an existing deployment, given all appropriate
+    information.
+    """
+    mixer_instance = load_zeth_instance(ctx.obj["INSTANCE_FILE"])
+    prover_client = ctx.obj["PROVER_CLIENT"]
+    zksnark = ctx.obj["ZKSNARK"]
+    return ZethClient.open(
+        prover_client,
+        ZETH_MERKLE_TREE_DEPTH,
+        mixer_instance,
+        zksnark)
