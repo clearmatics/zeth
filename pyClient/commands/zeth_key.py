@@ -1,7 +1,7 @@
-from zeth.joinsplit import generate_joinsplit_keypair
+from zeth.joinsplit import generate_zeth_address
 from commands.constants import KEYFILE_DEFAULT
 from commands.utils import \
-    pub_key_file_name, write_joinsplit_secret_key, write_joinsplit_public_key
+    pub_key_file_name, write_zeth_address_secret, write_zeth_address_public
 from click import command, option, pass_context, ClickException
 from typing import Any
 from os.path import exists
@@ -16,13 +16,13 @@ def key(ctx: Any, key_file: str) -> None:
     """
     pub_key_file = pub_key_file_name(key_file)
     if exists(key_file):
-        raise ClickException(f"key file {key_file} exists")
+        raise ClickException(f"ZethAddress secret key file {key_file} exists")
 
     if exists(pub_key_file):
-        raise ClickException(f"pub key file {pub_key_file} exists")
+        raise ClickException(f"ZethAddress pub key file {pub_key_file} exists")
 
-    joinsplit_keypair = generate_joinsplit_keypair()
-    write_joinsplit_secret_key(joinsplit_keypair.addr_sk, key_file)
-    print(f"Secret key written to {key_file}")
-    write_joinsplit_public_key(joinsplit_keypair.addr_pk, pub_key_file)
-    print(f"Public key written to {pub_key_file}")
+    zeth_address = generate_zeth_address()
+    write_zeth_address_secret(zeth_address.addr_sk, key_file)
+    print(f"ZethAddress Secret key written to {key_file}")
+    write_zeth_address_public(zeth_address.addr_pk, pub_key_file)
+    print(f"Public ZethAddress written to {pub_key_file}")

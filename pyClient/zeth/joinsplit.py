@@ -137,6 +137,9 @@ class ZethAddress:
         return ZethAddress(
             js_public.a_pk, js_public.k_pk, js_secret.a_sk, js_secret.k_sk)
 
+    def ownership_keypair(self) -> OwnershipKeyPair:
+        return OwnershipKeyPair(self.addr_sk.a_sk, self.addr_pk.a_pk)
+
 
 def generate_zeth_address() -> ZethAddress:
     ownership_keypair = gen_ownership_keypair()
@@ -438,6 +441,26 @@ class ZethClient:
 
     def get_merkle_tree(self) -> List[bytes]:
         return contracts.get_merkle_tree(self.mixer_instance)
+
+    def deposit(
+            self,
+            mk_tree: List[bytes],
+            zeth_address: ZethAddress,
+            sender_eth_address: str,
+            eth_amount: EtherValue,
+            outputs: Optional[List[Tuple[ZethAddressPub, EtherValue]]] = None
+    ) -> contracts.MixResult:
+        if not outputs or len(outputs) == 0:
+            outputs = [(zeth_address.addr_pk, eth_amount)]
+        return self.joinsplit(
+            mk_tree,
+            sender_ownership_keypair=zeth_address.ownership_keypair(),
+            sender_eth_address=sender_eth_address,
+            inputs=[],
+            outputs=outputs,
+            v_in=eth_amount,
+            v_out=EtherValue(0),
+            tx_payment=eth_amount)
 
     def joinsplit(
             self,

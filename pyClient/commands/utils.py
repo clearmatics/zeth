@@ -1,6 +1,6 @@
 from zeth.contracts import \
     InstanceDescription, contract_instance, contract_description
-from zeth.joinsplit import JoinsplitPublicKey, JoinsplitSecretKey
+from zeth.joinsplit import ZethAddressPub, ZethAddressPriv
 from click import ClickException
 from os.path import exists
 from typing import Any
@@ -23,35 +23,35 @@ def write_zeth_instance(zeth_instance: Any, instance_file: str) -> None:
         instance_f.write(contract_description(zeth_instance).to_json())
 
 
-def load_joinsplit_public_key(key_file: str) -> JoinsplitPublicKey:
+def load_zeth_address_public(key_file: str) -> ZethAddressPub:
     """
-    Load a JoinsplitPublicKey from a key file.
+    Load a ZethAddressPub from a key file.
     """
     with open(key_file, "r") as pub_key_f:
-        return JoinsplitPublicKey.parse(pub_key_f.read())
+        return ZethAddressPub.parse(pub_key_f.read())
 
 
-def write_joinsplit_public_key(
-        pub_key: JoinsplitPublicKey, key_file: str) -> None:
+def write_zeth_address_public(
+        pub_key: ZethAddressPub, key_file: str) -> None:
     """
-    Write a JoinsplitPublicKey to a file
+    Write a ZethAddressPub to a file
     """
     with open(key_file, "w") as pub_key_f:
         pub_key_f.write(str(pub_key))
 
 
-def load_joinsplit_secret_key(key_file: str) -> JoinsplitSecretKey:
+def load_zeth_address_secret(key_file: str) -> ZethAddressPriv:
     """
-    Read JoinsplitSecretKey
+    Read ZethAddressPriv
     """
     with open(key_file, "r") as key_f:
-        return JoinsplitSecretKey.from_json(key_f.read())
+        return ZethAddressPriv.from_json(key_f.read())
 
 
-def write_joinsplit_secret_key(
-        secret_key: JoinsplitSecretKey, key_file: str) -> None:
+def write_zeth_address_secret(
+        secret_key: ZethAddressPriv, key_file: str) -> None:
     """
-    Write JoinsplitSecretKey to file
+    Write ZethAddressPriv to file
     """
     with open(key_file, "w") as key_f:
         key_f.write(secret_key.to_json())

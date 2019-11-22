@@ -44,7 +44,7 @@ def bob_deposit(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and splits into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
 
-    bob_ask = keystore["Bob"].addr_sk.a_sk
+    bob_js_keypair = keystore["Bob"]
     bob_addr = keystore["Bob"].addr_pk
 
     outputs = [
@@ -53,15 +53,12 @@ def bob_deposit(
     ]
 
     mk_tree = zeth_client.get_merkle_tree()
-    return zeth_client.joinsplit(
+    return zeth_client.deposit(
         mk_tree,
-        joinsplit.OwnershipKeyPair(bob_ask, bob_addr.a_pk),
+        bob_js_keypair,
         bob_eth_address,
-        [],
-        outputs,
         EtherValue(BOB_DEPOSIT_ETH),
-        EtherValue(0),
-        EtherValue(BOB_DEPOSIT_ETH))
+        outputs)
 
 
 def bob_to_charlie(
