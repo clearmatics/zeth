@@ -1,5 +1,5 @@
 from commands.constants import INSTANCEFILE_DEFAULT
-from commands.utils import write_instance_id
+from commands.utils import write_zeth_instance
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.prover_client import ProverClient
 from zeth.joinsplit import ZethClient
@@ -17,7 +17,7 @@ from typing import Any
 @pass_context
 def deploy(ctx: Any, eth_address: str, instance_out: str) -> None:
     """
-    Deploy the zeth contracts
+    Deploy the zeth contracts and record the instantiation details.
     """
     print(f"deploy: eth_address={eth_address}")
     print(f"deploy: instance_out={instance_out}")
@@ -30,4 +30,4 @@ def deploy(ctx: Any, eth_address: str, instance_out: str) -> None:
         eth_address,
         zksnark)
 
-    write_instance_id(zeth_client.mixer_instance.address, instance_out)
+    write_zeth_instance(zeth_client.mixer_instance, instance_out)

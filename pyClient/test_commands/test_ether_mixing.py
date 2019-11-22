@@ -152,8 +152,7 @@ def main() -> None:
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        zeth_client.mixer_instance.address
-    )
+        zeth_client.mixer_instance.address)
 
     # Charlie tries to double-spend by withdrawing twice the same note
     result_double_spending = None

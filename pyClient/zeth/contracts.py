@@ -4,6 +4,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
+from __future__ import annotations
 import zeth.constants as constants
 from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
 from zeth.signing import SigningVerificationKey
@@ -11,6 +12,7 @@ from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
 from zeth.utils import get_contracts_dir, hex_to_int, get_public_key_from_bytes
 
 import os
+import json
 from web3 import Web3, HTTPProvider  # type: ignore
 from solcx import compile_files  # type: ignore
 from typing import Tuple, Dict, List, Any
@@ -34,6 +36,40 @@ class MixResult:
         self.encrypted_notes = encrypted_notes
         self.new_merkle_root = new_merkle_root
         self.sender_k_pk = sender_k_pk
+
+
+class InstanceDescription:
+    """
+    Minimal data required to instantiate the in-memory interface to a contract.
+    """
+    def __init__(self, address: str, abi: Dict[str, Any]):
+        self.address = address
+        self.abi = abi
+
+    def to_json(self) -> str:
+        return json.dumps(
+            {"address": self.address, "abi": self.abi},
+            indent=4)
+
+    @staticmethod
+    def from_json(json_str: str) -> InstanceDescription:
+        desc_json = json.loads(json_str)
+        return InstanceDescription(desc_json["address"], desc_json["abi"])
+
+
+def contract_instance(desc: InstanceDescription) -> Any:
+    """
+    Return a contract instance, given the address and abi
+    """
+    return eth.contract(address=desc.address, abi=desc.abi)
+
+
+def contract_description(instance: Any) -> InstanceDescription:
+    """
+    Return the description of a deployed contract (which can be used to
+    reinstantiate it).
+    """
+    return InstanceDescription(instance.address, instance.abi)
 
 
 def compile_contracts(
