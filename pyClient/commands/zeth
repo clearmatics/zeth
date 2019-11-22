@@ -2,8 +2,10 @@
 
 from zeth.zksnark import get_zksnark_provider
 from zeth.prover_client import ProverClient
-from commands.constants import ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT
+from commands.constants import ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, \
+    INSTANCEFILE_DEFAULT
 from commands.zeth_deploy import deploy
+from commands.zeth_key import key
 from commands.zeth_deposit import deposit
 from commands.zeth_sync import sync
 from commands.zeth_send import send
@@ -25,20 +27,26 @@ from typing import Any, Optional
     "zksnark_name",
     default=ZKSNARK_DEFAULT,
     help="GROTH16 or PGHR13 (default=GROTH16)")
+@option(
+    "--instance-file",
+    default=INSTANCEFILE_DEFAULT,
+    help=f"Instance file (default={INSTANCEFILE_DEFAULT})")
 @pass_context
 def zeth(
         ctx: Any,
         host: Optional[str],
         prover_server: str,
-        zksnark_name: str) -> None:
+        zksnark_name: str,
+        instance_file: str) -> None:
     ctx.ensure_object(dict)
     ctx.obj["HOST"] = host
     ctx.obj["PROVER_CLIENT"] = ProverClient(prover_server)
     ctx.obj["ZKSNARK"] = get_zksnark_provider(zksnark_name)
-    print(f"host is {host}")
+    ctx.obj["INSTANCE_FILE"] = instance_file
 
 
 zeth.add_command(deploy)
+zeth.add_command(key)
 zeth.add_command(deposit)
 zeth.add_command(sync)
 zeth.add_command(send)
