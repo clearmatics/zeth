@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from nacl.public import PrivateKey  # type: ignore
+from nacl.public import PrivateKey, PublicKey  # type: ignore
 import nacl.encoding  # type: ignore
 from typing import NewType
 
@@ -31,6 +31,28 @@ class EncryptionKeyPair:
 
 def encode_encryption_public_key(pk: EncryptionPublicKey) -> bytes:
     return pk.encode(encoder=nacl.encoding.RawEncoder)  # type: ignore
+
+
+def encryption_secret_key_as_hex(sk: EncryptionSecretKey) -> str:
+    return sk.encode(encoder=nacl.encoding.RawEncoder).hex()  # type: ignore
+
+
+def encryption_secret_key_from_hex(pk_str: str) -> EncryptionSecretKey:
+    return EncryptionSecretKey(
+        PrivateKey(bytes.fromhex(pk_str), encoder=nacl.encoding.RawEncoder))
+
+
+def decode_encryption_public_key(pk_data: bytes) -> EncryptionPublicKey:
+    return EncryptionPublicKey(
+        PublicKey(pk_data, encoder=nacl.encoding.RawEncoder))
+
+
+def encryption_public_key_as_hex(pk: EncryptionPublicKey) -> str:
+    return encode_encryption_public_key(pk).hex()
+
+
+def encryption_public_key_from_hex(pk_str: str) -> EncryptionPublicKey:
+    return decode_encryption_public_key(bytes.fromhex(pk_str))
 
 
 def get_encryption_public_key(
