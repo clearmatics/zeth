@@ -1,8 +1,10 @@
+from commands.constants import WALLET_USERNAME
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import \
     InstanceDescription, contract_instance, contract_description
 from zeth.joinsplit import \
     ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient
+from zeth.wallet import Wallet
 from click import ClickException
 from os.path import exists
 from typing import Any
@@ -67,6 +69,14 @@ def load_zeth_address(secret_key_file: str) -> ZethAddress:
     return ZethAddress.from_secret_public(
         load_zeth_address_secret(secret_key_file),
         load_zeth_address_public(pub_key_file_name(secret_key_file)))
+
+
+def open_wallet(secret_key_file: str, wallet_dir: str) -> Wallet:
+    """
+    Load a wallet using a secret key.
+    """
+    js_secret = load_zeth_address_secret(secret_key_file)
+    return Wallet(WALLET_USERNAME, wallet_dir, js_secret.k_sk)
 
 
 def pub_key_file_name(key_file: str) -> str:

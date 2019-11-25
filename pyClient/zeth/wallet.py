@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 import zeth.joinsplit as joinsplit
+from zeth.contracts import EncryptedNote
 from api.util_pb2 import ZethNote
 from nacl.public import PrivateKey, PublicKey  # type: ignore
 from nacl import encoding  # type: ignore
@@ -25,7 +26,7 @@ class Wallet:
 
     def receive_notes(
             self,
-            addrs_and_ciphertexts: List[Tuple[int, bytes]],
+            addrs_and_ciphertexts: List[EncryptedNote],
             k_pk_sender: PublicKey) -> List[Tuple[int, ZethNote]]:
         new_notes_iter = joinsplit.receive_notes(
             addrs_and_ciphertexts, k_pk_sender, self.k_sk_receiver)
