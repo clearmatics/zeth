@@ -70,4 +70,13 @@ contract BaseMerkleTree {
     // Returns the array of leaves of the merkle tree
     return tmpLeaves;
   }
+
+  // Retrieve a single tree entry.  We expect that clients will generally
+  // decrypt a very small fraction of new entris that appear in the tree, which
+  // represents an even smaller fraction of the total tree, so in general it is
+  // very inefficient for clients to download the entire tree.
+  function getLeaf(uint leaf_address) public view returns (bytes32) {
+      require(leaf_address < currentNodeIndex, "merkle leaf out of range");
+      return leaves[leaf_address];
+  }
 }

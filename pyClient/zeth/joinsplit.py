@@ -29,7 +29,7 @@ import os
 import json
 from Crypto import Random
 from hashlib import blake2s, sha256
-from typing import Tuple, Dict, List, Iterable, Callable, Optional, Any
+from typing import Tuple, Dict, List, Callable, Iterator, Optional, Any
 
 
 # Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
@@ -192,6 +192,13 @@ def to_zeth_units(value: EtherValue) -> int:
     Convert a quantity of ether / token to Zeth units
     """
     return int(value.wei / ZETH_PUBLIC_UNIT_VALUE)
+
+
+def from_zeth_units(zeth_units: int) -> EtherValue:
+    """
+    Convert a quantity of ether / token to Zeth units
+    """
+    return EtherValue(zeth_units * ZETH_PUBLIC_UNIT_VALUE, "wei")
 
 
 def create_zeth_notes(
@@ -645,7 +652,7 @@ def encrypt_notes(
 def receive_notes(
         addrs_and_ciphertexts: List[Tuple[int, bytes]],
         sender_k_pk: EncryptionPublicKey,
-        receiver_k_sk: EncryptionSecretKey) -> Iterable[Tuple[int, ZethNote]]:
+        receiver_k_sk: EncryptionSecretKey) -> Iterator[Tuple[int, ZethNote]]:
     """
     Given the receivers secret key, and the event data from a transaction
     (encrypted notes), decrypt any that are intended for the receiver.
@@ -654,8 +661,7 @@ def receive_notes(
         try:
             plaintext = decrypt(ciphertext, sender_k_pk, receiver_k_sk)
             yield address, zeth_note_obj_from_parsed(json.loads(plaintext))
-        except Exception as e:
-            print(f"receive_notes: error: {e}")
+        except Exception:
             continue
 
 

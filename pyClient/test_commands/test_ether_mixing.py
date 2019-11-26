@@ -45,21 +45,23 @@ def main() -> None:
 
     coinstore_dir = os.environ['ZETH_COINSTORE']
 
-    # Keys and wallets
-    k_sk_alice = keystore["Alice"].addr_sk.k_sk
-    k_sk_bob = keystore["Bob"].addr_sk.k_sk
-    k_sk_charlie = keystore["Charlie"].addr_sk.k_sk
-
-    alice_wallet = Wallet("alice", coinstore_dir, k_sk_alice)
-    bob_wallet = Wallet("bob", coinstore_dir, k_sk_bob)
-    charlie_wallet = Wallet("charlie", coinstore_dir, k_sk_charlie)
-
     # Deploy Zeth contracts
     zeth_client = zeth.joinsplit.ZethClient.deploy(
         prover_client,
         constants.ZETH_MERKLE_TREE_DEPTH,
         deployer_eth_address,
         zksnark)
+
+    # Keys and wallets
+    k_sk_alice = keystore["Alice"].addr_sk.k_sk
+    k_sk_bob = keystore["Bob"].addr_sk.k_sk
+    k_sk_charlie = keystore["Charlie"].addr_sk.k_sk
+
+    mixer_instance = zeth_client.mixer_instance
+    alice_wallet = Wallet(mixer_instance, "alice", coinstore_dir, k_sk_alice)
+    bob_wallet = Wallet(mixer_instance, "bob", coinstore_dir, k_sk_bob)
+    charlie_wallet = Wallet(
+        mixer_instance, "charlie", coinstore_dir, k_sk_charlie)
 
     print("[INFO] 4. Running tests (asset mixed: Ether)...")
     print("- Initial balances: ")
@@ -101,12 +103,11 @@ def main() -> None:
         result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_bob) == 2), \
         f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
-    bob_to_charlie = recovered_notes_bob[0]
 
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         zeth_client,
-        bob_to_charlie,
+        recovered_notes_bob[0].as_input(),
         bob_eth_address,
         keystore)
 
@@ -115,7 +116,7 @@ def main() -> None:
     try:
         result_double_spending = scenario.bob_to_charlie(
             zeth_client,
-            bob_to_charlie,
+            recovered_notes_bob[0].as_input(),
             bob_eth_address,
             keystore)
     except Exception as e:
@@ -139,12 +140,12 @@ def main() -> None:
         f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
 
     input_charlie_withdraw = notes_charlie[0]
-    assert input_charlie_withdraw[0] == \
+    assert notes_charlie[0].address == \
         result_transfer_bob_to_charlie.encrypted_notes[1][0]
 
     _ = scenario.charlie_withdraw(
         zeth_client,
-        input_charlie_withdraw,
+        input_charlie_withdraw.as_input(),
         charlie_eth_address,
         keystore)
     print("Balances after Charlie's withdrawal: ")
@@ -161,7 +162,7 @@ def main() -> None:
         # recompiute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
             zeth_client,
-            input_charlie_withdraw,
+            input_charlie_withdraw.as_input(),
             charlie_eth_address,
             keystore)
     except Exception as e:

@@ -354,8 +354,6 @@ def _parse_events(
     new merkle root.
     """
     assert len(commit_address_events) == len(ciphertext_events)
-    assert len(commit_address_events) >= len(merkle_root_events)
-
     commit_address_iter = iter(commit_address_events)
     ciphertext_iter = iter(ciphertext_events)
 
@@ -375,10 +373,12 @@ def _parse_events(
                 (address.args.commAddr, ciphertext.args.ciphertext))
             address, ciphertext = _next_commit_or_none(
                 commit_address_iter, ciphertext_iter)
-        yield MixResult(
-            encrypted_notes=enc_notes,
-            new_merkle_root=mk_root,
-            sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
+
+        if enc_notes:
+            yield MixResult(
+                encrypted_notes=enc_notes,
+                new_merkle_root=mk_root,
+                sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
 
     assert address is None
     assert ciphertext is None
@@ -397,7 +397,7 @@ def get_mix_results(
         try:
             filter_params = {
                 'fromBlock': batch_start,
-                'toBlock': batch_start + SYNC_BLOCKS_PER_BATCH - 1
+                'toBlock': batch_start + SYNC_BLOCKS_PER_BATCH - 1,
             }
             merkle_root_filter = mixer_instance.eventFilter(
                 "LogMerkleRoot", filter_params)
@@ -438,6 +438,13 @@ def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
     Return the Merkle tree
     """
     return mixer_instance.functions.getTree().call()
+
+
+def get_merkle_leaf(mixer_instance: Any, address: int) -> bytes:
+    """
+    Return the node at address
+    """
+    return mixer_instance.functions.getLeaf(address).call()
 
 
 def get_merkle_root(mixer_instance: Any) -> bytes:

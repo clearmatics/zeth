@@ -26,7 +26,11 @@ def deposit(ctx: Any, eth_address: str, ether: str, key_file: str) -> None:
         EtherValue(ether))
     print(f"Merkle Tree after:\n{zeth_client.get_merkle_tree()}")
 
-    wallet = Wallet(WALLET_USERNAME, ".", zeth_address.addr_sk.k_sk)
+    wallet = Wallet(
+        zeth_client.mixer_instance,
+        WALLET_USERNAME,
+        ".",
+        zeth_address.addr_sk.k_sk)
     new_notes = wallet.receive_notes(
         deposit_result.encrypted_notes, deposit_result.sender_k_pk)
     print(f"New Notes:\n{new_notes}")

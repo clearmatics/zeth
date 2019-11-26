@@ -3,8 +3,9 @@ from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import \
     InstanceDescription, contract_instance, contract_description
 from zeth.joinsplit import \
-    ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient
-from zeth.wallet import Wallet
+    ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient, from_zeth_units
+from zeth.utils import short_commitment
+from zeth.wallet import ZethNoteDescription, Wallet
 from click import ClickException
 from os.path import exists
 from typing import Any
@@ -71,12 +72,15 @@ def load_zeth_address(secret_key_file: str) -> ZethAddress:
         load_zeth_address_public(pub_key_file_name(secret_key_file)))
 
 
-def open_wallet(secret_key_file: str, wallet_dir: str) -> Wallet:
+def open_wallet(
+        mixer_instance: Any,
+        secret_key_file: str,
+        wallet_dir: str) -> Wallet:
     """
     Load a wallet using a secret key.
     """
     js_secret = load_zeth_address_secret(secret_key_file)
-    return Wallet(WALLET_USERNAME, wallet_dir, js_secret.k_sk)
+    return Wallet(mixer_instance, WALLET_USERNAME, wallet_dir, js_secret.k_sk)
 
 
 def pub_key_file_name(key_file: str) -> str:
@@ -113,3 +117,12 @@ def create_zeth_client(ctx: Any) -> ZethClient:
         ZETH_MERKLE_TREE_DEPTH,
         mixer_instance,
         zksnark)
+
+
+def zeth_note_short(note_desc: ZethNoteDescription) -> str:
+    """
+    Generate a short human-readable description of a commitment.
+    """
+    value = from_zeth_units(int(note_desc.note.value, 16)).ether()
+    cm = short_commitment(note_desc.commitment)
+    return f"{cm}: value={value} ETH, addr={note_desc.address}"

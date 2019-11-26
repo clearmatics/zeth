@@ -39,6 +39,9 @@ class EtherValue:
     def __str__(self) -> str:
         return str(self.wei)
 
+    def ether(self) -> str:
+        return str(W3.fromWei(self.wei, 'ether'))
+
 
 def encode_single(type_name: str, data: bytes) -> bytes:
     """
@@ -298,3 +301,10 @@ def field_elements_to_hex(longfield: str, shortfield: str) -> str:
     res = hex_extend_32bytes("{0:0>4X}".format(int(res, 2)))
 
     return res
+
+
+def short_commitment(cm: bytes) -> str:
+    """
+    Summary of the commitment value, in some standard format.
+    """
+    return cm[0:4].hex()

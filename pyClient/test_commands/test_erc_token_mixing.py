@@ -120,15 +120,6 @@ def main() -> None:
 
     coinstore_dir = os.environ['ZETH_COINSTORE']
 
-    # Keys and wallets
-    k_sk_alice = keystore["Alice"].addr_sk.k_sk
-    k_sk_bob = keystore["Bob"].addr_sk.k_sk
-    k_sk_charlie = keystore["Charlie"].addr_sk.k_sk
-
-    alice_wallet = Wallet("alice", coinstore_dir, k_sk_alice)
-    bob_wallet = Wallet("bob", coinstore_dir, k_sk_bob)
-    charlie_wallet = Wallet("charlie", coinstore_dir, k_sk_charlie)
-
     # Deploy the token contract
     token_instance = deploy_token(deployer_eth_address, 4000000)
 
@@ -139,6 +130,17 @@ def main() -> None:
         deployer_eth_address,
         zksnark,
         token_instance.address)
+
+    # Keys and wallets
+    k_sk_alice = keystore["Alice"].addr_sk.k_sk
+    k_sk_bob = keystore["Bob"].addr_sk.k_sk
+    k_sk_charlie = keystore["Charlie"].addr_sk.k_sk
+
+    mixer_instance = zeth_client.mixer_instance
+    alice_wallet = Wallet(mixer_instance, "alice", coinstore_dir, k_sk_alice)
+    bob_wallet = Wallet(mixer_instance, "bob", coinstore_dir, k_sk_bob)
+    charlie_wallet = Wallet(
+        mixer_instance, "charlie", coinstore_dir, k_sk_charlie)
 
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
     # We assign ETHToken to Bob
@@ -212,7 +214,7 @@ def main() -> None:
         result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_bob) == 2), \
         f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
-    input_bob_to_charlie = recovered_notes_bob[0]
+    input_bob_to_charlie = recovered_notes_bob[0].as_input()
     assert input_bob_to_charlie[0] == \
         result_deposit_bob_to_bob.encrypted_notes[0][0]
 
@@ -245,18 +247,17 @@ def main() -> None:
     )
 
     # Charlie tries to decrypt the notes from Bob's previous transaction.
-    notes_charlie = charlie_wallet.receive_notes(
+    note_descs_charlie = charlie_wallet.receive_notes(
         result_transfer_bob_to_charlie.encrypted_notes,
         result_transfer_bob_to_charlie.sender_k_pk)
-    assert(len(notes_charlie) == 1), \
-        f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
-
-    assert notes_charlie[0][0] == \
+    assert(len(note_descs_charlie) == 1), \
+        f"Charlie decrypted {len(note_descs_charlie)}.  Expected 1!"
+    assert note_descs_charlie[0].address == \
         result_transfer_bob_to_charlie.encrypted_notes[1][0]
 
     _ = scenario.charlie_withdraw(
         zeth_client,
-        notes_charlie[0],
+        note_descs_charlie[0].as_input(),
         charlie_eth_address,
         keystore)
 
@@ -277,7 +278,7 @@ def main() -> None:
         # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
             zeth_client,
-            notes_charlie[0],
+            note_descs_charlie[0].as_input(),
             charlie_eth_address,
             keystore)
     except Exception as e:
