@@ -19,7 +19,7 @@ import zeth.signing as signing
 
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
-    hex_digest_to_binary_string, digest_to_binary_string, encode_abi, encrypt, \
+    hex_digest_to_binary_string, digest_to_binary_string, encrypt, \
     decrypt, int64_to_hex, encode_message_to_bytes, compute_merkle_path
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
@@ -40,6 +40,9 @@ ZETH_PUBLIC_UNIT_VALUE = 1000000000000
 ZERO_UNITS_HEX = "0000000000000000"
 
 
+COMMITMENT_VALUE_PADDING = bytes(int(192/8))
+
+
 # JoinSplit Signature Keys definitions
 JoinsplitSigVerificationKey = signing.SigningVerificationKey
 JoinsplitSigSecretKey = signing.SigningSecretKey
@@ -47,6 +50,32 @@ JoinsplitSigKeyPair = signing.SigningKeyPair
 
 
 ComputeHSigCB = Callable[[bytes, bytes, JoinsplitSigVerificationKey], bytes]
+
+
+def blake2s_compress(left: bytes, right: bytes) -> bytes:
+    """
+    Execute blake2s as a compression function, ensuring that the input is of
+    the correct length. (The case len(left) != len(right) is supported, but the
+    total input length must be 64 bytes).
+    """
+    assert len(left) + len(right) == 64
+    blake = blake2s()
+    blake.update(left)
+    blake.update(right)
+    return blake.digest()
+
+
+def blake2s_compress_pad_right64(left256: bytes, right64: bytes) -> bytes:
+    """
+    As blake2s_compress, but pad right from 64 bits to 256.
+    """
+    assert len(left256) == 32
+    assert len(right64) == 8
+    blake = blake2s()
+    blake.update(left256)
+    blake.update(COMMITMENT_VALUE_PADDING)
+    blake.update(right64)
+    return blake.digest()
 
 
 class ZethAddressPub:
@@ -217,35 +246,22 @@ def zeth_note_obj_from_parsed(parsed_zeth_note: Dict[str, str]) -> ZethNote:
     return note
 
 
-def compute_commitment(zeth_note_grpc_obj: ZethNote) -> str:
+def compute_commitment(zeth_note: ZethNote) -> bytes:
     """
     Used by the recipient of a payment to recompute the commitment and check
     the membership in the tree to confirm the validity of a payment
     """
     # inner_k = blake2s(a_pk || rho)
-    inner_k = blake2s(
-        encode_abi(
-            ['bytes32', 'bytes32'],
-            [bytes.fromhex(zeth_note_grpc_obj.apk),
-             bytes.fromhex(zeth_note_grpc_obj.rho)])
-    ).hexdigest()
+    inner_k = blake2s_compress(
+        bytes.fromhex(zeth_note.apk),
+        bytes.fromhex(zeth_note.rho))
 
     # outer_k = blake2s(r || [inner_k]_128)
-    first_128bits_inner_comm = inner_k[0:128]
-    outer_k = blake2s(
-        encode_abi(
-            ['bytes', 'bytes'],
-            [bytes.fromhex(zeth_note_grpc_obj.trap_r),
-             bytes.fromhex(first_128bits_inner_comm)])).hexdigest()
+    inner_k_128 = inner_k[0:16]  # 128 bits = 16 hex chars
+    outer_k = blake2s_compress(bytes.fromhex(zeth_note.trap_r), inner_k_128)
 
-    # cm = blake2s(outer_k || 0^192 || value_v)
-    front_pad = "000000000000000000000000000000000000000000000000"
-    cm = blake2s(
-        encode_abi(
-            ["bytes32", "bytes32"],
-            [bytes.fromhex(outer_k),
-             bytes.fromhex(front_pad + zeth_note_grpc_obj.value)])
-    ).hexdigest()
+    # cm = blake2s(outer_k || zero_pad_64_to_256(value))
+    cm = blake2s_compress_pad_right64(outer_k, bytes.fromhex(zeth_note.value))
     return cm
 
 
