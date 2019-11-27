@@ -3,7 +3,7 @@
 from zeth.zksnark import get_zksnark_provider
 from zeth.prover_client import ProverClient
 from commands.constants import ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, \
-    INSTANCEFILE_DEFAULT
+    INSTANCEFILE_DEFAULT, KEYFILE_DEFAULT, WALLET_DIR_DEFAULT
 from commands.zeth_deploy import deploy
 from commands.zeth_key import key
 from commands.zeth_deposit import deposit
@@ -31,18 +31,30 @@ from typing import Any, Optional
     "--instance-file",
     default=INSTANCEFILE_DEFAULT,
     help=f"Instance file (default={INSTANCEFILE_DEFAULT})")
+@option(
+    "--key-file",
+    default=KEYFILE_DEFAULT,
+    help=f"Instance file (default={INSTANCEFILE_DEFAULT})")
+@option(
+    "--wallet-dir",
+    default=WALLET_DIR_DEFAULT,
+    help=f"Wallet directory (\"{WALLET_DIR_DEFAULT}\")")
 @pass_context
 def zeth(
         ctx: Any,
         host: Optional[str],
         prover_server: str,
         zksnark_name: str,
-        instance_file: str) -> None:
+        instance_file: str,
+        key_file: str,
+        wallet_directory: str) -> None:
     ctx.ensure_object(dict)
     ctx.obj["HOST"] = host
     ctx.obj["PROVER_CLIENT"] = ProverClient(prover_server)
     ctx.obj["ZKSNARK"] = get_zksnark_provider(zksnark_name)
     ctx.obj["INSTANCE_FILE"] = instance_file
+    ctx.obj["KEY_FILE"] = key_file
+    ctx.obj["WALLET_DIR"] = wallet_directory
 
 
 zeth.add_command(deploy)
