@@ -56,6 +56,7 @@ class Wallet:
         self.k_sk_receiver = k_sk_receiver
         self.k_sk_receiver_bytes = \
             k_sk_receiver.encode(encoder=encoding.RawEncoder)
+        self.state_file = join(wallet_dir, f"state_{username}")
         _ensure_dir(self.wallet_dir)
 
     def receive_notes(
@@ -80,6 +81,17 @@ class Wallet:
         store.
         """
         return self._decoded_note_filenames()
+
+    def get_next_block(self) -> int:
+        if exists(self.state_file):
+            with open(self.state_file, "r") as state_f:
+                return int(state_f.read())
+        else:
+            return 1
+
+    def set_next_block(self, next_block: int) -> None:
+        with open(self.state_file, "w") as state_f:
+            state_f.write(str(next_block))
 
     def _decrypt_notes(
             self,
