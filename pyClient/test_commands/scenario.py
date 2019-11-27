@@ -53,12 +53,12 @@ def bob_deposit(
     ]
 
     mk_tree = zeth_client.get_merkle_tree()
-    return zeth_client.deposit(
+    return zeth_client.wait(zeth_client.deposit(
         mk_tree,
         bob_js_keypair,
         bob_eth_address,
         EtherValue(BOB_DEPOSIT_ETH),
-        outputs)
+        outputs))
 
 
 def bob_to_charlie(
@@ -81,7 +81,7 @@ def bob_to_charlie(
 
     # Send the tx
     mk_tree = zeth_client.get_merkle_tree()
-    return zeth_client.joinsplit(
+    return zeth_client.wait(zeth_client.joinsplit(
         mk_tree,
         joinsplit.OwnershipKeyPair(bob_ask, bob_addr.a_pk),
         bob_eth_address,
@@ -89,7 +89,7 @@ def bob_to_charlie(
         [output0, output1],
         EtherValue(0),
         EtherValue(0),
-        EtherValue(1, 'wei'))
+        EtherValue(1, 'wei')))
 
 
 def charlie_withdraw(
@@ -108,7 +108,7 @@ def charlie_withdraw(
     charlie_ownership_key = \
         joinsplit.OwnershipKeyPair(charlie_ask, charlie_apk)
 
-    return zeth_client.joinsplit(
+    return zeth_client.wait(zeth_client.joinsplit(
         mk_tree,
         charlie_ownership_key,
         charlie_eth_address,
@@ -116,7 +116,7 @@ def charlie_withdraw(
         [(charlie_pk, EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH))],
         EtherValue(0),
         EtherValue(CHARLIE_WITHDRAW_ETH),
-        EtherValue(1, 'wei'))
+        EtherValue(1, 'wei')))
 
 
 def charlie_double_withdraw(
@@ -228,7 +228,7 @@ def charlie_double_withdraw(
     joinsplit_sig = joinsplit.joinsplit_sign(
         signing_keypair, sender_eph_pk, ciphertexts, proof_json)
 
-    return zeth_client.mix(
+    return zeth_client.wait(zeth_client.mix(
         sender_eph_pk,
         ciphertexts[0],
         ciphertexts[1],
@@ -239,7 +239,7 @@ def charlie_double_withdraw(
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
         W3.toWei(1, 'wei'),
-        4000000)
+        4000000))
 
 
 def charlie_corrupt_bob_deposit(
@@ -323,7 +323,7 @@ def charlie_corrupt_bob_deposit(
 
     result_corrupt1 = None
     try:
-        result_corrupt1 = zeth_client.mix(
+        result_corrupt1 = zeth_client.wait(zeth_client.mix(
             pk_sender,
             fake_ciphertext0,
             fake_ciphertext1,
@@ -334,7 +334,7 @@ def charlie_corrupt_bob_deposit(
             # Pay an arbitrary amount (1 wei here) that will be refunded
             #  since the `mix` function is payable
             W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-            4000000)
+            4000000))
     except Exception as e:
         print(
             f"Charlie's first corruption attempt" +
@@ -361,7 +361,7 @@ def charlie_corrupt_bob_deposit(
 
     result_corrupt2 = None
     try:
-        result_corrupt2 = zeth_client.mix(
+        result_corrupt2 = zeth_client.wait(zeth_client.mix(
             pk_sender,
             fake_ciphertext0,
             fake_ciphertext1,
@@ -372,7 +372,7 @@ def charlie_corrupt_bob_deposit(
             # Pay an arbitrary amount (1 wei here) that will be refunded since the
             # `mix` function is payable
             W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-            4000000)
+            4000000))
     except Exception as e:
         print(
             f"Charlie's second corruption attempt" +
@@ -384,7 +384,7 @@ def charlie_corrupt_bob_deposit(
     # ### ATTACK BLOCK
 
     # Bob transaction is finally mined
-    return zeth_client.mix(
+    return zeth_client.wait(zeth_client.mix(
         pk_sender,
         ciphertexts[0],
         ciphertexts[1],
@@ -393,4 +393,4 @@ def charlie_corrupt_bob_deposit(
         joinsplit_sig,
         bob_eth_address,
         W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-        4000000)
+        4000000))

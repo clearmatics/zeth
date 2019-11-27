@@ -472,7 +472,7 @@ class ZethClient:
             sender_eth_address: str,
             eth_amount: EtherValue,
             outputs: Optional[List[Tuple[ZethAddressPub, EtherValue]]] = None
-    ) -> contracts.MixResult:
+    ) -> str:
         if not outputs or len(outputs) == 0:
             outputs = [(zeth_address.addr_pk, eth_amount)]
         return self.joinsplit(
@@ -495,8 +495,7 @@ class ZethClient:
             v_in: EtherValue,
             v_out: EtherValue,
             tx_payment: EtherValue,
-            compute_h_sig_cb: Optional[ComputeHSigCB] = None
-    ) -> contracts.MixResult:
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None) -> str:
         assert len(inputs) <= constants.JS_INPUTS
         assert len(outputs) <= constants.JS_OUTPUTS
 
@@ -547,7 +546,7 @@ class ZethClient:
         signature = joinsplit_sign(
             signing_keypair, sender_eph_pk, ciphertexts, proof_json)
 
-        result = self.mix(
+        return self.mix(
             sender_eph_pk,
             ciphertexts[0],
             ciphertexts[1],
@@ -557,6 +556,10 @@ class ZethClient:
             sender_eth_address,
             tx_payment.wei,
             4000000)
+
+    def wait(self, tx_hash: str) -> contracts.MixResult:
+        tx_receipt = contracts.eth.waitForTransactionReceipt(tx_hash, 10000)
+        result = contracts.parse_mix_call(self.mixer_instance, tx_receipt)
         self.merkle_root = result.new_merkle_root
         return result
 
@@ -570,7 +573,7 @@ class ZethClient:
             sigma: int,
             sender_address: str,
             wei_pub_value: int,
-            call_gas: int) -> contracts.MixResult:
+            call_gas: int) -> str:
         return contracts.mix(
             self.mixer_instance,
             pk_sender,

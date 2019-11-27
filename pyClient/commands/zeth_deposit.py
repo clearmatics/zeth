@@ -17,9 +17,9 @@ def deposit(ctx: Any, eth_address: str, ether: str, key_file: str) -> None:
     zeth_address = load_zeth_address(key_file)
     zeth_client = create_zeth_client(ctx)
     mk_tree = zeth_client.get_merkle_tree()
-    zeth_client.deposit(
+    tx_hash = zeth_client.deposit(
         mk_tree,
         zeth_address,
         eth_address,
         EtherValue(ether))
-    print("Deposit transaction sent")
+    print(tx_hash)

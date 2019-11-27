@@ -276,7 +276,7 @@ def mix(
         sender_address: str,
         wei_pub_value: int,
         call_gas: int,
-        zksnark: IZKSnarkProvider) -> MixResult:
+        zksnark: IZKSnarkProvider) -> str:
     """
     Run the mixer
     """
@@ -291,8 +291,9 @@ def mix(
         ciphertext1,
         ciphertext2,
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
-    tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
-    return parse_mix_call(mixer_instance, tx_receipt)
+    # tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
+    # return parse_mix_call(mixer_instance, tx_receipt)
+    return tx_hash.hex()
 
 
 def parse_mix_call(
