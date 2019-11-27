@@ -1,14 +1,15 @@
 from commands.constants import WALLET_USERNAME
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import \
-    InstanceDescription, contract_instance, contract_description
+    InstanceDescription, contract_instance, contract_description, \
+    get_block_number, get_mix_results, eth
 from zeth.joinsplit import \
     ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient, from_zeth_units
 from zeth.utils import short_commitment
 from zeth.wallet import ZethNoteDescription, Wallet
 from click import ClickException
 from os.path import exists
-from typing import Any
+from typing import Optional, Any
 
 
 def load_zeth_instance(instance_file: str) -> Any:
@@ -74,13 +75,48 @@ def load_zeth_address(secret_key_file: str) -> ZethAddress:
 
 def open_wallet(
         mixer_instance: Any,
-        secret_key_file: str,
+        js_secret: ZethAddressPriv,
         wallet_dir: str) -> Wallet:
     """
     Load a wallet using a secret key.
     """
-    js_secret = load_zeth_address_secret(secret_key_file)
     return Wallet(mixer_instance, WALLET_USERNAME, wallet_dir, js_secret.k_sk)
+
+
+def do_sync(
+        mixer_instance: Any,
+        js_secret_key: ZethAddressPriv,
+        wallet_dir: str,
+        wait_tx: Optional[str]) -> int:
+    """
+    Implementation of sync, reused by several commands.  Returns the
+    block_number synced to.
+    """
+    wallet = open_wallet(mixer_instance, js_secret_key, wallet_dir)
+
+    def _do_sync() -> int:
+        wallet_next_block = wallet.get_next_block()
+        chain_block_number: int = get_block_number()
+
+        if chain_block_number >= wallet_next_block:
+            print(f"SYNCHING blocks ({wallet_next_block} - {chain_block_number})")
+            for mix_result in get_mix_results(
+                    mixer_instance, wallet_next_block, chain_block_number):
+                for note_desc in wallet.receive_notes(
+                        mix_result.encrypted_notes, mix_result.sender_k_pk):
+                    print(f" NEW NOTE: {zeth_note_short(note_desc)}")
+            wallet.set_next_block(chain_block_number + 1)
+        return chain_block_number
+
+    # Do a sync upfront (it would be a waste of time to wait for a tx before
+    # syncing, as it can take time to traverse all blocks).  Then wait for a tx
+    # if requested, and sync again.
+
+    if wait_tx:
+        _do_sync()
+        eth.waitForTransactionReceipt(wait_tx, 10000)
+
+    return _do_sync()
 
 
 def pub_key_file_name(key_file: str) -> str:

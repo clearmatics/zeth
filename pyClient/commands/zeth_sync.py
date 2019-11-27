@@ -1,6 +1,6 @@
 from commands.constants import KEYFILE_DEFAULT, WALLET_DIR_DEFAULT
-from commands.utils import load_zeth_instance, open_wallet, zeth_note_short
-from zeth.contracts import get_block_number, get_mix_results, eth
+from commands.utils import \
+    load_zeth_instance, load_zeth_address_secret, do_sync
 from click import command, option, pass_context
 from typing import Optional, Any
 
@@ -25,29 +25,6 @@ def sync(
     Attempt to retrieve new notes for the key in <key-file>
     """
     mixer_instance = load_zeth_instance(ctx.obj["INSTANCE_FILE"])
-    wallet = open_wallet(mixer_instance, key_file, wallet_dir)
-
-    def _do_sync() -> int:
-        wallet_next_block = wallet.get_next_block()
-        chain_block_number: int = get_block_number()
-
-        if chain_block_number >= wallet_next_block:
-            print(f"SYNCHING blocks ({wallet_next_block} - {chain_block_number})")
-            for mix_result in get_mix_results(
-                    mixer_instance, wallet_next_block, chain_block_number):
-                for note_desc in wallet.receive_notes(
-                        mix_result.encrypted_notes, mix_result.sender_k_pk):
-                    print(f" NEW NOTE: {zeth_note_short(note_desc)}")
-            wallet.set_next_block(chain_block_number + 1)
-        return chain_block_number
-
-    # Do a sync upfront (it would be a waste of time to wait for a tx before
-    # syncing, as it can take time to traverse all blocks).  Then wait for a tx
-    # if requested, and sync again.
-
-    if wait_tx:
-        _do_sync()
-        eth.waitForTransactionReceipt(wait_tx, 10000)
-
-    chain_block_number = _do_sync()
+    js_secret = load_zeth_address_secret(key_file)
+    chain_block_number = do_sync(mixer_instance, js_secret, wallet_dir, wait_tx)
     print(f"SYNCED to {chain_block_number}")
