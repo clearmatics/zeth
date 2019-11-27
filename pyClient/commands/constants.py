@@ -13,4 +13,5 @@ KEYFILE_DEFAULT = "zeth-key.json"
 NOTESFILE_DEFAULT = "zeth-notes.json"
 INSTANCEFILE_DEFAULT = "zeth-instance.json"
 
-WALLET_USERNAME = "zeth_wallet"
+WALLET_DIR_DEFAULT = "./notes"
+WALLET_USERNAME = "zeth"
