@@ -24,6 +24,7 @@ setup(
         "flake8==3.7.8",
         "pylint==2.4.3",
         "click==7.0",
+        "click-default-group==1.2",
         "attrdict==2.0.1",
         "certifi==2018.11.29",
         "chardet==3.0.4",

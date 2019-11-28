@@ -12,11 +12,24 @@ from commands.zeth_send import send
 from commands.zeth_withdraw import withdraw
 from commands.zeth_balance import balance
 from commands.zeth_notes import notes
-from click import group, option, pass_context
+from click import group, command, option, pass_context, ClickException
+from click_default_group import DefaultGroup
 from typing import Any, Optional
 
 
-@group()
+@command()
+@pass_context
+def help(ctx) -> None:
+    """
+    Print help and exit
+    """
+    # Note, this command is implemented to ensure that an error is raised if no
+    # subcommand is specified (which also catches errors in scripts).
+    print(ctx.parent.get_help())
+    raise ClickException("no command specified")
+
+
+@group(cls=DefaultGroup, default_if_no_args=True, default="help")
 @option("--host", help="Ethereum node address host:rpc-port")
 @option(
     "--prover-server",
@@ -47,14 +60,16 @@ def zeth(
         zksnark_name: str,
         instance_file: str,
         key_file: str,
-        wallet_directory: str) -> None:
+        wallet_dir: str) -> None:
+    if ctx.invoked_subcommand == "help":
+        ctx.invoke(help)
     ctx.ensure_object(dict)
     ctx.obj["HOST"] = host
     ctx.obj["PROVER_CLIENT"] = ProverClient(prover_server)
     ctx.obj["ZKSNARK"] = get_zksnark_provider(zksnark_name)
     ctx.obj["INSTANCE_FILE"] = instance_file
     ctx.obj["KEY_FILE"] = key_file
-    ctx.obj["WALLET_DIR"] = wallet_directory
+    ctx.obj["WALLET_DIR"] = wallet_dir
 
 
 zeth.add_command(deploy)
@@ -65,6 +80,7 @@ zeth.add_command(send)
 zeth.add_command(withdraw)
 zeth.add_command(balance)
 zeth.add_command(notes)
+zeth.add_command(help)
 
 
 if __name__ == "__main__":
