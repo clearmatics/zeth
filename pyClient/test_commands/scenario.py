@@ -13,10 +13,8 @@ import test_commands.mock as mock
 import api.util_pb2 as util_pb2
 
 from os import urandom
-from web3 import Web3, HTTPProvider  # type: ignore
+from web3 import Web3  # type: ignore
 from typing import List, Tuple
-
-W3 = Web3(HTTPProvider("http://localhost:8545"))
 
 ZERO_UNITS_HEX = "0000000000000000"
 BOB_DEPOSIT_ETH = 200
@@ -33,7 +31,7 @@ CHARLIE_WITHDRAW_CHANGE_ETH = 39.5
 def dump_merkle_tree(mk_tree: List[bytes]) -> None:
     print("[DEBUG] Displaying the Merkle tree of commitments: ")
     for node in mk_tree:
-        print("Node: " + W3.toHex(node)[2:])
+        print("Node: " + Web3.toHex(node)[2:])
 
 
 def bob_deposit(
@@ -238,7 +236,7 @@ def charlie_double_withdraw(
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
-        W3.toWei(1, 'wei'),
+        Web3.toWei(1, 'wei'),
         4000000))
 
 
@@ -333,7 +331,7 @@ def charlie_corrupt_bob_deposit(
             charlie_eth_address,
             # Pay an arbitrary amount (1 wei here) that will be refunded
             #  since the `mix` function is payable
-            W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+            Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
             4000000))
     except Exception as e:
         print(
@@ -371,7 +369,7 @@ def charlie_corrupt_bob_deposit(
             charlie_eth_address,
             # Pay an arbitrary amount (1 wei here) that will be refunded since the
             # `mix` function is payable
-            W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+            Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
             4000000))
     except Exception as e:
         print(
@@ -392,5 +390,5 @@ def charlie_corrupt_bob_deposit(
         joinsplit_keypair.vk,
         joinsplit_sig,
         bob_eth_address,
-        W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+        Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
         4000000))

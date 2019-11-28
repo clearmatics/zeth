@@ -2,8 +2,9 @@
 
 from zeth.zksnark import get_zksnark_provider
 from zeth.prover_client import ProverClient
-from commands.constants import ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, \
-    INSTANCEFILE_DEFAULT, KEYFILE_DEFAULT, WALLET_DIR_DEFAULT
+from commands.constants import \
+    ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCEFILE_DEFAULT, \
+    KEYFILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT
 from commands.zeth_deploy import deploy
 from commands.zeth_key import key
 from commands.zeth_deposit import deposit
@@ -30,7 +31,10 @@ def help(ctx) -> None:
 
 
 @group(cls=DefaultGroup, default_if_no_args=True, default="help")
-@option("--host", help="Ethereum node address host:rpc-port")
+@option(
+    "--eth-rpc",
+    default=ETH_RPC_ENDPOINT_DEFAULT,
+    help=f"Ethereum rpc end-point")
 @option(
     "--prover-server",
     default=PROVER_SERVER_ENDPOINT_DEFAULT,
@@ -55,7 +59,7 @@ def help(ctx) -> None:
 @pass_context
 def zeth(
         ctx: Any,
-        host: Optional[str],
+        eth_rpc: Optional[str],
         prover_server: str,
         zksnark_name: str,
         instance_file: str,
@@ -64,7 +68,7 @@ def zeth(
     if ctx.invoked_subcommand == "help":
         ctx.invoke(help)
     ctx.ensure_object(dict)
-    ctx.obj["HOST"] = host
+    ctx.obj["ETH_RPC"] = eth_rpc
     ctx.obj["PROVER_CLIENT"] = ProverClient(prover_server)
     ctx.obj["ZKSNARK"] = get_zksnark_provider(zksnark_name)
     ctx.obj["INSTANCE_FILE"] = instance_file

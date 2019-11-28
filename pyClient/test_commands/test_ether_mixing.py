@@ -11,27 +11,26 @@ import zeth.utils
 import zeth.constants as constants
 import test_commands.mock as mock
 import test_commands.scenario as scenario
-from zeth.prover_client import ProverClient
 from zeth.wallet import Wallet
 
 import os
-from web3 import Web3, HTTPProvider  # type: ignore
-
-W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
-eth = W3.eth  # pylint: disable=no-member,invalid-name
-TEST_GRPC_ENDPOINT = constants.PROVER_SERVER_RPC_ENDPOINT
+from typing import Any
+# from web3 import Web3, HTTPProvider  # type: ignore
 
 
-def print_balances(bob: str, alice: str, charlie: str, mixer: str) -> None:
+def print_balances(
+        web3: Any, bob: str, alice: str, charlie: str, mixer: str) -> None:
     print("BALANCES:")
-    print(f"  Alice   : {eth.getBalance(alice)}")
-    print(f"  Bob     : {eth.getBalance(bob)}")
-    print(f"  Charlie : {eth.getBalance(charlie)}")
-    print(f"  Mixer   : {eth.getBalance(mixer)}")
+    print(f"  Alice   : {web3.eth.getBalance(alice)}")
+    print(f"  Bob     : {web3.eth.getBalance(bob)}")
+    print(f"  Charlie : {web3.eth.getBalance(charlie)}")
+    print(f"  Mixer   : {web3.eth.getBalance(mixer)}")
 
 
 def main() -> None:
     zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
+
+    web3, eth = mock.open_test_web3()
 
     # Zeth addresses
     keystore = mock.init_test_keystore()
@@ -41,12 +40,13 @@ def main() -> None:
     alice_eth_address = eth.accounts[2]
     charlie_eth_address = eth.accounts[3]
 
-    prover_client = ProverClient(TEST_GRPC_ENDPOINT)
+    prover_client = mock.open_test_prover_client()
 
     coinstore_dir = os.environ['ZETH_COINSTORE']
 
     # Deploy Zeth contracts
     zeth_client = zeth.joinsplit.ZethClient.deploy(
+        web3,
         prover_client,
         constants.ZETH_MERKLE_TREE_DEPTH,
         deployer_eth_address,
@@ -66,6 +66,7 @@ def main() -> None:
     print("[INFO] 4. Running tests (asset mixed: Ether)...")
     print("- Initial balances: ")
     print_balances(
+        web3,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
@@ -79,6 +80,7 @@ def main() -> None:
 
     print("- Balances after Bob's deposit: ")
     print_balances(
+        web3,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
@@ -126,6 +128,7 @@ def main() -> None:
 
     print("- Balances after Bob's transfer to Charlie: ")
     print_balances(
+        web3,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
@@ -150,6 +153,7 @@ def main() -> None:
         keystore)
     print("Balances after Charlie's withdrawal: ")
     print_balances(
+        web3,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
@@ -171,6 +175,7 @@ def main() -> None:
     assert(result_double_spending is None), \
         "Charlie managed to withdraw the same note twice!"
     print_balances(
+        web3,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
@@ -194,6 +199,7 @@ def main() -> None:
 
     print("- Balances after Bob's last deposit: ")
     print_balances(
+        web3,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,

@@ -7,7 +7,6 @@
 import zeth.contracts as contracts
 import zeth.joinsplit
 import zeth.zksnark
-from zeth.prover_client import ProverClient
 from zeth.wallet import Wallet
 import zeth.utils
 import zeth.constants as constants
@@ -15,14 +14,10 @@ import test_commands.mock as mock
 import test_commands.scenario as scenario
 
 import os
-from web3 import Web3, HTTPProvider  # type: ignore
+from web3 import Web3  # type: ignore
 from solcx import compile_files  # type: ignore
 from os.path import join
 from typing import Any
-
-W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
-eth = W3.eth  # pylint: disable=no-member,invalid-name
-TEST_GRPC_ENDPOINT = constants.PROVER_SERVER_RPC_ENDPOINT
 
 
 def compile_token() -> contracts.Interface:
@@ -45,6 +40,7 @@ def compile_token() -> contracts.Interface:
 
 
 def deploy_token(
+        eth: Any,
         deployer_address: str,
         deployment_gas: int) -> Any:
     """
@@ -84,7 +80,7 @@ def approve(
         token_amount: int) -> str:
     return token_instance.functions.approve(
         spender_address,
-        W3.toWei(token_amount, 'ether')).transact({'from': owner_address})
+        Web3.toWei(token_amount, 'ether')).transact({'from': owner_address})
 
 
 def allowance(
@@ -102,11 +98,13 @@ def mint_token(
         token_amount: int) -> bytes:
     return token_instance.functions.mint(
         spender_address,
-        W3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
+        Web3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
 
 
 def main() -> None:
+
     zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
+    web3, eth = mock.open_test_web3()
 
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]
@@ -116,15 +114,16 @@ def main() -> None:
     # Zeth addresses
     keystore = mock.init_test_keystore()
 
-    prover_client = ProverClient(TEST_GRPC_ENDPOINT)
+    prover_client = mock.open_test_prover_client()
 
     coinstore_dir = os.environ['ZETH_COINSTORE']
 
     # Deploy the token contract
-    token_instance = deploy_token(deployer_eth_address, 4000000)
+    token_instance = deploy_token(eth, deployer_eth_address, 4000000)
 
     # Deploy Zeth contracts
     zeth_client = zeth.joinsplit.ZethClient.deploy(
+        web3,
         prover_client,
         constants.ZETH_MERKLE_TREE_DEPTH,
         deployer_eth_address,

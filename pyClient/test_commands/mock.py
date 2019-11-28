@@ -6,12 +6,26 @@
 
 from zeth.joinsplit import EncryptionKeyPair, ZethAddress
 from zeth.ownership import gen_ownership_keypair
-from zeth.utils import get_private_key_from_bytes, get_public_key_from_bytes
+from zeth.prover_client import ProverClient
+from zeth.utils import \
+    open_web3, get_private_key_from_bytes, get_public_key_from_bytes
 
-from typing import Dict, List
+from typing import Dict, List, Tuple, Any
 
+# Web3 HTTP provider
+TEST_PROVER_SERVER_ENDPOINT: str = "localhost:50051"
+TEST_WEB3_PROVIDER_ENDPOINT: str = "http://localhost:8545"
 
 KeyStore = Dict[str, ZethAddress]
+
+
+def open_test_web3() -> Tuple[Any, Any]:
+    web3 = open_web3(TEST_WEB3_PROVIDER_ENDPOINT)
+    return web3, web3.eth  # pylint: disable=no-member # type: ignore
+
+
+def open_test_prover_client() -> ProverClient:
+    return ProverClient(TEST_PROVER_SERVER_ENDPOINT)
 
 
 def init_test_keystore() -> KeyStore:

@@ -395,12 +395,14 @@ class ZethClient:
     """
     def __init__(
             self,
+            web3: Any,
             prover_client: ProverClient,
             mk_tree_depth: int,
             mixer_instance: Any,
             merkle_root: str,
             zksnark: IZKSnarkProvider):
         self._prover_client = prover_client
+        self.web3 = web3
         self._zksnark = zksnark
         self.mixer_instance = mixer_instance
         self.mk_tree_depth = mk_tree_depth
@@ -408,6 +410,7 @@ class ZethClient:
 
     @staticmethod
     def open(
+            web3: Any,
             prover_client: ProverClient,
             mk_tree_depth: int,
             mixer_instance: Any,
@@ -416,6 +419,7 @@ class ZethClient:
         Create a client for an existing Zeth deployment.
         """
         return ZethClient(
+            web3,
             prover_client,
             mk_tree_depth,
             mixer_instance,
@@ -424,6 +428,7 @@ class ZethClient:
 
     @staticmethod
     def deploy(
+            web3: Any,
             prover_client: ProverClient,
             mk_tree_depth: int,
             deployer_eth_address: str,
@@ -445,6 +450,7 @@ class ZethClient:
             contracts.compile_contracts(zksnark)
         hasher_interface, _ = contracts.compile_util_contracts()
         (mixer_instance, initial_merkle_root) = contracts.deploy_contracts(
+            web3,
             mk_tree_depth,
             proof_verifier_interface,
             otsig_verifier_interface,
@@ -456,6 +462,7 @@ class ZethClient:
             token_address,
             zksnark)
         return ZethClient(
+            web3,
             prover_client,
             mk_tree_depth,
             mixer_instance,
@@ -558,7 +565,7 @@ class ZethClient:
             4000000)
 
     def wait(self, tx_hash: str) -> contracts.MixResult:
-        tx_receipt = contracts.eth.waitForTransactionReceipt(tx_hash, 10000)
+        tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash, 10000)
         result = contracts.parse_mix_call(self.mixer_instance, tx_receipt)
         self.merkle_root = result.new_merkle_root
         return result

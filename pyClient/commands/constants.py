@@ -3,11 +3,12 @@
 Constants and defaults specific to the CLI interface.
 """
 
-from zeth.constants import GROTH16_ZKSNARK, PROVER_SERVER_RPC_ENDPOINT
+from zeth.constants import GROTH16_ZKSNARK
 
 
 ZKSNARK_DEFAULT = GROTH16_ZKSNARK
-PROVER_SERVER_ENDPOINT_DEFAULT = PROVER_SERVER_RPC_ENDPOINT
+ETH_RPC_ENDPOINT_DEFAULT = "http://localhost:8545"
+PROVER_SERVER_ENDPOINT_DEFAULT = "localhost:50051"
 
 KEYFILE_DEFAULT = "zeth-key.json"
 NOTESFILE_DEFAULT = "zeth-notes.json"

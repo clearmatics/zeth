@@ -1,25 +1,27 @@
 from commands.constants import WALLET_USERNAME
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
-from zeth.contracts import \
-    InstanceDescription, contract_instance, contract_description, \
-    get_block_number, get_mix_results, eth
+from zeth.contracts import InstanceDescription, get_block_number, get_mix_results
 from zeth.joinsplit import \
     ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient, from_zeth_units
-from zeth.utils import short_commitment
+from zeth.utils import open_web3, short_commitment
 from zeth.wallet import ZethNoteDescription, Wallet
 from click import ClickException, Context
 from os.path import exists
 from typing import Optional, Any
 
 
-def load_zeth_instance(ctx: Context) -> Any:
+def open_web3_from_ctx(ctx: Context) -> Any:
+    return open_web3(ctx.obj["ETH_RPC"])
+
+
+def load_zeth_instance(ctx: Context, web3: Any) -> Any:
     """
     Load the mixer instance ID from a file
     """
     instance_file = ctx.obj["INSTANCE_FILE"]
     with open(instance_file, "r") as instance_f:
         instance_desc = InstanceDescription.from_json(instance_f.read())
-    return contract_instance(instance_desc)
+    return instance_desc.instantiate(web3)
 
 
 def write_zeth_instance(zeth_instance: Any, instance_file: str) -> None:
@@ -27,7 +29,8 @@ def write_zeth_instance(zeth_instance: Any, instance_file: str) -> None:
     Write the mixer instance ID to a file
     """
     with open(instance_file, "w") as instance_f:
-        instance_f.write(contract_description(zeth_instance).to_json())
+        instance_desc = InstanceDescription.from_instance(zeth_instance)
+        instance_f.write(instance_desc.to_json())
 
 
 def load_zeth_address_public(ctx: Context) -> ZethAddressPub:
@@ -89,7 +92,7 @@ def open_wallet(
 
 
 def do_sync(
-        mixer_instance: Any,
+        web3: Any,
         wallet: Wallet,
         wait_tx: Optional[str]) -> int:
     """
@@ -98,12 +101,13 @@ def do_sync(
     """
     def _do_sync() -> int:
         wallet_next_block = wallet.get_next_block()
-        chain_block_number: int = get_block_number()
+        chain_block_number: int = get_block_number(web3)
 
         if chain_block_number >= wallet_next_block:
             print(f"SYNCHING blocks ({wallet_next_block} - {chain_block_number})")
+            mixer_instance = wallet.mixer_instance
             for mix_result in get_mix_results(
-                    mixer_instance, wallet_next_block, chain_block_number):
+                    web3, mixer_instance, wallet_next_block, chain_block_number):
                 for note_desc in wallet.receive_notes(
                         mix_result.encrypted_notes, mix_result.sender_k_pk):
                     print(f" NEW NOTE: {zeth_note_short(note_desc)}")
@@ -116,8 +120,7 @@ def do_sync(
 
     if wait_tx:
         _do_sync()
-        eth.waitForTransactionReceipt(wait_tx, 10000)
-
+        web3.eth.waitForTransactionReceipt(wait_tx, 10000)
     return _do_sync()
 
 
@@ -147,14 +150,12 @@ def create_zeth_client(ctx: Context) -> ZethClient:
     Create a ZethClient for an existing deployment, given all appropriate
     information.
     """
-    mixer_instance = load_zeth_instance(ctx)
+    web3 = open_web3_from_ctx(ctx)
+    mixer_instance = load_zeth_instance(ctx, web3)
     prover_client = ctx.obj["PROVER_CLIENT"]
     zksnark = ctx.obj["ZKSNARK"]
     return ZethClient.open(
-        prover_client,
-        ZETH_MERKLE_TREE_DEPTH,
-        mixer_instance,
-        zksnark)
+        web3, prover_client, ZETH_MERKLE_TREE_DEPTH, mixer_instance, zksnark)
 
 
 def zeth_note_short(note_desc: ZethNoteDescription) -> str:

@@ -22,12 +22,6 @@ VALID_ZKSNARKS: List[str] = [GROTH16_ZKSNARK, PGHR13_ZKSNARK]
 # OTSCHNORR constants
 SCHNORR_VERIFIER_CONTRACT: str = "OTSchnorrVerifier"
 
-# RPC endpoint
-PROVER_SERVER_RPC_ENDPOINT: str = "localhost:50051"
-
-# Web3 HTTP provider
-WEB3_HTTP_PROVIDER: str = "http://localhost:8545"
-
 # Merkle tree depth
 ZETH_MERKLE_TREE_DEPTH: int = 4
 
