@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+set -e
+set -x
+
+TRUFFLE_DIR=`pwd`/zeth-contracts
+BASE_DIR=_test_zeth_cli
+DEPLOYER_DIR=${BASE_DIR}/deployer
+ALICE_DIR=${BASE_DIR}/alice
+BOB_DIR=${BASE_DIR}/bob
+CHARLIE_DIR=${BASE_DIR}/charlie
+
+function run_truffle() {
+    pushd ${TRUFFLE_DIR}
+    eval truffle $@
+    popd
+}
+
+function run_as() {
+    pushd $1
+    shift
+    eval $@
+    popd
+}
+
+# Setup keys
+
+mkdir -p ${BASE_DIR}
+pushd ${BASE_DIR}
+
+    if ! [ -e accounts ] ; then
+        (run_truffle exec ../scripts/test_zeth_cli_get_accounts.js) > accounts
+    fi
+
+    # 1 - name
+    function setup_user() {
+        mkdir -p $1
+        pushd $1
+        ! [ -e eth_address ] && \
+            (grep $1 ../accounts | grep -oe '0x.*' > eth_address)
+        ! [ -e zeth-key.json ] && \
+            (zeth key)
+        popd
+    }
+
+    setup_user deployer
+    setup_user alice
+    setup_user bob
+    setup_user charlie
+
+    # Deploy
+    ! [ -e deployer/zeth-instance.json ] && \
+        run_as deployer zeth deploy `cat deployer/eth_address`
+
+    cp deployer/zeth-instance.json alice
+    cp deployer/zeth-instance.json bob
+    cp deployer/zeth-instance.json charlie
+
+    # Alice deposits
+    pushd alice
+    zeth deposit `cat eth_address` 200
+    zeth sync
+    ! [ "0" == `zeth notes | wc -l` ]
+    popd
+
+
+    popd
