@@ -109,6 +109,13 @@ class Wallet:
         with open(self.state_file, "w") as state_f:
             state_f.write(str(next_block))
 
+    def find_note(self, note_id: str) -> ZethNoteDescription:
+        note_file = self._find_note_file(note_id)
+        if not note_file:
+            raise Exception(f"no note with id {note_id}")
+        with open(note_file, "r") as note_f:
+            return ZethNoteDescription.from_json(note_f.read())
+
     def _decrypt_notes(
             self,
             encrypted_notes: List[EncryptedNote],

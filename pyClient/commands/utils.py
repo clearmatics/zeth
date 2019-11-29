@@ -165,3 +165,14 @@ def zeth_note_short(note_desc: ZethNoteDescription) -> str:
     value = from_zeth_units(int(note_desc.note.value, 16)).ether()
     cm = short_commitment(note_desc.commitment)
     return f"{cm}: value={value} ETH, addr={note_desc.address}"
+
+
+def parse_output(output_str: str) -> Tuple[JoinsplitPublicKey, EtherValue]:
+    """
+    Parse a string of the form "<receiver_pub_key>,<value>" to an output
+    specification.
+    """
+    parts = output_str.split(",")
+    if len(parts) != 2:
+        raise ClickException(f"invalid output spec: {output_str}")
+    return (JoinsplitPublicKey.parse(parts[0]), EtherValue(parts[1]))
