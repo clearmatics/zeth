@@ -36,8 +36,8 @@ pushd ${BASE_DIR}
     function setup_user() {
         mkdir -p $1
         pushd $1
-        ! [ -e eth_address ] && \
-            (grep $1 ../accounts | grep -oe '0x.*' > eth_address)
+        ! [ -e eth-address ] && \
+            (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
         ! [ -e zeth-key.json ] && \
             (zeth key)
         popd
@@ -50,18 +50,34 @@ pushd ${BASE_DIR}
 
     # Deploy
     ! [ -e deployer/zeth-instance.json ] && \
-        run_as deployer zeth deploy `cat deployer/eth_address`
+        run_as deployer zeth deploy
 
     cp deployer/zeth-instance.json alice
     cp deployer/zeth-instance.json bob
     cp deployer/zeth-instance.json charlie
 
-    # Alice deposits
+    # Alice deposits 200 and sends 100 to Bob
     pushd alice
-    zeth deposit `cat eth_address` 200
-    zeth sync
-    ! [ "0" == `zeth notes | wc -l` ]
+    if ! [ -e notes/state_zeth ] ; then
+        zeth deposit 200
+        zeth sync
+    fi
+    note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+    ! [ "" == ${note_id} ]
+
+    alice_pk=`cat zeth-key.json.pub`
+    bob_pk=`cat ../bob/zeth-key.json.pub`
+    zeth send \
+         --wait \
+         --in ${note_id} \
+         --out ${alice_pk},100 \
+         --out ${bob_pk},100
     popd
 
+    pushd bob
+    zeth sync
+    note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+    ! [ "" == ${note_id} ]
+    popd
 
     popd
