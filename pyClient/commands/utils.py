@@ -3,11 +3,11 @@ from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import InstanceDescription, get_block_number, get_mix_results
 from zeth.joinsplit import \
     ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient, from_zeth_units
-from zeth.utils import open_web3, short_commitment
+from zeth.utils import open_web3, short_commitment, EtherValue
 from zeth.wallet import ZethNoteDescription, Wallet
 from click import ClickException, Context
 from os.path import exists
-from typing import Optional, Any
+from typing import Tuple, Optional, Any
 
 
 def open_web3_from_ctx(ctx: Context) -> Any:
@@ -167,7 +167,7 @@ def zeth_note_short(note_desc: ZethNoteDescription) -> str:
     return f"{cm}: value={value} ETH, addr={note_desc.address}"
 
 
-def parse_output(output_str: str) -> Tuple[JoinsplitPublicKey, EtherValue]:
+def parse_output(output_str: str) -> Tuple[ZethAddressPub, EtherValue]:
     """
     Parse a string of the form "<receiver_pub_key>,<value>" to an output
     specification.
@@ -175,4 +175,4 @@ def parse_output(output_str: str) -> Tuple[JoinsplitPublicKey, EtherValue]:
     parts = output_str.split(",")
     if len(parts) != 2:
         raise ClickException(f"invalid output spec: {output_str}")
-    return (JoinsplitPublicKey.parse(parts[0]), EtherValue(parts[1]))
+    return (ZethAddressPub.parse(parts[0]), EtherValue(parts[1]))
