@@ -1,9 +1,9 @@
 from commands.constants import KEYFILE_DEFAULT
 from commands.utils import create_zeth_client, load_zeth_address, \
-    open_wallet, parse_output, do_sync
+    open_wallet, parse_output, do_sync, load_eth_address
 from zeth.constants import JS_INPUTS, JS_OUTPUTS
 from zeth.joinsplit import ZethAddressPub
-import zeth.joinsplit as joinsplit
+from zeth.joinsplit import from_zeth_units
 from zeth.utils import EtherValue
 from api.util_pb2 import ZethNote
 from click import command, option, pass_context, ClickException
@@ -14,7 +14,7 @@ from typing import List, Tuple, Optional, Any
 @option("--in", "input_notes", multiple=True)
 @option("--out", "output_specs", multiple=True, help="<receiver_pub_key>,<value>")
 @option("--key-file", default=KEYFILE_DEFAULT)
-@option("--eth-addr")
+@option("--eth-addr", help="Sender eth address or address filename")
 @option("--wait", is_flag=True)
 @pass_context
 def send(
@@ -47,27 +47,20 @@ def send(
     outputs: List[Tuple[ZethAddressPub, EtherValue]] = [
         parse_output(out_spec) for out_spec in output_specs]
 
-    for in_note in inputs:
-        print(f" INPUT: {in_note}")
-
-    for output in outputs:
-        print(f" OUTPUT: {output}")
-
     # Compute input and output value total and check that they match
-    input_sum = joinsplit.from_zeth_units(
-        sum([int(note.value, 16) for _, note in inputs]))
+    input_sum = from_zeth_units(sum([int(note.value, 16) for _, note in inputs]))
     output_sum = sum([value for _, value in outputs], EtherValue(0))
     if input_sum != output_sum:
         raise ClickException(
             f"value mismatch: in={input_sum.ether()} out={output_sum.ether()}")
 
-    eth_addr = eth_addr or "invalid"
+    eth_address = load_eth_address(eth_addr)
 
     mk_tree = zeth_client.get_merkle_tree()
     tx_hash = zeth_client.joinsplit(
         mk_tree,
         zeth_address.ownership_keypair(),
-        eth_addr,
+        eth_address,
         inputs,
         outputs,
         EtherValue(0),

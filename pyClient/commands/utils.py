@@ -1,4 +1,4 @@
-from commands.constants import WALLET_USERNAME
+from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import InstanceDescription, get_block_number, get_mix_results
 from zeth.joinsplit import \
@@ -176,3 +176,17 @@ def parse_output(output_str: str) -> Tuple[ZethAddressPub, EtherValue]:
     if len(parts) != 2:
         raise ClickException(f"invalid output spec: {output_str}")
     return (ZethAddressPub.parse(parts[0]), EtherValue(parts[1]))
+
+
+def load_eth_address(eth_addr: Optional[str]) -> str:
+    """
+    Given an --eth-addr command line param, either parse the address, load from
+    the file, or use a default file name.
+    """
+    eth_addr = eth_addr or ETH_ADDRESS_DEFAULT
+    if eth_addr.startswith("0x"):
+        return eth_addr
+    if exists(eth_addr):
+        with open(eth_addr, "r") as eth_addr_f:
+            return eth_addr_f.read().rstrip()
+    raise ClickException(f"could find file or parse eth address: {eth_addr}")

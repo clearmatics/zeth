@@ -1,24 +1,26 @@
 from commands.constants import INSTANCEFILE_DEFAULT
-from commands.utils import open_web3_from_ctx, write_zeth_instance
+from commands.utils import \
+    open_web3_from_ctx, write_zeth_instance, load_eth_address
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.prover_client import ProverClient
 from zeth.joinsplit import ZethClient
 from zeth.zksnark import IZKSnarkProvider
-from click import command, argument, option, pass_context
-from typing import Any
+from click import command, option, pass_context
+from typing import Optional, Any
 
 
 @command()
-@argument("eth-address")
+@option("--eth-addr", help="Sender eth address or address filename")
 @option(
     "--instance-out",
     default=INSTANCEFILE_DEFAULT,
     help=f"File to write deployment address to (default={INSTANCEFILE_DEFAULT})")
 @pass_context
-def deploy(ctx: Any, eth_address: str, instance_out: str) -> None:
+def deploy(ctx: Any, eth_addr: Optional[str], instance_out: str) -> None:
     """
     Deploy the zeth contracts and record the instantiation details.
     """
+    eth_address = load_eth_address(eth_addr)
     print(f"deploy: eth_address={eth_address}")
     print(f"deploy: instance_out={instance_out}")
 
