@@ -23,61 +23,89 @@ function run_as() {
     popd
 }
 
+function show_balances() {
+    run_truffle exec ../scripts/test_zeth_cli_show_balances.js
+}
+
 # Setup keys
 
 mkdir -p ${BASE_DIR}
 pushd ${BASE_DIR}
 
-    if ! [ -e accounts ] ; then
-        (run_truffle exec ../scripts/test_zeth_cli_get_accounts.js) > accounts
-    fi
+if ! [ -e accounts ] ; then
+    (run_truffle exec ../scripts/test_zeth_cli_get_accounts.js) > accounts
+fi
 
-    # 1 - name
-    function setup_user() {
-        mkdir -p $1
-        pushd $1
-        ! [ -e eth-address ] && \
-            (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
-        ! [ -e zeth-key.json ] && \
-            (zeth key)
-        popd
-    }
-
-    setup_user deployer
-    setup_user alice
-    setup_user bob
-    setup_user charlie
-
-    # Deploy
-    ! [ -e deployer/zeth-instance.json ] && \
-        run_as deployer zeth deploy
-
-    cp deployer/zeth-instance.json alice
-    cp deployer/zeth-instance.json bob
-    cp deployer/zeth-instance.json charlie
-
-    # Alice deposits 200 and sends 100 to Bob
-    pushd alice
-    if ! [ -e notes/state_zeth ] ; then
-        zeth deposit 200
-        zeth sync
-    fi
-    note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
-    ! [ "" == ${note_id} ]
-
-    alice_pk=`cat zeth-key.json.pub`
-    bob_pk=`cat ../bob/zeth-key.json.pub`
-    zeth send \
-         --wait \
-         --in ${note_id} \
-         --out ${alice_pk},100 \
-         --out ${bob_pk},100
+# 1 - name
+function setup_user() {
+    mkdir -p $1
+    pushd $1
+    ! [ -e eth-address ] && \
+        (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
+    ! [ -e zeth-key.json ] && \
+        (zeth key)
     popd
+}
 
-    pushd bob
+setup_user deployer
+setup_user alice
+setup_user bob
+setup_user charlie
+
+# Deploy
+! [ -e deployer/zeth-instance.json ] && \
+    run_as deployer zeth deploy
+
+cp deployer/zeth-instance.json alice
+cp deployer/zeth-instance.json bob
+cp deployer/zeth-instance.json charlie
+
+# Alice deposits 200 and sends 100 to Bob
+pushd alice
+if ! [ -e notes/state_zeth ] ; then
+    zeth deposit 200
     zeth sync
-    note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
-    ! [ "" == ${note_id} ]
-    popd
+fi
+note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+! [ "" == ${note_id} ]
 
-    popd
+alice_pk=`cat zeth-key.json.pub`
+bob_pk=`cat ../bob/zeth-key.json.pub`
+zeth send \
+     --wait \
+     --in ${note_id} \
+     --out ${alice_pk},100 \
+     --out ${bob_pk},100
+popd
+
+# Bob scans the chain, finds his note, and sends 50 to Charlie
+pushd bob
+zeth sync
+note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+! [ "" == ${note_id} ]
+charlie_pk=`cat ../charlie/zeth-key.json.pub`
+zeth send \
+     --wait \
+     --in ${note_id} \
+     --out ${bob_pk},50 \
+     --out ${charlie_pk},50
+popd
+
+echo BALANCES FOR WITHDRAW
+show_balances
+
+# Charlie scans the chain and withdraws his 50 ETH
+pushd charlie
+zeth sync
+note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+! [ "" == ${note_id} ]
+zeth withdraw \
+     --wait \
+     --in ${note_id}
+popd
+
+echo BALANCES AFTER WITHDRAW
+show_balances
+
+# Leave BASE_DIR
+popd
