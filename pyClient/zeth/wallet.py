@@ -34,6 +34,22 @@ class ZethNoteDescription:
         """
         return (self.address, self.note)
 
+    def to_json(self) -> str:
+        json_dict = {
+            "note": joinsplit.zeth_note_to_json_dict(self.note),
+            "address": str(self.address),
+            "commitment": self.commitment.hex(),
+        }
+        return json.dumps(json_dict, indent=4)
+
+    @staticmethod
+    def from_json(json_str: str) -> ZethNoteDescription:
+        json_dict = json.loads(json_str)
+        return ZethNoteDescription(
+            note=joinsplit.zeth_note_from_json_dict(json_dict["note"]),
+            address=int(json_dict["address"]),
+            commitment=bytes.fromhex(json_dict["commitment"]))
+
 
 class Wallet:
     """
@@ -123,7 +139,7 @@ class Wallet:
         """
         note_filename = join(self.wallet_dir, self._note_basename(note_desc))
         with open(note_filename, "w") as note_f:
-            note_f.write(json.dumps(joinsplit.parse_zeth_note(note_desc.note)))
+            note_f.write(note_desc.to_json())
 
     def _note_basename(self, note_desc: ZethNoteDescription) -> str:
         value_eth = joinsplit.from_zeth_units(
@@ -156,8 +172,17 @@ class Wallet:
         Given some (fragment of) address or short commit, try to uniquely
         identify a note file.
         """
-        wildcard = join(self.wallet_dir, f"note_{self.username}_*{key}*_")
-        candidates = list(glob.glob(wildcard))
+        # If len <= 4, assume it's an address, otherwise a commit
+        if len(key) < 5:
+            try:
+                addr = "%04d" % int(key)
+                wildcard = f"note_{self.username}_{addr}_*"
+            except Exception:
+                return None
+        else:
+            wildcard = f"note_{self.username}_*_{key}_*"
+
+        candidates = list(glob.glob(join(self.wallet_dir, wildcard)))
         return candidates[0] if len(candidates) == 1 else None
 
 

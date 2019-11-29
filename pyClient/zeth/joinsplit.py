@@ -233,17 +233,16 @@ def create_zeth_notes(
     return note0, note1
 
 
-def parse_zeth_note(zeth_note_grpc_obj: ZethNote) -> Dict[str, str]:
-    note_json = {
+def zeth_note_to_json_dict(zeth_note_grpc_obj: ZethNote) -> Dict[str, str]:
+    return {
         "a_pk": zeth_note_grpc_obj.apk,
         "value": zeth_note_grpc_obj.value,
         "rho": zeth_note_grpc_obj.rho,
         "trap_r": zeth_note_grpc_obj.trap_r,
     }
-    return note_json
 
 
-def zeth_note_obj_from_parsed(parsed_zeth_note: Dict[str, str]) -> ZethNote:
+def zeth_note_from_json_dict(parsed_zeth_note: Dict[str, str]) -> ZethNote:
     note = ZethNote(
         apk=parsed_zeth_note["a_pk"],
         value=parsed_zeth_note["value"],
@@ -652,7 +651,7 @@ def encrypt_notes(
     eph_pk = eph_enc_key_pair.k_pk
 
     def _encrypt_note(out_note: ZethNote, pub_key: EncryptionPublicKey) -> bytes:
-        out_note_str = json.dumps(parse_zeth_note(out_note))
+        out_note_str = json.dumps(zeth_note_to_json_dict(out_note))
         return encrypt(out_note_str, pub_key, eph_sk)
 
     ciphertexts = [_encrypt_note(note, pk) for (note, pk) in notes]
@@ -670,7 +669,7 @@ def receive_notes(
     for address, ciphertext in addrs_and_ciphertexts:
         try:
             plaintext = decrypt(ciphertext, sender_k_pk, receiver_k_sk)
-            yield address, zeth_note_obj_from_parsed(json.loads(plaintext))
+            yield address, zeth_note_from_json_dict(json.loads(plaintext))
         except Exception:
             continue
 
