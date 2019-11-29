@@ -6,6 +6,7 @@
 
 # Parse the arguments given to the script
 
+from __future__ import annotations
 from . import constants
 from . import errors
 
@@ -43,6 +44,17 @@ class EtherValue:
 
     def __str__(self) -> str:
         return str(self.wei)
+
+    def __add__(self, other: EtherValue) -> EtherValue:
+        return EtherValue(self.wei + other.wei, 'wei')
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, EtherValue):
+            return False
+        return self.wei == other.wei
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
 
     def ether(self) -> str:
         return str(Web3.fromWei(self.wei, 'ether'))
