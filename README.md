@@ -17,12 +17,17 @@ In order to follow the README below, you will need:
 - [Node](https://nodejs.org/en/) (at least version `v9.5.0`)
 - [Python3](https://www.python.org/downloads/) (at least version `3.7`)
 
-We use 3 terminals to run the project.
-One terminal will be used to run the proving service/server, another one will be used to run a local Ethereum testnet, and the final terminal will be used to run a python stub that triggers a few proof generations on the proving server in order to do confidential transactions on the Ethereum testnet.
+To use the Zeth functionality, 3 components are required:
+- An Ethereum network (the commands below use a local testnet) to host the Zeth
+  contracts and handle transactions.
+- A running "prover_server" process, used by Zeth clients to generate proofs.
+- Client tools, which generate all inputs required for a Zeth operations,
+  request proofs from the "prover_server", and transmit transactions to the
+  Ethereum network holding the Zeth contract.
 
-The titles of the sections below are prefixed with the terminal ID the commands should be ran into.
+We use 3 terminals, one for each of the above components.
 
-#### Terminal 1: Configure the project and run the cpp tests (Docker)
+#### Terminal 1: Build and run prover_server
 
 ```bash
 # Clone this repository:
@@ -36,7 +41,7 @@ docker build -f Dockerfile-zeth -t zeth-dev .
 # Start the zeth development container
 docker run -ti -p 50051:50051 --name zeth zeth-dev:latest
 
-## All the commands below are ran in the docker container
+# All the commands below are run in the docker container
 # Configure your environment
 . ./setup_env.sh
 
@@ -44,27 +49,36 @@ docker run -ti -p 50051:50051 --name zeth zeth-dev:latest
 mkdir build
 cd build
 cmake .. [<flags (see below)>]
-## (optional) Run the tests
-make check # Builds and run the tests (once the tests are built, calling "make test" suffices to execute them)
-## Compile
+# Compile all libraries and tools, including the prover_server
 make
+# (optional) Run the unit tests
+make test
+# (optional) Run the all tests (unit tests, syntax checks, etc)
+make check
 
-# Start the proving server
-prover_server
+# Start the prover_server process
+src/prover_server
 ```
 
-Note: *flags* in the cmake command may include `-DCMAKE_BUILD_TYPE=Release` for
-an optimized build.
+Note: By default, the prover_server generates a key at startup.  Flags can be
+used to force the server to load and/or save keys.  Run `src/prover_server
+--help` for more details.
 
 ##### Build Options
 
-By default, zeth makes use of GROTH16. To chose a different zksnark run the following:
+Some flags to the `cmake` command can control the build configuration.
+`-DCMAKE_BUILD_TYPE=Release` or `-DCMAKE_BUILD_TYPE=Debug` can be used to force
+a release or debug build.
+
+By default, zeth makes use of the GROTH16 zk-snark. To chose a different zksnark run the following:
 ```
 cmake -DZKSNARK=$ZKSNARK ..
 ```
-where `$ZKSNARK` is `PGHR13`(see https://eprint.iacr.org/2013/279, http://eprint.iacr.org/2013/879) or `GROTH16`(see https://eprint.iacr.org/2016/260).
+where `$ZKSNARK` is `PGHR13` (see https://eprint.iacr.org/2013/279,
+http://eprint.iacr.org/2013/879) or `GROTH16`(see
+https://eprint.iacr.org/2016/260).
 
-#### Terminal 2: Start an Ethereum testnet to test the smart contracts
+#### Terminal 2: Ethereum testnet
 
 ```bash
 # Start the ethereum test net by running the following commands
@@ -80,22 +94,30 @@ npm install
 npm run testrpc
 ```
 
-#### Terminal 3: Start the testing Python stub
+#### Terminal 3: Python tools
 
 ```bash
 # Configure your environment
 . ./setup_env.sh
 
 cd pyClient
-# Follow the few steps described in the README of the python stub
 ```
 
-### Use the pyClient
+Follow the steps described in the [pyClient README](pyClient/README.md) to run
+tests or invoke the zeth tools.
 
-This Proof of Concept comes with some minimal building blocks to integrate Zeth with your applications.
-You can use the [python client](pyClient/README.md) to interact with the proving service and request proofs on a given `(instance, witness)` pair.
+### pyClient and jsClient
 
-## Secure Multi Party Computation for the Groth16 SRS generation
+This Proof of Concept comes with some minimal building blocks to integrate Zeth
+with your applications.  You can use the python and/or the javascript clients to
+interact with the proving service and request proofs on a given `(instance,
+witness)` pair.
+
+If you do not know where to start, you can just follow the instructions of the
+README in `pyClient` to run one of the `testEtherMixing.py` or
+`testERCTokenMixing.py` scripts.  These scripts implement a scenario where
+Alice, Bob and Charlie perform confidential transfers of Ether and and ERC20
+token, respectively, via private Zeth transactions.
 
 See [MPC for SRS generation documentation](mpc/README.md)
 
