@@ -13,6 +13,7 @@ from commands.zeth_send import send
 from commands.zeth_withdraw import withdraw
 from commands.zeth_balance import balance
 from commands.zeth_notes import notes
+from commands.zeth_commits import commits
 from click import group, command, option, pass_context, ClickException
 from click_default_group import DefaultGroup
 from typing import Any, Optional
@@ -84,6 +85,7 @@ zeth.add_command(send)
 zeth.add_command(withdraw)
 zeth.add_command(balance)
 zeth.add_command(notes)
+zeth.add_command(commits)
 zeth.add_command(help)
 
 

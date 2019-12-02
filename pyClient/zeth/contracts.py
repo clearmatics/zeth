@@ -438,6 +438,13 @@ def mimc_hash(instance: Any, m: bytes, k: bytes, seed: bytes) -> bytes:
     return instance.functions.hash(m, k, seed).call()
 
 
+def get_commitments(mixer_instance: Any) -> List[bytes]:
+    """
+    Query the Zeth contact to get the list of commitments
+    """
+    return mixer_instance.functions.getLeaves().call()
+
+
 def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
     """
     Return the Merkle tree
