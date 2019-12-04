@@ -15,7 +15,7 @@ $ source env/bin/activate
 (env)$ make setup
 ```
 
-(It may also be necesssary to install solc manually if the `py-solc-x` package
+(It may also be necessary to install solc manually if the `py-solc-x` package
 fails to find it. See the instructions below.)
 
 We assume all further commands described here are executed from within the
@@ -64,7 +64,7 @@ To run this command, replace the solidity version (denoted by `[solc-version]`),
 the python version (denoted by `[python-version]`), and binary file (denoted by
 `[solc-for-your-distribution]`) by your system specific information.
 
-# The `zeth` command
+# The `zeth` command line interface
 
 The `zeth` command exposes Zeth operations via a command line interface.  A
 brief description is given in this section.  More details are available via
@@ -83,7 +83,7 @@ Some of this data could not easily be specified by command line, so the `zeth`
 tools assume it can be found in specific files (with default file names,
 overridable on the command line).
 
-The set of files required for by zeth for a single user is described below.  We
+The set of files required by zeth for a single user is described below.  We
 recommend creating a directory for each user, containing these files.  In this
 way, it is very easy to setup one or more conceptual "users" and invoke `zeth`
 operations on behalf of each of them to experiment with the system.
@@ -137,7 +137,7 @@ $ echo 0x.... > eth-address
 # Copy the instance file (received from the deployer)
 $ cp <shared-instance-file> zeth-instance.json
 
-# Generate new secret (zeth-key.json)and public key (zeth-key.json.pub)
+# Generate new secret (zeth-key.json) and public key (zeth-key.json.pub)
 $ zeth key
 
 # Share the public address with other users
@@ -151,7 +151,7 @@ files.
 
 ## Depositing funds
 
-Alice can deposit funds from the address in `eth-address` into the Zeth
+Alice can deposit funds from the address in `eth-address` into the Zeth mixer
 instance, as a private Zeth note, spendable with her secret key `zeth-key.json`:
 
 ```console
@@ -159,8 +159,8 @@ instance, as a private Zeth note, spendable with her secret key `zeth-key.json`:
 (env)$ zeth deposit 10
 ```
 
-Note that for this deposit to be reflected in Alice's client direectory, she
-must sync with the blockchain as described below.
+Note that for this deposit to be reflected in Alice's client directory, she must
+sync with the blockchain as described below.
 
 ## Receiving transactions
 
@@ -173,7 +173,7 @@ the public key `zeth-key.json.pub`:
 (env)$ zeth sync
 ```
 
-Any notes found are stored in the `./notes` direectory, as files containing the
+Any notes found are stored in the `./notes` directory, as files containing the
 secret data required to spend them.  This forms a very primitive Zeth "wallet".
 
 ```console
@@ -227,7 +227,7 @@ notes before exiting.
 
 ## Limitations - Note and Key management
 
-As proof-of-concept softare, these tools are not suitable for use in a
+As proof-of-concept software, these tools are not suitable for use in a
 production environment and have several functional limitations.  Some of those
 limitations are mentioned here.
 
@@ -244,3 +244,6 @@ notes) are stored in plaintext.  A fully secure client would encrypt these to
 protect them from malicious entities that may gain access to the file system.
 Such client-side security mechanisms are also beyond the scope of this
 proof-of-concept implementation.
+
+Similarly, such key and note data is not automatically backed up or otherwise
+protected by these tools.
