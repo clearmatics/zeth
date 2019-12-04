@@ -432,8 +432,7 @@ class ZethClient:
             mk_tree_depth: int,
             deployer_eth_address: str,
             zksnark: IZKSnarkProvider,
-            token_address: str = "0x0000000000000000000000000000000000000000"
-    ) -> ZethClient:
+            token_address: Optional[str] = None) -> ZethClient:
         """
         Deploy Zeth contracts.
         """
@@ -458,7 +457,7 @@ class ZethClient:
             vk_json,
             deployer_eth_address,
             4000000,
-            token_address,
+            token_address or "0x0000000000000000000000000000000000000000",
             zksnark)
         return ZethClient(
             web3,

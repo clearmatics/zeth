@@ -15,8 +15,13 @@ from typing import Optional, Any
     "--instance-out",
     default=INSTANCEFILE_DEFAULT,
     help=f"File to write deployment address to (default={INSTANCEFILE_DEFAULT})")
+@option("--token-address", help="Address of token contract (if used)")
 @pass_context
-def deploy(ctx: Any, eth_addr: Optional[str], instance_out: str) -> None:
+def deploy(
+        ctx: Any,
+        eth_addr: Optional[str],
+        instance_out: str,
+        token_address: str) -> None:
     """
     Deploy the zeth contracts and record the instantiation details.
     """
@@ -32,6 +37,7 @@ def deploy(ctx: Any, eth_addr: Optional[str], instance_out: str) -> None:
         prover_client,
         ZETH_MERKLE_TREE_DEPTH,
         eth_address,
-        zksnark)
+        zksnark,
+        token_address)
 
     write_contract_instance(zeth_client.mixer_instance, instance_out)
