@@ -488,8 +488,7 @@ class ZethClient:
             inputs=[],
             outputs=outputs,
             v_in=eth_amount,
-            v_out=EtherValue(0),
-            tx_payment=eth_amount)
+            v_out=EtherValue(0))
 
     def joinsplit(
             self,
@@ -500,7 +499,7 @@ class ZethClient:
             outputs: List[Tuple[ZethAddressPub, EtherValue]],
             v_in: EtherValue,
             v_out: EtherValue,
-            tx_payment: EtherValue,
+            tx_value: Optional[EtherValue] = None,
             compute_h_sig_cb: Optional[ComputeHSigCB] = None) -> str:
         assert len(inputs) <= constants.JS_INPUTS
         assert len(outputs) <= constants.JS_OUTPUTS
@@ -552,6 +551,10 @@ class ZethClient:
         signature = joinsplit_sign(
             signing_keypair, sender_eph_pk, ciphertexts, proof_json)
 
+        # By default transfer exactly v_in, otherwise allow caller to manually
+        # specify.
+        tx_value = tx_value or v_in
+
         return self.mix(
             sender_eph_pk,
             ciphertexts[0],
@@ -560,7 +563,7 @@ class ZethClient:
             signing_keypair.vk,
             signature,
             sender_eth_address,
-            tx_payment.wei,
+            tx_value.wei,
             4000000)
 
     def wait(self, tx_hash: str) -> contracts.MixResult:

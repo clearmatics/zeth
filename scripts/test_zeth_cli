@@ -62,16 +62,16 @@ cp deployer/zeth-instance.json charlie
 
 # Alice deposits 200 and sends 100 to Bob
 pushd alice
+alice_pk=`cat zeth-key.json.pub`
 if ! [ -e notes/state_zeth ] ; then
-    zeth deposit 200
+    zeth mix --wait --vin 200 --out ${alice_pk},200
     zeth sync
 fi
 note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
 
-alice_pk=`cat zeth-key.json.pub`
 bob_pk=`cat ../bob/zeth-key.json.pub`
-zeth send \
+zeth mix \
      --wait \
      --in ${note_id} \
      --out ${alice_pk},100 \
@@ -84,7 +84,7 @@ zeth sync
 note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
 charlie_pk=`cat ../charlie/zeth-key.json.pub`
-zeth send \
+zeth mix \
      --wait \
      --in ${note_id} \
      --out ${bob_pk},50 \
@@ -99,9 +99,10 @@ pushd charlie
 zeth sync
 note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
-zeth withdraw \
+zeth mix \
      --wait \
-     --in ${note_id}
+     --in ${note_id} \
+     --vout 50
 popd
 
 echo BALANCES AFTER WITHDRAW
