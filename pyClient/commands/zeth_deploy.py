@@ -1,6 +1,6 @@
 from commands.constants import INSTANCEFILE_DEFAULT
 from commands.utils import \
-    open_web3_from_ctx, write_zeth_instance, load_eth_address
+    open_web3_from_ctx, write_contract_instance, load_eth_address
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.prover_client import ProverClient
 from zeth.joinsplit import ZethClient
@@ -34,4 +34,4 @@ def deploy(ctx: Any, eth_addr: Optional[str], instance_out: str) -> None:
         eth_address,
         zksnark)
 
-    write_zeth_instance(zeth_client.mixer_instance, instance_out)
+    write_contract_instance(zeth_client.mixer_instance, instance_out)
