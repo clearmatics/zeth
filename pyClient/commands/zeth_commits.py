@@ -1,4 +1,4 @@
-from commands.utils import open_web3_from_ctx, load_zeth_instance
+from commands.utils import open_web3_from_ctx, load_mixer_description_from_ctx
 from zeth.contracts import get_commitments
 from zeth.utils import short_commitment
 from click import command, pass_context
@@ -12,7 +12,8 @@ def commits(ctx: Any) -> None:
     List all commitments in the joinsplit contract
     """
     web3 = open_web3_from_ctx(ctx)
-    zeth_instance = load_zeth_instance(ctx, web3)
+    mixer_desc = load_mixer_description_from_ctx(ctx)
+    zeth_instance = mixer_desc.mixer.instantiate(web3)
     null = bytes(32)
     print("COMMITMENTS:")
     for commit in get_commitments(zeth_instance):

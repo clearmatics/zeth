@@ -1,6 +1,6 @@
 from commands.constants import KEYFILE_DEFAULT
-from commands.utils import create_zeth_client, load_zeth_address, \
-    open_wallet, parse_output, do_sync, load_eth_address
+from commands.utils import create_zeth_client_and_mixer_desc, \
+    load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address
 from zeth.constants import JS_INPUTS, JS_OUTPUTS
 from zeth.joinsplit import ZethAddressPub
 from zeth.joinsplit import from_zeth_units
@@ -43,7 +43,7 @@ def mix(
 
     vin_pub = EtherValue(vin)
     vout_pub = EtherValue(vout)
-    zeth_client = create_zeth_client(ctx)
+    zeth_client, mixer_desc = create_zeth_client_and_mixer_desc(ctx)
     zeth_address = load_zeth_address(ctx)
     wallet = open_wallet(zeth_client.mixer_instance, zeth_address.addr_sk, ctx)
 
@@ -61,6 +61,11 @@ def mix(
 
     eth_address = load_eth_address(eth_addr)
 
+    # If instance uses an ERC20 token, tx_value can be 0 not default vin_pub.
+    tx_value: Optional[EtherValue] = None
+    if mixer_desc.token:
+        tx_value = EtherValue(0)
+
     mk_tree = zeth_client.get_merkle_tree()
     tx_hash = zeth_client.joinsplit(
         mk_tree,
@@ -69,7 +74,8 @@ def mix(
         inputs,
         outputs,
         vin_pub,
-        vout_pub)
+        vout_pub,
+        tx_value)
 
     if wait:
         do_sync(zeth_client.web3, wallet, tx_hash)

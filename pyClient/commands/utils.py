@@ -1,39 +1,87 @@
+from __future__ import annotations
 from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import InstanceDescription, get_block_number, get_mix_results
 from zeth.joinsplit import \
     ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient, from_zeth_units
-from zeth.utils import open_web3, short_commitment, EtherValue
+from zeth.utils import open_web3, short_commitment, EtherValue, get_zeth_dir
 from zeth.wallet import ZethNoteDescription, Wallet
 from click import ClickException, Context
-from os.path import exists
-from typing import Tuple, Optional, Any
+import json
+from os.path import exists, join
+from solcx import compile_files  # type: ignore
+from typing import Dict, Tuple, Optional, Any
 
 
 def open_web3_from_ctx(ctx: Context) -> Any:
     return open_web3(ctx.obj["ETH_RPC"])
 
 
-def load_contract_instance(instance_file: str, web3: Any) -> Any:
-    with open(instance_file, "r") as instance_f:
-        instance_desc = InstanceDescription.from_json(instance_f.read())
-    return instance_desc.instantiate(web3)
+class MixerDescription:
+    """
+    Holds an InstanceDescription for the mixer contract, and optionally an
+    InstanceDescription for the token contract.
+    """
+    def __init__(
+            self,
+            mixer: InstanceDescription,
+            token: Optional[InstanceDescription]):
+        self.mixer = mixer
+        self.token = token
+
+    def to_json(self) -> str:
+        json_dict = {
+            "mixer": self.mixer.to_json_dict()
+        }
+        if self.token:
+            json_dict["token"] = self.token.to_json_dict()
+        return json.dumps(json_dict)
+
+    @staticmethod
+    def from_json(json_str: str) -> MixerDescription:
+        json_dict = json.loads(json_str)
+        mixer = InstanceDescription.from_json_dict(json_dict["mixer"])
+        token_dict = json_dict.get("token", None)
+        token = InstanceDescription.from_json_dict(token_dict) \
+            if token_dict else None
+        return MixerDescription(mixer, token)
 
 
-def write_contract_instance(zeth_instance: Any, instance_file: str) -> None:
-    """
-    Write the mixer instance ID to a file
-    """
-    with open(instance_file, "w") as instance_f:
-        instance_desc = InstanceDescription.from_instance(zeth_instance)
-        instance_f.write(instance_desc.to_json())
+def get_erc20_abi() -> Dict[str, Any]:
+    zeth_dir = get_zeth_dir()
+    openzeppelin_dir = join(
+        zeth_dir, "zeth-contracts", "node_modules", "openzeppelin-solidity")
+    ierc20_path = join(
+        openzeppelin_dir, "contracts", "token", "ERC20", "IERC20.sol")
+    compiled_sol = compile_files([ierc20_path])
+    erc20_interface = compiled_sol[ierc20_path + ":IERC20"]
+    return erc20_interface["abi"]
 
 
-def load_zeth_instance(ctx: Context, web3: Any) -> Any:
+def get_erc20_instance_description(token_address: str) -> InstanceDescription:
+    return InstanceDescription(token_address, get_erc20_abi())
+
+
+def write_mixer_description(
+        mixer_desc_file: str,
+        mixer_desc: MixerDescription) -> None:
     """
-    Load the mixer instance ID from a file
+    Write the mixer (and token) instance information
     """
-    return load_contract_instance(ctx.obj["INSTANCE_FILE"], web3)
+    with open(mixer_desc_file, "w") as instance_f:
+        instance_f.write(mixer_desc.to_json())
+
+
+def load_mixer_description(mixer_description_file: str) -> MixerDescription:
+    """
+    Return mixer and token (if present) contract instances
+    """
+    with open(mixer_description_file, "r") as desc_f:
+        return MixerDescription.from_json(desc_f.read())
+
+
+def load_mixer_description_from_ctx(ctx: Any) -> MixerDescription:
+    return load_mixer_description(ctx.obj["INSTANCE_FILE"])
 
 
 def load_zeth_address_public(ctx: Context) -> ZethAddressPub:
@@ -150,15 +198,30 @@ def find_pub_key_file(base_file: str) -> str:
 
 def create_zeth_client(ctx: Context) -> ZethClient:
     """
-    Create a ZethClient for an existing deployment, given all appropriate
-    information.
+    Create a ZethClient for an existing deployment.
     """
     web3 = open_web3_from_ctx(ctx)
-    mixer_instance = load_zeth_instance(ctx, web3)
+    mixer_desc = load_mixer_description_from_ctx(ctx)
+    mixer_instance = mixer_desc.mixer.instantiate(web3)
     prover_client = ctx.obj["PROVER_CLIENT"]
     zksnark = ctx.obj["ZKSNARK"]
     return ZethClient.open(
         web3, prover_client, ZETH_MERKLE_TREE_DEPTH, mixer_instance, zksnark)
+
+
+def create_zeth_client_and_mixer_desc(
+        ctx: Context) -> Tuple[ZethClient, MixerDescription]:
+    """
+    Create a ZethClient and MixerDescription object, for an existing deployment.
+    """
+    web3 = open_web3_from_ctx(ctx)
+    mixer_desc = load_mixer_description_from_ctx(ctx)
+    mixer_instance = mixer_desc.mixer.instantiate(web3)
+    prover_client = ctx.obj["PROVER_CLIENT"]
+    zksnark = ctx.obj["ZKSNARK"]
+    zeth_client = ZethClient.open(
+        web3, prover_client, ZETH_MERKLE_TREE_DEPTH, mixer_instance, zksnark)
+    return (zeth_client, mixer_desc)
 
 
 def zeth_note_short(note_desc: ZethNoteDescription) -> str:

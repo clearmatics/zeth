@@ -12,6 +12,7 @@ from commands.zeth_mix import mix
 from commands.zeth_balance import balance
 from commands.zeth_notes import notes
 from commands.zeth_commits import commits
+from commands.zeth_token_approve import token_approve
 from click import group, command, option, pass_context, ClickException
 from click_default_group import DefaultGroup
 from typing import Any, Optional
@@ -82,6 +83,7 @@ zeth.add_command(mix)
 zeth.add_command(balance)
 zeth.add_command(notes)
 zeth.add_command(commits)
+zeth.add_command(token_approve)
 zeth.add_command(help)
 
 

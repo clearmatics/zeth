@@ -12,7 +12,6 @@ from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
 from zeth.utils import get_contracts_dir, hex_to_int, get_public_key_from_bytes
 
 import os
-import json
 from web3 import Web3  # type: ignore
 from solcx import compile_files      # type: ignore
 from typing import Tuple, Dict, List, Iterator, Optional, Any
@@ -48,14 +47,14 @@ class InstanceDescription:
         self.address = address
         self.abi = abi
 
-    def to_json(self) -> str:
-        return json.dumps(
-            {"address": self.address, "abi": self.abi},
-            indent=4)
+    def to_json_dict(self) -> Dict[str, Any]:
+        return {
+            "address": self.address,
+            "abi": self.abi
+        }
 
     @staticmethod
-    def from_json(json_str: str) -> InstanceDescription:
-        desc_json = json.loads(json_str)
+    def from_json_dict(desc_json: Dict[str, Any]) -> InstanceDescription:
         return InstanceDescription(desc_json["address"], desc_json["abi"])
 
     @staticmethod

@@ -14,7 +14,7 @@ import api.util_pb2 as util_pb2
 
 from os import urandom
 from web3 import Web3  # type: ignore
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 ZERO_UNITS_HEX = "0000000000000000"
 BOB_DEPOSIT_ETH = 200
@@ -37,7 +37,8 @@ def dump_merkle_tree(mk_tree: List[bytes]) -> None:
 def bob_deposit(
         zeth_client: joinsplit.ZethClient,
         bob_eth_address: str,
-        keystore: mock.KeyStore) -> contracts.MixResult:
+        keystore: mock.KeyStore,
+        tx_value: Optional[EtherValue] = None) -> contracts.MixResult:
     print(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and splits into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
@@ -56,7 +57,8 @@ def bob_deposit(
         bob_js_keypair,
         bob_eth_address,
         EtherValue(BOB_DEPOSIT_ETH),
-        outputs))
+        outputs,
+        tx_value))
 
 
 def bob_to_charlie(

@@ -4,7 +4,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import zeth.contracts as contracts
 import zeth.joinsplit
 import zeth.zksnark
 from zeth.wallet import Wallet
@@ -12,52 +11,10 @@ import zeth.utils
 import zeth.constants as constants
 import test_commands.mock as mock
 import test_commands.scenario as scenario
-
+from test_commands.deploy_test_token import deploy_token, mint_token
 import os
 from web3 import Web3  # type: ignore
-from solcx import compile_files  # type: ignore
-from os.path import join
 from typing import Any
-
-
-def compile_token() -> contracts.Interface:
-    """
-    Compile the testing ERC20 token contract
-    """
-
-    zeth_dir = zeth.utils.get_zeth_dir()
-    allowed_path = join(
-        zeth_dir,
-        "zeth-contracts/node_modules/openzeppelin-solidity/contracts")
-    path_to_token = os.path.join(
-        zeth_dir,
-        "zeth-contracts/node_modules/openzeppelin-solidity/contracts",
-        "token/ERC20/ERC20Mintable.sol")
-    # Compilation
-    compiled_sol = compile_files([path_to_token], allow_paths=allowed_path)
-    token_interface = compiled_sol[path_to_token + ":ERC20Mintable"]
-    return token_interface
-
-
-def deploy_token(
-        eth: Any,
-        deployer_address: str,
-        deployment_gas: int) -> Any:
-    """
-    Deploy the testing ERC20 token contract
-    """
-    token_interface = compile_token()
-    token = eth.contract(
-        abi=token_interface['abi'], bytecode=token_interface['bin'])
-    tx_hash = token.constructor().transact(
-        {'from': deployer_address, 'gas': deployment_gas})
-    tx_receipt = eth.waitForTransactionReceipt(tx_hash)
-
-    token = eth.contract(
-        address=tx_receipt.contractAddress,
-        abi=token_interface['abi'],
-    )
-    return token
 
 
 def print_token_balances(
@@ -89,16 +46,6 @@ def allowance(
         spender_address: str) -> str:
     return token_instance.functions.allowance(owner_address, spender_address) \
         .call()
-
-
-def mint_token(
-        token_instance: Any,
-        spender_address: str,
-        deployer_address: str,
-        token_amount: int) -> bytes:
-    return token_instance.functions.mint(
-        spender_address,
-        Web3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
 
 
 def main() -> None:
@@ -154,14 +101,13 @@ def main() -> None:
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        zeth_client.mixer_instance.address
-    )
+        zeth_client.mixer_instance.address)
 
     # Bob tries to deposit ETHToken, split in 2 notes on the mixer (without
     # approving)
     try:
         result_deposit_bob_to_bob = scenario.bob_deposit(
-            zeth_client, bob_eth_address, keystore)
+            zeth_client, bob_eth_address, keystore, zeth.utils.EtherValue(0))
     except Exception as e:
         allowance_mixer = allowance(
             token_instance,

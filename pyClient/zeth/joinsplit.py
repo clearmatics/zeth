@@ -476,7 +476,8 @@ class ZethClient:
             zeth_address: ZethAddress,
             sender_eth_address: str,
             eth_amount: EtherValue,
-            outputs: Optional[List[Tuple[ZethAddressPub, EtherValue]]] = None
+            outputs: Optional[List[Tuple[ZethAddressPub, EtherValue]]] = None,
+            tx_value: Optional[EtherValue] = None
     ) -> str:
         if not outputs or len(outputs) == 0:
             outputs = [(zeth_address.addr_pk, eth_amount)]
@@ -487,7 +488,8 @@ class ZethClient:
             inputs=[],
             outputs=outputs,
             v_in=eth_amount,
-            v_out=EtherValue(0))
+            v_out=EtherValue(0),
+            tx_value=tx_value)
 
     def joinsplit(
             self,
