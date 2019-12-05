@@ -149,19 +149,6 @@ can perform actions on behalf of Alice.  We call this Alice's *client directory*
 below, and assume that all commands are executed in a directory with these
 files.
 
-## Depositing funds
-
-Alice can deposit funds from the address in `eth-address` into the Zeth mixer
-instance, as a private Zeth note, spendable with her secret key `zeth-key.json`:
-
-```console
-# Deposit 10 ether, creating a Zeth note owned by Alice
-(env)$ zeth deposit 10
-```
-
-Note that for this deposit to be reflected in Alice's client directory, she must
-sync with the blockchain as described below.
-
 ## Receiving transactions
 
 The following command scans the blockchain for any new transactions addressed to
@@ -182,48 +169,77 @@ $ zeth notes
 ```
 lists information about all known notes belonging to the current user.
 
-## Spending and withdrawing notes
+## Mix command
 
-`zeth send` and `zeth withdraw` require inputs in the form of Zeth note
-commitments, and outputs (for `zeth send`) in the form of Zeth addresses and
-amounts.
+The `zeth mix` command is used to interact with a deployed Zeth instance.  The
+command accepts the following information:
 
-**Inputs** are Zeth notes owned by the current client, which should be visible
+**Input Notes.** Zeth notes owned by the current client, which should be visible
 via `zeth notes`.  Either the integer "address" or the truncated commitment
 value (8 hex chars) can be used to specify which notes to use as inputs.
 
-**Outputs** are given as the Zeth public key and a value, separated by a comma
-`,`.  The form of the public key is exactly as in the `zeth-key.json.pub` file.
-That is, two 32 byte hex values separated by a colon `:`.
+**Output Notes.** Given as pairs of Zeth public key and value, separated by a
+comma `,`.  The form of the public key is exactly as in the `zeth-key.json.pub`
+file.  That is, two 32 byte hex values separated by a colon `:`.
 
-Examples:
+**Public Input.** Ether or ERC20 token value send to the mixer.
+
+**Public Output.** Ether or ERC20 tokens value to be extracted from the mixer.
+
+Some examples are given below
+
+### Depositing funds
+
+A simple deposit consists of some public input (ether or tokens), and the
+creation of a private note.
+
+```console
+# Deposit 10 ether from `eth-address`, creating a Zeth note owned by Alice
+(env)$ zeth mix --out <public_key>,10 --vin 10
+```
+where `<public-key>` is the contents of `zeth-key.json.pub`.
+
+### Privately send a ZethNote to another user
+
+To privately transfer value within the mixer, no public input / output is
+required.  Unspent notes (inputs) and destination addresses and values are
+specified.
+
 ```console
 $ zeth notes
 b1a2feaf: value=200, addr=0
 eafe5f84: value=100, addr=2
 
-$ zeth spend \
+$ zeth mix \
     --in eafe5f84 \                       # "eafe5f84: value=100, addr=2"
     --in 0 \                              # "b1a2feaf: value=200, addr=0"
     --out d77f...0e00:cc7c....7f76,120 \  # 120 to this addr
     --out 3a43...fd3b:9fc8....b838,180    # 180 to this addr
-
-$ zeth withdraw --in eafe5f84
 ```
 
-`zeth spend` will fail if the total value of inputs does not match the value of
-outputs. To return any change to the client, specify an output using the value
-of `zeth-key.json.pub` and the correct change amount.
+### Withdrawing value from notesa
 
-## Async transactions
+Specify the note(s) to be withdrawn, and the total value as public output:
+```console
+$ zeth withdraw --in eafe5f84 --vout 100
+```
 
-The `deposit`, `spend` and `withdraw` operations broadcast transactions to the
-Ethereum network.  By default, these operations output the transaction ID that
-was broadcast.  This Id can be passed to `zeth sync` via the `--wait-tx` flag,
-forcing this command to wait for that transaction to be committed before
-searching for new notes.  Alternatively, the `--wait` flag can be passed to the
-`deposit`, `spend` and `withdraw` operations to make them wait and sync new
-notes before exiting.
+### Complex Transactions
+
+Public and private inputs and outputs can all be specified for a single
+transaction.  Combining multiple operations can help to obfuscate the meaning of
+the transaction.
+
+### Async transactions
+
+The `mix` command broadcasts transactions to the Ethereum network and by default
+output the transaction ID.  Users can wait for these transactions to be accepted
+into the blockchain by passing this ID to the `zeth sync` command via the
+`--wait-tx` flag.  This command waits for the transaction to be committed and
+then searches for new notes.
+
+Alternatively, the `--wait` flag can be passed to the `mix` command to make it
+wait and sync new notes before exiting.
 
 ## Limitations - Note and Key management
 
