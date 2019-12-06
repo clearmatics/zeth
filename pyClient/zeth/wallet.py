@@ -165,7 +165,7 @@ class Wallet:
 
     def _decoded_note_filenames(self) -> Iterator[Tuple[int, str, EtherValue]]:
         wildcard = join(self.wallet_dir, f"note_{self.username}_*")
-        filenames = glob.glob(wildcard)
+        filenames = sorted(glob.glob(wildcard))
         for filename in filenames:
             try:
                 yield self._decode_basename(basename(filename))
