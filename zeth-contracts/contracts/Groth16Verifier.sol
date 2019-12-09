@@ -87,10 +87,10 @@ contract Groth16Verifier {
         // - `*`: denote the group operation in G_T
 
         bool res = Pairing.pairingProd4(
-            proof.A, proof.B,
-            Pairing.negate(vk.Alpha), vk.Beta,
-            Pairing.negate(vk_x), Pairing.P2(),
-            Pairing.negate(proof.C), vk.Delta
+            Pairing.negate(proof.A), proof.B,
+            verifyKey.Alpha, verifyKey.Beta,
+            vk_x, Pairing.P2(),
+            proof.C, verifyKey.Delta
         );
 
         if (!res) {
