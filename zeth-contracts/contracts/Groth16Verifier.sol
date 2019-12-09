@@ -21,19 +21,31 @@ contract Groth16Verifier {
     using Pairing for *;
 
     // The structure of the verification key differs from the reference paper.
-    // It doesn't contain any element of GT, but only elements of G1 and G2 (the source groups).
-    // This is due to the lack of precompiled contract to manipulate elements of the target group GT on Ethereum.
+    // It doesn't contain any element of GT, but only elements of G1 and G2 (the
+    // source groups). This is due to the lack of precompiled contract to
+    // manipulate elements of the target group GT on Ethereum.
     struct VerifyingKey {
-        Pairing.G1Point Alpha; // element of G1 used to obtain Alpha in G1
-        Pairing.G2Point Beta;  // element of G2 used to obtain Beta in G2
-        Pairing.G2Point Delta;
-        Pairing.G1Point[] ABC; // List of encodings of [Beta * u_i(x) + Alpha * v_i(x) + w_i(x)], for i in [0..l], in G1
+        Pairing.G1Point Alpha;      // slots 0x00, 0x01
+        Pairing.G2Point Beta;       // slots 0x02, 0x03, 0x04, 0x05
+        Pairing.G2Point Delta;      // slots 0x06, 0x07, 0x08, 0x09
+        Pairing.G1Point[] ABC;      // slot 0x0a
     }
 
+    // Internal Proof structure.  Avoids reusing the G1 and G2 structs, since
+    // these cause extra pointers in memory, and complexity passing the data to
+    // precompiled contracts.
     struct Proof {
-        Pairing.G1Point A;
-        Pairing.G2Point B;
-        Pairing.G1Point C;
+        // Pairing.G1Point A;
+        uint A_X;
+        uint A_Y;
+        // Pairing.G2Point B;
+        uint B_X0;
+        uint B_X1;
+        uint B_Y0;
+        uint B_Y1;
+        // Pairing.G1Point C;
+        uint C_X;
+        uint C_Y;
     }
 
     VerifyingKey verifyKey;
@@ -49,11 +61,13 @@ contract Groth16Verifier {
         uint[] memory ABC_coords
     ) public {
         verifyKey.Alpha = Pairing.G1Point(Alpha[0], Alpha[1]);
-        verifyKey.Beta = Pairing.G2Point(Beta1, Beta2);
-        verifyKey.Delta = Pairing.G2Point(Delta1, Delta2);
+        verifyKey.Beta = Pairing.G2Point(Beta1[0], Beta1[1], Beta2[0], Beta2[1]);
+        verifyKey.Delta = Pairing.G2Point(
+            Delta1[0], Delta1[1], Delta2[0], Delta2[1]);
 
-        // The `ABC` are elements of G1 (and thus have 2 coordinates in the underlying field)
-        // Here, we reconstruct these group elements from field elements (ABC_coords are field elements)
+        // The `ABC` are elements of G1 (and thus have 2 coordinates in the
+        // underlying field). Here, we reconstruct these group elements from
+        // field elements (ABC_coords are field elements)
         uint i;
         while(verifyKey.ABC.length != ABC_coords.length/2) {
             verifyKey.ABC.push(Pairing.G1Point(ABC_coords[i], ABC_coords[i+1]));
@@ -87,10 +101,12 @@ contract Groth16Verifier {
         // - `*`: denote the group operation in G_T
 
         bool res = Pairing.pairingProd4(
-            Pairing.negate(proof.A), proof.B,
+            Pairing.negate(Pairing.G1Point(proof.A_X, proof.A_Y)),
+            Pairing.G2Point(proof.B_X0, proof.B_X1, proof.B_Y0, proof.B_Y1),
             verifyKey.Alpha, verifyKey.Beta,
             vk_x, Pairing.P2(),
-            proof.C, verifyKey.Delta
+            Pairing.G1Point(proof.C_X, proof.C_Y),
+            verifyKey.Delta
         );
 
         if (!res) {
@@ -110,9 +126,14 @@ contract Groth16Verifier {
         uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
         Proof memory proof;
-        proof.A = Pairing.G1Point(a[0], a[1]);
-        proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);
-        proof.C = Pairing.G1Point(c[0], c[1]);
+        proof.A_X = a[0];
+        proof.A_Y = a[1];
+        proof.B_X0 = b[0][0];
+        proof.B_X1 = b[0][1];
+        proof.B_Y0 = b[1][0];
+        proof.B_Y1 = b[1][1];
+        proof.C_X = c[0];
+        proof.C_Y = c[1];
 
         uint[] memory inputValues = new uint[](primaryInputs.length);
         for(uint i = 0; i < primaryInputs.length; i++){

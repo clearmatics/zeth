@@ -71,13 +71,15 @@ contract Pghr13Verifier {
         uint[2] memory Z2,
         uint[] memory IC_coefficients
     ) public {
-        verifyKey.A = Pairing.G2Point(A1,A2);
+        verifyKey.A = Pairing.G2Point(A1[0], A1[1], A2[0], A2[1]);
         verifyKey.B = Pairing.G1Point(B[0], B[1]);
-        verifyKey.C = Pairing.G2Point(C1, C2);
-        verifyKey.gamma = Pairing.G2Point(gamma1, gamma2);
+        verifyKey.C = Pairing.G2Point(C1[0], C1[1], C2[0], C2[1]);
+        verifyKey.gamma = Pairing.G2Point(
+            gamma1[0], gamma1[1], gamma2[0], gamma1[1]);
         verifyKey.gammaBeta1 = Pairing.G1Point(gammaBeta1[0], gammaBeta1[1]);
-        verifyKey.gammaBeta2 = Pairing.G2Point(gammaBeta2_1, gammaBeta2_2);
-        verifyKey.Z = Pairing.G2Point(Z1,Z2);
+        verifyKey.gammaBeta2 = Pairing.G2Point(
+            gammaBeta2_1[0], gammaBeta2_1[1], gammaBeta2_2[0], gammaBeta2_2[1]);
+        verifyKey.Z = Pairing.G2Point(Z1[0], Z1[1], Z2[0], Z2[1]);
 
         uint i;
         while(verifyKey.IC.length != IC_coefficients.length/2) {
@@ -172,7 +174,7 @@ contract Pghr13Verifier {
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.A_p = Pairing.G1Point(a_p[0], a_p[1]);
-        proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);
+        proof.B = Pairing.G2Point(b[0][0], b[0][1], b[1][0], b[1][1]);
         proof.B_p = Pairing.G1Point(b_p[0], b_p[1]);
         proof.C = Pairing.G1Point(c[0], c[1]);
         proof.C_p = Pairing.G1Point(c_p[0], c_p[1]);

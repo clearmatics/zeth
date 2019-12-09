@@ -12,8 +12,10 @@ library Pairing {
 
     // Encoding of field elements is: X[0] * z + X[1]
     struct G2Point {
-        uint[2] X;
-        uint[2] Y;
+        uint X0;
+        uint X1;
+        uint Y0;
+        uint Y1;
     }
 
     // Return the generator of G1
@@ -24,11 +26,10 @@ library Pairing {
     // Return the generator of G2
     function P2() internal pure returns (G2Point memory) {
         return G2Point(
-            [11559732032986387107991004021392285783925812861821192530917403151452391805634,
-             10857046999023057135944570762232829481370756359578518086990519993285655852781],
-            [4082367875863433681332203403145435568316851327593401208105741076214120093531,
-             8495653923123431417604973247489272438418190587263600148770280649306958101930]
-        );
+            11559732032986387107991004021392285783925812861821192530917403151452391805634,
+            10857046999023057135944570762232829481370756359578518086990519993285655852781,
+            4082367875863433681332203403145435568316851327593401208105741076214120093531,
+            8495653923123431417604973247489272438418190587263600148770280649306958101930);
     }
 
     // Return the negation of p, i.e. p.add(p.negate()) should be zero.
@@ -99,10 +100,10 @@ library Pairing {
             input[i * 6 + 0] = p1[i].X;
             input[i * 6 + 1] = p1[i].Y;
             // Twist point (G2) - 2*2 coordinates of 32bytes (0x20 in hex)
-            input[i * 6 + 2] = p2[i].X[0];
-            input[i * 6 + 3] = p2[i].X[1];
-            input[i * 6 + 4] = p2[i].Y[0];
-            input[i * 6 + 5] = p2[i].Y[1];
+            input[i * 6 + 2] = p2[i].X0;
+            input[i * 6 + 3] = p2[i].X1;
+            input[i * 6 + 4] = p2[i].Y0;
+            input[i * 6 + 5] = p2[i].Y1;
         }
         uint[1] memory out;
         bool success;
