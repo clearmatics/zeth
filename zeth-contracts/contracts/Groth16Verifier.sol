@@ -75,24 +75,104 @@ contract Groth16Verifier {
         }
     }
 
-    function verify(uint[] memory input, Proof memory proof) internal returns (uint) {
-        VerifyingKey memory vk = verifyKey;
+    function verify(
+        uint[] memory input, Proof memory proof) internal returns (uint) {
 
-        // `input.length` = size of the instance = l (see notations in the reference paper)
-        // We have coefficients indexed in the range[1..l], where l is the instance size, and we define
-        // a_0 = 1. This is the reason why we need to check that:
-        // input.length + 1 == vk.ABC.length (the +1 accounts for a_0)
-        // This equality is a strong consistency check (len(givenInputs) needs to equal expectedInputSize (not less))
+        // `input.length` = size of the instance = l (see notations in the
+        // reference paper).  We have coefficients indexed in the range[1..l],
+        // where l is the instance size, and we define a_0 = 1. This is the
+        // reason we need to check that: input.length + 1 == vk.ABC.length (the
+        // +1 accounts for a_0). This equality is a strong consistency check
+        // (len(givenInputs) needs to equal expectedInputSize (not less))
         require(
-            input.length + 1 == vk.ABC.length,
-            "Using strong input consistency, and the input length differs from expected"
-        );
+            input.length + 1 == verifyKey.ABC.length,
+            "Input length differs from expected");
 
-        // 1. Compute the linear combination vk_x = \sum_{i=0}^{l} a_i * vk.ABC[i], vk_x in G1
-        Pairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
-        for (uint i; i < input.length; i++) {
-            vk_x = Pairing.add(vk_x, Pairing.mul(vk.ABC[i + 1], input[i]));
+        // 1. Compute the linear combination
+        //   vk_x = \sum_{i=0}^{l} a_i * vk.ABC[i], vk_x in G1.
+        //
+        // Original solidity code:
+        //   Pairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
+        //   for (uint i = 0; i < input.length; i++) {
+        //       vk_x = Pairing.add(vk_x, Pairing.mul(vk.ABC[i + 1], input[i]));
+        //   }
+
+        // Note, this linear combination loop is the biggest cost center of the
+        // mixer contract.  The following assembly code removes a lot of
+        // unnecessary memory usage and data copying, but relies on the data
+        // structure of storage data.
+        //
+        // `pad` is layed out as follows, (such that calls to precompiled
+        // contracts can be done with minimal data copying)
+        //
+        //   0x80   input_i          --
+        //   0x60   abc_y             | compute abc[i+1] * input[i] in-place
+        //   0x40   abc_x            --
+        //   0x20   accum_y
+        //   0x00   accum_x
+        //
+        //   0x80
+        //   0x60   input_i * abc_y  --
+        //   0x40   input_i * abc_x   |  accum = accum + input[i] * abc[i+1]
+        //   0x20   accum_y           |
+        //   0x00   accum_x          --
+        //
+        // In each iteration:
+        //   - Copy abc[i+1] into abc_i, and input[i] into input_i
+        //   - Call bn256ScalarMul(in: 0x40, out: 0x40) - result written to 0x40
+        //   - Call bn256Add(in: 0x00, out: 0x00) - add ScalarMul result to accum
+        uint[5] memory pad;
+        uint success = 1;
+        assembly {
+
+            let g := sub(gas, 2000)
+
+            // Compute slot of ABC[0], using pad[0] as a temporary
+            mstore(pad, add(verifyKey_slot, 10))
+            let abc_slot := keccak256(pad, 32)
+
+            // Compute input array bounds (layout: <len>,elem_0,elem_1...)
+            let input_i := add(input, 0x20)
+            let input_end := add(input_i, mul(0x20, mload(input)))
+
+            // Initialize pad[0] with abc[0]
+            mstore(pad, sload(abc_slot))
+            mstore(add(pad, 0x20), sload(add(abc_slot, 1)))
+            abc_slot := add(abc_slot, 2)
+
+            // Location within pad to do scalar mul operation
+            let mul_in := add(pad, 0x40)
+
+            // Iterate over all inputs / ABC values
+            for
+            { }
+            lt(input_i, input_end)
+            {
+                abc_slot := add(abc_slot, 2)
+                input_i := add(input_i, 0x20)
+            }
+            {
+                // Copy abc[i+1] into mul_in, incrementing abc
+                mstore(mul_in, sload(abc_slot))
+                mstore(add(mul_in, 0x20), sload(add(abc_slot, 1)))
+
+                // Copy input[i] into mul_in + 0x40, and increment index_i
+                mstore(add(mul_in, 0x40), mload(input_i))
+
+                // bn256ScalarMul and bn256Add can be done with no copying
+                let s1 := call(g, 7, 0, mul_in, 0x60, mul_in, 0x40)
+                let s2 := call(g, 6, 0, pad, 0x80, pad, 0x40)
+                success := and(success, and(s1, s2))
+            }
         }
+
+        require(
+            success == 1,
+            "Call to the bn256Add or bn256ScalarMul precompiled failed");
+
+        Pairing.G1Point memory vk_x;
+        vk_x.X = pad[0];
+        vk_x.Y = pad[1];
 
         // 2. The verification check:
         // e(Proof.A, Proof.B) = e(vk.Alpha, vk.Beta) * e(vk_x, P2) * e(Proof.C, vk.Delta)
