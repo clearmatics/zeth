@@ -94,7 +94,8 @@ def compile_contracts(
 
     set_solc_version(SOL_COMPILER_VERSION)
     compiled_sol = compile_files(
-        [path_to_proof_verifier, path_to_otsig_verifier, path_to_mixer])
+        [path_to_proof_verifier, path_to_otsig_verifier, path_to_mixer],
+        optimize=True)
 
     proof_verifier_interface = \
         compiled_sol[path_to_proof_verifier + ':' + proof_verifier_name]
@@ -112,7 +113,8 @@ def compile_util_contracts() -> Tuple[Interface, Interface]:
     path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMC7.sol")
     set_solc_version(SOL_COMPILER_VERSION)
     compiled_sol = compile_files(
-        [path_to_pairing, path_to_mimc7, path_to_tree])
+        [path_to_pairing, path_to_mimc7, path_to_tree],
+        optimize=True)
     mimc_interface = compiled_sol[path_to_mimc7 + ':' + "MiMC7"]
     tree_interface = compiled_sol[path_to_tree + ':' + "MerkleTreeMiMC7"]
     return mimc_interface, tree_interface
