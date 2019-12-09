@@ -205,7 +205,6 @@ def compute_merkle_path(
             # index of the root node)
             address = int(address/2) - 1
         else:
-            print("append note at address: " + str(address + 1))
             merkle_path.append(Web3.toHex(byte_tree[address + 1])[2:])
             address = int(address/2)
     return merkle_path
