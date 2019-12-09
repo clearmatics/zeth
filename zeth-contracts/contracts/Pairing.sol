@@ -51,7 +51,7 @@ library Pairing {
         assembly {
             // bn256Add precompiled: https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L57
             // Gas cost: 500 (see: https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go#L84)
-            success := call(sub(gas, 2000), 6, 0, input, 0xc0, r, 0x60)
+            success := call(sub(gas, 2000), 6, 0, input, 0x80, r, 0x40)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
         }
@@ -72,7 +72,7 @@ library Pairing {
         assembly {
             // bn256ScalarMul precompiled: https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L58
             // Gas cost: 40000 (see: https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go#L85)
-            success := call(sub(gas, 2000), 7, 0, input, 0x80, r, 0x60)
+            success := call(sub(gas, 2000), 7, 0, input, 0x60, r, 0x40)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
         }
