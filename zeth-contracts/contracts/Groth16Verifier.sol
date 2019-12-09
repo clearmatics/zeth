@@ -88,41 +88,52 @@ contract Groth16Verifier {
             input.length + 1 == verifyKey.ABC.length,
             "Input length differs from expected");
 
+        // A memory scratch pad
+        uint[24] memory pad;
+
         // 1. Compute the linear combination
         //   vk_x = \sum_{i=0}^{l} a_i * vk.ABC[i], vk_x in G1.
         //
-        // Original solidity code:
+        // ORIGINAL CODE:
         //   Pairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
         //   for (uint i = 0; i < input.length; i++) {
         //       vk_x = Pairing.add(vk_x, Pairing.mul(vk.ABC[i + 1], input[i]));
         //   }
-
-        // Note, this linear combination loop is the biggest cost center of the
-        // mixer contract.  The following assembly code removes a lot of
-        // unnecessary memory usage and data copying, but relies on the data
-        // structure of storage data.
         //
-        // `pad` is layed out as follows, (such that calls to precompiled
+        // The linear combination loop was the biggest cost center of the mixer
+        // contract.  The following assembly block removes a lot of unnecessary
+        // memory usage and data copying, but relies on the structure of storage
+        // data.
+        //
+        // `pad` is layed out as follows, (so that calls to precompiled
         // contracts can be done with minimal data copying)
         //
-        //   0x80   input_i          --
-        //   0x60   abc_y             | compute abc[i+1] * input[i] in-place
-        //   0x40   abc_x            --
-        //   0x20   accum_y
-        //   0x00   accum_x
+        //  OFFSET  USAGE
+        //   0x20    accum_y
+        //   0x00    accum_x
+
+        // In each iteration, copy scalar multiplicaation data to 0x40+
         //
+        //  OFFSET  USAGE
+        //   0x80    input_i   --
+        //   0x60    abc_y      | compute abc[i+1] * input[i] in-place
+        //   0x40    abc_x     --
+        //   0x20    accum_y
+        //   0x00    accum_x
+        //
+        //  ready to call bn256ScalarMul(in: 0x40, out: 0x40).  This results in:
+        //
+        //  OFFSET  USAGE
         //   0x80
-        //   0x60   input_i * abc_y  --
-        //   0x40   input_i * abc_x   |  accum = accum + input[i] * abc[i+1]
-        //   0x20   accum_y           |
-        //   0x00   accum_x          --
+        //   0x60    input_i * abc_y  --
+        //   0x40    input_i * abc_x   |  accum = accum + input[i] * abc[i+1]
+        //   0x20    accum_y           |
+        //   0x00    accum_x          --
         //
-        // In each iteration:
-        //   - Copy abc[i+1] into abc_i, and input[i] into input_i
-        //   - Call bn256ScalarMul(in: 0x40, out: 0x40) - result written to 0x40
-        //   - Call bn256Add(in: 0x00, out: 0x00) - add ScalarMul result to accum
-        uint[5] memory pad;
-        uint success = 1;
+        //  ready to call bn256Add(in: 0x00, out: 0x00) to update accum_x,
+        //  accum_y in place.
+
+        bool success = true;
         assembly {
 
             let g := sub(gas, 2000)
@@ -167,33 +178,98 @@ contract Groth16Verifier {
         }
 
         require(
-            success == 1,
+            success,
             "Call to the bn256Add or bn256ScalarMul precompiled failed");
 
-        Pairing.G1Point memory vk_x;
-        vk_x.X = pad[0];
-        vk_x.Y = pad[1];
-
         // 2. The verification check:
-        // e(Proof.A, Proof.B) = e(vk.Alpha, vk.Beta) * e(vk_x, P2) * e(Proof.C, vk.Delta)
+        //   e(Proof.A, Proof.B) =
+        //       e(vk.Alpha, vk.Beta) * e(vk_x, P2) * e(Proof.C, vk.Delta)
         // where:
         // - e: G_1 x G_2 -> G_T is a bilinear map
         // - `*`: denote the group operation in G_T
 
-        bool res = Pairing.pairingProd4(
-            Pairing.negate(Pairing.G1Point(proof.A_X, proof.A_Y)),
-            Pairing.G2Point(proof.B_X0, proof.B_X1, proof.B_Y0, proof.B_Y1),
-            verifyKey.Alpha, verifyKey.Beta,
-            vk_x, Pairing.P2(),
-            Pairing.G1Point(proof.C_X, proof.C_Y),
-            verifyKey.Delta
-        );
+        // ORIGINAL CODE:
+        //   bool res = Pairing.pairingProd4(
+        //       Pairing.negate(Pairing.G1Point(proof.A_X, proof.A_Y)),
+        //       Pairing.G2Point(proof.B_X0, proof.B_X1, proof.B_Y0, proof.B_Y1),
+        //       verifyKey.Alpha, verifyKey.Beta,
+        //       vk_x, Pairing.P2(),
+        //       Pairing.G1Point(proof.C_X, proof.C_Y),
+        //       verifyKey.Delta);
+        //   if (!res) {
+        //       return 0;
+        //   }
+        //   return 1;
 
-        if (!res) {
-            return 0;
+        // Assembly below fills out pad and calls bn256Pairing, performing a
+        // check of the form:
+        //
+        //   e(vk_x, P2) * e(vk.Alpha, vk.Beta) *
+        //       e(negate(Proof.A), Proof.B) * e(Proof.C, vk.Delta) == 1
+        //
+        // See Pairing.pairing().  Note terms have been re-ordered since vk_x is
+        // already at offset 0x00.  Memory is laid out:
+        //
+        //   0x0300
+        //   0x0280 - verifyKey.Delta in G2
+        //   0x0240 - proof.C in G1
+        //   0x01c0 - Proof.B in G2
+        //   0x0180 - negate(Proof.A) in G1
+        //   0x0100 - vk.Beta in G2
+        //   0x00c0 - vk.Alpha in G1
+        //   0x0040 - P2 in G2
+        //   0x0000 - vk_x in G1  (Already present, by the above)
+
+        assembly {
+
+            // Write P2, from offset 0x40.  See Pairing for these values.
+            mstore(
+                add(pad, 0x040),
+                11559732032986387107991004021392285783925812861821192530917403151452391805634)
+            mstore(
+                add(pad, 0x060),
+                10857046999023057135944570762232829481370756359578518086990519993285655852781)
+            mstore(
+                add(pad, 0x080),
+                4082367875863433681332203403145435568316851327593401208105741076214120093531)
+            mstore(
+                add(pad, 0x0a0),
+                8495653923123431417604973247489272438418190587263600148770280649306958101930)
+
+            // Write vk.Alpha, vk.Beta (first 6 uints from verifyKey) from
+            // offset 0x0c0.
+            mstore(add(pad, 0x0c0), sload(verifyKey_slot))
+            mstore(add(pad, 0x0e0), sload(add(verifyKey_slot, 1)))
+            mstore(add(pad, 0x100), sload(add(verifyKey_slot, 2)))
+            mstore(add(pad, 0x120), sload(add(verifyKey_slot, 3)))
+            mstore(add(pad, 0x140), sload(add(verifyKey_slot, 4)))
+            mstore(add(pad, 0x160), sload(add(verifyKey_slot, 5)))
+
+            // Write negate(Proof.A) and Proof.B from offset 0x180.
+            mstore(add(pad, 0x180), mload(proof))
+            let q := 21888242871839275222246405745257275088696311157297823662689037894645226208583
+            let proof_A_y := mload(add(proof, 0x20))
+            mstore(add(pad, 0x1a0), sub(q, mod(proof_A_y, q)))
+            mstore(add(pad, 0x1c0), mload(add(proof, 0x40)))
+            mstore(add(pad, 0x1e0), mload(add(proof, 0x60)))
+            mstore(add(pad, 0x200), mload(add(proof, 0x80)))
+            mstore(add(pad, 0x220), mload(add(proof, 0xa0)))
+
+            // Proof.C and verifyKey.Delta from offset 0x240.
+            mstore(add(pad, 0x240), mload(add(proof, 0xc0)))
+            mstore(add(pad, 0x260), mload(add(proof, 0xe0)))
+            mstore(add(pad, 0x280), sload(add(verifyKey_slot, 6)))
+            mstore(add(pad, 0x2a0), sload(add(verifyKey_slot, 7)))
+            mstore(add(pad, 0x2c0), sload(add(verifyKey_slot, 8)))
+            mstore(add(pad, 0x2e0), sload(add(verifyKey_slot, 9)))
+
+            success := call(sub(gas, 2000), 8, 0, pad, 0x300, pad, 0x20)
         }
 
-        return 1;
+        require(
+            success,
+            "Call to bn256Add, bn256ScalarMul or bn256Pairing failed");
+        return pad[0];
     }
 
     function verifyTx(
