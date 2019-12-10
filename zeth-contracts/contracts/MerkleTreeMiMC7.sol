@@ -32,13 +32,13 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
       right = tmpTree[2*(i+1)];
 
       // Seed is hardcoded and given by "clearmatics_mt_seed"
-      tmpTree[i] = mimc7_hasher.hash(left, right, "clearmatics_mt_seed");
+      tmpTree[i] = mimc7_hasher.hash(left, right);
     }
 
     // Compute the merkle root
     left = tmpTree[1];
     right = tmpTree[2];
-    tmpTree[0] = mimc7_hasher.hash(left, right, "clearmatics_mt_seed");
+    tmpTree[0] = mimc7_hasher.hash(left, right);
 
     return tmpTree;
   }
@@ -50,14 +50,14 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
 
       // Compute first layer from storage
       for (uint i = 0 ; i < layerSize ; ++i) {
-          pad[i] = mimc7_hasher.hash(leaves[2*i], leaves[2*i + 1], "clearmatics_mt_seed");
+          pad[i] = mimc7_hasher.hash(leaves[2*i], leaves[2*i + 1]);
       }
       layerSize = layerSize / 2;
 
       // Compute successive layers from their parents, in-place.
       for ( ; layerSize > 0 ; layerSize = layerSize / 2) {
           for (uint i = 0 ; i < layerSize ; ++i) {
-              pad[i] = mimc7_hasher.hash(pad[2*i], pad[2*i + 1], "clearmatics_mt_seed");
+              pad[i] = mimc7_hasher.hash(pad[2*i], pad[2*i + 1]);
           }
       }
 
