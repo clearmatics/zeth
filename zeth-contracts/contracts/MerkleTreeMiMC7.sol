@@ -45,6 +45,22 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
 
   // Returns the root of the merkle tree
   function getRoot() public view returns(bytes32) {
-    return getTree()[0];
+      uint layerSize = nbLeaves / 2;
+      bytes32[] memory pad = new bytes32[](nbLeaves/2);
+
+      // Compute first layer from storage
+      for (uint i = 0 ; i < layerSize ; ++i) {
+          pad[i] = mimc7_hasher.hash(leaves[2*i], leaves[2*i + 1], "clearmatics_mt_seed");
+      }
+      layerSize = layerSize / 2;
+
+      // Compute successive layers from their parents, in-place.
+      for ( ; layerSize > 0 ; layerSize = layerSize / 2) {
+          for (uint i = 0 ; i < layerSize ; ++i) {
+              pad[i] = mimc7_hasher.hash(pad[2*i], pad[2*i + 1], "clearmatics_mt_seed");
+          }
+      }
+
+      return pad[0];
   }
 }
