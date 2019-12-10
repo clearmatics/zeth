@@ -106,18 +106,16 @@ def compile_contracts(
     return (proof_verifier_interface, otsig_verifier_interface, mixer_interface)
 
 
-def compile_util_contracts() -> Tuple[Interface, Interface]:
+def compile_util_contracts() -> Tuple[Interface]:
     contracts_dir = get_contracts_dir()
     path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
-    path_to_mimc7 = os.path.join(contracts_dir, "MiMC7.sol")
     path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMC7.sol")
     set_solc_version(SOL_COMPILER_VERSION)
     compiled_sol = compile_files(
-        [path_to_pairing, path_to_mimc7, path_to_tree],
+        [path_to_pairing, path_to_tree],
         optimize=True)
-    mimc_interface = compiled_sol[path_to_mimc7 + ':' + "MiMC7"]
     tree_interface = compiled_sol[path_to_tree + ':' + "MerkleTreeMiMC7"]
-    return mimc_interface, tree_interface
+    return tree_interface
 
 
 def deploy_mixer(
@@ -128,8 +126,7 @@ def deploy_mixer(
         mk_tree_depth: int,
         deployer_address: str,
         deployment_gas: int,
-        token_address: str,
-        hasher_address: str) -> Tuple[Any, str]:
+        token_address: str) -> Tuple[Any, str]:
     """
     Common function to deploy a mixer contract. Returns the mixer and the
     initial merkle root of the commitment tree
@@ -142,8 +139,7 @@ def deploy_mixer(
         snark_ver=proof_verifier_address,
         sig_ver=otsig_verifier_address,
         mk_depth=mk_tree_depth,
-        token=token_address,
-        hasher=hasher_address
+        token=token_address
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Mixer contract address
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -185,7 +181,6 @@ def deploy_contracts(
         proof_verifier_interface: Interface,
         otsig_verifier_interface: Interface,
         mixer_interface: Interface,
-        hasher_interface: Interface,
         vk: GenericVerificationKey,
         deployer_address: str,
         deployment_gas: int,
@@ -208,10 +203,6 @@ def deploy_contracts(
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     proof_verifier_address = tx_receipt['contractAddress']
 
-    # Deploy MiMC contract
-    _, hasher_address = deploy_mimc_contract(
-        web3, hasher_interface, deployer_address)
-
     # Deploy the one-time signature verifier contract
     otsig_verifier = web3.eth.contract(
         abi=otsig_verifier_interface['abi'],
@@ -227,28 +218,7 @@ def deploy_contracts(
         mk_tree_depth,
         deployer_address,
         deployment_gas,
-        token_address,
-        hasher_address)
-
-
-def deploy_mimc_contract(
-        web3: Any,
-        interface: Interface,
-        account: str) -> Tuple[Any, str]:
-    """
-    Deploy mimc contract
-    """
-    contract = web3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
-    tx_hash = contract.constructor().transact({'from': account})
-    # Get tx receipt to get Mixer contract address
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    address = tx_receipt['contractAddress']
-    # Get the mixer contract instance
-    instance = web3.eth.contract(
-        address=address,
-        abi=interface['abi']
-    )
-    return instance, address
+        token_address)
 
 
 def deploy_tree_contract(
@@ -447,13 +417,6 @@ def _extract_encrypted_notes_from_logs(
 
     return [_extract_note(log_commit, log_ciph) for
             log_commit, log_ciph in zip(log_commitments, log_ciphertexts)]
-
-
-def mimc_hash(instance: Any, m: bytes, k: bytes, seed: bytes) -> bytes:
-    """
-    Call the hash method of MiMC contract
-    """
-    return instance.functions.hash(m, k, seed).call()
 
 
 def get_commitments(mixer_instance: Any) -> List[bytes]:

@@ -449,14 +449,13 @@ class ZethClient:
         print("[INFO] 3. VK written, deploying smart contracts...")
         (proof_verifier_interface, otsig_verifier_interface, mixer_interface) = \
             contracts.compile_contracts(zksnark)
-        hasher_interface, _ = contracts.compile_util_contracts()
+        contracts.compile_util_contracts()
         (mixer_instance, initial_merkle_root) = contracts.deploy_contracts(
             web3,
             mk_tree_depth,
             proof_verifier_interface,
             otsig_verifier_interface,
             mixer_interface,
-            hasher_interface,
             vk_json,
             deployer_eth_address,
             deploy_gas.wei,

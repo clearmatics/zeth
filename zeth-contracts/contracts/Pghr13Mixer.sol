@@ -15,7 +15,12 @@ contract Pghr13Mixer is BaseMixer {
     OTSchnorrVerifier public otsig_verifier;
 
     // Constructor
-    constructor(address snark_ver, address sig_ver, uint mk_depth, address token, address hasher) BaseMixer(mk_depth, token, hasher) public {
+    constructor(
+        address snark_ver,
+        address sig_ver,
+        uint mk_depth,
+        address token)
+        BaseMixer(mk_depth, token) public {
         zksnark_verifier = Pghr13Verifier(snark_ver);
         otsig_verifier = OTSchnorrVerifier(sig_ver);
     }

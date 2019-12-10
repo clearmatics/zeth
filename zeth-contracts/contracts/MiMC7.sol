@@ -4,37 +4,35 @@
 
 pragma solidity ^0.5.0;
 
-/*
- * Reference papers:
- *
- * \[AGRRT16]:
- * "MiMC: Efficient Encryption and Cryptographic Hashing with Minimal Multiplicative Complexity",
- * Martin Albrecht, Lorenzo Grassi, Christian Rechberger, Arnab Roy, and Tyge Tiessen,
- * ASIACRYPT 2016,
- * <https://eprint.iacr.org/2016/492.pdf>
- *
- * "One-way compression function"
- * Section: "Miyaguchi–Preneel"
- * <https://en.wikipedia.org/wiki/One-way_compression_function#Miyaguchi%E2%80%93Preneel>
-**/
-
-contract MiMC7 {
-
-  function hash(bytes32 x, bytes32 y) public pure returns (bytes32 out) {
-    // See: https://github.com/ethereum/go-ethereum/blob/master/crypto/bn256/cloudflare/constants.go#L23
-    uint r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
-
-    // seed = keccak256("clearmatics_mt_seed")
-    bytes32 seed = 0xdec937b7fa8db3de380427a8cc947bfab68514522c3439cfa2e9965509836814;
-
-    // y will be use used as round key of the block cipher as defined by
-    // Miyaguchi-Prenel construction
-    bytes32 key = y;
-
+library MiMC7
+{
+  /*
+   * Reference papers:
+   *
+   * \[AGRRT16]:
+   * "MiMC: Efficient Encryption and Cryptographic Hashing with Minimal Multiplicative Complexity",
+   * Martin Albrecht, Lorenzo Grassi, Christian Rechberger, Arnab Roy, and Tyge Tiessen,
+   * ASIACRYPT 2016,
+   * <https://eprint.iacr.org/2016/492.pdf>
+   *
+   * "One-way compression function"
+   * Section: "Miyaguchi–Preneel"
+   * <https://en.wikipedia.org/wiki/One-way_compression_function#Miyaguchi%E2%80%93Preneel>
+   **/
+  function hash(bytes32 x, bytes32 y) internal pure returns (bytes32 out) {
     assembly {
       // Use scratch space (0x00) for roundConstant. Must use memory since
-      // keccak256 is iteratively applied. Start with seed.
-      mstore(0x0, seed)
+      // keccak256 is iteratively applied. Start with seed =
+      // keccak256("clearmatics_mt_seed")
+      mstore(0x0, 0xdec937b7fa8db3de380427a8cc947bfab68514522c3439cfa2e9965509836814)
+
+      // See:
+      // https://github.com/ethereum/go-ethereum/blob/master/crypto/bn256/cloudflare/constants.go#L23
+      let r := 21888242871839275222246405745257275088548364400416034343698204186575808495617
+
+      // y will be use used as round key of the block cipher as defined by
+      // Miyaguchi-Prenel construction
+      let key := y
 
       // Round function f(message) = (message + key + roundConstant)^d
       // d (= exponent) = 7; #rounds = 91
@@ -62,7 +60,8 @@ contract MiMC7 {
         a := addmod(addmod(outPermutation, roundConstant, r), key, r)
         // a2 = a^2 mod r
         a2 := mulmod(a, a, r)
-        // outPermutation = a^7 mod r (x^7 is the permutation polynomial used)
+        // outPermutation = a^7 mod r
+        //   (x^7 is the permutation polynomial used)
         outPermutation :=  mulmod(mulmod(mulmod(a2, a2, r), a2, r), a, r)
       }
 
@@ -75,7 +74,5 @@ contract MiMC7 {
       // MiMC with the Myjaguchi-Prenell step.
       out := addmod(addmod(addmod(outPermutation, key, r), x, r), key, r)
     }
-
-    return out;
   }
 }

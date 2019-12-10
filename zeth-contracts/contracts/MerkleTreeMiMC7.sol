@@ -8,11 +8,9 @@ import "./BaseMerkleTree.sol";
 import "./MiMC7.sol";
 
 contract MerkleTreeMiMC7 is BaseMerkleTree {
-  // Custom hash smart contract
-  MiMC7 public mimc7_hasher;
 
-  constructor(address hasher_address, uint treeDepth) BaseMerkleTree(treeDepth) public {
-    mimc7_hasher = MiMC7(hasher_address);
+  constructor(uint treeDepth)
+      BaseMerkleTree(treeDepth) public {
   }
 
   // Returns the current merkle tree
@@ -32,13 +30,13 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
       right = tmpTree[2*(i+1)];
 
       // Seed is hardcoded and given by "clearmatics_mt_seed"
-      tmpTree[i] = mimc7_hasher.hash(left, right);
+      tmpTree[i] = MiMC7.hash(left, right);
     }
 
     // Compute the merkle root
     left = tmpTree[1];
     right = tmpTree[2];
-    tmpTree[0] = mimc7_hasher.hash(left, right);
+    tmpTree[0] = MiMC7.hash(left, right);
 
     return tmpTree;
   }
@@ -50,14 +48,14 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
 
       // Compute first layer from storage
       for (uint i = 0 ; i < layerSize ; ++i) {
-          pad[i] = mimc7_hasher.hash(leaves[2*i], leaves[2*i + 1]);
+          pad[i] = MiMC7.hash(leaves[2*i], leaves[2*i + 1]);
       }
       layerSize = layerSize / 2;
 
       // Compute successive layers from their parents, in-place.
       for ( ; layerSize > 0 ; layerSize = layerSize / 2) {
           for (uint i = 0 ; i < layerSize ; ++i) {
-              pad[i] = mimc7_hasher.hash(pad[2*i], pad[2*i + 1]);
+              pad[i] = MiMC7.hash(pad[2*i], pad[2*i + 1]);
           }
       }
 

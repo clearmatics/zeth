@@ -19,8 +19,7 @@ contract Groth16Mixer is BaseMixer {
         address snark_ver,
         address sig_ver,
         uint mk_depth,
-        address token,
-        address hasher) BaseMixer(mk_depth, token, hasher) public {
+        address token) BaseMixer(mk_depth, token) public {
         zksnark_verifier = Groth16Verifier(snark_ver);
         otsig_verifier = OTSchnorrVerifier(sig_ver);
     }
