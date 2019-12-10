@@ -7,34 +7,33 @@ pragma solidity ^0.5.0;
 // Adapted from: https://github.com/zcash-hackworks/babyzoe
 
 contract BaseMerkleTree {
+  // Depth of the merkle tree (should be set with the same depth set in the cpp
+  // prover)
+  uint constant depth = 4;
+
+  // Number of leaves
+  uint constant nbLeaves = 2**depth;
+
   // Index of the current node: Index to insert the next incoming commitment
   uint currentNodeIndex;
 
-  // Array containing the 2^(depth) leaves of the merkle tree
-  // We can switch the leaves to be of type bytes and not bytes32
-  // to support digest of various size (eg: if we use different hash functions)
-  // That way we'd have a merkle tree for any type of hash function (that can be implemented
-  // as a precompiled contract for instance)
+  // Array containing the 2^(depth) leaves of the merkle tree.  We can switch
+  // the leaves to be of type bytes and not bytes32 to support digest of various
+  // size (eg: if we use different hash functions).  That way we'd have a merkle
+  // tree for any type of hash function (that can be implemented as a
+  // precompiled contract for instance)
   //
   // Leaves is a 2D array
-  bytes32[] leaves; // Declared as a dynamic array, the bound is put in the constructor
-
-  // Depth of the merkle tree (should be set with the same depth set in the cpp prover)
-  uint depth;
-
-  // Number of leaves
-  uint nbLeaves;
+  bytes32[nbLeaves] leaves;
 
   // Debug only
   event LogDebug(bytes32 message);
 
   // Constructor
   constructor(uint treeDepth) public {
-    depth = treeDepth;
-    nbLeaves = 2**depth;
-
-    bytes32[] memory leavesBuilder = new bytes32[](nbLeaves);
-    leaves = leavesBuilder;
+      require (
+          treeDepth == depth,
+          "Invalid depth in BaseMerkleTree");
   }
 
   // Appends a commitment to the tree, and returns its address
