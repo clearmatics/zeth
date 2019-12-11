@@ -2,7 +2,7 @@ import zeth.constants as constants
 import zeth.errors as errors
 from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int
 from zeth.joinsplit import GenericVerificationKey, GenericProof, \
-    JoinsplitPublicKey
+    JSVerificationKey
 
 import json
 import os
@@ -301,7 +301,7 @@ def mix_pghr13(
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
-        vk: JoinsplitPublicKey,
+        vk: JSVerificationKey,
         sigma: int,
         sender_address: str,
         wei_pub_value: int,
@@ -319,7 +319,7 @@ def mix_pghr13(
         hex_to_int(parsed_proof["c_p"]),
         hex_to_int(parsed_proof["h"]),
         hex_to_int(parsed_proof["k"]),
-        [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
+        [[int(vk.ppk[0]), int(vk.ppk[1])], [int(vk.spk[0]), int(vk.spk[1])]],
         int(sigma),
         hex_to_int(parsed_proof["inputs"]),
         pk_sender,
@@ -337,7 +337,7 @@ def mix_groth16(
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
-        vk: JoinsplitPublicKey,
+        vk: JSVerificationKey,
         sigma: int,
         sender_address: str,
         wei_pub_value: int,
@@ -347,7 +347,7 @@ def mix_groth16(
         [hex_to_int(parsed_proof["b"][0]),
          hex_to_int(parsed_proof["b"][1])],
         hex_to_int(parsed_proof["c"]),
-        [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
+        [[int(vk.ppk[0]), int(vk.ppk[1])], [int(vk.spk[0]), int(vk.spk[1])]],
         int(sigma),
         hex_to_int(parsed_proof["inputs"]),
         pk_sender,
@@ -365,7 +365,7 @@ def mix(
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
-        vk: JoinsplitPublicKey,
+        vk: JSVerificationKey,
         sigma: int,
         sender_address: str,
         wei_pub_value: int,

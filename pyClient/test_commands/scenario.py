@@ -1,10 +1,12 @@
 import zeth.joinsplit as joinsplit
 import zeth.contracts as contracts
+import zeth.signing as signing
 from zeth.prover_client import ProverClient
 from zeth.utils import to_zeth_units, int64_to_hex, get_public_key_from_bytes
+
+
 import test_commands.mock as mock
 import api.util_pb2 as util_pb2
-
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Any
 from os import urandom
@@ -77,7 +79,7 @@ def bob_deposit(
 
     # Sign the primary inputs, pk_sender and the ciphertexts
     joinsplit_sig = joinsplit.sign_joinsplit(
-        joinsplit_keypair,
+        joinsplit_keypair.sk,
         pk_sender,
         ciphertexts,
         proof_json
@@ -157,7 +159,7 @@ def bob_to_charlie(
 
     # Sign the primary inputs, pk_sender and the ciphertexts
     joinsplit_sig = joinsplit.sign_joinsplit(
-        joinsplit_keypair,
+        joinsplit_keypair.sk,
         pk_sender,
         ciphertexts,
         proof_json
@@ -236,7 +238,7 @@ def charlie_withdraw(
 
     # Sign the primary inputs, pk_sender and the ciphertexts
     joinsplit_sig = joinsplit.sign_joinsplit(
-        joinsplit_keypair,
+        joinsplit_keypair.sk,
         pk_sender,
         ciphertexts,
         proof_json
@@ -337,7 +339,7 @@ def charlie_double_withdraw(
 
     # Sign the primary inputs, pk_sender and the ciphertexts
     joinsplit_sig = joinsplit.sign_joinsplit(
-        joinsplit_keypair,
+        joinsplit_keypair.sk,
         pk_sender,
         ciphertexts,
         proof_json
@@ -434,7 +436,7 @@ def charlie_corrupt_bob_deposit(
 
     # Sign the primary inputs, pk_sender and the ciphertexts
     joinsplit_sig = joinsplit.sign_joinsplit(
-        joinsplit_keypair,
+        joinsplit_keypair.sk,
         pk_sender,
         ciphertexts,
         proof_json
@@ -481,11 +483,11 @@ def charlie_corrupt_bob_deposit(
     # Corrupt the ciphertexts
     fake_ciphertext0 = urandom(32)
     fake_ciphertext1 = urandom(32)
-    new_joinsplit_keypair = joinsplit.gen_one_time_schnorr_vk_sk_pair()
+    new_joinsplit_keypair = signing.key_gen()
 
     # Sign the primary inputs, pk_sender and the ciphertexts
     new_joinsplit_sig = joinsplit.sign_joinsplit(
-        new_joinsplit_keypair,
+        new_joinsplit_keypair.sk,
         pk_sender,
         [fake_ciphertext0, fake_ciphertext1],
         proof_json

@@ -58,17 +58,6 @@ def hex_to_int(elements: List[str]) -> List[int]:
     return ints
 
 
-def hex_extend_32bytes(element: str) -> str:
-    """
-    Extend a hex string to represent 32 bytes
-    """
-    res = str(element)
-    if len(res) % 2 != 0:
-        res = "0" + res
-    res = "00"*int((64-len(res))/2) + res
-    return res
-
-
 def get_private_key_from_bytes(sk_bytes: bytes) -> PrivateKey:
     """
     Gets PrivateKey object from raw representation
@@ -242,8 +231,10 @@ def encode_to_hash(message_list: Any) -> bytes:
         elif isinstance(m, str) and (m[0:2] == "0x"):
             m_hex = m[2:]
 
-        # [SANITY CHECK] Make sure the hex is 32 byte long
-        m_hex = hex_extend_32bytes(m_hex)
+        m_hex = str(m_hex)
+        if len(m_hex) % 2 != 0:
+            m_hex = "0" + m_hex
+        m_hex = "00"*int((64-len(m_hex))/2) + m_hex
 
         # Encode the hex into a byte array and append it to result
         input_sha += encode_single("bytes32", bytes.fromhex(m_hex))
