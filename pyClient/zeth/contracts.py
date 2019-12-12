@@ -2,7 +2,7 @@ import zeth.constants as constants
 import zeth.errors as errors
 from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int
 from zeth.joinsplit import GenericVerificationKey, GenericProof, \
-    JSVerificationKey
+    JoinsplitSigPubKey
 
 import json
 import os
@@ -301,7 +301,7 @@ def mix_pghr13(
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
-        vk: JSVerificationKey,
+        vk: JoinsplitSigPubKey,
         sigma: int,
         sender_address: str,
         wei_pub_value: int,
@@ -337,7 +337,7 @@ def mix_groth16(
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
-        vk: JSVerificationKey,
+        vk: JoinsplitSigPubKey,
         sigma: int,
         sender_address: str,
         wei_pub_value: int,
@@ -365,7 +365,7 @@ def mix(
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
-        vk: JSVerificationKey,
+        vk: JoinsplitSigPubKey,
         sigma: int,
         sender_address: str,
         wei_pub_value: int,

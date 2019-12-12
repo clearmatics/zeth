@@ -32,9 +32,9 @@ class ApkAskPair:
 
 
 # JoinSplit Keys definitions
-JSKeyPair = signing.SchnorrKeyPair
-JSSigningKey = signing.SchnorrSigningKey
-JSVerificationKey = signing.SchnorrVerificationKey
+JoinsplitSigKeyPair = signing.SchnorrKeyPair
+JoinsplitSigPrivKey = signing.SchnorrSigningKey
+JoinsplitSigPubKey = signing.SchnorrVerificationKey
 
 
 # Dictionary representing a VerificationKey from any supported snark
@@ -209,7 +209,7 @@ def create_joinsplit_input(
 
 
 def sign_joinsplit(
-        joinsplit_sk: JSSigningKey,
+        joinsplit_sk: JoinsplitSigPrivKey,
         pk_sender: bytes,
         ciphertexts: List[bytes],
         proof_json: Dict[str, Any]) -> int:
@@ -239,7 +239,7 @@ def sign_joinsplit(
     data_to_be_signed += encode_to_hash(proof_json["inputs"])
 
     # Hash data_to_be_sign
-    hash_to_be_signed = sha256(data_to_be_signed).hexdigest()
+    hash_to_be_signed = sha256(data_to_be_signed).digest()
 
     # Compute the joinSplit signature
     joinsplit_sig = signing.sign(joinsplit_sk, hash_to_be_signed)
@@ -346,7 +346,7 @@ def compute_joinsplit2x2_inputs(
         output_note_value1: str,
         public_in_value: str,
         public_out_value: str,
-        joinsplit_vk: JSVerificationKey) -> prover_pb2.ProofInputs:
+        joinsplit_vk: JoinsplitSigPubKey) -> prover_pb2.ProofInputs:
     """
     Create a ProofInput object for joinsplit parameters
     """
@@ -404,7 +404,7 @@ def compute_joinsplit2x2_inputs_attack_nf(
         output_note_value1: str,
         public_in_value: str,
         public_out_value: str,
-        joinsplit_vk: JSVerificationKey) -> prover_pb2.ProofInputs:
+        joinsplit_vk: JoinsplitSigPubKey) -> prover_pb2.ProofInputs:
     """
     Create a ProofInput object for joinsplit parameters
     """
@@ -491,7 +491,7 @@ def get_proof_joinsplit_2_by_2(
         public_in_value: str,
         public_out_value: str,
         zksnark: str
-) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JSKeyPair]:
+) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JoinsplitSigKeyPair]:
     """
     Query the prover server to generate a proof for the given joinsplit
     parameters.
@@ -542,7 +542,7 @@ def get_proof_joinsplit_2_by_2_attack_nf(
         public_in_value: str,
         public_out_value: str,
         zksnark: str
-) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JSKeyPair]:
+) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JoinsplitSigKeyPair]:
     """
     Query the prover server to generate a proof for the given joinsplit
     parameters.
@@ -617,9 +617,9 @@ def receive_notes(
 def _compute_h_sig(
         nf0: str,
         nf1: str,
-        joinsplit_pub_key: JSVerificationKey) -> str:
+        joinsplit_pub_key: JoinsplitSigPubKey) -> str:
     """
-    Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
+    Compute h_sig = blake2s(nf0, nf1, joinSplitPubKey)
     Flatten the verification key
     """
 
@@ -630,7 +630,7 @@ def _compute_h_sig(
                 bytes.fromhex(nf0),
                 bytes.fromhex(nf1),
             ]
-        ) + signing.encode_vk(joinsplit_pub_key)
+        ) + signing.encode_vk_to_bytes(joinsplit_pub_key)
     ).hexdigest()
     return h_sig
 

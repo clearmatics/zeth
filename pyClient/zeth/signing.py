@@ -4,7 +4,7 @@ from typing import Tuple
 from hashlib import sha256
 from py_ecc import bn128 as ec
 
-from zeth.utils import encode_single, encode_abi
+from zeth.utils import encode_g1_to_bytes
 import zeth.constants as constants
 
 FQ = ec.FQ
@@ -14,7 +14,7 @@ G1 = Tuple[ec.FQ, ec.FQ]
 This package implements the Schnorr based one-time signature from:
 "Two-tier signatures, strongly unforgeable signatures,
 and Fiat-Shamir without random oracles" by Bellare and Shoup
-(https://eprint.iacr.org/2007/273.pdf)
+(https://eprint.iacr.org/2007/273.pdf) over Curve BN128
 """
 
 
@@ -26,6 +26,7 @@ class SchnorrVerificationKey:
         self.ppk = x_g1
         self.spk = y_g1
 
+
 class SchnorrSigningKey:
     """
     An OT-Schnorr signing key.
@@ -34,19 +35,20 @@ class SchnorrSigningKey:
         self.psk = x
         self.ssk = (y, y_g1)
 
+
 class SchnorrKeyPair:
     """
     An OT-Schnorr signing and verification keypair.
     """
     def __init__(self, x: FQ, y: FQ, x_g1: G1, y_g1: G1):
-        self.vk = SchnorrVerificationKey(x_g1, y_g1)
         # We include in the signing key the verfication key
         self.sk = SchnorrSigningKey(x, y, y_g1)
+        self.vk = SchnorrVerificationKey(x_g1, y_g1)
 
 
 def key_gen() -> SchnorrKeyPair:
     """
-    Return a random signature keypair
+    Return a one-time signature key-pair
     composed of elements of F_q and G1.
     """
     key_size_byte = ceil(len("{0:b}".format(constants.ZETH_PRIME)) / 8)
@@ -57,6 +59,7 @@ def key_gen() -> SchnorrKeyPair:
     X = ec.multiply(ec.G1, x.n)
     Y = ec.multiply(ec.G1, y.n)
     return SchnorrKeyPair(x, y, X, Y)
+
 
 def gen_vk(sk: SchnorrSigningKey) -> SchnorrVerificationKey:
     """
@@ -69,77 +72,69 @@ def gen_vk(sk: SchnorrSigningKey) -> SchnorrVerificationKey:
     return SchnorrVerificationKey(X, Y)
 
 
-def encode_group_element(group_el: G1) -> bytes:
-    """
-    Encode a group element into a byte string
-    We assume here the group prime $p$ is written in less than 256 bits
-    to conform with Ethereum bytes32 type.
-    """
-    res = encode_abi(
-        ["bytes32", "bytes32"],
-        [
-            bytes.fromhex("{0:0>64X}".format(int(group_el[0]))),
-            bytes.fromhex("{0:0>64X}".format(int(group_el[1])))
-        ]
-    )
-    return res
-
-
-def encode_vk(vk: SchnorrVerificationKey) -> bytes:
+def encode_vk_to_bytes(vk: SchnorrVerificationKey) -> bytes:
     """
     Encode a verification key as a byte string
     We assume here the group prime $p$ is written in less than 256 bits
     to conform with Ethereum bytes32 type
     """
-    vk_byte = encode_group_element(vk.ppk)
-    vk_byte += encode_group_element(vk.spk)
+    vk_byte = encode_g1_to_bytes(vk.ppk)
+    vk_byte += encode_g1_to_bytes(vk.spk)
     return vk_byte
 
 
 def sign(
         sk: SchnorrSigningKey,
-        m: str) -> int:
+        m: bytes) -> int:
     """
     Generate a Schnorr signature on a message m.
-    We assume here that the message is an hexadecimal string written in
-    less than 256 bits to conform with Ethereum bytes32 type.
+    We assume here that the message fits in an Ethereum word (i.e. bit_len(m)
+    <= 256), so that it can be represented by a single bytes32 on the smart-
+    contract during the signature verification.
     """
 
     # Encode and hash the verifying key and input hashes
-    challenge_to_hash = encode_group_element(sk.ssk[1]) + encode_single("bytes32", bytes.fromhex(m))
+    challenge_to_hash = encode_g1_to_bytes(sk.ssk[1]) + m
 
     # Convert the hex digest into a field element
-    challenge = int(sha256(challenge_to_hash).hexdigest(), 16) % constants.ZETH_PRIME
+    challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
+    challenge = challenge % constants.ZETH_PRIME
 
     # Compute the signature sigma
     sigma = (sk.ssk[0].n + challenge * sk.psk.n) % constants.ZETH_PRIME
 
     return sigma
 
+
 def verify(
-    vk: SchnorrVerificationKey,
-    m: str,
-    sigma: int) -> bool:
+        vk: SchnorrVerificationKey,
+        m: bytes,
+        sigma: int) -> bool:
     """
     Return true if the signature sigma is valid on message m and vk.
     We assume here that the message is an hexadecimal string written in
     less than 256 bits to conform with Ethereum bytes32 type.
     """
     # Encode and hash the verifying key and input hashes
-    challenge_to_hash = encode_group_element(vk.spk) + encode_single("bytes32", bytes.fromhex(m))
+    challenge_to_hash = encode_g1_to_bytes(vk.spk) + m
 
-    challenge = int(sha256(challenge_to_hash).hexdigest(), 16) % constants.ZETH_PRIME
+    challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
+    challenge = challenge % constants.ZETH_PRIME
 
     left_part = ec.multiply(ec.G1, FQ(sigma).n)
     right_part = ec.add(vk.spk, ec.multiply(vk.ppk, FQ(challenge).n))
 
     return ec.eq(left_part, right_part)
 
+
 def test_all() -> None:
     """
-    Unit test on the package
+    Test on the package
     """
-    m = urandom(32).hex()
+    m = urandom(32)
     keypair = key_gen()
     sigma = sign(keypair.sk, m)
     assert verify(keypair.vk, m, sigma)
+
+    keypair2 = key_gen()
+    assert verify(keypair2.vk, m, sigma) is False
