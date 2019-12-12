@@ -125,16 +125,3 @@ def verify(
     right_part = ec.add(vk.spk, ec.multiply(vk.ppk, FQ(challenge).n))
 
     return ec.eq(left_part, right_part)
-
-
-def test_all() -> None:
-    """
-    Test on the package
-    """
-    m = urandom(32)
-    keypair = key_gen()
-    sigma = sign(keypair.sk, m)
-    assert verify(keypair.vk, m, sigma)
-
-    keypair2 = key_gen()
-    assert verify(keypair2.vk, m, sigma) is False
