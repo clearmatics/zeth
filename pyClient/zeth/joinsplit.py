@@ -5,12 +5,13 @@ from zeth.ownership import OwnershipPublicKey, OwnershipSecretKey, \
     OwnershipKeyPair, ownership_key_as_hex
 from zeth.encryption import EncryptionPublicKey, EncryptionSecretKey, \
     EncryptionKeyPair, generate_encryption_keypair, encode_encryption_public_key
-from zeth.signing import SigningPublicKey, SigningKeyPair, gen_signing_keypair
+from zeth.signing import SigningPublicKey, SigningKeyPair, sign, \
+    encode_vk_to_bytes, gen_signing_keypair
+
 from zeth.zksnark import IZKSnarkProvider, GenericProof
-from zeth.utils import EtherValue, get_trusted_setup_dir, hex_extend_32bytes, \
+from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, encode_abi, encrypt, \
-    string_list_flatten, encode_single, decrypt, int64_to_hex, \
-    encode_message_to_bytes, compute_merkle_path, field_elements_to_hex
+    decrypt, int64_to_hex, encode_message_to_bytes, compute_merkle_path
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 import api.prover_pb2 as prover_pb2
@@ -19,7 +20,7 @@ import os
 import json
 from Crypto import Random
 from hashlib import blake2s, sha256
-from typing import Tuple, Dict, List, Iterable, Union, Any
+from typing import Tuple, Dict, List, Iterable, Any
 
 
 # Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
@@ -206,110 +207,6 @@ def create_joinsplit_input(
         nullifier=nullifier.hex())
 
 
-def encode_pub_input_to_hash(message_list: List[Union[str, List[str]]]) -> bytes:
-    """
-    Encode the primary inputs as defined in ZCash chapter 4.15.1 into a byte
-    array (https://github.com/zcash/zips/blob/master/protocol/protocol.pdf) The
-    root, nullifierS, commitmentS, h_sig and h_iS are encoded over two field
-    elements The public values are encoded over one field element
-    """
-    input_sha = bytearray()
-
-    # Flatten the input list
-    messages = string_list_flatten(message_list)
-
-    # Encode the given Merkle Tree root
-    root = hex_extend_32bytes(messages[0][2:])
-    root_encoded = encode_single("bytes32", bytes.fromhex(root))
-    input_sha += root_encoded
-
-    # Encode the given input nullifiers
-    for i in range(1, 1 + 2*(constants.JS_INPUTS), 2):
-        nf = field_elements_to_hex(messages[i], messages[i+1])
-        nf_encoded = encode_single("bytes32", bytes.fromhex(nf))
-        input_sha += nf_encoded
-
-    # Encode the given output commitments
-    for i in range(
-            1 + 2*(constants.JS_INPUTS),
-            1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS), 2):
-        cm = field_elements_to_hex(messages[i], messages[i+1])
-        cm_encoded = encode_single("bytes32", bytes.fromhex(cm))
-        input_sha += cm_encoded
-
-    # Encode the public value in
-    v_in = messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS)][2:]
-    v_in = hex_extend_32bytes(v_in)
-    vin_encoded = encode_single("bytes32", bytes.fromhex(v_in))
-    input_sha += vin_encoded
-
-    # Encode the public value out
-    v_out = messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1][2:]
-    v_out = hex_extend_32bytes(v_out)
-    vout_encoded = encode_single("bytes32", bytes.fromhex(v_out))
-    input_sha += vout_encoded
-
-    # Encode the h_sig
-    hsig = field_elements_to_hex(
-        messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1],
-        messages[1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS) + 1 + 1 + 1])
-    hsig_encoded = encode_single("bytes32", bytes.fromhex(hsig))
-    input_sha += hsig_encoded
-
-    # Encode the h_iS
-    for i in range(
-            1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + 1),
-            1 + 2*(constants.JS_INPUTS + constants.JS_OUTPUTS + 1 + 1 +
-                   constants.JS_INPUTS),
-            2
-    ):
-        h_i = field_elements_to_hex(messages[i], messages[i+1])
-        h_i_encoded = encode_single("bytes32", bytes.fromhex(h_i))
-        input_sha += h_i_encoded
-
-    return input_sha
-
-
-def _sign(
-        keypair: SigningKeyPair,
-        hash_ciphers: bytes,
-        hash_proof: bytes,
-        hash_inputs: bytes) -> int:
-    """
-    Generate a Schnorr one-time signature of the ciphertexts, proofs and
-    primary inputs We chose to sign the hash of the proof for modularity (to
-    use the same code regardless of whether GROTH16 or PGHR13 proof system is
-    chosen), and sign the hash of the ciphers and inputs for consistency.
-    """
-    # Parse the signature key pair
-    sign_pk = keypair.pk
-    sign_sk = keypair.sk
-
-    # Format part of the public key as an hex
-    y0_hex = hex_extend_32bytes("{0:0>4X}".format(int(sign_pk[1][0])))
-    y1_hex = hex_extend_32bytes("{0:0>4X}".format(int(sign_pk[1][1])))
-
-    # Encode and hash the verifying key and input hashes
-    data_to_sign = encode_abi(
-        ["bytes32", "bytes32", "bytes32", "bytes32", "bytes32"],
-        [
-            bytes.fromhex(y0_hex),
-            bytes.fromhex(y1_hex),
-            hash_ciphers,
-            hash_proof,
-            hash_inputs
-        ]
-    )
-    data_hex = sha256(data_to_sign).hexdigest()
-
-    # Convert the hex digest into a field element
-    h = int(data_hex, 16) % constants.ZETH_PRIME
-
-    # Compute the signature sigma
-    sigma = sign_sk[1].n + h * sign_sk[0].n % constants.ZETH_PRIME
-    return sigma
-
-
 def write_verification_key(
         vk_obj: prover_pb2.VerificationKey,
         zksnark: IZKSnarkProvider) -> None:
@@ -369,9 +266,7 @@ def compute_joinsplit2x2_inputs(
             mk_path1, input_address1, input_note1, sender_ask, input_nullifier1)
     ]
 
-    random_seed = _h_sig_randomness()
     h_sig = _compute_h_sig(
-        random_seed,
         input_nullifier0,
         input_nullifier1,
         sign_pk)
@@ -473,14 +368,14 @@ class ZethClient:
 
         # Sign
         signature = \
-            sign_mix_tx(sender_eph_pk, ciphertexts, proof_json, signing_keypair)
+            sign_mix_tx(signing_keypair, sender_eph_pk, ciphertexts, proof_json)
 
         return self.mix(
             sender_eph_pk,
             ciphertexts[0],
             ciphertexts[1],
             proof_json,
-            signing_keypair.pk,
+            signing_keypair.vk,
             signature,
             sender_eth_address,
             tx_payment.wei,
@@ -539,7 +434,7 @@ class ZethClient:
             output1,
             public_in_value_zeth_units,
             public_out_value_zeth_units,
-            signing_keypair.pk)
+            signing_keypair.vk)
         proof_obj = self._prover_client.get_proof(proof_input)
         proof_json = self._zksnark.parse_proof(proof_obj)
 
@@ -590,7 +485,7 @@ def receive_notes(
             continue
 
 
-def _compute_proof_hashes(proof_json: GenericProof) -> Tuple[bytes, bytes]:
+def _encode_proof_and_inputs(proof_json: GenericProof) -> Tuple[bytes, bytes]:
     """
     Given a proof object, compute the hash of the properties excluding "inputs",
     and the hash of the "inputs".
@@ -601,31 +496,43 @@ def _compute_proof_hashes(proof_json: GenericProof) -> Tuple[bytes, bytes]:
         if key != "inputs":
             proof_elements.extend(proof_json[key])
     return (
-        sha256(encode_message_to_bytes(proof_elements)).digest(),
-        sha256(encode_pub_input_to_hash(proof_json["inputs"])).digest())
+        encode_message_to_bytes(proof_elements),
+        encode_message_to_bytes(proof_json["inputs"]))
 
 
 def sign_mix_tx(
+        signing_keypair: SigningKeyPair,  # Ephemeral signing key, tied to proof
         sender_eph_pk: EncryptionPublicKey,  # Ephemeral key used for encryption
         ciphertexts: List[bytes],  # Encyrpted output notes
         proof_json: GenericProof,  # Proof for the mix transaction
-        signing_keypair: SigningKeyPair  # Ephemeral signing key, tied to proof
 ) -> int:
+    """
+    Generate a Schnorr signature on the hash of the ciphertexts, proofs and
+    primary inputs. This is used to solve transaction malleability.  We chose
+    to sign the hash and not the values themselves for modularity (to use the
+    same code regardless of whether GROTH16 or PGHR13 proof system is chosen),
+    and sign the hash of the ciphers and inputs for consistency.
+    """
     assert len(ciphertexts) == constants.JS_INPUTS
-    # Hash the pk_sender and cipher-texts
-    sender_eph_pk_bytes = encode_encryption_public_key(sender_eph_pk)
-    ciphers = sender_eph_pk_bytes + ciphertexts[0] + ciphertexts[1]
-    hash_ciphers = sha256(ciphers).digest()
 
-    # Hash the proof
-    proof_hash, pub_inputs_hash = _compute_proof_hashes(proof_json)
+    # The message to sign consists of (in order):
+    #   - senders public encryption key
+    #   - ciphertexts
+    #   - proof elements
+    #   - public input elements
+    h = sha256()
+    h.update(encode_encryption_public_key(sender_eph_pk))
+    for ciphertext in ciphertexts:
+        h.update(ciphertext)
 
-    # Compute the joinSplit signature
-    return _sign(signing_keypair, hash_ciphers, proof_hash, pub_inputs_hash)
+    proof_bytes, pub_inputs_bytes = _encode_proof_and_inputs(proof_json)
+    h.update(proof_bytes)
+    h.update(pub_inputs_bytes)
+    message_digest = h.digest()
+    return sign(signing_keypair.sk, message_digest)
 
 
 def _compute_h_sig(
-        random_seed: bytes,
         nf0: bytes,
         nf1: bytes,
         sign_pk: SigningPublicKey) -> bytes:
@@ -634,12 +541,9 @@ def _compute_h_sig(
     Flatten the verification key
     """
     blake_hash = blake2s()
-    blake_hash.update(random_seed)
     blake_hash.update(nf0)
     blake_hash.update(nf1)
-    for group_el in sign_pk:
-        for field_el in group_el:
-            blake_hash.update(field_el.n.to_bytes(32, byteorder="little"))
+    blake_hash.update(encode_vk_to_bytes(sign_pk))
     return blake_hash.digest()
 
 

@@ -115,7 +115,7 @@ contract Groth16Verifier {
             // Make sure that all primary inputs lie in the scalar field
             require(
                 primaryInputs[i] < r,
-                "Input is not is scalar field"
+                "Input is not in scalar field"
             );
             inputValues[i] = primaryInputs[i];
         }

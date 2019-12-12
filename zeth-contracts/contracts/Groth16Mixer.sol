@@ -11,13 +11,20 @@ contract Groth16Mixer is BaseMixer {
     OTSchnorrVerifier public otsig_verifier;
 
     // Constructor
-    constructor(address snark_ver, address sig_ver, uint mk_depth, address token, address hasher) BaseMixer(mk_depth, token, hasher) public {
+    constructor(
+        address snark_ver,
+        address sig_ver,
+        uint mk_depth,
+        address token,
+        address hasher) BaseMixer(mk_depth, token, hasher) public {
         zksnark_verifier = Groth16Verifier(snark_ver);
         otsig_verifier = OTSchnorrVerifier(sig_ver);
     }
 
-    // This function allows to mix coins and execute payments in zero knowledge
-    function mix (
+    // This function allows to mix coins and execute payments in zero
+    // knowledge.  The nb of ciphertexts depends on the JS description (Here 2
+    // inputs)
+    function mix(
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
@@ -26,7 +33,7 @@ contract Groth16Mixer is BaseMixer {
         uint[] memory input,
         bytes32 pk_sender,
         bytes memory ciphertext0,
-        bytes memory ciphertext1 // The nb of ciphertexts depends on the JS description (Here 2 inputs)
+        bytes memory ciphertext1
     ) public payable {
         // 1. Check the root and the nullifiers
         assemble_root_and_nullifiers_and_append_to_state(input);
@@ -37,30 +44,26 @@ contract Groth16Mixer is BaseMixer {
             "Invalid proof: Unable to verify the proof correctly"
         );
 
-        // 2.b Verify the signature
-        bytes32 hash_proof = sha256(abi.encodePacked(a, b, c));
-        bytes32 hash_ciphers = sha256(abi.encodePacked(pk_sender, ciphertext0, ciphertext1));
+        // 2.b Verify the signature on the hash of data_to_be_signed
+        bytes32 hash_to_be_signed = sha256(abi.encodePacked(
+            pk_sender, ciphertext0, ciphertext1, a, b, c, input));
         require(
-            otsig_verifier.verify(
-                vk,
-                sigma,
-                hash_ciphers,
-                hash_proof,
-                assemble_primary_inputs_and_hash(input)
-            ),
+            otsig_verifier.verify(vk, sigma, hash_to_be_signed),
             "Invalid signature: Unable to verify the signature correctly"
         );
 
         // 3. Append the commitments to the tree
         assemble_commitments_and_append_to_state(input);
 
-        // 4. get the public values in Wei and modify the state depending on their values
+        // 4. get the public values in Wei and modify the state depending on
+        // their values
         process_public_values(input);
 
         // 5. Add the new root to the list of existing roots and emit it
         add_and_emit_merkle_root(getRoot());
 
-        // Emit the all the coins' secret data encrypted with the recipients' respective keys
+        // Emit the all the coins' secret data encrypted with the recipients'
+        // respective keys
         emit_ciphertexts(pk_sender, ciphertext0, ciphertext1);
     }
 }

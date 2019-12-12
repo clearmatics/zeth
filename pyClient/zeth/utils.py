@@ -12,9 +12,14 @@ import eth_abi
 import nacl.utils  # type: ignore
 from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
-from typing import List, Union, Any, cast
+from py_ecc import bn128 as ec
+from typing import List, Tuple, Union, Any, cast
 
 W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+
+
+FQ = ec.FQ
+G1 = Tuple[ec.FQ, ec.FQ]
 
 
 class EtherValue:
@@ -41,6 +46,17 @@ def encode_abi(type_names: List[str], data: List[bytes]) -> bytes:
     Typed wrapper around eth_abi.encode_abi
     """
     return eth_abi.encode_abi(type_names, data)  # type: ignore
+
+
+def encode_g1_to_bytes(group_el: G1) -> bytes:
+    """
+    Encode a group element into a byte string
+    We assume here the group prime $p$ is written in less than 256 bits
+    to conform with Ethereum bytes32 type.
+    """
+    return \
+        int(group_el[0]).to_bytes(32, byteorder='big') + \
+        int(group_el[1]).to_bytes(32, byteorder='big')
 
 
 def int64_to_hex(number: int) -> str:

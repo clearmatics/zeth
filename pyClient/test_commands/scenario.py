@@ -188,14 +188,14 @@ def charlie_double_withdraw(
 
     # Compute the joinSplit signature
     joinsplit_sig = joinsplit.sign_mix_tx(
-        sender_eph_pk, ciphertexts, proof_json, signing_keypair)
+        signing_keypair, sender_eph_pk, ciphertexts, proof_json)
 
     return zeth_client.mix(
         sender_eph_pk,
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
-        signing_keypair.pk,
+        signing_keypair.vk,
         joinsplit_sig,
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
