@@ -5,8 +5,7 @@ from zeth.ownership import OwnershipPublicKey, OwnershipSecretKey, \
     OwnershipKeyPair, ownership_key_as_hex
 from zeth.encryption import EncryptionPublicKey, EncryptionSecretKey, \
     EncryptionKeyPair, generate_encryption_keypair, encode_encryption_public_key
-from zeth.signing import SigningVerificationKey, SigningKeyPair, sign, \
-    encode_vk_to_bytes, gen_signing_keypair
+import zeth.signing as signing
 
 from zeth.zksnark import IZKSnarkProvider, GenericProof
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
@@ -31,8 +30,13 @@ ZETH_PUBLIC_UNIT_VALUE = 1000000000000
 ZERO_UNITS_HEX = "0000000000000000"
 
 
-ComputeHSigCB = Callable[[bytes, bytes, SigningVerificationKey], bytes]
-ModifyProofJsonCB = Callable[[Dict[str, Any]], None]
+# JoinSplit Signature Keys definitions
+JoinsplitSigVerificationKey = signing.SigningVerificationKey
+JoinsplitSigSecretKey = signing.SigningSecretKey
+JoinsplitSigKeyPair = signing.SigningKeyPair
+
+
+ComputeHSigCB = Callable[[bytes, bytes, JoinsplitSigVerificationKey], bytes]
 
 
 class ZethAddressPub:
@@ -253,7 +257,7 @@ def compute_joinsplit2x2_inputs(
         output1: Tuple[OwnershipPublicKey, int],
         public_in_value_zeth_units: int,
         public_out_value_zeth_units: int,
-        sign_vk: SigningVerificationKey,
+        sign_vk: JoinsplitSigVerificationKey,
         compute_h_sig_cb: Optional[ComputeHSigCB] = None
 ) -> prover_pb2.ProofInputs:
     """
@@ -328,8 +332,7 @@ class ZethClient:
             v_in: EtherValue,
             v_out: EtherValue,
             tx_payment: EtherValue,
-            compute_h_sig_cb: Optional[ComputeHSigCB] = None,
-            modify_proof_json_cb: Optional[ModifyProofJsonCB] = None
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None
     ) -> contracts.MixResult:
         assert len(inputs) <= constants.JS_INPUTS
         assert len(outputs) <= constants.JS_OUTPUTS
@@ -370,10 +373,6 @@ class ZethClient:
                 to_zeth_units(v_out),
                 compute_h_sig_cb)
 
-        # If a callback was given, modify the proof_json before it is signed
-        if modify_proof_json_cb:
-            modify_proof_json_cb(proof_json)
-
         # Encrypt the notes
         outputs_and_notes = zip(outputs, [output_note1, output_note2])
         output_notes_with_k_pk = \
@@ -402,7 +401,7 @@ class ZethClient:
             ciphertext1: bytes,
             ciphertext2: bytes,
             parsed_proof: GenericProof,
-            vk: SigningVerificationKey,
+            vk: JoinsplitSigVerificationKey,
             sigma: int,
             sender_address: str,
             wei_pub_value: int,
@@ -433,12 +432,12 @@ class ZethClient:
             public_in_value_zeth_units: int,
             public_out_value_zeth_units: int,
             compute_h_sig_cb: Optional[ComputeHSigCB] = None
-    ) -> Tuple[ZethNote, ZethNote, Dict[str, Any], SigningKeyPair]:
+    ) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JoinsplitSigKeyPair]:
         """
         Query the prover server to generate a proof for the given joinsplit
         parameters.
         """
-        signing_keypair = gen_signing_keypair()
+        signing_keypair = signing.gen_signing_keypair()
         proof_input = compute_joinsplit2x2_inputs(
             mk_root,
             input0,
@@ -518,10 +517,10 @@ def _encode_proof_and_inputs(proof_json: GenericProof) -> Tuple[bytes, bytes]:
 
 
 def joinsplit_sign(
-        signing_keypair: SigningKeyPair,  # Ephemeral signing key, tied to proof
-        sender_eph_pk: EncryptionPublicKey,  # Ephemeral key used for encryption
-        ciphertexts: List[bytes],  # Encyrpted output notes
-        proof_json: GenericProof,  # Proof for the mix transaction
+        signing_keypair: JoinsplitSigKeyPair,
+        sender_eph_pk: EncryptionPublicKey,
+        ciphertexts: List[bytes],
+        proof_json: GenericProof,
 ) -> int:
     """
     Generate a signature on the hash of the ciphertexts, proofs and
@@ -546,13 +545,13 @@ def joinsplit_sign(
     h.update(proof_bytes)
     h.update(pub_inputs_bytes)
     message_digest = h.digest()
-    return sign(signing_keypair.sk, message_digest)
+    return signing.sign(signing_keypair.sk, message_digest)
 
 
 def compute_h_sig(
         nf0: bytes,
         nf1: bytes,
-        sign_vk: SigningVerificationKey) -> bytes:
+        sign_vk: JoinsplitSigVerificationKey) -> bytes:
     """
     Compute h_sig = sha256(nf0 || nf1 || sign_vk)
     Flatten the verification key
@@ -560,7 +559,7 @@ def compute_h_sig(
     h = sha256()
     h.update(nf0)
     h.update(nf1)
-    h.update(encode_vk_to_bytes(sign_vk))
+    h.update(signing.encode_vk_to_bytes(sign_vk))
     return h.digest()
 
 
