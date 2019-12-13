@@ -185,8 +185,7 @@ def compute_nullifier(
     binary_ask = digest_to_binary_string(spending_authority_ask)
     first_252bits_ask = binary_ask[:252]
     left_leg_bin = "1110" + first_252bits_ask
-    left_leg = int(left_leg_bin, 2).to_bytes(32, byteorder='little')
-
+    left_leg = int(left_leg_bin, 2).to_bytes(32, byteorder='big')
     blake_hash = blake2s()
     blake_hash.update(left_leg)
     blake_hash.update(bytes.fromhex(zeth_note.rho))
@@ -537,14 +536,14 @@ def _compute_h_sig(
         nf1: bytes,
         sign_pk: SigningPublicKey) -> bytes:
     """
-    Compute h_sig = blake2s(randomSeed, nf0, nf1, joinSplitPubKey)
+    Compute h_sig = sha256(nf0 || nf1 || sign_pk)
     Flatten the verification key
     """
-    blake_hash = blake2s()
-    blake_hash.update(nf0)
-    blake_hash.update(nf1)
-    blake_hash.update(encode_vk_to_bytes(sign_pk))
-    return blake_hash.digest()
+    h = sha256()
+    h.update(nf0)
+    h.update(nf1)
+    h.update(encode_vk_to_bytes(sign_pk))
+    return h.digest()
 
 
 def trap_r_randomness() -> str:
