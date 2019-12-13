@@ -20,7 +20,7 @@ import os
 import json
 from Crypto import Random
 from hashlib import blake2s, sha256
-from typing import Tuple, Dict, List, Iterable, Any
+from typing import Tuple, Dict, List, Iterable, Callable, Optional, Any
 
 
 # Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
@@ -29,6 +29,10 @@ ZETH_PUBLIC_UNIT_VALUE = 1000000000000
 
 
 ZERO_UNITS_HEX = "0000000000000000"
+
+
+ComputeHSigCB = Callable[[bytes, bytes, SigningPublicKey], bytes]
+ModifyProofJsonCB = Callable[[Dict[str, Any]], None]
 
 
 class ZethAddressPub:
@@ -249,7 +253,9 @@ def compute_joinsplit2x2_inputs(
         output1: Tuple[OwnershipPublicKey, int],
         public_in_value_zeth_units: int,
         public_out_value_zeth_units: int,
-        sign_pk: SigningPublicKey) -> prover_pb2.ProofInputs:
+        sign_pk: SigningPublicKey,
+        compute_h_sig_cb: Optional[ComputeHSigCB] = None
+) -> prover_pb2.ProofInputs:
     """
     Create a ProofInput object for joinsplit parameters
     """
@@ -265,7 +271,9 @@ def compute_joinsplit2x2_inputs(
             mk_path1, input_address1, input_note1, sender_ask, input_nullifier1)
     ]
 
-    h_sig = _compute_h_sig(
+    # Use the specified or default h_sig computation
+    compute_h_sig_cb = compute_h_sig_cb or compute_h_sig
+    h_sig = compute_h_sig_cb(
         input_nullifier0,
         input_nullifier1,
         sign_pk)
@@ -319,7 +327,10 @@ class ZethClient:
             outputs: List[Tuple[ZethAddressPub, EtherValue]],
             v_in: EtherValue,
             v_out: EtherValue,
-            tx_payment: EtherValue) -> contracts.MixResult:
+            tx_payment: EtherValue,
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None,
+            modify_proof_json_cb: Optional[ModifyProofJsonCB] = None
+    ) -> contracts.MixResult:
         assert len(inputs) <= constants.JS_INPUTS
         assert len(outputs) <= constants.JS_OUTPUTS
 
@@ -356,7 +367,12 @@ class ZethClient:
                 outputs_with_a_pk[0],
                 outputs_with_a_pk[1],
                 to_zeth_units(v_in),
-                to_zeth_units(v_out))
+                to_zeth_units(v_out),
+                compute_h_sig_cb)
+
+        # If a callback was given, modify the proof_json before it is signed
+        if modify_proof_json_cb:
+            modify_proof_json_cb(proof_json)
 
         # Encrypt the notes
         outputs_and_notes = zip(outputs, [output_note1, output_note2])
@@ -415,7 +431,8 @@ class ZethClient:
             output0: Tuple[OwnershipPublicKey, int],
             output1: Tuple[OwnershipPublicKey, int],
             public_in_value_zeth_units: int,
-            public_out_value_zeth_units: int
+            public_out_value_zeth_units: int,
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None
     ) -> Tuple[ZethNote, ZethNote, Dict[str, Any], SigningKeyPair]:
         """
         Query the prover server to generate a proof for the given joinsplit
@@ -433,7 +450,8 @@ class ZethClient:
             output1,
             public_in_value_zeth_units,
             public_out_value_zeth_units,
-            signing_keypair.vk)
+            signing_keypair.vk,
+            compute_h_sig_cb)
         proof_obj = self._prover_client.get_proof(proof_input)
         proof_json = self._zksnark.parse_proof(proof_obj)
 
@@ -531,7 +549,7 @@ def sign_mix_tx(
     return sign(signing_keypair.sk, message_digest)
 
 
-def _compute_h_sig(
+def compute_h_sig(
         nf0: bytes,
         nf1: bytes,
         sign_pk: SigningPublicKey) -> bytes:
