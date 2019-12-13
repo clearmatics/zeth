@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from __future__ import annotations
 
 from zeth.utils import hex_extend_32bytes, digest_to_binary_string, encode_abi

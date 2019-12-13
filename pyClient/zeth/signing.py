@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 """
 Implementation of Schnorr-based one-time signature from: "Two-tier
 signatures, strongly unforgeable signatures, and Fiat-Shamir without random

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from __future__ import annotations
 import ecdsa  # type: ignore
 from Crypto.Hash import SHA512  # pylint: disable=no-name-in-module, import-error

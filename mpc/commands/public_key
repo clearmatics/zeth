@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from commands.public_key_operations import public_key_information
 from coordinator.crypto import import_signing_key
 from click import command, argument, option
