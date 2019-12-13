@@ -13,7 +13,7 @@ disable=
     too-many-function-args,
     duplicate-code,
 
-good-names=i,e,x,y,m,k,h,c,cm,rc,ek,ct,vk,sk,X,Y,r,el,nf,w3
+good-names=i,e,x,y,m,k,h,c,cm,rc,ek,ct,vk,sk,pk,X,Y,r,el,nf,w3
 
 [REPORTS]
 output-format=text

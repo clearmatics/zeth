@@ -14,11 +14,19 @@ from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Union, Any, cast
 
-# Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
-# Wei).
-ZETH_PUBLIC_UNIT_VALUE = 1000000000000
-
 W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+
+
+class EtherValue:
+    """
+    Representation of some amount of Ether (or any token) in terms of Wei.
+    Disambiguates Ether values from other units such as zeth_units.
+    """
+    def __init__(self, val: Union[str, int, float], units: str = 'ether'):
+        self.wei = W3.toWei(val, units)
+
+    def __str__(self) -> str:
+        return str(self.wei)
 
 
 def encode_single(type_name: str, data: bytes) -> bytes:
@@ -40,20 +48,20 @@ def int64_to_hex(number: int) -> str:
 
 
 def hex_digest_to_binary_string(digest: str) -> str:
-    padded = "0" + digest
-    digest_bits = ["{0:04b}".format(int(c, 16)) for c in reversed(padded)]
-    zipped = zip(*[digest_bits[n::2] for n in [1, 0]])
-    return "".join(reversed([i+j for i, j in zipped]))
+    if len(digest) % 2 == 1:
+        digest = "0" + digest
+    return "".join(["{0:04b}".format(int(c, 16)) for c in digest])
+
+
+def digest_to_binary_string(digest: bytes) -> str:
+    return "".join(["{0:08b}".format(b) for b in digest])
 
 
 def hex_to_int(elements: List[str]) -> List[int]:
     """
-    Given an error of hex strings, return an array of int values
+    Given an array of hex strings, return an array of int values
     """
-    ints = []
-    for el in elements:
-        ints.append(int(el, 16))
-    return ints
+    return [int(x, 16) for x in elements]
 
 
 def hex_extend_32bytes(element: str) -> str:
@@ -177,10 +185,6 @@ def parse_zksnark_arg() -> str:
     return args.zksnark
 
 
-def to_zeth_units(value: str, unit: str) -> int:
-    return int(Web3.toWei(value, unit) / ZETH_PUBLIC_UNIT_VALUE)
-
-
 def get_zeth_dir() -> str:
     return os.environ.get(
         'ZETH',
@@ -216,9 +220,8 @@ def string_list_flatten(
     return cast(List[str], strs_list)
 
 
-def encode_to_hash(message_list: Any) -> bytes:
+def encode_message_to_bytes(message_list: Any) -> bytes:
     # message_list: Union[List[str], List[Union[int, str, List[str]]]]) -> bytes:
-
     """
     Encode a list of variables, or list of lists of variables into a byte
     vector
@@ -226,7 +229,7 @@ def encode_to_hash(message_list: Any) -> bytes:
 
     messages = string_list_flatten(message_list)
 
-    input_sha = bytearray()
+    data_bytes = bytearray()
     for m in messages:
         # For each element
         m_hex = m
@@ -241,6 +244,36 @@ def encode_to_hash(message_list: Any) -> bytes:
         m_hex = hex_extend_32bytes(m_hex)
 
         # Encode the hex into a byte array and append it to result
-        input_sha += encode_single("bytes32", bytes.fromhex(m_hex))
+        data_bytes += encode_single("bytes32", bytes.fromhex(m_hex))
 
-    return input_sha
+    return data_bytes
+
+
+def field_elements_to_hex(longfield: str, shortfield: str) -> str:
+    """
+    Encode a 256 bit array written over two field elements into a single 32
+    byte long hex
+
+    if A= x0 ... x255 and B = y0 ... y7, returns R = hex(x255 ... x3 || y7 y6 y5)
+    """
+    # Convert longfield into a 253 bit long array
+    long_bit = "{0:b}".format(int(longfield, 16))
+    if len(long_bit) > 253:
+        long_bit = long_bit[:253]
+    long_bit = "0"*(253-len(long_bit)) + long_bit
+
+    # Convert shortfield into a 3 bit long array
+    short_bit = "{0:b}".format(int(shortfield, 16))
+    if len(short_bit) < 3:
+        short_bit = "0"*(3-len(short_bit)) + short_bit
+
+    # Reverse the bit arrays
+    reversed_long = long_bit[::-1]
+    reversed_short = short_bit[::-1]
+
+    # Fill the result 256 bit long array
+    res = reversed_long[:253]
+    res += reversed_short[:3]
+    res = hex_extend_32bytes("{0:0>4X}".format(int(res, 2)))
+
+    return res

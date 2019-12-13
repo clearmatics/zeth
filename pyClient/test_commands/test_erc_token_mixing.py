@@ -2,6 +2,7 @@
 
 import zeth.contracts as contracts
 import zeth.joinsplit
+import zeth.zksnark
 from zeth.prover_client import ProverClient
 from zeth.wallet import Wallet
 import zeth.utils
@@ -13,7 +14,7 @@ import os
 from web3 import Web3, HTTPProvider  # type: ignore
 from solcx import compile_files  # type: ignore
 from os.path import join
-from typing import List, Any
+from typing import Any
 
 W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
 eth = W3.eth  # pylint: disable=no-member,invalid-name
@@ -59,14 +60,6 @@ def deploy_token(
     return token
 
 
-def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
-    mk_byte_tree = mixer_instance.functions.getTree().call()
-    print("[DEBUG] Displaying the Merkle tree of commitments: ")
-    for node in mk_byte_tree:
-        print("Node: " + W3.toHex(node)[2:])
-    return mk_byte_tree
-
-
 def print_token_balances(
         token_instance: Any,
         bob: str,
@@ -109,7 +102,7 @@ def mint_token(
 
 
 def main() -> None:
-    zksnark = zeth.utils.parse_zksnark_arg()
+    zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
 
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]
@@ -126,16 +119,13 @@ def main() -> None:
     coinstore_dir = os.environ['ZETH_COINSTORE']
 
     # Keys and wallets
-    sk_alice = zeth.utils.get_private_key_from_bytes(
-        keystore["Alice"].addr_sk.enc_sk)
-    sk_bob = zeth.utils.get_private_key_from_bytes(
-        keystore["Bob"].addr_sk.enc_sk)
-    sk_charlie = zeth.utils.get_private_key_from_bytes(
-        keystore["Charlie"].addr_sk.enc_sk)
+    k_sk_alice = keystore["Alice"].addr_sk.k_sk
+    k_sk_bob = keystore["Bob"].addr_sk.k_sk
+    k_sk_charlie = keystore["Charlie"].addr_sk.k_sk
 
-    alice_wallet = Wallet("alice", coinstore_dir, sk_alice)
-    bob_wallet = Wallet("bob", coinstore_dir, sk_bob)
-    charlie_wallet = Wallet("charlie", coinstore_dir, sk_charlie)
+    alice_wallet = Wallet("alice", coinstore_dir, k_sk_alice)
+    bob_wallet = Wallet("bob", coinstore_dir, k_sk_bob)
+    charlie_wallet = Wallet("charlie", coinstore_dir, k_sk_charlie)
 
     print("[INFO] 1. Fetching the verification key from the proving server")
     vk = prover_client.get_verification_key()
@@ -162,6 +152,9 @@ def main() -> None:
         zksnark
     )
 
+    zeth_client = zeth.joinsplit.ZethClient(
+        prover_client, mixer_instance, zksnark)
+
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
     # We assign ETHToken to Bob
     mint_token(
@@ -182,14 +175,7 @@ def main() -> None:
     # approving)
     try:
         result_deposit_bob_to_bob = scenario.bob_deposit(
-            prover_client,
-            mixer_instance,
-            initial_root,
-            bob_eth_address,
-            keystore,
-            mk_tree_depth,
-            zksnark
-        )
+            zeth_client, initial_root, bob_eth_address, keystore, mk_tree_depth)
     except Exception as e:
         allowance_mixer = allowance(
             token_instance, bob_eth_address, mixer_instance.address)
@@ -209,20 +195,8 @@ def main() -> None:
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
     # Bob deposits ETHToken, split in 2 notes on the mixer
     result_deposit_bob_to_bob = scenario.bob_deposit(
-        prover_client,
-        mixer_instance,
-        initial_root,
-        bob_eth_address,
-        keystore,
-        mk_tree_depth,
-        zksnark
-    )
-    cm_address_bob_to_bob1 = result_deposit_bob_to_bob.cm_address_1
-    # cm_address_bob_to_bob2 = result_deposit_bob_to_bob.cm_address_2
+        zeth_client, initial_root, bob_eth_address, keystore, mk_tree_depth)
     new_merkle_root_bob_to_bob = result_deposit_bob_to_bob.new_merkle_root
-    pk_sender_bob_to_bob = result_deposit_bob_to_bob.pk_sender
-    ciphertext_bob_to_bob1 = result_deposit_bob_to_bob.ciphertext_1
-    ciphertext_bob_to_bob2 = result_deposit_bob_to_bob.ciphertext_2
 
     print("- Balances after Bob's deposit: ")
     print_token_balances(
@@ -236,67 +210,46 @@ def main() -> None:
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
     # was the recipient, but Bob was the recipient so Alice fails to decrypt
     recovered_notes_alice = alice_wallet.receive_notes(
-        [ciphertext_bob_to_bob1, ciphertext_bob_to_bob2],
-        pk_sender_bob_to_bob)
+        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_alice) == 0), \
         "Alice decrypted a ciphertext that was not encrypted with her key!"
 
     # Bob does a transfer of ETHToken to Charlie on the mixer
-    #
-    # Bob looks in the merkle tree and gets the merkle path to the commitment
-    # he wants to spend
-    mk_byte_tree = get_merkle_tree(mixer_instance)
-    mk_path = zeth.utils.compute_merkle_path(
-        cm_address_bob_to_bob1, mk_tree_depth, mk_byte_tree)
 
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
     recovered_notes_bob = bob_wallet.receive_notes(
-        [ciphertext_bob_to_bob1, ciphertext_bob_to_bob2],
-        pk_sender_bob_to_bob)
+        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_bob) == 2), \
         f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
-    input_note_bob_to_charlie = recovered_notes_bob[0]
+    input_bob_to_charlie = recovered_notes_bob[0]
+    assert input_bob_to_charlie[0] == \
+        result_deposit_bob_to_bob.encrypted_notes[0][0]
 
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
-        prover_client,
-        mixer_instance,
+        zeth_client,
         new_merkle_root_bob_to_bob,
-        mk_path,
-        input_note_bob_to_charlie,
-        cm_address_bob_to_bob1,
+        input_bob_to_charlie,
         bob_eth_address,
         keystore,
-        mk_tree_depth,
-        zksnark
-    )
+        mk_tree_depth)
 
-    # Bob -> Bob (Change)
-    # cm_address_bob_to_charlie1 = result_transfer_bob_to_charlie.cm_address_1
-    # Bob -> Charlie (payment to Charlie)
-    cm_address_bob_to_charlie2 = result_transfer_bob_to_charlie.cm_address_2
     new_merkle_root_bob_to_charlie = \
         result_transfer_bob_to_charlie.new_merkle_root
-    pk_sender_bob_to_charlie = result_transfer_bob_to_charlie.pk_sender
-    ciphertext_bob_to_charlie1 = result_transfer_bob_to_charlie.ciphertext_1
-    ciphertext_bob_to_charlie2 = result_transfer_bob_to_charlie.ciphertext_2
 
     # Bob tries to spend `input_note_bob_to_charlie` twice
     result_double_spending = None
     try:
         result_double_spending = scenario.bob_to_charlie(
-            prover_client,
-            mixer_instance,
+            zeth_client,
             new_merkle_root_bob_to_bob,
-            mk_path,
-            input_note_bob_to_charlie,
-            cm_address_bob_to_bob1,
+            input_bob_to_charlie,
             bob_eth_address,
             keystore,
-            mk_tree_depth,
-            zksnark
-        )
+            mk_tree_depth)
     except Exception as e:
         print(f"Bob's double spending successfully rejected! (msg: {e})")
     assert(result_double_spending is None), "Bob spent the same note twice!"
@@ -312,28 +265,21 @@ def main() -> None:
 
     # Charlie tries to decrypt the notes from Bob's previous transaction.
     notes_charlie = charlie_wallet.receive_notes(
-        [ciphertext_bob_to_charlie1, ciphertext_bob_to_charlie2],
-        pk_sender_bob_to_charlie)
+        result_transfer_bob_to_charlie.encrypted_notes,
+        result_transfer_bob_to_charlie.sender_k_pk)
     assert(len(notes_charlie) == 1), \
         f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
 
-    # Charlie now gets the merkle path for the commitment he wants to spend
-    mk_byte_tree = get_merkle_tree(mixer_instance)
-    mk_path = zeth.utils.compute_merkle_path(
-        cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
-    input_note_charlie_withdraw = notes_charlie[0]
+    assert notes_charlie[0][0] == \
+        result_transfer_bob_to_charlie.encrypted_notes[1][0]
+
     result_charlie_withdrawal = scenario.charlie_withdraw(
-        prover_client,
-        mixer_instance,
+        zeth_client,
         new_merkle_root_bob_to_charlie,
-        mk_path,
-        input_note_charlie_withdraw,
-        cm_address_bob_to_charlie2,
+        notes_charlie[0],
         charlie_eth_address,
         keystore,
-        mk_tree_depth,
-        zksnark
-    )
+        mk_tree_depth)
 
     new_merkle_root_charlie_withdrawal = \
         result_charlie_withdrawal.new_merkle_root
@@ -351,22 +297,14 @@ def main() -> None:
     result_double_spending = None
     try:
         # New commitments are added in the tree at each withdraw so we
-        # recompiute the path to have the updated nodes
-        mk_byte_tree = get_merkle_tree(mixer_instance)
-        mk_path = zeth.utils.compute_merkle_path(
-            cm_address_bob_to_charlie2, mk_tree_depth, mk_byte_tree)
+        # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
-            prover_client,
-            mixer_instance,
+            zeth_client,
             new_merkle_root_charlie_withdrawal,
-            mk_path,
-            input_note_charlie_withdraw,
-            cm_address_bob_to_charlie2,
+            notes_charlie[0],
             charlie_eth_address,
             keystore,
-            mk_tree_depth,
-            zksnark
-        )
+            mk_tree_depth)
     except Exception as e:
         print(f"Charlie's double spending successfully rejected! (msg: {e})")
     print("Balances after Charlie's double withdrawal attempt: ")
@@ -377,8 +315,7 @@ def main() -> None:
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        mixer_instance.address
-    )
+        mixer_instance.address)
 
 
 if __name__ == '__main__':
