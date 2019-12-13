@@ -42,18 +42,18 @@ contract Groth16Mixer is BaseMixer {
         // 1. Check the root and the nullifiers
         check_mkroot_nullifiers_hsig_append_nullifiers_state(vk, input);
 
-        // 2.a Verify the proof
-        require(
-            zksnark_verifier.verifyTx(a, b, c, input),
-            "Invalid proof: Unable to verify the proof correctly"
-        );
-
-        // 2.b Verify the signature on the hash of data_to_be_signed
+        // 2.a Verify the signature on the hash of data_to_be_signed
         bytes32 hash_to_be_signed = sha256(abi.encodePacked(
             pk_sender, ciphertext0, ciphertext1, a, b, c, input));
         require(
             otsig_verifier.verify(vk, sigma, hash_to_be_signed),
             "Invalid signature: Unable to verify the signature correctly"
+        );
+
+        // 2.b Verify the proof
+        require(
+            zksnark_verifier.verifyTx(a, b, c, input),
+            "Invalid proof: Unable to verify the proof correctly"
         );
 
         // 3. Append the commitments to the tree
