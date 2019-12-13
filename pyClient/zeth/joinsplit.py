@@ -382,8 +382,8 @@ class ZethClient:
         (sender_eph_pk, ciphertexts) = encrypt_notes(output_notes_with_k_pk)
 
         # Sign
-        signature = \
-            sign_mix_tx(signing_keypair, sender_eph_pk, ciphertexts, proof_json)
+        signature = joinsplit_sign(
+            signing_keypair, sender_eph_pk, ciphertexts, proof_json)
 
         return self.mix(
             sender_eph_pk,
@@ -517,14 +517,14 @@ def _encode_proof_and_inputs(proof_json: GenericProof) -> Tuple[bytes, bytes]:
         encode_message_to_bytes(proof_json["inputs"]))
 
 
-def sign_mix_tx(
+def joinsplit_sign(
         signing_keypair: SigningKeyPair,  # Ephemeral signing key, tied to proof
         sender_eph_pk: EncryptionPublicKey,  # Ephemeral key used for encryption
         ciphertexts: List[bytes],  # Encyrpted output notes
         proof_json: GenericProof,  # Proof for the mix transaction
 ) -> int:
     """
-    Generate a Schnorr signature on the hash of the ciphertexts, proofs and
+    Generate a signature on the hash of the ciphertexts, proofs and
     primary inputs. This is used to solve transaction malleability.  We chose
     to sign the hash and not the values themselves for modularity (to use the
     same code regardless of whether GROTH16 or PGHR13 proof system is chosen),
