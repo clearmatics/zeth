@@ -284,7 +284,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
     this->pb.val(value_enforce) =
         (note.is_zero_valued()) ? FieldT::zero() : FieldT::one();
     std::cout << "[DEBUG] Value of `value_enforce`: "
-              << this->pb.val(value_enforce) << std::endl;
+              << (this->pb.val(value_enforce)).as_ulong() << std::endl;
 
     // Witness merkle tree authentication path
     address_bits_va.fill_with_bits(this->pb, address_bits);
