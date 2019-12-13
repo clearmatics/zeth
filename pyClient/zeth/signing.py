@@ -13,7 +13,7 @@ from zeth.utils import FQ, G1, encode_g1_to_bytes
 from zeth.constants import ZETH_PRIME
 
 
-class SigningPublicKey:
+class SigningVerificationKey:
     """
     An OT-Schnorr verification key.
     """
@@ -36,9 +36,9 @@ class SigningKeyPair:
     An OT-Schnorr signing and verification keypair.
     """
     def __init__(self, x: FQ, y: FQ, x_g1: G1, y_g1: G1):
-        # We include the verification key in the signing key
+        # We include y_g1 in the signing key
         self.sk = SigningSecretKey(x, y, y_g1)
-        self.vk = SigningPublicKey(x_g1, y_g1)
+        self.vk = SigningVerificationKey(x_g1, y_g1)
 
 
 def gen_signing_keypair() -> SigningKeyPair:
@@ -56,7 +56,7 @@ def gen_signing_keypair() -> SigningKeyPair:
     return SigningKeyPair(x, y, X, Y)
 
 
-def encode_vk_to_bytes(vk: SigningPublicKey) -> bytes:
+def encode_vk_to_bytes(vk: SigningVerificationKey) -> bytes:
     """
     Encode a verification key as a byte string
     We assume here the group prime $p$ is written in less than 256 bits
@@ -82,16 +82,16 @@ def sign(
 
     # Convert the hex digest into a field element
     challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
-    challenge = challenge % constants.ZETH_PRIME
+    challenge = challenge % ZETH_PRIME
 
     # Compute the signature sigma
-    sigma = (sk.ssk[0].n + challenge * sk.psk.n) % constants.ZETH_PRIME
+    sigma = (sk.ssk[0].n + challenge * sk.psk.n) % ZETH_PRIME
 
     return sigma
 
 
 def verify(
-        vk: SigningPublicKey,
+        vk: SigningVerificationKey,
         m: bytes,
         sigma: int) -> bool:
     """

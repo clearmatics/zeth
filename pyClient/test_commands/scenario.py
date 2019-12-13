@@ -169,7 +169,7 @@ def charlie_double_withdraw(
     def compute_h_sig_attack_nf(
             nf0: bytes,
             nf1: bytes,
-            sign_pk: joinsplit.JoinsplitSigVerificationKey) -> bytes:
+            sign_vk: joinsplit.JoinsplitSigVerificationKey) -> bytes:
         # We disassemble the nfs to get the formatting of the primary inputs
         input_nullifier0 = nf0.hex()
         input_nullifier1 = nf1.hex()
@@ -196,7 +196,7 @@ def charlie_double_withdraw(
             attack_primary_input4_bits[256-3:] + primary_input3_bits
         attack_nf1 = "{0:064x}".format(int(attack_nf1_bits[::-1], 2))
         return joinsplit.compute_h_sig(
-            bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_pk)
+            bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_vk)
 
     (output_note1, output_note2, proof_json, signing_keypair) = \
         zeth_client.get_proof_joinsplit_2_by_2(

@@ -5,7 +5,7 @@ from zeth.ownership import OwnershipPublicKey, OwnershipSecretKey, \
     OwnershipKeyPair, ownership_key_as_hex
 from zeth.encryption import EncryptionPublicKey, EncryptionSecretKey, \
     EncryptionKeyPair, generate_encryption_keypair, encode_encryption_public_key
-from zeth.signing import SigningPublicKey, SigningKeyPair, sign, \
+from zeth.signing import SigningVerificationKey, SigningKeyPair, sign, \
     encode_vk_to_bytes, gen_signing_keypair
 
 from zeth.zksnark import IZKSnarkProvider, GenericProof
@@ -31,7 +31,7 @@ ZETH_PUBLIC_UNIT_VALUE = 1000000000000
 ZERO_UNITS_HEX = "0000000000000000"
 
 
-ComputeHSigCB = Callable[[bytes, bytes, SigningPublicKey], bytes]
+ComputeHSigCB = Callable[[bytes, bytes, SigningVerificationKey], bytes]
 ModifyProofJsonCB = Callable[[Dict[str, Any]], None]
 
 
@@ -253,7 +253,7 @@ def compute_joinsplit2x2_inputs(
         output1: Tuple[OwnershipPublicKey, int],
         public_in_value_zeth_units: int,
         public_out_value_zeth_units: int,
-        sign_pk: SigningPublicKey,
+        sign_vk: SigningVerificationKey,
         compute_h_sig_cb: Optional[ComputeHSigCB] = None
 ) -> prover_pb2.ProofInputs:
     """
@@ -276,7 +276,7 @@ def compute_joinsplit2x2_inputs(
     h_sig = compute_h_sig_cb(
         input_nullifier0,
         input_nullifier1,
-        sign_pk)
+        sign_vk)
     phi = _transaction_randomness()
 
     output_note0, output_note1 = create_zeth_notes(
@@ -402,7 +402,7 @@ class ZethClient:
             ciphertext1: bytes,
             ciphertext2: bytes,
             parsed_proof: GenericProof,
-            vk: SigningPublicKey,
+            vk: SigningVerificationKey,
             sigma: int,
             sender_address: str,
             wei_pub_value: int,
@@ -552,15 +552,15 @@ def sign_mix_tx(
 def compute_h_sig(
         nf0: bytes,
         nf1: bytes,
-        sign_pk: SigningPublicKey) -> bytes:
+        sign_vk: SigningVerificationKey) -> bytes:
     """
-    Compute h_sig = sha256(nf0 || nf1 || sign_pk)
+    Compute h_sig = sha256(nf0 || nf1 || sign_vk)
     Flatten the verification key
     """
     h = sha256()
     h.update(nf0)
     h.update(nf1)
-    h.update(encode_vk_to_bytes(sign_pk))
+    h.update(encode_vk_to_bytes(sign_vk))
     return h.digest()
 
 
