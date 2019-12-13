@@ -30,7 +30,7 @@ setup(
         "flask==1.1.1",
         "cheroot==7.0.0",
         "pycryptodome==3.9.0",
-        "ecdsa==0.13.2",
+        "ecdsa==0.13.3",
         "click==7.0",
         "requests==2.22.0",
     ],
