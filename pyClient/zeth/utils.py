@@ -173,7 +173,6 @@ def compute_merkle_path(
     for _ in range(0, tree_depth):
         address_bits.append(address % 2)
         if (address % 2) == 0:
-            print("append note at address: " + str(address - 1))
             # [2:] to strip the 0x prefix
             merkle_path.append(W3.toHex(byte_tree[address - 1])[2:])
             # -1 because we decided to start counting from 0 (which is the
