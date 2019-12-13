@@ -1,3 +1,7 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
 /// Small utility to check powersoftau output and to compute the evaluation of
 /// Lagrange polynomials at tau.
 

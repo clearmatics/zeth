@@ -1,3 +1,7 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
 #ifndef __ZETH_MPC_CLI_COMMON_HPP__
 #define __ZETH_MPC_CLI_COMMON_HPP__
 

@@ -1,3 +1,7 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
 #include "circuits/blake2s/blake2s_comp.hpp"
 #include "mpc_common.hpp"
 #include "snarks/groth16/mpc/mpc_utils.hpp"
