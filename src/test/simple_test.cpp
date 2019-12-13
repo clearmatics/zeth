@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-
 #include "simple_test.hpp"
 
 #include "util.hpp"
