@@ -4,8 +4,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-#!/usr/bin/env python3
-
 import zeth.contracts
 import zeth.joinsplit
 import zeth.zksnark
