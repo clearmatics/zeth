@@ -1,3 +1,6 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
 
 #include "snarks/groth16/mpc/phase2.hpp"
 // This comment preserves include order under clang-format.

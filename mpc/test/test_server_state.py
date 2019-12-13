@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from unittest import TestCase
 from coordinator.crypto import import_verification_key, import_signature
 from coordinator.server_state import ServerState, initial_server_state

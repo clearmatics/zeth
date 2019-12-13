@@ -1,3 +1,7 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
 #ifndef __ZETH_CIRCUIT_WRAPPER_TCC__
 #define __ZETH_CIRCUIT_WRAPPER_TCC__
 

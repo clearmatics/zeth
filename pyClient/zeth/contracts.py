@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 import zeth.constants as constants
 from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
 from zeth.signing import SigningVerificationKey
