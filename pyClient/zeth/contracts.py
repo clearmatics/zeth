@@ -1,6 +1,6 @@
 import zeth.constants as constants
 from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
-from zeth.signing import SigningPublicKey
+from zeth.signing import SigningVerificationKey
 from zeth.zksnark import IZKSnarkProvider, GenericProof
 from zeth.utils import get_trusted_setup_dir, get_contracts_dir, hex_to_int, \
     get_public_key_from_bytes
@@ -224,7 +224,7 @@ def mix(
         ciphertext1: bytes,
         ciphertext2: bytes,
         parsed_proof: GenericProof,
-        vk: SigningPublicKey,
+        vk: SigningVerificationKey,
         sigma: int,
         sender_address: str,
         wei_pub_value: int,
@@ -237,8 +237,8 @@ def mix(
     proof_params = zksnark.mixer_proof_parameters(parsed_proof)
     tx_hash = mixer_instance.functions.mix(
         *proof_params,
-        [[int(vk[0][0]), int(vk[0][1])], [int(vk[1][0]), int(vk[1][1])]],
-        int(sigma),
+        [[int(vk.ppk[0]), int(vk.ppk[1])], [int(vk.spk[0]), int(vk.spk[1])]],
+        sigma,
         hex_to_int(parsed_proof["inputs"]),
         pk_sender_encoded,
         ciphertext1,
