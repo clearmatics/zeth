@@ -7,8 +7,8 @@ Tools and scripts for SRS generation via an MPC.
 - Zeth mpc executables (an optimized build from this repo, or from a binary
   distribution).
 - python3 (>=3.7) and venv (`pip install venv`).
-- (Phase1 only) clone and build https://github.com/clearmatics/poweroftau
-  - requires the rust build environment, including cargo
+- (Phase1 only) clone and build: https://github.com/clearmatics/powersoftau
+  - requires the rust build environment, including [cargo](https://doc.rust-lang.org/cargo/)
 
 # Setup
 

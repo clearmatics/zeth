@@ -1,3 +1,7 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
 // Utility for executing operations that are only required by "clients" (that
 // is, participants in the MPC that only contribute and potentially validate
 // the final transcript.

@@ -15,7 +15,7 @@ In order to follow the README below, you will need:
 - [Docker](https://www.docker.com/get-started)
 - [Npm](https://www.npmjs.com/get-npm) (at least version `6.4.1`)
 - [Node](https://nodejs.org/en/) (at least version `v9.5.0`)
-- [Python3](https://www.python.org/downloads/) (at least version `3.6.3`)
+- [Python3](https://www.python.org/downloads/) (at least version `3.7`)
 
 We use 3 terminals to run the project.
 One terminal will be used to run the proving service/server, another one will be used to run a local Ethereum testnet, and the final terminal will be used to run a python stub that triggers a few proof generations on the proving server in order to do confidential transactions on the Ethereum testnet.
@@ -90,33 +90,19 @@ cd pyClient
 # Follow the few steps described in the README of the python stub
 ```
 
-### Use the pyClient or the jsClient
+### Use the pyClient
 
 This Proof of Concept comes with some minimal building blocks to integrate Zeth with your applications.
-You can use the python and/or the javascript clients to interact with the proving service and request proofs on a given `(instance, witness)` pair.
+You can use the [python client](pyClient/README.md) to interact with the proving service and request proofs on a given `(instance, witness)` pair.
 
-If you do not know where to start, you can just follow the instructions of the README in `pyClient` to run one of the `testEtherMixing.py` or `testERCTokenMixing.py` script.
-These scripts implement a scenario where Alice, Bob and Charlie do confidential transfers using Ether and an ERC20 token, respectively.
-
-**Note:** These clients are very minimal and only used for testing purpose!
-
-## Secure SRS generation
+## Secure Multi Party Computation for the Groth16 SRS generation
 
 See [MPC for SRS generation documentation](mpc/README.md)
-
-## References and useful links
-
-- **BabyZoe:** https://github.com/zcash-hackworks/babyzoe
-- **Miximus:** https://github.com/barryWhiteHat/miximus.git
-- **ZeroCash:** http://zerocash-project.org/
-- **Zcash github:** https://github.com/zcash/zcash
-- **SCIPR LAB github:** https://github.com/scipr-lab/
-- **Zerocash-Ethereum:** https://github.com/AntoineRondelet/zerocash-ethereum
 
 ## Development dependencies (for building outside of the Docker container)
 
 Immediate dependencies are provided as submodules and compiled during
-the Zeth build.  Ensure submodules are syned.
+the Zeth build. Ensure submodules are synced.
 
 The following libraries are also required to build:
 
@@ -124,6 +110,15 @@ The following libraries are also required to build:
 - gmp
 - boost
 - openssl
+
+## References and useful links
+
+- **BabyZoe:** https://github.com/zcash-hackworks/babyzoe
+- **Miximus:** https://github.com/barryWhiteHat/miximus.git
+- **SCIPR LAB github:** https://github.com/scipr-lab/
+- **Zcash github:** https://github.com/zcash/zcash
+- **ZeroCash:** http://zerocash-project.org/
+- **Zerocash-Ethereum:** https://github.com/AntoineRondelet/zerocash-ethereum
 
 ## License notices:
 

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
 
 #include "snarks/groth16/mpc/evaluator_from_lagrange.hpp"
 #include "snarks/groth16/mpc/powersoftau_utils.hpp"

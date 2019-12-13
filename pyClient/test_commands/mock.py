@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from zeth.joinsplit import EncryptionKeyPair, ZethAddress
 from zeth.ownership import gen_ownership_keypair
 from zeth.utils import get_private_key_from_bytes, get_public_key_from_bytes

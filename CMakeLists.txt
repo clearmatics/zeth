@@ -18,7 +18,7 @@ project(zeth)
 
 # Versionning of the project
 set (ZETH_VERSION_MAJOR 0)
-set (ZETH_VERSION_MINOR 2)
+set (ZETH_VERSION_MINOR 3)
 
 # Configure a header file to pass some of the CMake settings
 # to the source code
