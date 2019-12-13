@@ -4,7 +4,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-
 import grpc  # type: ignore
 from google.protobuf import empty_pb2
 from api import prover_pb2  # type: ignore
