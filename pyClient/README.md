@@ -4,7 +4,7 @@
 
 Ensure that the following are installed:
 
-- Python 3.7  (See `python --version`)
+- Python 3.7 (See `python --version`)
 - [venv](https://docs.python.org/3/library/venv.html#module-venv) module.
 - gcc
 
