@@ -1,9 +1,12 @@
 import zeth.joinsplit as joinsplit
 import zeth.contracts as contracts
+from zeth.constants import ZETH_PRIME
+import zeth.signing as signing
 from zeth.utils import EtherValue, compute_merkle_path
 import test_commands.mock as mock
 import api.util_pb2 as util_pb2
 
+from os import urandom
 from web3 import Web3, HTTPProvider  # type: ignore
 from typing import List, Tuple
 
@@ -153,6 +156,48 @@ def charlie_double_withdraw(
     note1_value = joinsplit.to_zeth_units(EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH))
     v_out = EtherValue(CHARLIE_WITHDRAW_ETH)
 
+    # ### ATTACK BLOCK
+    # Add malicious nullifiers: we reuse old nullifiers to double spend by
+    # adding $r$ to them so that they have the same value as before in Z_r,
+    # and so the zksnark verification passes, but have different values in
+    # {0;1}^256 so that they appear different to the contract.
+    # See: https://github.com/clearmatics/zeth/issues/38
+
+    attack_primary_input2: int = 0
+    attack_primary_input4: int = 0
+
+    def compute_h_sig_attack_nf(
+            nf0: bytes,
+            nf1: bytes,
+            sign_pk: joinsplit.JoinsplitSigVerificationKey) -> bytes:
+        # We disassemble the nfs to get the formatting of the primary inputs
+        input_nullifier0 = nf0.hex()
+        input_nullifier1 = nf1.hex()
+        nf0_rev = "{0:0256b}".format(int(input_nullifier0, 16))[::-1]
+        primary_input1_bits = nf0_rev[3:]
+        primary_input2_bits = nf0_rev[:3]
+        nf1_rev = "{0:0256b}".format(int(input_nullifier1, 16))[::-1]
+        primary_input3_bits = nf1_rev[3:]
+        primary_input4_bits = nf1_rev[:3]
+
+        # We perform the attack, recoding the modified public input values
+        nonlocal attack_primary_input2
+        nonlocal attack_primary_input4
+        attack_primary_input2 = int(primary_input2_bits, 2) + ZETH_PRIME
+        attack_primary_input4 = int(primary_input4_bits, 2) + ZETH_PRIME
+
+        # We reassemble the nfs
+        attack_primary_input2_bits = "{0:0256b}".format(attack_primary_input2)
+        attack_nf0_bits = \
+            attack_primary_input2_bits[256-3:] + primary_input1_bits
+        attack_nf0 = "{0:064x}".format(int(attack_nf0_bits[::-1], 2))
+        attack_primary_input4_bits = "{0:0256b}".format(attack_primary_input4)
+        attack_nf1_bits = \
+            attack_primary_input4_bits[256-3:] + primary_input3_bits
+        attack_nf1 = "{0:064x}".format(int(attack_nf1_bits[::-1], 2))
+        return joinsplit.compute_h_sig(
+            bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_pk)
+
     (output_note1, output_note2, proof_json, signing_keypair) = \
         zeth_client.get_proof_joinsplit_2_by_2(
             mk_root,
@@ -164,18 +209,20 @@ def charlie_double_withdraw(
             (charlie_apk, note1_value),  # recipient1
             (charlie_apk, 0),  # recipient2
             joinsplit.to_zeth_units(EtherValue(0)),  # v_in
-            joinsplit.to_zeth_units(v_out)  # v_out
-        )
+            joinsplit.to_zeth_units(v_out),  # v_out
+            compute_h_sig_attack_nf)
 
-    # ### ATTACK BLOCK
-    # Add malicious nullifiers (located at index 2 and 4 in the array of inputs)
-    # See: https://github.com/clearmatics/zeth/issues/38
-    r = 21888242871839275222246405745257275088548364400416034343698204186575808495617  # noqa
+    # Update the primary inputs to the modified nullifiers, since libsnark
+    # overwrites them with values in Z_p
+
+    assert attack_primary_input2 != 0
+    assert attack_primary_input4 != 0
+
     print("proof_json => ", proof_json)
     print("proof_json[inputs][2] => ", proof_json["inputs"][2])
     print("proof_json[inputs][4] => ", proof_json["inputs"][4])
-    proof_json["inputs"][2] = hex(int(proof_json["inputs"][2], 16) + r)
-    proof_json["inputs"][4] = hex(int(proof_json["inputs"][4], 16) + r)
+    proof_json["inputs"][2] = hex(attack_primary_input2)
+    proof_json["inputs"][4] = hex(attack_primary_input4)
     # ### ATTACK BLOCK
 
     # construct pk object from bytes
@@ -187,7 +234,7 @@ def charlie_double_withdraw(
         (output_note2, pk_charlie)])
 
     # Compute the joinSplit signature
-    joinsplit_sig = joinsplit.sign_mix_tx(
+    joinsplit_sig = joinsplit.joinsplit_sign(
         signing_keypair, sender_eph_pk, ciphertexts, proof_json)
 
     return zeth_client.mix(
@@ -201,4 +248,158 @@ def charlie_double_withdraw(
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
         W3.toWei(1, 'wei'),
+        4000000)
+
+
+def charlie_corrupt_bob_deposit(
+        zeth_client: joinsplit.ZethClient,
+        mk_root: str,
+        bob_eth_address: str,
+        charlie_eth_address: str,
+        keystore: mock.KeyStore,
+        mk_tree_depth: int) -> contracts.MixResult:
+    """
+    Charlie tries to break transaction malleability and corrupt the coins
+    bob is sending in a transaction
+    She does so by intercepting bob's transaction and either:
+    - case 1: replacing the ciphertexts (or pk_sender) by garbage/arbitrary data
+    - case 2: replacing the ciphertexts by garbage/arbitrary data and using a
+    new OT-signature
+    Both attacks should fail,
+    - case 1: the signature check should fail, else Charlie broke UF-CMA
+        of the OT signature
+    - case 2: the h_sig/vk verification should fail, as h_sig is not a function
+        of vk any longer
+    NB. If the adversary were to corrupt the ciphertexts (or the encryption key),
+    replace the OT-signature by a new one and modify the h_sig accordingly so that
+    the check on the signature verification (key h_sig/vk) passes, the proof would
+    not verify, which is why we do not test this case.
+    """
+    print(
+        f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and split into " +
+        f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH" +
+        f"but Charlie attempts to corrupt the transaction ===")
+    bob_apk = keystore["Bob"].addr_pk.a_pk
+    bob_ask = keystore["Bob"].addr_sk.a_sk
+
+    # Create the JoinSplit dummy inputs for the deposit
+    input1 = joinsplit.get_dummy_input_and_address(bob_apk)
+    input2 = joinsplit.get_dummy_input_and_address(bob_apk)
+    dummy_mk_path = mock.get_dummy_merkle_path(mk_tree_depth)
+
+    note1_value = joinsplit.to_zeth_units(EtherValue(BOB_SPLIT_1_ETH))
+    note2_value = joinsplit.to_zeth_units(EtherValue(BOB_SPLIT_2_ETH))
+
+    v_in = joinsplit.to_zeth_units(EtherValue(BOB_DEPOSIT_ETH))
+
+    (output_note1, output_note2, proof_json, joinsplit_keypair) = \
+        zeth_client.get_proof_joinsplit_2_by_2(
+            mk_root,
+            input1,
+            dummy_mk_path,
+            input2,
+            dummy_mk_path,
+            bob_ask,  # sender
+            (bob_apk, note1_value),  # recipient1
+            (bob_apk, note2_value),  # recipient2
+            v_in,  # v_in
+            joinsplit.to_zeth_units(EtherValue(0))  # v_out
+        )
+
+    # Encrypt the coins to bob
+    pk_bob = keystore["Bob"].addr_pk.k_pk
+    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+        (output_note1, pk_bob),
+        (output_note2, pk_bob)])
+
+    # Sign the primary inputs, pk_sender and the ciphertexts
+    joinsplit_sig = joinsplit.joinsplit_sign(
+        joinsplit_keypair,
+        pk_sender,
+        ciphertexts,
+        proof_json
+    )
+
+    # ### ATTACK BLOCK
+    # Charlie intercepts Bob's deposit, corrupts it and
+    # sends her transaction before Bob's transaction is accepted
+
+    # Case 1: replacing the ciphertexts by garbage/arbitrary data
+    # Corrupt the ciphertexts
+    # (another way would have been to overwrite pk_sender)
+    fake_ciphertext0 = urandom(32)
+    fake_ciphertext1 = urandom(32)
+
+    result_corrupt1 = None
+    try:
+        result_corrupt1 = zeth_client.mix(
+            pk_sender,
+            fake_ciphertext0,
+            fake_ciphertext1,
+            proof_json,
+            joinsplit_keypair.vk,
+            joinsplit_sig,
+            charlie_eth_address,
+            # Pay an arbitrary amount (1 wei here) that will be refunded
+            #  since the `mix` function is payable
+            W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+            4000000)
+    except Exception as e:
+        print(
+            f"Charlie's first corruption attempt" +
+            f" successfully rejected! (msg: {e})"
+        )
+    assert(result_corrupt1 is None), \
+        "Charlie managed to corrupt Bob's deposit the first time!"
+    print("")
+
+    # Case 2: replacing the ciphertexts by garbage/arbitrary data and
+    # using a new OT-signature
+    # Corrupt the ciphertexts
+    fake_ciphertext0 = urandom(32)
+    fake_ciphertext1 = urandom(32)
+    new_joinsplit_keypair = signing.gen_signing_keypair()
+
+    # Sign the primary inputs, pk_sender and the ciphertexts
+    new_joinsplit_sig = joinsplit.joinsplit_sign(
+        new_joinsplit_keypair,
+        pk_sender,
+        [fake_ciphertext0, fake_ciphertext1],
+        proof_json
+    )
+
+    result_corrupt2 = None
+    try:
+        result_corrupt2 = zeth_client.mix(
+            pk_sender,
+            fake_ciphertext0,
+            fake_ciphertext1,
+            proof_json,
+            new_joinsplit_keypair.vk,
+            new_joinsplit_sig,
+            charlie_eth_address,
+            # Pay an arbitrary amount (1 wei here) that will be refunded since the
+            # `mix` function is payable
+            W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+            4000000)
+    except Exception as e:
+        print(
+            f"Charlie's second corruption attempt" +
+            f" successfully rejected! (msg: {e})"
+        )
+    assert(result_corrupt2 is None), \
+        "Charlie managed to corrupt Bob's deposit the second time!"
+
+    # ### ATTACK BLOCK
+
+    # Bob transaction is finally mined
+    return zeth_client.mix(
+        pk_sender,
+        ciphertexts[0],
+        ciphertexts[1],
+        proof_json,
+        joinsplit_keypair.vk,
+        joinsplit_sig,
+        bob_eth_address,
+        W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
         4000000)
