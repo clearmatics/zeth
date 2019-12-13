@@ -1,36 +1,39 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
 #ifndef __ZETH_SNARKS_ALIAS_HPP__
 #define __ZETH_SNARKS_ALIAS_HPP__
 
-/************************ Pick a zkSNARK ****************************/
+// ------------------------- Pick a zkSNARK -------------------------
 
 #ifdef ZKSNARK_PGHR13
 #define LIBZETH_SNARK_DEFINED
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-namespace libzeth {
+namespace libzeth
+{
 template<typename ppT>
 using provingKeyT = libsnark::r1cs_ppzksnark_proving_key<ppT>;
 template<typename ppT>
 using verificationKeyT = libsnark::r1cs_ppzksnark_verification_key<ppT>;
-template<typename ppT>
-using proofT = libsnark::r1cs_ppzksnark_proof<ppT>;
-template<typename ppT>
-using keyPairT = libsnark::r1cs_ppzksnark_keypair<ppT>;
-} // libzeth
+template<typename ppT> using proofT = libsnark::r1cs_ppzksnark_proof<ppT>;
+template<typename ppT> using keyPairT = libsnark::r1cs_ppzksnark_keypair<ppT>;
+} // namespace libzeth
 #endif
 
 #ifdef ZKSNARK_GROTH16
 #define LIBZETH_SNARK_DEFINED
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-namespace libzeth {
+namespace libzeth
+{
 template<typename ppT>
 using provingKeyT = libsnark::r1cs_gg_ppzksnark_proving_key<ppT>;
 template<typename ppT>
 using verificationKeyT = libsnark::r1cs_gg_ppzksnark_verification_key<ppT>;
-template<typename ppT>
-using proofT = libsnark::r1cs_gg_ppzksnark_proof<ppT>;
+template<typename ppT> using proofT = libsnark::r1cs_gg_ppzksnark_proof<ppT>;
 template<typename ppT>
 using keyPairT = libsnark::r1cs_gg_ppzksnark_keypair<ppT>;
-} // libzeth
+} // namespace libzeth
 #endif
 
 #ifndef LIBZETH_SNARK_DEFINED

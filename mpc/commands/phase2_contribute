@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
+from coordinator.mpc_command import MPCCommand
+from coordinator.contribute import contribute
+from typing import Optional
+from click import command, option, argument, ClickException
+
+# Note, in phase2, the tools support files with any names, but default to the
+# same as phase1 (powersoftau) for consistency
+from coordinator.powersoftau_command import CHALLENGE_FILE, RESPONSE_FILE
+
+RESPONSE_DIGEST_FILE = "response.bin.digest"
+
+
+@command()
+@argument("base-url")
+@argument("key-file")
+@option(
+    "--wait-interval",
+    type=int,
+    default=60,
+    help="poll server every interval, waiting our turn (0 = don't wait)")
+@option("--challenge", default=CHALLENGE_FILE)
+@option("--response", default=RESPONSE_FILE)
+@option("--response-digest", default=RESPONSE_DIGEST_FILE)
+@option("--mpc-tool", default=None, help="path to mpc tool")
+@option("--skip-user-input", is_flag=True, default=False)
+@option("--server-certificate", default=None, help="server certificate")
+@option("--insecure", is_flag=True, help="allow missing certificate chain")
+def phase2_contribute(
+        base_url: str,
+        key_file: str,
+        wait_interval: int,
+        challenge: str,
+        response: str,
+        response_digest: str,
+        mpc_tool: Optional[str],
+        skip_user_input: bool,
+        server_certificate: Optional[str],
+        insecure: bool) -> None:
+    """
+    Download a challenge, then compute, sign and upload an MPC contribution
+    """
+
+    # Callback to compute contribution
+    def _contribute() -> str:
+        mpc = MPCCommand(mpc_tool)
+        contribution_success = mpc.phase2_contribute(
+            challenge,
+            response,
+            response_digest,
+            skip_user_input)
+        if not contribution_success:
+            raise ClickException("failed to generate response")
+        return response
+
+    # Run
+    contribute(
+        base_url,
+        key_file,
+        challenge,
+        _contribute,
+        wait_interval,
+        server_certificate,
+        insecure)
+
+
+if __name__ == "__main__":
+    phase2_contribute()

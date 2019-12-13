@@ -2,6 +2,15 @@
 # For a tutorial of CMake
 cmake_minimum_required(VERSION 3.0)
 
+if(APPLE)
+  # If custom llvm compilers are available, use them (for openmp
+  # support), otherwise disable multicore.
+  if(EXISTS "/usr/local/opt/llvm/bin/clang")
+    set(CMAKE_C_COMPILER "/usr/local/opt/llvm/bin/clang")
+    set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
+  endif()
+endif()
+
 # Name of the project
 # https://cmake.org/cmake/help/v3.0/command/project.html#command:project
 # Sets the env vars PROJECT_SOURCE_DIR, and PROJECT_BINARY_DIR
@@ -9,7 +18,7 @@ project(zeth)
 
 # Versionning of the project
 set (ZETH_VERSION_MAJOR 0)
-set (ZETH_VERSION_MINOR 2)
+set (ZETH_VERSION_MINOR 3)
 
 # Configure a header file to pass some of the CMake settings
 # to the source code
@@ -25,6 +34,13 @@ set(
   CACHE
   STRING
   "Default snark: one of PGHR13, GROTH16"
+)
+
+# Run only fast test (e.g. on CI machine)
+option(
+  FAST_TESTS_ONLY
+  "Include only fast-running tests"
+  OFF
 )
 
 # Flags and compilation options for use with libsnark
@@ -76,7 +92,37 @@ option(
   ON
 )
 
-if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+option(
+  BINARY_OUTPUT
+  "Binary stream reading and writing"
+  ON
+)
+
+option(
+  MONTGOMERY_OUTPUT
+  "Serialize Fp elements as their Montgomery representations (faster but not human-readable)"
+  ON
+)
+
+option(
+  USE_PT_COMPRESSION
+  "Use point compression"
+  OFF
+)
+
+if(APPLE)
+  # These must be disabled to make dependencies build on macos
+  set(WITH_PROCPS OFF)
+  set(WITH_SUPERCOP OFF CACHE BOOL "Build libff with supercop")
+
+  # (Currently) OpenMP only available with custom llvm compilers
+  if(${CMAKE_C_COMPILER} MATCHES ".*cc$")
+    set(MULTICORE OFF)
+  endif()
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clang$")
+
   # Common compilation flags and warning configuration
   # The CMAKE_CXX_FLAGS variable allows to change the compiler settings
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wfatal-errors -pthread")
@@ -106,6 +152,18 @@ endif()
 
 if("${MULTICORE}")
   add_definitions(-DMULTICORE=1)
+endif()
+
+if("${BINARY_OUTPUT}")
+  add_definitions(-DBINARY_OUTPUT)
+endif()
+
+if("${MONTGOMERY_OUTPUT}")
+  add_definitions(-DMONTGOMERY_OUTPUT)
+endif()
+
+if(NOT "${USE_PT_COMPRESSION}")
+  add_definitions(-DNO_PT_COMPRESSION=1)
 endif()
 
 if("${DEBUG}")

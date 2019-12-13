@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
+from coordinator.contribute import contribute
+from coordinator.powersoftau_command import \
+    CHALLENGE_FILE, RESPONSE_FILE, PowersOfTauCommand
+from typing import Optional
+from click import command, option, argument, ClickException
+from os.path import exists
+
+RESPONSE_DIGEST_FILE = "response.bin.digest"
+
+
+@command()
+@argument("base-url")
+@argument("key-file")
+@option(
+    "--wait-interval",
+    type=int,
+    default=60,
+    help="poll server every interval, waiting our turn (0 = don't wait)")
+@option("--pot-path", default=None, help="path to powersoftau repo")
+@option("--response-digest", default=RESPONSE_DIGEST_FILE)
+@option("--num-powers", "-n", default=None, type=int, help="number of powers")
+@option("--skip-user-input", is_flag=True, default=False)
+@option("--server-certificate", default=None, help="server certificate")
+@option("--insecure", is_flag=True, help="allow missing certificate chain")
+def phase1_contribute(
+        base_url: str,
+        key_file: str,
+        wait_interval: int,
+        pot_path: Optional[str],
+        response_digest: str,
+        num_powers: Optional[int],
+        skip_user_input: bool,
+        server_certificate: Optional[str],
+        insecure: bool) -> None:
+    """
+    Download a challenge, then compute, sign and upload an MPC contribution
+    """
+
+    # Compute contribution
+    def _contribute() -> str:
+        pot = PowersOfTauCommand(pot_path, num_powers)
+        contribution_success = pot.contribute(response_digest, skip_user_input)
+        if not contribution_success:
+            raise ClickException("failed to generate response")
+        if not exists(RESPONSE_FILE):
+            raise ClickException("response file not created")
+        return RESPONSE_FILE
+
+    contribute(
+        base_url,
+        key_file,
+        CHALLENGE_FILE,
+        _contribute,
+        wait_interval,
+        server_certificate,
+        insecure)
+
+
+if __name__ == "__main__":
+    phase1_contribute()

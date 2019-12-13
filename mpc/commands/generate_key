@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
+from commands.public_key_operations import public_key_information
+from coordinator.crypto import generate_signing_key, export_signing_key
+from click import command, argument, option, ClickException
+from os.path import exists
+from typing import Optional
+
+
+@command()
+@argument("key-file")
+@option("--public-key", "public_key_file", default=None, help="Public key file")
+@option("--evidence", "evidence_file", default=None, help="Evidence file")
+def generate_key(
+        key_file: str,
+        public_key_file: Optional[str],
+        evidence_file: Optional[str]) -> None:
+    """
+    Generate new private key to key-file. Public key is written to stdout.
+    """
+
+    if exists(key_file):
+        raise ClickException(f"key file {key_file} already exists")
+
+    signing_key = generate_signing_key()
+    public_key_information(signing_key, public_key_file, evidence_file)
+    with open(key_file, "wb") as out_f:
+        out_f.write(export_signing_key(signing_key))
+
+
+if __name__ == "__main__":
+    generate_key()

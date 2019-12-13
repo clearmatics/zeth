@@ -1,3 +1,7 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
 pragma solidity ^0.5.0;
 
 /*
@@ -162,6 +166,9 @@ contract Pghr13Verifier {
         uint[2] memory k,
         uint[] memory primaryInputs
     ) public returns (bool) {
+        // Scalar field characteristic
+        uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.A_p = Pairing.G1Point(a_p[0], a_p[1]);
@@ -174,6 +181,11 @@ contract Pghr13Verifier {
 
         uint[] memory inputValues = new uint[](primaryInputs.length);
         for(uint i = 0; i < primaryInputs.length; i++){
+            // Make sure that all primary inputs lie in the scalar field
+            require(
+                primaryInputs[i] < r,
+                "Input is not is scalar field"
+            );
             inputValues[i] = primaryInputs[i];
         }
 

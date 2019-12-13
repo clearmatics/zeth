@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+
+. scripts/test_mpc_common.sh
+
+set -e
+set -x
+
+# Test an mpc server that has been set up with a test handler, using the
+# configuration in ./testdata.
+
+function prepare_server_phase2() {
+    prepare_server_common ${PHASE2_SERVER_DIR}
+
+    # Perform the phase2-specific setup based on POT data
+    pushd ${PHASE2_SERVER_DIR}
+
+    # Config
+    now=`python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S"))'`
+    pot_dir=
+    sed \
+        -e "s/TIME/${now}/g" \
+        -e "s/PORT/${PHASE2_PORT}/g" \
+        ${PHASE2_CONFIG_TEMPLATE} \
+        > server_config.json
+
+    if ! [ -e ${CHALLENGE_0_FILE} ] ; then
+
+        if [ -e ${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE} ] ; then
+            echo "Creating initial challenge (from POT MPC) ..."
+            pot_file=${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE}
+        else
+            echo "Creating initial challenge (from dummy POT) ..."
+
+            # Phase1 fake config and final powersoftau file
+            mkdir -p ${PHASE1_SERVER_DIR}
+            sed \
+                -e "s/TIME/${now}/g" \
+                -e "s/PORT/${PHASE1_PORT}/g" \
+                -e "s/QAP_DEGREE/${QAP_DEGREE}/g" \
+                ${PHASE1_CONFIG_TEMPLATE} \
+                > ${PHASE1_SERVER_DIR}/server_config.json
+            ${POT_PROCESS} \
+                --dummy \
+                ${PHASE1_SERVER_DIR}/${FINAL_OUTPUT_FILE} \
+                ${QAP_DEGREE}
+        fi
+
+        phase2_prepare \
+            --pot-tool ${POT_PROCESS} \
+            --mpc-tool ${MPC} \
+            ${PHASE1_SERVER_DIR}
+    fi
+
+    popd
+}
+
+# Upload contribution
+# 1 - private key
+# 2 - client id
+# 3 - server dir
+# 4 - flags
+function contribute() {
+    contributor_dir=_test_contrib_$2
+    rm -rf ${contributor_dir}
+    mkdir -p ${contributor_dir}
+    pushd ${contributor_dir}
+    phase2_contribute \
+        --skip-user-input \
+        --mpc-tool ${MPC} \
+        --server-certificate $3/${SERVER_CERT} \
+        --insecure \
+        $4 \
+        https://${HOST}:${PHASE2_PORT} $1
+    popd
+}
+
+function get_state_phase2() {
+    curl \
+        -k \
+        --cacert ${PHASE2_SERVER_DIR}/${SERVER_CERT} \
+        --fail https://${HOST}:${PHASE2_PORT}/state
+}
+
+root_dir=`pwd`
+stop_server_common ${PHASE2_SERVER_DIR} || echo -n
+
+prepare_server_phase2
+
+start_server_common\
+    ${PHASE2_SERVER_DIR} \
+    "phase2_server" \
+    get_state_phase2
+
+# make 4 contributions.  contribution 3 is launched first in the background,
+# polling.
+contribute ${PRV_KEY_3} 3 ${PHASE2_SERVER_DIR} "--wait-interval 1" &
+contribute ${PRV_KEY_1} 1 ${PHASE2_SERVER_DIR}
+contribute ${PRV_KEY_2} 2 ${PHASE2_SERVER_DIR}
+contribute ${PRV_KEY_4} 4 ${PHASE2_SERVER_DIR} "--wait-interval 1"
+
+pushd ${PHASE2_SERVER_DIR}
+
+# Server will spend some time verifying.  Wait for it.
+while ! [ -e ${FINAL_OUTPUT_FILE} ] ; do
+      echo Waiting for ${FINAL_OUTPUT_FILE} ...
+      sleep 1
+done
+
+while ! [ -e ${FINAL_TRANSCRIPT_FILE} ] ; do
+      echo Waiting for ${FINAL_TRANSCRIPT_FILE} ...
+      sleep 1
+done
+
+# Verify the transcript, checking for contribution
+${MPC} phase2-verify-transcript \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+${MPC} phase2-verify-transcript \
+       --digest ${root_dir}/_test_contrib_1/response.bin.digest \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+${MPC} phase2-verify-transcript \
+       --digest ${root_dir}/_test_contrib_2/response.bin.digest \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+${MPC} phase2-verify-transcript \
+       --digest ${root_dir}/_test_contrib_3/response.bin.digest \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+${MPC} phase2-verify-transcript \
+       --digest ${root_dir}/_test_contrib_4/response.bin.digest \
+       ${CHALLENGE_0_FILE} ${FINAL_TRANSCRIPT_FILE} ${FINAL_OUTPUT_FILE}
+
+popd
+
+# Shut down the server
+stop_server_common ${PHASE2_SERVER_DIR}
+
+set +x
+set +e
+passed

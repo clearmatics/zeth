@@ -1,82 +1,61 @@
+// Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
 #include "util_api.hpp"
 
 // Message formatting and parsing utility
 
-namespace libzeth {
+namespace libzeth
+{
 
-libsnark::merkle_authentication_node ParseMerkleNode(std::string mk_node) {
-    return libff::bit_vector(libzeth::hexadecimal_digest_to_binary_vector(mk_node));
+zeth_note parse_zeth_note(const prover_proto::ZethNote &note)
+{
+    bits256 note_apk = hex_digest_to_bits256(note.apk());
+    bits64 note_value = hex_value_to_bits64(note.value());
+    bits256 note_rho = hex_digest_to_bits256(note.rho());
+    bits384 note_trap_r =
+        get_bits384_from_vector(hex_to_binary_vector(note.trap_r()));
+
+    return zeth_note(note_apk, note_value, note_rho, note_trap_r);
 }
 
-libzeth::ZethNote ParseZethNote(const proverpkg::ZethNote& note) {
-    libzeth::bits256 noteAPK = libzeth::hexadecimal_digest_to_bits256(note.apk());
-    libzeth::bits64 noteValue = libzeth::hexadecimal_value_to_bits64(note.value());
-    libzeth::bits256 noteRho = libzeth::hexadecimal_digest_to_bits256(note.rho());
-    libzeth::bits384 noteTrapR = libzeth::get_bits384_from_vector(libzeth::hexadecimal_str_to_binary_vector(note.trapr()));
-
-    return libzeth::ZethNote(
-        noteAPK,
-        noteValue,
-        noteRho,
-        noteTrapR
-    );
-}
-
-libzeth::JSInput ParseJSInput(const proverpkg::JSInput& input) {
-    if (ZETH_MERKLE_TREE_DEPTH != input.merklenode_size()) {
-        throw std::invalid_argument("Invalid merkle path length");
-    }
-
-    libzeth::ZethNote inputNote = ParseZethNote(input.note());
-    size_t inputAddress = input.address();
-    libzeth::bitsAddr inputAddressBits = libzeth::get_bitsAddr_from_vector(libzeth::address_bits_from_address(inputAddress, ZETH_MERKLE_TREE_DEPTH));
-    libzeth::bits256 inputSpendingASK = libzeth::hexadecimal_digest_to_bits256(input.spendingask());
-    libzeth::bits256 inputNullifier = libzeth::hexadecimal_digest_to_bits256(input.nullifier());
-
-    std::vector<libsnark::merkle_authentication_node> inputMerklePath;
-    for(int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
-        libsnark::merkle_authentication_node mk_node = ParseMerkleNode(input.merklenode(i));
-        inputMerklePath.push_back(mk_node);
-    }
-
-    return libzeth::JSInput(
-        inputMerklePath,
-        inputAddress,
-        inputAddressBits,
-        inputNote,
-        inputSpendingASK,
-        inputNullifier
-    );
-}
-
-proverpkg::HexadecimalPointBaseGroup1Affine FormatHexadecimalPointBaseGroup1Affine(libff::alt_bn128_G1 point) {
+prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
+    libff::alt_bn128_G1 point)
+{
     libff::alt_bn128_G1 aff = point;
     aff.to_affine_coordinates();
-    std::string xCoord = "0x" + HexStringFromLibsnarkBigint(aff.X.as_bigint());
-    std::string yCoord = "0x" + HexStringFromLibsnarkBigint(aff.Y.as_bigint());
+    std::string x_coord = "0x" + hex_from_libsnark_bigint(aff.X.as_bigint());
+    std::string y_coord = "0x" + hex_from_libsnark_bigint(aff.Y.as_bigint());
 
-    proverpkg::HexadecimalPointBaseGroup1Affine res;
-    res.set_xcoord(xCoord);
-    res.set_ycoord(yCoord);
+    prover_proto::HexPointBaseGroup1Affine res;
+    res.set_x_coord(x_coord);
+    res.set_y_coord(y_coord);
 
     return res;
 }
 
-proverpkg::HexadecimalPointBaseGroup2Affine FormatHexadecimalPointBaseGroup2Affine(libff::alt_bn128_G2 point) {
+prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
+    libff::alt_bn128_G2 point)
+{
     libff::alt_bn128_G2 aff = point;
     aff.to_affine_coordinates();
-    std::string xC1Coord = "0x" + HexStringFromLibsnarkBigint(aff.X.c1.as_bigint());
-    std::string xC0Coord = "0x" + HexStringFromLibsnarkBigint(aff.X.c0.as_bigint());
-    std::string yC1Coord = "0x" + HexStringFromLibsnarkBigint(aff.Y.c1.as_bigint());
-    std::string yC0Coord = "0x" + HexStringFromLibsnarkBigint(aff.Y.c0.as_bigint());
+    std::string x_c1_coord =
+        "0x" + hex_from_libsnark_bigint(aff.X.c1.as_bigint());
+    std::string x_c0_coord =
+        "0x" + hex_from_libsnark_bigint(aff.X.c0.as_bigint());
+    std::string y_c1_coord =
+        "0x" + hex_from_libsnark_bigint(aff.Y.c1.as_bigint());
+    std::string y_c0_coord =
+        "0x" + hex_from_libsnark_bigint(aff.Y.c0.as_bigint());
 
-    proverpkg::HexadecimalPointBaseGroup2Affine res;
-    res.set_xc0coord(xC0Coord);
-    res.set_xc1coord(xC1Coord);
-    res.set_yc0coord(yC0Coord);
-    res.set_yc1coord(yC1Coord);
+    prover_proto::HexPointBaseGroup2Affine res;
+    res.set_x_c0_coord(x_c0_coord);
+    res.set_x_c1_coord(x_c1_coord);
+    res.set_y_c0_coord(y_c0_coord);
+    res.set_y_c1_coord(y_c1_coord);
 
     return res;
 }
 
-} // libzeth
+} // namespace libzeth

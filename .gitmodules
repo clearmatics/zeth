@@ -1,6 +1,6 @@
 [submodule "depends/libsnark"]
     path = depends/libsnark
     url = https://github.com/clearmatics/libsnark.git 
-[submodule "depends/googletest"]
-    path = depends/googletest
-    url = https://github.com/google/googletest.git
+[submodule "depends/libsodium"]
+	path = depends/libsodium
+	url = https://github.com/jedisct1/libsodium.git
