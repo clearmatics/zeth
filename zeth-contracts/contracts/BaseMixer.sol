@@ -111,80 +111,41 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // This function processes the primary inputs to append and check the root and nullifiers in the primary inputs (instance)
     // and modifies the state of the mixer contract accordingly
     // (ie: Appends the commitments to the tree, appends the nullifiers to the list and so on)
-    function assemble_root_and_nullifiers_and_append_to_state(uint[] memory primary_inputs) internal {
-        // 1. We re-assemble the full root digest from the 2 field elements it was packed into
-        uint256[] memory digest_inputs = new uint[](2);
-        digest_inputs[0] = primary_inputs[0];
-
+    function check_mkroot_nullifiers_hsig_append_nullifiers_state(
+        uint[2][2] memory vk,
+        uint[] memory primary_inputs) internal {
+        // 1. We re-assemble the full root digest and check it is in the tree
         require(
-            roots[bytes32(digest_inputs[0])],
+            roots[bytes32(primary_inputs[0])],
             "Invalid root: This root doesn't exist"
         );
 
-        // 2. We re-assemble the nullifiers (JSInputs)
+        // 2. We re-assemble the nullifiers (JSInputs) and check they were not already seen
+        bytes32[jsIn] memory nfs;
+        uint256[] memory digest_inputs = new uint[](2);
         for(uint i = 1; i < 1 + 2*jsIn; i += 2) {
             digest_inputs[0] = primary_inputs[i];
             digest_inputs[1] = primary_inputs[i+1];
-            bytes32 current_nullifier = Bytes.sha256_digest_from_field_elements(digest_inputs);
+            nfs[(i-1)/2] = Bytes.sha256_digest_from_field_elements(digest_inputs);
             require(
-                !nullifiers[current_nullifier],
+                !nullifiers[nfs[(i-1)/2]],
                 "Invalid nullifier: This nullifier has already been used"
             );
-            nullifiers[current_nullifier] = true;
-        }
-    }
-
-    function assemble_primary_inputs_and_hash(uint[] memory primary_inputs) public returns (bytes32) {
-        bytes32[1 + jsIn + jsOut + 1 + 1 + 1 + jsIn] memory formatted_inputs;
-        uint256[] memory digest_inputs = new uint[](2);
-
-        //Format and append the root
-        bytes32 formatted = bytes32(primary_inputs[0]);
-        formatted_inputs[0] = formatted;
-
-        //Format and append the nullifiers
-        for(uint i = 1; i < 1 + 2 * (jsIn); i += 2) {
-            digest_inputs[0] = primary_inputs[i];
-            digest_inputs[1] = primary_inputs[i+1];
-            formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
-            formatted_inputs[(i-1)/2 + 1] = formatted;
+            nullifiers[nfs[(i-1)/2]] = true;
         }
 
-        //Format and append the commitments
-        for(uint i = 1 + 2 * (jsIn); i < 1 + 2 * (jsIn + jsOut); i += 2) {
-            digest_inputs[0] = primary_inputs[i];
-            digest_inputs[1] = primary_inputs[i+1];
-            formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
-            formatted_inputs[(i-1)/2 + 1] = formatted;
-        }
+        // 3. We re-compute h_sig, re-assemble the expected h_sig and check they are equal
+        // (i.e. that h_sig re-assembled was correctly generated from vk)
+        bytes32 expected_hsig = sha256(abi.encodePacked(nfs, vk));
 
-        //Format and append the v_pub_in
-        formatted = bytes32(primary_inputs[1 + 2 * (jsIn + jsOut)]);
-        formatted_inputs[1 + jsIn + jsOut] = formatted;
-
-        //Format and append the v_pub_out
-        formatted = bytes32(primary_inputs[1 + 2 * (jsIn + jsOut) + 1]);
-        formatted_inputs[1 + jsIn + jsOut + 1] = formatted;
-
-        //Format and append h_sig
         digest_inputs[0] = primary_inputs[1 + 2 * (jsIn + jsOut) + 1 + 1];
         digest_inputs[1] = primary_inputs[1 + 2 * (jsIn + jsOut + 1) + 1];
-        formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
-        formatted_inputs[1 + jsIn + jsOut + 1 + 1] = formatted;
-
-        //Format and append the h_iS
-        for(uint i = 1 + 2 * (jsIn + jsOut + 1) + 1 + 1; i < 1 + 2 * (jsIn + jsOut + 1 + jsIn) + 1 + 1; i += 2) {
-            digest_inputs[0] = primary_inputs[i];
-            digest_inputs[1] = primary_inputs[i+1];
-            formatted = Bytes.sha256_digest_from_field_elements(digest_inputs);
-            formatted_inputs[(i-1)/2 + 2] = formatted;
-        }
-
-        bytes32 hash_inputs = sha256(abi.encodePacked(formatted_inputs));
-
-        return hash_inputs;
+        bytes32 hsig = Bytes.sha256_digest_from_field_elements(digest_inputs);
+        require(
+            expected_hsig == hsig,
+            "Invalid hsig: This hsig does not correspond to the hash of vk and the nfs"
+        );
     }
-
 
     function assemble_commitments_and_append_to_state(uint[] memory primary_inputs) internal {
         // We re-assemble the commitments (JSOutputs)

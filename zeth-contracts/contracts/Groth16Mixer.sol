@@ -36,7 +36,7 @@ contract Groth16Mixer is BaseMixer {
         bytes memory ciphertext1
     ) public payable {
         // 1. Check the root and the nullifiers
-        assemble_root_and_nullifiers_and_append_to_state(input);
+        check_mkroot_nullifiers_hsig_append_nullifiers_state(vk, input);
 
         // 2.a Verify the proof
         require(
