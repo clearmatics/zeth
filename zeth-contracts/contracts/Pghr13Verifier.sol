@@ -83,7 +83,8 @@ contract Pghr13Verifier {
 
         uint i;
         while(verifyKey.IC.length != IC_coefficients.length/2) {
-            verifyKey.IC.push(Pairing.G1Point(IC_coefficients[i], IC_coefficients[i+1]));
+            verifyKey.IC.push(
+                Pairing.G1Point(IC_coefficients[i], IC_coefficients[i+1]));
             i += 2;
         }
     }
@@ -96,17 +97,25 @@ contract Pghr13Verifier {
         return(verifyKey.IC.length);
     }
 
-    function verify(uint[] memory input, Proof memory proof) internal returns (uint) {
+    function verify(
+        uint[] memory input, Proof memory proof) internal returns (uint) {
         VerifyingKey memory vk = verifyKey;
-        // |I_{in}| == input.length, and vk.IC also contains A_0(s). Thus |vk.IC| == input.length + 1
+        // |I_{in}| == input.length, and vk.IC also contains A_0(s). Thus
+        // ||vk.IC| == input.length + 1
         require(
             input.length + 1 == vk.IC.length,
             "Using strong input consistency, and the input length differs from expected"
         );
 
-        // 1. Compute the linear combination vk_x := vk_{IC,0} + \sum_{i=1}^{n} x_i * vk_{IC,i}, vk_x ∈ G1
-        // E(A_{in}(s)) if the encoding of A_{in}(s) = \sum_{k ∈ I_{in}} a_k · A_k(s), where I_{in} denotes the indices of the input wires
-        // |I_{in}| = n here as we assume that we have a vector x of inputs of size n
+        // 1. Compute the linear combination
+        //   vk_x := vk_{IC,0} + \sum_{i=1}^{n} x_i * vk_{IC,i}, vk_x ∈ G1
+        //
+        // E(A_{in}(s)) if the encoding of
+        //   A_{in}(s) = \sum_{k ∈ I_{in}} a_k · A_k(s),
+        // where I_{in} denotes the indices of the input wires.
+        //
+        // |I_{in}| = n here as we assume that we have a vector x of inputs of
+        // size n.
         Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
         for (uint i; i < input.length; i++) {
             vk_x = Pairing.add(vk_x, Pairing.mul(vk.IC[i + 1], input[i]));
@@ -114,7 +123,9 @@ contract Pghr13Verifier {
         vk_x = Pairing.add(vk_x, vk.IC[0]);
 
         // 2. Check the validity of knowledge commitments for A, B, C
-        // e(π_A, vk_A) = e(π′A, P2), e(vk_B, π_B) = e(π′_B, P2), e(vk_C, π_C) = e(π′_C, P2),
+        //   e(π_A, vk_A) = e(π′A, P2), e(vk_B, π_B)
+        //                = e(π′_B, P2), e(vk_C, π_C)
+        //                = e(π′_C, P2),
         if (!Pairing.pairingProd2(
             proof.A, vk.A,
             Pairing.negate(proof.A_p), Pairing.P2())
@@ -169,6 +180,7 @@ contract Pghr13Verifier {
         uint[] memory primaryInputs
     ) public returns (bool) {
         // Scalar field characteristic
+        // solium-disable-next-line
         uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
         Proof memory proof;

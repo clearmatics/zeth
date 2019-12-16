@@ -25,7 +25,8 @@ contract Pghr13Mixer is BaseMixer {
         otsig_verifier = OTSchnorrVerifier(sig_ver);
     }
 
-    // This function allows to mix coins and execute payments in zero knowledge
+    // This function allows to mix coins and execute payments in zero knowledge.
+    // Nb of ciphertexts depends on the JS description (Here 2 inputs)
     function mix (
         uint[2] memory a,
         uint[2] memory a_p,
@@ -40,7 +41,7 @@ contract Pghr13Mixer is BaseMixer {
         uint[] memory input,
         bytes32 pk_sender,
         bytes memory ciphertext0,
-        bytes memory ciphertext1 // Nb of ciphertexts depends on the JS description (Here 2 inputs)
+        bytes memory ciphertext1
         ) public payable {
         // 1. Check the root and the nullifiers
         check_mkroot_nullifiers_hsig_append_nullifiers_state(vk, input);
@@ -77,16 +78,19 @@ contract Pghr13Mixer is BaseMixer {
             "Invalid proof: Unable to verify the proof correctly"
         );
 
+
         // 3. Append the commitments to the tree
         assemble_commitments_and_append_to_state(input);
 
-        // 4. get the public values in Wei and modify the state depending on their values
+        // 4. get the public values in Wei and modify the state depending on
+        // their values
         process_public_values(input);
 
         // 5. Add the new root to the list of existing roots and emit it
         add_and_emit_merkle_root(getRoot());
 
-        // Emit the all the coins' secret data encrypted with the recipients' respective keys
+        // Emit the all the coins' secret data encrypted with the recipients'
+        // respective keys
         emit_ciphertexts(pk_sender, ciphertext0, ciphertext1);
     }
 }
