@@ -361,6 +361,11 @@ def main() -> None:
         mixer_instance.address
     )
 
+    print(
+        "========================================\n" +
+        "              TESTS PASSED\n" +
+        "========================================\n")
+
 
 if __name__ == '__main__':
     main()
