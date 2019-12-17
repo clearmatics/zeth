@@ -338,7 +338,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // of the mixer contract accordingly. (ie: Appends the commitments to the
     // tree, appends the nullifiers to the list and so on).
     function check_mkroot_nullifiers_hsig_append_nullifiers_state(
-        uint[2][2] memory vk,
+        uint[4] memory vk,
         uint[] memory primary_inputs) internal {
         // 1. We re-assemble the full root digest and check it is in the tree
         require(

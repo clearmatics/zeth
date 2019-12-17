@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-import zeth.constants as constants
 from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
 from zeth.signing import SigningVerificationKey
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
@@ -81,29 +80,24 @@ def install_sol() -> None:
 
 
 def compile_contracts(
-        zksnark: IZKSnarkProvider) -> Tuple[Interface, Interface, Interface]:
+        zksnark: IZKSnarkProvider) -> Tuple[Interface, Interface]:
     contracts_dir = get_contracts_dir()
     (proof_verifier_name, mixer_name) = zksnark.get_contract_names()
-    otsig_verifier_name = constants.SCHNORR_VERIFIER_CONTRACT
 
     path_to_proof_verifier = os.path.join(
         contracts_dir, proof_verifier_name + ".sol")
-    path_to_otsig_verifier = os.path.join(
-        contracts_dir, otsig_verifier_name + ".sol")
     path_to_mixer = os.path.join(contracts_dir, mixer_name + ".sol")
 
     set_solc_version(SOL_COMPILER_VERSION)
     compiled_sol = compile_files(
-        [path_to_proof_verifier, path_to_otsig_verifier, path_to_mixer],
+        [path_to_proof_verifier, path_to_mixer],
         optimize=True)
 
     proof_verifier_interface = \
         compiled_sol[path_to_proof_verifier + ':' + proof_verifier_name]
-    otsig_verifier_interface = \
-        compiled_sol[path_to_otsig_verifier + ':' + otsig_verifier_name]
     mixer_interface = compiled_sol[path_to_mixer + ':' + mixer_name]
 
-    return (proof_verifier_interface, otsig_verifier_interface, mixer_interface)
+    return (proof_verifier_interface, mixer_interface)
 
 
 def compile_util_contracts() -> Tuple[Interface]:
@@ -121,7 +115,6 @@ def compile_util_contracts() -> Tuple[Interface]:
 def deploy_mixer(
         web3: Any,
         proof_verifier_address: str,
-        otsig_verifier_address: str,
         mixer_interface: Interface,
         mk_tree_depth: int,
         deployer_address: str,
@@ -137,7 +130,6 @@ def deploy_mixer(
 
     tx_hash = mixer.constructor(
         snark_ver=proof_verifier_address,
-        sig_ver=otsig_verifier_address,
         mk_depth=mk_tree_depth,
         token=token_address
     ).transact({'from': deployer_address, 'gas': deployment_gas})
@@ -157,29 +149,10 @@ def deploy_mixer(
     return(mixer, initial_root)
 
 
-def deploy_otschnorr_contracts(
-        web3: Any,
-        verifier: Any,
-        deployer_address: str,
-        deployment_gas: int) -> str:
-    """
-    Deploy the verifier used with OTSCHNORR
-    """
-    # Deploy the verifier contract with the good verification key
-    tx_hash = verifier.constructor().transact(
-            {'from': deployer_address, 'gas': deployment_gas})
-
-    # Get tx receipt to get Verifier contract address
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    verifier_address = tx_receipt['contractAddress']
-    return verifier_address
-
-
 def deploy_contracts(
         web3: Any,
         mk_tree_depth: int,
         proof_verifier_interface: Interface,
-        otsig_verifier_interface: Interface,
         mixer_interface: Interface,
         vk: GenericVerificationKey,
         deployer_address: str,
@@ -203,17 +176,9 @@ def deploy_contracts(
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     proof_verifier_address = tx_receipt['contractAddress']
 
-    # Deploy the one-time signature verifier contract
-    otsig_verifier = web3.eth.contract(
-        abi=otsig_verifier_interface['abi'],
-        bytecode=otsig_verifier_interface['bin'])
-    otsig_verifier_address = deploy_otschnorr_contracts(
-        web3, otsig_verifier, deployer_address, deployment_gas)
-
     return deploy_mixer(
         web3,
         proof_verifier_address,
-        otsig_verifier_address,
         mixer_interface,
         mk_tree_depth,
         deployer_address,
@@ -264,7 +229,7 @@ def mix(
     proof_params = zksnark.mixer_proof_parameters(parsed_proof)
     tx_hash = mixer_instance.functions.mix(
         *proof_params,
-        [[int(vk.ppk[0]), int(vk.ppk[1])], [int(vk.spk[0]), int(vk.spk[1])]],
+        [int(vk.ppk[0]), int(vk.ppk[1]), int(vk.spk[0]), int(vk.spk[1])],
         sigma,
         hex_to_int(parsed_proof["inputs"]),
         pk_sender_encoded,

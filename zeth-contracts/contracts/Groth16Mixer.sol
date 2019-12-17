@@ -11,17 +11,13 @@ import "./BaseMixer.sol";
 contract Groth16Mixer is BaseMixer {
     // zkSNARK verifier smart contract
     Groth16Verifier public zksnark_verifier;
-    // OT-Signature verifier smart contract
-    OTSchnorrVerifier public otsig_verifier;
 
     // Constructor
     constructor(
         address snark_ver,
-        address sig_ver,
         uint mk_depth,
         address token) BaseMixer(mk_depth, token) public {
         zksnark_verifier = Groth16Verifier(snark_ver);
-        otsig_verifier = OTSchnorrVerifier(sig_ver);
     }
 
     // This function allows to mix coins and execute payments in zero
@@ -31,7 +27,7 @@ contract Groth16Mixer is BaseMixer {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[2][2] memory vk,
+        uint[4] memory vk,
         uint sigma,
         uint[] memory input,
         bytes32 pk_sender,
@@ -53,7 +49,8 @@ contract Groth16Mixer is BaseMixer {
                 input
             ));
         require(
-            otsig_verifier.verify(vk, sigma, hash_to_be_signed),
+            OTSchnorrVerifier.verify(
+                vk[0], vk[1], vk[2], vk[3], sigma, hash_to_be_signed),
             "Invalid signature: Unable to verify the signature correctly"
         );
 
@@ -66,7 +63,7 @@ contract Groth16Mixer is BaseMixer {
         // 3. Append the commitments to the tree
         assemble_commitments_and_append_to_state(input);
 
-        // 4. get the public values in Wei and modify the state depending on
+        // 4. Get the public values in Wei and modify the state depending on
         // their values
         process_public_values(input);
 

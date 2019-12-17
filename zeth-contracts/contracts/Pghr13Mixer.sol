@@ -11,18 +11,14 @@ import "./BaseMixer.sol";
 contract Pghr13Mixer is BaseMixer {
     // zkSNARK verifier smart contract
     Pghr13Verifier public zksnark_verifier;
-    // OT-Signature verifier smart contract
-    OTSchnorrVerifier public otsig_verifier;
 
     // Constructor
     constructor(
         address snark_ver,
-        address sig_ver,
         uint mk_depth,
         address token)
         BaseMixer(mk_depth, token) public {
         zksnark_verifier = Pghr13Verifier(snark_ver);
-        otsig_verifier = OTSchnorrVerifier(sig_ver);
     }
 
     // This function allows to mix coins and execute payments in zero knowledge.
@@ -36,7 +32,7 @@ contract Pghr13Mixer is BaseMixer {
         uint[2] memory c_p,
         uint[2] memory h,
         uint[2] memory k,
-        uint[2][2] memory vk,
+        uint[4] memory vk,
         uint sigma,
         uint[] memory input,
         bytes32 pk_sender,
@@ -64,8 +60,11 @@ contract Pghr13Mixer is BaseMixer {
             )
         );
         require(
-            otsig_verifier.verify(
-                vk,
+            OTSchnorrVerifier.verify(
+                vk[0],
+                vk[1],
+                vk[2],
+                vk[3],
                 sigma,
                 hash_to_be_signed
             ),

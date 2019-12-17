@@ -22,9 +22,6 @@ PGHR13_MIXER_CONTRACT: str = "Pghr13Mixer"
 # Set of valid snarks
 VALID_ZKSNARKS: List[str] = [GROTH16_ZKSNARK, PGHR13_ZKSNARK]
 
-# OTSCHNORR constants
-SCHNORR_VERIFIER_CONTRACT: str = "OTSchnorrVerifier"
-
 # Merkle tree depth
 ZETH_MERKLE_TREE_DEPTH: int = 4
 
