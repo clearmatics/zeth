@@ -1,3 +1,7 @@
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from commands.utils import load_eth_address, open_web3_from_ctx, \
     load_mixer_description_from_ctx, EtherValue
 from click import command, argument, option, pass_context, ClickException

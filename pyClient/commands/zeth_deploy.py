@@ -1,3 +1,7 @@
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from commands.constants import INSTANCEFILE_DEFAULT
 from commands.utils import \
     open_web3_from_ctx, get_erc20_instance_description, load_eth_address, \

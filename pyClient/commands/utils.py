@@ -1,3 +1,7 @@
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from __future__ import annotations
 from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH

@@ -1,3 +1,7 @@
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from commands.constants import KEYFILE_DEFAULT
 from commands.utils import create_zeth_client_and_mixer_desc, \
     load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address

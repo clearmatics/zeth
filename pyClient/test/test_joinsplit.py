@@ -1,3 +1,7 @@
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from zeth.joinsplit import compute_commitment
 from api.util_pb2 import ZethNote
 from unittest import TestCase

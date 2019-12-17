@@ -1,3 +1,7 @@
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 from zeth.joinsplit import generate_zeth_address
 from commands.constants import KEYFILE_DEFAULT
 from commands.utils import \
