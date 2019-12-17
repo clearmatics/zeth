@@ -21,6 +21,14 @@ function format_check() {
     scripts/check_copyright
 }
 
+function contracts_check() {
+    pushd zeth-contracts
+    npm config set python python2.7
+    npm install
+    npm run check
+    popd
+}
+
 function pyclient_check() {
     pushd pyClient
     python3.7 -m venv env
