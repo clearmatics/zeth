@@ -8,7 +8,8 @@
     "compile": "truffle compile",
     "deploy": "truffle deploy",
     "test": "truffle test",
-    "debug": "truffle debug"
+    "debug": "truffle debug",
+    "check": "node_modules/solium/bin/solium.js --dir contracts"
   },
   "author": "Clearmatics Technologies LTD: Cryptography R&D Department",
   "license": "LGPL-3.0+",
@@ -18,6 +19,7 @@
     "ganache-cli": "^6.8.0-istanbul.0",
     "openzeppelin-solidity": "^2.4.0",
     "shell-escape": "^0.2.0",
+    "solium": "^1.2.5",
     "strip-hex-prefix": "^1.0.0",
     "web3": "^1.2.4"
   }
