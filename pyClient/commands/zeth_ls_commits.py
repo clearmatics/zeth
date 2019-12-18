@@ -11,7 +11,7 @@ from typing import Any
 
 @command()
 @pass_context
-def commits(ctx: Any) -> None:
+def ls_commits(ctx: Any) -> None:
     """
     List all commitments in the joinsplit contract
     """

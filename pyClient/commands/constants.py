@@ -14,8 +14,7 @@ ZKSNARK_DEFAULT = GROTH16_ZKSNARK
 ETH_RPC_ENDPOINT_DEFAULT = "http://localhost:8545"
 PROVER_SERVER_ENDPOINT_DEFAULT = "localhost:50051"
 
-KEYFILE_DEFAULT = "zeth-key.json"
-NOTESFILE_DEFAULT = "zeth-notes.json"
+ADDRESSFILE_DEFAULT = "zeth-address.json"
 INSTANCEFILE_DEFAULT = "zeth-instance.json"
 ETH_ADDRESS_DEFAULT = "eth-address"
 

@@ -10,7 +10,7 @@ from typing import Any
 
 @command()
 @pass_context
-def notes(ctx: Any) -> None:
+def ls_notes(ctx: Any) -> None:
     """
     List the set of notes owned by this wallet
     """

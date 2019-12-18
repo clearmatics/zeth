@@ -27,7 +27,7 @@ function show_balances() {
     run_truffle exec ../scripts/test_zeth_cli_show_balances.js
 }
 
-# Setup keys
+# Setup addresses
 
 mkdir -p ${BASE_DIR}
 pushd ${BASE_DIR}
@@ -42,8 +42,8 @@ function setup_user() {
     pushd $1
     ! [ -e eth-address ] && \
         (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
-    ! [ -e zeth-key.json ] && \
-        (zeth key)
+    ! [ -e zeth-address.json ] && \
+        (zeth gen-address)
     popd
 }
 
@@ -62,14 +62,14 @@ cp deployer/zeth-instance.json charlie
 
 # Alice deposits 200 and sends 100 to Bob
 pushd alice
-alice_pk=`cat zeth-key.json.pub`
+alice_pk=`cat zeth-address.json.pub`
 if ! [ -e notes/state_zeth ] ; then
     zeth mix --wait --vin 200 --out ${alice_pk},200
 fi
-note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
 
-bob_pk=`cat ../bob/zeth-key.json.pub`
+bob_pk=`cat ../bob/zeth-address.json.pub`
 zeth mix \
      --wait \
      --in ${note_id} \
@@ -81,9 +81,9 @@ popd # alice
 # Bob scans the chain, finds his note, and sends 50 to Charlie
 pushd bob
 zeth sync
-note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
-charlie_pk=`cat ../charlie/zeth-key.json.pub`
+charlie_pk=`cat ../charlie/zeth-address.json.pub`
 zeth mix \
      --wait \
      --in ${note_id} \
@@ -97,7 +97,7 @@ show_balances
 # Charlie scans the chain and withdraws his 50 ETH
 pushd charlie
 zeth sync
-note_id=`zeth notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
 zeth mix \
      --wait \

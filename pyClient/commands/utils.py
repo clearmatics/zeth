@@ -88,41 +88,45 @@ def load_mixer_description_from_ctx(ctx: Any) -> MixerDescription:
     return load_mixer_description(ctx.obj["INSTANCE_FILE"])
 
 
+def get_zeth_address_file(ctx: Context) -> str:
+    return ctx.obj["ADDRESS_FILE"]
+
+
 def load_zeth_address_public(ctx: Context) -> ZethAddressPub:
     """
     Load a ZethAddressPub from a key file.
     """
-    secret_key_file = ctx.obj["KEY_FILE"]
-    key_file = pub_key_file_name(secret_key_file)
-    with open(key_file, "r") as pub_key_f:
-        return ZethAddressPub.parse(pub_key_f.read())
+    secret_key_file = get_zeth_address_file(ctx)
+    pub_addr_file = pub_address_file(secret_key_file)
+    with open(pub_addr_file, "r") as pub_addr_f:
+        return ZethAddressPub.parse(pub_addr_f.read())
 
 
 def write_zeth_address_public(
-        pub_key: ZethAddressPub, key_file: str) -> None:
+        pub_addr: ZethAddressPub, pub_addr_file: str) -> None:
     """
     Write a ZethAddressPub to a file
     """
-    with open(key_file, "w") as pub_key_f:
-        pub_key_f.write(str(pub_key))
+    with open(pub_addr_file, "w") as pub_addr_f:
+        pub_addr_f.write(str(pub_addr))
 
 
 def load_zeth_address_secret(ctx: Context) -> ZethAddressPriv:
     """
     Read ZethAddressPriv
     """
-    key_file = ctx.obj["KEY_FILE"]
-    with open(key_file, "r") as key_f:
-        return ZethAddressPriv.from_json(key_f.read())
+    addr_file = get_zeth_address_file(ctx)
+    with open(addr_file, "r") as addr_f:
+        return ZethAddressPriv.from_json(addr_f.read())
 
 
 def write_zeth_address_secret(
-        secret_key: ZethAddressPriv, key_file: str) -> None:
+        secret_addr: ZethAddressPriv, addr_file: str) -> None:
     """
     Write ZethAddressPriv to file
     """
-    with open(key_file, "w") as key_f:
-        key_f.write(secret_key.to_json())
+    with open(addr_file, "w") as addr_f:
+        addr_f.write(secret_addr.to_json())
 
 
 def load_zeth_address(ctx: Context) -> ZethAddress:
@@ -179,25 +183,25 @@ def do_sync(
     return _do_sync()
 
 
-def pub_key_file_name(key_file: str) -> str:
+def pub_address_file(addr_file: str) -> str:
     """
-    The name of a public key file, given the secret key file.
+    The name of a public address file, given the secret address file.
     """
-    return key_file + ".pub"
+    return addr_file + ".pub"
 
 
-def find_pub_key_file(base_file: str) -> str:
+def find_pub_address_file(base_file: str) -> str:
     """
     Given a file name, which could point to a private or public key file, guess
     at the name of the public key file.
     """
-    pub_key_file = pub_key_file_name(base_file)
-    if exists(pub_key_file):
-        return pub_key_file
+    pub_addr_file = pub_address_file(base_file)
+    if exists(pub_addr_file):
+        return pub_addr_file
     if exists(base_file):
         return base_file
 
-    raise ClickException(f"No public key file {pub_key_file} or {base_file}")
+    raise ClickException(f"No public key file {pub_addr_file} or {base_file}")
 
 
 def create_zeth_client(ctx: Context) -> ZethClient:

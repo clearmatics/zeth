@@ -8,14 +8,13 @@ from zeth.zksnark import get_zksnark_provider
 from zeth.prover_client import ProverClient
 from commands.constants import \
     ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCEFILE_DEFAULT, \
-    KEYFILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT
+    ADDRESSFILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT
 from commands.zeth_deploy import deploy
-from commands.zeth_key import key
+from commands.zeth_gen_address import gen_address
 from commands.zeth_sync import sync
 from commands.zeth_mix import mix
-from commands.zeth_balance import balance
-from commands.zeth_notes import notes
-from commands.zeth_commits import commits
+from commands.zeth_ls_notes import ls_notes
+from commands.zeth_ls_commits import ls_commits
 from commands.zeth_token_approve import token_approve
 from click import group, command, option, pass_context, ClickException
 from click_default_group import DefaultGroup
@@ -53,13 +52,13 @@ def help(ctx) -> None:
     default=INSTANCEFILE_DEFAULT,
     help=f"Instance file (default={INSTANCEFILE_DEFAULT})")
 @option(
-    "--key-file",
-    default=KEYFILE_DEFAULT,
-    help=f"Instance file (default={INSTANCEFILE_DEFAULT})")
+    "--address-file",
+    default=ADDRESSFILE_DEFAULT,
+    help=f"Instance file (default={ADDRESSFILE_DEFAULT})")
 @option(
     "--wallet-dir",
     default=WALLET_DIR_DEFAULT,
-    help=f"Wallet directory (\"{WALLET_DIR_DEFAULT}\")")
+    help=f"Wallet directory (default={WALLET_DIR_DEFAULT})")
 @pass_context
 def zeth(
         ctx: Any,
@@ -67,7 +66,7 @@ def zeth(
         prover_server: str,
         zksnark_name: str,
         instance_file: str,
-        key_file: str,
+        address_file: str,
         wallet_dir: str) -> None:
     if ctx.invoked_subcommand == "help":
         ctx.invoke(help)
@@ -76,17 +75,16 @@ def zeth(
     ctx.obj["PROVER_CLIENT"] = ProverClient(prover_server)
     ctx.obj["ZKSNARK"] = get_zksnark_provider(zksnark_name)
     ctx.obj["INSTANCE_FILE"] = instance_file
-    ctx.obj["KEY_FILE"] = key_file
+    ctx.obj["ADDRESS_FILE"] = address_file
     ctx.obj["WALLET_DIR"] = wallet_dir
 
 
 zeth.add_command(deploy)
-zeth.add_command(key)
+zeth.add_command(gen_address)
 zeth.add_command(sync)
 zeth.add_command(mix)
-zeth.add_command(balance)
-zeth.add_command(notes)
-zeth.add_command(commits)
+zeth.add_command(ls_notes)
+zeth.add_command(ls_commits)
 zeth.add_command(token_approve)
 zeth.add_command(help)
 

@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from commands.constants import KEYFILE_DEFAULT
 from commands.utils import create_zeth_client_and_mixer_desc, \
     load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address
 from zeth.constants import JS_INPUTS, JS_OUTPUTS
@@ -19,7 +18,6 @@ from typing import List, Tuple, Optional, Any
 @option("--vout", default="0", help="public out value")
 @option("--in", "input_notes", multiple=True)
 @option("--out", "output_specs", multiple=True, help="<receiver_pub_key>,<value>")
-@option("--key-file", default=KEYFILE_DEFAULT)
 @option("--eth-addr", help="Sender eth address or address filename")
 @option("--wait", is_flag=True)
 @pass_context
@@ -29,7 +27,6 @@ def mix(
         vout: str,
         input_notes: List[str],
         output_specs: List[str],
-        key_file: str,
         eth_addr: Optional[str],
         wait: bool) -> None:
     """
