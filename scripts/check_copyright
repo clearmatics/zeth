@@ -16,6 +16,8 @@ function check_copyright_files() {
 }
 
 if ! (git ls-files '*.py' | check_copyright_files && \
+          git ls-files 'pyClient/commands' | check_copyright_files && \
+          git ls-files 'mpc/commands' | check_copyright_files && \
           git ls-files '*.hpp' '*.cpp' '*.tcc' | check_copyright_files)
 then
     echo "check_copyright: ERROR: the above files have missing copyright notices"
