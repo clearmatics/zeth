@@ -432,13 +432,16 @@ class ZethClient:
             mk_tree_depth: int,
             deployer_eth_address: str,
             zksnark: IZKSnarkProvider,
-            token_address: Optional[str] = None) -> ZethClient:
+            token_address: Optional[str] = None,
+            deploy_gas: Optional[EtherValue] = None) -> ZethClient:
         """
         Deploy Zeth contracts.
         """
         print("[INFO] 1. Fetching verification key from the proving server")
         vk_obj = prover_client.get_verification_key()
         vk_json = zksnark.parse_verification_key(vk_obj)
+        deploy_gas = deploy_gas or \
+            EtherValue(constants.DEPLOYMENT_GAS_WEI, 'wei')
 
         print("[INFO] 2. Received VK, writing verification key...")
         write_verification_key(vk_json)
@@ -456,7 +459,7 @@ class ZethClient:
             hasher_interface,
             vk_json,
             deployer_eth_address,
-            4000000,
+            deploy_gas.wei,
             token_address or "0x0000000000000000000000000000000000000000",
             zksnark)
         return ZethClient(

@@ -6,6 +6,9 @@
 
 from typing import List
 
+# DEPLOYMENT GAS
+DEPLOYMENT_GAS_WEI: int = 4000000
+
 # GROTH16 constants
 GROTH16_ZKSNARK: str = "GROTH16"
 GROTH16_VERIFIER_CONTRACT: str = "Groth16Verifier"
