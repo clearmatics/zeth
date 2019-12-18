@@ -57,12 +57,12 @@ make test
 make check
 
 # Start the prover_server process
-src/prover_server
+prover_server
 ```
 
-Note: By default, the prover_server generates a key at startup.  Flags can be
-used to force the server to load and/or save keys.  Run `src/prover_server
---help` for more details.
+Note: By default, `prover_server` generates a key at startup. Flags can be used
+to force the server to load and/or save keys. Run `src/prover_server --help`
+for more details.
 
 ##### Build Options
 
@@ -70,11 +70,9 @@ Some flags to the `cmake` command can control the build configuration.
 `-DCMAKE_BUILD_TYPE=Release` or `-DCMAKE_BUILD_TYPE=Debug` can be used to force
 a release or debug build.
 
-By default, zeth makes use of the GROTH16 zk-snark. To chose a different zksnark run the following:
-```
-cmake -DZKSNARK=$ZKSNARK ..
-```
-where `$ZKSNARK` is `PGHR13` (see https://eprint.iacr.org/2013/279,
+By default, zeth makes use of the GROTH16 zk-snark. To chose a different
+zksnark run the following: ``` cmake -DZKSNARK=$ZKSNARK .. ``` where `$ZKSNARK`
+is `PGHR13` (see https://eprint.iacr.org/2013/279,
 http://eprint.iacr.org/2013/879) or `GROTH16`(see
 https://eprint.iacr.org/2016/260).
 
@@ -94,7 +92,7 @@ npm install
 npm run testrpc
 ```
 
-#### Terminal 3: Python tools
+#### Terminal 3: Python client
 
 ```bash
 # Configure your environment
@@ -105,19 +103,6 @@ cd pyClient
 
 Follow the steps described in the [pyClient README](pyClient/README.md) to run
 tests or invoke the zeth tools.
-
-### pyClient and jsClient
-
-This Proof of Concept comes with some minimal building blocks to integrate Zeth
-with your applications.  You can use the python and/or the javascript clients to
-interact with the proving service and request proofs on a given `(instance,
-witness)` pair.
-
-If you do not know where to start, you can just follow the instructions of the
-README in `pyClient` to run one of the `testEtherMixing.py` or
-`testERCTokenMixing.py` scripts.  These scripts implement a scenario where
-Alice, Bob and Charlie perform confidential transfers of Ether and and ERC20
-token, respectively, via private Zeth transactions.
 
 See [MPC for SRS generation documentation](mpc/README.md)
 
