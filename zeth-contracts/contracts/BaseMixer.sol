@@ -372,15 +372,12 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     function assemble_commitments_and_append_to_state(
         uint[] memory primary_inputs) internal {
         // We re-assemble the commitments (JSOutputs)
-        uint256[] memory digest_inputs = new uint[](2);
         for(uint i = 1 + 2 * jsIn ; i < 1 + 2*(jsIn + jsOut); i += 2) {
             // See the way the inputs are ordered in the extended proof
-            digest_inputs[0] = primary_inputs[i];
-            digest_inputs[1] = primary_inputs[i+1];
-            bytes32 current_commitment =
-                Bytes.sha256_digest_from_field_elements(digest_inputs);
-            uint commitment_address = insert(current_commitment);
-            emit LogCommitment(commitment_address, current_commitment);
+            bytes32 commitment = Bytes.sha256_digest_from_field_elements(
+                primary_inputs[i], primary_inputs[i+1]);
+            uint commitment_address = insert(commitment);
+            emit LogCommitment(commitment_address, commitment);
         }
     }
 
