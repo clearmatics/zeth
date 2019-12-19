@@ -80,8 +80,8 @@ Depending on the operation being performed, the `zeth` client must:
 - access secret and public data for the current user
 
 Since the primary and auxiliary inputs are generally very long, it is difficult
-to pass as arguments to the zeth commands. Such data is stored in files with
-detault file names which can be overridden on the zeth commands.
+to pass them as arguments to the zeth commands. Thus, such data is stored in
+files with detault file names which can be overridden on the zeth commands.
 
 The set of files required by zeth for a single user is described below.  We
 recommend creating a directory for each user, containing these files.  In this
@@ -236,7 +236,7 @@ transaction is ever leaked to the an observant attacker.
 Here are a few examples of complex payments allowed by `zeth mix`:
 
 ```console
-$ zeth notes
+$ zeth ls-notes
 b1a2feaf: value=200, addr=0
 eafe5f84: value=100, addr=2
 

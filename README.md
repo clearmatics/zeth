@@ -104,6 +104,8 @@ cd pyClient
 Follow the steps described in the [pyClient README](pyClient/README.md) to run
 tests or invoke the zeth tools.
 
+## Secure Multi Party Computation for the Groth16 SRS generation
+
 See [MPC for SRS generation documentation](mpc/README.md)
 
 ## Development dependencies (for building outside of the Docker container)
