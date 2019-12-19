@@ -274,7 +274,7 @@ contract Groth16Verifier {
 
     function verifyTx(
         uint[2] memory a,
-        uint[2][2] memory b,
+        uint[4] memory b,
         uint[2] memory c,
         uint[] memory primaryInputs
     ) public returns (bool) {
@@ -285,10 +285,10 @@ contract Groth16Verifier {
         Proof memory proof;
         proof.A_X = a[0];
         proof.A_Y = a[1];
-        proof.B_X0 = b[0][0];
-        proof.B_X1 = b[0][1];
-        proof.B_Y0 = b[1][0];
-        proof.B_Y1 = b[1][1];
+        proof.B_X0 = b[0];
+        proof.B_X1 = b[1];
+        proof.B_Y0 = b[2];
+        proof.B_Y1 = b[3];
         proof.C_X = c[0];
         proof.C_Y = c[1];
 

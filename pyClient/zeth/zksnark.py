@@ -111,8 +111,7 @@ class Groth16SnarkProvider(IZKSnarkProvider):
     def mixer_proof_parameters(parsed_proof: GenericProof) -> List[List[Any]]:
         return [
             hex_to_int(parsed_proof["a"]),
-            [hex_to_int(parsed_proof["b"][0]),
-             hex_to_int(parsed_proof["b"][1])],
+            hex_to_int(parsed_proof["b"][0] + parsed_proof["b"][1]),
             hex_to_int(parsed_proof["c"])]
 
 
