@@ -53,11 +53,13 @@ class ZethNoteDescription:
 
 class Wallet:
     """
-    Very simple class to track a list of notes owned by a Zeth user. Note this
-    does not store the notes in encrypted form, and encodes some information
-    (including value) in the filename. It is NOT intended to be secure against
-    intruders who have access to the file system, although such an
-    implementation should be able to support an interface of this kind.
+    Very simple class to track the list of notes owned by a Zeth user.
+
+    Note: this class does not store the notes in encrypted form, and encodes
+    some information (including value) in the filename. It is a proof of
+    concept implementation and NOT intended to be secure against intruders who
+    have access to the file system. However, we expect that a secure
+    implementation could expose similar interface and functionality.
     """
     def __init__(
             self,
@@ -84,7 +86,9 @@ class Wallet:
         the database.
         """
         new_notes = []
-        for addr, note in self._decrypt_notes(encrypted_notes, k_pk_sender):
+        addr_note_iter = joinsplit.receive_notes(
+            encrypted_notes, k_pk_sender, self.k_sk_receiver)
+        for addr, note in addr_note_iter:
             note_desc = self._check_note(addr, note)
             if note_desc:
                 self._write_note(note_desc)
@@ -115,17 +119,6 @@ class Wallet:
             raise Exception(f"no note with id {note_id}")
         with open(note_file, "r") as note_f:
             return ZethNoteDescription.from_json(note_f.read())
-
-    def _decrypt_notes(
-            self,
-            encrypted_notes: List[EncryptedNote],
-            k_pk_sender: PublicKey) -> Iterator[Tuple[int, ZethNote]]:
-        """
-        Check notes, returning an iterator over the ones we can successfully
-        decrypt.
-        """
-        return joinsplit.receive_notes(
-            encrypted_notes, k_pk_sender, self.k_sk_receiver)
 
     def _check_note(
             self, addr: int, note: ZethNote) -> Optional[ZethNoteDescription]:
