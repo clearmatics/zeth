@@ -235,15 +235,22 @@ transaction is ever leaked to the an observant attacker.
 
 Here are a few examples of complex payments allowed by `zeth mix`:
 
+```console
 $ zeth notes
 b1a2feaf: value=200, addr=0
 eafe5f84: value=100, addr=2
 
 $ zeth mix \
-    --in eafe5f84 \                      # "eafe5f84: value=100, addr=2"
+    --in eafe5f84 \                       # "eafe5f84: value=100, addr=2"
     --vin 5 \
-    --out d77f...0e00:cc7c....7f76,103 \ # 103 to this address (e.g. Bob)
-    --out 3a43...fd3b:9fc8....b838,2     # 2 to another addr (e.g. my refund)
+    --out d77f...0e00:cc7c....7f76,103 \  # 103 to this address (e.g. Bob)
+    --out 3a43...fd3b:9fc8....b838,2      # 2 to another addr (e.g. my refund)
+
+zeth mix \
+    --in eafe5f84 \                       # "eafe5f84: value=100, addr=2"
+    --out d77f...0e00:cc7c....7f76,98.5 \ # 98.5 to this address (e.g. Bob)
+    --vout 1.5
+```
 
 ### Async transactions
 
