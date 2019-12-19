@@ -671,7 +671,10 @@ def receive_notes(
         receiver_k_sk: EncryptionSecretKey) -> Iterator[Tuple[int, ZethNote]]:
     """
     Given the receivers secret key, and the event data from a transaction
-    (encrypted notes), decrypt any that are intended for the receiver.
+    (encrypted notes), decrypt any that are intended for the receiver. Return
+    tuples `(<address-in-merkle-tree>, ZethNote)`. Callers should record the
+    address-in-merkle-tree along with ZethNote information, for convenience
+    when spending the notes.
     """
     for address, ciphertext in addrs_and_ciphertexts:
         try:
