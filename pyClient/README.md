@@ -79,14 +79,17 @@ Depending on the operation being performed, the `zeth` client must:
 - request proofs and proof verification keys from `prover_server`, and
 - access secret and public data for the current user
 
-Since the primary and auxiliary inputs are generally very long, it is difficult
-to pass them as arguments to the zeth commands. Thus, such data is stored in
-files with detault file names which can be overridden on the zeth commands.
+Quite a lot of information must be given in order for the client to do this,
+and the primary and auxiliary inputs to a Zeth operation are generally very
+long. It can therefore be difficult to pass this information to the zeth
+commands as command-line arguments. Thus, such data is stored in files with
+default file names (which can be overridden on the zeth commands).
 
-The set of files required by zeth for a single user is described below.  We
-recommend creating a directory for each user, containing these files.  In this
-way, it is very easy to setup one or more conceptual "users" and invoke `zeth`
-operations on behalf of each of them to experiment with the system.
+The set of files required by Zeth for a single user to interact with a specific
+deployment is described below. We recommend creating a directory for each
+user/Zeth deployment, containing the following files. In this way, it is very
+easy to setup one or more conceptual "users" and invoke `zeth` operations on
+behalf of each of them to experiment with the system.
 
 - `eth-address` specifies an Ethereum address from which to transactions should
   be funded. When running the testnet (see [top-level README](../README.md)),
@@ -100,6 +103,35 @@ operations on behalf of each of them to experiment with the system.
   command. `zeth-address.json.pub` holds the public address which can be shared
   with other users, allowing them to privately transfer funds to this client.
   The secret `zeth-address.json` should **not** be shared.
+
+Note that by default the `zeth` command will also create a `notes`
+subdirectory to contain the set of notes owned by this user. These are also
+specific to a particular Zeth deployment.
+
+Thereby, in the case of a Zeth user interacting with multiple Zeth deployments
+(for example one for privately transferring Ether, and another for an ERC20
+token), a directory should be created for each deployment:
+
+```
+  MyZethInstances/
+      Ether/
+          eth-address
+          zeth-instance.json
+          zeth-address.json
+          zeth-address.json.pub
+          notes/...
+      ERCToken1/
+          eth-address
+          zeth-instance.json
+          zeth-address.json
+          zeth-address.json.pub
+          notes/...
+```
+
+`zeth` commands invoked inside `MyZethInstances/Ether` will target the Zeth
+deployment that handles Ether. Similarly, commands executed inside
+`MyZethInstances/ERCToken1` will target the deployment that handles the token
+"ERCToken1".
 
 ## Deployment
 
@@ -160,8 +192,8 @@ generate Zeth notes indended for the public address `zeth-address.json.pub`:
 (env)$ zeth sync
 ```
 
-Any notes found are stored in the `./notes` directory, as files containing the
-secret data required to spend them.  This forms a very primitive Zeth "wallet".
+Any notes found are stored in the `./notes` directory as individual files.
+These files contain the secret data required to spend the note.
 
 ```console
 # List all notes received by this client
