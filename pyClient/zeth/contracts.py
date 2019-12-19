@@ -113,7 +113,7 @@ def compile_util_contracts() -> Tuple[Interface, Interface]:
 
 
 def deploy_mixer(
-        w3: Any,
+        web3: Any,
         proof_verifier_address: str,
         otsig_verifier_address: str,
         mixer_interface: Interface,
@@ -127,7 +127,7 @@ def deploy_mixer(
     initial merkle root of the commitment tree
     """
     # Deploy the Mixer contract once the Verifier is successfully deployed
-    mixer = w3.eth.contract(
+    mixer = web3.eth.contract(
         abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
 
     tx_hash = mixer.constructor(
@@ -138,10 +138,10 @@ def deploy_mixer(
         hasher=hasher_address
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Mixer contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     mixer_address = tx_receipt['contractAddress']
     # Get the mixer contract instance
-    mixer = w3.eth.contract(
+    mixer = web3.eth.contract(
         address=mixer_address,
         abi=mixer_interface['abi']
     )
@@ -154,7 +154,7 @@ def deploy_mixer(
 
 
 def deploy_otschnorr_contracts(
-        w3: Any,
+        web3: Any,
         verifier: Any,
         deployer_address: str,
         deployment_gas: int) -> str:
@@ -166,13 +166,13 @@ def deploy_otschnorr_contracts(
             {'from': deployer_address, 'gas': deployment_gas})
 
     # Get tx receipt to get Verifier contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     verifier_address = tx_receipt['contractAddress']
     return verifier_address
 
 
 def deploy_contracts(
-        w3: Any,
+        web3: Any,
         mk_tree_depth: int,
         proof_verifier_interface: Interface,
         otsig_verifier_interface: Interface,
@@ -189,7 +189,7 @@ def deploy_contracts(
     the first zero knowledge payments
     """
     # Deploy the proof verifier contract with the good verification key
-    proof_verifier = w3.eth.contract(
+    proof_verifier = web3.eth.contract(
         abi=proof_verifier_interface['abi'],
         bytecode=proof_verifier_interface['bin']
     )
@@ -197,22 +197,22 @@ def deploy_contracts(
     verifier_constr_params = zksnark.verifier_constructor_parameters(vk)
     tx_hash = proof_verifier.constructor(**verifier_constr_params) \
         .transact({'from': deployer_address, 'gas': deployment_gas})
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     proof_verifier_address = tx_receipt['contractAddress']
 
     # Deploy MiMC contract
     _, hasher_address = deploy_mimc_contract(
-        w3, hasher_interface, deployer_address)
+        web3, hasher_interface, deployer_address)
 
     # Deploy the one-time signature verifier contract
-    otsig_verifier = w3.eth.contract(
+    otsig_verifier = web3.eth.contract(
         abi=otsig_verifier_interface['abi'],
         bytecode=otsig_verifier_interface['bin'])
     otsig_verifier_address = deploy_otschnorr_contracts(
-        w3, otsig_verifier, deployer_address, deployment_gas)
+        web3, otsig_verifier, deployer_address, deployment_gas)
 
     return deploy_mixer(
-        w3,
+        web3,
         proof_verifier_address,
         otsig_verifier_address,
         mixer_interface,
@@ -224,19 +224,19 @@ def deploy_contracts(
 
 
 def deploy_mimc_contract(
-        w3: Any,
+        web3: Any,
         interface: Interface,
         account: str) -> Tuple[Any, str]:
     """
     Deploy mimc contract
     """
-    contract = w3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
+    contract = web3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
     tx_hash = contract.constructor().transact({'from': account})
     # Get tx receipt to get Mixer contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     address = tx_receipt['contractAddress']
     # Get the mixer contract instance
-    instance = w3.eth.contract(
+    instance = web3.eth.contract(
         address=address,
         abi=interface['abi']
     )
@@ -244,7 +244,7 @@ def deploy_mimc_contract(
 
 
 def deploy_tree_contract(
-        w3: Any,
+        web3: Any,
         interface: Interface,
         depth: int,
         hasher_address: str,
@@ -252,15 +252,15 @@ def deploy_tree_contract(
     """
     Deploy tree contract
     """
-    contract = w3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
+    contract = web3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
     tx_hash = contract \
         .constructor(hasher_address, depth) \
         .transact({'from': account})
     # Get tx receipt to get Mixer contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     address = tx_receipt['contractAddress']
     # Get the mixer contract instance
-    instance = w3.eth.contract(
+    instance = web3.eth.contract(
         address=address,
         abi=interface['abi']
     )
@@ -388,7 +388,7 @@ def _parse_events(
 
 
 def get_mix_results(
-        w3: Any,
+        web3: Any,
         mixer_instance: Any,
         start_block: int,
         end_block: int) -> Iterator[MixResult]:
@@ -417,9 +417,9 @@ def get_mix_results(
                 yield entry
 
         finally:
-            w3.eth.uninstallFilter(merkle_root_filter.filter_id)
-            w3.eth.uninstallFilter(address_filter.filter_id)
-            w3.eth.uninstallFilter(ciphertext_filter.filter_id)
+            web3.eth.uninstallFilter(merkle_root_filter.filter_id)
+            web3.eth.uninstallFilter(address_filter.filter_id)
+            web3.eth.uninstallFilter(ciphertext_filter.filter_id)
 
 
 def _extract_encrypted_notes_from_logs(
