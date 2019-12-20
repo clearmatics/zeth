@@ -51,6 +51,45 @@ class ZethNoteDescription:
             commitment=bytes.fromhex(json_dict["commitment"]))
 
 
+class WalletState:
+    """
+    State to be saved in the wallet (excluding individual notes). As well as
+    the next block to query, we store some information about the state of the
+    Zeth deployment such as the number of notes or the number of distinct
+    addresses seen. This can be useful to estimate the security of a given
+    transaction.
+    """
+    def __init__(self, next_block: int, num_notes: int):
+        self.next_block = next_block
+        self.num_notes = num_notes
+
+    def to_json(self) -> str:
+        json_dict = {
+            "next_block": self.next_block,
+            "num_notes": self.num_notes,
+        }
+        return json.dumps(json_dict, indent=4)
+
+    @staticmethod
+    def from_json(json_str: str) -> WalletState:
+        json_dict = json.loads(json_str)
+        return WalletState(
+            next_block=int(json_dict["next_block"]),
+            num_notes=int(json_dict["num_notes"]))
+
+
+def _load_state_or_default(state_file: str) -> WalletState:
+    if not exists(state_file):
+        return WalletState(1, 0)
+    with open(state_file, "r") as state_f:
+        return WalletState.from_json(state_f.read())
+
+
+def _save_state(state_file: str, state: WalletState) -> None:
+    with open(state_file, "w") as state_f:
+        state_f.write(state.to_json())
+
+
 class Wallet:
     """
     Very simple class to track the list of notes owned by a Zeth user.
@@ -75,6 +114,7 @@ class Wallet:
         self.k_sk_receiver_bytes = \
             k_sk_receiver.encode(encoder=encoding.RawEncoder)
         self.state_file = join(wallet_dir, f"state_{username}")
+        self.state = _load_state_or_default(self.state_file)
         _ensure_dir(self.wallet_dir)
 
     def receive_notes(
@@ -93,6 +133,11 @@ class Wallet:
                 note_desc = ZethNoteDescription(note, addr, commit)
                 self._write_note(note_desc)
                 new_notes.append(note_desc)
+
+        # Record full set of notes seen to keep an estimate of the total in the
+        # mixer.
+        self.state.num_notes = self.state.num_notes + len(encrypted_notes)
+
         return new_notes
 
     def note_summaries(self) -> Iterator[Tuple[int, str, EtherValue]]:
@@ -103,15 +148,11 @@ class Wallet:
         return self._decoded_note_filenames()
 
     def get_next_block(self) -> int:
-        if exists(self.state_file):
-            with open(self.state_file, "r") as state_f:
-                return int(state_f.read())
-        else:
-            return 1
+        return self.state.next_block
 
-    def set_next_block(self, next_block: int) -> None:
-        with open(self.state_file, "w") as state_f:
-            state_f.write(str(next_block))
+    def update_and_save_state(self, next_block: int) -> None:
+        self.state.next_block = next_block
+        _save_state(self.state_file, self.state)
 
     def find_note(self, note_id: str) -> ZethNoteDescription:
         note_file = self._find_note_file(note_id)

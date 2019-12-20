@@ -170,7 +170,7 @@ def do_sync(
                 for note_desc in wallet.receive_notes(
                         mix_result.encrypted_notes, mix_result.sender_k_pk):
                     print(f" NEW NOTE: {zeth_note_short(note_desc)}")
-            wallet.set_next_block(chain_block_number + 1)
+            wallet.update_and_save_state(next_block=chain_block_number + 1)
         return chain_block_number
 
     # Do a sync upfront (it would be a waste of time to wait for a tx before
