@@ -666,9 +666,10 @@ def encrypt_notes(
 
 
 def receive_notes(
-        addrs_and_ciphertexts: List[Tuple[int, bytes]],
+        addrs_and_ciphertexts: List[Tuple[int, bytes, bytes]],
         sender_k_pk: EncryptionPublicKey,
-        receiver_k_sk: EncryptionSecretKey) -> Iterator[Tuple[int, ZethNote]]:
+        receiver_k_sk: EncryptionSecretKey
+) -> Iterator[Tuple[int, bytes, ZethNote]]:
     """
     Given the receivers secret key, and the event data from a transaction
     (encrypted notes), decrypt any that are intended for the receiver. Return
@@ -676,10 +677,10 @@ def receive_notes(
     address-in-merkle-tree along with ZethNote information, for convenience
     when spending the notes.
     """
-    for address, ciphertext in addrs_and_ciphertexts:
+    for address, commit, ciphertext in addrs_and_ciphertexts:
         try:
             plaintext = decrypt(ciphertext, sender_k_pk, receiver_k_sk)
-            yield address, zeth_note_from_json_dict(json.loads(plaintext))
+            yield address, commit, zeth_note_from_json_dict(json.loads(plaintext))
         except Exception:
             continue
 

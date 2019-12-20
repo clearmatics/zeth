@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 import zeth.joinsplit as joinsplit
-from zeth.contracts import EncryptedNote, get_merkle_leaf
+from zeth.contracts import EncryptedNote
 from zeth.utils import EtherValue, short_commitment
 from api.util_pb2 import ZethNote
 from nacl.public import PrivateKey, PublicKey  # type: ignore
@@ -86,11 +86,11 @@ class Wallet:
         the database.
         """
         new_notes = []
-        addr_note_iter = joinsplit.receive_notes(
+        addr_commit_note_iter = joinsplit.receive_notes(
             encrypted_notes, k_pk_sender, self.k_sk_receiver)
-        for addr, note in addr_note_iter:
-            note_desc = self._check_note(addr, note)
-            if note_desc:
+        for addr, commit, note in addr_commit_note_iter:
+            if _check_note(commit, note):
+                note_desc = ZethNoteDescription(note, addr, commit)
                 self._write_note(note_desc)
                 new_notes.append(note_desc)
         return new_notes
@@ -119,19 +119,6 @@ class Wallet:
             raise Exception(f"no note with id {note_id}")
         with open(note_file, "r") as note_f:
             return ZethNoteDescription.from_json(note_f.read())
-
-    def _check_note(
-            self, addr: int, note: ZethNote) -> Optional[ZethNoteDescription]:
-        """
-        Recalculate the note commitment that should have been stored in the
-        Merkle tree, and check that the commitment is at the correct address.
-        """
-        cm = joinsplit.compute_commitment(note)
-        mk_leaf = get_merkle_leaf(self.mixer_instance, addr)
-        if mk_leaf != cm:
-            print(f"WARN: bad commitment mk_leaf={mk_leaf.hex()}, cm={cm.hex()}")
-            return None
-        return ZethNoteDescription(note, addr, cm)
 
     def _write_note(self, note_desc: ZethNoteDescription) -> None:
         """
@@ -184,6 +171,18 @@ class Wallet:
 
         candidates = list(glob.glob(join(self.wallet_dir, wildcard)))
         return candidates[0] if len(candidates) == 1 else None
+
+
+def _check_note(commit: bytes, note: ZethNote) -> bool:
+    """
+    Recalculate the note commitment and check that it matches `commit`, the
+    value emitted by the contract.
+    """
+    cm = joinsplit.compute_commitment(note)
+    if commit != cm:
+        print(f"WARN: bad commitment commit={commit.hex()}, cm={cm.hex()}")
+        return False
+    return True
 
 
 def _ensure_dir(directory_name: str) -> None:
