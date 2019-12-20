@@ -91,8 +91,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // 64 bits
     uint constant length_bit_residual = 2 * public_value_length +
     packing_residue_length * nb_hash_digests;
-    // uint nb_field_residual =
-    //   (length_bit_residual + field_capacity - 1) / field_capacity;
+    uint constant nb_field_residual = 1;
+      /* (length_bit_residual + field_capacity - 1) / field_capacity; */
 
     // Padding size in the residual field element (we require a single residual
     // f.e. (c.f. constructor))
@@ -106,7 +106,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // - JsIn (the message auth. tags)
     // - nb_field_residual (the residual bits not fitting in a single field
     //   element and the in and out public values)
-    // uint constant nbInputs = 1 + nb_hash_digests + nb_field_residual;
+    uint constant nbInputs = 1 + nb_hash_digests + nb_field_residual;
 
     // Contract variable that indicates the address of the token contract
     // If token = address(0) then the mixer works with ether
@@ -197,7 +197,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // This function is used to extract the public values (vpub_in and
     // vpub_out) from the residual field element(S)
 
-    function assemble_public_values(uint[] memory primary_inputs) public pure
+    function assemble_public_values(uint[nbInputs] memory primary_inputs)
+        public pure
         returns (uint64 vpub_in, uint64 vpub_out){
         // We know vpub_in corresponds to the first 64 bits of the first
         // residual field element after padding. We retrieve the public value
@@ -218,7 +219,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // This function is used to reassemble hsig given the the primary_inputs To
     // do so, we extract the remaining bits of hsig from the residual field
     // element(S) and combine them with the hsig field element
-    function assemble_hsig(uint[] memory primary_inputs) public pure
+    function assemble_hsig(uint[nbInputs] memory primary_inputs) public pure
         returns (bytes32 hsig) {
 
         // We know hsig residual bits correspond to the 128th to 130st bits of
@@ -244,7 +245,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // index [0, jsIn[ and the primary_inputs To do so, we extract the
     // remaining bits of the nullifier from the residual field element(S) and
     // combine them with the nullifier field element
-    function assemble_nullifier(uint index, uint[] memory primary_inputs)
+    function assemble_nullifier(uint index, uint[nbInputs] memory primary_inputs)
         public pure
         returns (bytes32 nf) {
 
@@ -291,8 +292,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // index [0, jsOut[ and the primary_inputs. To do so, we extract the
     // remaining bits of the commitment from the residual field element(S) and
     // combine them with the commitment field element.
-    function assemble_commitment(uint index, uint[] memory primary_inputs)
-        public pure
+    function assemble_commitment(
+        uint index, uint[nbInputs] memory primary_inputs) public pure
         returns (bytes32 cm) {
 
         // We first check that the commitment we want to retrieve exists
@@ -339,7 +340,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // tree, appends the nullifiers to the list and so on).
     function check_mkroot_nullifiers_hsig_append_nullifiers_state(
         uint[4] memory vk,
-        uint[] memory primary_inputs) internal {
+        uint[nbInputs] memory primary_inputs) internal {
         // 1. We re-assemble the full root digest and check it is in the tree
         require(
             roots[bytes32(primary_inputs[0])],
@@ -370,18 +371,18 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     }
 
     function assemble_commitments_and_append_to_state(
-        uint[] memory primary_inputs) internal {
+        uint[nbInputs] memory primary_inputs) internal {
         // We re-assemble the commitments (JSOutputs)
-        for(uint i = 1 + 2 * jsIn ; i < 1 + 2*(jsIn + jsOut); i += 2) {
-            // See the way the inputs are ordered in the extended proof
-            bytes32 commitment = Bytes.sha256_digest_from_field_elements(
-                primary_inputs[i], primary_inputs[i+1]);
-            uint commitment_address = insert(commitment);
-            emit LogCommitment(commitment_address, commitment);
+        for(uint i; i < jsOut; i++) {
+            bytes32 current_commitment = assemble_commitment(i, primary_inputs);
+            uint commitmentAddress = insert(current_commitment);
+            emit LogCommitment(commitmentAddress, current_commitment);
         }
     }
 
-    function process_public_values(uint[] memory primary_inputs) internal {
+    function process_public_values(
+        uint[nbInputs] memory primary_inputs
+    ) internal {
         // 0. We get vpub_in and vpub_out
         (uint vpub_in_zeth_units, uint vpub_out_zeth_units) =
         assemble_public_values(primary_inputs);

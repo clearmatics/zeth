@@ -79,59 +79,36 @@ def install_sol() -> None:
     install_solc(SOL_COMPILER_VERSION)
 
 
-def compile_contracts(
-        zksnark: IZKSnarkProvider) -> Tuple[Interface, Interface]:
+def compile_mixer(zksnark: IZKSnarkProvider) -> Interface:
     contracts_dir = get_contracts_dir()
-    (proof_verifier_name, mixer_name) = zksnark.get_contract_names()
-
-    path_to_proof_verifier = os.path.join(
-        contracts_dir, proof_verifier_name + ".sol")
+    mixer_name = zksnark.get_contract_name()
     path_to_mixer = os.path.join(contracts_dir, mixer_name + ".sol")
-
-    set_solc_version(SOL_COMPILER_VERSION)
-    compiled_sol = compile_files(
-        [path_to_proof_verifier, path_to_mixer],
-        optimize=True)
-
-    proof_verifier_interface = \
-        compiled_sol[path_to_proof_verifier + ':' + proof_verifier_name]
-    mixer_interface = compiled_sol[path_to_mixer + ':' + mixer_name]
-
-    return (proof_verifier_interface, mixer_interface)
-
-
-def compile_util_contracts() -> Tuple[Interface]:
-    contracts_dir = get_contracts_dir()
-    path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
-    path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMC7.sol")
-    set_solc_version(SOL_COMPILER_VERSION)
-    compiled_sol = compile_files(
-        [path_to_pairing, path_to_tree],
-        optimize=True)
-    tree_interface = compiled_sol[path_to_tree + ':' + "MerkleTreeMiMC7"]
-    return tree_interface
+    compiled_sol = compile_files([path_to_mixer], optimize=True)
+    return compiled_sol[path_to_mixer + ':' + mixer_name]
 
 
 def deploy_mixer(
         web3: Any,
-        proof_verifier_address: str,
-        mixer_interface: Interface,
         mk_tree_depth: int,
+        mixer_interface: Interface,
+        vk: GenericVerificationKey,
         deployer_address: str,
         deployment_gas: int,
-        token_address: str) -> Tuple[Any, str]:
+        token_address: str,
+        zksnark: IZKSnarkProvider) -> Tuple[Any, str]:
     """
     Common function to deploy a mixer contract. Returns the mixer and the
     initial merkle root of the commitment tree
     """
-    # Deploy the Mixer contract once the Verifier is successfully deployed
+    # Deploy the Mixer
     mixer = web3.eth.contract(
         abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
 
+    verification_key_params = zksnark.verification_key_parameters(vk)
     tx_hash = mixer.constructor(
-        snark_ver=proof_verifier_address,
         mk_depth=mk_tree_depth,
-        token=token_address
+        token=token_address,
+        **verification_key_params
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Mixer contract address
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -147,43 +124,6 @@ def deploy_mixer(
     event_logs_log_merkle_root = ef_log_merkle_root.get_all_entries()
     initial_root = Web3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
     return(mixer, initial_root)
-
-
-def deploy_contracts(
-        web3: Any,
-        mk_tree_depth: int,
-        proof_verifier_interface: Interface,
-        mixer_interface: Interface,
-        vk: GenericVerificationKey,
-        deployer_address: str,
-        deployment_gas: int,
-        token_address: str,
-        zksnark: IZKSnarkProvider) -> Tuple[Any, str]:
-    """
-    Deploy the mixer contract with the given merkle tree depth and returns an
-    instance of the mixer along with the initial merkle tree root to use for
-    the first zero knowledge payments
-    """
-    # Deploy the proof verifier contract with the good verification key
-    proof_verifier = web3.eth.contract(
-        abi=proof_verifier_interface['abi'],
-        bytecode=proof_verifier_interface['bin']
-    )
-
-    verifier_constr_params = zksnark.verifier_constructor_parameters(vk)
-    tx_hash = proof_verifier.constructor(**verifier_constr_params) \
-        .transact({'from': deployer_address, 'gas': deployment_gas})
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    proof_verifier_address = tx_receipt['contractAddress']
-
-    return deploy_mixer(
-        web3,
-        proof_verifier_address,
-        mixer_interface,
-        mk_tree_depth,
-        deployer_address,
-        deployment_gas,
-        token_address)
 
 
 def deploy_tree_contract(
@@ -227,11 +167,12 @@ def mix(
     """
     pk_sender_encoded = encode_encryption_public_key(pk_sender)
     proof_params = zksnark.mixer_proof_parameters(parsed_proof)
+    inputs = hex_to_int(parsed_proof["inputs"])
     tx_hash = mixer_instance.functions.mix(
         *proof_params,
         [int(vk.ppk[0]), int(vk.ppk[1]), int(vk.spk[0]), int(vk.spk[1])],
         sigma,
-        hex_to_int(parsed_proof["inputs"]),
+        inputs,
         pk_sender_encoded,
         ciphertext1,
         ciphertext2,

@@ -34,7 +34,7 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def get_contract_names() -> Tuple[str, str]:
+    def get_contract_name() -> str:
         """
         Get the verifier and mixer contracts for this SNARK.
         """
@@ -42,7 +42,7 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def verifier_constructor_parameters(
+    def verification_key_parameters(
             vk: GenericVerificationKey) -> Dict[str, List[int]]:
         pass
 
@@ -70,12 +70,11 @@ class IZKSnarkProvider(ABC):
 class Groth16SnarkProvider(IZKSnarkProvider):
 
     @staticmethod
-    def get_contract_names() -> Tuple[str, str]:
-        return (
-            constants.GROTH16_VERIFIER_CONTRACT, constants.GROTH16_MIXER_CONTRACT)
+    def get_contract_name() -> str:
+        return constants.GROTH16_MIXER_CONTRACT
 
     @staticmethod
-    def verifier_constructor_parameters(
+    def verification_key_parameters(
             vk: GenericVerificationKey) -> Dict[str, List[int]]:
         return {
             "Alpha": hex_to_int(vk["alpha_g1"]),
@@ -118,12 +117,11 @@ class Groth16SnarkProvider(IZKSnarkProvider):
 class PGHR13SnarkProvider(IZKSnarkProvider):
 
     @staticmethod
-    def get_contract_names() -> Tuple[str, str]:
-        return (
-            constants.PGHR13_VERIFIER_CONTRACT, constants.PGHR13_MIXER_CONTRACT)
+    def get_contract_name() -> str:
+        return constants.PGHR13_MIXER_CONTRACT
 
     @staticmethod
-    def verifier_constructor_parameters(
+    def verification_key_parameters(
             vk: GenericVerificationKey) -> Dict[str, List[int]]:
         return {
             "A1": hex_to_int(vk["a"][0]),

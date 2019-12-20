@@ -11,12 +11,10 @@ DEPLOYMENT_GAS_WEI: int = 4000000
 
 # GROTH16 constants
 GROTH16_ZKSNARK: str = "GROTH16"
-GROTH16_VERIFIER_CONTRACT: str = "Groth16Verifier"
 GROTH16_MIXER_CONTRACT: str = "Groth16Mixer"
 
 # PGHR13 constants
 PGHR13_ZKSNARK: str = "PGHR13"
-PGHR13_VERIFIER_CONTRACT: str = "Pghr13Verifier"
 PGHR13_MIXER_CONTRACT: str = "Pghr13Mixer"
 
 # Set of valid snarks
