@@ -171,27 +171,27 @@ TEST(TestCOMMs, TestGetRightSideCMCOMM)
     ASSERT_EQ(result.get_bits(pb), expected.get_bits(pb));
 };
 
-TEST(TestCOMMs, TestCOMMGadget) {
+TEST(TestCOMMs, TestCOMMGadget)
+{
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> ZERO;
     ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
-    bits384 trap_r_bits384 =
-        get_bits384_from_vector(hex_to_binary_vector(
-            "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
-            "000000000000FF00000000000000FF"));
-    bits64 value_bits64 = get_bits64_from_vector(
-        hex_to_binary_vector("2F0000000000000F"));
+    bits384 trap_r_bits384 = get_bits384_from_vector(hex_to_binary_vector(
+        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
+        "000000000000FF00000000000000FF"));
+    bits64 value_bits64 =
+        get_bits64_from_vector(hex_to_binary_vector("2F0000000000000F"));
     bits256 rho_bits256 = get_bits256_from_vector(
         hex_digest_to_binary_vector("FFFF000000000000000000000000000000"
-                                            "000000000000000000000000009009"));
+                                    "000000000000000000000000009009"));
     bits256 a_pk_bits256 = get_bits256_from_vector(
         hex_digest_to_binary_vector("5c36fea42b82800d74304aa4f875142b42"
-                                            "1b4f2847e7c41c1077fbbcfd63f886"));
+                                    "1b4f2847e7c41c1077fbbcfd63f886"));
     bits256 cm_bits256 = get_bits256_from_vector(
         hex_digest_to_binary_vector("f1378e66b0037337743d1ca5c83ed28c4e"
-                                            "873c3fb242dcef3ff0db4ebe82c15f"));
+                                    "873c3fb242dcef3ff0db4ebe82c15f"));
 
     // hex: 0xAF000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_pk;
