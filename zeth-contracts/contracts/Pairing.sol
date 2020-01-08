@@ -4,7 +4,16 @@
 
 pragma solidity ^0.5.0;
 
+// Several pairing-related utility functions.
+//
+// Precompiled contract details (bn256Add, bn256ScalarMul, bn256Pairing) can be
+// found at the following links.  implementations:
+//   https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go gas
+// and costs:
+//   https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go
+
 library Pairing {
+
     struct G1Point {
         uint X;
         uint Y;
@@ -57,8 +66,7 @@ library Pairing {
         input[3] = p2.Y;
         bool success;
         assembly {
-            // bn256Add precompiled: https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L57
-            // Gas cost: 500 (see: https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go#L84)
+            // Call bn256Add([p1.X, p1.Y, p2.X, p2.Y])
             success := call(sub(gas, 2000), 6, 0, input, 0x80, r, 0x40)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
@@ -78,10 +86,7 @@ library Pairing {
         input[2] = s;
         bool success;
         assembly {
-            // bn256ScalarMul precompiled:
-            //   https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L58
-            // Gas cost: 40000
-            //   (see: https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go#L85)
+            // Call bn256ScalarMul([p.X, p.Y, s])
             success := call(sub(gas, 2000), 7, 0, input, 0x60, r, 0x40)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
@@ -138,9 +143,6 @@ library Pairing {
             // any number of pairs (g1, g2) \in G1 x G2.  To check something in
             // the form: e(g1, g2) = e(g'1, g'2), we need to call the
             // precompiled bn256Pairing on input [(g1, g2), (neg(g'1), g'2)]
-            //
-            // Gas cost: 100000 + elements * 80000
-            // (see: https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L330)
             success := call(sub(gas, 2000), 8, 0, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
