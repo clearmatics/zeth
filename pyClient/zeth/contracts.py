@@ -21,8 +21,17 @@ SYNC_BLOCKS_PER_BATCH = 10
 
 Interface = Dict[str, Any]
 
-# Address, commitment and ciphertext tuples
-EncryptedNote = Tuple[int, bytes, bytes]
+
+class MixOutputEvents:
+    """
+    Event data for a single joinsplit output.  Holds address (in merkle tree),
+    commitment and ciphertext.
+    """
+    def __init__(
+            self, commitment_address: int, commitment: bytes, ciphertext: bytes):
+        self.commitment_address = commitment_address
+        self.commitment = commitment
+        self.ciphertext = ciphertext
 
 
 class MixResult:
@@ -31,7 +40,7 @@ class MixResult:
     """
     def __init__(
             self,
-            encrypted_notes: List[EncryptedNote],
+            encrypted_notes: List[MixOutputEvents],
             new_merkle_root: str,
             sender_k_pk: EncryptionPublicKey):
         self.encrypted_notes = encrypted_notes
@@ -214,7 +223,7 @@ def parse_mix_call(
     new_merkle_root = Web3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
     sender_k_pk_bytes = event_logs_log_secret_ciphers[0].args.pk_sender
 
-    encrypted_notes = _extract_encrypted_notes_from_logs(
+    encrypted_notes = _extract_event_data_from_logs(
         event_logs_log_address, event_logs_log_secret_ciphers)
 
     return MixResult(
@@ -263,13 +272,13 @@ def _parse_events(
         tx_hash = mk_root_event.transactionHash
         mk_root = mk_root_event.args.root
         sender_k_pk_bytes = ciphertext.args.pk_sender
-        enc_notes: List[Tuple[int, bytes, bytes]] = []
+        enc_notes: List[MixOutputEvents] = []
         while addr_commit and addr_commit.transactionHash == tx_hash:
             assert ciphertext.transactionHash == tx_hash
             address = addr_commit.args.commAddr
             commit = addr_commit.args.commit
             ct = ciphertext.args.ciphertext
-            enc_notes.append((address, commit, ct))
+            enc_notes.append(MixOutputEvents(address, commit, ct))
             addr_commit, ciphertext = _next_commit_or_none(
                 commit_address_iter, ciphertext_iter)
 
@@ -319,18 +328,18 @@ def get_mix_results(
             web3.eth.uninstallFilter(ciphertext_filter.filter_id)
 
 
-def _extract_encrypted_notes_from_logs(
+def _extract_event_data_from_logs(
         log_commitments: List[Any],
-        log_ciphertexts: List[Any]) -> List[Tuple[int, bytes, bytes]]:
+        log_ciphertexts: List[Any]) -> List[MixOutputEvents]:
     assert len(log_commitments) == len(log_ciphertexts)
 
-    def _extract_note(log_commit: Any, log_ciph: Any) -> Tuple[int, bytes, bytes]:
+    def _extract_event_data(log_commit: Any, log_ciph: Any) -> MixOutputEvents:
         addr = log_commit.args.commAddr
         commit = log_commit.args.commit
         ciphertext = log_ciph.args.ciphertext
-        return (addr, commit, ciphertext)
+        return MixOutputEvents(addr, commit, ciphertext)
 
-    return [_extract_note(log_commit, log_ciph) for
+    return [_extract_event_data(log_commit, log_ciph) for
             log_commit, log_ciph in zip(log_commitments, log_ciphertexts)]
 
 

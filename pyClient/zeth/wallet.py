@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 import zeth.joinsplit as joinsplit
-from zeth.contracts import EncryptedNote
+from zeth.contracts import MixOutputEvents
 from zeth.utils import EtherValue, short_commitment
 from api.util_pb2 import ZethNote
 from nacl.public import PrivateKey, PublicKey  # type: ignore
@@ -119,7 +119,7 @@ class Wallet:
 
     def receive_notes(
             self,
-            encrypted_notes: List[EncryptedNote],
+            encrypted_notes: List[MixOutputEvents],
             k_pk_sender: PublicKey) -> List[ZethNoteDescription]:
         """
         Decrypt any notes we can, verify them as being valid, and store them in
