@@ -91,7 +91,7 @@ def main() -> None:
     # was the recipient but she wasn't the recipient (Bob was), so she fails to
     # decrypt
     recovered_notes_alice = alice_wallet.receive_notes(
-        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.output_events,
         result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_alice) == 0), \
         "Alice decrypted a ciphertext that was not encrypted with her key!"
@@ -101,7 +101,7 @@ def main() -> None:
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
     recovered_notes_bob = bob_wallet.receive_notes(
-        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.output_events,
         result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_bob) == 2), \
         f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
@@ -137,14 +137,14 @@ def main() -> None:
 
     # Charlie recovers his notes and attempts to withdraw them.
     notes_charlie = charlie_wallet.receive_notes(
-        result_transfer_bob_to_charlie.encrypted_notes,
+        result_transfer_bob_to_charlie.output_events,
         result_transfer_bob_to_charlie.sender_k_pk)
     assert(len(notes_charlie) == 1), \
         f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
 
     input_charlie_withdraw = notes_charlie[0]
     assert notes_charlie[0].address == \
-        result_transfer_bob_to_charlie.encrypted_notes[1][0]
+        result_transfer_bob_to_charlie.output_events[1].commitment_address
 
     _ = scenario.charlie_withdraw(
         zeth_client,
@@ -192,7 +192,7 @@ def main() -> None:
     # Bob decrypts one of the note he previously received (should fail if
     # Charlie's attack succeeded)
     recovered_notes_bob = bob_wallet.receive_notes(
-        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.output_events,
         result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_bob) == 2), \
         f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"

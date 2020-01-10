@@ -168,7 +168,7 @@ def do_sync(
             for mix_result in get_mix_results(
                     web3, mixer_instance, wallet_next_block, chain_block_number):
                 for note_desc in wallet.receive_notes(
-                        mix_result.encrypted_notes, mix_result.sender_k_pk):
+                        mix_result.output_events, mix_result.sender_k_pk):
                     print(f" NEW NOTE: {zeth_note_short(note_desc)}")
             wallet.update_and_save_state(next_block=chain_block_number + 1)
         return chain_block_number

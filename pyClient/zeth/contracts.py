@@ -40,10 +40,10 @@ class MixResult:
     """
     def __init__(
             self,
-            encrypted_notes: List[MixOutputEvents],
+            output_events: List[MixOutputEvents],
             new_merkle_root: str,
             sender_k_pk: EncryptionPublicKey):
-        self.encrypted_notes = encrypted_notes
+        self.output_events = output_events
         self.new_merkle_root = new_merkle_root
         self.sender_k_pk = sender_k_pk
 
@@ -223,11 +223,11 @@ def parse_mix_call(
     new_merkle_root = Web3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
     sender_k_pk_bytes = event_logs_log_secret_ciphers[0].args.pk_sender
 
-    encrypted_notes = _extract_event_data_from_logs(
+    output_events = _extract_output_event_data(
         event_logs_log_address, event_logs_log_secret_ciphers)
 
     return MixResult(
-        encrypted_notes=encrypted_notes,
+        output_events=output_events,
         new_merkle_root=new_merkle_root,
         sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
 
@@ -272,19 +272,19 @@ def _parse_events(
         tx_hash = mk_root_event.transactionHash
         mk_root = mk_root_event.args.root
         sender_k_pk_bytes = ciphertext.args.pk_sender
-        enc_notes: List[MixOutputEvents] = []
+        output_events: List[MixOutputEvents] = []
         while addr_commit and addr_commit.transactionHash == tx_hash:
             assert ciphertext.transactionHash == tx_hash
             address = addr_commit.args.commAddr
             commit = addr_commit.args.commit
             ct = ciphertext.args.ciphertext
-            enc_notes.append(MixOutputEvents(address, commit, ct))
+            output_events.append(MixOutputEvents(address, commit, ct))
             addr_commit, ciphertext = _next_commit_or_none(
                 commit_address_iter, ciphertext_iter)
 
-        if enc_notes:
+        if output_events:
             yield MixResult(
-                encrypted_notes=enc_notes,
+                output_events=output_events,
                 new_merkle_root=mk_root,
                 sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
 
@@ -328,7 +328,7 @@ def get_mix_results(
             web3.eth.uninstallFilter(ciphertext_filter.filter_id)
 
 
-def _extract_event_data_from_logs(
+def _extract_output_event_data(
         log_commitments: List[Any],
         log_ciphertexts: List[Any]) -> List[MixOutputEvents]:
     assert len(log_commitments) == len(log_ciphertexts)

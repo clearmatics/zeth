@@ -119,7 +119,7 @@ class Wallet:
 
     def receive_notes(
             self,
-            encrypted_notes: List[MixOutputEvents],
+            output_events: List[MixOutputEvents],
             k_pk_sender: PublicKey) -> List[ZethNoteDescription]:
         """
         Decrypt any notes we can, verify them as being valid, and store them in
@@ -127,7 +127,7 @@ class Wallet:
         """
         new_notes = []
         addr_commit_note_iter = joinsplit.receive_notes(
-            encrypted_notes, k_pk_sender, self.k_sk_receiver)
+            output_events, k_pk_sender, self.k_sk_receiver)
         for addr, commit, note in addr_commit_note_iter:
             if _check_note(commit, note):
                 note_desc = ZethNoteDescription(note, addr, commit)
@@ -136,7 +136,7 @@ class Wallet:
 
         # Record full set of notes seen to keep an estimate of the total in the
         # mixer.
-        self.state.num_notes = self.state.num_notes + len(encrypted_notes)
+        self.state.num_notes = self.state.num_notes + len(output_events)
 
         return new_notes
 
