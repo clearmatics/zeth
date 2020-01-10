@@ -331,7 +331,7 @@ def get_dummy_input_and_address(
 
 
 def compute_joinsplit2x2_inputs(
-        mk_root: str,
+        mk_root: bytes,
         input0: Tuple[int, ZethNote],
         mk_path0: List[str],
         input1: Tuple[int, ZethNote],
@@ -379,7 +379,7 @@ def compute_joinsplit2x2_inputs(
     ]
 
     return prover_pb2.ProofInputs(
-        mk_root=mk_root,
+        mk_root=mk_root.hex(),
         js_inputs=js_inputs,
         js_outputs=js_outputs,
         pub_in_value=int64_to_hex(public_in_value_zeth_units),
@@ -398,7 +398,7 @@ class ZethClient:
             prover_client: ProverClient,
             mk_tree_depth: int,
             mixer_instance: Any,
-            merkle_root: str,
+            merkle_root: bytes,
             zksnark: IZKSnarkProvider):
         self._prover_client = prover_client
         self.web3 = web3
@@ -422,7 +422,7 @@ class ZethClient:
             prover_client,
             mk_tree_depth,
             mixer_instance,
-            contracts.get_merkle_root(mixer_instance).hex(),
+            contracts.get_merkle_root(mixer_instance),
             zksnark)
 
     @staticmethod
@@ -597,7 +597,7 @@ class ZethClient:
 
     def get_proof_joinsplit_2_by_2(
             self,
-            mk_root: str,
+            mk_root: bytes,
             input0: Tuple[int, ZethNote],
             mk_path0: List[str],
             input1: Tuple[int, ZethNote],

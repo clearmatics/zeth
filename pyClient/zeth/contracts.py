@@ -41,7 +41,7 @@ class MixResult:
     def __init__(
             self,
             output_events: List[MixOutputEvents],
-            new_merkle_root: str,
+            new_merkle_root: bytes,
             sender_k_pk: EncryptionPublicKey):
         self.output_events = output_events
         self.new_merkle_root = new_merkle_root
@@ -113,7 +113,7 @@ def deploy_mixer(
         deployer_address: str,
         deployment_gas: int,
         token_address: str,
-        zksnark: IZKSnarkProvider) -> Tuple[Any, str]:
+        zksnark: IZKSnarkProvider) -> Tuple[Any, bytes]:
     """
     Common function to deploy a mixer contract. Returns the mixer and the
     initial merkle root of the commitment tree
@@ -195,8 +195,6 @@ def mix(
         ciphertext1,
         ciphertext2,
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
-    # tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
-    # return parse_mix_call(mixer_instance, tx_receipt)
     return tx_hash.hex()
 
 
@@ -220,7 +218,7 @@ def parse_mix_call(
         "LogSecretCiphers", {'fromBlock': 'latest'})
     event_logs_log_secret_ciphers = \
         event_filter_log_secret_ciphers.get_all_entries()
-    new_merkle_root = Web3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
+    new_merkle_root = event_logs_log_merkle_root[0].args.root
     sender_k_pk_bytes = event_logs_log_secret_ciphers[0].args.pk_sender
 
     output_events = _extract_output_event_data(
