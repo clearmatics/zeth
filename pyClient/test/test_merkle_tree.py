@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 
-from zeth.merkle_tree import MerkleTree, ZERO_ENTRY
+from zeth.merkle_tree import MerkleTree, PersistentMerkleTree, ZERO_ENTRY
 from os.path import exists, join
 from os import makedirs
 from shutil import rmtree
@@ -51,8 +51,7 @@ class TestMerkleTree(TestCase):
         self.assertEqual(expect, result)
 
     def test_empty(self) -> None:
-        mktree = MerkleTree.open(
-            join(MERKLE_TREE_TEST_DIR, "empty"), MERKLE_TREE_TEST_SIZE)
+        mktree = MerkleTree.empty_with_size(MERKLE_TREE_TEST_SIZE)
         root = mktree.compute_root()
         num_entries = mktree.get_num_entries()
 
@@ -60,29 +59,32 @@ class TestMerkleTree(TestCase):
         self.assertEqual(self._expected_empty(), root)
 
     def test_empty_save_load(self) -> None:
-        mktree = MerkleTree.open(
-            join(MERKLE_TREE_TEST_DIR, "empty"), MERKLE_TREE_TEST_SIZE)
+        mktree_file = join(MERKLE_TREE_TEST_DIR, "empty_save_load")
+        mktree = PersistentMerkleTree.open(mktree_file, MERKLE_TREE_TEST_SIZE)
         mktree.save()
-        mktree = MerkleTree.open("empty", MERKLE_TREE_TEST_SIZE)
+
+        mktree = PersistentMerkleTree.open(mktree_file, MERKLE_TREE_TEST_SIZE)
         root = mktree.compute_root()
         mktree.save()
 
         self.assertEqual(self._expected_empty(), root)
 
     def test_single_entry(self) -> None:
+        mktree_file = join(MERKLE_TREE_TEST_DIR, "single")
         data = bytes.fromhex("aabbccdd")
 
-        mktree = MerkleTree.open("empty", MERKLE_TREE_TEST_SIZE)
+        mktree = PersistentMerkleTree.open(mktree_file, MERKLE_TREE_TEST_SIZE)
         mktree.set_entry(0, data)
         self.assertEqual(1, mktree.get_num_entries())
         self.assertEqual(data, mktree.get_entry(0))
         self.assertEqual(ZERO_ENTRY, mktree.get_entry(1))
+        root_1 = mktree.compute_root()
+        self.assertNotEqual(self._expected_empty(), root_1)
         mktree.save()
 
-        mktree = MerkleTree.open("empty", MERKLE_TREE_TEST_SIZE)
+        mktree = PersistentMerkleTree.open(mktree_file, MERKLE_TREE_TEST_SIZE)
         self.assertEqual(1, mktree.get_num_entries())
         self.assertEqual(data, mktree.get_entry(0))
         self.assertEqual(ZERO_ENTRY, mktree.get_entry(1))
-
-        root = mktree.compute_root()
-        self.assertNotEqual(self._expected_empty(), root)
+        root_2 = mktree.compute_root()
+        self.assertEqual(root_1, root_2)

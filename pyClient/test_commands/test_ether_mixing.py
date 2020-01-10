@@ -6,6 +6,7 @@
 
 import zeth.contracts
 import zeth.joinsplit
+import zeth.merkle_tree
 import zeth.zksnark
 import zeth.utils
 import zeth.constants as constants
@@ -45,12 +46,14 @@ def main() -> None:
     coinstore_dir = os.environ['ZETH_COINSTORE']
 
     # Deploy Zeth contracts
+    tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client = zeth.joinsplit.ZethClient.deploy(
         web3,
         prover_client,
-        constants.ZETH_MERKLE_TREE_DEPTH,
+        tree_depth,
         deployer_eth_address,
         zksnark)
+    mk_tree = zeth.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
 
     # Keys and wallets
     k_sk_alice = keystore["Alice"].addr_sk.k_sk
@@ -75,6 +78,7 @@ def main() -> None:
     # Bob deposits ETH, split in 2 notes on the mixer
     result_deposit_bob_to_bob = scenario.bob_deposit(
         zeth_client,
+        mk_tree,
         bob_eth_address,
         keystore)
 
@@ -109,6 +113,7 @@ def main() -> None:
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         zeth_client,
+        mk_tree,
         recovered_notes_bob[0].as_input(),
         bob_eth_address,
         keystore)
@@ -118,6 +123,7 @@ def main() -> None:
     try:
         result_double_spending = scenario.bob_to_charlie(
             zeth_client,
+            mk_tree,
             recovered_notes_bob[0].as_input(),
             bob_eth_address,
             keystore)
@@ -148,6 +154,7 @@ def main() -> None:
 
     _ = scenario.charlie_withdraw(
         zeth_client,
+        mk_tree,
         input_charlie_withdraw.as_input(),
         charlie_eth_address,
         keystore)
@@ -166,6 +173,7 @@ def main() -> None:
         # recompiute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
             zeth_client,
+            mk_tree,
             input_charlie_withdraw.as_input(),
             charlie_eth_address,
             keystore)
@@ -185,6 +193,7 @@ def main() -> None:
     # But Charlie attempts to corrupt the transaction (malleability attack)
     result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
         zeth_client,
+        mk_tree,
         bob_eth_address,
         charlie_eth_address,
         keystore)

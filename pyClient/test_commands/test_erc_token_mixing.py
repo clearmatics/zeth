@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 import zeth.joinsplit
+import zeth.merkle_tree
 import zeth.zksnark
 from zeth.wallet import Wallet
 import zeth.utils
@@ -69,13 +70,15 @@ def main() -> None:
     token_instance = deploy_token(eth, deployer_eth_address, 4000000)
 
     # Deploy Zeth contracts
+    tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client = zeth.joinsplit.ZethClient.deploy(
         web3,
         prover_client,
-        constants.ZETH_MERKLE_TREE_DEPTH,
+        tree_depth,
         deployer_eth_address,
         zksnark,
         token_instance.address)
+    mk_tree = zeth.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
 
     # Keys and wallets
     k_sk_alice = keystore["Alice"].addr_sk.k_sk
@@ -107,7 +110,11 @@ def main() -> None:
     # approving)
     try:
         result_deposit_bob_to_bob = scenario.bob_deposit(
-            zeth_client, bob_eth_address, keystore, zeth.utils.EtherValue(0))
+            zeth_client,
+            mk_tree,
+            bob_eth_address,
+            keystore,
+            zeth.utils.EtherValue(0))
     except Exception as e:
         allowance_mixer = allowance(
             token_instance,
@@ -131,7 +138,7 @@ def main() -> None:
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
     # Bob deposits ETHToken, split in 2 notes on the mixer
     result_deposit_bob_to_bob = scenario.bob_deposit(
-        zeth_client, bob_eth_address, keystore)
+        zeth_client, mk_tree, bob_eth_address, keystore)
 
     print("- Balances after Bob's deposit: ")
     print_token_balances(
@@ -166,6 +173,7 @@ def main() -> None:
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         zeth_client,
+        mk_tree,
         input_bob_to_charlie,
         bob_eth_address,
         keystore)
@@ -175,6 +183,7 @@ def main() -> None:
     try:
         result_double_spending = scenario.bob_to_charlie(
             zeth_client,
+            mk_tree,
             input_bob_to_charlie,
             bob_eth_address,
             keystore)
@@ -202,6 +211,7 @@ def main() -> None:
 
     _ = scenario.charlie_withdraw(
         zeth_client,
+        mk_tree,
         note_descs_charlie[0].as_input(),
         charlie_eth_address,
         keystore)
@@ -223,6 +233,7 @@ def main() -> None:
         # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
             zeth_client,
+            mk_tree,
             note_descs_charlie[0].as_input(),
             charlie_eth_address,
             keystore)
@@ -257,6 +268,7 @@ def main() -> None:
 
     result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
         zeth_client,
+        mk_tree,
         bob_eth_address,
         charlie_eth_address,
         keystore)

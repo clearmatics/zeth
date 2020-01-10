@@ -339,24 +339,3 @@ def _extract_output_event_data(
 
     return [_extract_event_data(log_commit, log_ciph) for
             log_commit, log_ciph in zip(log_commitments, log_ciphertexts)]
-
-
-def get_commitments(mixer_instance: Any) -> List[bytes]:
-    """
-    Query the Zeth contact to get the list of commitments
-    """
-    return mixer_instance.functions.getLeaves().call()
-
-
-def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
-    """
-    Return the Merkle tree
-    """
-    return mixer_instance.functions.getTree().call()
-
-
-def get_merkle_root(mixer_instance: Any) -> bytes:
-    """
-    Return the Merkle tree root
-    """
-    return mixer_instance.functions.getRoot().call()

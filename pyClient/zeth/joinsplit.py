@@ -15,12 +15,12 @@ from zeth.encryption import \
     generate_encryption_keypair, encode_encryption_public_key, \
     encryption_public_key_as_hex, encryption_public_key_from_hex, \
     encryption_secret_key_as_hex, encryption_secret_key_from_hex
+from zeth.merkle_tree import MerkleTree, compute_merkle_path
 import zeth.signing as signing
-
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, encrypt, \
-    decrypt, int64_to_hex, encode_message_to_bytes, compute_merkle_path
+    decrypt, int64_to_hex, encode_message_to_bytes
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 import api.prover_pb2 as prover_pb2
@@ -396,22 +396,17 @@ class ZethClient:
             self,
             web3: Any,
             prover_client: ProverClient,
-            mk_tree_depth: int,
             mixer_instance: Any,
-            merkle_root: bytes,
             zksnark: IZKSnarkProvider):
         self._prover_client = prover_client
         self.web3 = web3
         self._zksnark = zksnark
         self.mixer_instance = mixer_instance
-        self.mk_tree_depth = mk_tree_depth
-        self.merkle_root = merkle_root
 
     @staticmethod
     def open(
             web3: Any,
             prover_client: ProverClient,
-            mk_tree_depth: int,
             mixer_instance: Any,
             zksnark: IZKSnarkProvider) -> ZethClient:
         """
@@ -420,9 +415,7 @@ class ZethClient:
         return ZethClient(
             web3,
             prover_client,
-            mk_tree_depth,
             mixer_instance,
-            contracts.get_merkle_root(mixer_instance),
             zksnark)
 
     @staticmethod
@@ -448,7 +441,7 @@ class ZethClient:
 
         print("[INFO] 3. VK written, deploying smart contracts...")
         mixer_interface = contracts.compile_mixer(zksnark)
-        (mixer_instance, initial_merkle_root) = contracts.deploy_mixer(
+        (mixer_instance, _initial_merkle_root) = contracts.deploy_mixer(
             web3,
             mk_tree_depth,
             mixer_interface,
@@ -460,17 +453,12 @@ class ZethClient:
         return ZethClient(
             web3,
             prover_client,
-            mk_tree_depth,
             mixer_instance,
-            initial_merkle_root,
             zksnark)
-
-    def get_merkle_tree(self) -> List[bytes]:
-        return contracts.get_merkle_tree(self.mixer_instance)
 
     def deposit(
             self,
-            mk_tree: List[bytes],
+            mk_tree: MerkleTree,
             zeth_address: ZethAddress,
             sender_eth_address: str,
             eth_amount: EtherValue,
@@ -491,7 +479,7 @@ class ZethClient:
 
     def joinsplit(
             self,
-            mk_tree: List[bytes],
+            mk_tree: MerkleTree,
             sender_ownership_keypair: OwnershipKeyPair,
             sender_eth_address: str,
             inputs: List[Tuple[int, ZethNote]],
@@ -509,9 +497,11 @@ class ZethClient:
             inputs + \
             [get_dummy_input_and_address(sender_a_pk)
              for _ in range(constants.JS_INPUTS - len(inputs))]
-        mk_paths = \
-            [compute_merkle_path(addr, self.mk_tree_depth, mk_tree)
-             for addr, _ in inputs]
+        tree_depth = mk_tree.tree_depth
+        tree_values = mk_tree.compute_tree_values()
+        mk_root = tree_values[0]
+        mk_paths = [compute_merkle_path(addr, tree_depth, tree_values)
+                    for addr, _ in inputs]
 
         # Generate output notes and proof.  Dummy outputs are constructed with
         # value 0 to an invalid ZethAddressPub, formed from the senders
@@ -527,7 +517,7 @@ class ZethClient:
              for (zeth_addr, value) in outputs]
         (output_note1, output_note2, proof_json, signing_keypair) = \
             self.get_proof_joinsplit_2_by_2(
-                self.merkle_root,
+                mk_root,
                 inputs[0],
                 mk_paths[0],
                 inputs[1],
@@ -564,12 +554,6 @@ class ZethClient:
             sender_eth_address,
             tx_value.wei,
             4000000)
-
-    def wait(self, tx_hash: str) -> contracts.MixResult:
-        tx_receipt = self.web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-        result = contracts.parse_mix_call(self.mixer_instance, tx_receipt)
-        self.merkle_root = result.new_merkle_root
-        return result
 
     def mix(
             self,

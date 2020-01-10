@@ -9,9 +9,11 @@ from zeth.contracts import InstanceDescription, get_block_number, get_mix_result
 from zeth.joinsplit import \
     ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient, from_zeth_units
 from zeth.utils import open_web3, short_commitment, EtherValue, get_zeth_dir
+from zeth.merkle_tree import PersistentMerkleTree
 from zeth.wallet import ZethNoteDescription, Wallet
 from click import ClickException, Context
 import json
+import math
 from os.path import exists, join
 from solcx import compile_files  # type: ignore
 from typing import Dict, Tuple, Optional, Any
@@ -150,27 +152,54 @@ def open_wallet(
     return Wallet(mixer_instance, WALLET_USERNAME, wallet_dir, js_secret.k_sk)
 
 
+def open_merkle_tree(ctx: Context) -> PersistentMerkleTree:
+    """
+    Open a new or existing merkle tree for the client.
+    """
+    merkle_tree_file = ctx.obj["MERKLE_TREE_FILE"]
+    num_leaves = int(math.pow(2, ZETH_MERKLE_TREE_DEPTH))
+    return PersistentMerkleTree.open(merkle_tree_file, num_leaves)
+
+
 def do_sync(
         web3: Any,
         wallet: Wallet,
+        merkle_tree: PersistentMerkleTree,
         wait_tx: Optional[str]) -> int:
     """
     Implementation of sync, reused by several commands.  Returns the
-    block_number synced to.
+    block_number synced to.  Also updates and saves the MerkleTree.
     """
     def _do_sync() -> int:
         wallet_next_block = wallet.get_next_block()
         chain_block_number: int = get_block_number(web3)
 
         if chain_block_number >= wallet_next_block:
+            new_merkle_root: Optional[bytes] = None
+
             print(f"SYNCHING blocks ({wallet_next_block} - {chain_block_number})")
             mixer_instance = wallet.mixer_instance
             for mix_result in get_mix_results(
                     web3, mixer_instance, wallet_next_block, chain_block_number):
+                # For each result, write new commitments to the merkle tree, and
+                # then attempt to decrypt and validate notes intended for us.
+
+                for out_ev in mix_result.output_events:
+                    merkle_tree.set_entry(
+                        out_ev.commitment_address, out_ev.commitment)
+                new_merkle_root = mix_result.new_merkle_root
+
                 for note_desc in wallet.receive_notes(
                         mix_result.output_events, mix_result.sender_k_pk):
                     print(f" NEW NOTE: {zeth_note_short(note_desc)}")
             wallet.update_and_save_state(next_block=chain_block_number + 1)
+
+            # Check merkle root and save the updated tree
+            if new_merkle_root:
+                our_merkle_root = merkle_tree.compute_root()
+                assert new_merkle_root == our_merkle_root
+                merkle_tree.save()
+
         return chain_block_number
 
     # Do a sync upfront (it would be a waste of time to wait for a tx before
@@ -217,8 +246,7 @@ def create_zeth_client(ctx: Context) -> ZethClient:
     mixer_instance = mixer_desc.mixer.instantiate(web3)
     prover_client = ctx.obj["PROVER_CLIENT"]
     zksnark = ctx.obj["ZKSNARK"]
-    return ZethClient.open(
-        web3, prover_client, ZETH_MERKLE_TREE_DEPTH, mixer_instance, zksnark)
+    return ZethClient.open(web3, prover_client, mixer_instance, zksnark)
 
 
 def create_zeth_client_and_mixer_desc(
@@ -231,8 +259,7 @@ def create_zeth_client_and_mixer_desc(
     mixer_instance = mixer_desc.mixer.instantiate(web3)
     prover_client = ctx.obj["PROVER_CLIENT"]
     zksnark = ctx.obj["ZKSNARK"]
-    zeth_client = ZethClient.open(
-        web3, prover_client, ZETH_MERKLE_TREE_DEPTH, mixer_instance, zksnark)
+    zeth_client = ZethClient.open(web3, prover_client, mixer_instance, zksnark)
     return (zeth_client, mixer_desc)
 
 
