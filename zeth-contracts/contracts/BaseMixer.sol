@@ -118,7 +118,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // the python wrappers. Use Szabos (10^12 Wei).
     uint64 constant public_unit_value_wei = 1 szabo;
 
-    // Event to emit the value and address new commitments in the merke tree.
+    // Event to emit the value and address of new commitments in the merke tree.
     // Clients can use this when syncing with the latest state. As they
     // encounter ciphertexts which they can decrypt and parse, they can verify
     // that the note data opens the commitment (that the message is valid), and
@@ -134,6 +134,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // is key to obfuscate the transaction graph while enabling on-chain storage
     // of the coins' data (useful to ease backup of user's wallets)
     event LogSecretCiphers(bytes32 pk_sender, bytes ciphertext);
+
+    // Event to emit the nullifiers for the mix call.
+    event LogNullifier(bytes32 nullifier);
 
     // Debug only
     event LogDebug(string message);
@@ -354,12 +357,15 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // already seen.
         bytes32[jsIn] memory nfs;
         for (uint256 i = 0; i < jsIn; i++) {
-            nfs[i] = assemble_nullifier(i, primary_inputs);
+            bytes32 nullifier = assemble_nullifier(i, primary_inputs);
             require(
-                !nullifiers[nfs[i]],
+                !nullifiers[nullifier],
                 "Invalid nullifier: This nullifier has already been used"
             );
-            nullifiers[nfs[i]] = true;
+            nullifiers[nullifier] = true;
+            emit LogNullifier(nullifier);
+
+            nfs[i] = nullifier;
         }
 
         // 3. We re-compute h_sig, re-assemble the expected h_sig and check
