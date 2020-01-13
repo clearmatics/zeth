@@ -7,15 +7,20 @@
 from __future__ import annotations
 import zeth.joinsplit as joinsplit
 from zeth.contracts import MixOutputEvents
+from zeth.encryption import EncryptionPublicKey
 from zeth.utils import EtherValue, short_commitment
 from api.util_pb2 import ZethNote
-from nacl.public import PrivateKey, PublicKey  # type: ignore
-from nacl import encoding  # type: ignore
 from os.path import join, basename, exists
 from os import makedirs
-from typing import List, Tuple, Optional, Iterator, Any
+from typing import Dict, List, Tuple, Optional, Iterator, Any, cast
 import glob
 import json
+
+
+# pylint: disable=too-many-instance-attributes
+
+# Map nullifier to short commitment string identifying the commitment.
+NullifierMap = Dict[str, str]
 
 
 class ZethNoteDescription:
@@ -59,14 +64,17 @@ class WalletState:
     addresses seen. This can be useful to estimate the security of a given
     transaction.
     """
-    def __init__(self, next_block: int, num_notes: int):
+    def __init__(
+            self, next_block: int, num_notes: int, nullifier_map: NullifierMap):
         self.next_block = next_block
         self.num_notes = num_notes
+        self.nullifier_map = nullifier_map
 
     def to_json(self) -> str:
         json_dict = {
             "next_block": self.next_block,
             "num_notes": self.num_notes,
+            "nullifier_map": self.nullifier_map,
         }
         return json.dumps(json_dict, indent=4)
 
@@ -75,12 +83,13 @@ class WalletState:
         json_dict = json.loads(json_str)
         return WalletState(
             next_block=int(json_dict["next_block"]),
-            num_notes=int(json_dict["num_notes"]))
+            num_notes=int(json_dict["num_notes"]),
+            nullifier_map=cast(NullifierMap, json_dict["nullifier_map"]))
 
 
 def _load_state_or_default(state_file: str) -> WalletState:
     if not exists(state_file):
-        return WalletState(1, 0)
+        return WalletState(1, 0, {})
     with open(state_file, "r") as state_f:
         return WalletState.from_json(state_f.read())
 
@@ -105,14 +114,14 @@ class Wallet:
             mixer_instance: Any,
             username: str,
             wallet_dir: str,
-            k_sk_receiver: PrivateKey):
+            secret_address: joinsplit.ZethAddressPriv):
+        # k_sk_receiver: EncryptionSecretKey):
         assert "_" not in username
         self.mixer_instance = mixer_instance
         self.username = username
         self.wallet_dir = wallet_dir
-        self.k_sk_receiver = k_sk_receiver
-        self.k_sk_receiver_bytes = \
-            k_sk_receiver.encode(encoder=encoding.RawEncoder)
+        self.a_sk = secret_address.a_sk
+        self.k_sk_receiver = secret_address.k_sk
         self.state_file = join(wallet_dir, f"state_{username}")
         self.state = _load_state_or_default(self.state_file)
         _ensure_dir(self.wallet_dir)
@@ -120,7 +129,7 @@ class Wallet:
     def receive_notes(
             self,
             output_events: List[MixOutputEvents],
-            k_pk_sender: PublicKey) -> List[ZethNoteDescription]:
+            k_pk_sender: EncryptionPublicKey) -> List[ZethNoteDescription]:
         """
         Decrypt any notes we can, verify them as being valid, and store them in
         the database.
@@ -133,6 +142,11 @@ class Wallet:
                 note_desc = ZethNoteDescription(note, addr, commit)
                 self._write_note(note_desc)
                 new_notes.append(note_desc)
+
+                # Add the nullifier to the map in the state file
+                nullifier = joinsplit.compute_nullifier(note_desc.note, self.a_sk)
+                self.state.nullifier_map[nullifier.hex()] = \
+                    short_commitment(commit)
 
         # Record full set of notes seen to keep an estimate of the total in the
         # mixer.

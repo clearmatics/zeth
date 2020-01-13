@@ -81,15 +81,14 @@ def main() -> None:
     mk_tree = zeth.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
 
     # Keys and wallets
-    k_sk_alice = keystore["Alice"].addr_sk.k_sk
-    k_sk_bob = keystore["Bob"].addr_sk.k_sk
-    k_sk_charlie = keystore["Charlie"].addr_sk.k_sk
+    sk_alice = keystore["Alice"].addr_sk
+    sk_bob = keystore["Bob"].addr_sk
+    sk_charlie = keystore["Charlie"].addr_sk
 
     mixer_instance = zeth_client.mixer_instance
-    alice_wallet = Wallet(mixer_instance, "alice", coinstore_dir, k_sk_alice)
-    bob_wallet = Wallet(mixer_instance, "bob", coinstore_dir, k_sk_bob)
-    charlie_wallet = Wallet(
-        mixer_instance, "charlie", coinstore_dir, k_sk_charlie)
+    alice_wallet = Wallet(mixer_instance, "alice", coinstore_dir, sk_alice)
+    bob_wallet = Wallet(mixer_instance, "bob", coinstore_dir, sk_bob)
+    charlie_wallet = Wallet(mixer_instance, "charlie", coinstore_dir, sk_charlie)
 
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
     # We assign ETHToken to Bob

@@ -149,7 +149,7 @@ def open_wallet(
     Load a wallet using a secret key.
     """
     wallet_dir = ctx.obj["WALLET_DIR"]
-    return Wallet(mixer_instance, WALLET_USERNAME, wallet_dir, js_secret.k_sk)
+    return Wallet(mixer_instance, WALLET_USERNAME, wallet_dir, js_secret)
 
 
 def open_merkle_tree(ctx: Context) -> PersistentMerkleTree:
