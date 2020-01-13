@@ -40,9 +40,11 @@ class MixResult:
     """
     def __init__(
             self,
+            nullifiers: List[bytes],
             output_events: List[MixOutputEvents],
             new_merkle_root: bytes,
             sender_k_pk: EncryptionPublicKey):
+        self.nullifiers = nullifiers
         self.output_events = output_events
         self.new_merkle_root = new_merkle_root
         self.sender_k_pk = sender_k_pk
@@ -204,6 +206,11 @@ def parse_mix_call(
     """
     Get the logs data associated with this mixing
     """
+    # Get nullifiers
+    event_filter_log_nullifiers = mixer_instance.eventFilter(
+        "LogNullifier",
+        {'fromBlock': 'latest'})
+    event_log_log_nullifiers = event_filter_log_nullifiers.get_all_entries()
     # Gather the addresses of the appended commitments
     event_filter_log_address = mixer_instance.eventFilter(
         "LogCommitment",
@@ -218,6 +225,8 @@ def parse_mix_call(
         "LogSecretCiphers", {'fromBlock': 'latest'})
     event_logs_log_secret_ciphers = \
         event_filter_log_secret_ciphers.get_all_entries()
+
+    nullifiers = [ev.args.nullifier for ev in event_log_log_nullifiers]
     new_merkle_root = event_logs_log_merkle_root[0].args.root
     sender_k_pk_bytes = event_logs_log_secret_ciphers[0].args.pk_sender
 
@@ -225,9 +234,17 @@ def parse_mix_call(
         event_logs_log_address, event_logs_log_secret_ciphers)
 
     return MixResult(
+        nullifiers=nullifiers,
         output_events=output_events,
         new_merkle_root=new_merkle_root,
         sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
+
+
+def _next_nullifier_or_none(nullifier_iter: Iterator[bytes]) -> Optional[Any]:
+    try:
+        return next(nullifier_iter)
+    except StopIteration:
+        return None
 
 
 def _next_commit_or_none(
@@ -249,6 +266,7 @@ def _next_commit_or_none(
 
 def _parse_events(
         merkle_root_events: List[Any],
+        nullifier_events: List[Any],
         commit_address_events: List[Any],
         ciphertext_events: List[Any]) -> Iterator[MixResult]:
     """
@@ -258,19 +276,28 @@ def _parse_events(
     new merkle root.
     """
     assert len(commit_address_events) == len(ciphertext_events)
+    nullifier_iter = iter(nullifier_events)
     commit_address_iter = iter(commit_address_events)
     ciphertext_iter = iter(ciphertext_events)
 
     addr_commit, ciphertext = _next_commit_or_none(
         commit_address_iter, ciphertext_iter)
+    nullifier = _next_nullifier_or_none(nullifier_iter)
     for mk_root_event in merkle_root_events:
+        assert nullifier is not None
         assert addr_commit is not None
         assert ciphertext is not None
 
         tx_hash = mk_root_event.transactionHash
         mk_root = mk_root_event.args.root
         sender_k_pk_bytes = ciphertext.args.pk_sender
+        nullifier_values: List[bytes] = []
         output_events: List[MixOutputEvents] = []
+
+        while nullifier and nullifier.transactionHash == tx_hash:
+            nullifier_values.append(nullifier.args.nullifier)
+            nullifier = _next_nullifier_or_none(nullifier_iter)
+
         while addr_commit and addr_commit.transactionHash == tx_hash:
             assert ciphertext.transactionHash == tx_hash
             address = addr_commit.args.commAddr
@@ -282,6 +309,7 @@ def _parse_events(
 
         if output_events:
             yield MixResult(
+                nullifiers=nullifier_values,
                 output_events=output_events,
                 new_merkle_root=mk_root,
                 sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
@@ -309,6 +337,8 @@ def get_mix_results(
             }
             merkle_root_filter = mixer_instance.eventFilter(
                 "LogMerkleRoot", filter_params)
+            nullifier_filter = mixer_instance.eventFilter(
+                "LogNullifier", filter_params)
             commitment_filter = mixer_instance.eventFilter(
                 "LogCommitment", filter_params)
             ciphertext_filter = mixer_instance.eventFilter(
@@ -316,6 +346,7 @@ def get_mix_results(
 
             for entry in _parse_events(
                     merkle_root_filter.get_all_entries(),
+                    nullifier_filter.get_all_entries(),
                     commitment_filter.get_all_entries(),
                     ciphertext_filter.get_all_entries()):
                 yield entry
