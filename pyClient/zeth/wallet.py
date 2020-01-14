@@ -12,12 +12,15 @@ from zeth.utils import EtherValue, short_commitment
 from api.util_pb2 import ZethNote
 from os.path import join, basename, exists
 from os import makedirs
+from shutil import move
 from typing import Dict, List, Tuple, Optional, Iterator, Any, cast
 import glob
 import json
 
 
 # pylint: disable=too-many-instance-attributes
+
+SPENT_SUBDIRECTORY: str = "spent"
 
 # Map nullifier to short commitment string identifying the commitment.
 NullifierMap = Dict[str, str]
@@ -124,7 +127,7 @@ class Wallet:
         self.k_sk_receiver = secret_address.k_sk
         self.state_file = join(wallet_dir, f"state_{username}")
         self.state = _load_state_or_default(self.state_file)
-        _ensure_dir(self.wallet_dir)
+        _ensure_dir(join(self.wallet_dir, SPENT_SUBDIRECTORY))
 
     def receive_notes(
             self,
@@ -154,6 +157,20 @@ class Wallet:
 
         return new_notes
 
+    def mark_nullifiers_used(self, nullifiers: List[bytes]) -> List[str]:
+        """
+        Process nullifiers, marking any of our notes that they spend.
+        """
+        commits: List[str] = []
+        for nullifier in nullifiers:
+            nullifier_hex = nullifier.hex()
+            short_commit = self.state.nullifier_map.get(nullifier_hex, None)
+            if short_commit:
+                commits.append(short_commit)
+                self._mark_note_spent(nullifier_hex, short_commit)
+
+        return commits
+
     def note_summaries(self) -> Iterator[Tuple[int, str, EtherValue]]:
         """
         Returns simple information that can be efficiently read from the notes
@@ -182,6 +199,19 @@ class Wallet:
         note_filename = join(self.wallet_dir, self._note_basename(note_desc))
         with open(note_filename, "w") as note_f:
             note_f.write(note_desc.to_json())
+
+    def _mark_note_spent(self, nullifier_hex: str, short_commit: str) -> None:
+        """
+        Mark a note as having been spent.  Find the file, move it to the `spent`
+        subdirectory, and remove the entry from the `nullifier_map`.
+        """
+        note_file = self._find_note_file(short_commit)
+        if note_file is None:
+            raise Exception(f"expected to find file for commit {short_commit}")
+        spent_file = \
+            join(self.wallet_dir, SPENT_SUBDIRECTORY, basename(note_file))
+        move(note_file, spent_file)
+        del self.state.nullifier_map[nullifier_hex]
 
     def _note_basename(self, note_desc: ZethNoteDescription) -> str:
         value_eth = joinsplit.from_zeth_units(

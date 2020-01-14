@@ -192,6 +192,11 @@ def do_sync(
                 for note_desc in wallet.receive_notes(
                         mix_result.output_events, mix_result.sender_k_pk):
                     print(f" NEW NOTE: {zeth_note_short(note_desc)}")
+
+                spent_commits = wallet.mark_nullifiers_used(mix_result.nullifiers)
+                for commit in spent_commits:
+                    print(f"    SPENT: {commit}")
+
             wallet.update_and_save_state(next_block=chain_block_number + 1)
 
             # Check merkle root and save the updated tree
