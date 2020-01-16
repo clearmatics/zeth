@@ -8,7 +8,7 @@ from os.path import exists
 import json
 import math
 from web3 import Web3  # type: ignore
-from typing import List, Iterator, cast
+from typing import List, Tuple, Iterator, Optional, cast
 
 
 ZERO_ENTRY = bytes.fromhex(
@@ -22,23 +22,22 @@ class MerkleTree:
     Merkle tree structure matching that used in the mixer contract. Simple
     implementation where unpopulated values (zeroes) are also stored.
     """
-    def __init__(self, num_populated: int, leaves: List[bytes]):
-        num_leaves = len(leaves)
-        tree_depth = int(math.log(num_leaves, 2))
-        assert math.pow(2, tree_depth) == num_leaves, "non-power-of-2 tree size"
-        self.num_leaves = num_leaves
-        self.tree_depth = tree_depth
-        self.num_populated = num_populated
+    def __init__(self, leaves: List[bytes], max_leaves: int):
+        assert len(leaves) <= max_leaves
+        tree_depth = int(math.log(max_leaves, 2))
+        assert math.pow(2, tree_depth) == max_leaves, "non-power-of-2 tree size"
         self.leaves = leaves
+        self.max_leaves = max_leaves
+        self.tree_depth = tree_depth
 
     @staticmethod
     def empty_with_depth(depth: int) -> MerkleTree:
         num_leaves = int(math.pow(2, depth))
-        return MerkleTree(0, [ZERO_ENTRY for _ in range(num_leaves)])
+        return MerkleTree([], num_leaves)
 
     @staticmethod
     def empty_with_size(num_leaves: int) -> MerkleTree:
-        return MerkleTree(0, [ZERO_ENTRY for _ in range(num_leaves)])
+        return MerkleTree([], num_leaves)
 
     @staticmethod
     def combine(left: bytes, right: bytes) -> bytes:
@@ -48,44 +47,92 @@ class MerkleTree:
         return result_i.to_bytes(32, byteorder='big')
 
     def get_num_entries(self) -> int:
-        return self.num_populated
+        return len(self.leaves)
 
     def get_entry(self, index: int) -> bytes:
-        return self.leaves[index]
+        if index < len(self.leaves):
+            return self.leaves[index]
+        return ZERO_ENTRY
 
     def get_leaves(self) -> Iterator[bytes]:
-        for leaf in self.leaves:
-            if leaf == ZERO_ENTRY:
-                return
-            yield leaf
+        return iter(self.leaves)
 
     def compute_root(self) -> bytes:
-        leaves = self.leaves
-        layer_size = int(self.num_leaves / 2)
 
-        scratch: List[bytes] = [
-            self.combine(leaves[2*i], leaves[2*i + 1]) for i in range(layer_size)]
+        scratch_size = int((len(self.leaves) + 1) / 2)
+        scratch = [bytes() for _ in range(scratch_size)]
+
+        def reduce_sparse_layer(
+                source: List[bytes],
+                dest: List[bytes],
+                num_present: int,
+                layer_size: int,
+                default_value: Optional[bytes]) -> Tuple[int, Optional[bytes]]:
+            # Given a layer of the tree with `num_present` values, where the
+            # remaining values are known to be `default_value`, write the next
+            # layer into `dest`, returning the number values present and the new
+            # default_value for this new layer.
+
+            # Compute how many entries can be created from entries that are
+            # present, and whether there is a "partial" entry.  Then fill in
+            # each kind of entry, computing the new default as required.
+
+            num_full_present = int(num_present / 2)
+            num_partial_present = num_present - (2 * num_full_present)
+
+            for i in range(num_full_present):
+                dest[i] = self.combine(source[2*i], source[2*i + 1])
+
+            if num_partial_present:
+                assert default_value
+                dest[num_full_present] = \
+                    self.combine(source[num_present - 1], default_value)
+
+            new_num_present = num_full_present + num_partial_present
+            new_default: Optional[bytes] = None
+            if num_present < layer_size - 1:
+                assert default_value
+                new_default = self.combine(default_value, default_value)
+
+            return (new_num_present, new_default)
+
+        # Fill the scratch pad from the current set of leaves + zeros.  Then
+        # recursively compute on the scratch pad.
+
+        (num_present, default_value) = reduce_sparse_layer(
+            self.leaves, scratch, len(self.leaves), self.max_leaves, ZERO_ENTRY)
+        layer_size = int(self.max_leaves / 2)
 
         while layer_size > 1:
+            (num_present, default_value) = reduce_sparse_layer(
+                scratch, scratch, num_present, layer_size, default_value)
             layer_size = int(layer_size / 2)
-            for i in range(layer_size):
-                scratch[i] = self.combine(scratch[2*i], scratch[2*i + 1])
 
-        return scratch[0]
+        # If the tree was empty, the scratch pad will have nothing in it and
+        # default_value is the root.  If the tree was not empty, there must be
+        # at least one present value at every level.
+
+        if num_present:
+            return scratch[0]
+
+        assert default_value
+        return default_value
 
     def compute_tree_values(self) -> List[bytes]:
         """
         Full merkle tree as flattened list, for computing paths
         """
         empty = bytes()
-        tree_size = self.num_leaves * 2 - 1
+        tree_size = self.max_leaves * 2 - 1
         merkle_tree: List[bytes] = [empty for _ in range(tree_size)]
         # Leaves
         for i in range(len(self.leaves)):
-            merkle_tree[(self.num_leaves - 1) + i] = self.leaves[i]
+            merkle_tree[(self.max_leaves - 1) + i] = self.leaves[i]
+        for i in range(len(self.leaves), self.max_leaves):
+            merkle_tree[(self.max_leaves - 1) + i] = ZERO_ENTRY
 
         # Internal nodes
-        for i in range(self.num_leaves - 2, -1, -1):
+        for i in range(self.max_leaves - 2, -1, -1):
             left_idx = 2 * i + 1
             merkle_tree[i] = \
                 self.combine(merkle_tree[left_idx], merkle_tree[left_idx + 1])
@@ -93,10 +140,9 @@ class MerkleTree:
         return merkle_tree
 
     def set_entry(self, index: int, entry: bytes) -> None:
-        assert index == self.num_populated
-        assert index < len(self.leaves)
-        self.leaves[index] = entry
-        self.num_populated = self.num_populated + 1
+        assert index == len(self.leaves)
+        assert index < self.max_leaves
+        self.leaves.append(entry)
 
 
 def compute_merkle_path(
@@ -138,29 +184,32 @@ class PersistentMerkleTree(MerkleTree):
     """
     Version of MerkleTree that also supports persistence.
     """
-    def __init__(self, filename: str, num_populated: int, leaves: List[bytes]):
-        MerkleTree.__init__(self, num_populated, leaves)
+    def __init__(self, filename: str, leaves: List[bytes], max_leaves: int):
+        MerkleTree.__init__(self, leaves, max_leaves)
         self.filename = filename
 
     @staticmethod
-    def open(filename: str, num_leaves: int) -> PersistentMerkleTree:
+    def open(filename: str, max_leaves: int) -> PersistentMerkleTree:
+        expect_tree_depth = int(math.log(max_leaves, 2))
+        assert max_leaves == int(math.pow(2, expect_tree_depth))
         if exists(filename):
             with open(filename, "r") as tree_f:
                 json_dict = json.load(tree_f)
-                num_populated = cast(int, json_dict["num_populated"])
-                assert isinstance(num_populated, int)
+                tree_depth = cast(int, json_dict["depth"])
+                assert isinstance(tree_depth, int)
+                assert tree_depth == expect_tree_depth
                 leaves_hex = cast(List[str], json_dict["leaves"])
                 leaves = [bytes.fromhex(leaf_hex) for leaf_hex in leaves_hex]
-                assert num_leaves == len(leaves)
+                assert max_leaves >= len(leaves)
         else:
-            num_populated = 0
-            leaves = [ZERO_ENTRY for _ in range(num_leaves)]
-        return PersistentMerkleTree(filename, num_populated, leaves)
+            leaves = []
+
+        return PersistentMerkleTree(filename, leaves, max_leaves)
 
     def save(self) -> None:
         leaves_hex = [leaf.hex() for leaf in self.leaves]
         json_dict = {
-            "num_populated": self.num_populated,
+            "depth": self.tree_depth,
             "leaves": leaves_hex,
         }
         with open(self.filename, "w") as tree_f:
