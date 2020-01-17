@@ -8,7 +8,6 @@ import sys
 from setuptools import find_packages
 from distutils.core import setup
 
-
 if not hasattr(sys, 'base_prefix') or sys.base_prefix == sys.prefix:
     print("ERROR: This is not production software, install inside a venv")
     sys.exit(1)
@@ -49,12 +48,12 @@ setup(
         "parsimonious==0.8.1",
         "protobuf==3.6.1",
         "py_ecc==1.7.1",
-        "py-solc-x==0.1.1",
+        "py-solc-x==0.7.0",
         "pycryptodome==3.9.0",
         "pynacl==1.3.0",
         "requests==2.21.0",
         "rlp==1.1.0",
-        "semantic-version==2.6.0",
+        "semantic-version==2.8.4",
         "six==1.12.0",
         "toolz==0.9.0",
         "urllib3==1.24.2",

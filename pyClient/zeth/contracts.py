@@ -10,10 +10,11 @@ from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
 from zeth.signing import SigningVerificationKey
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
 from zeth.utils import get_contracts_dir, hex_to_int, get_public_key_from_bytes
+from zeth.constants import SOL_COMPILER_VERSION
 
 import os
 from web3 import Web3  # type: ignore
-from solcx import compile_files      # type: ignore
+from solcx import compile_files, set_solc_version, install_solc
 from typing import Tuple, Dict, List, Iterator, Optional, Any
 
 # Avoid trying to read too much data into memory
@@ -75,6 +76,10 @@ def get_block_number(web3: Any) -> int:
     return web3.eth.blockNumber
 
 
+def install_sol() -> None:
+    install_solc(SOL_COMPILER_VERSION)
+
+
 def compile_contracts(
         zksnark: IZKSnarkProvider) -> Tuple[Interface, Interface, Interface]:
     contracts_dir = get_contracts_dir()
@@ -87,6 +92,7 @@ def compile_contracts(
         contracts_dir, otsig_verifier_name + ".sol")
     path_to_mixer = os.path.join(contracts_dir, mixer_name + ".sol")
 
+    set_solc_version(SOL_COMPILER_VERSION)
     compiled_sol = compile_files(
         [path_to_proof_verifier, path_to_otsig_verifier, path_to_mixer])
 
@@ -105,6 +111,7 @@ def compile_util_contracts() -> Tuple[Interface, Interface]:
     path_to_bytes = os.path.join(contracts_dir, "Bytes.sol")
     path_to_mimc7 = os.path.join(contracts_dir, "MiMC7.sol")
     path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMC7.sol")
+    set_solc_version(SOL_COMPILER_VERSION)
     compiled_sol = compile_files(
         [path_to_pairing, path_to_bytes, path_to_mimc7, path_to_tree])
     mimc_interface = compiled_sol[path_to_mimc7 + ':' + "MiMC7"]
