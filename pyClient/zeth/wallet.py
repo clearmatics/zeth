@@ -176,7 +176,14 @@ class Wallet:
         Returns simple information that can be efficiently read from the notes
         store.
         """
-        return self._decoded_note_filenames()
+        return self._decode_note_files_in_dir(self.wallet_dir)
+
+    def spent_note_summaries(self) -> Iterator[Tuple[int, str, EtherValue]]:
+        """
+        Returns simple info from note filenames in the spent directory.
+        """
+        return self._decode_note_files_in_dir(
+            join(self.wallet_dir, SPENT_SUBDIRECTORY))
 
     def get_next_block(self) -> int:
         return self.state.next_block
@@ -228,8 +235,9 @@ class Wallet:
         value = EtherValue(components[4], 'ether')
         return (addr, short_commit, value)
 
-    def _decoded_note_filenames(self) -> Iterator[Tuple[int, str, EtherValue]]:
-        wildcard = join(self.wallet_dir, f"note_{self.username}_*")
+    def _decode_note_files_in_dir(
+            self, dir_name: str) -> Iterator[Tuple[int, str, EtherValue]]:
+        wildcard = join(dir_name, f"note_{self.username}_*")
         filenames = sorted(glob.glob(wildcard))
         for filename in filenames:
             try:
