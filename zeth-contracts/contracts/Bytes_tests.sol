@@ -72,10 +72,9 @@ contract Bytes_tests {
     }
 
     function testSha256DigestFromFieldElements() public pure returns (bool) {
-        uint256[] memory test_input = new uint[](2);
-        test_input[0] = 0x16cc12975b9a52d97c6a5c0cc91b76b7432306724ed800ef1c29e86393b1e757;
-        test_input[1] = 0x4;
-        bytes32 test_res = Bytes.sha256_digest_from_field_elements(test_input);
+        uint test_input0 = 0x16cc12975b9a52d97c6a5c0cc91b76b7432306724ed800ef1c29e86393b1e757;
+        bytes1 test_input1 = bytes1(uint8(0x4));
+        bytes32 test_res = Bytes.sha256_digest_from_field_elements(test_input0, test_input1);
 
         bool ok = (test_res == bytes32(0xeae78dc9c6179438f7001b724e60c4c2ed6ed893303a563e9b4a59dae9483369));
         require(
