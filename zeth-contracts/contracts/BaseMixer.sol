@@ -157,12 +157,12 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
         // We retrieve the public value in, remove any extra bits (due to the padding) and inverse the bit order
         bytes32 vpub_bytes = (bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << padding) >> (digest_length-size_value);
-        vpub_bytes = Bytes.swap_bit_order(vpub_bytes) >> (digest_length-size_value);
+        vpub_bytes = vpub_bytes >> (digest_length-size_value);
         vpub_in = Bytes.get_int64_from_bytes8(Bytes.int256ToBytes8(uint(vpub_bytes)));
 
         // We retrieve the public value out, remove any extra bits (due to the padding) and inverse the bit order
         vpub_bytes = (bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << (padding+size_value)) >> (digest_length-size_value);
-        vpub_bytes = Bytes.swap_bit_order(vpub_bytes) >> (digest_length-size_value);
+        vpub_bytes = vpub_bytes >> (digest_length-size_value);
         vpub_out = Bytes.get_int64_from_bytes8(Bytes.int256ToBytes8(uint(vpub_bytes)));
     }
 
@@ -183,7 +183,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         bytes1 bits_input = Bytes.get_last_byte(hsig_bytes);
 
         // We reassemble the residual bits with the field element
-        hsig = Bytes.sha256_digest_from_field_elements(primary_inputs[1 + jsIn + jsOut], bits_input);
+        hsig = Bytes.sha256_digest_from_field_elements(primary_inputs[1 + jsIn + jsOut] << (digest_length - field_capacity), bits_input);
     }
 
     // This function is used to reassemble the nullifiers given the nullifier index [0, jsIn[ and the primary_inputs
@@ -217,7 +217,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         bytes32 sn_bytes = (bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << padding + sn_bit_index) >> field_capacity;
         bytes1 bits_input = Bytes.get_last_byte(sn_bytes);
         // We reassemble the residual bits with the field element
-        sn = Bytes.sha256_digest_from_field_elements(primary_inputs[nullifier_index], bits_input);
+        sn = Bytes.sha256_digest_from_field_elements(primary_inputs[nullifier_index] << (digest_length - field_capacity), bits_input);
     }
 
     // This function is used to reassemble the commitment given the commitment index [0, jsOut[ and the primary_inputs
@@ -252,7 +252,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         bytes1 bits_input = Bytes.get_last_byte(cm_bytes);
 
         // We reassemble the residual bits with the field element
-        cm = Bytes.sha256_digest_from_field_elements(primary_inputs[commitment_index], bits_input);
+        cm = Bytes.sha256_digest_from_field_elements(primary_inputs[commitment_index] << (digest_length - field_capacity), bits_input);
     }
 
     // This function processes the primary inputs to append and check the root and nullifiers in the primary inputs (instance)

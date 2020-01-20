@@ -59,12 +59,6 @@ def main() -> None:
         print("testSha256DigestFromFieldElements FAILS")
         result *= 0
 
-    print("--- testing ", "testSwapBitOrder")
-    test_swap_bit_order = bytes_instance.functions.testSwapBitOrder().call()
-    if not test_swap_bit_order:
-        print("testSwapBitOrder FAILS")
-        result *= 0
-
     if result:
         print("All Bytes tests PASS")
 
