@@ -189,7 +189,8 @@ public:
             const size_t nb_inputs = 1 + nb_packed_inputs;
             pb.set_input_sizes(nb_inputs);
             // ---------------------------------------------------------------
-            // //
+
+            ZERO.allocate(pb, FMT(this->annotation_prefix, " ZERO"));
 
             // Initialize the digest_variables
             phi.reset(new libsnark::digest_variable<FieldT>(
@@ -350,7 +351,7 @@ public:
                     FieldT::capacity(),
                     FMT(this->annotation_prefix, " packer_value_pub_out")));
 
-            // 6. Pack the h_sig
+            // 5. Pack the h_sig
             packers[NumInputs + NumOutputs + 1 + 1].reset(
                 new libsnark::multipacking_gadget<FieldT>(
                     pb,
@@ -359,7 +360,7 @@ public:
                     FieldT::capacity(),
                     FMT(this->annotation_prefix, " packer_h_sig")));
 
-            // 7. Pack the h_iS
+            // 6. Pack the h_iS
             for (size_t i = NumInputs + NumOutputs + 1 + 1 + 1;
                  i < NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs;
                  i++) {
@@ -373,7 +374,6 @@ public:
 
         } // End of the block dedicated to generate the verifier inputs
 
-        ZERO.allocate(pb, FMT(this->annotation_prefix, " ZERO"));
         zk_total_uint64.allocate(
             pb, 64, FMT(this->annotation_prefix, " zk_total"));
 
@@ -624,8 +624,8 @@ public:
         // < FieldT::capacity()
         nb_elements += 1;
 
-        // h_sig is represented by 2 field elements (if we consider a digest_len
-        // of 256 bits)
+        // h_sig is represented by 2 field elements (if we consider a
+        // digest_len of 256 bits)
         nb_elements +=
             libff::div_ceil(HashT::get_digest_len(), FieldT::capacity());
 

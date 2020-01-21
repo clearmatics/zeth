@@ -79,7 +79,7 @@ contract Pghr13Verifier {
         verifyKey.gammaBeta2 = Pairing.G2Point(gammaBeta2_1, gammaBeta2_2);
         verifyKey.Z = Pairing.G2Point(Z1,Z2);
 
-        uint i = 0;
+        uint i;
         while(verifyKey.IC.length != IC_coefficients.length/2) {
             verifyKey.IC.push(Pairing.G1Point(IC_coefficients[i], IC_coefficients[i+1]));
             i += 2;
@@ -106,7 +106,7 @@ contract Pghr13Verifier {
         // E(A_{in}(s)) if the encoding of A_{in}(s) = \sum_{k ∈ I_{in}} a_k · A_k(s), where I_{in} denotes the indices of the input wires
         // |I_{in}| = n here as we assume that we have a vector x of inputs of size n
         Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
-        for (uint i = 0; i < input.length; i++) {
+        for (uint i; i < input.length; i++) {
             vk_x = Pairing.add(vk_x, Pairing.mul(vk.IC[i + 1], input[i]));
         }
         vk_x = Pairing.add(vk_x, vk.IC[0]);

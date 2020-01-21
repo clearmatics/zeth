@@ -59,10 +59,10 @@ library Bytes {
         bytes1 res = last_byte_prefix ^ shifted_byte;
 
         bytes memory bytes_digest = new bytes(32);
-        for (uint i = 0; i < 31; i++) {
+        for (uint i; i < 31; i++) {
             bytes_digest[i] = inverted_input1[i];
         }
-        
+
         bytes_digest[31] = res;
         bytes32 sha256_digest = bytes_to_bytes32(bytes_digest, 0);
 
@@ -72,7 +72,7 @@ library Bytes {
     function bytes_to_bytes32(bytes memory b, uint offset) internal pure returns (bytes32) {
         bytes32 out;
 
-        for (uint i = 0; i < 32; i++) {
+        for (uint i; i < 32; i++) {
             out |= bytes32(b[offset + i] & 0xFF) >> (i * 8);
         }
         return out;
@@ -81,7 +81,7 @@ library Bytes {
     function flip_endianness_bytes32(bytes32 a) internal pure returns(bytes32) {
         uint r;
         uint b;
-        for (uint i = 0; i < 32; i++) {
+        for (uint i; i < 32; i++) {
             b = (uint(a) >> ((31-i)*8)) & 0xff;
             b = reverse_byte(b);
             r += b << (i*8);
@@ -91,19 +91,19 @@ library Bytes {
 
     function int256ToBytes8(uint256 input) internal pure returns (bytes8) {
         bytes memory inBytes = new bytes(32);
-        assembly { 
-            mstore(add(inBytes, 32), input) 
+        assembly {
+            mstore(add(inBytes, 32), input)
         }
-        
+
         bytes memory subBytes = subBytes(inBytes, 24, 32);
         bytes8 resBytes8;
         assembly {
             resBytes8 := mload(add(subBytes, 32))
         }
-        
+
         return resBytes8;
     }
-    
+
     function subBytes(bytes memory inBytes, uint startIndex, uint endIndex) internal pure returns (bytes memory) {
         bytes memory result = new bytes(endIndex-startIndex);
         for(uint i = startIndex; i < endIndex; i++) {
@@ -123,7 +123,7 @@ library Bytes {
     function flip_endianness_bytes8(bytes8 a) internal pure returns(bytes8) {
         uint64 r;
         uint64 b;
-        for (uint i = 0; i < 8; i++) {
+        for (uint i; i < 8; i++) {
             b = (uint64(a) >> ((7-i)*8)) & 0xff;
             b = reverse_bytes8(b);
             r += b << (i*8);

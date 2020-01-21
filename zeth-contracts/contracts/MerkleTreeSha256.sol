@@ -19,7 +19,7 @@ contract MerkleTreeSha256 is BaseMerkleTree {
     bytes32[] memory tmpTree = new bytes32[](nbNodes);
 
     // Dump the leaves in the right indexes in the tree
-    for (uint i = 0; i < nbLeaves; i++) {
+    for (uint i; i < nbLeaves; i++) {
       tmpTree[(nbLeaves - 1) + i] = leaves[i];
     }
 

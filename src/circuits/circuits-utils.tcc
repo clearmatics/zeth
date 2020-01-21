@@ -95,7 +95,7 @@ libsnark::linear_combination<FieldT> packed_addition(
 // into a vector of FieldT::zero() and FieldT:one()
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> from_bits(
-    std::vector<bool> bits, libsnark::pb_variable<FieldT> &ZERO)
+    std::vector<bool> bits, const libsnark::pb_variable<FieldT> &ZERO)
 {
     libsnark::pb_variable_array<FieldT> acc;
     for (size_t i = 0; i < bits.size(); i++) {

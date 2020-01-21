@@ -54,7 +54,7 @@ contract Bytes_tests {
 
     function testBytesToBytes32() public pure returns (bool) {
         bytes memory test_bytes = new bytes(32);
-        for (uint i = 0; i < 15; i++) {
+        for (uint i; i < 15; i++) {
             test_bytes[i] = bytes1(0xAB);
         }
         for (uint i = 15; i <= 31; i++) {

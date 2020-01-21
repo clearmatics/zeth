@@ -54,7 +54,7 @@ contract Groth16Verifier {
 
         // The `ABC` are elements of G1 (and thus have 2 coordinates in the underlying field)
         // Here, we reconstruct these group elements from field elements (ABC_coords are field elements)
-        uint i = 0;
+        uint i;
         while(verifyKey.ABC.length != ABC_coords.length/2) {
             verifyKey.ABC.push(Pairing.G1Point(ABC_coords[i], ABC_coords[i+1]));
             i += 2;
@@ -76,7 +76,7 @@ contract Groth16Verifier {
 
         // 1. Compute the linear combination vk_x = \sum_{i=0}^{l} a_i * vk.ABC[i], vk_x in G1
         Pairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
-        for (uint i = 0; i < input.length; i++) {
+        for (uint i; i < input.length; i++) {
             vk_x = Pairing.add(vk_x, Pairing.mul(vk.ABC[i + 1], input[i]));
         }
 

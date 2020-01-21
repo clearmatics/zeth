@@ -19,7 +19,7 @@ libsnark::linear_combination<FieldT> packed_addition(
     libsnark::pb_variable_array<FieldT> input);
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> from_bits(
-    std::vector<bool> bits, libsnark::pb_variable<FieldT> &ZERO);
+    std::vector<bool> bits, const libsnark::pb_variable<FieldT> &ZERO);
 template<typename FieldT, size_t BitLen>
 std::array<FieldT, BitLen> binary_field_addition_no_carry(
     std::array<FieldT, BitLen> A, std::array<FieldT, BitLen> B);

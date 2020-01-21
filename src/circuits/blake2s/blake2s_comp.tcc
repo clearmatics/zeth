@@ -27,7 +27,6 @@ BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
     }
 
     // Setup constants, hash parameters and initialize the state
-    ZERO.allocate(pb, FMT(this->annotation_prefix, " ZERO"));
     BLAKE2s_256_comp<FieldT>::setup_constants();
     BLAKE2s_256_comp<FieldT>::setup_h();
 
@@ -66,9 +65,6 @@ void BLAKE2s_256_comp<FieldT>::generate_r1cs_constraints(
     const bool ensure_output_bitness)
 {
     libff::UNUSED(ensure_output_bitness);
-
-    libsnark::generate_r1cs_equals_const_constraint<FieldT>(
-        this->pb, ZERO, FieldT::zero(), FMT(this->annotation_prefix, " ZERO"));
 
     for (size_t i = 0; i < rounds; i++) {
         for (auto &gadget : g_arrays[i]) {
