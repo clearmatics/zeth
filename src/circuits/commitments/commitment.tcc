@@ -112,6 +112,7 @@ COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(
 
     outer_com_gadget.reset(new COMM_gadget<FieldT, HashT>(
         pb, trap_r, get128bits(inner_k->bits), outer_k, annotation_prefix));
+
     final_com_gadget.reset(new COMM_gadget<FieldT, HashT>(
         pb,
         outer_k->bits,
