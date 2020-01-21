@@ -13,10 +13,8 @@ import test_commands.mock as mock
 import api.util_pb2 as util_pb2
 
 from os import urandom
-from web3 import Web3, HTTPProvider  # type: ignore
-from typing import List, Tuple
-
-W3 = Web3(HTTPProvider("http://localhost:8545"))
+from web3 import Web3  # type: ignore
+from typing import List, Tuple, Optional
 
 ZERO_UNITS_HEX = "0000000000000000"
 BOB_DEPOSIT_ETH = 200
@@ -33,20 +31,19 @@ CHARLIE_WITHDRAW_CHANGE_ETH = 39.5
 def dump_merkle_tree(mk_tree: List[bytes]) -> None:
     print("[DEBUG] Displaying the Merkle tree of commitments: ")
     for node in mk_tree:
-        print("Node: " + W3.toHex(node)[2:])
+        print("Node: " + Web3.toHex(node)[2:])
 
 
 def bob_deposit(
         zeth_client: joinsplit.ZethClient,
-        mk_root: str,
         bob_eth_address: str,
         keystore: mock.KeyStore,
-        mk_tree_depth: int) -> contracts.MixResult:
+        tx_value: Optional[EtherValue] = None) -> contracts.MixResult:
     print(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and splits into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH ===")
 
-    bob_ask = keystore["Bob"].addr_sk.a_sk
+    bob_js_keypair = keystore["Bob"]
     bob_addr = keystore["Bob"].addr_pk
 
     outputs = [
@@ -55,26 +52,20 @@ def bob_deposit(
     ]
 
     mk_tree = zeth_client.get_merkle_tree()
-    return zeth_client.joinsplit(
-        mk_root,
+    return zeth_client.wait(zeth_client.deposit(
         mk_tree,
-        mk_tree_depth,
-        joinsplit.OwnershipKeyPair(bob_ask, bob_addr.a_pk),
+        bob_js_keypair,
         bob_eth_address,
-        [],
-        outputs,
         EtherValue(BOB_DEPOSIT_ETH),
-        EtherValue(0),
-        EtherValue(BOB_DEPOSIT_ETH))
+        outputs,
+        tx_value))
 
 
 def bob_to_charlie(
         zeth_client: joinsplit.ZethClient,
-        mk_root: str,
         input1: Tuple[int, util_pb2.ZethNote],
         bob_eth_address: str,
-        keystore: mock.KeyStore,
-        mk_tree_depth: int) -> contracts.MixResult:
+        keystore: mock.KeyStore) -> contracts.MixResult:
     print(
         f"=== Bob transfers {BOB_TO_CHARLIE_ETH}ETH to Charlie from his funds " +
         "on the mixer ===")
@@ -90,26 +81,22 @@ def bob_to_charlie(
 
     # Send the tx
     mk_tree = zeth_client.get_merkle_tree()
-    return zeth_client.joinsplit(
-        mk_root,
+    return zeth_client.wait(zeth_client.joinsplit(
         mk_tree,
-        mk_tree_depth,
         joinsplit.OwnershipKeyPair(bob_ask, bob_addr.a_pk),
         bob_eth_address,
         [input1],
         [output0, output1],
         EtherValue(0),
         EtherValue(0),
-        EtherValue(1, 'wei'))
+        EtherValue(1, 'wei')))
 
 
 def charlie_withdraw(
         zeth_client: joinsplit.ZethClient,
-        mk_root: str,
         input1: Tuple[int, util_pb2.ZethNote],
         charlie_eth_address: str,
-        keystore: mock.KeyStore,
-        mk_tree_depth: int) -> contracts.MixResult:
+        keystore: mock.KeyStore) -> contracts.MixResult:
     print(
         f" === Charlie withdraws {CHARLIE_WITHDRAW_ETH}ETH from his funds " +
         "on the Mixer ===")
@@ -121,26 +108,22 @@ def charlie_withdraw(
     charlie_ownership_key = \
         joinsplit.OwnershipKeyPair(charlie_ask, charlie_apk)
 
-    return zeth_client.joinsplit(
-        mk_root,
+    return zeth_client.wait(zeth_client.joinsplit(
         mk_tree,
-        mk_tree_depth,
         charlie_ownership_key,
         charlie_eth_address,
         [input1],
         [(charlie_pk, EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH))],
         EtherValue(0),
         EtherValue(CHARLIE_WITHDRAW_ETH),
-        EtherValue(1, 'wei'))
+        EtherValue(1, 'wei')))
 
 
 def charlie_double_withdraw(
         zeth_client: joinsplit.ZethClient,
-        mk_root: str,
         input1: Tuple[int, util_pb2.ZethNote],
         charlie_eth_address: str,
-        keystore: mock.KeyStore,
-        mk_tree_depth: int) -> contracts.MixResult:
+        keystore: mock.KeyStore) -> contracts.MixResult:
     """
     Charlie tries to carry out a double spending by modifying the value of the
     nullifier of the previous payment
@@ -153,6 +136,8 @@ def charlie_double_withdraw(
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
 
     mk_byte_tree = zeth_client.get_merkle_tree()
+    mk_tree_depth = zeth_client.mk_tree_depth
+    mk_root = zeth_client.merkle_root
     mk_path1 = compute_merkle_path(input1[0], mk_tree_depth, mk_byte_tree)
 
     # Create the an additional dummy input for the JoinSplit
@@ -243,7 +228,7 @@ def charlie_double_withdraw(
     joinsplit_sig = joinsplit.joinsplit_sign(
         signing_keypair, sender_eph_pk, ciphertexts, proof_json)
 
-    return zeth_client.mix(
+    return zeth_client.wait(zeth_client.mix(
         sender_eph_pk,
         ciphertexts[0],
         ciphertexts[1],
@@ -253,17 +238,15 @@ def charlie_double_withdraw(
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
-        W3.toWei(1, 'wei'),
-        4000000)
+        Web3.toWei(1, 'wei'),
+        4000000))
 
 
 def charlie_corrupt_bob_deposit(
         zeth_client: joinsplit.ZethClient,
-        mk_root: str,
         bob_eth_address: str,
         charlie_eth_address: str,
-        keystore: mock.KeyStore,
-        mk_tree_depth: int) -> contracts.MixResult:
+        keystore: mock.KeyStore) -> contracts.MixResult:
     """
     Charlie tries to break transaction malleability and corrupt the coins
     bob is sending in a transaction
@@ -287,6 +270,8 @@ def charlie_corrupt_bob_deposit(
         f"but Charlie attempts to corrupt the transaction ===")
     bob_apk = keystore["Bob"].addr_pk.a_pk
     bob_ask = keystore["Bob"].addr_sk.a_sk
+    mk_tree_depth = zeth_client.mk_tree_depth
+    mk_root = zeth_client.merkle_root
 
     # Create the JoinSplit dummy inputs for the deposit
     input1 = joinsplit.get_dummy_input_and_address(bob_apk)
@@ -338,7 +323,7 @@ def charlie_corrupt_bob_deposit(
 
     result_corrupt1 = None
     try:
-        result_corrupt1 = zeth_client.mix(
+        result_corrupt1 = zeth_client.wait(zeth_client.mix(
             pk_sender,
             fake_ciphertext0,
             fake_ciphertext1,
@@ -348,8 +333,8 @@ def charlie_corrupt_bob_deposit(
             charlie_eth_address,
             # Pay an arbitrary amount (1 wei here) that will be refunded
             #  since the `mix` function is payable
-            W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-            4000000)
+            Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+            4000000))
     except Exception as e:
         print(
             f"Charlie's first corruption attempt" +
@@ -376,7 +361,7 @@ def charlie_corrupt_bob_deposit(
 
     result_corrupt2 = None
     try:
-        result_corrupt2 = zeth_client.mix(
+        result_corrupt2 = zeth_client.wait(zeth_client.mix(
             pk_sender,
             fake_ciphertext0,
             fake_ciphertext1,
@@ -386,8 +371,8 @@ def charlie_corrupt_bob_deposit(
             charlie_eth_address,
             # Pay an arbitrary amount (1 wei here) that will be refunded since the
             # `mix` function is payable
-            W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-            4000000)
+            Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+            4000000))
     except Exception as e:
         print(
             f"Charlie's second corruption attempt" +
@@ -399,7 +384,7 @@ def charlie_corrupt_bob_deposit(
     # ### ATTACK BLOCK
 
     # Bob transaction is finally mined
-    return zeth_client.mix(
+    return zeth_client.wait(zeth_client.mix(
         pk_sender,
         ciphertexts[0],
         ciphertexts[1],
@@ -407,5 +392,5 @@ def charlie_corrupt_bob_deposit(
         joinsplit_keypair.vk,
         joinsplit_sig,
         bob_eth_address,
-        W3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-        4000000)
+        Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+        4000000))

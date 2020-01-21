@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2015-2019 Clearmatics Technologies Ltd
+#
+# SPDX-License-Identifier: LGPL-3.0+
+
 import sys
 from setuptools import find_packages
 from distutils.core import setup
@@ -23,6 +27,8 @@ setup(
         "mypy-protobuf==1.16",
         "flake8==3.7.8",
         "pylint==2.4.3",
+        "click==7.0",
+        "click-default-group==1.2",
         "attrdict==2.0.1",
         "certifi==2018.11.29",
         "chardet==3.0.4",
@@ -58,5 +64,6 @@ setup(
     scripts=[
         "test_commands/test_ether_mixing.py",
         "test_commands/test_erc_token_mixing.py",
+        "commands/zeth",
     ]
 )

@@ -6,6 +6,9 @@
 
 from typing import List
 
+# DEPLOYMENT GAS
+DEPLOYMENT_GAS_WEI: int = 4000000
+
 # GROTH16 constants
 GROTH16_ZKSNARK: str = "GROTH16"
 GROTH16_VERIFIER_CONTRACT: str = "Groth16Verifier"
@@ -21,12 +24,6 @@ VALID_ZKSNARKS: List[str] = [GROTH16_ZKSNARK, PGHR13_ZKSNARK]
 
 # OTSCHNORR constants
 SCHNORR_VERIFIER_CONTRACT: str = "OTSchnorrVerifier"
-
-# RPC endpoint
-RPC_ENDPOINT: str = "localhost:50051"
-
-# Web3 HTTP provider
-WEB3_HTTP_PROVIDER: str = "http://localhost:8545"
 
 # Merkle tree depth
 ZETH_MERKLE_TREE_DEPTH: int = 4

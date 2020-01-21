@@ -77,7 +77,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // The ciphertext of a note is emitted along the address of insertion in the tree
     // Thus, instead of checking that the decrypted note is represented somewhere in the tree, the recipient just needs
     // to check that the decrypted note opens the commitment at the emitted address
-    event LogAddress(uint commAddr);
+    event LogCommitment(uint commAddr, bytes32 commit);
 
     // Event to emit the root of a the merkle tree
     event LogMerkleRoot(bytes32 root);
@@ -158,8 +158,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
             digest_inputs[0] = primary_inputs[i]; // See the way the inputs are ordered in the extended proof
             digest_inputs[1] = primary_inputs[i+1];
             bytes32 current_commitment = Bytes.sha256_digest_from_field_elements(digest_inputs);
-            uint commitmentAddress = insert(current_commitment);
-            emit LogAddress(commitmentAddress);
+            uint commitment_address = insert(current_commitment);
+            emit LogCommitment(commitment_address, current_commitment);
         }
     }
 

@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+
+set -e
+set -x
+
+TRUFFLE_DIR=`pwd`/zeth-contracts
+BASE_DIR=_test_zeth_cli
+DEPLOYER_DIR=${BASE_DIR}/deployer
+ALICE_DIR=${BASE_DIR}/alice
+BOB_DIR=${BASE_DIR}/bob
+CHARLIE_DIR=${BASE_DIR}/charlie
+
+function run_truffle() {
+    pushd ${TRUFFLE_DIR}
+    eval truffle $@
+    popd
+}
+
+function run_as() {
+    pushd $1
+    shift
+    eval $@
+    popd
+}
+
+function show_balances() {
+    run_truffle exec ../scripts/test_zeth_cli_show_balances.js
+}
+
+# Setup addresses
+
+mkdir -p ${BASE_DIR}
+pushd ${BASE_DIR}
+
+if ! [ -e accounts ] ; then
+    (run_truffle exec ../scripts/test_zeth_cli_get_accounts.js) > accounts
+fi
+
+# 1 - name
+function setup_user() {
+    mkdir -p $1
+    pushd $1
+    ! [ -e eth-address ] && \
+        (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
+    ! [ -e zeth-address.json ] && \
+        (zeth gen-address)
+    popd
+}
+
+setup_user deployer
+setup_user alice
+setup_user bob
+setup_user charlie
+
+# Deploy
+! [ -e deployer/zeth-instance.json ] && \
+    run_as deployer zeth deploy
+
+cp deployer/zeth-instance.json alice
+cp deployer/zeth-instance.json bob
+cp deployer/zeth-instance.json charlie
+
+# Alice deposits 200 and sends 100 to Bob
+pushd alice
+alice_pk=`cat zeth-address.json.pub`
+if ! [ -e notes/state_zeth ] ; then
+    zeth mix --wait --vin 200 --out ${alice_pk},200
+fi
+note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+! [ "" == ${note_id} ]
+
+bob_pk=`cat ../bob/zeth-address.json.pub`
+zeth mix \
+     --wait \
+     --in ${note_id} \
+     --out ${alice_pk},100 \
+     --out ${bob_pk},100
+
+popd # alice
+
+# Bob scans the chain, finds his note, and sends 50 to Charlie
+pushd bob
+zeth sync
+note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+! [ "" == ${note_id} ]
+charlie_pk=`cat ../charlie/zeth-address.json.pub`
+zeth mix \
+     --wait \
+     --in ${note_id} \
+     --out ${bob_pk},50 \
+     --out ${charlie_pk},50
+popd # bob
+
+echo BALANCES FOR WITHDRAW
+show_balances
+
+# Charlie scans the chain and withdraws his 50 ETH
+pushd charlie
+zeth sync
+note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+! [ "" == ${note_id} ]
+zeth mix \
+     --wait \
+     --in ${note_id} \
+     --vout 50
+popd # charlie
+
+echo BALANCES AFTER WITHDRAW
+show_balances
+
+popd # BASE_DIR

@@ -6,6 +6,7 @@
 
 # Parse the arguments given to the script
 
+from __future__ import annotations
 from . import constants
 from . import errors
 
@@ -21,7 +22,12 @@ from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
 from typing import List, Tuple, Union, Any, cast
 
-W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+
+def open_web3(url: str) -> Any:
+    """
+    Create a Web3 context from an http URL.
+    """
+    return Web3(HTTPProvider(url))
 
 
 FQ = ec.FQ
@@ -34,10 +40,24 @@ class EtherValue:
     Disambiguates Ether values from other units such as zeth_units.
     """
     def __init__(self, val: Union[str, int, float], units: str = 'ether'):
-        self.wei = W3.toWei(val, units)
+        self.wei = Web3.toWei(val, units)
 
     def __str__(self) -> str:
         return str(self.wei)
+
+    def __add__(self, other: EtherValue) -> EtherValue:
+        return EtherValue(self.wei + other.wei, 'wei')
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, EtherValue):
+            return False
+        return self.wei == other.wei
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def ether(self) -> str:
+        return str(Web3.fromWei(self.wei, 'ether'))
 
 
 def encode_single(type_name: str, data: bytes) -> bytes:
@@ -180,13 +200,13 @@ def compute_merkle_path(
         address_bits.append(address % 2)
         if (address % 2) == 0:
             # [2:] to strip the 0x prefix
-            merkle_path.append(W3.toHex(byte_tree[address - 1])[2:])
+            merkle_path.append(Web3.toHex(byte_tree[address - 1])[2:])
             # -1 because we decided to start counting from 0 (which is the
             # index of the root node)
             address = int(address/2) - 1
         else:
             print("append note at address: " + str(address + 1))
-            merkle_path.append(W3.toHex(byte_tree[address + 1])[2:])
+            merkle_path.append(Web3.toHex(byte_tree[address + 1])[2:])
             address = int(address/2)
     return merkle_path
 
@@ -298,3 +318,10 @@ def field_elements_to_hex(longfield: str, shortfield: str) -> str:
     res = hex_extend_32bytes("{0:0>4X}".format(int(res, 2)))
 
     return res
+
+
+def short_commitment(cm: bytes) -> str:
+    """
+    Summary of the commitment value, in some standard format.
+    """
+    return cm[0:4].hex()

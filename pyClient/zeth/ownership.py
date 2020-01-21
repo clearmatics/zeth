@@ -38,6 +38,20 @@ def ownership_key_as_hex(a_sk: bytes) -> str:
     return hex_extend_32bytes(a_sk.hex())
 
 
+def ownership_public_key_from_hex(key_hex: str) -> OwnershipPublicKey:
+    """
+    Read an ownership public key from a hex string.
+    """
+    return OwnershipPublicKey(bytes.fromhex(key_hex))
+
+
+def ownership_secret_key_from_hex(key_hex: str) -> OwnershipSecretKey:
+    """
+    Read an ownership public key from a hex string.
+    """
+    return OwnershipSecretKey(bytes.fromhex(key_hex))
+
+
 def gen_ownership_keypair() -> OwnershipKeyPair:
     a_sk = OwnershipSecretKey(Random.get_random_bytes(32))
     a_pk = _derive_a_pk(a_sk)

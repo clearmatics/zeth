@@ -29,7 +29,8 @@ syntax: ${PROTOBUF_OUTPUT}
 	mypy -p zeth
 	mypy -p test
 	mypy -p test_commands
-	pylint zeth test test_commands
+	mypy -p commands
+	pylint zeth test test_commands commands
 
 test: ${PROTOBUF_OUTPUT}
 	python -m unittest

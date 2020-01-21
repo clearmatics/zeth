@@ -17,7 +17,7 @@ disable=
     fixme,
     import-outside-toplevel,
 
-good-names=c,e,h,i,k,m,r,y,x,cm,ct,el,ek,ex,rc,sk,vk,X,Y,nf,w3
+good-names=c,e,h,i,k,m,r,y,x,cm,ct,el,ek,ex,rc,sk,vk,X,Y,nf
 
 [REPORTS]
 output-format=text

@@ -16,6 +16,9 @@ function format_check() {
         cat format_errors
         exit 1
     fi
+
+    # Perform the check for copyright notices here
+    scripts/check_copyright
 }
 
 function pyclient_check() {
