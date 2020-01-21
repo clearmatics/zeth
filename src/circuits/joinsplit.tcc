@@ -50,7 +50,6 @@ private:
         NumInputs + NumOutputs + 1 + 1 + 1 + NumInputs>
         packers;
 
-    // TODO remove zero
     libsnark::pb_variable<FieldT> ZERO;
 
     // ---- Primary inputs (public) ---- //
