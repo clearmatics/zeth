@@ -82,37 +82,11 @@ def main() -> None:
     k_sk_bob = keystore["Bob"].addr_sk.k_sk
     k_sk_charlie = keystore["Charlie"].addr_sk.k_sk
 
-    alice_wallet = Wallet("alice", coinstore_dir, k_sk_alice)
-    bob_wallet = Wallet("bob", coinstore_dir, k_sk_bob)
-    charlie_wallet = Wallet("charlie", coinstore_dir, k_sk_charlie)
-
-    print("[INFO] 1. Fetching the verification key from the proving server")
-    vk = prover_client.get_verification_key()
-
-    print("[INFO] 2. Received VK, writing the key...")
-    zeth.joinsplit.write_verification_key(vk, zksnark)
-
-    print("[INFO] 3. VK written, deploying the smart contracts...")
-    (proof_verifier_interface, otsig_verifier_interface, mixer_interface) = \
-        zeth.contracts.compile_contracts(zksnark)
-    hasher_interface, _ = zeth.contracts.compile_util_contracts()
-    token_instance = deploy_token(deployer_eth_address, 4000000)
-    (mixer_instance, initial_root) = zeth.contracts.deploy_contracts(
-        mk_tree_depth,
-        proof_verifier_interface,
-        otsig_verifier_interface,
-        mixer_interface,
-        hasher_interface,
-        deployer_eth_address,
-        4250000,
-        # We mix Ether in this test, so we set the addr of the ERC20 contract
-        # to be 0x0
-        token_instance.address,
-        zksnark
-    )
-
-    zeth_client = zeth.joinsplit.ZethClient(
-        prover_client, mixer_instance, zksnark)
+    mixer_instance = zeth_client.mixer_instance
+    alice_wallet = Wallet(mixer_instance, "alice", coinstore_dir, k_sk_alice)
+    bob_wallet = Wallet(mixer_instance, "bob", coinstore_dir, k_sk_bob)
+    charlie_wallet = Wallet(
+        mixer_instance, "charlie", coinstore_dir, k_sk_charlie)
 
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
     # We assign ETHToken to Bob
@@ -201,7 +175,6 @@ def main() -> None:
     try:
         result_double_spending = scenario.bob_to_charlie(
             zeth_client,
-            new_merkle_root_bob_to_charlie,
             input_bob_to_charlie,
             bob_eth_address,
             keystore)

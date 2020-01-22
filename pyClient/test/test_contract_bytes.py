@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-import zeth.constants as constants
-
 import os
 from solcx import compile_files  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 
-W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
+W3 = Web3(HTTPProvider("http://localhost:8545"))
 eth = W3.eth  # pylint: disable=no-member,invalid-name
 
 

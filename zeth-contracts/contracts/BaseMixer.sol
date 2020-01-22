@@ -163,13 +163,14 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     function assemble_public_values(uint[] memory primary_inputs) public pure returns (uint64 vpub_in, uint64 vpub_out){
         // We know vpub_in corresponds to the first 64 bits of the first residual field element after padding.
         // We retrieve the public value in, remove any extra bits (due to the padding) and inverse the bit order
-        bytes32 vpub_bytes = (bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << padding) >> (digest_length-size_value);
-        vpub_bytes = vpub_bytes >> (digest_length-size_value);
+        // N.B. Bytes.int256ToBytes8(x) extract the last 8 bytes of x
+        uint residual_hash_size = packing_residue_length*nb_hash_digests;
+
+        bytes32 vpub_bytes = bytes32(primary_inputs[1 + nb_hash_digests]) >> (residual_hash_size + public_value_length);
         vpub_in = Bytes.get_int64_from_bytes8(Bytes.int256ToBytes8(uint(vpub_bytes)));
 
         // We retrieve the public value out, remove any extra bits (due to the padding) and inverse the bit order
-        vpub_bytes = (bytes32(primary_inputs[1 + 1 + 2*jsIn + jsOut]) << (padding+size_value)) >> (digest_length-size_value);
-        vpub_bytes = vpub_bytes >> (digest_length-size_value);
+        vpub_bytes = bytes32(primary_inputs[1 + nb_hash_digests]) >> residual_hash_size;
         vpub_out = Bytes.get_int64_from_bytes8(Bytes.int256ToBytes8(uint(vpub_bytes)));
     }
 
@@ -280,7 +281,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         for(uint i ; i < jsOut; i ++) {
             bytes32 current_commitment = assemble_commitment(i, primary_inputs);
             uint commitmentAddress = insert(current_commitment);
-            emit LogAddress(commitmentAddress);
+            emit LogCommitment(commitmentAddress, current_commitment);
         }
     }
 

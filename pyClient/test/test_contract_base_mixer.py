@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
+import test_commands.mock as mock
 import zeth.constants as constants
-import zeth.contracts as contracts
 import zeth.joinsplit
-from zeth.prover_client import ProverClient
 
-from web3 import Web3, HTTPProvider  # type: ignore
 from typing import Any
-
-W3 = Web3(HTTPProvider(constants.WEB3_HTTP_PROVIDER))
-eth = W3.eth  # pylint: disable=no-member,invalid-name
-TEST_GRPC_ENDPOINT = constants.RPC_ENDPOINT
 
 # Mixer variables
 size_value = 64  # pylint: disable=no-member,invalid-name
@@ -270,39 +264,24 @@ def test_extract_empty_primary_inputs(mixer_instance: Any) -> int:
 def main() -> None:
     print("-------------------- Evaluating BaseMixer.sol --------------------")
 
-    zksnark = zeth.zksnark.get_zksnark_provider("GROTH16")
+    zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
 
-    # Depth of the merkle tree (need to match the one used in the cpp prover)
-    mk_tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
+    web3, eth = mock.open_test_web3()
 
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]
 
-    prover_client = ProverClient(TEST_GRPC_ENDPOINT)
+    prover_client = mock.open_test_prover_client()
 
-    print("[INFO] 1. Fetching the verification key from the proving server")
-    vk = prover_client.get_verification_key()
-
-    print("[INFO] 2. Received VK, writing the key...")
-    zeth.joinsplit.write_verification_key(vk, zksnark)
-
-    print("[INFO] 3. VK written, deploying the smart contracts...")
-    (proof_verifier_interface, otsig_verifier_interface, mixer_interface) = \
-        contracts.compile_contracts(zksnark)
-    hasher_interface, _ = contracts.compile_util_contracts()
-    (mixer_instance, _) = contracts.deploy_contracts(
-        mk_tree_depth,
-        proof_verifier_interface,
-        otsig_verifier_interface,
-        mixer_interface,
-        hasher_interface,
+    # Deploy Zeth contracts
+    zeth_client = zeth.joinsplit.ZethClient.deploy(
+        web3,
+        prover_client,
+        constants.ZETH_MERKLE_TREE_DEPTH,
         deployer_eth_address,
-        5000000,
-        # We mix Ether in this test, so we set the addr of the ERC20 contract
-        # to be 0x0
-        "0x0000000000000000000000000000000000000000",
-        zksnark
-    )
+        zksnark)
+
+    mixer_instance = zeth_client.mixer_instance
 
     # We can now call the instance and test its functions.
     print("[INFO] 4. Running tests")
