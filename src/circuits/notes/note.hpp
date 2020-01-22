@@ -91,7 +91,12 @@ public:
         // Current Merkle root
         libsnark::pb_variable<FieldT> rt,
         const std::string &annotation_prefix = "input_note_gadget");
+
+    // Check the booleaness of the rho
+    // Check that a_pk, nf and cm are correctly computed
+    // Check cm is in the merkle tree of root rt
     void generate_r1cs_constraints();
+
     void generate_r1cs_witness(
         const std::vector<FieldT> merkle_path,
         libff::bit_vector address_bits,
@@ -113,7 +118,11 @@ public:
         std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
         std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
         const std::string &annotation_prefix = "output_note_gadget");
+
+    // Check the booleaness of the a_pk
+    // Check that cm is correctly computed
     void generate_r1cs_constraints();
+
     void generate_r1cs_witness(const zeth_note &note);
 };
 
