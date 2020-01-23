@@ -40,5 +40,14 @@ JS_OUTPUTS: int = 2
 ZETH_PRIME: int = \
     21888242871839275222246405745257275088548364400416034343698204186575808495617
 
+# Field capacity (=floor(log_2(ZETH_PRIME)))
+FIELD_CAPACITY: int = 253
+
+# Hash digest length (for commitment and PRFs)
+DIGEST_LENGTH: int = 256
+
+# Public value length (v_pub_in and v_pub_out)
+PUBLIC_VALUE_LENGTH: int = 64
+
 # Solidity compiler version
 SOL_COMPILER_VERSION = 'v0.5.16'

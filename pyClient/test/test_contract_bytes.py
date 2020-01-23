@@ -27,42 +27,42 @@ def main() -> None:
     address = tx_receipt['contractAddress']
     bytes_instance = eth.contract(address=address, abi=bytes_interface['abi'])
 
-    result = 1
+    result = 0
 
     print("--- testing ", "testReverseByte")
     test_reverse_byte = bytes_instance.functions.testReverseByte().call()
     if not test_reverse_byte:
         print("testReverseByte FAILS")
-        result *= 0
+        result += 1
 
     print("--- testing ", "testGetLastByte")
     test_get_last_byte = bytes_instance.functions.testGetLastByte().call()
     if not test_get_last_byte:
         print("testGetLastByte FAILS")
-        result *= 0
+        result += 1
 
     print("--- testing ", "testFlipEndiannessBytes32")
     test_flip_endianness_bytes32 = \
         bytes_instance.functions.testFlipEndiannessBytes32().call()
     if not test_flip_endianness_bytes32:
         print("testFlipEndiannessBytes32 FAILS")
-        result *= 0
+        result += 1
 
     print("--- testing ", "testBytesToBytes32")
     test_bytes_to_bytes32 = \
         bytes_instance.functions.testBytesToBytes32().call()
     if not test_bytes_to_bytes32:
         print("testBytesToBytes32 FAILS")
-        result *= 0
+        result += 1
 
     print("--- testing ", "testSha256DigestFromFieldElements")
     test_sha256_digest_from_field_elements = \
         bytes_instance.functions.testSha256DigestFromFieldElements().call()
     if not test_sha256_digest_from_field_elements:
         print("testSha256DigestFromFieldElements FAILS")
-        result *= 0
+        result += 1
 
-    if result:
+    if result == 0:
         print("All Bytes tests PASS")
 
 
