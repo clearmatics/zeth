@@ -57,7 +57,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // IMPORTANT NOTE: We need to employ the same JS configuration than the one used in the cpp prover
     // Here we use 2 inputs and 2 outputs (it is a 2-2 JS)
     uint constant jsIn = 2; // Nb of nullifiers
-    uint constant jsOut = 2; // Nb of commitments/cipher-texts
+    uint constant jsOut = 2; // Nb of commitments/ciphertexts
 
     // Size of the public values in bits
     uint constant public_value_length = 64;
