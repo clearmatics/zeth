@@ -101,10 +101,10 @@ COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(
 {
     // Allocate temporary results
     inner_k.reset(new libsnark::digest_variable<FieldT>(
-        pb, 256, FMT(this->annotation_prefix, " inner_k")));
+        pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " inner_k")));
 
     outer_k.reset(new libsnark::digest_variable<FieldT>(
-        pb, 256, FMT(this->annotation_prefix, " outer_k")));
+        pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " outer_k")));
 
     // Allocate gadgets
     inner_com_gadget.reset(new COMM_gadget<FieldT, HashT>(

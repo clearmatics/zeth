@@ -28,8 +28,8 @@ private:
     // Number of residual bits from packing of hash digests into smaller
     // field elements to which are added the public value of size 64 bits
     const size_t length_bit_residual =
-        2 * 64 + (HashT::get_digest_len() - FieldT::capacity()) *
-                     (1 + 2 * NumInputs + NumOutputs);
+        2 * (ZETH_V_SIZE * 8) + (HashT::get_digest_len() - FieldT::capacity()) *
+                                    (1 + 2 * NumInputs + NumOutputs);
     // Number of field elements needed to pack this number of bits
     const size_t nb_field_residual =
         libff::div_ceil(length_bit_residual, FieldT::capacity());
@@ -215,9 +215,13 @@ public:
                     HashT::get_digest_len(),
                     FMT(this->annotation_prefix, " input_nullifiers[%zu]", i)));
                 a_sks[i].reset(new libsnark::digest_variable<FieldT>(
-                    pb, 256, FMT(this->annotation_prefix, " a_sks[%zu]", i)));
+                    pb,
+                    ZETH_A_SK_SIZE * 8,
+                    FMT(this->annotation_prefix, " a_sks[%zu]", i)));
                 h_is[i].reset(new libsnark::digest_variable<FieldT>(
-                    pb, 256, FMT(this->annotation_prefix, " h_is[%zu]", i)));
+                    pb,
+                    HashT::get_digest_len(),
+                    FMT(this->annotation_prefix, " h_is[%zu]", i)));
             }
             for (size_t i = 0; i < NumOutputs; i++) {
                 rho_is[i].reset(new libsnark::digest_variable<FieldT>(
@@ -233,9 +237,13 @@ public:
 
             // Allocate the zk_vpub_in and zk_vpub_out
             zk_vpub_in.allocate(
-                pb, 64, FMT(this->annotation_prefix, " zk_vpub_in"));
+                pb,
+                ZETH_V_SIZE * 8,
+                FMT(this->annotation_prefix, " zk_vpub_in"));
             zk_vpub_out.allocate(
-                pb, 64, FMT(this->annotation_prefix, " zk_vpub_out"));
+                pb,
+                ZETH_V_SIZE * 8,
+                FMT(this->annotation_prefix, " zk_vpub_out"));
 
             // Initialize the unpacked input corresponding to the input
             // NullifierS
@@ -435,7 +443,7 @@ public:
         } // End of the block dedicated to generate the verifier inputs
 
         zk_total_uint64.allocate(
-            pb, 64, FMT(this->annotation_prefix, " zk_total"));
+            pb, ZETH_V_SIZE * 8, FMT(this->annotation_prefix, " zk_total"));
 
         // Input note gadgets for commitments, nullifiers, and spend authority
         // as well as PRF gadgets for the h_iS
@@ -519,7 +527,7 @@ public:
 
             // See: https://github.com/zcash/zcash/issues/854
             // Ensure that `left_side` is a 64-bit integer
-            for (size_t i = 0; i < 64; i++) {
+            for (size_t i = 0; i < ZETH_V_SIZE * 8; i++) {
                 libsnark::generate_boolean_r1cs_constraint<FieldT>(
                     this->pb,
                     zk_total_uint64[i],
@@ -577,8 +585,8 @@ public:
             // https://stackoverflow.com/questions/13282825/adding-binary-numbers-in-c
             bits64 left_side_acc = vpub_in;
             for (size_t i = 0; i < NumInputs; i++) {
-                left_side_acc =
-                    binary_addition<64>(left_side_acc, inputs[i].note.value());
+                left_side_acc = binary_addition<ZETH_V_SIZE * 8>(
+                    left_side_acc, inputs[i].note.value());
             }
 
             zk_total_uint64.fill_with_bits(
@@ -628,10 +636,10 @@ public:
         }
 
         // Bit-length of vpub_in
-        acc += 64;
+        acc += ZETH_V_SIZE * 8;
 
         // Bit-length of vpub_out
-        acc += 64;
+        acc += ZETH_V_SIZE * 8;
 
         // Bit-length of h_sig
         acc += HashT::get_digest_len();
@@ -691,8 +699,9 @@ public:
         // Residual bits and public values (in and out) aggregated in
         // `nb_field_residual` field elements
         nb_elements += libff::div_ceil(
-            2 * 64 + (HashT::get_digest_len() - FieldT::capacity()) *
-                         (1 + 2 * NumInputs + NumOutputs),
+            2 * (ZETH_V_SIZE * 8) +
+                (HashT::get_digest_len() - FieldT::capacity()) *
+                    (1 + 2 * NumInputs + NumOutputs),
             FieldT::capacity());
 
         return nb_elements;
