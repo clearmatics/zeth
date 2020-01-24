@@ -17,6 +17,7 @@ from zeth.encryption import \
     encryption_secret_key_as_hex, encryption_secret_key_from_hex
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
 import zeth.signing as signing
+from zeth.timer import Timer
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, encrypt, \
@@ -515,6 +516,10 @@ class ZethClient:
         outputs_with_a_pk = \
             [(zeth_addr.a_pk, to_zeth_units(value))
              for (zeth_addr, value) in outputs]
+
+        # Timer used to time proof-generation round trip time.
+        timer = Timer.started()
+
         (output_note1, output_note2, proof_json, signing_keypair) = \
             self.get_proof_joinsplit_2_by_2(
                 mk_root,
@@ -528,6 +533,9 @@ class ZethClient:
                 to_zeth_units(v_in),
                 to_zeth_units(v_out),
                 compute_h_sig_cb)
+
+        proof_gen_time_s = timer.elapsed_seconds()
+        print(f"PROOF GEN ROUND TRIP: {proof_gen_time_s} seconds")
 
         # Encrypt the notes
         outputs_and_notes = zip(outputs, [output_note1, output_note2])
