@@ -63,7 +63,7 @@ def main() -> None:
         result += 1
 
     if result == 0:
-        print("All Bytes tests PASS")
+        print("All Bytes tests PASS\n")
 
 
 if __name__ == '__main__':

@@ -3,12 +3,15 @@
 # Copyright (c) 2015-2019 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
-
+import os
 from typing import Any
+from solcx import compile_files  # type: ignore
 import test_commands.mock as mock
+
 from zeth.constants import DIGEST_LENGTH, FIELD_CAPACITY,\
     JS_INPUTS, JS_OUTPUTS, ZETH_MERKLE_TREE_DEPTH
-import zeth.joinsplit
+import zeth.contracts as contracts
+
 
 # The variable inputs represents a dummy primary input array,
 # it is structured as follows,
@@ -129,24 +132,39 @@ def test_assemble_vpub(mixer_instance: Any) -> Any:
 def main() -> None:
     print("-------------------- Evaluating BaseMixer.sol --------------------")
 
-    zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
-
     web3, eth = mock.open_test_web3()
 
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]
 
-    prover_client = mock.open_test_prover_client()
+    contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
+    path_to_mixer = os.path.join(contracts_dir, "BaseMixer.sol")
+    compiled_sol = compile_files([path_to_mixer])
+    mixer_interface = compiled_sol[path_to_mixer + ':' + "BaseMixer"]
 
-    # Deploy Zeth contracts
-    zeth_client = zeth.joinsplit.ZethClient.deploy(
-        web3,
-        prover_client,
-        ZETH_MERKLE_TREE_DEPTH,
-        deployer_eth_address,
-        zksnark)
+    hasher_interface, _ = contracts.compile_util_contracts()
+    # Deploy MiMC contract
+    _, hasher_address = contracts.deploy_mimc_contract(
+        web3, hasher_interface, deployer_eth_address)
 
-    mixer_instance = zeth_client.mixer_instance
+    token_address = "0x0000000000000000000000000000000000000000"
+
+    mixer = web3.eth.contract(
+        abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
+    tx_hash = mixer.constructor(
+            depth=ZETH_MERKLE_TREE_DEPTH,
+            token_address=token_address,
+            hasher_address=hasher_address
+        ).transact({'from': deployer_eth_address})
+
+    # Get tx receipt to get Mixer contract address
+    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
+    mixer_address = tx_receipt['contractAddress']
+    # Get the mixer contract instance
+    mixer_instance = web3.eth.contract(
+        address=mixer_address,
+        abi=mixer_interface['abi']
+    )
 
     # We can now call the instance and test its functions.
     print("[INFO] 4. Running tests")
@@ -157,7 +175,7 @@ def main() -> None:
     result += test_assemble_hsig(mixer_instance)
 
     if result == 0:
-        print("base_mixer tests PASS")
+        print("base_mixer tests PASS\n")
 
 
 if __name__ == '__main__':

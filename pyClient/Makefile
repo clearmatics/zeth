@@ -1,5 +1,5 @@
 
-.PHONY: setup setup-dev dev check test syntax grpc
+.PHONY: setup setup-dev dev check test syntax grpc test_contracts
 
 setup:
 	pip install --upgrade pip
@@ -8,7 +8,7 @@ setup:
 	python -c "from zeth.contracts import install_sol; \
 		install_sol()"
 
-check: syntax test
+check: syntax test test_contracts
 
 PROTOBUF_OUTPUT := \
   api/prover_pb2.py api/prover_pb2_grpc.py \
@@ -36,3 +36,7 @@ syntax: ${PROTOBUF_OUTPUT}
 
 test: ${PROTOBUF_OUTPUT}
 	python -m unittest
+
+test_contracts: ${PROTOBUF_OUTPUT}
+	python test/test_contract_base_mixer.py
+	python test/test_contract_bytes.py
