@@ -6,7 +6,7 @@
 
 import zeth.joinsplit as joinsplit
 import zeth.contracts as contracts
-from zeth.constants import ZETH_PRIME
+from zeth.constants import ZETH_PRIME, FIELD_CAPACITY
 import zeth.signing as signing
 from zeth.utils import EtherValue, compute_merkle_path
 import test_commands.mock as mock
@@ -164,12 +164,12 @@ def charlie_double_withdraw(
         # We disassemble the nfs to get the formatting of the primary inputs
         input_nullifier0 = nf0.hex()
         input_nullifier1 = nf1.hex()
-        nf0_rev = "{0:0256b}".format(int(input_nullifier0, 16))[::-1]
-        primary_input1_bits = nf0_rev[3:]
-        primary_input1_res_bits = nf0_rev[:3]
-        nf1_rev = "{0:0256b}".format(int(input_nullifier1, 16))[::-1]
-        primary_input2_bits = nf1_rev[3:]
-        primary_input2_res_bits = nf1_rev[:3]
+        nf0_rev = "{0:0256b}".format(int(input_nullifier0, 16))
+        primary_input1_bits = nf0_rev[:FIELD_CAPACITY]
+        primary_input1_res_bits = nf0_rev[FIELD_CAPACITY:]
+        nf1_rev = "{0:0256b}".format(int(input_nullifier1, 16))
+        primary_input2_bits = nf1_rev[:FIELD_CAPACITY]
+        primary_input2_res_bits = nf1_rev[FIELD_CAPACITY:]
 
         # We perform the attack, recoding the modified public input values
         nonlocal attack_primary_input1
@@ -179,13 +179,15 @@ def charlie_double_withdraw(
 
         # We reassemble the nfs
         attack_primary_input1_bits = "{0:0256b}".format(attack_primary_input1)
-        attack_nf0_bits = \
-            primary_input1_res_bits + attack_primary_input1_bits[3:]
-        attack_nf0 = "{0:064x}".format(int(attack_nf0_bits[::-1], 2))
+        attack_nf0_bits = attack_primary_input1_bits[
+            len(attack_primary_input1_bits) - FIELD_CAPACITY:] +\
+            primary_input1_res_bits
+        attack_nf0 = "{0:064x}".format(int(attack_nf0_bits, 2))
         attack_primary_input2_bits = "{0:0256b}".format(attack_primary_input2)
-        attack_nf1_bits = \
-            primary_input2_res_bits + attack_primary_input2_bits[3:]
-        attack_nf1 = "{0:064x}".format(int(attack_nf1_bits[::-1], 2))
+        attack_nf1_bits = attack_primary_input2_bits[
+            len(attack_primary_input2_bits) - FIELD_CAPACITY:] +\
+            primary_input2_res_bits
+        attack_nf1 = "{0:064x}".format(int(attack_nf1_bits, 2))
         return joinsplit.compute_h_sig(
             bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_vk)
 
