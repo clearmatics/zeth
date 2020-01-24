@@ -6,7 +6,7 @@
 
 import zeth.joinsplit as joinsplit
 import zeth.contracts as contracts
-from zeth.constants import ZETH_PRIME, FIELD_CAPACITY
+from zeth.constants import ZETH_PRIME, FIELD_CAPACITY, DEFAULT_MIX_GAS_WEI
 import zeth.signing as signing
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
 from zeth.utils import EtherValue
@@ -263,7 +263,7 @@ def charlie_double_withdraw(
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
         Web3.toWei(1, 'wei'),
-        4000000)
+        DEFAULT_MIX_GAS_WEI)
     return wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
 
 
@@ -362,7 +362,7 @@ def charlie_corrupt_bob_deposit(
             joinsplit_sig_charlie,
             charlie_eth_address,
             Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-            4000000)
+            DEFAULT_MIX_GAS_WEI)
         result_corrupt1 = \
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
     except Exception as e:
@@ -400,7 +400,7 @@ def charlie_corrupt_bob_deposit(
             joinsplit_sig_charlie,
             charlie_eth_address,
             Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-            4000000)
+            DEFAULT_MIX_GAS_WEI)
         result_corrupt2 = \
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
     except Exception as e:
@@ -458,5 +458,5 @@ def charlie_corrupt_bob_deposit(
         joinsplit_sig_bob,
         bob_eth_address,
         Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-        4000000)
+        DEFAULT_MIX_GAS_WEI)
     return wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)

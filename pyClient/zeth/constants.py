@@ -6,9 +6,6 @@
 
 from typing import List
 
-# DEPLOYMENT GAS
-DEPLOYMENT_GAS_WEI: int = 4000000
-
 # GROTH16 constants
 GROTH16_ZKSNARK: str = "GROTH16"
 GROTH16_MIXER_CONTRACT: str = "Groth16Mixer"
@@ -28,6 +25,11 @@ JS_INPUTS: int = 2
 
 # Nb of output notes
 JS_OUTPUTS: int = 2
+
+# Gas cost estimates
+DEPLOYMENT_GAS_WEI: int = pow(2, ZETH_MERKLE_TREE_DEPTH) * 250000
+
+DEFAULT_MIX_GAS_WEI: int = DEPLOYMENT_GAS_WEI
 
 # Order of the largest prime order subgroup of the elliptic curve group.  See:
 # https://github.com/ethereum/go-ethereum/blob/master/crypto/bn256/cloudflare/constants.go#L23

@@ -557,7 +557,7 @@ class ZethClient:
             signature,
             sender_eth_address,
             tx_value.wei,
-            4000000)
+            constants.DEFAULT_MIX_GAS_WEI)
 
     def mix(
             self,
