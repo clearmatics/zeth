@@ -72,7 +72,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // see primary input `residual_bits` in Reminder below
     uint constant packing_residue_length = digest_length - field_capacity;
 
-    // Number of hash digests int he primary inputs
+    // Number of hash digests in the primary inputs
     uint constant nb_hash_digests = 1 + 2*jsIn + jsOut;
 
     // Total number of residual bits from packing of 256-bit long string into 253-bit long field elements
@@ -144,11 +144,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // [Root, NullifierS, CommitmentS, h_sig, h_iS, Residual Field Element(S)]
     // ie, below is the index mapping of the primary input elements on the protoboard:
     // - Index of the "Root" field elements: {0}
-    // - Index of the "NullifierS" field elements: [1, NumInputs + 1[
-    // - Index of the "CommitmentS" field elements: [NumInputs + 1, NumOutputs + NumInputs + 1[
-    // - Index of the "h_sig" field element: {NumOutputs + NumInputs + 1}
-    // - Index of the "Message Authentication TagS" (h_i) field elements: [NumOutputs + NumInputs + 1 + 1, NumOutputs + NumInputs + 1 + NumOuputs [
-    // - Index of the "Residual Field Element(s)" field elements: [NumOutputs + NumInputs + 1 + NumOuputs + 1 , NumOutputs + NumInputs + 1 + NumOuputs + 1 + nb_field_residual]
+    // - Index of the "NullifierS" field elements: [1, 1 + NumInputs[
+    // - Index of the "CommitmentS" field elements: [1 + NumInputs, 1 + NumInputs + NumOutputs[
+    // - Index of the "h_sig" field element: {1 + NumInputs + NumOutputs}
+    // - Index of the "Message Authentication TagS" (h_i) field elements: [1 + NumInputs + NumOutputs + 1, 1 + NumInputs + NumOuputs + 1 + NumInputs [
+    // - Index of the "Residual Field Element(s)" field elements: [1 + NumInputs + NumOutputs + 1 + NumInputs, 1 + NumInputs + NumOuputs + 1 + NumInputs + nb_field_residual[
     //
     // The Residual field elements are structured as follows:
     // - v_pub_in [0, public_value_length[
@@ -163,15 +163,14 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     function assemble_public_values(uint[] memory primary_inputs) public pure returns (uint64 vpub_in, uint64 vpub_out){
         // We know vpub_in corresponds to the first 64 bits of the first residual field element after padding.
         // We retrieve the public value in, remove any extra bits (due to the padding) and inverse the bit order
-        // N.B. Bytes.int256ToBytes8(x) extract the last 8 bytes of x
         uint residual_hash_size = packing_residue_length*nb_hash_digests;
 
         bytes32 vpub_bytes = bytes32(primary_inputs[1 + nb_hash_digests]) >> (residual_hash_size + public_value_length);
-        vpub_in = Bytes.get_int64_from_bytes8(Bytes.int256ToBytes8(uint(vpub_bytes)));
+        vpub_in = uint64(Bytes.get_last_8_bytes(uint(vpub_bytes)));
 
         // We retrieve the public value out, remove any extra bits (due to the padding) and inverse the bit order
         vpub_bytes = bytes32(primary_inputs[1 + nb_hash_digests]) >> residual_hash_size;
-        vpub_out = Bytes.get_int64_from_bytes8(Bytes.int256ToBytes8(uint(vpub_bytes)));
+        vpub_out = uint64(Bytes.get_last_8_bytes(uint(vpub_bytes)));
     }
 
     // This function is used to reassemble hsig given the the primary_inputs
@@ -278,7 +277,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     function assemble_commitments_and_append_to_state(uint[] memory primary_inputs) internal {
         // We re-assemble the commitments (JSOutputs)
-        for(uint i ; i < jsOut; i ++) {
+        for(uint i ; i < jsOut; i++) {
             bytes32 current_commitment = assemble_commitment(i, primary_inputs);
             uint commitmentAddress = insert(current_commitment);
             emit LogCommitment(commitmentAddress, current_commitment);

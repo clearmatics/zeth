@@ -51,7 +51,15 @@ library Bytes {
         return out;
     }
 
-    function int256ToBytes8(uint256 input) internal pure returns (bytes8) {
+    function subBytes(bytes memory inBytes, uint startIndex, uint endIndex) internal pure returns (bytes memory) {
+        bytes memory result = new bytes(endIndex-startIndex);
+        for(uint i = startIndex; i < endIndex; i++) {
+            result[i-startIndex] = inBytes[i];
+        }
+        return result;
+    }
+
+    function get_last_8_bytes(uint256 input) internal pure returns (bytes8) {
         bytes memory inBytes = new bytes(32);
         assembly {
             mstore(add(inBytes, 32), input)
@@ -64,18 +72,6 @@ library Bytes {
         }
 
         return resBytes8;
-    }
-
-    function subBytes(bytes memory inBytes, uint startIndex, uint endIndex) internal pure returns (bytes memory) {
-        bytes memory result = new bytes(endIndex-startIndex);
-        for(uint i = startIndex; i < endIndex; i++) {
-            result[i-startIndex] = inBytes[i];
-        }
-        return result;
-    }
-
-    function get_int64_from_bytes8(bytes8 input) internal pure returns(uint64) {
-        return uint64(input);
     }
 
     function get_last_byte(bytes32 x) internal pure returns(bytes1) {
