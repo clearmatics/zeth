@@ -22,11 +22,6 @@ bits64 get_bits64_from_vector(std::vector<bool> vect)
     return dump_vector_in_array<64>(vect);
 }
 
-bits32 get_bits32_from_vector(std::vector<bool> vect)
-{
-    return dump_vector_in_array<32>(vect);
-}
-
 std::vector<bool> get_vector_from_bits384(bits384 arr)
 {
     return dump_array_in_vector<384>(arr);
@@ -45,20 +40,6 @@ std::vector<bool> get_vector_from_bits64(bits64 arr)
 std::vector<bool> get_vector_from_bits32(bits32 arr)
 {
     return dump_array_in_vector<32>(arr);
-}
-
-bits64 sum_bits64(bits64 a, bits64 b)
-{
-    std::array<bool, 64> sum;
-
-    try {
-        sum = binary_addition(a, b);
-    } catch (const std::overflow_error &e) {
-        // We return 0 encoded in binary if we overflow
-        sum.fill(0);
-    }
-
-    return sum;
 }
 
 } // namespace libzeth

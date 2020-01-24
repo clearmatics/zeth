@@ -27,7 +27,6 @@ std::array<bool, Size> dump_vector_in_array(std::vector<bool> vect);
 bits384 get_bits384_from_vector(std::vector<bool> vect);
 bits256 get_bits256_from_vector(std::vector<bool> vect);
 bits64 get_bits64_from_vector(std::vector<bool> vect);
-bits32 get_bits32_from_vector(std::vector<bool> vect);
 template<size_t TreeDepth>
 bits_addr<TreeDepth> get_bits_addr_from_vector(const std::vector<bool> &vect);
 
@@ -42,18 +41,16 @@ std::vector<bool> get_vector_from_bits32(bits32 arr);
 template<size_t TreeDepth>
 std::vector<bool> get_vector_from_bits_addr(const bits_addr<TreeDepth> &arr);
 
+template<size_t BitLen>
+std::array<bool, BitLen> binary_xor(
+    std::array<bool, BitLen> A, std::array<bool, BitLen> B);
+
 // Sum 2 binary strings
 template<size_t BitLen>
 std::array<bool, BitLen> binary_addition(
     std::array<bool, BitLen> A,
     std::array<bool, BitLen> B,
     bool withCarry = false);
-
-template<size_t BitLen>
-std::array<bool, BitLen> binary_xor(
-    std::array<bool, BitLen> A, std::array<bool, BitLen> B);
-
-bits64 sum_bits64(bits64 a, bits64 b);
 
 } // namespace libzeth
 #include "libzeth/types/bits.tcc"

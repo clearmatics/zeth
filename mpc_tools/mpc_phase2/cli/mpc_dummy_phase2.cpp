@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
 #include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
 #include "libzeth/snarks/groth16/mpc/phase2.hpp"
 #include "libzeth/util.hpp"

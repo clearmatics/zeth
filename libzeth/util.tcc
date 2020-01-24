@@ -12,22 +12,6 @@ namespace libzeth
 
 // Takes a containers with a size method and reverse the elements' order
 // The elements should represent bits
-template<typename T> T swap_bit_endianness(T v)
-{
-    size_t len = v.size();
-    if (len == 0) {
-        throw std::length_error(
-            "Invalid bit length for the given boolean vector (should be > 0)");
-    }
-
-    for (size_t i = 0; i < len / 2; i++) {
-        std::swap(v[i], v[(len - 1) - i]);
-    }
-    return v;
-}
-
-// Takes a containers with a size method and reverse the elements' order
-// The elements should represent bits
 template<typename T> T swap_byte_endianness(T v)
 {
     size_t len = v.size();
