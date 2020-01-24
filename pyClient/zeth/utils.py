@@ -22,12 +22,19 @@ from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
 from typing import List, Tuple, Union, Any, cast
 
+# Some Ethereum node implementations can cause a timeout if the contract
+# execution takes too long. We expect the contract to complete in under 30s on
+# most machines, but allow 1 min.
+WEB3_HTTP_PROVIDER_TIMEOUT_SEC = 60
+
 
 def open_web3(url: str) -> Any:
     """
     Create a Web3 context from an http URL.
     """
-    return Web3(HTTPProvider(url))
+    return Web3(HTTPProvider(
+        url,
+        request_kwargs={'timeout': WEB3_HTTP_PROVIDER_TIMEOUT_SEC}))
 
 
 FQ = ec.FQ
