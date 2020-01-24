@@ -29,23 +29,10 @@ def main() -> None:
 
     result = 0
 
-    print("--- testing ", "testReverseByte")
-    test_reverse_byte = bytes_instance.functions.testReverseByte().call()
-    if not test_reverse_byte:
-        print("testReverseByte FAILS")
-        result += 1
-
     print("--- testing ", "testGetLastByte")
     test_get_last_byte = bytes_instance.functions.testGetLastByte().call()
     if not test_get_last_byte:
         print("testGetLastByte FAILS")
-        result += 1
-
-    print("--- testing ", "testFlipEndiannessBytes32")
-    test_flip_endianness_bytes32 = \
-        bytes_instance.functions.testFlipEndiannessBytes32().call()
-    if not test_flip_endianness_bytes32:
-        print("testFlipEndiannessBytes32 FAILS")
         result += 1
 
     print("--- testing ", "testBytesToBytes32")

@@ -51,17 +51,6 @@ library Bytes {
         return out;
     }
 
-    function flip_endianness_bytes32(bytes32 a) internal pure returns(bytes32) {
-        uint r;
-        uint b;
-        for (uint i; i < 32; i++) {
-            b = (uint(a) >> ((31-i)*8)) & 0xff;
-            b = reverse_byte(b);
-            r += b << (i*8);
-        }
-        return bytes32(r);
-    }
-
     function int256ToBytes8(uint256 input) internal pure returns (bytes8) {
         bytes memory inBytes = new bytes(32);
         assembly {
@@ -85,46 +74,12 @@ library Bytes {
         return result;
     }
 
-    // Function used to get the decimal value of the public values on both side of the joinsplit
-    // (given as primary input) from the hexadecimal primary values
-    function get_value_from_inputs(bytes8 valueBytes) internal pure returns(uint64) {
-        bytes8 flippedBytes = flip_endianness_bytes8(valueBytes);
-        uint64 value = get_int64_from_bytes8(flippedBytes);
-        return value;
-    }
-
-    function flip_endianness_bytes8(bytes8 a) internal pure returns(bytes8) {
-        uint64 r;
-        uint64 b;
-        for (uint i; i < 8; i++) {
-            b = (uint64(a) >> ((7-i)*8)) & 0xff;
-            b = reverse_bytes8(b);
-            r += b << (i*8);
-        }
-        return bytes8(r);
-    }
-
-    function reverse_bytes8(uint a) internal pure returns (uint8) {
-        return uint8(reverse_byte(a));
-    }
-
     function get_int64_from_bytes8(bytes8 input) internal pure returns(uint64) {
         return uint64(input);
     }
 
     function get_last_byte(bytes32 x) internal pure returns(bytes1) {
         return x[31];
-    }
-
-    // Reverses the bit endianness of the byte
-    // Example:
-    // Input: 8 (decimal) -> 0000 1000 (binary)
-    // Output: 0001 0000 (binary) -> 16 (decimal)
-    function reverse_byte(uint a) internal pure returns (uint) {
-        uint c = 0xf070b030d0509010e060a020c0408000;
-
-        return (( c >> ((a & 0xF)*8)) & 0xF0)   +
-            (( c >> (((a >> 4)&0xF)*8) + 4) & 0xF);
     }
 
 }

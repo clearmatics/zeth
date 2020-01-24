@@ -13,19 +13,6 @@ contract Bytes_tests {
         // Nothing
     }
 
-	function testReverseByte() public pure returns (bool) {
-		uint number = 16; // 0001 0000 (binary)
-		uint reverse_number = Bytes.reverse_byte(number);
-
-		bool ok = (reverse_number == 8);
-		require(
-			ok,
-			"[testReverseByte] Failed"
-		);
-
-		return ok;
-	}
-
 	function testGetLastByte() public pure returns (bool) {
 		bytes32 test_bytes = 0x00000000000000000000000000000000000000000000000000000000000000AF;
 		bytes1 last_byte = Bytes.get_last_byte(test_bytes);
@@ -34,19 +21,6 @@ contract Bytes_tests {
 		require(
 			ok,
 			"[testGestLastByte] Failed"
-		);
-
-		return ok;
-	}
-
-    function testFlipEndiannessBytes32() public pure returns (bool) {
-		bytes32 test_bytes = 0x00000000000000000000000000000000000000000000000000000000000000AF;
-		bytes32 reversed_bytes = Bytes.flip_endianness_bytes32(test_bytes);
-
-		bool ok = (reversed_bytes == 0xF500000000000000000000000000000000000000000000000000000000000000);
-		require(
-			ok,
-			"[testFlipEndianness] Failed"
 		);
 
 		return ok;
