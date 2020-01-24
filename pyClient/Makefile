@@ -8,7 +8,7 @@ setup:
 	python -c "from zeth.contracts import install_sol; \
 		install_sol()"
 
-check: syntax test test_contracts
+check: syntax test
 
 PROTOBUF_OUTPUT := \
   api/prover_pb2.py api/prover_pb2_grpc.py \
