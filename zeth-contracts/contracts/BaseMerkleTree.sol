@@ -14,6 +14,9 @@ contract BaseMerkleTree {
     // Number of leaves
     uint256 constant nbLeaves = 2**depth;
 
+    //
+    bytes32 constant DEFAULT_LEAF_VALUE = 0x0;
+
     // Index of the current node: Index to insert the next incoming commitment
     uint256 currentNodeIndex;
 
@@ -24,7 +27,11 @@ contract BaseMerkleTree {
     // as a precompiled contract for instance)
     //
     // Leaves is a 2D array
-    bytes32[nbLeaves] leaves;
+
+    // Sparse array of populated leaves of the merkle tree.  Unpopulated leaves
+    // have the DEFAULT_LEAF_VALUE.
+
+    bytes32[] leaves;
 
     // Debug only
     event LogDebug(bytes32 message);
@@ -38,18 +45,25 @@ contract BaseMerkleTree {
 
     // Appends a commitment to the tree, and returns its address
     function insert(bytes32 commitment) public returns (uint) {
+
+        // Address of the next leaf is the current length (before insertion).
+        uint next_address = leaves.length;
+
         // If this require fails => the merkle tree is full, we can't append
-        // leaves anymore
+        // leaves anymore.
         require(
-            currentNodeIndex < nbLeaves,
+            next_address < nbLeaves,
             "Merkle tree full: Cannot append anymore"
         );
 
-        leaves[currentNodeIndex] = commitment;
-        currentNodeIndex++;
+        leaves.push(commitment);
+        return next_address;
 
-        // This address can be emitted to indicate the address of the commiment
-        // This is useful for the proof generation
-        return currentNodeIndex - 1;
+        /* leaves[currentNodeIndex] = commitment; */
+        /* currentNodeIndex++; */
+
+        /* // This address can be emitted to indicate the address of the commiment */
+        /* // This is useful for the proof generation */
+        /* return currentNodeIndex - 1; */
     }
 }
