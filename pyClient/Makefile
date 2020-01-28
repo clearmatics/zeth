@@ -39,4 +39,3 @@ test: ${PROTOBUF_OUTPUT}
 
 test_contracts: ${PROTOBUF_OUTPUT}
 	python test/test_contract_base_mixer.py
-	python test/test_contract_bytes.py
