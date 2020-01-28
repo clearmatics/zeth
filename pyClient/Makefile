@@ -1,5 +1,5 @@
 
-.PHONY: setup setup-dev dev check test syntax grpc
+.PHONY: setup setup-dev dev check test syntax grpc test_contracts
 
 setup:
 	pip install --upgrade pip
@@ -36,3 +36,6 @@ syntax: ${PROTOBUF_OUTPUT}
 
 test: ${PROTOBUF_OUTPUT}
 	python -m unittest
+
+test_contracts: ${PROTOBUF_OUTPUT}
+	python test/test_contract_base_mixer.py

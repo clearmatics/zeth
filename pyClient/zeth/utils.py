@@ -290,36 +290,6 @@ def encode_message_to_bytes(message_list: Any) -> bytes:
     return data_bytes
 
 
-def field_elements_to_hex(longfield: str, shortfield: str) -> str:
-    """
-    Encode a 256 bit array written over two field elements into a single 32
-    byte long hex
-
-    if A= x0 ... x255 and B = y0 ... y7, returns R = hex(x255 ... x3 || y7 y6 y5)
-    """
-    # Convert longfield into a 253 bit long array
-    long_bit = "{0:b}".format(int(longfield, 16))
-    if len(long_bit) > 253:
-        long_bit = long_bit[:253]
-    long_bit = "0"*(253-len(long_bit)) + long_bit
-
-    # Convert shortfield into a 3 bit long array
-    short_bit = "{0:b}".format(int(shortfield, 16))
-    if len(short_bit) < 3:
-        short_bit = "0"*(3-len(short_bit)) + short_bit
-
-    # Reverse the bit arrays
-    reversed_long = long_bit[::-1]
-    reversed_short = short_bit[::-1]
-
-    # Fill the result 256 bit long array
-    res = reversed_long[:253]
-    res += reversed_short[:3]
-    res = hex_extend_32bytes("{0:0>4X}".format(int(res, 2)))
-
-    return res
-
-
 def short_commitment(cm: bytes) -> str:
     """
     Summary of the commitment value, in some standard format.

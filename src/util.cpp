@@ -120,22 +120,28 @@ std::vector<bool> hex_to_binary_vector(std::string hex_str)
 // Takes an hexadecimal digest and converts it into a binary vector
 std::vector<bool> hex_digest_to_binary_vector(std::string hex_str)
 {
-    if (hex_str.length() != ZETH_DIGEST_HEX_SIZE) {
-        throw std::length_error(
-            "Invalid string length for the given hex digest (should be "
-            "ZETH_DIGEST_HEX_SIZE)");
-    }
-
     return hex_to_binary_vector(hex_str);
 }
 
 bits256 hex_digest_to_bits256(std::string str)
 {
-    return get_bits256_from_vector(hex_digest_to_binary_vector(str));
+    if (str.length() != 64) {
+        throw std::length_error(
+            "Invalid string length for the given hex digest (should be "
+            "64)");
+    }
+
+    return get_bits256_from_vector(hex_to_binary_vector(str));
 }
 
 bits64 hex_value_to_bits64(std::string str)
 {
+    if (str.length() != 16) {
+        throw std::length_error(
+            "Invalid string length for the given hex digest (should be "
+            "16)");
+    }
+
     return get_bits64_from_vector(hex_to_binary_vector(str));
 }
 

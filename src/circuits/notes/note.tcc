@@ -64,10 +64,12 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(
         ZETH_MERKLE_TREE_DEPTH,
         FMT(this->annotation_prefix, " merkle_tree_depth"));
     a_pk.reset(new libsnark::digest_variable<FieldT>(
-        pb, 256, FMT(this->annotation_prefix, " a_pk")));
+        pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " a_pk")));
 
     commitment.reset(new libsnark::digest_variable<FieldT>(
-        pb, 256, FMT(this->annotation_prefix, " commitment")));
+        pb,
+        HashT::get_digest_len(),
+        FMT(this->annotation_prefix, " commitment")));
     field_cm.reset(new libsnark::pb_variable<FieldT>);
     field_cm->allocate(pb, FMT(this->annotation_prefix, " field_cm"));
 
@@ -293,7 +295,7 @@ output_note_gadget<FieldT, HashT>::output_note_gadget(
     : note_gadget<FieldT>(pb, annotation_prefix)
 {
     a_pk.reset(new libsnark::digest_variable<FieldT>(
-        pb, 256, FMT(this->annotation_prefix, " a_pk")));
+        pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " a_pk")));
 
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_cm.reset(new COMM_cm_gadget<FieldT, HashT>(
