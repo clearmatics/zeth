@@ -10,7 +10,8 @@ from shutil import rmtree
 from unittest import TestCase
 
 MERKLE_TREE_TEST_DIR = "_merkle_tests"
-MERKLE_TREE_TEST_NUM_LEAVES = 16
+MERKLE_TREE_TEST_DEPTH = 4
+MERKLE_TREE_TEST_NUM_LEAVES = pow(2, MERKLE_TREE_TEST_DEPTH)
 
 
 class TestMerkleTree(TestCase):
@@ -92,3 +93,42 @@ class TestMerkleTree(TestCase):
         self.assertEqual(ZERO_ENTRY, mktree.get_entry(1))
         root_2 = mktree.compute_root()
         self.assertEqual(root_1, root_2)
+
+    def test_single_entry_all_nodes(self) -> None:
+        mktree = MerkleTree.empty_with_size(MERKLE_TREE_TEST_NUM_LEAVES)
+        data = bytes.fromhex("aabbccdd")
+        mktree.set_entry(0, data)
+
+        nodes = mktree.compute_tree_values()
+
+        def layer_size(layer: int) -> int:
+            return int(MERKLE_TREE_TEST_NUM_LEAVES / pow(2, layer))
+
+        def layer_start_index(layer: int) -> int:
+            return layer_size(layer) - 1
+
+        # Check layer 0
+        prev_layer_start = layer_start_index(0)
+        self.assertEqual(data, nodes[prev_layer_start])
+        for i in range(1, MERKLE_TREE_TEST_NUM_LEAVES):
+            print(f"Checking Layer 0, Node {i}, INDEX {prev_layer_start + i}")
+            self.assertEqual(
+                ZERO_ENTRY, nodes[prev_layer_start + i],
+                f"Layer 0, node {i}")
+
+        # Check layer `layer`
+        for layer in range(1, MERKLE_TREE_TEST_DEPTH):
+            layer_start = layer_start_index(layer)
+            for i in range(layer_size(layer)):
+                print(
+                    f"Checking Layer {layer}, Node {i}, "
+                    f"IDX {prev_layer_start + i}")
+                self.assertEqual(
+                    MerkleTree.combine(
+                        nodes[prev_layer_start + 2*i],
+                        nodes[prev_layer_start + 2*i + 1]),
+                    nodes[layer_start + i],
+                    f"Layer {layer}, node {i}")
+            prev_layer_start = layer_start
+
+        self.assertEqual(mktree.compute_root(), nodes[0])
