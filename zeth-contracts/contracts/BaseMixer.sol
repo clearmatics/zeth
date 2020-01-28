@@ -5,7 +5,6 @@
 pragma solidity ^0.5.0;
 
 import "./MerkleTreeMiMC7.sol";
-import "./Bytes.sol";
 
 /*
  * Declare the ERC20 interface in order to handle ERC20 tokens transfers
@@ -45,7 +44,6 @@ contract ERC223ReceivingContract {
  * BaseMixer implements the functions shared across all Mixers (regardless which zkSNARK is used)
 **/
 contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
-    using Bytes for *;
 
     // The roots of the different updated trees
     mapping(bytes32 => bool) roots;
@@ -162,15 +160,15 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // This function is used to extract the public values (vpub_in and vpub_out) from the residual field element(S)
     function assemble_public_values(uint[] memory primary_inputs) public pure returns (uint64 vpub_in, uint64 vpub_out){
         // We know vpub_in corresponds to the first 64 bits of the first residual field element after padding.
-        // We retrieve the public value in, remove any extra bits (due to the padding) and inverse the bit order
+        // We retrieve the public value in and remove any extra bits (due to the padding)
         uint residual_hash_size = packing_residue_length*nb_hash_digests;
 
         bytes32 vpub_bytes = bytes32(primary_inputs[1 + nb_hash_digests]) >> (residual_hash_size + public_value_length);
-        vpub_in = uint64(Bytes.get_last_8_bytes(uint(vpub_bytes)));
+        vpub_in = uint64(uint(vpub_bytes));
 
-        // We retrieve the public value out, remove any extra bits (due to the padding) and inverse the bit order
+        // We retrieve the public value out and remove any extra bits (due to the padding)
         vpub_bytes = bytes32(primary_inputs[1 + nb_hash_digests]) >> residual_hash_size;
-        vpub_out = uint64(Bytes.get_last_8_bytes(uint(vpub_bytes)));
+        vpub_out = uint64(uint(vpub_bytes));
     }
 
     // This function is used to reassemble hsig given the the primary_inputs
@@ -179,11 +177,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
         // We know hsig residual bits correspond to the 128th to 130st bits of the first residual field element after padding.
         // We retrieve hsig's residual bits and remove any extra bits (due to the padding)
+        // They correspond to the (digest_length - field_capacity) least significant bits of hsig in big endian
         bytes32 hsig_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + 2*public_value_length) >> field_capacity;
-        bytes1 bits_input = Bytes.get_last_byte(hsig_bytes);
 
         // We reassemble the residual bits with the field element
-        hsig = Bytes.sha256_digest_from_field_elements(primary_inputs[1 + jsIn + jsOut] << (digest_length - field_capacity), bits_input);
+        hsig = bytes32(uint(primary_inputs[1 + jsIn + jsOut] << (digest_length - field_capacity)) + uint(hsig_bytes));
     }
 
     // This function is used to reassemble the nullifiers given the nullifier index [0, jsIn[ and the primary_inputs
@@ -207,10 +205,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         );
 
         // We retrieve nf's residual bits and remove any extra bits (due to the padding)
+        // They correspond to the (digest_length - field_capacity) least significant bits of nf in big endian
         bytes32 nf_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + nf_bit_index) >> field_capacity;
-        bytes1 bits_input = Bytes.get_last_byte(nf_bytes);
         // We reassemble the residual bits with the field element
-        nf = Bytes.sha256_digest_from_field_elements(primary_inputs[nullifier_index] << (digest_length - field_capacity), bits_input);
+        nf = bytes32(uint(primary_inputs[nullifier_index] << (digest_length - field_capacity)) + uint(nf_bytes));
     }
 
     // This function is used to reassemble the commitment given the commitment index [0, jsOut[ and the primary_inputs
@@ -234,11 +232,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         );
 
         // We retrieve cm's residual bits and remove any extra bits (due to the padding)
+        // They correspond to the (digest_length - field_capacity) least significant bits of cm in big endian
         bytes32 cm_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + commitment_bit_index) >> field_capacity;
-        bytes1 bits_input = Bytes.get_last_byte(cm_bytes);
 
         // We reassemble the residual bits with the field element
-        cm = Bytes.sha256_digest_from_field_elements(primary_inputs[commitment_index] << (digest_length - field_capacity), bits_input);
+        cm = bytes32(uint(primary_inputs[commitment_index] << (digest_length - field_capacity)) + uint(cm_bytes));
     }
 
     // This function processes the primary inputs to append and check the root and nullifiers in the primary inputs (instance)
