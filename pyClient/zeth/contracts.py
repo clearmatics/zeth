@@ -12,7 +12,6 @@ from zeth.utils import get_contracts_dir, hex_to_int, get_public_key_from_bytes
 from zeth.constants import SOL_COMPILER_VERSION
 
 import os
-from web3 import Web3  # type: ignore
 import solcx
 from typing import Tuple, Dict, List, Iterator, Optional, Any
 
@@ -134,16 +133,10 @@ def deploy_mixer(
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     mixer_address = tx_receipt['contractAddress']
     # Get the mixer contract instance
-    mixer = web3.eth.contract(
+    return web3.eth.contract(
         address=mixer_address,
         abi=mixer_interface['abi']
     )
-    # Get the initial merkle root to proceed to the first payments
-    ef_log_merkle_root = \
-        mixer.eventFilter("LogMerkleRoot", {'fromBlock': 'latest'})
-    event_logs_log_merkle_root = ef_log_merkle_root.get_all_entries()
-    initial_root = Web3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
-    return(mixer, initial_root)
 
 
 def deploy_tree_contract(

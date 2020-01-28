@@ -442,7 +442,7 @@ class ZethClient:
 
         print("[INFO] 3. VK written, deploying smart contracts...")
         mixer_interface = contracts.compile_mixer(zksnark)
-        (mixer_instance, _initial_merkle_root) = contracts.deploy_mixer(
+        mixer_instance = contracts.deploy_mixer(
             web3,
             mk_tree_depth,
             mixer_interface,
