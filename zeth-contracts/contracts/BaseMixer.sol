@@ -188,7 +188,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     // This function is used to reassemble the nullifiers given the nullifier index [0, jsIn[ and the primary_inputs
     // To do so, we extract the remaining bits of the nullifier from the residual field element(S) and combine them with the nullifier field element
-    function assemble_nullifier(uint index, uint[] memory primary_inputs) public pure returns (bytes32 sn){
+    function assemble_nullifier(uint index, uint[] memory primary_inputs) public pure returns (bytes32 nf){
         // We first check that the nullifier we want to retrieve exists
         require(
             index < jsIn,
@@ -200,17 +200,17 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
         // We compute the nullifier's residual bits index and check the 1st f.e. indeed comprises it
         // See the way the residual bits are ordered in the extended proof
-        uint sn_bit_index = 2*public_value_length + nullifier_index * packing_residue_length;
+        uint nf_bit_index = 2*public_value_length + nullifier_index * packing_residue_length;
         require(
-            field_capacity >= sn_bit_index + packing_residue_length,
+            field_capacity >= nf_bit_index + packing_residue_length,
             "nullifier written in different residual bit f.e."
         );
 
         // We retrieve nf's residual bits and remove any extra bits (due to the padding)
-        bytes32 sn_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + sn_bit_index) >> field_capacity;
-        bytes1 bits_input = Bytes.get_last_byte(sn_bytes);
+        bytes32 nf_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + nf_bit_index) >> field_capacity;
+        bytes1 bits_input = Bytes.get_last_byte(nf_bytes);
         // We reassemble the residual bits with the field element
-        sn = Bytes.sha256_digest_from_field_elements(primary_inputs[nullifier_index] << (digest_length - field_capacity), bits_input);
+        nf = Bytes.sha256_digest_from_field_elements(primary_inputs[nullifier_index] << (digest_length - field_capacity), bits_input);
     }
 
     // This function is used to reassemble the commitment given the commitment index [0, jsOut[ and the primary_inputs
