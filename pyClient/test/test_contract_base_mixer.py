@@ -9,19 +9,45 @@ from typing import Any
 from solcx import compile_files  # type: ignore
 import test_commands.mock as mock
 
-from zeth.constants import DIGEST_LENGTH, FIELD_CAPACITY,\
-    JS_INPUTS, JS_OUTPUTS, ZETH_MERKLE_TREE_DEPTH, PUBLIC_VALUE_LENGTH
+from zeth.constants import JS_INPUTS, JS_OUTPUTS, ZETH_MERKLE_TREE_DEPTH,\
+    PUBLIC_VALUE_LENGTH
 import zeth.contracts as contracts
 
 
-# The variable inputs represents a dummy primary input array,
+# The UNPACKED_PRIMARY_INPUTS variable represents a dummy primary input,
 # it is structured as follows,
-# inputs =
-#   rt || {sn}_1,2 || {cm}_1,2 || h_sig || {h}_1,2 || residual_bits
-# residual_bits =
-#   v_in || v_out || h_sig || {sn}_1,2  || {cm}_1,2  || {h}_1,2
+UNPACKED_PRIMARY_INPUTS = [
+    0,  # rt
+    8,  # nf_0 = "...1 000"
+    9,  # nf_1 = "...1 001"
+    18,  # cm_0 = "...10 010"
+    19,  # cm_1 = "...10 011"
+    2**PUBLIC_VALUE_LENGTH - 1,  # v_in = "1...1"
+    0,  # v_out = "0...0"
+    31,  # h_sig = "...11 111"
+    36,  # htag_0 = "...100 100"
+    37  # htag_1 = "...100 101"
+]
+# The values were set so that the RESIDUAL_BITS are easily distinguishable.
+
+# PACKED_PRIMARY_INPUTS =
+#   rt || {nf}_1,2 || {cm}_1,2 || h_sig || {h}_1,2 || RESIDUAL_BITS
+PACKED_PRIMARY_INPUTS = [
+    0,  # root
+    1,  # nf_0
+    1,  # nf_1
+    2,  # cm_0
+    2,  # cm_1
+    3,  # h_sig
+    4,  # h_0
+    4,  # h_1
+    713623846352979940490457358497079434602616037] \
+        # pylint: disable=no-member,invalid-name
+
+# RESIDUAL_BITS =
+#   v_in || v_out || h_sig || {nf}_1,2  || {cm}_1,2  || {h}_1,2
 # We set dummy values for all variables. The residual_bits are as follows:
-# residual_bits = 713623846352979940490457358497079434602616037, or in bits
+# RESIDUAL_BITS = 713623846352979940490457358497079434602616037, or in bits
 # 1-4:   00000000 00000000 00000000 00000000
 # 5-8:   00000000 00000000 00000000 00000000
 # 9-12:  00000000 00000000 00000000 00000000
@@ -34,32 +60,18 @@ import zeth.contracts as contracts
 # v_in  = "0xFFFFFFFFFFFFFFFF" = 2**PUBLIC_VALUE_LENGTH - 1
 # v_out = "0x0000000000000000" = 0
 # h_sig = "111" = 7
-# sn_0  = "000" = 0
-# sn_1  = "001" = 1
+# nf_0  = "000" = 0
+# nf_1  = "001" = 1
 # cm_0  = "010" = 2
 # cm_1  = "011" = 3
 # h_0   = "100" = 4
 # h_1   = "101" = 5
-# The values were set to be easily distinguishable.
-
-PRIMARY_INPUTS = [
-    0,  # root
-    1,  # sn_0
-    1,  # sn_1
-    2,  # cm_0
-    2,  # cm_1
-    3,  # h_sig
-    4,  # h_0
-    4,  # h_1
-    713623846352979940490457358497079434602616037] \
-        # pylint: disable=no-member,invalid-name
-
 RESIDUAL_BITS = [
     2**PUBLIC_VALUE_LENGTH - 1,  # v_in
     0,  # v_out
     7,  # h_sig
-    0,  # sn_0
-    1,  # sn_1
+    0,  # nf_0
+    1,  # nf_1
     2,  # cm_0
     3,  # cm_1
     4,  # h_0
@@ -72,18 +84,11 @@ def test_assemble_nullifiers(mixer_instance: Any) -> int:
     print("--- testing ", "test_assemble_nullifiers")
     for i in range(JS_INPUTS):
         res = mixer_instance.functions.\
-            assemble_nullifier(i, PRIMARY_INPUTS).call()
+            assemble_nullifier(i, PACKED_PRIMARY_INPUTS).call()
         val = int.from_bytes(res, byteorder="big")
-        # We need to recompute the expected value
-        # To do so, we load the variable's first FIELD_CAPACITY bits from
-        # `PRIMARY_INPUTS` and remove the padding
-        # (of size DIGEST_LENGTH-FIELD_CAPACITY)
-        # Before adding the value defined in `residual bits`
-        expected_val = PRIMARY_INPUTS[1+i]*2**(DIGEST_LENGTH-FIELD_CAPACITY) +\
-            RESIDUAL_BITS[3+i]
-        if val != expected_val:
+        if val != UNPACKED_PRIMARY_INPUTS[1+i]:
             print("ERROR: extracted wrong nullifier")
-            print("expected:", expected_val, i)
+            print("expected:", UNPACKED_PRIMARY_INPUTS[1+i], i)
             print("got:", val, i)
             return 1
     return 0
@@ -94,19 +99,11 @@ def test_assemble_commitments(mixer_instance: Any) -> int:
     print("--- testing ", "test_assemble_commitments")
     for i in range(JS_OUTPUTS):
         res = mixer_instance.functions.\
-            assemble_commitment(i, PRIMARY_INPUTS).call()
+            assemble_commitment(i, PACKED_PRIMARY_INPUTS).call()
         val = int.from_bytes(res, byteorder="big")
-        # We need to recompute the expected value
-        # To do so, we load the variable's first FIELD_CAPACITY bits from
-        # `PRIMARY_INPUTS` and remove the padding
-        # (of size DIGEST_LENGTH-FIELD_CAPACITY)
-        # Before adding the value defined in `residual bits`
-        expected_val = PRIMARY_INPUTS[1+JS_INPUTS+i] *\
-            2**(DIGEST_LENGTH-FIELD_CAPACITY) +\
-            RESIDUAL_BITS[3+JS_INPUTS+i]
-        if val != expected_val:
+        if val != UNPACKED_PRIMARY_INPUTS[1 + JS_INPUTS + i]:
             print("ERROR: extracted wrong commitment")
-            print("expected:", expected_val, i)
+            print("expected:", UNPACKED_PRIMARY_INPUTS[1 + JS_INPUTS + i], i)
             print("got:", val, i)
             return 1
     return 0
@@ -116,18 +113,11 @@ def test_assemble_hsig(mixer_instance: Any) -> Any:
     # Test retrieving commitments
     print("--- testing ", "test_assemble_hsig")
     res = mixer_instance.functions.\
-        assemble_hsig(PRIMARY_INPUTS).call()
+        assemble_hsig(PACKED_PRIMARY_INPUTS).call()
     hsig = int.from_bytes(res, byteorder="big")
-    # We need to recompute the expected value
-    # To do so, we load the variable's first FIELD_CAPACITY bits from
-    # `PRIMARY_INPUTS` and remove the padding
-    # (of size DIGEST_LENGTH-FIELD_CAPACITY)
-    # Before adding the value defined in `residual bits`
-    expected_val = PRIMARY_INPUTS[1+JS_INPUTS+JS_OUTPUTS] *\
-        2**(DIGEST_LENGTH-FIELD_CAPACITY) + RESIDUAL_BITS[2]
-    if hsig != expected_val:
+    if hsig != UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 3]:
         print("ERROR: extracted wrong public values")
-        print("expected:", expected_val)
+        print("expected:", UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 3])
         print("got:", hsig)
         return 1
     return 0
@@ -137,13 +127,14 @@ def test_assemble_vpub(mixer_instance: Any) -> Any:
     # Test retrieving commitments
     print("--- testing ", "test_assemble_vpub")
     v_in, v_out = mixer_instance.functions.\
-        assemble_public_values(PRIMARY_INPUTS).call()
-    if v_in != RESIDUAL_BITS[0] or v_out != RESIDUAL_BITS[1]:
+        assemble_public_values(PACKED_PRIMARY_INPUTS).call()
+    if v_in != UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 1] or\
+            v_out != UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 2]:
         print("ERROR: extracted wrong public values")
         print(
             "expected:",
-            RESIDUAL_BITS[0],
-            RESIDUAL_BITS[1]
+            UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 1],
+            UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 2]
         )
         print("got:", v_in, v_out)
         return 1

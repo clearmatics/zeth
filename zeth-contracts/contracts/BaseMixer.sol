@@ -147,7 +147,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // - Index of the "NullifierS" field elements: [1, 1 + NumInputs[
     // - Index of the "CommitmentS" field elements: [1 + NumInputs, 1 + NumInputs + NumOutputs[
     // - Index of the "h_sig" field element: {1 + NumInputs + NumOutputs}
-    // - Index of the "Message Authentication TagS" (h_i) field elements: [1 + NumInputs + NumOutputs + 1, 1 + NumInputs + NumOuputs + 1 + NumInputs [
+    // - Index of the "Message Authentication TagS" (h_i) field elements: [1 + NumInputs + NumOutputs + 1, 1 + NumInputs + NumOuputs + 1 + NumInputs[
     // - Index of the "Residual Field Element(s)" field elements: [1 + NumInputs + NumOutputs + 1 + NumInputs, 1 + NumInputs + NumOuputs + 1 + NumInputs + nb_field_residual[
     //
     // The Residual field elements are structured as follows:
@@ -277,7 +277,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     function assemble_commitments_and_append_to_state(uint[] memory primary_inputs) internal {
         // We re-assemble the commitments (JSOutputs)
-        for(uint i ; i < jsOut; i++) {
+        for(uint i; i < jsOut; i++) {
             bytes32 current_commitment = assemble_commitment(i, primary_inputs);
             uint commitmentAddress = insert(current_commitment);
             emit LogCommitment(commitmentAddress, current_commitment);
