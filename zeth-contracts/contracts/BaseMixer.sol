@@ -180,7 +180,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // They correspond to the (digest_length - field_capacity) least significant bits of hsig in big endian
         bytes32 hsig_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + 2*public_value_length) >> field_capacity;
 
-        // We reassemble the residual bits with the field element
+        // We reassemble the residual bits with the field element corresponding to the field_capacity most significant bits of hsig
         hsig = bytes32(uint(primary_inputs[1 + jsIn + jsOut] << (digest_length - field_capacity)) + uint(hsig_bytes));
     }
 
@@ -207,7 +207,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // We retrieve nf's residual bits and remove any extra bits (due to the padding)
         // They correspond to the (digest_length - field_capacity) least significant bits of nf in big endian
         bytes32 nf_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + nf_bit_index) >> field_capacity;
-        // We reassemble the residual bits with the field element
+        // We reassemble the residual bits with the field element corresponding to the field_capacity most significant bits of nf
         nf = bytes32(uint(primary_inputs[nullifier_index] << (digest_length - field_capacity)) + uint(nf_bytes));
     }
 
@@ -235,7 +235,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // They correspond to the (digest_length - field_capacity) least significant bits of cm in big endian
         bytes32 cm_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + commitment_bit_index) >> field_capacity;
 
-        // We reassemble the residual bits with the field element
+        // We reassemble the residual bits with the field element corresponding to the field_capacity most significant bits of cm
         cm = bytes32(uint(primary_inputs[commitment_index] << (digest_length - field_capacity)) + uint(cm_bytes));
     }
 
