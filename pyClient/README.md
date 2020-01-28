@@ -48,21 +48,10 @@ Test ERC token mixing:
 where `[ZKSNARK]` is the zksnark to use (must be the same as the one used on
 the server).
 
-## Install solc manually
+## Note on solc compiler installation
 
-This command might be necessary if the `py-solc-x` package cannot find `solc`
-and fails to fetch it (or fails to fetch the right version).
-
-```console
-# Download the solidity compiler to compile the contracts
-$ wget https://github.com/ethereum/solidity/releases/download/[solc-version]/[solc-for-your-distribution] \
-    -O $ZETH/pyClient/zeth-devenv/lib/[python-version]/site-packages/solcx/bin/solc-[solc-version]
-$ chmod +x $ZETH/pyClient/zeth-devenv/lib/[python-version]/site-packages/solcx/bin/solc-[solc-version]
-```
-
-To run this command, replace the solidity version (denoted by `[solc-version]`),
-the python version (denoted by `[python-version]`), and binary file (denoted by
-`[solc-for-your-distribution]`) by your system specific information.
+Note that `make setup` will automatically install the solidity compiler in `$HOME/.solc`
+(if required) and not in the python virtual environment.
 
 # The `zeth` command line interface
 

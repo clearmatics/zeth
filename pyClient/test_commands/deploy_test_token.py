@@ -4,10 +4,11 @@
 
 from zeth.contracts import Interface
 from zeth.utils import get_zeth_dir
+from zeth.constants import SOL_COMPILER_VERSION
 from test_commands.mock import open_test_web3
 from click import command, argument
 from os.path import join
-from solcx import compile_files  # type: ignore
+from solcx import compile_files, set_solc_version
 from typing import Any
 from web3 import Web3  # type: ignore
 
@@ -46,6 +47,7 @@ def compile_token() -> Interface:
         "zeth-contracts/node_modules/openzeppelin-solidity/contracts",
         "token/ERC20/ERC20Mintable.sol")
     # Compilation
+    set_solc_version(SOL_COMPILER_VERSION)
     compiled_sol = compile_files([path_to_token], allow_paths=allowed_path)
     token_interface = compiled_sol[path_to_token + ":ERC20Mintable"]
     return token_interface
