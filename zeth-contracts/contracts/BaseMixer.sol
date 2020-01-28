@@ -180,7 +180,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // They correspond to the (digest_length - field_capacity) least significant bits of hsig in big endian
         bytes32 hsig_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + 2*public_value_length) >> field_capacity;
 
-        // We reassemble the residual bits with the field element corresponding to the field_capacity most significant bits of hsig
+        // We retrieve the field element corresponding to the `field_capacity` most significant bits of hsig
+        // We remove the left padding due to casting `field_capacity` bits into a bytes32
+        // We reassemble hsig by adding the values
         hsig = bytes32(uint(primary_inputs[1 + jsIn + jsOut] << (digest_length - field_capacity)) + uint(hsig_bytes));
     }
 
@@ -194,6 +196,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         );
         // We offset the nullifier index by the number of values preceding the nullifiers in the primary inputs:
         // the root (1)
+        // This offset also corresponds to the offset of the commitment in the residual field elements (minus the public values)
         uint nullifier_index = 1 + index;
 
         // We compute the nullifier's residual bits index and check the 1st f.e. indeed comprises it
@@ -206,8 +209,12 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
         // We retrieve nf's residual bits and remove any extra bits (due to the padding)
         // They correspond to the (digest_length - field_capacity) least significant bits of nf in big endian
-        bytes32 nf_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + nf_bit_index) >> field_capacity;
-        // We reassemble the residual bits with the field element corresponding to the field_capacity most significant bits of nf
+        bytes32 nf_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << (padding_size + nf_bit_index)) >> field_capacity;
+
+
+        // We retrieve the field element corresponding to the `field_capacity` most significant bits of nf
+        // We remove the left padding due to casting `field_capacity` bits into a bytes32
+        // We reassemble nf by adding the values
         nf = bytes32(uint(primary_inputs[nullifier_index] << (digest_length - field_capacity)) + uint(nf_bytes));
     }
 
@@ -221,11 +228,12 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         );
         // We offset the commitment index by the number of values preceding the commitments in the primary inputs:
         // the root (1) and the nullifiers (jsIn)
+        // This offset also corresponds to the offset of the commitment in the residual field elements (minus the public values)
         uint commitment_index = 1 + jsIn + index;
 
         // We compute the commitment's residual bits index and check the 1st f.e. indeed comprises it
         // See the way the residual bits are ordered in the extended proof
-        uint commitment_bit_index = 2*public_value_length + commitment_index * packing_residue_length;
+        uint commitment_bit_index = 2 * public_value_length + commitment_index * packing_residue_length;
         require(
             field_capacity >= commitment_bit_index + packing_residue_length,
             "commitment written in different residual bit f.e."
@@ -233,9 +241,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
         // We retrieve cm's residual bits and remove any extra bits (due to the padding)
         // They correspond to the (digest_length - field_capacity) least significant bits of cm in big endian
-        bytes32 cm_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size + commitment_bit_index) >> field_capacity;
+        bytes32 cm_bytes = (bytes32(primary_inputs[1 + nb_hash_digests]) << (padding_size + commitment_bit_index)) >> field_capacity;
 
-        // We reassemble the residual bits with the field element corresponding to the field_capacity most significant bits of cm
+        // We retrieve the field element corresponding to the `field_capacity` most significant bits of cm
+        // We remove the left padding due to casting `field_capacity` bits into a bytes32
+        // We reassemble cm by adding the values
         cm = bytes32(uint(primary_inputs[commitment_index] << (digest_length - field_capacity)) + uint(cm_bytes));
     }
 
