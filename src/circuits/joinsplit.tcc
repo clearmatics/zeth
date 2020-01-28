@@ -225,7 +225,9 @@ public:
             }
             for (size_t i = 0; i < NumOutputs; i++) {
                 rho_is[i].reset(new libsnark::digest_variable<FieldT>(
-                    pb, 256, FMT(this->annotation_prefix, " rho_is[%zu]", i)));
+                    pb,
+                    HashT::get_digest_len(),
+                    FMT(this->annotation_prefix, " rho_is[%zu]", i)));
                 output_commitments[i].reset(
                     new libsnark::digest_variable<FieldT>(
                         pb,
