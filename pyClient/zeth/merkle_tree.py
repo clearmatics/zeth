@@ -62,50 +62,22 @@ class MerkleTree:
         scratch_size = int((len(self.leaves) + 1) / 2)
         scratch = [bytes() for _ in range(scratch_size)]
 
-        def reduce_sparse_layer(
-                source: List[bytes],
-                dest: List[bytes],
-                num_present: int,
-                layer_size: int,
-                default_value: Optional[bytes]) -> Tuple[int, Optional[bytes]]:
-            # Given a layer of the tree with `num_present` values, where the
-            # remaining values are known to be `default_value`, write the next
-            # layer into `dest`, returning the number values present and the new
-            # default_value for this new layer.
-
-            # Compute how many entries can be created from entries that are
-            # present, and whether there is a "partial" entry.  Then fill in
-            # each kind of entry, computing the new default as required.
-
-            num_full_present = int(num_present / 2)
-            num_partial_present = num_present - (2 * num_full_present)
-
-            for i in range(num_full_present):
-                dest[i] = self.combine(source[2*i], source[2*i + 1])
-
-            if num_partial_present:
-                assert default_value
-                dest[num_full_present] = \
-                    self.combine(source[num_present - 1], default_value)
-
-            new_num_present = num_full_present + num_partial_present
-            new_default: Optional[bytes] = None
-            if num_present < layer_size - 1:
-                assert default_value
-                new_default = self.combine(default_value, default_value)
-
-            return (new_num_present, new_default)
-
         # Fill the scratch pad from the current set of leaves + zeros.  Then
         # recursively compute on the scratch pad.
 
-        (num_present, default_value) = reduce_sparse_layer(
-            self.leaves, scratch, len(self.leaves), self.max_leaves, ZERO_ENTRY)
+        (num_present, default_value) = _reduce_sparse_layer(
+            self.leaves,
+            0,
+            scratch,
+            0,
+            len(self.leaves),
+            self.max_leaves,
+            ZERO_ENTRY)
         layer_size = int(self.max_leaves / 2)
 
         while layer_size > 1:
-            (num_present, default_value) = reduce_sparse_layer(
-                scratch, scratch, num_present, layer_size, default_value)
+            (num_present, default_value) = _reduce_sparse_layer(
+                scratch, 0, scratch, 0, num_present, layer_size, default_value)
             layer_size = int(layer_size / 2)
 
         # If the tree was empty, the scratch pad will have nothing in it and
@@ -131,11 +103,28 @@ class MerkleTree:
         for i in range(len(self.leaves), self.max_leaves):
             merkle_tree[(self.max_leaves - 1) + i] = ZERO_ENTRY
 
-        # Internal nodes
-        for i in range(self.max_leaves - 2, -1, -1):
-            left_idx = 2 * i + 1
-            merkle_tree[i] = \
-                self.combine(merkle_tree[left_idx], merkle_tree[left_idx + 1])
+        num_present = len(self.leaves)
+        default_value: Optional[bytes] = ZERO_ENTRY
+        for layer in range(1, self.tree_depth + 1):
+            # Layer has `leaves / 2^layer` elements. Fill in those that are
+            # populated, and manually write the default value in the remainder
+            # of the layer's space.
+
+            layer_size = int(self.max_leaves / pow(2, layer))
+            layer_index = layer_size - 1
+            prev_layer_size = 2 * layer_size
+            prev_layer_index = layer_index + layer_size
+            (num_present, default_value) = _reduce_sparse_layer(
+                merkle_tree,
+                prev_layer_index,
+                merkle_tree,
+                layer_index,
+                num_present,
+                prev_layer_size,
+                default_value)
+            for i in range(num_present, layer_size):
+                assert default_value
+                merkle_tree[layer_index + i] = default_value
 
         return merkle_tree
 
@@ -214,3 +203,41 @@ class PersistentMerkleTree(MerkleTree):
         }
         with open(self.filename, "w") as tree_f:
             json.dump(json_dict, tree_f)
+
+
+def _reduce_sparse_layer(
+        source: List[bytes],
+        source_offset: int,
+        dest: List[bytes],
+        dest_offset: int,
+        num_present: int,
+        layer_size: int,
+        default_value: Optional[bytes]) -> Tuple[int, Optional[bytes]]:
+    # Given a layer of the tree with `num_present` values, where the
+    # remaining values are known to be `default_value`, write the next
+    # layer into `dest`, returning the number values present and the new
+    # default_value for this new layer.
+
+    # Compute how many entries can be created from entries that are
+    # present, and whether there is a "partial" entry.  Then fill in
+    # each kind of entry, computing the new default as required.
+
+    num_full_present = int(num_present / 2)
+    num_partial_present = num_present - (2 * num_full_present)
+
+    for i in range(num_full_present):
+        dest[dest_offset + i] = MerkleTree.combine(
+            source[source_offset + 2*i], source[source_offset + 2*i + 1])
+
+    if num_partial_present:
+        assert default_value
+        dest[dest_offset + num_full_present] = MerkleTree.combine(
+            source[source_offset + num_present - 1], default_value)
+
+    new_num_present = num_full_present + num_partial_present
+    new_default: Optional[bytes] = None
+    if num_present < layer_size - 1:
+        assert default_value
+        new_default = MerkleTree.combine(default_value, default_value)
+
+    return (new_num_present, new_default)
