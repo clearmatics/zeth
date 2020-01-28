@@ -7,10 +7,11 @@
 from zeth.joinsplit import EncryptionKeyPair, ZethAddress
 from zeth.ownership import gen_ownership_keypair
 from zeth.prover_client import ProverClient
-from zeth.utils import \
-    open_web3, get_private_key_from_bytes, get_public_key_from_bytes
-
-from typing import Dict, List, Tuple, Any
+from zeth.utils import get_contracts_dir, get_private_key_from_bytes, \
+    get_public_key_from_bytes, open_web3
+from os.path import join
+from solcx import compile_files  # type: ignore
+from typing import Dict, List, Tuple, Optional, Any
 
 # Web3 HTTP provider
 TEST_PROVER_SERVER_ENDPOINT: str = "localhost:50051"
@@ -89,3 +90,24 @@ def get_dummy_merkle_path(length: int) -> List[str]:
     for _ in range(length):
         mk_path.append(dummy_node)
     return mk_path
+
+
+def deploy_contract(
+        eth: Any,
+        deployer_address: str,
+        contract_name: str,
+        constructor_args: Optional[Dict[str, Any]] = None) -> Tuple[Any, Any]:
+    contracts_dir = get_contracts_dir()
+    sol_path = join(contracts_dir, contract_name + ".sol")
+    compiled_sol = compile_files([sol_path])
+    interface = compiled_sol[sol_path + ":" + contract_name]
+    contract_abi = interface['abi']
+    contract = eth.contract(abi=contract_abi, bytecode=interface['bin'])
+    deploy_tx = contract.constructor(treeDepth=4)  # **constructor_args
+    deploy_tx_hash = deploy_tx.transact({'from': deployer_address})
+    tx_receipt = eth.waitForTransactionReceipt(deploy_tx_hash, 1000)
+    contract_address = tx_receipt['contractAddress']
+    contract_instance = eth.contract(
+        address=contract_address,
+        abi=contract_abi)
+    return interface, contract_instance
