@@ -103,7 +103,7 @@ def deploy_contract(
     interface = compiled_sol[sol_path + ":" + contract_name]
     contract_abi = interface['abi']
     contract = eth.contract(abi=contract_abi, bytecode=interface['bin'])
-    deploy_tx = contract.constructor(treeDepth=4)  # **constructor_args
+    deploy_tx = contract.constructor(**constructor_args)
     deploy_tx_hash = deploy_tx.transact({'from': deployer_address})
     tx_receipt = eth.waitForTransactionReceipt(deploy_tx_hash, 1000)
     contract_address = tx_receipt['contractAddress']

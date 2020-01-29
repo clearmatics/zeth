@@ -7,80 +7,110 @@ pragma solidity ^0.5.0;
 import "./BaseMerkleTree.sol";
 import "./MiMC7.sol";
 
-contract MerkleTreeMiMC7 is BaseMerkleTree {
+// The Merkle tree implementation must trade-off complexity, storage,
+// initialization cost, and update & root computation cost.
+//
+// This implementation stores all leaves and nodes, skipping those that have
+// not been populated yet. The final entry in each layer stores that layer's
+// default value.
+contract MerkleTreeMiMC7 is BaseMerkleTree
+{
+    uint256 constant MASK_LS_BIT = ~uint256(1);
 
-    constructor(uint256 treeDepth) BaseMerkleTree(treeDepth) public {
+    constructor(uint256 treeDepth) BaseMerkleTree(treeDepth) public
+    {
+        initializeTree();
     }
 
-    // Assume a layer, with size `layer_size` where `num_present` entries are
-    // populated, and all other entries take the value `default_value`.  Compute
-    // the next layer, into the same buffer.  Returns the number of values
-    // present in the new later, and the default value for entries that are not
-    // present.
-    function reduceSparseLayer(
-        bytes32[nbLeaves/2] memory pad,
-        uint256 num_present,
-        uint256 layer_size,
-        bytes32 default_value) internal pure returns (uint256, bytes32) {
+    function initializeTree() private
+    {
+        // First layer
+        bytes32 default_value = DEFAULT_LEAF_VALUE;
+        nodes[2 * MAX_NUM_LEAVES - 2] = default_value;
+        uint256 layer_size = MAX_NUM_LEAVES / 2;
 
-        require (num_present <= layer_size, "invalid num_present");
-
-        // Each entry in the new layer is computed from 2 entries LEFT and RIGHT
-        // in the current later.  Compute:
-        //   `num_full_present` - num entries where LEFT and RIGHT both present
-        //   `num_partial_present` - num entries where only LEFT present
-        uint256 num_full_present = num_present / 2;
-        uint256 num_partial_present = num_present & 1;
-
-        uint256 i = 0;
-        for ( ; i < num_full_present ; ++i) {
-            pad[i] = MiMC7.hash(pad[2 * i], pad[2*i + 1]);
-        }
-        if (num_partial_present > 0) {
-            pad[i] = MiMC7.hash(pad[2 * i], default_value);
-            ++i;
-        }
-
-        if (num_present < layer_size - 1) {
+        // Subsequent layers
+        while (layer_size > 0) {
             default_value = MiMC7.hash(default_value, default_value);
+            uint256 layer_final_entry_idx = 2 * layer_size - 2;
+            nodes[layer_final_entry_idx] = default_value;
+            layer_size = layer_size / 2;
         }
-
-        return (i, default_value);
     }
 
-    // Returns the root of the merkle tree
-    function getRoot() internal view returns(bytes32) {
-        uint256 layer_size = nbLeaves / 2;
-        uint256 num_present = leaves.length;
+    function recomputeRoot(uint num_new_leaves) internal returns (bytes32)
+    {
+        // Assume `num_new_leaves` have been written into the leaf slots.
+        // Update any affected nodes in the tree, up to the root, using the
+        // default values for any missing nodes.
 
-        // Create a statically sized array for the largest possible required
-        // length (to avoid the cost of a dynamic one).  As long as this and all
-        // child functions do not use memory AFTER `pad`, we should only pay gas
-        // for the memory actually used - not necessarily the full array.
-        bytes32[nbLeaves / 2] memory pad;
+        uint256 end_idx = num_leaves;
+        uint256 start_idx = num_leaves - num_new_leaves;
+        uint256 layer_size = MAX_NUM_LEAVES;
 
-        // Compute first layer from storage
-        uint256 i = 0;
-        for ( ; i < num_present / 2 ; ++i) {
-            pad[i] = MiMC7.hash(leaves[2*i], leaves[2*i + 1]);
-        }
-        if ((num_present & 1) != 0) {
-            pad[i] = MiMC7.hash(leaves[2*i], DEFAULT_LEAF_VALUE);
-            i++;
-        }
-
-        bytes32 default_value = MiMC7.hash(DEFAULT_LEAF_VALUE, DEFAULT_LEAF_VALUE);
-        num_present = i;
         while (layer_size > 1) {
-            (num_present, default_value) = reduceSparseLayer(
-                pad, num_present, layer_size, default_value);
+            (start_idx, end_idx) =
+                recomputeParentLayer(layer_size, start_idx, end_idx);
             layer_size = layer_size / 2;
         }
 
-        if (num_present > 0) {
-            return pad[0];
+        return nodes[0];
+    }
+
+    // Recompute nodes in the parent layer that are affected by entries
+    // [child_start_idx, child_end_idx[ in the child layer.  If
+    // `child_end_idx` is required in the calculation, the final entry of
+    // the child layer is used (since this contains the default entry for
+    // the layer if the tree is not full).
+    //
+    //            /     \         /     \         /     \
+    // Parent:   ?       ?       F       G       H       0
+    //          / \     / \     / \     / \     / \     / \
+    // Child:  ?   ?   ?   ?   A   B   C   D   E   ?   ?   0
+    //                         ^                   ^
+    //                child_start_idx         child_end_idx
+    //
+    // Returns the start and end indices (within the parent layer) of touched
+    // parent nodes.
+    function recomputeParentLayer(
+        uint256 child_layer_size,
+        uint256 child_start_idx,
+        uint256 child_end_idx)
+        private
+        returns (uint256, uint256)
+    {
+        uint256 child_layer_start = child_layer_size - 1;
+
+        // Start at the right and iterate left, so we only execute the
+        // default_value logic once.  child_left_idx_rend (reverse-end) is the
+        // smallest value of child_left_idx at which we should recompute the
+        // parent node hash.
+
+        uint256 child_left_idx_rend =
+            child_layer_start + (child_start_idx & MASK_LS_BIT);
+
+        // If child_end_idx is odd, it is the RIGHT of a computation we need to
+        // make.  Do the computation using the default value, and move to the
+        // next pair (on the left).  Otherwise, we have a fully populated pair.
+
+        uint256 child_left_idx;
+        if ((child_end_idx & 1) != 0) {
+            child_left_idx = child_layer_start + child_end_idx - 1;
+            nodes[(child_left_idx - 1) / 2] =
+                MiMC7.hash(nodes[child_left_idx], nodes[2 * child_layer_start]);
+        } else {
+            child_left_idx = child_layer_start + child_end_idx;
         }
 
-        return default_value;
+        // At this stage, pairs are all populated.  Compute until we reach
+        // child_left_idx_rend.
+
+        while (child_left_idx > child_left_idx_rend) {
+            child_left_idx = child_left_idx - 2;
+            nodes[(child_left_idx - 1) / 2] =
+                MiMC7.hash(nodes[child_left_idx], nodes[child_left_idx + 1]);
+        }
+
+        return (child_start_idx / 2, (child_end_idx + 1) / 2);
     }
 }

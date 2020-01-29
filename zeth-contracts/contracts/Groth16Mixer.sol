@@ -115,7 +115,7 @@ contract Groth16Mixer is BaseMixer {
         process_public_values(input);
 
         // 5. Add the new root to the list of existing roots and emit it
-        add_and_emit_merkle_root(getRoot());
+        add_and_emit_merkle_root(recomputeRoot(jsIn));
 
         // 6. Emit the all the coins' secret data encrypted with the recipients'
         // respective keys
