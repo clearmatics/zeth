@@ -9,7 +9,7 @@ pragma solidity ^0.5.0;
 contract BaseMerkleTree {
     // Depth of the merkle tree (should be set with the same depth set in the
     // cpp prover)
-    uint256 constant DEPTH = 4;
+    uint256 constant DEPTH = 32;
 
     // Number of leaves
     uint256 constant MAX_NUM_LEAVES = 2**DEPTH;

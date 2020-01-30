@@ -18,7 +18,7 @@ PGHR13_MIXER_CONTRACT: str = "Pghr13Mixer"
 VALID_ZKSNARKS: List[str] = [GROTH16_ZKSNARK, PGHR13_ZKSNARK]
 
 # Merkle tree depth
-ZETH_MERKLE_TREE_DEPTH: int = 4
+ZETH_MERKLE_TREE_DEPTH: int = 32
 
 # Nb of input notes
 JS_INPUTS: int = 2

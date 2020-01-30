@@ -6,7 +6,7 @@
 static const size_t ZETH_NUM_JS_INPUTS = 2;
 static const size_t ZETH_NUM_JS_OUTPUTS = 2;
 
-static const size_t ZETH_MERKLE_TREE_DEPTH = 4;
+static const size_t ZETH_MERKLE_TREE_DEPTH = 32;
 static const size_t ZETH_MERKLE_TREE_DEPTH_TEST = 4;
 
 static const size_t ZETH_V_SIZE = 8; // 64 bits for the value
