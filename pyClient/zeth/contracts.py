@@ -13,7 +13,7 @@ from zeth.constants import SOL_COMPILER_VERSION
 
 import os
 from web3 import Web3  # type: ignore
-from solcx import compile_files, set_solc_version, install_solc
+import solcx
 from typing import Tuple, Dict, List, Iterator, Optional, Any
 
 # Avoid trying to read too much data into memory
@@ -76,14 +76,23 @@ def get_block_number(web3: Any) -> int:
 
 
 def install_sol() -> None:
-    install_solc(SOL_COMPILER_VERSION)
+    solcx.install_solc(SOL_COMPILER_VERSION)
+
+
+def compile_files(files: List[str]) -> Any:
+    """
+    Wrapper around solcx which ensures the required version of the compiler is
+    used.
+    """
+    solcx.set_solc_version(SOL_COMPILER_VERSION)
+    return solcx.compile_files(files, optimize=True)
 
 
 def compile_mixer(zksnark: IZKSnarkProvider) -> Interface:
     contracts_dir = get_contracts_dir()
     mixer_name = zksnark.get_contract_name()
     path_to_mixer = os.path.join(contracts_dir, mixer_name + ".sol")
-    compiled_sol = compile_files([path_to_mixer], optimize=True)
+    compiled_sol = compile_files([path_to_mixer])
     return compiled_sol[path_to_mixer + ':' + mixer_name]
 
 
