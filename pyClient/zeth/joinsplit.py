@@ -327,7 +327,10 @@ def get_dummy_input_and_address(
         value=ZERO_UNITS_HEX,
         rho=get_dummy_rho(),
         trap_r=trap_r_randomness())
-    dummy_note_address = 7
+    # Note that the Merkle path is not fully checked against the root by the
+    # circuit since the note value is 0. Hence the address used here is
+    # arbitrary.
+    dummy_note_address = 0
     return (dummy_note_address, dummy_note)
 
 
@@ -498,11 +501,8 @@ class ZethClient:
             inputs + \
             [get_dummy_input_and_address(sender_a_pk)
              for _ in range(constants.JS_INPUTS - len(inputs))]
-        tree_depth = mk_tree.tree_depth
-        tree_values = mk_tree.compute_tree_values()
-        mk_root = tree_values[0]
-        mk_paths = [compute_merkle_path(addr, tree_depth, tree_values)
-                    for addr, _ in inputs]
+        mk_root = mk_tree.get_root()
+        mk_paths = [compute_merkle_path(addr, mk_tree) for addr, _ in inputs]
 
         # Generate output notes and proof.  Dummy outputs are constructed with
         # value 0 to an invalid ZethAddressPub, formed from the senders

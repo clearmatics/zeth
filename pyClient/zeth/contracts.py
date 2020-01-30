@@ -132,6 +132,9 @@ def deploy_mixer(
     # Get tx receipt to get Mixer contract address
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     mixer_address = tx_receipt['contractAddress']
+    gas_used = tx_receipt.gasUsed
+    status = tx_receipt.status
+    print(f"{tx_hash[0:8]}: gasUsed={gas_used}, status={status}")
     # Get the mixer contract instance
     return web3.eth.contract(
         address=mixer_address,

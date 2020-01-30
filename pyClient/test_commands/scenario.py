@@ -42,9 +42,10 @@ def wait_for_tx_update_mk_tree(
     tx_receipt = zeth_client.web3.eth.waitForTransactionReceipt(tx_hash, 10000)
     result = contracts.parse_mix_call(zeth_client.mixer_instance, tx_receipt)
     for out_ev in result.output_events:
-        mk_tree.set_entry(out_ev.commitment_address, out_ev.commitment)
+        mk_tree.insert(out_ev.commitment)
 
-    assert mk_tree.compute_root() == result.new_merkle_root
+    if mk_tree.recompute_root() != result.new_merkle_root:
+        raise Exception("Merkle root mismatch between log and local tree")
     return result
 
 
@@ -153,10 +154,9 @@ def charlie_double_withdraw(
     charlie_apk = keystore["Charlie"].addr_pk.a_pk
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
 
-    tree_depth = mk_tree.tree_depth
-    tree_values = mk_tree.compute_tree_values()
-    mk_path1 = compute_merkle_path(input1[0], tree_depth, tree_values)
-    mk_root = tree_values[0]
+    tree_depth = mk_tree.depth
+    mk_path1 = compute_merkle_path(input1[0], mk_tree)
+    mk_root = mk_tree.get_root()
 
     # Create the an additional dummy input for the JoinSplit
     input2 = joinsplit.get_dummy_input_and_address(charlie_apk)
@@ -300,8 +300,8 @@ def charlie_corrupt_bob_deposit(
         f"but Charlie attempts to corrupt the transaction ===")
     bob_apk = keystore["Bob"].addr_pk.a_pk
     bob_ask = keystore["Bob"].addr_sk.a_sk
-    tree_depth = mk_tree.tree_depth
-    mk_root = mk_tree.compute_root()
+    tree_depth = mk_tree.depth
+    mk_root = mk_tree.get_root()
     # mk_tree_depth = zeth_client.mk_tree_depth
     # mk_root = zeth_client.merkle_root
 
