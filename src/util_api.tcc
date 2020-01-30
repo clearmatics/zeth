@@ -29,7 +29,7 @@ joinsplit_input<FieldT> parse_joinsplit_input(
     bits256 input_nullifier = hex_digest_to_bits256(input.nullifier());
 
     std::vector<FieldT> input_merkle_path;
-    for (int i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
+    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; i++) {
         FieldT mk_node = parse_merkle_node<FieldT>(input.merkle_path(i));
         input_merkle_path.push_back(mk_node);
     }

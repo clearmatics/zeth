@@ -145,9 +145,9 @@ bits64 hex_value_to_bits64(std::string str)
     return get_bits64_from_vector(hex_to_binary_vector(str));
 }
 
-std::vector<bool> address_bits_from_address(int address, size_t tree_depth)
+std::vector<bool> address_bits_from_address(size_t address, size_t tree_depth)
 {
-    std::vector<bool> binary = convert_int_to_binary(address);
+    std::vector<bool> binary = convert_uint_to_binary(address);
     std::vector<bool> result(tree_depth, 0);
 
     if (binary.size() > tree_depth) {
@@ -168,9 +168,7 @@ std::vector<bool> address_bits_from_address(int address, size_t tree_depth)
     return binary;
 }
 
-// As we push_back in the vector, this function returns the little endian
-// binary encoding of the integer x
-std::vector<bool> convert_int_to_binary(int x)
+std::vector<bool> convert_uint_to_binary(size_t x)
 {
     std::vector<bool> ret;
     while (x) {

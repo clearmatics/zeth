@@ -122,11 +122,12 @@ public:
                 throw std::invalid_argument("Invalid number of JS outputs");
             }
 
-            std::cout << "[DEBUG] Process every inputs of the JoinSplit"
+            std::cout << "[DEBUG] Process all inputs of the JoinSplit"
                       << std::endl;
             std::array<libzeth::joinsplit_input<FieldT>, ZETH_NUM_JS_INPUTS>
                 joinsplit_inputs;
-            for (int i = 0; i < ZETH_NUM_JS_INPUTS; i++) {
+            for (size_t i = 0; i < ZETH_NUM_JS_INPUTS; i++) {
+                printf("\r  input (%zu / %zu)\n", i, ZETH_NUM_JS_INPUTS);
                 prover_proto::JoinsplitInput received_input =
                     proof_inputs->js_inputs(i);
                 libzeth::joinsplit_input<FieldT> parsed_input =
@@ -134,11 +135,12 @@ public:
                 joinsplit_inputs[i] = parsed_input;
             }
 
-            std::cout << "[DEBUG] Process every outputs of the JoinSplit"
+            std::cout << "[DEBUG] Process all outputs of the JoinSplit"
                       << std::endl;
             std::array<libzeth::zeth_note, ZETH_NUM_JS_OUTPUTS>
                 joinsplit_outputs;
-            for (int i = 0; i < ZETH_NUM_JS_OUTPUTS; i++) {
+            for (size_t i = 0; i < ZETH_NUM_JS_OUTPUTS; i++) {
+                printf("\r  output (%zu / %zu)\n", i, ZETH_NUM_JS_OUTPUTS);
                 prover_proto::ZethNote received_output =
                     proof_inputs->js_outputs(i);
                 libzeth::zeth_note parsed_output =
