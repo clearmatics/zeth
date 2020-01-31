@@ -470,7 +470,7 @@ public:
     }
 
     // Check the booleaness of packing variables
-    // Check the booleanees of phi and the a_sks
+    // Check the booleaness of phi and the a_sks
     // Check value of ZERO (i.e. that ZERO = FieldT::zero())
     // Check input notes, output notes, h_iS and rhoS are correctly computed
     // Check the joinsplit is balanced
