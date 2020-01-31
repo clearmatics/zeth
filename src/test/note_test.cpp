@@ -103,9 +103,11 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
 
     // In practice the address is emitted by the mixer contract once the
     // commitment is appended to the tree
-    libff::bit_vector address_bits = {
-        1, 0, 0, 0}; // The length 4 being the value of ZETH_MERKLE_TREE_DEPTH
     const size_t address_commitment = 1;
+    libff::bit_vector address_bits;
+    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+        address_bits.push_back((address_commitment >> i) & 0x1);
+    }
 
     test_merkle_tree->set_value(address_commitment, cm_field);
 
