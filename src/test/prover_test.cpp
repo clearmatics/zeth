@@ -77,9 +77,11 @@ bool TestValidJS2In2Case1(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7"));
     FieldT cm_field = FieldT("9047913389147464750130699723564635396506448356890"
                              "6678810249472230384841563494");
-    // 4  being the value of  ZETH_MERKLE_TREE_DEPTH
-    libff::bit_vector address_bits = {1, 0, 0, 0};
     const size_t address_commitment = 1;
+    libff::bit_vector address_bits;
+    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+        address_bits.push_back((address_commitment >> i) & 0x1);
+    }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hex_digest_to_binary_vector(
@@ -215,9 +217,11 @@ bool TestValidJS2In2Case2(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7"));
     FieldT cm_field = FieldT("9047913389147464750130699723564635396506448356890"
                              "6678810249472230384841563494");
-    // 4 being the value of ZETH_MERKLE_TREE_DEPTH
-    libff::bit_vector address_bits = {1, 0, 0, 0};
     const size_t address_commitment = 1;
+    libff::bit_vector address_bits;
+    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+        address_bits.push_back((address_commitment >> i) & 0x1);
+    }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hex_digest_to_binary_vector(
@@ -357,9 +361,11 @@ bool TestValidJS2In2Case3(
                                     "0c915d3d3020927ca01deab5da0fd7"));
     FieldT cm_field = FieldT("9047913389147464750130699723564635396506448356890"
                              "6678810249472230384841563494");
-    // 4 being the value of ZETH_MERKLE_TREE_DEPTH
-    libff::bit_vector address_bits = {1, 0, 0, 0};
     const size_t address_commitment = 1;
+    libff::bit_vector address_bits;
+    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+        address_bits.push_back((address_commitment >> i) & 0x1);
+    }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hex_digest_to_binary_vector(
@@ -497,10 +503,11 @@ bool TestValidJS2In2Deposit(
                                     "0c915d3d3020927ca01deab5da0fd7"));
     FieldT cm_field = FieldT("2281832643223606317136789414187662021908714832047"
                              "3329862765761543709426760735");
-    // 4 being the vlaue of ZETH_MERKLE_TREE_DEPTH
-    libff::bit_vector address_bits = {1, 0, 0, 0};
-
     const size_t address_commitment = 1;
+    libff::bit_vector address_bits;
+    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+        address_bits.push_back((address_commitment >> i) & 0x1);
+    }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hex_digest_to_binary_vector(
@@ -635,9 +642,11 @@ bool TestInvalidJS2In2(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7"));
     FieldT cm_field = FieldT("2281832643223606317136789414187662021908714832047"
                              "3329862765761543709426760735");
-    // 4 being the value of ZETH_MERKLE_TREE_DEPTH
-    libff::bit_vector address_bits = {1, 0, 0, 0};
     const size_t address_commitment = 1;
+    libff::bit_vector address_bits;
+    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+        address_bits.push_back((address_commitment >> i) & 0x1);
+    }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7"));
     bits256 phi = get_bits256_from_vector(hex_digest_to_binary_vector(
