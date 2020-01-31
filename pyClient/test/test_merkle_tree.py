@@ -49,7 +49,7 @@ class TestMerkleTree(TestCase):
 
     def test_empty(self) -> None:
         mktree = MerkleTree.empty_with_size(MERKLE_TREE_TEST_NUM_LEAVES)
-        root = mktree.recompute_root(0)
+        root = mktree.recompute_root()
         num_entries = mktree.get_num_entries()
 
         self.assertEqual(0, num_entries)
@@ -63,7 +63,7 @@ class TestMerkleTree(TestCase):
 
         mktree = PersistentMerkleTree.open(
             mktree_file, MERKLE_TREE_TEST_NUM_LEAVES)
-        root = mktree.recompute_root(0)
+        root = mktree.recompute_root()
         mktree.save()
 
         self.assertEqual(self._expected_empty(), root)
@@ -78,7 +78,7 @@ class TestMerkleTree(TestCase):
         self.assertEqual(1, mktree.get_num_entries())
         self.assertEqual(data, mktree.get_leaf(0))
         self.assertEqual(ZERO_ENTRY, mktree.get_leaf(1))
-        root_1 = mktree.recompute_root(1)
+        root_1 = mktree.recompute_root()
         self.assertEqual(
             MerkleTree.combine(data, ZERO_ENTRY), mktree.get_node(1, 0))
         self.assertNotEqual(self._expected_empty(), root_1)
@@ -89,17 +89,17 @@ class TestMerkleTree(TestCase):
         self.assertEqual(1, mktree.get_num_entries())
         self.assertEqual(data, mktree.get_leaf(0))
         self.assertEqual(ZERO_ENTRY, mktree.get_leaf(1))
-        root_2 = mktree.recompute_root(0)
+        root_2 = mktree.recompute_root()
         self.assertEqual(root_1, root_2)
 
     def test_single_entry_all_nodes(self) -> None:
         mktree = MerkleTree.empty_with_size(MERKLE_TREE_TEST_NUM_LEAVES)
         mktree.insert(TEST_VALUES[0])
-        _ = mktree.recompute_root(1)
+        _ = mktree.recompute_root()
         self._check_tree_nodes([TEST_VALUES[0]], mktree)
 
         self.assertEqual(
-            mktree.recompute_root(0),
+            mktree.recompute_root(),
             mktree.get_node(MERKLE_TREE_TEST_DEPTH, 0))
 
     def test_multiple_entries_all_nodes(self) -> None:
@@ -107,7 +107,7 @@ class TestMerkleTree(TestCase):
         mktree.insert(TEST_VALUES[0])
         mktree.insert(TEST_VALUES[1])
         mktree.insert(TEST_VALUES[2])
-        _ = mktree.recompute_root(3)
+        _ = mktree.recompute_root()
         self._check_tree_nodes(
             [TEST_VALUES[0], TEST_VALUES[1], TEST_VALUES[2]], mktree)
 
@@ -118,7 +118,7 @@ class TestMerkleTree(TestCase):
             mktree = MerkleTree.empty_with_size(tree_size)
             for val in TEST_VALUES[0:num_entries]:
                 mktree.insert(val)
-            _ = mktree.recompute_root(num_entries)
+            _ = mktree.recompute_root()
             mkpath = compute_merkle_path(address, mktree)
             self._check_merkle_path(address, mkpath, mktree)
 

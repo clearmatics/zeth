@@ -202,7 +202,7 @@ def do_sync(
 
             # Check merkle root and save the updated tree
             if new_merkle_root:
-                our_merkle_root = merkle_tree.recompute_root(new_merkle_entries)
+                our_merkle_root = merkle_tree.recompute_root()
                 assert new_merkle_root == our_merkle_root
                 merkle_tree.save()
 

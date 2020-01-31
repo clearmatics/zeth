@@ -18,8 +18,8 @@ HASH = MiMC7()
 
 class MerkleTreeData:
     """
-    Persisted data for a client Merkle tree.  Layers are ordered from top
-    (smallest) to bottom.
+    Simple container to be persisted for a client-side Merkle tree. Does not
+    perform any computation.  Layers are ordered from top (smallest) to bottom.
     """
     def __init__(
             self,
@@ -73,6 +73,7 @@ class MerkleTree:
         self.max_num_leaves = pow(2, depth)
         self.depth = tree_data.depth
         self.tree_data = tree_data
+        self.num_new_leaves = 0
 
     @staticmethod
     def empty_with_depth(depth: int) -> MerkleTree:
@@ -105,6 +106,7 @@ class MerkleTree:
 
     def get_node(self, layer_idx: int, node_idx: int) -> bytes:
         assert layer_idx <= self.depth
+        assert self.num_new_leaves == 0
         layer_idx = self.depth - layer_idx
         layer = self.tree_data.layers[layer_idx]
         if node_idx < len(layer):
@@ -113,31 +115,34 @@ class MerkleTree:
 
     def get_layers(self) -> Iterator[Tuple[bytes, List[bytes]]]:
         """
-        Public interface indexes layers with 0 as the leaves.
+        Public layers iterator.
         """
-        default_values = self.tree_data.default_values
-        layers = self.tree_data.layers
-        for i in range(self.depth, -1, -1):
-            yield (default_values[i], layers[i])
+        assert self.num_new_leaves == 0
+        return self._get_layers()
 
     def get_root(self) -> bytes:
+        assert self.num_new_leaves == 0
         return self.tree_data.layers[0][0]
 
     def insert(self, value: bytes) -> None:
         leaves = self.tree_data.layers[self.depth]
         assert len(leaves) < self.max_num_leaves
         leaves.append(value)
+        self.num_new_leaves = self.num_new_leaves + 1
 
-    def recompute_root(self, num_new_leaves: int) -> bytes:
+    def recompute_root(self) -> bytes:
         """
         After some new leaves have been added, perform the minimal set of hashes
         to recompute the tree, expanding each layer to accommodate new nodes.
         """
-        layers_it = self.get_layers()
+        if self.num_new_leaves == 0:
+            return self.get_root()
+
+        layers_it = self._get_layers()
 
         layer_default, layer = next(layers_it)
         end_idx = len(layer)
-        start_idx = end_idx - num_new_leaves
+        start_idx = end_idx - self.num_new_leaves
         layer_size = self.max_num_leaves
 
         for parent_default, parent_layer in layers_it:
@@ -154,9 +159,20 @@ class MerkleTree:
             layer_default = parent_default
             layer_size = int(layer_size / 2)
 
+        self.num_new_leaves = 0
         assert len(layer) == 1
         assert layer_size == 1
         return layer[0]
+
+    def _get_layers(self) -> Iterator[Tuple[bytes, List[bytes]]]:
+        """
+        Internal version of layers iterator for use during updating.
+        With 0-th layer as the leaves (matching the public interface).
+        """
+        default_values = self.tree_data.default_values
+        layers = self.tree_data.layers
+        for i in range(self.depth, -1, -1):
+            yield (default_values[i], layers[i])
 
 
 def compute_merkle_path(address: int, mk_tree: MerkleTree) -> List[str]:

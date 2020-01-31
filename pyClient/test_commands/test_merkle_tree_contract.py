@@ -47,7 +47,7 @@ def assert_root(expect_root: bytes, nodes: List[bytes], msg: str) -> None:
 
 def test_tree_empty(contract: Any) -> None:
     mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH)
-    expect_root = mktree.recompute_root(0)
+    expect_root = mktree.recompute_root()
     nodes = contract.functions.testAddLeaves([], []).call()
     assert_root(expect_root, nodes, "test_tree_empty")
 
@@ -70,7 +70,7 @@ def test_tree_partial(contract: Any) -> None:
         mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH)
         for leaf in leaves:
             mktree.insert(leaf)
-        expect_root = mktree.recompute_root(len(leaves))
+        expect_root = mktree.recompute_root()
 
         for cut in range(0, num_entries + 1, step):
             print(f"_test_partial: num_entries={num_entries}, cut={cut}")
