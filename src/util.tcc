@@ -49,6 +49,30 @@ template<typename T> T swap_byte_endianness(T v)
     return v;
 }
 
+template<size_t TreeDepth>
+std::vector<bool> address_bits_from_address(size_t address)
+{
+    std::vector<bool> binary = convert_uint_to_binary(address);
+    std::vector<bool> result(TreeDepth, 0);
+
+    if (binary.size() > TreeDepth) {
+        // Address encoded on more bits that the address space allows
+        throw std::invalid_argument("Address overflow");
+    }
+
+    // We need to "back pad" the binary conversion we obtained to have an
+    // address encoded by a binary string of the length of the tree_depth
+    if (binary.size() < TreeDepth) {
+        for (size_t i = 0; i < binary.size(); i++) {
+            result[i] = binary[i];
+        }
+        // We return the "back padded" vector
+        return result;
+    }
+
+    return binary;
+}
+
 // string_to_field(std::string input) converts a string ob bytes of size <=32 to
 // a FieldT element.
 template<typename FieldT> FieldT string_to_field(std::string input)

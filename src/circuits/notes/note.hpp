@@ -43,7 +43,7 @@ public:
 // - The nullifier is correctly computed from a_sk and rho
 // - The commitment cm is correctly computed from the coin's data
 // - commitment cm is in the tree of merkle root rt
-template<typename FieldT, typename HashT, typename HashTreeT>
+template<typename FieldT, typename HashT, typename HashTreeT, size_t TreeDepth>
 class input_note_gadget : public note_gadget<FieldT>
 {
 private:

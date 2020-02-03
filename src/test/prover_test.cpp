@@ -33,12 +33,13 @@ typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
 typedef BLAKE2s_256_comp<FieldT> HashT;
 typedef MiMC_mp_gadget<FieldT> HashTreeT;
+static const size_t TreeDepth = 4;
 
 namespace
 {
 
 bool TestValidJS2In2Case1(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
@@ -53,8 +54,7 @@ bool TestValidJS2In2Case1(
     // we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(
-                ZETH_MERKLE_TREE_DEPTH_TEST));
+            new merkle_tree_field<FieldT, HashTreeT>(TreeDepth));
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -79,7 +79,7 @@ bool TestValidJS2In2Case1(
                              "6678810249472230384841563494");
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
-    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+    for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
@@ -102,22 +102,22 @@ bool TestValidJS2In2Case1(
             "AAAA00000000000000000000000000000000000000000000000000000000EEE"
             "E")),
         trap_r_bits384);
-    joinsplit_input<FieldT> input(
+    joinsplit_input<FieldT, TreeDepth> input(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_input,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    joinsplit_input<FieldT> input_dummy(
+    joinsplit_input<FieldT, TreeDepth> input_dummy(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_dummy_input,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
     inputs[0] = input;
     inputs[1] = input_dummy;
     libff::leave_block("Create joinsplit_input", true);
@@ -179,7 +179,7 @@ bool TestValidJS2In2Case1(
 }
 
 bool TestValidJS2In2Case2(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     libff::print_header(
@@ -193,8 +193,7 @@ bool TestValidJS2In2Case2(
     // we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(
-                ZETH_MERKLE_TREE_DEPTH_TEST));
+            new merkle_tree_field<FieldT, HashTreeT>(TreeDepth));
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -219,7 +218,7 @@ bool TestValidJS2In2Case2(
                              "6678810249472230384841563494");
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
-    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+    for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
@@ -243,22 +242,22 @@ bool TestValidJS2In2Case2(
         get_bits64_from_vector(hex_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    joinsplit_input<FieldT> input0(
+    joinsplit_input<FieldT, TreeDepth> input0(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_input0,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    joinsplit_input<FieldT> input1(
+    joinsplit_input<FieldT, TreeDepth> input1(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
     libff::leave_block("Create joinsplit_input", true);
@@ -318,7 +317,7 @@ bool TestValidJS2In2Case2(
 }
 
 bool TestValidJS2In2Case3(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
@@ -333,8 +332,7 @@ bool TestValidJS2In2Case3(
     // we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(
-                ZETH_MERKLE_TREE_DEPTH_TEST));
+            new merkle_tree_field<FieldT, HashTreeT>(TreeDepth));
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -363,7 +361,7 @@ bool TestValidJS2In2Case3(
                              "6678810249472230384841563494");
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
-    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+    for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
@@ -387,22 +385,22 @@ bool TestValidJS2In2Case3(
         get_bits64_from_vector(hex_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    joinsplit_input<FieldT> input0(
+    joinsplit_input<FieldT, TreeDepth> input0(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_input0,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    joinsplit_input<FieldT> input1(
+    joinsplit_input<FieldT, TreeDepth> input1(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
     libff::leave_block("Create joinsplit_input", true);
@@ -463,7 +461,7 @@ bool TestValidJS2In2Case3(
 }
 
 bool TestValidJS2In2Deposit(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
@@ -477,8 +475,7 @@ bool TestValidJS2In2Deposit(
     // we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(
-                ZETH_MERKLE_TREE_DEPTH_TEST));
+            new merkle_tree_field<FieldT, HashTreeT>(TreeDepth));
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -505,7 +502,7 @@ bool TestValidJS2In2Deposit(
                              "3329862765761543709426760735");
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
-    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+    for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
@@ -529,22 +526,22 @@ bool TestValidJS2In2Deposit(
         get_bits64_from_vector(hex_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    joinsplit_input<FieldT> input0(
+    joinsplit_input<FieldT, TreeDepth> input0(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_input0,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    joinsplit_input<FieldT> input1(
+    joinsplit_input<FieldT, TreeDepth> input1(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
     libff::leave_block("Create joinsplit_input", true);
@@ -606,7 +603,7 @@ bool TestValidJS2In2Deposit(
 }
 
 bool TestInvalidJS2In2(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> &prover,
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
     libzeth::keyPairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
@@ -620,8 +617,7 @@ bool TestInvalidJS2In2(
     // we instantiate our unique_ptr manually
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(
-                ZETH_MERKLE_TREE_DEPTH_TEST));
+            new merkle_tree_field<FieldT, HashTreeT>(TreeDepth));
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -644,7 +640,7 @@ bool TestInvalidJS2In2(
                              "3329862765761543709426760735");
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
-    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+    for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
     bits256 h_sig = get_bits256_from_vector(hex_digest_to_binary_vector(
@@ -668,22 +664,22 @@ bool TestInvalidJS2In2(
         get_bits64_from_vector(hex_to_binary_vector("0000000000000000")),
         rho_bits256,
         trap_r_bits384);
-    joinsplit_input<FieldT> input0(
+    joinsplit_input<FieldT, TreeDepth> input0(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_input0,
         a_sk_bits256,
         nf_bits256);
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    joinsplit_input<FieldT> input1(
+    joinsplit_input<FieldT, TreeDepth> input1(
         path,
-        get_bits_addr_from_vector(address_bits),
+        get_bits_addr_from_vector<TreeDepth>(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT>, 2> inputs;
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
     inputs[0] = input0;
     inputs[1] = input1;
     libff::leave_block("Create joinsplit_input", true);
@@ -751,7 +747,8 @@ TEST(MainTests, ProofGenAndVerifJS2to2)
 {
     // Run the trusted setup once for all tests, and keep the keypair in memory
     // for the duration of the tests
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2> proverJS2to2;
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth>
+        proverJS2to2;
 
     libzeth::keyPairT<ppT> keypair = proverJS2to2.generate_trusted_setup();
     bool res = false;

@@ -12,7 +12,8 @@ void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
         HashT,
         HashTreeT,
         ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS>
+        ZETH_NUM_JS_OUTPUTS,
+        ZETH_MERKLE_TREE_DEPTH>
         js(pb);
     js.generate_r1cs_constraints();
 }

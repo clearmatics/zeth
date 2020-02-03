@@ -27,7 +27,8 @@ bits64 hex_value_to_bits64(std::string value_hex_str);
 // Returns the little endian binary encoding of the integer x.
 std::vector<bool> convert_uint_to_binary(size_t x);
 
-std::vector<bool> address_bits_from_address(size_t address, size_t tree_depth);
+template<size_t TreeDepth>
+std::vector<bool> address_bits_from_address(size_t address);
 
 template<typename FieldT> FieldT string_to_field(std::string input);
 

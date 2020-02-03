@@ -49,7 +49,8 @@ private:
         HashTreeT,
         ppT,
         ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS>
+        ZETH_NUM_JS_OUTPUTS,
+        ZETH_MERKLE_TREE_DEPTH>
         prover;
 
     // The keypair is the result of the setup
@@ -63,7 +64,8 @@ public:
             HashTreeT,
             ppT,
             ZETH_NUM_JS_INPUTS,
-            ZETH_NUM_JS_OUTPUTS> &prover,
+            ZETH_NUM_JS_OUTPUTS,
+            ZETH_MERKLE_TREE_DEPTH> &prover,
         keyPairT<ppT> &keypair)
         : prover(prover), keypair(keypair)
     {
@@ -124,14 +126,18 @@ public:
 
             std::cout << "[DEBUG] Process all inputs of the JoinSplit"
                       << std::endl;
-            std::array<libzeth::joinsplit_input<FieldT>, ZETH_NUM_JS_INPUTS>
+            std::array<
+                libzeth::joinsplit_input<FieldT, ZETH_MERKLE_TREE_DEPTH>,
+                ZETH_NUM_JS_INPUTS>
                 joinsplit_inputs;
             for (size_t i = 0; i < ZETH_NUM_JS_INPUTS; i++) {
                 printf("\r  input (%zu / %zu)\n", i, ZETH_NUM_JS_INPUTS);
                 prover_proto::JoinsplitInput received_input =
                     proof_inputs->js_inputs(i);
-                libzeth::joinsplit_input<FieldT> parsed_input =
-                    parse_joinsplit_input<FieldT>(received_input);
+                libzeth::joinsplit_input<FieldT, ZETH_MERKLE_TREE_DEPTH>
+                    parsed_input =
+                        parse_joinsplit_input<FieldT, ZETH_MERKLE_TREE_DEPTH>(
+                            received_input);
                 joinsplit_inputs[i] = parsed_input;
             }
 
@@ -222,7 +228,8 @@ static void RunServer(
         HashTreeT,
         ppT,
         ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS> &prover,
+        ZETH_NUM_JS_OUTPUTS,
+        ZETH_MERKLE_TREE_DEPTH> &prover,
     keyPairT<ppT> &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50051
@@ -317,7 +324,8 @@ int main(int argc, char **argv)
         HashTreeT,
         ppT,
         ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS>
+        ZETH_NUM_JS_OUTPUTS,
+        ZETH_MERKLE_TREE_DEPTH>
         prover;
     keyPairT<ppT> keypair = [&keypair_file, &prover]() {
         if (!keypair_file.empty()) {

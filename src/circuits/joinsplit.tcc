@@ -21,7 +21,8 @@ template<
     typename HashT,
     typename HashTreeT,
     size_t NumInputs,
-    size_t NumOutputs>
+    size_t NumOutputs,
+    size_t TreeDepth>
 class joinsplit_gadget : libsnark::gadget<FieldT>
 {
 private:
@@ -94,7 +95,7 @@ private:
 
     // Input note gadgets
     std::array<
-        std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT>>,
+        std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>>,
         NumInputs>
         input_notes;
     // Message authentication tag gadgets
@@ -451,7 +452,7 @@ public:
         // as well as PRF gadgets for the h_iS
         for (size_t i = 0; i < NumInputs; i++) {
             input_notes[i].reset(
-                new input_note_gadget<FieldT, HashT, HashTreeT>(
+                new input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>(
                     pb, ZERO, a_sks[i], input_nullifiers[i], *merkle_root));
 
             h_i_gadgets[i].reset(new PRF_pk_gadget<FieldT, HashT>(
@@ -553,7 +554,7 @@ public:
 
     void generate_r1cs_witness(
         const FieldT &rt,
-        const std::array<joinsplit_input<FieldT>, NumInputs> &inputs,
+        const std::array<joinsplit_input<FieldT, TreeDepth>, NumInputs> &inputs,
         const std::array<zeth_note, NumOutputs> &outputs,
         bits64 vpub_in,
         bits64 vpub_out,

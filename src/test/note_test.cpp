@@ -37,6 +37,7 @@ typedef libff::Fr<ppT> FieldT;
 // We use our hash functions to do the tests
 typedef BLAKE2s_256_comp<FieldT> HashT;
 typedef MiMC_mp_gadget<FieldT> HashTreeT;
+static const size_t TreeDepth = 4;
 
 namespace
 {
@@ -99,13 +100,13 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
         "Setup a local merkle tree and append our commitment to it", true);
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
         std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(ZETH_MERKLE_TREE_DEPTH));
+            new merkle_tree_field<FieldT, HashTreeT>(TreeDepth));
 
     // In practice the address is emitted by the mixer contract once the
     // commitment is appended to the tree
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
-    for (size_t i = 0; i < ZETH_MERKLE_TREE_DEPTH; ++i) {
+    for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
 
@@ -139,9 +140,10 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     (*merkle_root).allocate(pb, "root");
     pb.val(*merkle_root) = updated_root_value;
 
-    std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT>> input_note_g =
-        std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT>>(
-            new input_note_gadget<FieldT, HashT, HashTreeT>(
+    std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>>
+        input_note_g = std::shared_ptr<
+            input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>>(
+            new input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>(
                 pb, ZERO, a_sk_digest, nullifier_digest, *merkle_root));
 
     // Get the merkle path to the commitment we appended

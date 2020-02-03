@@ -5,6 +5,8 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
 
+#include "note.hpp"
+
 namespace libzeth
 {
 
@@ -47,8 +49,8 @@ void note_gadget<FieldT>::generate_r1cs_witness(const zeth_note &note)
 // - The nullifier is correctly computed from a_sk and rho
 // - The commitment cm is correctly computed from the coin's data
 // - commitment cm is in the tree of merkle root rt
-template<typename FieldT, typename HashT, typename HashTreeT>
-input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(
+template<typename FieldT, typename HashT, typename HashTreeT, size_t TreeDepth>
+input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::input_note_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> &ZERO,
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk,
@@ -60,9 +62,7 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(
     // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
     rho.allocate(pb, ZETH_RHO_SIZE * 8, " rho");
     address_bits_va.allocate(
-        pb,
-        ZETH_MERKLE_TREE_DEPTH,
-        FMT(this->annotation_prefix, " merkle_tree_depth"));
+        pb, TreeDepth, FMT(this->annotation_prefix, " merkle_tree_depth"));
     a_pk.reset(new libsnark::digest_variable<FieldT>(
         pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " a_pk")));
 
@@ -76,9 +76,7 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(
     libsnark::pb_variable_array<FieldT> *pb_auth_path =
         new libsnark::pb_variable_array<FieldT>();
     pb_auth_path->allocate(
-        pb,
-        ZETH_MERKLE_TREE_DEPTH,
-        FMT(this->annotation_prefix, " authentication_path"));
+        pb, TreeDepth, FMT(this->annotation_prefix, " authentication_path"));
     auth_path.reset(pb_auth_path);
 
     // Call to the "PRF_addr_a_pk_gadget" to make sure a_pk is correctly
@@ -137,7 +135,7 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(
     // the computed root is equal to the current one
     check_membership.reset(new merkle_path_authenticator<FieldT, HashTreeT>(
         pb,
-        ZETH_MERKLE_TREE_DEPTH,
+        TreeDepth,
         address_bits_va,
         *field_cm,
         rt,
@@ -148,8 +146,9 @@ input_note_gadget<FieldT, HashT, HashTreeT>::input_note_gadget(
         FMT(this->annotation_prefix, " auth_path")));
 }
 
-template<typename FieldT, typename HashT, typename HashTreeT>
-void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_constraints()
+template<typename FieldT, typename HashT, typename HashTreeT, size_t TreeDepth>
+void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
+    generate_r1cs_constraints()
 {
     // Generate constraints of parent gadget
     note_gadget<FieldT>::generate_r1cs_constraints();
@@ -179,11 +178,12 @@ void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_constraints()
     check_membership->generate_r1cs_constraints();
 }
 
-template<typename FieldT, typename HashT, typename HashTreeT>
-void input_note_gadget<FieldT, HashT, HashTreeT>::generate_r1cs_witness(
-    std::vector<FieldT> merkle_path,
-    libff::bit_vector address_bits,
-    const zeth_note &note)
+template<typename FieldT, typename HashT, typename HashTreeT, size_t TreeDepth>
+void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
+    generate_r1cs_witness(
+        std::vector<FieldT> merkle_path,
+        libff::bit_vector address_bits,
+        const zeth_note &note)
 {
     // Generate witness of parent gadget
     note_gadget<FieldT>::generate_r1cs_witness(note);
