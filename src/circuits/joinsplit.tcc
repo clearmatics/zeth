@@ -469,6 +469,14 @@ public:
         }
     }
 
+    // Check the booleaness of packing variables
+    // Check the booleaness of phi and the a_sks
+    // Check value of ZERO (i.e. that ZERO = FieldT::zero())
+    // Check input notes, output notes, h_iS and rhoS are correctly computed
+    // Check the joinsplit is balanced
+    // N.B. note_gadget checks the booleaness of v and r_trap
+    // N.B. input_note_gadget checks the booleaness of rho^old
+    // N.B. output_note_gadget checks the booleaness of of a_pk^new
     void generate_r1cs_constraints()
     {
         // The `true` passed to `generate_r1cs_constraints` ensures that all

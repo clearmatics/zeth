@@ -37,4 +37,22 @@ std::vector<unsigned long> bit_list_to_ints(
     return res;
 }
 
+std::vector<bool> convert_to_binary(size_t n)
+{
+    std::vector<bool> res;
+
+    if (n / 2 != 0) {
+        std::vector<bool> temp = convert_to_binary(n / 2);
+        res.insert(res.end(), temp.begin(), temp.end());
+    }
+
+    if (n % 2 == 1) {
+        res.push_back(1);
+    } else {
+        res.push_back(0);
+    }
+
+    return res;
+}
+
 } // namespace libzeth

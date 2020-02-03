@@ -87,7 +87,7 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
 {
     // Parameter block, size set to 32 bytes, fanout and depth set to serial
     // mode
-    std::array<std::array<FieldT, BLAKE2s_word_size>, 8> parameter_block;
+    std::array<std::array<bool, BLAKE2s_word_size>, 8> parameter_block;
     // See: Section 2.8 https://blake2.net/blake2.pdf Table 2
     // Digest byte length, Key byte length, Fanout, Depth
     parameter_block[0] = {
@@ -151,10 +151,10 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
 
     // See: Appendix A.1 of https://blake2.net/blake2.pdf
     for (size_t i = 0; i < 8; i++) {
-        std::array<FieldT, BLAKE2s_word_size> pb_swapped =
-            swap_byte32_endianness(parameter_block[i]);
-        std::array<FieldT, BLAKE2s_word_size> IVi = IV[i];
-        h[i] = binary_field_xor(pb_swapped, IVi);
+        std::array<bool, BLAKE2s_word_size> pb_swapped =
+            swap_byte_endianness(parameter_block[i]);
+        std::array<bool, BLAKE2s_word_size> IVi = IV[i];
+        h[i] = binary_xor(pb_swapped, IVi);
     }
 }
 
@@ -163,8 +163,7 @@ void BLAKE2s_256_comp<FieldT>::setup_counter(size_t len_input_block)
 {
     // len_input_block represents the BYTE length of the input block
     // we can hash at most 2^64 - 1 bytes with blake2s
-    std::vector<FieldT> length_bits =
-        convert_to_binary<FieldT>(len_input_block);
+    std::vector<bool> length_bits = convert_to_binary(len_input_block);
     size_t bit_size = length_bits.size();
     size_t padding = 64 - bit_size;
 
@@ -202,40 +201,35 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_v()
 {
     // [v_0, ..., v_7] = [h_0, ..., h_7]
     for (size_t i = 0; i < 8; i++) {
-        std::vector<FieldT> temp_field_vector(h[i].begin(), h[i].end());
-        v[0][i].fill_with_field_elements(this->pb, temp_field_vector);
+        std::vector<bool> temp_vector(h[i].begin(), h[i].end());
+        v[0][i].fill_with_bits(this->pb, temp_vector);
     }
 
     // [v_8, v_9, v_10, v_11] = [IV_0, IV_1, IV_2, IV_3]
     for (size_t i = 8; i < 12; i++) {
-        std::vector<FieldT> temp_field_vector(
-            IV[i - 8].begin(), IV[i - 8].end());
-        v[0][i].fill_with_field_elements(this->pb, temp_field_vector);
+        std::vector<bool> temp_vector(IV[i - 8].begin(), IV[i - 8].end());
+        v[0][i].fill_with_bits(this->pb, temp_vector);
     }
 
     // v_12 = t0 XOR IV_4
-    std::array<FieldT, 32> temp_field_xored = binary_field_xor(IV[4], t[0]);
-    std::vector<FieldT> temp_field_vector12(
-        temp_field_xored.begin(), temp_field_xored.end());
-    v[0][12].fill_with_field_elements(this->pb, temp_field_vector12);
+    std::array<bool, 32> temp_xored = binary_xor(IV[4], t[0]);
+    std::vector<bool> temp_vector12(temp_xored.begin(), temp_xored.end());
+    v[0][12].fill_with_bits(this->pb, temp_vector12);
 
     // v_13 = t1 XOR IV_5
-    temp_field_xored = binary_field_xor(IV[5], t[1]);
-    std::vector<FieldT> temp_field_vector13(
-        temp_field_xored.begin(), temp_field_xored.end());
-    v[0][13].fill_with_field_elements(this->pb, temp_field_vector13);
+    temp_xored = binary_xor(IV[5], t[1]);
+    std::vector<bool> temp_vector13(temp_xored.begin(), temp_xored.end());
+    v[0][13].fill_with_bits(this->pb, temp_vector13);
 
     // v_14 = f0 XOR IV_6
-    temp_field_xored = binary_field_xor(IV[6], f0);
-    std::vector<FieldT> temp_field_vector14(
-        temp_field_xored.begin(), temp_field_xored.end());
-    v[0][14].fill_with_field_elements(this->pb, temp_field_vector14);
+    temp_xored = binary_xor(IV[6], f0);
+    std::vector<bool> temp_vector14(temp_xored.begin(), temp_xored.end());
+    v[0][14].fill_with_bits(this->pb, temp_vector14);
 
     // v_15 = f1 XOR IV_7
-    temp_field_xored = binary_field_xor(IV[7], f1);
-    std::vector<FieldT> temp_field_vector15(
-        temp_field_xored.begin(), temp_field_xored.end());
-    v[0][15].fill_with_field_elements(this->pb, temp_field_vector15);
+    temp_xored = binary_xor(IV[7], f1);
+    std::vector<bool> temp_vector15(temp_xored.begin(), temp_xored.end());
+    v[0][15].fill_with_bits(this->pb, temp_vector15);
 }
 
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_mixing_gadgets()

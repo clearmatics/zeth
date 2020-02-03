@@ -16,6 +16,8 @@ namespace libzeth
 {
 
 /// xor_gadget computes res = a XOR b
+/// this gadget does not ensure the booleaness of the inputs
+/// however given the inputs are boolean, the output is automatically boolean
 template<typename FieldT> class xor_gadget : public libsnark::gadget<FieldT>
 {
 
@@ -38,6 +40,8 @@ public:
 };
 
 /// xor_constant_gadget computes res = a XOR b XOR c with c constant
+/// this gadget does not ensure the booleaness of the inputs
+/// however given the inputs are boolean, the output is automatically boolean
 template<typename FieldT>
 class xor_constant_gadget : public libsnark::gadget<FieldT>
 {
@@ -63,6 +67,8 @@ public:
 };
 
 /// xor_rot_gadget computes a XOR b and rotate it by shift
+/// this gadget does not ensure the booleaness of the inputs
+/// however given the inputs are boolean, the output is automatically boolean
 template<typename FieldT> class xor_rot_gadget : public libsnark::gadget<FieldT>
 {
 
@@ -88,6 +94,8 @@ public:
 
 /// double_bit32_sum_eq_gadget checks that res = a + b % 2**32
 /// with a, b and res being 32-bit long arrays
+/// this gadget does not ensure the booleaness of the inputs
+/// if enforce_boolean is set to true, the output booleaness is checked
 template<typename FieldT>
 class double_bit32_sum_eq_gadget : public libsnark::gadget<FieldT>
 {

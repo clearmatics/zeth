@@ -8,6 +8,7 @@
 namespace libzeth
 {
 
+// This gadget implements the interface of the HashT template
 template<typename FieldT>
 BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
     libsnark::protoboard<FieldT> &pb,

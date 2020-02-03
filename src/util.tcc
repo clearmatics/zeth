@@ -10,7 +10,8 @@
 namespace libzeth
 {
 
-// Takes a binary string and swaps the bit endianness
+// Takes a containers with a size method and reverse the elements' order
+// The elements should represent bits
 template<typename T> T swap_bit_endianness(T v)
 {
     size_t len = v.size();
@@ -25,11 +26,11 @@ template<typename T> T swap_bit_endianness(T v)
     return v;
 }
 
-// Takes a binary string and swaps the byte endianness
-template<typename FieldT>
-std::vector<FieldT> swap_byte_endianness(std::vector<FieldT> value)
+// Takes a containers with a size method and reverse the elements' order
+// The elements should represent bits
+template<typename T> T swap_byte_endianness(T v)
 {
-    size_t len = value.size();
+    size_t len = v.size();
     if (len == 0) {
         throw std::length_error(
             "Invalid bit length for the given boolean vector (should be > 0)");
@@ -39,32 +40,19 @@ std::vector<FieldT> swap_byte_endianness(std::vector<FieldT> value)
                                 "vector (should be multiple of 8)");
     }
 
-    std::vector<FieldT> swapped;
-    for (size_t i = 0; i < ceil(len / 8); i++) {
+    size_t byte_mid_length = std::ceil((len / 8) / 2);
+    for (size_t i = 0; i < byte_mid_length; i++) {
         for (size_t j = 0; j < 8; j++) {
-            swapped.push_back(value[len - 8 * (i + 1) + j]);
+            std::swap(v[8 * i + j], v[len - 8 * (i + 1) + j]);
         }
     }
-    return swapped;
-}
-
-template<typename FieldT>
-std::array<FieldT, 32> swap_byte32_endianness(std::array<FieldT, 32> value)
-{
-    std::array<FieldT, 32> swapped;
-    for (size_t i = 0; i < 4; i++) {
-        for (size_t j = 0; j < 8; j++) {
-            swapped[32 - 8 * (i + 1) + j] = value[i * 8 + j];
-        }
-    }
-    return swapped;
+    return v;
 }
 
 // string_to_field(std::string input) converts a string ob bytes of size <=32 to
 // a FieldT element.
 template<typename FieldT> FieldT string_to_field(std::string input)
 {
-
     int input_len = input.length();
 
     // Sanity checks
