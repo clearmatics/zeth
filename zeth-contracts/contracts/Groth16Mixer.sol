@@ -48,8 +48,9 @@ contract Groth16Mixer is BaseMixer {
         uint[2] memory Beta2,
         uint[2] memory Delta1,
         uint[2] memory Delta2,
-        uint[] memory ABC_coords
-    ) BaseMixer(mk_depth, token) public {
+        uint[] memory ABC_coords)
+        BaseMixer(mk_depth, token)
+        public {
         verifyKey.Alpha = Pairing.G1Point(Alpha[0], Alpha[1]);
         verifyKey.Beta = Pairing.G2Point(Beta1[0], Beta1[1], Beta2[0], Beta2[1]);
         verifyKey.Delta = Pairing.G2Point(
@@ -77,8 +78,8 @@ contract Groth16Mixer is BaseMixer {
         uint[nbInputs] memory input,
         bytes32 pk_sender,
         bytes memory ciphertext0,
-        bytes memory ciphertext1
-    ) public payable {
+        bytes memory ciphertext1)
+        public payable {
         // 1. Check the root and the nullifiers
         check_mkroot_nullifiers_hsig_append_nullifiers_state(vk, input);
 
@@ -120,9 +121,9 @@ contract Groth16Mixer is BaseMixer {
         emit_ciphertexts(pk_sender, ciphertext0, ciphertext1);
     }
 
-    function verify(
-        uint[] memory input,
-        Proof memory proof) internal returns (uint) {
+    function verify(uint[] memory input, Proof memory proof)
+        internal
+        returns (uint) {
 
         // `input.length` = size of the instance = l (see notations in the
         // reference paper).  We have coefficients indexed in the range[1..l],
@@ -134,7 +135,8 @@ contract Groth16Mixer is BaseMixer {
             input.length + 1 == verifyKey.ABC.length,
             "Input length differs from expected");
 
-        // A memory scratch pad
+        // Memory scratch pad, large enough to accomodate the max used size
+        // (see layout diagrams below).
         uint[24] memory pad;
 
         // 1. Compute the linear combination
@@ -184,7 +186,10 @@ contract Groth16Mixer is BaseMixer {
 
             let g := sub(gas, 2000)
 
-            // Compute slot of ABC[0], using pad[0] as a temporary
+            // Compute slot of ABC[0]. Solidity memory array layout defines the
+            // first entry of verifyKey.ABC as the keccak256 hash of the slot
+            // of verifyKey.ABC. The slot of verifyKey.ABC is computed using
+            // Solidity implicit `_slot` notation.
             mstore(pad, add(verifyKey_slot, 10))
             let abc_slot := keccak256(pad, 32)
 
@@ -202,12 +207,12 @@ contract Groth16Mixer is BaseMixer {
 
             // Iterate over all inputs / ABC values
             for
-            { }
-            lt(input_i, input_end)
-            {
-                abc_slot := add(abc_slot, 2)
-                input_i := add(input_i, 0x20)
-            }
+                { }
+                lt(input_i, input_end)
+                {
+                    abc_slot := add(abc_slot, 2)
+                    input_i := add(input_i, 0x20)
+                }
             {
                 // Copy abc[i+1] into mul_in, incrementing abc
                 mstore(mul_in, sload(abc_slot))
@@ -322,8 +327,9 @@ contract Groth16Mixer is BaseMixer {
         uint[2] memory a,
         uint[4] memory b,
         uint[2] memory c,
-        uint[nbInputs] memory primaryInputs
-    ) internal returns (bool) {
+        uint[nbInputs] memory primaryInputs)
+        internal
+        returns (bool) {
         // Scalar field characteristic
         // solium-disable-next-line
         uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;

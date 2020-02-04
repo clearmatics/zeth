@@ -27,8 +27,6 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
         for (uint i = nbLeaves - 2; i > 0; i--) {
             left = tmpTree[2*i+1];
             right = tmpTree[2*(i+1)];
-
-            // Seed is hardcoded and given by "clearmatics_mt_seed"
             tmpTree[i] = MiMC7.hash(left, right);
         }
 

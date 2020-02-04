@@ -7,7 +7,7 @@ pragma solidity ^0.5.0;
 // Several pairing-related utility functions.
 //
 // Precompiled contract details (bn256Add, bn256ScalarMul, bn256Pairing) can be
-// found at the following links.  implementations:
+// found at the following links. Implementations:
 //   https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go gas
 // and costs:
 //   https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go
@@ -56,9 +56,9 @@ library Pairing {
     }
 
     // Return the sum of two points of G1
-    function add(
-        G1Point memory p1,
-        G1Point memory p2) internal returns (G1Point memory r) {
+    function add(G1Point memory p1, G1Point memory p2)
+        internal
+        returns (G1Point memory r) {
         uint[4] memory input;
         input[0] = p1.X;
         input[1] = p1.Y;
@@ -98,8 +98,9 @@ library Pairing {
     }
 
     // Return the result of computing the pairing check
-    function pairing(
-        G1Point[] memory p1, G2Point[] memory p2) internal returns (bool) {
+    function pairing(G1Point[] memory p1, G2Point[] memory p2)
+        internal
+        returns (bool) {
         require(
             p1.length == p2.length,
             "Mismatch between the number of elements in G1 and elements in G2"
@@ -158,8 +159,9 @@ library Pairing {
     // Convenience method for a pairing check for two pairs.
     function pairingProd2(
         G1Point memory a1, G2Point memory a2,
-        G1Point memory b1, G2Point memory b2
-    ) internal returns (bool) {
+        G1Point memory b1, G2Point memory b2)
+        internal
+        returns (bool) {
         G1Point[] memory p1 = new G1Point[](2);
         G2Point[] memory p2 = new G2Point[](2);
         p1[0] = a1;
@@ -173,8 +175,9 @@ library Pairing {
     function pairingProd3(
         G1Point memory a1, G2Point memory a2,
         G1Point memory b1, G2Point memory b2,
-        G1Point memory c1, G2Point memory c2
-    ) internal returns (bool) {
+        G1Point memory c1, G2Point memory c2)
+        internal
+        returns (bool) {
         G1Point[] memory p1 = new G1Point[](3);
         G2Point[] memory p2 = new G2Point[](3);
         p1[0] = a1;
@@ -191,8 +194,9 @@ library Pairing {
         G1Point memory a1, G2Point memory a2,
         G1Point memory b1, G2Point memory b2,
         G1Point memory c1, G2Point memory c2,
-        G1Point memory d1, G2Point memory d2
-    ) internal returns (bool) {
+        G1Point memory d1, G2Point memory d2)
+        internal
+        returns (bool) {
         G1Point[] memory p1 = new G1Point[](4);
         G2Point[] memory p2 = new G2Point[](4);
         p1[0] = a1;
