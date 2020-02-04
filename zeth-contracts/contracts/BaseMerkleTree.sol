@@ -64,7 +64,7 @@ contract BaseMerkleTree {
     // returns the bytes32[] array of leaves.
     function getLeaves() public view returns (bytes32[] memory) {
         bytes32[] memory tmpLeaves = new bytes32[](nbLeaves);
-        for(uint i; i < nbLeaves; i++) {
+        for (uint i = 0; i < nbLeaves; i++) {
             tmpLeaves[i] = leaves[i];
         }
 

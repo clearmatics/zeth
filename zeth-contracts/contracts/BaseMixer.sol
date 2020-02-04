@@ -351,7 +351,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // 2. We re-assemble the nullifiers (JSInputs) and check they were not
         // already seen.
         bytes32[jsIn] memory nfs;
-        for(uint i; i < jsIn; i++) {
+        for (uint i = 0; i < jsIn; i++) {
             nfs[i] = assemble_nullifier(i, primary_inputs);
             require(
                 !nullifiers[nfs[i]],
@@ -375,7 +375,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         uint[nbInputs] memory primary_inputs)
         internal {
         // We re-assemble the commitments (JSOutputs)
-        for(uint i; i < jsOut; i++) {
+        for (uint i = 0; i < jsOut; i++) {
             bytes32 current_commitment = assemble_commitment(i, primary_inputs);
             uint commitmentAddress = insert(current_commitment);
             emit LogCommitment(commitmentAddress, current_commitment);
