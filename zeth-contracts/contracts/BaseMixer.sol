@@ -26,8 +26,8 @@ contract ERC223ReceivingContract {
         bytes4 sig;
     }
 
-    function tokenFallback(
-        address from, uint value, bytes memory data) public pure {
+    function tokenFallback(address from, uint value, bytes memory data)
+        public pure {
         Token memory tkn;
         tkn.sender = from;
         tkn.value = value;

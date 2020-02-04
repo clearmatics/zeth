@@ -24,9 +24,10 @@ library OTSchnorrVerifier {
         uint vk2,
         uint vk3,
         uint sigma,
-        bytes32 hash_to_be_signed
-    ) internal returns (bool) {
-
+        bytes32 hash_to_be_signed)
+        internal
+        returns (bool)
+    {
         // Original code:
         //
         //   bytes32 h_bytes = sha256(

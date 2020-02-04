@@ -49,8 +49,9 @@ contract Pghr13Mixer is BaseMixer {
         uint[2] memory gammaBeta2_2,
         uint[2] memory Z1,
         uint[2] memory Z2,
-        uint[] memory IC_coefficients
-    ) BaseMixer(mk_depth, token) public {
+        uint[] memory IC_coefficients)
+        BaseMixer(mk_depth, token)
+        public {
         verifyKey.A = Pairing.G2Point(A1[0], A1[1], A2[0], A2[1]);
         verifyKey.B = Pairing.G1Point(B[0], B[1]);
         verifyKey.C = Pairing.G2Point(C1[0], C1[1], C2[0], C2[1]);
@@ -85,8 +86,8 @@ contract Pghr13Mixer is BaseMixer {
         uint[nbInputs] memory input,
         bytes32 pk_sender,
         bytes memory ciphertext0,
-        bytes memory ciphertext1
-        ) public payable {
+        bytes memory ciphertext1)
+        public payable {
         // 1. Check the root and the nullifiers
         check_mkroot_nullifiers_hsig_append_nullifiers_state(vk, input);
 
@@ -151,8 +152,9 @@ contract Pghr13Mixer is BaseMixer {
 
     function verify(
         uint[nbInputs] memory input,
-        Proof memory proof
-    ) internal returns (uint) {
+        Proof memory proof)
+        internal
+        returns (uint) {
         VerifyingKey memory vk = verifyKey;
         // |I_{in}| == input.length, and vk.IC also contains A_0(s). Thus
         // ||vk.IC| == input.length + 1
@@ -231,8 +233,9 @@ contract Pghr13Mixer is BaseMixer {
         uint[2] memory c_p,
         uint[2] memory h,
         uint[2] memory k,
-        uint[nbInputs] memory primaryInputs
-    ) public returns (bool) {
+        uint[nbInputs] memory primaryInputs)
+        public
+        returns (bool) {
         // Scalar field characteristic
         // solium-disable-next-line
         uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
