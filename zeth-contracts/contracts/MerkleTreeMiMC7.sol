@@ -9,22 +9,22 @@ import "./MiMC7.sol";
 
 contract MerkleTreeMiMC7 is BaseMerkleTree {
 
-    constructor(uint treeDepth) BaseMerkleTree(treeDepth) public {
+    constructor(uint256 treeDepth) BaseMerkleTree(treeDepth) public {
     }
 
     // Returns the current merkle tree
     function getTree() public view returns (bytes32[] memory) {
-        uint nbNodes = 2**(depth + 1) - 1;
+        uint256 nbNodes = 2**(depth + 1) - 1;
         bytes32[] memory tmpTree = new bytes32[](nbNodes);
         bytes32 left;
         bytes32 right;
         // Dump the leaves in the right indexes in the tree
-        for (uint i = 0; i < nbLeaves; i++) {
+        for (uint256 i = 0; i < nbLeaves; i++) {
             tmpTree[(nbLeaves - 1) + i] = leaves[i];
         }
 
         // Compute the internal nodes of the merkle tree
-        for (uint i = nbLeaves - 2; i > 0; i--) {
+        for (uint256 i = nbLeaves - 2; i > 0; i--) {
             left = tmpTree[2*i+1];
             right = tmpTree[2*(i+1)];
             tmpTree[i] = MiMC7.hash(left, right);
@@ -40,18 +40,18 @@ contract MerkleTreeMiMC7 is BaseMerkleTree {
 
     // Returns the root of the merkle tree
     function getRoot() public view returns(bytes32) {
-        uint layerSize = nbLeaves / 2;
+        uint256 layerSize = nbLeaves / 2;
         bytes32[nbLeaves/2] memory pad;
 
         // Compute first layer from storage
-        for (uint i = 0 ; i < layerSize ; ++i) {
+        for (uint256 i = 0 ; i < layerSize ; ++i) {
             pad[i] = MiMC7.hash(leaves[2*i], leaves[2*i + 1]);
         }
         layerSize = layerSize / 2;
 
         // Compute successive layers from their parents, in-place.
         for ( ; layerSize > 0 ; layerSize = layerSize / 2) {
-            for (uint i = 0 ; i < layerSize ; ++i) {
+            for (uint256 i = 0 ; i < layerSize ; ++i) {
                 pad[i] = MiMC7.hash(pad[2*i], pad[2*i + 1]);
             }
         }

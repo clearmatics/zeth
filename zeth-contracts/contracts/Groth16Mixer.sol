@@ -25,30 +25,30 @@ contract Groth16Mixer is BaseMixer {
     // precompiled contracts.
     struct Proof {
         // Pairing.G1Point A;
-        uint A_X;
-        uint A_Y;
+        uint256 A_X;
+        uint256 A_Y;
         // Pairing.G2Point B;
-        uint B_X0;
-        uint B_X1;
-        uint B_Y0;
-        uint B_Y1;
+        uint256 B_X0;
+        uint256 B_X1;
+        uint256 B_Y0;
+        uint256 B_Y1;
         // Pairing.G1Point C;
-        uint C_X;
-        uint C_Y;
+        uint256 C_X;
+        uint256 C_Y;
     }
 
     VerifyingKey verifyKey;
 
     // Constructor
     constructor(
-        uint mk_depth,
+        uint256 mk_depth,
         address token,
-        uint[2] memory Alpha,
-        uint[2] memory Beta1,
-        uint[2] memory Beta2,
-        uint[2] memory Delta1,
-        uint[2] memory Delta2,
-        uint[] memory ABC_coords)
+        uint256[2] memory Alpha,
+        uint256[2] memory Beta1,
+        uint256[2] memory Beta2,
+        uint256[2] memory Delta1,
+        uint256[2] memory Delta2,
+        uint256[] memory ABC_coords)
         BaseMixer(mk_depth, token)
         public {
         verifyKey.Alpha = Pairing.G1Point(Alpha[0], Alpha[1]);
@@ -59,7 +59,7 @@ contract Groth16Mixer is BaseMixer {
         // The `ABC` are elements of G1 (and thus have 2 coordinates in the
         // underlying field). Here, we reconstruct these group elements from
         // field elements (ABC_coords are field elements)
-        uint i = 0;
+        uint256 i = 0;
         while(verifyKey.ABC.length != ABC_coords.length/2) {
             verifyKey.ABC.push(Pairing.G1Point(ABC_coords[i], ABC_coords[i+1]));
             i += 2;
@@ -70,12 +70,12 @@ contract Groth16Mixer is BaseMixer {
     // knowledge.  The nb of ciphertexts depends on the JS description (Here 2
     // inputs)
     function mix(
-        uint[2] memory a,
-        uint[4] memory b,
-        uint[2] memory c,
-        uint[4] memory vk,
-        uint sigma,
-        uint[nbInputs] memory input,
+        uint256[2] memory a,
+        uint256[4] memory b,
+        uint256[2] memory c,
+        uint256[4] memory vk,
+        uint256 sigma,
+        uint256[nbInputs] memory input,
         bytes32 pk_sender,
         bytes memory ciphertext0,
         bytes memory ciphertext1)
@@ -121,7 +121,7 @@ contract Groth16Mixer is BaseMixer {
         emit_ciphertexts(pk_sender, ciphertext0, ciphertext1);
     }
 
-    function verify(uint[] memory input, Proof memory proof)
+    function verify(uint256[] memory input, Proof memory proof)
         internal
         returns (uint) {
 
@@ -137,14 +137,14 @@ contract Groth16Mixer is BaseMixer {
 
         // Memory scratch pad, large enough to accomodate the max used size
         // (see layout diagrams below).
-        uint[24] memory pad;
+        uint256[24] memory pad;
 
         // 1. Compute the linear combination
         //   vk_x = \sum_{i=0}^{l} a_i * vk.ABC[i], vk_x in G1.
         //
         // ORIGINAL CODE:
         //   Pairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
-        //   for (uint i = 0; i < input.length; i++) {
+        //   for (uint256 i = 0; i < input.length; i++) {
         //       vk_x = Pairing.add(vk_x, Pairing.mul(vk.ABC[i + 1], input[i]));
         //   }
         //
@@ -324,10 +324,10 @@ contract Groth16Mixer is BaseMixer {
     }
 
     function verifyTx(
-        uint[2] memory a,
-        uint[4] memory b,
-        uint[2] memory c,
-        uint[nbInputs] memory primaryInputs)
+        uint256[2] memory a,
+        uint256[4] memory b,
+        uint256[2] memory c,
+        uint256[nbInputs] memory primaryInputs)
         internal
         returns (bool) {
         // Scalar field characteristic
@@ -351,8 +351,8 @@ contract Groth16Mixer is BaseMixer {
         // completely counter-intuitive.  Until that is tracked down, we use a
         // dynamic array.
 
-        uint[] memory inputValues = new uint[](nbInputs);
-        for (uint i = 0 ; i < nbInputs; i++) {
+        uint256[] memory inputValues = new uint256[](nbInputs);
+        for (uint256 i = 0 ; i < nbInputs; i++) {
             require(primaryInputs[i] < r, "Input is not in scalar field");
             inputValues[i] = primaryInputs[i];
         }

@@ -19,11 +19,11 @@ library OTSchnorrVerifier {
     using Pairing for *;
 
     function verify(
-        uint vk0,
-        uint vk1,
-        uint vk2,
-        uint vk3,
-        uint sigma,
+        uint256 vk0,
+        uint256 vk1,
+        uint256 vk2,
+        uint256 vk3,
+        uint256 sigma,
         bytes32 hash_to_be_signed)
         internal
         returns (bool)
@@ -32,7 +32,7 @@ library OTSchnorrVerifier {
         //
         //   bytes32 h_bytes = sha256(
         //       abi.encodePacked(vk[2], vk[3], hash_to_be_signed));
-        //   uint h = uint(h_bytes);
+        //   uint256 h = uint256(h_bytes);
         //
         //   // X = g^{x}, where g represents a generator of the cyclic group G
         //   Pairing.G1Point memory X = Pairing.G1Point(vk[0], vk[1]);
@@ -48,7 +48,7 @@ library OTSchnorrVerifier {
         //   return (S.X == S_comp.X && S.Y == S_comp.Y);
 
         // Pad
-        uint[5] memory pad;
+        uint256[5] memory pad;
 
         assembly {
 

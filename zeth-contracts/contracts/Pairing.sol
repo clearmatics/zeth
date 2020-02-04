@@ -15,16 +15,16 @@ pragma solidity ^0.5.0;
 library Pairing {
 
     struct G1Point {
-        uint X;
-        uint Y;
+        uint256 X;
+        uint256 Y;
     }
 
     // Encoding of field elements is: X[0] * z + X[1]
     struct G2Point {
-        uint X0;
-        uint X1;
-        uint Y0;
-        uint Y1;
+        uint256 X0;
+        uint256 X1;
+        uint256 Y0;
+        uint256 Y1;
     }
 
     // Return the generator of G1
@@ -49,7 +49,7 @@ library Pairing {
     function negate(G1Point memory p) internal pure returns (G1Point memory) {
         // The prime q in the base field F_q for G1
         // solium-disable-next-line
-        uint q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+        uint256 q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
         if (p.X == 0 && p.Y == 0)
             return G1Point(0, 0);
         return G1Point(p.X, q - (p.Y % q));
@@ -59,7 +59,7 @@ library Pairing {
     function add(G1Point memory p1, G1Point memory p2)
         internal
         returns (G1Point memory r) {
-        uint[4] memory input;
+        uint256[4] memory input;
         input[0] = p1.X;
         input[1] = p1.Y;
         input[2] = p2.X;
@@ -79,8 +79,10 @@ library Pairing {
 
     // Return the product of a point on G1 and a scalar, i.e.
     // p == p.mul(1) and p.add(p) == p.mul(2) for all points p.
-    function mul(G1Point memory p, uint s) internal returns (G1Point memory r) {
-        uint[3] memory input;
+    function mul(G1Point memory p, uint256 s)
+        internal
+        returns (G1Point memory r) {
+        uint256[3] memory input;
         input[0] = p.X;
         input[1] = p.Y;
         input[2] = s;
@@ -107,10 +109,10 @@ library Pairing {
         );
         // For each pairing check we have 2 coordinates for the elements in G1,
         // and 4 coordinates for the elements in G2
-        uint elements = p1.length;
-        uint inputSize = elements * 6;
-        uint[] memory input = new uint[](inputSize);
-        for (uint i = 0; i < elements; i++)
+        uint256 elements = p1.length;
+        uint256 inputSize = elements * 6;
+        uint256[] memory input = new uint256[](inputSize);
+        for (uint256 i = 0; i < elements; i++)
         {
             // Curve point (G1) - 2 coordinates of 32bytes (0x20 in hex)
             input[i * 6 + 0] = p1[i].X;
@@ -121,7 +123,7 @@ library Pairing {
             input[i * 6 + 4] = p2[i].Y0;
             input[i * 6 + 5] = p2[i].Y1;
         }
-        uint[1] memory out;
+        uint256[1] memory out;
         bool success;
         assembly {
             // bn256Pairing precompiled:

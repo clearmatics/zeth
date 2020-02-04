@@ -9,22 +9,22 @@ import "./BaseMerkleTree.sol";
 
 contract MerkleTreeSha256 is BaseMerkleTree {
 
-    constructor(uint treeDepth) BaseMerkleTree(treeDepth) public {
+    constructor(uint256 treeDepth) BaseMerkleTree(treeDepth) public {
         // Nothing
     }
 
     // Returns the current merkle tree
     function getTree() public view returns (bytes32[] memory) {
-        uint nbNodes = 2**(depth + 1) - 1;
+        uint256 nbNodes = 2**(depth + 1) - 1;
         bytes32[] memory tmpTree = new bytes32[](nbNodes);
 
         // Dump the leaves in the right indexes in the tree
-        for (uint i = 0; i < nbLeaves; i++) {
+        for (uint256 i = 0; i < nbLeaves; i++) {
             tmpTree[(nbLeaves - 1) + i] = leaves[i];
         }
 
         // Compute the internal nodes of the merkle tree
-        for (uint i = nbLeaves - 2; i > 0; i--) {
+        for (uint256 i = nbLeaves - 2; i > 0; i--) {
             tmpTree[i] = sha256(
                 abi.encodePacked(tmpTree[i*2+1], tmpTree[2*(i+1)]));
         }

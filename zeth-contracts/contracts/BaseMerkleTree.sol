@@ -9,13 +9,13 @@ pragma solidity ^0.5.0;
 contract BaseMerkleTree {
     // Depth of the merkle tree (should be set with the same depth set in the
     // cpp prover)
-    uint constant depth = 4;
+    uint256 constant depth = 4;
 
     // Number of leaves
-    uint constant nbLeaves = 2**depth;
+    uint256 constant nbLeaves = 2**depth;
 
     // Index of the current node: Index to insert the next incoming commitment
-    uint currentNodeIndex;
+    uint256 currentNodeIndex;
 
     // Array containing the 2^(depth) leaves of the merkle tree.  We can switch
     // the leaves to be of type bytes and not bytes32 to support digest of
@@ -30,7 +30,7 @@ contract BaseMerkleTree {
     event LogDebug(bytes32 message);
 
     // Constructor
-    constructor(uint treeDepth) public {
+    constructor(uint256 treeDepth) public {
         require (
             treeDepth == depth,
             "Invalid depth in BaseMerkleTree");
@@ -64,7 +64,7 @@ contract BaseMerkleTree {
     // returns the bytes32[] array of leaves.
     function getLeaves() public view returns (bytes32[] memory) {
         bytes32[] memory tmpLeaves = new bytes32[](nbLeaves);
-        for (uint i = 0; i < nbLeaves; i++) {
+        for (uint256 i = 0; i < nbLeaves; i++) {
             tmpLeaves[i] = leaves[i];
         }
 

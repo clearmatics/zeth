@@ -35,21 +35,21 @@ contract Pghr13Mixer is BaseMixer {
 
     // Constructor
     constructor(
-        uint mk_depth,
+        uint256 mk_depth,
         address token,
-        uint[2] memory A1,
-        uint[2] memory A2,
-        uint[2] memory B,
-        uint[2] memory C1,
-        uint[2] memory C2,
-        uint[2] memory gamma1,
-        uint[2] memory gamma2,
-        uint[2] memory gammaBeta1,
-        uint[2] memory gammaBeta2_1,
-        uint[2] memory gammaBeta2_2,
-        uint[2] memory Z1,
-        uint[2] memory Z2,
-        uint[] memory IC_coefficients)
+        uint256[2] memory A1,
+        uint256[2] memory A2,
+        uint256[2] memory B,
+        uint256[2] memory C1,
+        uint256[2] memory C2,
+        uint256[2] memory gamma1,
+        uint256[2] memory gamma2,
+        uint256[2] memory gammaBeta1,
+        uint256[2] memory gammaBeta2_1,
+        uint256[2] memory gammaBeta2_2,
+        uint256[2] memory Z1,
+        uint256[2] memory Z2,
+        uint256[] memory IC_coefficients)
         BaseMixer(mk_depth, token)
         public {
         verifyKey.A = Pairing.G2Point(A1[0], A1[1], A2[0], A2[1]);
@@ -62,7 +62,7 @@ contract Pghr13Mixer is BaseMixer {
             gammaBeta2_1[0], gammaBeta2_1[1], gammaBeta2_2[0], gammaBeta2_2[1]);
         verifyKey.Z = Pairing.G2Point(Z1[0], Z1[1], Z2[0], Z2[1]);
 
-        uint i = 0;
+        uint256 i = 0;
         while(verifyKey.IC.length != IC_coefficients.length/2) {
             verifyKey.IC.push(
                 Pairing.G1Point(IC_coefficients[i], IC_coefficients[i+1]));
@@ -73,17 +73,17 @@ contract Pghr13Mixer is BaseMixer {
     // This function allows to mix coins and execute payments in zero knowledge.
     // Nb of ciphertexts depends on the JS description (Here 2 inputs)
     function mix (
-        uint[2] memory a,
-        uint[2] memory a_p,
-        uint[2][2] memory b,
-        uint[2] memory b_p,
-        uint[2] memory c,
-        uint[2] memory c_p,
-        uint[2] memory h,
-        uint[2] memory k,
-        uint[4] memory vk,
-        uint sigma,
-        uint[nbInputs] memory input,
+        uint256[2] memory a,
+        uint256[2] memory a_p,
+        uint256[2][2] memory b,
+        uint256[2] memory b_p,
+        uint256[2] memory c,
+        uint256[2] memory c_p,
+        uint256[2] memory h,
+        uint256[2] memory k,
+        uint256[4] memory vk,
+        uint256 sigma,
+        uint256[nbInputs] memory input,
         bytes32 pk_sender,
         bytes memory ciphertext0,
         bytes memory ciphertext1)
@@ -142,7 +142,7 @@ contract Pghr13Mixer is BaseMixer {
         emit_ciphertexts(pk_sender, ciphertext0, ciphertext1);
     }
 
-    function getIC(uint i) public view returns (uint) {
+    function getIC(uint256 i) public view returns (uint) {
         return(verifyKey.IC[i].X);
     }
 
@@ -151,7 +151,7 @@ contract Pghr13Mixer is BaseMixer {
     }
 
     function verify(
-        uint[nbInputs] memory input,
+        uint256[nbInputs] memory input,
         Proof memory proof)
         internal
         returns (uint) {
@@ -173,7 +173,7 @@ contract Pghr13Mixer is BaseMixer {
         // |I_{in}| = n here as we assume that we have a vector x of inputs of
         // size n.
         Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
-        for (uint i = 0; i < input.length; i++) {
+        for (uint256 i = 0; i < input.length; i++) {
             vk_x = Pairing.add(vk_x, Pairing.mul(vk.IC[i + 1], input[i]));
         }
         vk_x = Pairing.add(vk_x, vk.IC[0]);
@@ -225,15 +225,15 @@ contract Pghr13Mixer is BaseMixer {
     }
 
     function verifyTx(
-        uint[2] memory a,
-        uint[2] memory a_p,
-        uint[2][2] memory b,
-        uint[2] memory b_p,
-        uint[2] memory c,
-        uint[2] memory c_p,
-        uint[2] memory h,
-        uint[2] memory k,
-        uint[nbInputs] memory primaryInputs)
+        uint256[2] memory a,
+        uint256[2] memory a_p,
+        uint256[2][2] memory b,
+        uint256[2] memory b_p,
+        uint256[2] memory c,
+        uint256[2] memory c_p,
+        uint256[2] memory h,
+        uint256[2] memory k,
+        uint256[nbInputs] memory primaryInputs)
         public
         returns (bool) {
         // Scalar field characteristic
@@ -250,8 +250,8 @@ contract Pghr13Mixer is BaseMixer {
         proof.H = Pairing.G1Point(h[0], h[1]);
         proof.K = Pairing.G1Point(k[0], k[1]);
 
-        /* uint[] memory inputValues = new uint[](primaryInputs.length); */
-        for(uint i = 0; i < primaryInputs.length; i++){
+        // uint256[] memory inputValues = new uint256[](primaryInputs.length);
+        for(uint256 i = 0; i < primaryInputs.length; i++){
             // Make sure that all primary inputs lie in the scalar field
             require(
                 primaryInputs[i] < r,
@@ -260,7 +260,7 @@ contract Pghr13Mixer is BaseMixer {
             /* inputValues[i] = primaryInputs[i]; */
         }
 
-        uint verification_result = verify(primaryInputs, proof);
+        uint256 verification_result = verify(primaryInputs, proof);
         if (verification_result != 0) {
             /* emit LogVerifier("Failed to verify the transaction"); */
             return false;
