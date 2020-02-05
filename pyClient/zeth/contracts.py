@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-import zeth.constants as constants
 from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
 from zeth.signing import SigningVerificationKey
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
@@ -14,7 +13,7 @@ from zeth.constants import SOL_COMPILER_VERSION
 
 import os
 from web3 import Web3  # type: ignore
-from solcx import compile_files, set_solc_version, install_solc
+import solcx
 from typing import Tuple, Dict, List, Iterator, Optional, Any
 
 # Avoid trying to read too much data into memory
@@ -77,71 +76,48 @@ def get_block_number(web3: Any) -> int:
 
 
 def install_sol() -> None:
-    install_solc(SOL_COMPILER_VERSION)
+    solcx.install_solc(SOL_COMPILER_VERSION)
 
 
-def compile_contracts(
-        zksnark: IZKSnarkProvider) -> Tuple[Interface, Interface, Interface]:
+def compile_files(files: List[str]) -> Any:
+    """
+    Wrapper around solcx which ensures the required version of the compiler is
+    used.
+    """
+    solcx.set_solc_version(SOL_COMPILER_VERSION)
+    return solcx.compile_files(files, optimize=True)
+
+
+def compile_mixer(zksnark: IZKSnarkProvider) -> Interface:
     contracts_dir = get_contracts_dir()
-    (proof_verifier_name, mixer_name) = zksnark.get_contract_names()
-    otsig_verifier_name = constants.SCHNORR_VERIFIER_CONTRACT
-
-    path_to_proof_verifier = os.path.join(
-        contracts_dir, proof_verifier_name + ".sol")
-    path_to_otsig_verifier = os.path.join(
-        contracts_dir, otsig_verifier_name + ".sol")
+    mixer_name = zksnark.get_contract_name()
     path_to_mixer = os.path.join(contracts_dir, mixer_name + ".sol")
-
-    set_solc_version(SOL_COMPILER_VERSION)
-    compiled_sol = compile_files(
-        [path_to_proof_verifier, path_to_otsig_verifier, path_to_mixer])
-
-    proof_verifier_interface = \
-        compiled_sol[path_to_proof_verifier + ':' + proof_verifier_name]
-    otsig_verifier_interface = \
-        compiled_sol[path_to_otsig_verifier + ':' + otsig_verifier_name]
-    mixer_interface = compiled_sol[path_to_mixer + ':' + mixer_name]
-
-    return (proof_verifier_interface, otsig_verifier_interface, mixer_interface)
-
-
-def compile_util_contracts() -> Tuple[Interface, Interface]:
-    contracts_dir = get_contracts_dir()
-    path_to_pairing = os.path.join(contracts_dir, "Pairing.sol")
-    path_to_mimc7 = os.path.join(contracts_dir, "MiMC7.sol")
-    path_to_tree = os.path.join(contracts_dir, "MerkleTreeMiMC7.sol")
-    set_solc_version(SOL_COMPILER_VERSION)
-    compiled_sol = compile_files(
-        [path_to_pairing, path_to_mimc7, path_to_tree])
-    mimc_interface = compiled_sol[path_to_mimc7 + ':' + "MiMC7"]
-    tree_interface = compiled_sol[path_to_tree + ':' + "MerkleTreeMiMC7"]
-    return mimc_interface, tree_interface
+    compiled_sol = compile_files([path_to_mixer])
+    return compiled_sol[path_to_mixer + ':' + mixer_name]
 
 
 def deploy_mixer(
         web3: Any,
-        proof_verifier_address: str,
-        otsig_verifier_address: str,
-        mixer_interface: Interface,
         mk_tree_depth: int,
+        mixer_interface: Interface,
+        vk: GenericVerificationKey,
         deployer_address: str,
         deployment_gas: int,
         token_address: str,
-        hasher_address: str) -> Tuple[Any, str]:
+        zksnark: IZKSnarkProvider) -> Tuple[Any, str]:
     """
     Common function to deploy a mixer contract. Returns the mixer and the
     initial merkle root of the commitment tree
     """
-    # Deploy the Mixer contract once the Verifier is successfully deployed
+    # Deploy the Mixer
     mixer = web3.eth.contract(
         abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
 
+    verification_key_params = zksnark.verification_key_parameters(vk)
     tx_hash = mixer.constructor(
-        snark_ver=proof_verifier_address,
-        sig_ver=otsig_verifier_address,
         mk_depth=mk_tree_depth,
         token=token_address,
-        hasher=hasher_address
+        **verification_key_params
     ).transact({'from': deployer_address, 'gas': deployment_gas})
     # Get tx receipt to get Mixer contract address
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -157,96 +133,6 @@ def deploy_mixer(
     event_logs_log_merkle_root = ef_log_merkle_root.get_all_entries()
     initial_root = Web3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
     return(mixer, initial_root)
-
-
-def deploy_otschnorr_contracts(
-        web3: Any,
-        verifier: Any,
-        deployer_address: str,
-        deployment_gas: int) -> str:
-    """
-    Deploy the verifier used with OTSCHNORR
-    """
-    # Deploy the verifier contract with the good verification key
-    tx_hash = verifier.constructor().transact(
-            {'from': deployer_address, 'gas': deployment_gas})
-
-    # Get tx receipt to get Verifier contract address
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    verifier_address = tx_receipt['contractAddress']
-    return verifier_address
-
-
-def deploy_contracts(
-        web3: Any,
-        mk_tree_depth: int,
-        proof_verifier_interface: Interface,
-        otsig_verifier_interface: Interface,
-        mixer_interface: Interface,
-        hasher_interface: Interface,
-        vk: GenericVerificationKey,
-        deployer_address: str,
-        deployment_gas: int,
-        token_address: str,
-        zksnark: IZKSnarkProvider) -> Tuple[Any, str]:
-    """
-    Deploy the mixer contract with the given merkle tree depth and returns an
-    instance of the mixer along with the initial merkle tree root to use for
-    the first zero knowledge payments
-    """
-    # Deploy the proof verifier contract with the good verification key
-    proof_verifier = web3.eth.contract(
-        abi=proof_verifier_interface['abi'],
-        bytecode=proof_verifier_interface['bin']
-    )
-
-    verifier_constr_params = zksnark.verifier_constructor_parameters(vk)
-    tx_hash = proof_verifier.constructor(**verifier_constr_params) \
-        .transact({'from': deployer_address, 'gas': deployment_gas})
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    proof_verifier_address = tx_receipt['contractAddress']
-
-    # Deploy MiMC contract
-    _, hasher_address = deploy_mimc_contract(
-        web3, hasher_interface, deployer_address)
-
-    # Deploy the one-time signature verifier contract
-    otsig_verifier = web3.eth.contract(
-        abi=otsig_verifier_interface['abi'],
-        bytecode=otsig_verifier_interface['bin'])
-    otsig_verifier_address = deploy_otschnorr_contracts(
-        web3, otsig_verifier, deployer_address, deployment_gas)
-
-    return deploy_mixer(
-        web3,
-        proof_verifier_address,
-        otsig_verifier_address,
-        mixer_interface,
-        mk_tree_depth,
-        deployer_address,
-        deployment_gas,
-        token_address,
-        hasher_address)
-
-
-def deploy_mimc_contract(
-        web3: Any,
-        interface: Interface,
-        account: str) -> Tuple[Any, str]:
-    """
-    Deploy mimc contract
-    """
-    contract = web3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
-    tx_hash = contract.constructor().transact({'from': account})
-    # Get tx receipt to get Mixer contract address
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    address = tx_receipt['contractAddress']
-    # Get the mixer contract instance
-    instance = web3.eth.contract(
-        address=address,
-        abi=interface['abi']
-    )
-    return instance, address
 
 
 def deploy_tree_contract(
@@ -290,11 +176,12 @@ def mix(
     """
     pk_sender_encoded = encode_encryption_public_key(pk_sender)
     proof_params = zksnark.mixer_proof_parameters(parsed_proof)
+    inputs = hex_to_int(parsed_proof["inputs"])
     tx_hash = mixer_instance.functions.mix(
         *proof_params,
-        [[int(vk.ppk[0]), int(vk.ppk[1])], [int(vk.spk[0]), int(vk.spk[1])]],
+        [int(vk.ppk[0]), int(vk.ppk[1]), int(vk.spk[0]), int(vk.spk[1])],
         sigma,
-        hex_to_int(parsed_proof["inputs"]),
+        inputs,
         pk_sender_encoded,
         ciphertext1,
         ciphertext2,
@@ -445,13 +332,6 @@ def _extract_encrypted_notes_from_logs(
 
     return [_extract_note(log_commit, log_ciph) for
             log_commit, log_ciph in zip(log_commitments, log_ciphertexts)]
-
-
-def mimc_hash(instance: Any, m: bytes, k: bytes, seed: bytes) -> bytes:
-    """
-    Call the hash method of MiMC contract
-    """
-    return instance.functions.hash(m, k, seed).call()
 
 
 def get_commitments(mixer_instance: Any) -> List[bytes]:

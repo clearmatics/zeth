@@ -4,14 +4,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import os
-from typing import Any
-from solcx import compile_files  # type: ignore
-import test_commands.mock as mock
-
 from zeth.constants import JS_INPUTS, JS_OUTPUTS, ZETH_MERKLE_TREE_DEPTH,\
     PUBLIC_VALUE_LENGTH
-import zeth.contracts as contracts
+from zeth.joinsplit import ZethClient
+from zeth.zksnark import get_zksnark_provider
+from typing import Any
+import test_commands.mock as mock
 
 
 # The UNPACKED_PRIMARY_INPUTS variable represents a dummy primary input,
@@ -149,34 +147,16 @@ def main() -> None:
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]
 
-    contracts_dir = os.environ['ZETH_CONTRACTS_DIR']
-    path_to_mixer = os.path.join(contracts_dir, "BaseMixer.sol")
-    compiled_sol = compile_files([path_to_mixer])
-    mixer_interface = compiled_sol[path_to_mixer + ':' + "BaseMixer"]
+    zksnark = get_zksnark_provider("GROTH16")
+    prover_client = mock.open_test_prover_client()
+    zeth_client = ZethClient.deploy(
+        web3,
+        prover_client,
+        ZETH_MERKLE_TREE_DEPTH,
+        deployer_eth_address,
+        zksnark)
 
-    hasher_interface, _ = contracts.compile_util_contracts()
-    # Deploy MiMC contract
-    _, hasher_address = contracts.deploy_mimc_contract(
-        web3, hasher_interface, deployer_eth_address)
-
-    token_address = "0x0000000000000000000000000000000000000000"
-
-    mixer = web3.eth.contract(
-        abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
-    tx_hash = mixer.constructor(
-            depth=ZETH_MERKLE_TREE_DEPTH,
-            token_address=token_address,
-            hasher_address=hasher_address
-        ).transact({'from': deployer_eth_address})
-
-    # Get tx receipt to get Mixer contract address
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    mixer_address = tx_receipt['contractAddress']
-    # Get the mixer contract instance
-    mixer_instance = web3.eth.contract(
-        address=mixer_address,
-        abi=mixer_interface['abi']
-    )
+    mixer_instance = zeth_client.mixer_instance
 
     # We can now call the instance and test its functions.
     print("[INFO] 4. Running tests")

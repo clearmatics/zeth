@@ -179,7 +179,11 @@ def do_sync(
 
     if wait_tx:
         _do_sync()
-        web3.eth.waitForTransactionReceipt(wait_tx, 10000)
+        tx_receipt = web3.eth.waitForTransactionReceipt(wait_tx, 10000)
+        gas_used = tx_receipt.gasUsed
+        status = tx_receipt.status
+        print(f"{wait_tx[0:8]}: gasUsed={gas_used}, status={status}")
+
     return _do_sync()
 
 

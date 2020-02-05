@@ -21,6 +21,12 @@ addons:
 
 matrix:
     include:
+        - env: CI_TASK=contracts_check
+          os: linux
+          dist: bionic
+          language: node_js
+          node_js:
+          - "10.16.3"
         - env: CI_TASK=pyclient_check CI_USE_DOCKER=1
           os: linux
           language: minimal
