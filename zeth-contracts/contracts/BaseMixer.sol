@@ -82,7 +82,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     //   1 (the root)
     //   2 * jsIn (nullifier and message auth tag per JS input)
     //   jsOut (commitment per JS output)
-    uint256 constant nb_hash_digests = 1 + 2*jsIn + jsOut;
+    uint256 constant nb_hash_digests = 1 + 2*jsIn;
 
     // Total number of residual bits from packing of 256-bit long string into
     // 253-bit long field elements to which are added the public value of size
@@ -108,7 +108,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // - JsIn (the message auth. tags)
     // - nb_field_residual (the residual bits not fitting in a single field
     //   element and the in and out public values)
-    uint256 constant nbInputs = 1 + nb_hash_digests + nb_field_residual;
+    uint256 constant nbInputs = 1 + jsOut + nb_hash_digests + nb_field_residual;
 
     // Contract variable that indicates the address of the token contract
     // If token = address(0) then the mixer works with ether
@@ -163,22 +163,22 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // ====================================================================== //
     // Reminder: Remember that the primary inputs are ordered as follows:
     //
-    //   [Root, NullifierS, CommitmentS, h_sig, h_iS, Residual Field Element(S)]
+    //   [Root, CommitmentS, NullifierS, h_sig, h_iS, Residual Field Element(S)]
     //
     // ie, below is the index mapping of the primary input elements on the
     // protoboard:
     //
     // - Index of the "Root" field elements: {0}
-    // - Index of the "NullifierS" field elements: [1, 1 + NumInputs[
-    // - Index of the "CommitmentS" field elements:
-    //   [1 + NumInputs, 1 + NumInputs + NumOutputs[
-    // - Index of the "h_sig" field element: {1 + NumInputs + NumOutputs}
+    // - Index of the "CommitmentS" field elements: [1, 1 + NumOutputs[
+    // - Index of the "NullifierS" field elements:
+    //   [1 + NumOutputs, 1 + NumOutputs + NumInputs[
+    // - Index of the "h_sig" field element: {1 + NumOutputs + NumInputs}
     // - Index of the "Message Authentication TagS" (h_i) field elements:
-    //   [1 + NumInputs + NumOutputs + 1,
-    //    1 + NumInputs + NumOuputs + 1 + NumInputs[
+    //   [1 + NumOutputs + NumInputs + 1,
+    //    1 + NumOutputs + NumInputs + 1 + NumInputs[
     // - Index of the "Residual Field Element(s)" field elements:
-    //   [1 + NumInputs + NumOutputs + 1 + NumInputs,
-    //    1 + NumInputs + NumOuputs + 1 + NumInputs + nb_field_residual[
+    //   [1 + NumOutputs + NumInputs + 1 + NumInputs,
+    //    1 + NumOutputs + NumInputs + 1 + NumInputs + nb_field_residual[
     //
     // The Residual field elements are structured as follows:
     // - v_pub_in [0, public_value_length[
@@ -189,12 +189,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // - nullifierS remaining bits:
     //   [2*public_value_length + (digest_length-field_capacity),
     //    2*public_value_length + (1+NumInputs)*(digest_length-field_capacity)[
-    // - commitmentS remaining bits:
-    //   [2*public_value_length + (1+NumInputs)*(digest_length-field_capacity),
-    //    2*public_value_length + (1+NumInputs+NumOutputs)*(digest_length-field_capacity)[
     // - message authentication tagS remaining bits:
-    //   [2*public_value_length + (1+NumInputs+NumOutputs)*(digest_length-field_capacity),
-    //    2*public_value_length + (1+2*NumInputs+NumOutputs)*(digest_length-field_capacity)]
+    //   [2*public_value_length + (1+NumInputs)*(digest_length-field_capacity),
+    //    2*public_value_length + (1+2*NumInputs)*(digest_length-field_capacity)]
     // ============================================================================================ //
 
     // This function is used to extract the public values (vpub_in and
@@ -208,13 +205,13 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // in and remove any extra bits (due to the padding)
         uint256 residual_hash_size = packing_residue_length*nb_hash_digests;
 
-        bytes32 vpub_bytes = bytes32(primary_inputs[1 + nb_hash_digests])
+        bytes32 vpub_bytes = bytes32(primary_inputs[1 + jsOut + nb_hash_digests])
             >> (residual_hash_size + public_value_length);
         vpub_in = uint64(uint(vpub_bytes));
 
         // We retrieve the public value out and remove any extra bits (due to
         // the padding)
-        vpub_bytes = bytes32(primary_inputs[1 + nb_hash_digests])
+        vpub_bytes = bytes32(primary_inputs[1 + jsOut + nb_hash_digests])
             >> residual_hash_size;
         vpub_out = uint64(uint(vpub_bytes));
     }
@@ -232,7 +229,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // correspond to the (digest_length - field_capacity) least significant
         // bits of hsig in big endian
         bytes32 hsig_bytes =
-        (bytes32(primary_inputs[1 + nb_hash_digests]) << padding_size +
+        (bytes32(primary_inputs[1 + jsOut + nb_hash_digests]) << padding_size +
         2*public_value_length) >> field_capacity;
 
         // We retrieve the field element corresponding to the `field_capacity`
@@ -258,17 +255,12 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
             index < jsIn,
             "nullifier index overflow"
         );
-        // We offset the nullifier index by the number of values preceding the
-        // nullifiers in the primary inputs: the root (1). This offset also
-        // corresponds to the offset of the commitment in the residual field
-        // elements (minus the public values)
-        uint256 nullifier_index = 1 + index;
 
         // We compute the nullifier's residual bits index and check the 1st
         // f.e. indeed comprises it. See the way the residual bits are ordered
         // in the extended proof
         uint256 nf_bit_index =
-        2*public_value_length + nullifier_index * packing_residue_length;
+        2*public_value_length + (1 + index) * packing_residue_length;
         require(
             field_capacity >= nf_bit_index + packing_residue_length,
             "nullifier written in different residual bit f.e."
@@ -278,63 +270,18 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // padding). They correspond to the (digest_length - field_capacity)
         // least significant bits of nf in big endian
         bytes32 nf_bytes = (
-            bytes32(primary_inputs[1 + nb_hash_digests])
+            bytes32(primary_inputs[1 + jsOut + nb_hash_digests])
             << (padding_size + nf_bit_index)) >> field_capacity;
 
+        // We offset the nullifier index by the number of values preceding the
+        // nullifiers in the primary inputs: the root (1) and the cms (jsOut)
         // We retrieve the field element corresponding to the `field_capacity`
         // most significant bits of nf. We remove the left padding due to
         // casting `field_capacity` bits into a bytes32. We reassemble nf by
         // adding the values.
         uint256 high_bits = uint(
-            primary_inputs[nullifier_index] << (digest_length - field_capacity));
+            primary_inputs[1 + jsOut + index] << (digest_length - field_capacity));
         nf = bytes32(high_bits + uint(nf_bytes));
-    }
-
-    // This function is used to reassemble the commitment given the commitment
-    // index [0, jsOut[ and the primary_inputs. To do so, we extract the
-    // remaining bits of the commitment from the residual field element(S) and
-    // combine them with the commitment field element.
-    function assemble_commitment(
-        uint256 index, uint256[nbInputs] memory primary_inputs)
-        public pure
-        returns (bytes32 cm) {
-
-        // We first check that the commitment we want to retrieve exists
-        require(
-            index < jsOut,
-            "commitment index overflow"
-        );
-        // We offset the commitment index by the number of values preceding the
-        // commitments in the primary inputs: the root (1) and the nullifiers
-        // (jsIn). This offset also corresponds to the offset of the commitment
-        // in the residual field elements (minus the public values)
-        uint256 commitment_index = 1 + jsIn + index;
-
-        // We compute the commitment's residual bits index and check the 1st
-        // f.e. indeed comprises it. See the way the residual bits are ordered
-        // in the extended proof.
-        uint256 commitment_bit_index =
-        2 * public_value_length + commitment_index * packing_residue_length;
-        require(
-            field_capacity >= commitment_bit_index + packing_residue_length,
-            "commitment written in different residual bit f.e."
-        );
-
-        // We retrieve cm's residual bits and remove any extra bits (due to the
-        // padding). They correspond to the (digest_length - field_capacity)
-        // least significant bits of cm in big endian.
-        bytes32 cm_bytes = (
-            bytes32(primary_inputs[1 + nb_hash_digests])
-                << (padding_size + commitment_bit_index)
-        ) >> field_capacity;
-
-        // We retrieve the field element corresponding to the `field_capacity`
-        // most significant bits of cm. We remove the left padding due to
-        // casting `field_capacity` bits into a bytes32. We reassemble cm by
-        // adding the values.
-        uint256 high_bits = uint(
-            primary_inputs[commitment_index] << (digest_length - field_capacity));
-        cm = bytes32(high_bits + uint(cm_bytes));
     }
 
     // This function processes the primary inputs to append and check the root
@@ -377,12 +324,12 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         );
     }
 
-    function assemble_commitments_and_append_to_state(
+    function append_commitments_to_state(
         uint256[nbInputs] memory primary_inputs)
         internal {
         // We re-assemble the commitments (JSOutputs)
         for (uint256 i = 0; i < jsOut; i++) {
-            bytes32 current_commitment = assemble_commitment(i, primary_inputs);
+            bytes32 current_commitment = bytes32(primary_inputs[1 + i]);
             uint256 commitmentAddress = insert(current_commitment);
             emit LogCommitment(commitmentAddress, current_commitment);
         }
