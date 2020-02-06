@@ -7,8 +7,8 @@
 from zeth.zksnark import get_zksnark_provider
 from zeth.prover_client import ProverClient
 from commands.constants import \
-    ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCEFILE_DEFAULT, \
-    ADDRESSFILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT, \
+    ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
+    ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT, \
     MERKLE_TREE_FILE_DEFAULT
 from commands.zeth_deploy import deploy
 from commands.zeth_gen_address import gen_address
@@ -50,12 +50,12 @@ def help(ctx) -> None:
     help="GROTH16 or PGHR13 (default=GROTH16)")
 @option(
     "--instance-file",
-    default=INSTANCEFILE_DEFAULT,
-    help=f"Instance file (default={INSTANCEFILE_DEFAULT})")
+    default=INSTANCE_FILE_DEFAULT,
+    help=f"Instance file (default={INSTANCE_FILE_DEFAULT})")
 @option(
     "--address-file",
-    default=ADDRESSFILE_DEFAULT,
-    help=f"Instance file (default={ADDRESSFILE_DEFAULT})")
+    default=ADDRESS_FILE_DEFAULT,
+    help=f"Instance file (default={ADDRESS_FILE_DEFAULT})")
 @option(
     "--wallet-dir",
     default=WALLET_DIR_DEFAULT,

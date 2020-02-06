@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from commands.constants import INSTANCEFILE_DEFAULT
+from commands.constants import INSTANCE_FILE_DEFAULT
 from commands.utils import \
     open_web3_from_ctx, get_erc20_instance_description, load_eth_address, \
     write_mixer_description, MixerDescription
@@ -20,8 +20,8 @@ from typing import Optional, Any
 @option("--eth-addr", help="Sender eth address or address filename")
 @option(
     "--instance-out",
-    default=INSTANCEFILE_DEFAULT,
-    help=f"File to write deployment address to (default={INSTANCEFILE_DEFAULT})")
+    default=INSTANCE_FILE_DEFAULT,
+    help=f"File to write deployment address to (default={INSTANCE_FILE_DEFAULT})")
 @option("--token-address", help="Address of token contract (if used)")
 @option("--deploy-gas", help="Maximum gas, in Wei")
 @pass_context
