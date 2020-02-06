@@ -4,8 +4,7 @@
 
 from commands.utils import load_eth_address, open_web3_from_ctx, \
     load_mixer_description_from_ctx, EtherValue
-from click import command, argument, option, pass_context, ClickException
-from typing import Any
+from click import command, argument, option, pass_context, ClickException, Context
 
 
 @command(name="token_approve")
@@ -13,7 +12,7 @@ from typing import Any
 @option("--eth-addr", help="Sender eth address or address filename")
 @option("--wait", is_flag=True, help="Wait for transaction to complete")
 @pass_context
-def token_approve(ctx: Any, tokens: str, eth_addr: str, wait: bool) -> None:
+def token_approve(ctx: Context, tokens: str, eth_addr: str, wait: bool) -> None:
     """
     Approve the mixer to spend some amount of tokens
     """

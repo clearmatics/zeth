@@ -12,8 +12,8 @@ from zeth.prover_client import ProverClient
 from zeth.joinsplit import ZethClient
 from zeth.utils import EtherValue
 from zeth.zksnark import IZKSnarkProvider
-from click import command, option, pass_context
-from typing import Optional, Any
+from click import Context, command, option, pass_context
+from typing import Optional
 
 
 @command()
@@ -26,7 +26,7 @@ from typing import Optional, Any
 @option("--deploy-gas", help="Maximum gas, in Wei")
 @pass_context
 def deploy(
-        ctx: Any,
+        ctx: Context,
         eth_addr: Optional[str],
         instance_out: str,
         token_address: str,

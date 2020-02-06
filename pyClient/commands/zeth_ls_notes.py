@@ -5,15 +5,14 @@
 from commands.utils import open_web3_from_ctx, load_zeth_address_secret, \
     open_wallet, load_mixer_description_from_ctx
 from zeth.utils import EtherValue
-from click import command, option, pass_context
-from typing import Any
+from click import Context, command, option, pass_context
 
 
 @command()
 @option("--balance", is_flag=True, help="Show total balance")
 @option("--spent", is_flag=True, help="Show spent notes")
 @pass_context
-def ls_notes(ctx: Any, balance: bool, spent: bool) -> None:
+def ls_notes(ctx: Context, balance: bool, spent: bool) -> None:
     """
     List the set of notes owned by this wallet
     """

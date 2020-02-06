@@ -17,9 +17,9 @@ from commands.zeth_mix import mix
 from commands.zeth_ls_notes import ls_notes
 from commands.zeth_ls_commits import ls_commits
 from commands.zeth_token_approve import token_approve
-from click import group, command, option, pass_context, ClickException
+from click import group, command, option, pass_context, ClickException, Context
 from click_default_group import DefaultGroup
-from typing import Any, Optional
+from typing import Optional
 
 
 @command()
@@ -66,7 +66,7 @@ def help(ctx) -> None:
     help=f"Merkle tree file (default={MERKLE_TREE_FILE_DEFAULT})")
 @pass_context
 def zeth(
-        ctx: Any,
+        ctx: Context,
         eth_rpc: Optional[str],
         prover_server: str,
         zksnark_name: str,

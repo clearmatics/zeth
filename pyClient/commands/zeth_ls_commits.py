@@ -4,13 +4,12 @@
 
 from commands.utils import open_merkle_tree
 from zeth.utils import short_commitment
-from click import command, pass_context
-from typing import Any
+from click import Context, command, pass_context
 
 
 @command()
 @pass_context
-def ls_commits(ctx: Any) -> None:
+def ls_commits(ctx: Context) -> None:
     """
     List all commitments in the joinsplit contract
     """

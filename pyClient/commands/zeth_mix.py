@@ -10,8 +10,8 @@ from zeth.joinsplit import ZethAddressPub
 from zeth.joinsplit import from_zeth_units
 from zeth.utils import EtherValue
 from api.util_pb2 import ZethNote
-from click import command, option, pass_context, ClickException
-from typing import List, Tuple, Optional, Any
+from click import command, option, pass_context, ClickException, Context
+from typing import List, Tuple, Optional
 
 
 @command()
@@ -23,7 +23,7 @@ from typing import List, Tuple, Optional, Any
 @option("--wait", is_flag=True)
 @pass_context
 def mix(
-        ctx: Any,
+        ctx: Context,
         vin: str,
         vout: str,
         input_notes: List[str],

@@ -86,7 +86,7 @@ def load_mixer_description(mixer_description_file: str) -> MixerDescription:
         return MixerDescription.from_json(desc_f.read())
 
 
-def load_mixer_description_from_ctx(ctx: Any) -> MixerDescription:
+def load_mixer_description_from_ctx(ctx: Context) -> MixerDescription:
     return load_mixer_description(ctx.obj["INSTANCE_FILE"])
 
 
