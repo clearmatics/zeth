@@ -6,16 +6,24 @@
 
 from __future__ import annotations
 import zeth.joinsplit as joinsplit
-from zeth.contracts import EncryptedNote
+from zeth.contracts import MixOutputEvents
+from zeth.encryption import EncryptionPublicKey
 from zeth.utils import EtherValue, short_commitment
 from api.util_pb2 import ZethNote
-from nacl.public import PrivateKey, PublicKey  # type: ignore
-from nacl import encoding  # type: ignore
 from os.path import join, basename, exists
 from os import makedirs
-from typing import List, Tuple, Optional, Iterator, Any
+from shutil import move
+from typing import Dict, List, Tuple, Optional, Iterator, Any, cast
 import glob
 import json
+
+
+# pylint: disable=too-many-instance-attributes
+
+SPENT_SUBDIRECTORY: str = "spent"
+
+# Map nullifier to short commitment string identifying the commitment.
+NullifierMap = Dict[str, str]
 
 
 class ZethNoteDescription:
@@ -59,14 +67,17 @@ class WalletState:
     addresses seen. This can be useful to estimate the security of a given
     transaction.
     """
-    def __init__(self, next_block: int, num_notes: int):
+    def __init__(
+            self, next_block: int, num_notes: int, nullifier_map: NullifierMap):
         self.next_block = next_block
         self.num_notes = num_notes
+        self.nullifier_map = nullifier_map
 
     def to_json(self) -> str:
         json_dict = {
             "next_block": self.next_block,
             "num_notes": self.num_notes,
+            "nullifier_map": self.nullifier_map,
         }
         return json.dumps(json_dict, indent=4)
 
@@ -75,12 +86,13 @@ class WalletState:
         json_dict = json.loads(json_str)
         return WalletState(
             next_block=int(json_dict["next_block"]),
-            num_notes=int(json_dict["num_notes"]))
+            num_notes=int(json_dict["num_notes"]),
+            nullifier_map=cast(NullifierMap, json_dict["nullifier_map"]))
 
 
 def _load_state_or_default(state_file: str) -> WalletState:
     if not exists(state_file):
-        return WalletState(1, 0)
+        return WalletState(1, 0, {})
     with open(state_file, "r") as state_f:
         return WalletState.from_json(state_f.read())
 
@@ -105,47 +117,73 @@ class Wallet:
             mixer_instance: Any,
             username: str,
             wallet_dir: str,
-            k_sk_receiver: PrivateKey):
+            secret_address: joinsplit.ZethAddressPriv):
+        # k_sk_receiver: EncryptionSecretKey):
         assert "_" not in username
         self.mixer_instance = mixer_instance
         self.username = username
         self.wallet_dir = wallet_dir
-        self.k_sk_receiver = k_sk_receiver
-        self.k_sk_receiver_bytes = \
-            k_sk_receiver.encode(encoder=encoding.RawEncoder)
+        self.a_sk = secret_address.a_sk
+        self.k_sk_receiver = secret_address.k_sk
         self.state_file = join(wallet_dir, f"state_{username}")
         self.state = _load_state_or_default(self.state_file)
-        _ensure_dir(self.wallet_dir)
+        _ensure_dir(join(self.wallet_dir, SPENT_SUBDIRECTORY))
 
     def receive_notes(
             self,
-            encrypted_notes: List[EncryptedNote],
-            k_pk_sender: PublicKey) -> List[ZethNoteDescription]:
+            output_events: List[MixOutputEvents],
+            k_pk_sender: EncryptionPublicKey) -> List[ZethNoteDescription]:
         """
         Decrypt any notes we can, verify them as being valid, and store them in
         the database.
         """
         new_notes = []
         addr_commit_note_iter = joinsplit.receive_notes(
-            encrypted_notes, k_pk_sender, self.k_sk_receiver)
+            output_events, k_pk_sender, self.k_sk_receiver)
         for addr, commit, note in addr_commit_note_iter:
             if _check_note(commit, note):
                 note_desc = ZethNoteDescription(note, addr, commit)
                 self._write_note(note_desc)
                 new_notes.append(note_desc)
 
+                # Add the nullifier to the map in the state file
+                nullifier = joinsplit.compute_nullifier(note_desc.note, self.a_sk)
+                self.state.nullifier_map[nullifier.hex()] = \
+                    short_commitment(commit)
+
         # Record full set of notes seen to keep an estimate of the total in the
         # mixer.
-        self.state.num_notes = self.state.num_notes + len(encrypted_notes)
+        self.state.num_notes = self.state.num_notes + len(output_events)
 
         return new_notes
+
+    def mark_nullifiers_used(self, nullifiers: List[bytes]) -> List[str]:
+        """
+        Process nullifiers, marking any of our notes that they spend.
+        """
+        commits: List[str] = []
+        for nullifier in nullifiers:
+            nullifier_hex = nullifier.hex()
+            short_commit = self.state.nullifier_map.get(nullifier_hex, None)
+            if short_commit:
+                commits.append(short_commit)
+                self._mark_note_spent(nullifier_hex, short_commit)
+
+        return commits
 
     def note_summaries(self) -> Iterator[Tuple[int, str, EtherValue]]:
         """
         Returns simple information that can be efficiently read from the notes
         store.
         """
-        return self._decoded_note_filenames()
+        return self._decode_note_files_in_dir(self.wallet_dir)
+
+    def spent_note_summaries(self) -> Iterator[Tuple[int, str, EtherValue]]:
+        """
+        Returns simple info from note filenames in the spent directory.
+        """
+        return self._decode_note_files_in_dir(
+            join(self.wallet_dir, SPENT_SUBDIRECTORY))
 
     def get_next_block(self) -> int:
         return self.state.next_block
@@ -169,6 +207,19 @@ class Wallet:
         with open(note_filename, "w") as note_f:
             note_f.write(note_desc.to_json())
 
+    def _mark_note_spent(self, nullifier_hex: str, short_commit: str) -> None:
+        """
+        Mark a note as having been spent.  Find the file, move it to the `spent`
+        subdirectory, and remove the entry from the `nullifier_map`.
+        """
+        note_file = self._find_note_file(short_commit)
+        if note_file is None:
+            raise Exception(f"expected to find file for commit {short_commit}")
+        spent_file = \
+            join(self.wallet_dir, SPENT_SUBDIRECTORY, basename(note_file))
+        move(note_file, spent_file)
+        del self.state.nullifier_map[nullifier_hex]
+
     def _note_basename(self, note_desc: ZethNoteDescription) -> str:
         value_eth = joinsplit.from_zeth_units(
             int(note_desc.note.value, 16)).ether()
@@ -184,8 +235,9 @@ class Wallet:
         value = EtherValue(components[4], 'ether')
         return (addr, short_commit, value)
 
-    def _decoded_note_filenames(self) -> Iterator[Tuple[int, str, EtherValue]]:
-        wildcard = join(self.wallet_dir, f"note_{self.username}_*")
+    def _decode_note_files_in_dir(
+            self, dir_name: str) -> Iterator[Tuple[int, str, EtherValue]]:
+        wildcard = join(dir_name, f"note_{self.username}_*")
         filenames = sorted(glob.glob(wildcard))
         for filename in filenames:
             try:

@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 import zeth.joinsplit
+import zeth.merkle_tree
 import zeth.zksnark
 from zeth.wallet import Wallet
 import zeth.utils
@@ -69,24 +70,25 @@ def main() -> None:
     token_instance = deploy_token(eth, deployer_eth_address, 4000000)
 
     # Deploy Zeth contracts
+    tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client = zeth.joinsplit.ZethClient.deploy(
         web3,
         prover_client,
-        constants.ZETH_MERKLE_TREE_DEPTH,
+        tree_depth,
         deployer_eth_address,
         zksnark,
         token_instance.address)
+    mk_tree = zeth.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
 
     # Keys and wallets
-    k_sk_alice = keystore["Alice"].addr_sk.k_sk
-    k_sk_bob = keystore["Bob"].addr_sk.k_sk
-    k_sk_charlie = keystore["Charlie"].addr_sk.k_sk
+    sk_alice = keystore["Alice"].addr_sk
+    sk_bob = keystore["Bob"].addr_sk
+    sk_charlie = keystore["Charlie"].addr_sk
 
     mixer_instance = zeth_client.mixer_instance
-    alice_wallet = Wallet(mixer_instance, "alice", coinstore_dir, k_sk_alice)
-    bob_wallet = Wallet(mixer_instance, "bob", coinstore_dir, k_sk_bob)
-    charlie_wallet = Wallet(
-        mixer_instance, "charlie", coinstore_dir, k_sk_charlie)
+    alice_wallet = Wallet(mixer_instance, "alice", coinstore_dir, sk_alice)
+    bob_wallet = Wallet(mixer_instance, "bob", coinstore_dir, sk_bob)
+    charlie_wallet = Wallet(mixer_instance, "charlie", coinstore_dir, sk_charlie)
 
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
     # We assign ETHToken to Bob
@@ -107,7 +109,11 @@ def main() -> None:
     # approving)
     try:
         result_deposit_bob_to_bob = scenario.bob_deposit(
-            zeth_client, bob_eth_address, keystore, zeth.utils.EtherValue(0))
+            zeth_client,
+            mk_tree,
+            bob_eth_address,
+            keystore,
+            zeth.utils.EtherValue(0))
     except Exception as e:
         allowance_mixer = allowance(
             token_instance,
@@ -131,7 +137,7 @@ def main() -> None:
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
     # Bob deposits ETHToken, split in 2 notes on the mixer
     result_deposit_bob_to_bob = scenario.bob_deposit(
-        zeth_client, bob_eth_address, keystore)
+        zeth_client, mk_tree, bob_eth_address, keystore)
 
     print("- Balances after Bob's deposit: ")
     print_token_balances(
@@ -145,7 +151,7 @@ def main() -> None:
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
     # was the recipient, but Bob was the recipient so Alice fails to decrypt
     recovered_notes_alice = alice_wallet.receive_notes(
-        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.output_events,
         result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_alice) == 0), \
         "Alice decrypted a ciphertext that was not encrypted with her key!"
@@ -155,17 +161,18 @@ def main() -> None:
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
     recovered_notes_bob = bob_wallet.receive_notes(
-        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.output_events,
         result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_bob) == 2), \
         f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
     input_bob_to_charlie = recovered_notes_bob[0].as_input()
     assert input_bob_to_charlie[0] == \
-        result_deposit_bob_to_bob.encrypted_notes[0][0]
+        result_deposit_bob_to_bob.output_events[0].commitment_address
 
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         zeth_client,
+        mk_tree,
         input_bob_to_charlie,
         bob_eth_address,
         keystore)
@@ -175,6 +182,7 @@ def main() -> None:
     try:
         result_double_spending = scenario.bob_to_charlie(
             zeth_client,
+            mk_tree,
             input_bob_to_charlie,
             bob_eth_address,
             keystore)
@@ -193,15 +201,16 @@ def main() -> None:
 
     # Charlie tries to decrypt the notes from Bob's previous transaction.
     note_descs_charlie = charlie_wallet.receive_notes(
-        result_transfer_bob_to_charlie.encrypted_notes,
+        result_transfer_bob_to_charlie.output_events,
         result_transfer_bob_to_charlie.sender_k_pk)
     assert(len(note_descs_charlie) == 1), \
         f"Charlie decrypted {len(note_descs_charlie)}.  Expected 1!"
     assert note_descs_charlie[0].address == \
-        result_transfer_bob_to_charlie.encrypted_notes[1][0]
+        result_transfer_bob_to_charlie.output_events[1].commitment_address
 
     _ = scenario.charlie_withdraw(
         zeth_client,
+        mk_tree,
         note_descs_charlie[0].as_input(),
         charlie_eth_address,
         keystore)
@@ -223,6 +232,7 @@ def main() -> None:
         # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
             zeth_client,
+            mk_tree,
             note_descs_charlie[0].as_input(),
             charlie_eth_address,
             keystore)
@@ -257,6 +267,7 @@ def main() -> None:
 
     result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
         zeth_client,
+        mk_tree,
         bob_eth_address,
         charlie_eth_address,
         keystore)
@@ -264,7 +275,7 @@ def main() -> None:
     # Bob decrypts one of the note he previously received (should fail if
     # Charlie's attack succeeded)
     recovered_notes_bob = bob_wallet.receive_notes(
-        result_deposit_bob_to_bob.encrypted_notes,
+        result_deposit_bob_to_bob.output_events,
         result_deposit_bob_to_bob.sender_k_pk)
     assert(len(recovered_notes_bob) == 2), \
         f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"

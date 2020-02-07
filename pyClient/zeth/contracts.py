@@ -21,8 +21,17 @@ SYNC_BLOCKS_PER_BATCH = 10
 
 Interface = Dict[str, Any]
 
-# Address, commitment and ciphertext tuples
-EncryptedNote = Tuple[int, bytes, bytes]
+
+class MixOutputEvents:
+    """
+    Event data for a single joinsplit output.  Holds address (in merkle tree),
+    commitment and ciphertext.
+    """
+    def __init__(
+            self, commitment_address: int, commitment: bytes, ciphertext: bytes):
+        self.commitment_address = commitment_address
+        self.commitment = commitment
+        self.ciphertext = ciphertext
 
 
 class MixResult:
@@ -31,10 +40,12 @@ class MixResult:
     """
     def __init__(
             self,
-            encrypted_notes: List[EncryptedNote],
-            new_merkle_root: str,
+            nullifiers: List[bytes],
+            output_events: List[MixOutputEvents],
+            new_merkle_root: bytes,
             sender_k_pk: EncryptionPublicKey):
-        self.encrypted_notes = encrypted_notes
+        self.nullifiers = nullifiers
+        self.output_events = output_events
         self.new_merkle_root = new_merkle_root
         self.sender_k_pk = sender_k_pk
 
@@ -104,7 +115,7 @@ def deploy_mixer(
         deployer_address: str,
         deployment_gas: int,
         token_address: str,
-        zksnark: IZKSnarkProvider) -> Tuple[Any, str]:
+        zksnark: IZKSnarkProvider) -> Tuple[Any, bytes]:
     """
     Common function to deploy a mixer contract. Returns the mixer and the
     initial merkle root of the commitment tree
@@ -186,8 +197,6 @@ def mix(
         ciphertext1,
         ciphertext2,
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
-    # tx_receipt = eth.waitForTransactionReceipt(tx_hash, 10000)
-    # return parse_mix_call(mixer_instance, tx_receipt)
     return tx_hash.hex()
 
 
@@ -197,6 +206,11 @@ def parse_mix_call(
     """
     Get the logs data associated with this mixing
     """
+    # Get nullifiers
+    event_filter_log_nullifiers = mixer_instance.eventFilter(
+        "LogNullifier",
+        {'fromBlock': 'latest'})
+    event_log_log_nullifiers = event_filter_log_nullifiers.get_all_entries()
     # Gather the addresses of the appended commitments
     event_filter_log_address = mixer_instance.eventFilter(
         "LogCommitment",
@@ -211,16 +225,26 @@ def parse_mix_call(
         "LogSecretCiphers", {'fromBlock': 'latest'})
     event_logs_log_secret_ciphers = \
         event_filter_log_secret_ciphers.get_all_entries()
-    new_merkle_root = Web3.toHex(event_logs_log_merkle_root[0].args.root)[2:]
+
+    nullifiers = [ev.args.nullifier for ev in event_log_log_nullifiers]
+    new_merkle_root = event_logs_log_merkle_root[0].args.root
     sender_k_pk_bytes = event_logs_log_secret_ciphers[0].args.pk_sender
 
-    encrypted_notes = _extract_encrypted_notes_from_logs(
+    output_events = _extract_output_event_data(
         event_logs_log_address, event_logs_log_secret_ciphers)
 
     return MixResult(
-        encrypted_notes=encrypted_notes,
+        nullifiers=nullifiers,
+        output_events=output_events,
         new_merkle_root=new_merkle_root,
         sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
+
+
+def _next_nullifier_or_none(nullifier_iter: Iterator[bytes]) -> Optional[Any]:
+    try:
+        return next(nullifier_iter)
+    except StopIteration:
+        return None
 
 
 def _next_commit_or_none(
@@ -242,6 +266,7 @@ def _next_commit_or_none(
 
 def _parse_events(
         merkle_root_events: List[Any],
+        nullifier_events: List[Any],
         commit_address_events: List[Any],
         ciphertext_events: List[Any]) -> Iterator[MixResult]:
     """
@@ -251,31 +276,41 @@ def _parse_events(
     new merkle root.
     """
     assert len(commit_address_events) == len(ciphertext_events)
+    nullifier_iter = iter(nullifier_events)
     commit_address_iter = iter(commit_address_events)
     ciphertext_iter = iter(ciphertext_events)
 
     addr_commit, ciphertext = _next_commit_or_none(
         commit_address_iter, ciphertext_iter)
+    nullifier = _next_nullifier_or_none(nullifier_iter)
     for mk_root_event in merkle_root_events:
+        assert nullifier is not None
         assert addr_commit is not None
         assert ciphertext is not None
 
         tx_hash = mk_root_event.transactionHash
         mk_root = mk_root_event.args.root
         sender_k_pk_bytes = ciphertext.args.pk_sender
-        enc_notes: List[Tuple[int, bytes, bytes]] = []
+        nullifier_values: List[bytes] = []
+        output_events: List[MixOutputEvents] = []
+
+        while nullifier and nullifier.transactionHash == tx_hash:
+            nullifier_values.append(nullifier.args.nullifier)
+            nullifier = _next_nullifier_or_none(nullifier_iter)
+
         while addr_commit and addr_commit.transactionHash == tx_hash:
             assert ciphertext.transactionHash == tx_hash
             address = addr_commit.args.commAddr
             commit = addr_commit.args.commit
             ct = ciphertext.args.ciphertext
-            enc_notes.append((address, commit, ct))
+            output_events.append(MixOutputEvents(address, commit, ct))
             addr_commit, ciphertext = _next_commit_or_none(
                 commit_address_iter, ciphertext_iter)
 
-        if enc_notes:
+        if output_events:
             yield MixResult(
-                encrypted_notes=enc_notes,
+                nullifiers=nullifier_values,
+                output_events=output_events,
                 new_merkle_root=mk_root,
                 sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
 
@@ -302,6 +337,8 @@ def get_mix_results(
             }
             merkle_root_filter = mixer_instance.eventFilter(
                 "LogMerkleRoot", filter_params)
+            nullifier_filter = mixer_instance.eventFilter(
+                "LogNullifier", filter_params)
             commitment_filter = mixer_instance.eventFilter(
                 "LogCommitment", filter_params)
             ciphertext_filter = mixer_instance.eventFilter(
@@ -309,6 +346,7 @@ def get_mix_results(
 
             for entry in _parse_events(
                     merkle_root_filter.get_all_entries(),
+                    nullifier_filter.get_all_entries(),
                     commitment_filter.get_all_entries(),
                     ciphertext_filter.get_all_entries()):
                 yield entry
@@ -319,37 +357,16 @@ def get_mix_results(
             web3.eth.uninstallFilter(ciphertext_filter.filter_id)
 
 
-def _extract_encrypted_notes_from_logs(
+def _extract_output_event_data(
         log_commitments: List[Any],
-        log_ciphertexts: List[Any]) -> List[Tuple[int, bytes, bytes]]:
+        log_ciphertexts: List[Any]) -> List[MixOutputEvents]:
     assert len(log_commitments) == len(log_ciphertexts)
 
-    def _extract_note(log_commit: Any, log_ciph: Any) -> Tuple[int, bytes, bytes]:
+    def _extract_event_data(log_commit: Any, log_ciph: Any) -> MixOutputEvents:
         addr = log_commit.args.commAddr
         commit = log_commit.args.commit
         ciphertext = log_ciph.args.ciphertext
-        return (addr, commit, ciphertext)
+        return MixOutputEvents(addr, commit, ciphertext)
 
-    return [_extract_note(log_commit, log_ciph) for
+    return [_extract_event_data(log_commit, log_ciph) for
             log_commit, log_ciph in zip(log_commitments, log_ciphertexts)]
-
-
-def get_commitments(mixer_instance: Any) -> List[bytes]:
-    """
-    Query the Zeth contact to get the list of commitments
-    """
-    return mixer_instance.functions.getLeaves().call()
-
-
-def get_merkle_tree(mixer_instance: Any) -> List[bytes]:
-    """
-    Return the Merkle tree
-    """
-    return mixer_instance.functions.getTree().call()
-
-
-def get_merkle_root(mixer_instance: Any) -> bytes:
-    """
-    Return the Merkle tree root
-    """
-    return mixer_instance.functions.getRoot().call()

@@ -52,24 +52,4 @@ contract BaseMerkleTree {
         // This is useful for the proof generation
         return currentNodeIndex - 1;
     }
-
-    // Function that is fundamental in order to enable a client to fetch the
-    // leaves and recompute the merkle tree to generate a proof (needs the
-    // merkle authentication path and the merkle tree root to be computed).
-    //
-    // Recomputing the merkle should not be necessary as it could be read
-    // directly from the smart contract state but we'll use this function for
-    // now.
-    //
-    // returns the bytes32[] array of leaves.
-    function getLeaves() public view returns (bytes32[] memory) {
-        bytes32[] memory tmpLeaves = new bytes32[](nbLeaves);
-        for (uint256 i = 0; i < nbLeaves; i++) {
-            tmpLeaves[i] = leaves[i];
-        }
-
-        // Returns the array of leaves of the merkle tree
-        return tmpLeaves;
-    }
-
 }

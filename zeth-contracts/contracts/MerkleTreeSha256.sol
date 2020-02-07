@@ -14,7 +14,7 @@ contract MerkleTreeSha256 is BaseMerkleTree {
     }
 
     // Returns the current merkle tree
-    function getTree() public view returns (bytes32[] memory) {
+    function getTree() internal view returns (bytes32[] memory) {
         uint256 nbNodes = 2**(depth + 1) - 1;
         bytes32[] memory tmpTree = new bytes32[](nbNodes);
 
@@ -36,7 +36,7 @@ contract MerkleTreeSha256 is BaseMerkleTree {
     }
 
     // Returns the root of the merkle tree
-    function getRoot() public view returns(bytes32) {
+    function getRoot() internal view returns(bytes32) {
         return getTree()[0];
     }
 }

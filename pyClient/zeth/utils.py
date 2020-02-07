@@ -175,41 +175,6 @@ def decrypt(
     return str(message, encoding='utf-8')
 
 
-def convert_leaf_address_to_node_address(
-        address_leaf: int, tree_depth: int) -> int:
-    """
-    Converts the relative address of a leaf to an absolute address in the tree
-    Important note: The merkle root index is 0 (not 1!)
-    """
-    address = address_leaf + (2 ** tree_depth - 1)
-    if address > (2 ** (tree_depth + 1) - 1):
-        return -1
-    return address
-
-
-def compute_merkle_path(
-        address_commitment: int,
-        tree_depth: int,
-        byte_tree: List[bytes]) -> List[str]:
-    merkle_path: List[str] = []
-    address_bits = []
-    address = convert_leaf_address_to_node_address(address_commitment, tree_depth)
-    if address == -1:
-        return merkle_path  # return empty merkle_path
-    for _ in range(0, tree_depth):
-        address_bits.append(address % 2)
-        if (address % 2) == 0:
-            # [2:] to strip the 0x prefix
-            merkle_path.append(Web3.toHex(byte_tree[address - 1])[2:])
-            # -1 because we decided to start counting from 0 (which is the
-            # index of the root node)
-            address = int(address/2) - 1
-        else:
-            merkle_path.append(Web3.toHex(byte_tree[address + 1])[2:])
-            address = int(address/2)
-    return merkle_path
-
-
 def parse_zksnark_arg() -> str:
     """
     Parse the zksnark argument and return its value

@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from commands.utils import create_zeth_client_and_mixer_desc, \
-    load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address
+    load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address, \
+    open_merkle_tree
 from zeth.constants import JS_INPUTS, JS_OUTPUTS
 from zeth.joinsplit import ZethAddressPub
 from zeth.joinsplit import from_zeth_units
 from zeth.utils import EtherValue
 from api.util_pb2 import ZethNote
-from click import command, option, pass_context, ClickException
-from typing import List, Tuple, Optional, Any
+from click import command, option, pass_context, ClickException, Context
+from typing import List, Tuple, Optional
 
 
 @command()
@@ -22,7 +23,7 @@ from typing import List, Tuple, Optional, Any
 @option("--wait", is_flag=True)
 @pass_context
 def mix(
-        ctx: Any,
+        ctx: Context,
         vin: str,
         vout: str,
         input_notes: List[str],
@@ -47,6 +48,7 @@ def mix(
     zeth_client, mixer_desc = create_zeth_client_and_mixer_desc(ctx)
     zeth_address = load_zeth_address(ctx)
     wallet = open_wallet(zeth_client.mixer_instance, zeth_address.addr_sk, ctx)
+    merkle_tree = open_merkle_tree(ctx)
 
     inputs: List[Tuple[int, ZethNote]] = [
         wallet.find_note(note_id).as_input() for note_id in input_notes]
@@ -67,9 +69,8 @@ def mix(
     if mixer_desc.token:
         tx_value = EtherValue(0)
 
-    mk_tree = zeth_client.get_merkle_tree()
     tx_hash = zeth_client.joinsplit(
-        mk_tree,
+        merkle_tree,
         zeth_address.ownership_keypair(),
         eth_address,
         inputs,
@@ -79,6 +80,6 @@ def mix(
         tx_value)
 
     if wait:
-        do_sync(zeth_client.web3, wallet, tx_hash)
+        do_sync(zeth_client.web3, wallet, merkle_tree, tx_hash)
     else:
         print(tx_hash)

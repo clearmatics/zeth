@@ -33,6 +33,10 @@ def encode_encryption_public_key(pk: EncryptionPublicKey) -> bytes:
     return pk.encode(encoder=nacl.encoding.RawEncoder)  # type: ignore
 
 
+def encode_encryption_secret_key(sk: EncryptionSecretKey) -> bytes:
+    return sk.encode(encoder=nacl.encoding.RawEncoder)  # type: ignore
+
+
 def encryption_secret_key_as_hex(sk: EncryptionSecretKey) -> str:
     return sk.encode(encoder=nacl.encoding.RawEncoder).hex()  # type: ignore
 

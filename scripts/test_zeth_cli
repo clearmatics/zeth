@@ -76,6 +76,13 @@ zeth mix \
      --out ${alice_pk},100 \
      --out ${bob_pk},100
 
+# Sync and check that our note has been spent
+zeth sync
+if (zeth ls-notes | grep ${note_id}) ; then
+    echo Expected note ${note_id} to be marked spent
+    exit 1
+fi
+
 popd # alice
 
 # Bob scans the chain, finds his note, and sends 50 to Charlie

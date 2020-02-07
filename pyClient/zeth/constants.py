@@ -46,3 +46,6 @@ PUBLIC_VALUE_LENGTH: int = 64
 
 # Solidity compiler version
 SOL_COMPILER_VERSION = 'v0.5.16'
+
+# Seed for MIMC
+MIMC_MT_SEED: str = "clearmatics_mt_seed"
