@@ -246,7 +246,11 @@ def charlie_double_withdraw(
 
     # Compute the joinSplit signature
     joinsplit_sig = joinsplit.joinsplit_sign(
-        signing_keypair, sender_eph_pk, ciphertexts, proof_json)
+        signing_keypair,
+        charlie_eth_address,
+        sender_eph_pk,
+        ciphertexts,
+        proof_json)
 
     tx_hash = zeth_client.mix(
         sender_eph_pk,
@@ -327,14 +331,6 @@ def charlie_corrupt_bob_deposit(
         (output_note1, pk_bob),
         (output_note2, pk_bob)])
 
-    # Sign the primary inputs, pk_sender and the ciphertexts
-    joinsplit_sig = joinsplit.joinsplit_sign(
-        joinsplit_keypair,
-        pk_sender,
-        ciphertexts,
-        proof_json
-    )
-
     # ### ATTACK BLOCK
     # Charlie intercepts Bob's deposit, corrupts it and
     # sends her transaction before Bob's transaction is accepted
@@ -347,16 +343,20 @@ def charlie_corrupt_bob_deposit(
 
     result_corrupt1 = None
     try:
+        joinsplit_sig_charlie = joinsplit.joinsplit_sign(
+            joinsplit_keypair,
+            charlie_eth_address,
+            pk_sender,
+            ciphertexts,
+            proof_json)
         tx_hash = zeth_client.mix(
             pk_sender,
             fake_ciphertext0,
             fake_ciphertext1,
             proof_json,
             joinsplit_keypair.vk,
-            joinsplit_sig,
+            joinsplit_sig_charlie,
             charlie_eth_address,
-            # Pay an arbitrary amount (1 wei here) that will be refunded
-            #  since the `mix` function is payable
             Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
             4000000)
         result_corrupt1 = \
@@ -378,25 +378,23 @@ def charlie_corrupt_bob_deposit(
     new_joinsplit_keypair = signing.gen_signing_keypair()
 
     # Sign the primary inputs, pk_sender and the ciphertexts
-    new_joinsplit_sig = joinsplit.joinsplit_sign(
-        new_joinsplit_keypair,
-        pk_sender,
-        [fake_ciphertext0, fake_ciphertext1],
-        proof_json
-    )
 
     result_corrupt2 = None
     try:
+        joinsplit_sig_charlie = joinsplit.joinsplit_sign(
+            new_joinsplit_keypair,
+            charlie_eth_address,
+            pk_sender,
+            [fake_ciphertext0, fake_ciphertext1],
+            proof_json)
         tx_hash = zeth_client.mix(
             pk_sender,
             fake_ciphertext0,
             fake_ciphertext1,
             proof_json,
             new_joinsplit_keypair.vk,
-            new_joinsplit_sig,
+            joinsplit_sig_charlie,
             charlie_eth_address,
-            # Pay an arbitrary amount (1 wei here) that will be refunded since the
-            # `mix` function is payable
             Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
             4000000)
         result_corrupt2 = \
@@ -412,13 +410,19 @@ def charlie_corrupt_bob_deposit(
     # ### ATTACK BLOCK
 
     # Bob transaction is finally mined
+    joinsplit_sig_bob = joinsplit.joinsplit_sign(
+        joinsplit_keypair,
+        bob_eth_address,
+        pk_sender,
+        ciphertexts,
+        proof_json)
     tx_hash = zeth_client.mix(
         pk_sender,
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
         joinsplit_keypair.vk,
-        joinsplit_sig,
+        joinsplit_sig_bob,
         bob_eth_address,
         Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
         4000000)

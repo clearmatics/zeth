@@ -74,6 +74,14 @@ def encode_abi(type_names: List[str], data: List[bytes]) -> bytes:
     return eth_abi.encode_abi(type_names, data)  # type: ignore
 
 
+def encode_eth_address(eth_addr: str) -> bytes:
+    """
+    Binary encoding of ethereum address to 32 bytes
+    """
+    # Strip the leading '0x' and hex-decode.
+    return bytes.fromhex(hex_extend_32bytes(eth_addr[2:]))
+
+
 def encode_g1_to_bytes(group_el: G1) -> bytes:
     """
     Encode a group element into a byte string

@@ -86,6 +86,7 @@ contract Groth16Mixer is BaseMixer {
         // 2.a Verify the signature on the hash of data_to_be_signed
         bytes32 hash_to_be_signed = sha256(
             abi.encodePacked(
+                uint256(msg.sender),
                 pk_sender,
                 ciphertext0,
                 ciphertext1,
