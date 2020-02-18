@@ -407,6 +407,35 @@ def charlie_corrupt_bob_deposit(
     assert(result_corrupt2 is None), \
         "Charlie managed to corrupt Bob's deposit the second time!"
 
+    # Case3: Charlie uses the correct mix data, but attempts to send the mix
+    # call from his own address (thereby receiving the output).
+    result_corrupt3 = None
+    try:
+        joinsplit_sig_bob = joinsplit.joinsplit_sign(
+            joinsplit_keypair,
+            bob_eth_address,
+            pk_sender,
+            ciphertexts,
+            proof_json)
+        tx_hash = zeth_client.mix(
+            pk_sender,
+            ciphertexts[0],
+            ciphertexts[1],
+            proof_json,
+            joinsplit_keypair.vk,
+            joinsplit_sig_bob,
+            charlie_eth_address,
+            Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+            4000000)
+        result_corrupt3 = \
+            wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
+    except Exception as e:
+        print(
+            f"Charlie's third corruption attempt" +
+            f" successfully rejected! (msg: {e})"
+        )
+    assert(result_corrupt3 is None), \
+        "Charlie managed to corrupt Bob's deposit the third time!"
     # ### ATTACK BLOCK
 
     # Bob transaction is finally mined
