@@ -5,19 +5,6 @@ addons:
     apt:
         packages:
             - python3-virtualenv
-    homebrew:
-        packages:
-            - gmp
-            - grpc
-            - protobuf
-            - boost
-            - openssl
-            - cmake
-            - libtool
-            - autoconf
-            - automake
-            - python
-            # - llvm
 
 matrix:
     include:
