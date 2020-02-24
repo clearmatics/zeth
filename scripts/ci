@@ -70,13 +70,14 @@ function build() {
     cxx_flags="-Werror"
 
     if [ "${platform}" == "Darwin" ] ; then
+        openssl_path=$(brew --prefix openssl)
         export PATH="/usr/local/opt/llvm/bin:/usr/local/bin:${PATH}"
-        export PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig"
-        export LIBRARY_PATH="/usr/local/opt/openssl/lib"
-        export LDFLAGS="-L/usr/local/lib"
-        export CPPFLAGS="-I/usr/local/include"
+        export PKG_CONFIG_PATH="${openssl_path}/lib/pkgconfig"
+        export LIBRARY_PATH="${openssl_path}/lib"
+        export LDFLAGS="-L/usr/local/lib -L${openssl_path}/lib"
+        export CPPFLAGS="-I/usr/local/include -I${openssl_path}/include"
 
-        cxx_flags="${cxx_flags} -I/usr/local/opt/openssl/include"
+        cxx_flags="${cxx_flags} -I${openssl_path}/include"
         cxx_flags="${cxx_flags} -Wno-deprecated-declarations"
     fi
 
@@ -103,11 +104,28 @@ function build() {
 
 function ci_setup() {
 
-    if ! [ "${platform}" == "Linux" ] ; then
-        return
+    if [ "${platform}" == "Darwin" ] ; then
+        # Some of these commands can fail (if packages are already installed,
+        # etc), hence the `|| echo`.
+        brew unlink python@2
+        brew update || echo
+        brew install \
+             gmp \
+             grpc \
+             protobuf \
+             boost \
+             openssl \
+             cmake \
+             libtool \
+             autoconf \
+             automake \
+             python \
+             || echo
     fi
 
-    sudo apt install -y python3-venv
+    if [ "${platform}" == "Linux" ] ; then
+        sudo apt install -y python3-venv
+    fi
 }
 
 

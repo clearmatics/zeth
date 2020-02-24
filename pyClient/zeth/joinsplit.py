@@ -20,7 +20,7 @@ import zeth.signing as signing
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, encrypt, \
-    decrypt, int64_to_hex, encode_message_to_bytes
+    decrypt, int64_to_hex, encode_message_to_bytes, encode_eth_address
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 import api.prover_pb2 as prover_pb2
@@ -538,7 +538,11 @@ class ZethClient:
 
         # Sign
         signature = joinsplit_sign(
-            signing_keypair, sender_eph_pk, ciphertexts, proof_json)
+            signing_keypair,
+            sender_eth_address,
+            sender_eph_pk,
+            ciphertexts,
+            proof_json)
 
         # By default transfer exactly v_in, otherwise allow caller to manually
         # specify.
@@ -684,6 +688,7 @@ def _encode_proof_and_inputs(proof_json: GenericProof) -> Tuple[bytes, bytes]:
 
 def joinsplit_sign(
         signing_keypair: JoinsplitSigKeyPair,
+        sender_eth_address: str,
         sender_eph_pk: EncryptionPublicKey,
         ciphertexts: List[bytes],
         proof_json: GenericProof,
@@ -698,11 +703,13 @@ def joinsplit_sign(
     assert len(ciphertexts) == constants.JS_INPUTS
 
     # The message to sign consists of (in order):
+    #   - senders Ethereum address
     #   - senders public encryption key
     #   - ciphertexts
     #   - proof elements
     #   - public input elements
     h = sha256()
+    h.update(encode_eth_address(sender_eth_address))
     h.update(encode_encryption_public_key(sender_eph_pk))
     for ciphertext in ciphertexts:
         h.update(ciphertext)

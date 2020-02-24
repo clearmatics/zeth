@@ -245,8 +245,12 @@ def charlie_double_withdraw(
         (output_note2, pk_charlie)])
 
     # Compute the joinSplit signature
-    joinsplit_sig = joinsplit.joinsplit_sign(
-        signing_keypair, sender_eph_pk, ciphertexts, proof_json)
+    joinsplit_sig_charlie = joinsplit.joinsplit_sign(
+        signing_keypair,
+        charlie_eth_address,
+        sender_eph_pk,
+        ciphertexts,
+        proof_json)
 
     tx_hash = zeth_client.mix(
         sender_eph_pk,
@@ -254,7 +258,7 @@ def charlie_double_withdraw(
         ciphertexts[1],
         proof_json,
         signing_keypair.vk,
-        joinsplit_sig,
+        joinsplit_sig_charlie,
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
@@ -273,14 +277,18 @@ def charlie_corrupt_bob_deposit(
     Charlie tries to break transaction malleability and corrupt the coins
     bob is sending in a transaction
     She does so by intercepting bob's transaction and either:
-    - case 1: replacing the ciphertexts (or pk_sender) by garbage/arbitrary data
+    - case 1: replacing the ciphertexts (or sender_eph_pk) by garbage/arbitrary
+      data
     - case 2: replacing the ciphertexts by garbage/arbitrary data and using a
-    new OT-signature
+      new OT-signature
+    - case 3: Charlie replays the mix call of Bob, to try to receive the vout
     Both attacks should fail,
-    - case 1: the signature check should fail, else Charlie broke UF-CMA
-        of the OT signature
+    - case 1: the signature check should fail, else Charlie broke UF-CMA of the
+      OT signature
     - case 2: the h_sig/vk verification should fail, as h_sig is not a function
-        of vk any longer
+      of vk any longer
+    - case 3: the signature check should fail, because `msg.sender` will no match
+      the value used in the mix parameters (Bob's Ethereum Address).
     NB. If the adversary were to corrupt the ciphertexts (or the encryption key),
     replace the OT-signature by a new one and modify the h_sig accordingly so that
     the check on the signature verification (key h_sig/vk) passes, the proof would
@@ -323,17 +331,9 @@ def charlie_corrupt_bob_deposit(
 
     # Encrypt the coins to bob
     pk_bob = keystore["Bob"].addr_pk.k_pk
-    (pk_sender, ciphertexts) = joinsplit.encrypt_notes([
+    (sender_eph_pk, ciphertexts) = joinsplit.encrypt_notes([
         (output_note1, pk_bob),
         (output_note2, pk_bob)])
-
-    # Sign the primary inputs, pk_sender and the ciphertexts
-    joinsplit_sig = joinsplit.joinsplit_sign(
-        joinsplit_keypair,
-        pk_sender,
-        ciphertexts,
-        proof_json
-    )
 
     # ### ATTACK BLOCK
     # Charlie intercepts Bob's deposit, corrupts it and
@@ -341,22 +341,26 @@ def charlie_corrupt_bob_deposit(
 
     # Case 1: replacing the ciphertexts by garbage/arbitrary data
     # Corrupt the ciphertexts
-    # (another way would have been to overwrite pk_sender)
+    # (another way would have been to overwrite sender_eph_pk)
     fake_ciphertext0 = urandom(32)
     fake_ciphertext1 = urandom(32)
 
     result_corrupt1 = None
     try:
+        joinsplit_sig_charlie = joinsplit.joinsplit_sign(
+            joinsplit_keypair,
+            charlie_eth_address,
+            sender_eph_pk,
+            ciphertexts,
+            proof_json)
         tx_hash = zeth_client.mix(
-            pk_sender,
+            sender_eph_pk,
             fake_ciphertext0,
             fake_ciphertext1,
             proof_json,
             joinsplit_keypair.vk,
-            joinsplit_sig,
+            joinsplit_sig_charlie,
             charlie_eth_address,
-            # Pay an arbitrary amount (1 wei here) that will be refunded
-            #  since the `mix` function is payable
             Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
             4000000)
         result_corrupt1 = \
@@ -377,26 +381,24 @@ def charlie_corrupt_bob_deposit(
     fake_ciphertext1 = urandom(32)
     new_joinsplit_keypair = signing.gen_signing_keypair()
 
-    # Sign the primary inputs, pk_sender and the ciphertexts
-    new_joinsplit_sig = joinsplit.joinsplit_sign(
-        new_joinsplit_keypair,
-        pk_sender,
-        [fake_ciphertext0, fake_ciphertext1],
-        proof_json
-    )
+    # Sign the primary inputs, sender_eph_pk and the ciphertexts
 
     result_corrupt2 = None
     try:
+        joinsplit_sig_charlie = joinsplit.joinsplit_sign(
+            new_joinsplit_keypair,
+            charlie_eth_address,
+            sender_eph_pk,
+            [fake_ciphertext0, fake_ciphertext1],
+            proof_json)
         tx_hash = zeth_client.mix(
-            pk_sender,
+            sender_eph_pk,
             fake_ciphertext0,
             fake_ciphertext1,
             proof_json,
             new_joinsplit_keypair.vk,
-            new_joinsplit_sig,
+            joinsplit_sig_charlie,
             charlie_eth_address,
-            # Pay an arbitrary amount (1 wei here) that will be refunded since the
-            # `mix` function is payable
             Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
             4000000)
         result_corrupt2 = \
@@ -409,16 +411,51 @@ def charlie_corrupt_bob_deposit(
     assert(result_corrupt2 is None), \
         "Charlie managed to corrupt Bob's deposit the second time!"
 
+    # Case3: Charlie uses the correct mix data, but attempts to send the mix
+    # call from his own address (thereby receiving the output).
+    result_corrupt3 = None
+    try:
+        joinsplit_sig_bob = joinsplit.joinsplit_sign(
+            joinsplit_keypair,
+            bob_eth_address,
+            sender_eph_pk,
+            ciphertexts,
+            proof_json)
+        tx_hash = zeth_client.mix(
+            sender_eph_pk,
+            ciphertexts[0],
+            ciphertexts[1],
+            proof_json,
+            joinsplit_keypair.vk,
+            joinsplit_sig_bob,
+            charlie_eth_address,
+            Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
+            4000000)
+        result_corrupt3 = \
+            wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
+    except Exception as e:
+        print(
+            f"Charlie's third corruption attempt" +
+            f" successfully rejected! (msg: {e})"
+        )
+    assert(result_corrupt3 is None), \
+        "Charlie managed to corrupt Bob's deposit the third time!"
     # ### ATTACK BLOCK
 
     # Bob transaction is finally mined
+    joinsplit_sig_bob = joinsplit.joinsplit_sign(
+        joinsplit_keypair,
+        bob_eth_address,
+        sender_eph_pk,
+        ciphertexts,
+        proof_json)
     tx_hash = zeth_client.mix(
-        pk_sender,
+        sender_eph_pk,
         ciphertexts[0],
         ciphertexts[1],
         proof_json,
         joinsplit_keypair.vk,
-        joinsplit_sig,
+        joinsplit_sig_bob,
         bob_eth_address,
         Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
         4000000)
