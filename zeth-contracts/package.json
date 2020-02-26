@@ -4,7 +4,7 @@
   "description": "zerocash on Ethereum",
   "main": "truffle.js",
   "scripts": {
-    "testrpc": "ganache-cli --hardfork istanbul --port 8545 --gasLimit 0xFFFFFFFFFFF --gasPrice 1 --defaultBalanceEther 90000000000 --networkId 1234",
+    "testrpc": "ganache-cli --hardfork istanbul --port 8545 --gasLimit 0x3FFFFFFFFFFFF --gasPrice 1 --defaultBalanceEther 90000000000 --networkId 1234",
     "compile": "truffle compile",
     "deploy": "truffle deploy",
     "test": "truffle test",

@@ -24,8 +24,11 @@ std::vector<bool> hex_digest_to_binary_vector(std::string str);
 bits256 hex_digest_to_bits256(std::string digest_hex_str);
 bits64 hex_value_to_bits64(std::string value_hex_str);
 
-std::vector<bool> convert_int_to_binary(int x);
-std::vector<bool> address_bits_from_address(int address, size_t tree_depth);
+// Returns the little endian binary encoding of the integer x.
+std::vector<bool> convert_uint_to_binary(size_t x);
+
+template<size_t TreeDepth>
+std::vector<bool> address_bits_from_address(size_t address);
 
 template<typename FieldT> FieldT string_to_field(std::string input);
 

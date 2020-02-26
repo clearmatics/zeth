@@ -17,6 +17,7 @@ from zeth.encryption import \
     encryption_secret_key_as_hex, encryption_secret_key_from_hex
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
 import zeth.signing as signing
+from zeth.timer import Timer
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, encrypt, \
@@ -326,7 +327,10 @@ def get_dummy_input_and_address(
         value=ZERO_UNITS_HEX,
         rho=get_dummy_rho(),
         trap_r=trap_r_randomness())
-    dummy_note_address = 7
+    # Note that the Merkle path is not fully checked against the root by the
+    # circuit since the note value is 0. Hence the address used here is
+    # arbitrary.
+    dummy_note_address = 0
     return (dummy_note_address, dummy_note)
 
 
@@ -441,7 +445,7 @@ class ZethClient:
 
         print("[INFO] 3. VK written, deploying smart contracts...")
         mixer_interface = contracts.compile_mixer(zksnark)
-        (mixer_instance, _initial_merkle_root) = contracts.deploy_mixer(
+        mixer_instance = contracts.deploy_mixer(
             web3,
             mk_tree_depth,
             mixer_interface,
@@ -497,11 +501,8 @@ class ZethClient:
             inputs + \
             [get_dummy_input_and_address(sender_a_pk)
              for _ in range(constants.JS_INPUTS - len(inputs))]
-        tree_depth = mk_tree.tree_depth
-        tree_values = mk_tree.compute_tree_values()
-        mk_root = tree_values[0]
-        mk_paths = [compute_merkle_path(addr, tree_depth, tree_values)
-                    for addr, _ in inputs]
+        mk_root = mk_tree.get_root()
+        mk_paths = [compute_merkle_path(addr, mk_tree) for addr, _ in inputs]
 
         # Generate output notes and proof.  Dummy outputs are constructed with
         # value 0 to an invalid ZethAddressPub, formed from the senders
@@ -515,6 +516,10 @@ class ZethClient:
         outputs_with_a_pk = \
             [(zeth_addr.a_pk, to_zeth_units(value))
              for (zeth_addr, value) in outputs]
+
+        # Timer used to time proof-generation round trip time.
+        timer = Timer.started()
+
         (output_note1, output_note2, proof_json, signing_keypair) = \
             self.get_proof_joinsplit_2_by_2(
                 mk_root,
@@ -528,6 +533,9 @@ class ZethClient:
                 to_zeth_units(v_in),
                 to_zeth_units(v_out),
                 compute_h_sig_cb)
+
+        proof_gen_time_s = timer.elapsed_seconds()
+        print(f"PROOF GEN ROUND TRIP: {proof_gen_time_s} seconds")
 
         # Encrypt the notes
         outputs_and_notes = zip(outputs, [output_note1, output_note2])
@@ -557,7 +565,7 @@ class ZethClient:
             signature,
             sender_eth_address,
             tx_value.wei,
-            4000000)
+            constants.DEFAULT_MIX_GAS_WEI)
 
     def mix(
             self,

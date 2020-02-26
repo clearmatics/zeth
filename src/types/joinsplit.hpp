@@ -18,14 +18,14 @@ namespace libzeth
 // Zcash did. In fact, all our fields are going to be computed from another
 // component written in python or js, that will use the ethereum primitives to
 // hash.
-template<typename FieldT> class joinsplit_input
+template<typename FieldT, size_t TreeDepth> class joinsplit_input
 {
 public:
     // merkle tree witness (path, and address)
     std::vector<FieldT> witness_merkle_path;
     // boolean vector, of length the depth of the merkle tree, containing the
     // binary encoding of the address
-    bits_addr address_bits;
+    bits_addr<TreeDepth> address_bits;
     zeth_note note;
     bits256 spending_key_a_sk;
     bits256 nullifier;
@@ -33,7 +33,7 @@ public:
     joinsplit_input(){};
     joinsplit_input(
         std::vector<FieldT> witness_merkle_path,
-        bits_addr address_bits,
+        std::array<bool, TreeDepth> address_bits,
         zeth_note note,
         bits256 key,
         bits256 nullifier)

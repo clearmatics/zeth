@@ -21,8 +21,8 @@ zeth_note parse_zeth_note(const prover_proto::ZethNote &note);
 
 template<typename FieldT> FieldT parse_merkle_node(std::string mk_node);
 
-template<typename FieldT>
-joinsplit_input<FieldT> parse_joinsplit_input(
+template<typename FieldT, size_t TreeDepth>
+joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
     const prover_proto::JoinsplitInput &input);
 
 prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(

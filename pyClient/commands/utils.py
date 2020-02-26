@@ -176,6 +176,7 @@ def do_sync(
 
         if chain_block_number >= wallet_next_block:
             new_merkle_root: Optional[bytes] = None
+            new_merkle_entries = 0
 
             print(f"SYNCHING blocks ({wallet_next_block} - {chain_block_number})")
             mixer_instance = wallet.mixer_instance
@@ -185,8 +186,8 @@ def do_sync(
                 # then attempt to decrypt and validate notes intended for us.
 
                 for out_ev in mix_result.output_events:
-                    merkle_tree.set_entry(
-                        out_ev.commitment_address, out_ev.commitment)
+                    merkle_tree.insert(out_ev.commitment)
+                    new_merkle_entries = new_merkle_entries + 1
                 new_merkle_root = mix_result.new_merkle_root
 
                 for note_desc in wallet.receive_notes(
@@ -201,7 +202,7 @@ def do_sync(
 
             # Check merkle root and save the updated tree
             if new_merkle_root:
-                our_merkle_root = merkle_tree.compute_root()
+                our_merkle_root = merkle_tree.recompute_root()
                 assert new_merkle_root == our_merkle_root
                 merkle_tree.save()
 

@@ -145,32 +145,7 @@ bits64 hex_value_to_bits64(std::string str)
     return get_bits64_from_vector(hex_to_binary_vector(str));
 }
 
-std::vector<bool> address_bits_from_address(int address, size_t tree_depth)
-{
-    std::vector<bool> binary = convert_int_to_binary(address);
-    std::vector<bool> result(tree_depth, 0);
-
-    if (binary.size() > tree_depth) {
-        // Address encoded on more bits that the address space allows
-        throw std::invalid_argument("Address overflow");
-    }
-
-    // We need to "back pad" the binary conversion we obtained to have an
-    // address encoded by a binary string of the length of the tree_depth
-    if (binary.size() < tree_depth) {
-        for (size_t i = 0; i < binary.size(); i++) {
-            result[i] = binary[i];
-        }
-        // We return the "back padded" vector
-        return result;
-    }
-
-    return binary;
-}
-
-// As we push_back in the vector, this function returns the little endian
-// binary encoding of the integer x
-std::vector<bool> convert_int_to_binary(int x)
+std::vector<bool> convert_uint_to_binary(size_t x)
 {
     std::vector<bool> ret;
     while (x) {

@@ -5,8 +5,16 @@
 #ifndef __ZETH_TYPES_BITS_TCC__
 #define __ZETH_TYPES_BITS_TCC__
 
+#include "bits.hpp"
+
 namespace libzeth
 {
+
+template<size_t TreeDepth>
+bits_addr<TreeDepth> get_bits_addr_from_vector(const std::vector<bool> &vect)
+{
+    return dump_vector_in_array<TreeDepth>(vect);
+}
 
 /// dump_vector_in_array dumps a vector into an array
 template<size_t Size>
@@ -30,6 +38,12 @@ std::vector<bool> dump_array_in_vector(std::array<bool, Size> arr)
     std::vector<bool> vect(Size);
     std::copy(arr.begin(), arr.end(), vect.begin());
     return vect;
+}
+
+template<size_t TreeDepth>
+std::vector<bool> get_vector_from_bits_addr(const bits_addr<TreeDepth> &arr)
+{
+    return dump_array_in_vector<TreeDepth>(arr);
 }
 
 /// binary_addition sums 2 binary strings with or without carry depending on the

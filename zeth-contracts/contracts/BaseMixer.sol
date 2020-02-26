@@ -144,10 +144,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // Constructor
     constructor(
         uint256 depth, address token_address) MerkleTreeMiMC7(depth) public {
-        // We log the first root to get started
-        bytes32 initialRoot = getRoot();
+        bytes32 initialRoot = nodes[0];
         roots[initialRoot] = true;
-        emit LogMerkleRoot(initialRoot);
 
         token = token_address;
 

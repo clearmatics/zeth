@@ -22,12 +22,19 @@ from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
 from typing import List, Tuple, Union, Any, cast
 
+# Some Ethereum node implementations can cause a timeout if the contract
+# execution takes too long. We expect the contract to complete in under 30s on
+# most machines, but allow 1 min.
+WEB3_HTTP_PROVIDER_TIMEOUT_SEC = 60
+
 
 def open_web3(url: str) -> Any:
     """
     Create a Web3 context from an http URL.
     """
-    return Web3(HTTPProvider(url))
+    return Web3(HTTPProvider(
+        url,
+        request_kwargs={'timeout': WEB3_HTTP_PROVIDER_TIMEOUT_SEC}))
 
 
 FQ = ec.FQ
@@ -114,6 +121,14 @@ def hex_to_int(elements: List[str]) -> List[int]:
     return [int(x, 16) for x in elements]
 
 
+def extend_32bytes(value: bytes) -> bytes:
+    """
+    Pad value on the left with zeros, to make 32 bytes.
+    """
+    assert len(value) <= 32
+    return bytes(32-len(value)) + value
+
+
 def hex_extend_32bytes(element: str) -> str:
     """
     Extend a hex string to represent 32 bytes
@@ -121,8 +136,7 @@ def hex_extend_32bytes(element: str) -> str:
     res = str(element)
     if len(res) % 2 != 0:
         res = "0" + res
-    res = "00"*int((64-len(res))/2) + res
-    return res
+    return extend_32bytes(bytes.fromhex(res)).hex()
 
 
 def get_private_key_from_bytes(sk_bytes: bytes) -> PrivateKey:

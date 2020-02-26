@@ -22,13 +22,19 @@ template<
     typename HashTreeT,
     typename ppT,
     size_t NumInputs,
-    size_t NumOutputs>
+    size_t NumOutputs,
+    size_t TreeDepth>
 class circuit_wrapper
 {
 public:
     boost::filesystem::path setup_path;
-    std::shared_ptr<
-        joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs>>
+    std::shared_ptr<joinsplit_gadget<
+        FieldT,
+        HashT,
+        HashTreeT,
+        NumInputs,
+        NumOutputs,
+        TreeDepth>>
         joinsplit_g;
 
     circuit_wrapper(const boost::filesystem::path setup_path = "")
@@ -46,7 +52,7 @@ public:
     // Generate a proof and returns an extended proof
     extended_proof<ppT> prove(
         const FieldT &root,
-        const std::array<joinsplit_input<FieldT>, NumInputs> &inputs,
+        const std::array<joinsplit_input<FieldT, TreeDepth>, NumInputs> &inputs,
         const std::array<zeth_note, NumOutputs> &outputs,
         bits64 vpub_in,
         bits64 vpub_out,

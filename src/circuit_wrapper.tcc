@@ -5,6 +5,7 @@
 #ifndef __ZETH_CIRCUIT_WRAPPER_TCC__
 #define __ZETH_CIRCUIT_WRAPPER_TCC__
 
+#include "snarks_alias.hpp"
 #include "zeth.h"
 
 namespace libzeth
@@ -16,18 +17,21 @@ template<
     typename HashTreeT,
     typename ppT,
     size_t NumInputs,
-    size_t NumOutputs>
+    size_t NumOutputs,
+    size_t TreeDepth>
 keyPairT<ppT> circuit_wrapper<
     FieldT,
     HashT,
     HashTreeT,
     ppT,
     NumInputs,
-    NumOutputs>::generate_trusted_setup() const
+    NumOutputs,
+    TreeDepth>::generate_trusted_setup() const
 {
     libsnark::protoboard<FieldT> pb;
 
-    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
+    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
+        g(pb);
     g.generate_r1cs_constraints();
 
     // Generate a verification and proving key (trusted setup)
@@ -45,12 +49,20 @@ template<
     typename HashTreeT,
     typename ppT,
     size_t NumInputs,
-    size_t NumOutputs>
-void circuit_wrapper<FieldT, HashT, HashTreeT, ppT, NumInputs, NumOutputs>::
-    dump_constraint_system(boost::filesystem::path file_path) const
+    size_t NumOutputs,
+    size_t TreeDepth>
+void circuit_wrapper<
+    FieldT,
+    HashT,
+    HashTreeT,
+    ppT,
+    NumInputs,
+    NumOutputs,
+    TreeDepth>::dump_constraint_system(boost::filesystem::path file_path) const
 {
     libsnark::protoboard<FieldT> pb;
-    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
+    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
+        g(pb);
     g.generate_r1cs_constraints();
 
     // Write the constraint system in the default location
@@ -64,17 +76,19 @@ template<
     typename HashTreeT,
     typename ppT,
     size_t NumInputs,
-    size_t NumOutputs>
+    size_t NumOutputs,
+    size_t TreeDepth>
 extended_proof<ppT> circuit_wrapper<
     FieldT,
     HashT,
     HashTreeT,
     ppT,
     NumInputs,
-    NumOutputs>::
+    NumOutputs,
+    TreeDepth>::
     prove(
         const FieldT &root,
-        const std::array<joinsplit_input<FieldT>, NumInputs> &inputs,
+        const std::array<joinsplit_input<FieldT, TreeDepth>, NumInputs> &inputs,
         const std::array<zeth_note, NumOutputs> &outputs,
         bits64 vpub_in,
         bits64 vpub_out,
@@ -106,7 +120,8 @@ extended_proof<ppT> circuit_wrapper<
 
     libsnark::protoboard<FieldT> pb;
 
-    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs> g(pb);
+    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
+        g(pb);
     g.generate_r1cs_constraints();
     g.generate_r1cs_witness(
         root, inputs, outputs, vpub_in, vpub_out, h_sig_in, phi_in);
