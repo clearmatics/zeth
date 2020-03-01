@@ -7,7 +7,7 @@ from commands.utils import load_eth_address, open_web3_from_ctx, \
 from click import command, argument, option, pass_context, ClickException, Context
 
 
-@command(name="token_approve")
+@command(name="token-approve")
 @argument("tokens")
 @option("--eth-addr", help="Sender eth address or address filename")
 @option("--wait", is_flag=True, help="Wait for transaction to complete")
