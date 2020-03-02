@@ -29,7 +29,6 @@ class MixerDescription:
     Holds an InstanceDescription for the mixer contract, and optionally an
     InstanceDescription for the token contract.
     """
-
     def __init__(
             self,
             mixer: InstanceDescription,
@@ -172,7 +171,6 @@ def do_sync(
     Implementation of sync, reused by several commands.  Returns the
     block_number synced to.  Also updates and saves the MerkleTree.
     """
-
     def _do_sync() -> int:
         wallet_next_block = wallet.get_next_block()
         chain_block_number: int = get_block_number(web3)
@@ -289,7 +287,7 @@ def parse_output(output_str: str) -> Tuple[ZethAddressPub, EtherValue]:
     parts = output_str.split(",")
     if len(parts) != 2:
         raise ClickException(f"invalid output spec: {output_str}")
-    return ZethAddressPub.parse(parts[0]), EtherValue(parts[1])
+    return (ZethAddressPub.parse(parts[0]), EtherValue(parts[1]))
 
 
 def load_eth_address(eth_addr: Optional[str]) -> str:

@@ -33,7 +33,6 @@ def mix(
     """
     Generic mix function
     """
-
     # Some sanity checks
     if len(input_notes) > JS_INPUTS:
         raise ClickException(f"too many inputs (max {JS_INPUTS})")
