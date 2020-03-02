@@ -17,7 +17,7 @@ import math
 from os.path import exists, join
 from solcx import compile_files  # type: ignore
 from typing import Dict, Tuple, Optional, Any
-from web3 import Web3
+from web3 import Web3  # type: ignore
 
 
 def open_web3_from_ctx(ctx: Context) -> Any:
@@ -29,10 +29,11 @@ class MixerDescription:
     Holds an InstanceDescription for the mixer contract, and optionally an
     InstanceDescription for the token contract.
     """
+
     def __init__(
-            self,
-            mixer: InstanceDescription,
-            token: Optional[InstanceDescription]):
+        self,
+        mixer: InstanceDescription,
+        token: Optional[InstanceDescription]):
         self.mixer = mixer
         self.token = token
 
@@ -70,8 +71,8 @@ def get_erc20_instance_description(token_address: str) -> InstanceDescription:
 
 
 def write_mixer_description(
-        mixer_desc_file: str,
-        mixer_desc: MixerDescription) -> None:
+    mixer_desc_file: str,
+    mixer_desc: MixerDescription) -> None:
     """
     Write the mixer (and token) instance information
     """
@@ -106,7 +107,7 @@ def load_zeth_address_public(ctx: Context) -> ZethAddressPub:
 
 
 def write_zeth_address_public(
-        pub_addr: ZethAddressPub, pub_addr_file: str) -> None:
+    pub_addr: ZethAddressPub, pub_addr_file: str) -> None:
     """
     Write a ZethAddressPub to a file
     """
@@ -124,7 +125,7 @@ def load_zeth_address_secret(ctx: Context) -> ZethAddressPriv:
 
 
 def write_zeth_address_secret(
-        secret_addr: ZethAddressPriv, addr_file: str) -> None:
+    secret_addr: ZethAddressPriv, addr_file: str) -> None:
     """
     Write ZethAddressPriv to file
     """
@@ -143,9 +144,9 @@ def load_zeth_address(ctx: Context) -> ZethAddress:
 
 
 def open_wallet(
-        mixer_instance: Any,
-        js_secret: ZethAddressPriv,
-        ctx: Context) -> Wallet:
+    mixer_instance: Any,
+    js_secret: ZethAddressPriv,
+    ctx: Context) -> Wallet:
     """
     Load a wallet using a secret key.
     """
@@ -163,14 +164,15 @@ def open_merkle_tree(ctx: Context) -> PersistentMerkleTree:
 
 
 def do_sync(
-        web3: Any,
-        wallet: Wallet,
-        merkle_tree: PersistentMerkleTree,
-        wait_tx: Optional[str]) -> int:
+    web3: Any,
+    wallet: Wallet,
+    merkle_tree: PersistentMerkleTree,
+    wait_tx: Optional[str]) -> int:
     """
     Implementation of sync, reused by several commands.  Returns the
     block_number synced to.  Also updates and saves the MerkleTree.
     """
+
     def _do_sync() -> int:
         wallet_next_block = wallet.get_next_block()
         chain_block_number: int = get_block_number(web3)
@@ -182,7 +184,7 @@ def do_sync(
             print(f"SYNCHING blocks ({wallet_next_block} - {chain_block_number})")
             mixer_instance = wallet.mixer_instance
             for mix_result in get_mix_results(
-                    web3, mixer_instance, wallet_next_block, chain_block_number):
+                web3, mixer_instance, wallet_next_block, chain_block_number):
                 # For each result, write new commitments to the merkle tree, and
                 # then attempt to decrypt and validate notes intended for us.
 
@@ -192,7 +194,7 @@ def do_sync(
                 new_merkle_root = mix_result.new_merkle_root
 
                 for note_desc in wallet.receive_notes(
-                        mix_result.output_events, mix_result.sender_k_pk):
+                    mix_result.output_events, mix_result.sender_k_pk):
                     print(f" NEW NOTE: {zeth_note_short(note_desc)}")
 
                 spent_commits = wallet.mark_nullifiers_used(mix_result.nullifiers)
@@ -257,7 +259,7 @@ def create_zeth_client(ctx: Context) -> ZethClient:
 
 
 def create_zeth_client_and_mixer_desc(
-        ctx: Context) -> Tuple[ZethClient, MixerDescription]:
+    ctx: Context) -> Tuple[ZethClient, MixerDescription]:
     """
     Create a ZethClient and MixerDescription object, for an existing deployment.
     """
