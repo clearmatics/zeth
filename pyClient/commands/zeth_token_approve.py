@@ -4,7 +4,7 @@
 
 from commands.utils import load_eth_address, open_web3_from_ctx, \
     load_mixer_description_from_ctx, EtherValue
-from click import argument, option, pass_context, ClickException, Context
+from click import command, argument, option, pass_context, ClickException, Context
 
 
 @command()
