@@ -17,6 +17,7 @@ import math
 from os.path import exists, join
 from solcx import compile_files  # type: ignore
 from typing import Dict, Tuple, Optional, Any
+from web3 import Web3  # type: ignore
 
 
 def open_web3_from_ctx(ctx: Context) -> Any:
@@ -296,8 +297,8 @@ def load_eth_address(eth_addr: Optional[str]) -> str:
     """
     eth_addr = eth_addr or ETH_ADDRESS_DEFAULT
     if eth_addr.startswith("0x"):
-        return eth_addr
+        return Web3.toChecksumAddress(eth_addr)
     if exists(eth_addr):
         with open(eth_addr, "r") as eth_addr_f:
-            return eth_addr_f.read().rstrip()
+            return Web3.toChecksumAddress(eth_addr_f.read().rstrip())
     raise ClickException(f"could find file or parse eth address: {eth_addr}")
