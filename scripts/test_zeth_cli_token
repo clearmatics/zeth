@@ -77,7 +77,7 @@ cp deployer/zeth-instance.json charlie
 pushd alice
 alice_pk=`cat zeth-address.json.pub`
 if ! [ -e notes/state_zeth ] ; then
-    zeth token_approve 200
+    zeth token-approve 200
     zeth mix --wait --vin 200 --out ${alice_pk},200
 fi
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
