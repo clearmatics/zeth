@@ -2,8 +2,8 @@
 .PHONY: setup setup-dev dev check test syntax grpc test_contracts
 
 setup:
-	pip install --upgrade pip
-	pip install -e .
+	pip install --upgrade pip --progress-bar off
+	pip install -e . --progress-bar off
 	$(MAKE) grpc
 	python -c "from zeth.contracts import install_sol; \
 		install_sol()"

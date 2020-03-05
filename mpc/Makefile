@@ -2,7 +2,7 @@
 .PHONY: setup check test syntax
 
 setup:
-	pip install -e .
+	pip install -e . --progress-bar off
 
 check: syntax test
 
