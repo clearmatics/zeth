@@ -6,6 +6,7 @@ on:
 
 env:
   MACOS_BREW_PACKAGES: "pkg-config libomp"
+  CI_EVENT_NAME: ${{ github.event_name }}
 
 jobs:
 

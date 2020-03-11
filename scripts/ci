@@ -143,6 +143,8 @@ echo ci_task = ${ci_task}
 echo full_build=${full_build}
 echo CI_CONFIG=${CI_CONFIG}
 echo CI_ZKSNARK=${CI_ZKSNARK}
+echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
+echo CI_EVENT_NAME=${CI_EVENT_NAME}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
     format_check
