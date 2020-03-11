@@ -2,7 +2,7 @@ name: zeth-ci
 
 on:
   push:
-  # pull_request:
+  pull_request:
 
 env:
   MACOS_BREW_PACKAGES: "pkg-config libomp"

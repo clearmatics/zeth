@@ -132,9 +132,7 @@ function ci_setup() {
 ci_task=$1
 full_build=$2
 if [ "${full_build}" == "" ] ; then
-    if [ "${TRAVIS_PULL_REQUEST}" == "false" ] || [ "${TRAVIS_PULL_REQUEST}" == "" ] ; then
-        full_build=0
-    else
+    if [ "${CI_EVENT_NAME}" == "pull_request" ] ; then
         full_build=1
     fi
 fi
