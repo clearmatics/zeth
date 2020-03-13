@@ -59,8 +59,18 @@ TEST(SimpleTests, SimpleCircuitProof)
     const r1cs_gg_ppzksnark_proof<ppT> proof =
         r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary);
 
-    ASSERT_TRUE(
-        r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
+    std::chrono::steady_clock::time_point before =
+        std::chrono::steady_clock::now();
+    const bool proof_valid =
+        r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof);
+    std::chrono::steady_clock::time_point after =
+        std::chrono::steady_clock::now();
+    std::cout
+        << " Verfication took: "
+        << std::chrono::duration<double, std::milli>(after - before).count()
+        << " ms" << std::endl;
+
+    ASSERT_TRUE(proof_valid);
 }
 
 TEST(SimpleTests, SimpleCircuitProofPow2Domain)
@@ -78,8 +88,19 @@ TEST(SimpleTests, SimpleCircuitProofPow2Domain)
     const r1cs_auxiliary_input<FieldT> auxiliary{1, 1, 1};
     const r1cs_gg_ppzksnark_proof<ppT> proof =
         r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary, true);
-    ASSERT_TRUE(
-        r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
+
+    std::chrono::steady_clock::time_point before =
+        std::chrono::steady_clock::now();
+    const bool proof_valid =
+        r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof);
+    std::chrono::steady_clock::time_point after =
+        std::chrono::steady_clock::now();
+    std::cout
+        << " Verfication took: "
+        << std::chrono::duration<double, std::milli>(after - before).count()
+        << " ms" << std::endl;
+
+    ASSERT_TRUE(proof_valid);
 }
 
 } // namespace
