@@ -11,6 +11,7 @@
 #include "zethConfig.h"
 
 #include <boost/program_options.hpp>
+#include <chrono>
 #include <fstream>
 #include <grpc/grpc.h>
 #include <grpcpp/security/server_credentials.h>
@@ -169,6 +170,21 @@ public:
             std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
             ext_proof.dump_proof();
             ext_proof.dump_primary_inputs();
+
+            std::cout << "[DEBUG] Verifying proof..." << std::endl;
+            std::chrono::steady_clock::time_point before =
+                std::chrono::steady_clock::now();
+            const bool proof_valid = r1cs_gg_ppzksnark_verifier_weak_IC(
+                keypair.vk,
+                ext_proof.get_primary_input(),
+                ext_proof.get_proof());
+            std::chrono::steady_clock::time_point after =
+                std::chrono::steady_clock::now();
+            std::cout << " Verfication took: "
+                      << std::chrono::duration<double, std::milli>(
+                             after - before)
+                             .count()
+                      << " ms" << std::endl;
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
             prepare_proof_response<ppT>(ext_proof, proof);
