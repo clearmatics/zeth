@@ -169,8 +169,7 @@ def deploy_tree_contract(
 def mix(
         mixer_instance: Any,
         pk_sender: EncryptionPublicKey,
-        ciphertext1: bytes,
-        ciphertext2: bytes,
+        ciphertexts: List[bytes],
         parsed_proof: GenericProof,
         vk: SigningVerificationKey,
         sigma: int,
@@ -191,8 +190,7 @@ def mix(
         sigma,
         inputs,
         pk_sender_encoded,
-        ciphertext1,
-        ciphertext2,
+        ciphertexts
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
     return tx_hash.hex()
 

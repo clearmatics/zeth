@@ -560,8 +560,7 @@ class ZethClient:
 
         return self.mix(
             sender_eph_pk,
-            ciphertexts[0],
-            ciphertexts[1],
+            ciphertexts,
             proof_json,
             signing_keypair.vk,
             signature,
@@ -572,8 +571,7 @@ class ZethClient:
     def mix(
             self,
             pk_sender: EncryptionPublicKey,
-            ciphertext1: bytes,
-            ciphertext2: bytes,
+            ciphertexts: List[bytes],
             parsed_proof: GenericProof,
             vk: JoinsplitSigVerificationKey,
             sigma: int,
@@ -583,8 +581,7 @@ class ZethClient:
         return contracts.mix(
             self.mixer_instance,
             pk_sender,
-            ciphertext1,
-            ciphertext2,
+            ciphertexts,
             parsed_proof,
             vk,
             sigma,

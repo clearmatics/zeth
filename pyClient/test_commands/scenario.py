@@ -254,8 +254,7 @@ def charlie_double_withdraw(
 
     tx_hash = zeth_client.mix(
         sender_eph_pk,
-        ciphertexts[0],
-        ciphertexts[1],
+        ciphertexts,
         proof_json,
         signing_keypair.vk,
         joinsplit_sig_charlie,
@@ -355,8 +354,7 @@ def charlie_corrupt_bob_deposit(
             proof_json)
         tx_hash = zeth_client.mix(
             sender_eph_pk,
-            fake_ciphertext0,
-            fake_ciphertext1,
+            [fake_ciphertext0, fake_ciphertext1],
             proof_json,
             joinsplit_keypair.vk,
             joinsplit_sig_charlie,
@@ -393,8 +391,7 @@ def charlie_corrupt_bob_deposit(
             proof_json)
         tx_hash = zeth_client.mix(
             sender_eph_pk,
-            fake_ciphertext0,
-            fake_ciphertext1,
+            [fake_ciphertext0, fake_ciphertext1],
             proof_json,
             new_joinsplit_keypair.vk,
             joinsplit_sig_charlie,
@@ -423,8 +420,7 @@ def charlie_corrupt_bob_deposit(
             proof_json)
         tx_hash = zeth_client.mix(
             sender_eph_pk,
-            ciphertexts[0],
-            ciphertexts[1],
+            ciphertexts,
             proof_json,
             joinsplit_keypair.vk,
             joinsplit_sig_bob,
@@ -451,8 +447,7 @@ def charlie_corrupt_bob_deposit(
         proof_json)
     tx_hash = zeth_client.mix(
         sender_eph_pk,
-        ciphertexts[0],
-        ciphertexts[1],
+        ciphertexts,
         proof_json,
         joinsplit_keypair.vk,
         joinsplit_sig_bob,

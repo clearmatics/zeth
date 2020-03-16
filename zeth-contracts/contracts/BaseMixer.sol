@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
 
 import "./MerkleTreeMiMC7.sol";
 
@@ -383,10 +384,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     function emit_ciphertexts(
         bytes32 pk_sender,
-        bytes memory ciphertext0,
-        bytes memory ciphertext1)
+        bytes[jsOut] memory ciphertexts)
         internal {
-        emit LogSecretCiphers(pk_sender, ciphertext0);
-        emit LogSecretCiphers(pk_sender, ciphertext1);
+        for (uint256 i = 0 ; i < jsOut ; ++i) {
+            emit LogSecretCiphers(pk_sender, ciphertexts[i]);
+        }
     }
 }

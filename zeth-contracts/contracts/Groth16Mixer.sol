@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
 
 import "./OTSchnorrVerifier.sol";
 import "./BaseMixer.sol";
@@ -77,8 +78,7 @@ contract Groth16Mixer is BaseMixer {
         uint256 sigma,
         uint256[nbInputs] memory input,
         bytes32 pk_sender,
-        bytes memory ciphertext0,
-        bytes memory ciphertext1)
+        bytes[jsOut] memory ciphertexts)
         public payable {
         // 1. Check the root and the nullifiers
         check_mkroot_nullifiers_hsig_append_nullifiers_state(vk, input);
@@ -88,8 +88,11 @@ contract Groth16Mixer is BaseMixer {
             abi.encodePacked(
                 uint256(msg.sender),
                 pk_sender,
-                ciphertext0,
-                ciphertext1,
+                // Unfortunately, we have to unroll this for now. We could
+                // replace encodePacked with a custom function but this would
+                // increase complexity and possibly gas usage.
+                ciphertexts[0],
+                ciphertexts[1],
                 a,
                 b,
                 c,
@@ -119,7 +122,7 @@ contract Groth16Mixer is BaseMixer {
 
         // 6. Emit the all the coins' secret data encrypted with the recipients'
         // respective keys
-        emit_ciphertexts(pk_sender, ciphertext0, ciphertext1);
+        emit_ciphertexts(pk_sender, ciphertexts);
     }
 
     function verify(uint256[] memory input, Proof memory proof)
