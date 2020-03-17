@@ -33,7 +33,7 @@ function pyclient_check() {
     pushd pyClient
     python3.7 -m venv env
     . env/bin/activate
-    pip install --upgrade pip
+    pip install --upgrade pip --progress-bar off
     make setup
     make syntax
 
@@ -132,9 +132,7 @@ function ci_setup() {
 ci_task=$1
 full_build=$2
 if [ "${full_build}" == "" ] ; then
-    if [ "${TRAVIS_PULL_REQUEST}" == "false" ] || [ "${TRAVIS_PULL_REQUEST}" == "" ] ; then
-        full_build=0
-    else
+    if [ "${CI_EVENT_NAME}" == "pull_request" ] ; then
         full_build=1
     fi
 fi
@@ -143,6 +141,8 @@ echo ci_task = ${ci_task}
 echo full_build=${full_build}
 echo CI_CONFIG=${CI_CONFIG}
 echo CI_ZKSNARK=${CI_ZKSNARK}
+echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
+echo CI_EVENT_NAME=${CI_EVENT_NAME}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
     format_check
