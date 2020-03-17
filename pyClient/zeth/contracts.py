@@ -39,14 +39,26 @@ class MixResult:
     """
     def __init__(
             self,
-            nullifiers: List[bytes],
-            output_events: List[MixOutputEvents],
             new_merkle_root: bytes,
-            sender_k_pk: EncryptionPublicKey):
-        self.nullifiers = nullifiers
-        self.output_events = output_events
+            nullifiers: List[bytes],
+            sender_k_pk: EncryptionPublicKey,
+            output_events: List[MixOutputEvents]):
         self.new_merkle_root = new_merkle_root
+        self.nullifiers = nullifiers
         self.sender_k_pk = sender_k_pk
+        self.output_events = output_events
+
+
+def _event_args_to_mix_result(event_args: Any) -> MixResult:
+    mix_out_args = zip(
+        event_args.commAddrs, event_args.commitments, event_args.ciphertexts)
+    out_events = [MixOutputEvents(a, c, ciph) for (a, c, ciph) in mix_out_args]
+    sender_k_pk = get_public_key_from_bytes(event_args.pk_sender)
+    return MixResult(
+        new_merkle_root=event_args.root,
+        nullifiers=event_args.nullifiers,
+        sender_k_pk=sender_k_pk,
+        output_events=out_events)
 
 
 class InstanceDescription:
@@ -201,38 +213,10 @@ def parse_mix_call(
     """
     Get the logs data associated with this mixing
     """
-    # Get nullifiers
-    event_filter_log_nullifiers = mixer_instance.eventFilter(
-        "LogNullifier",
-        {'fromBlock': 'latest'})
-    event_log_log_nullifiers = event_filter_log_nullifiers.get_all_entries()
-    # Gather the addresses of the appended commitments
-    event_filter_log_address = mixer_instance.eventFilter(
-        "LogCommitment",
-        {'fromBlock': 'latest'})
-    event_logs_log_address = event_filter_log_address.get_all_entries()
-    # Get the new merkle root
-    event_filter_log_merkle_root = mixer_instance.eventFilter(
-        "LogMerkleRoot", {'fromBlock': 'latest'})
-    event_logs_log_merkle_root = event_filter_log_merkle_root.get_all_entries()
-    # Get the ciphertexts
-    event_filter_log_secret_ciphers = mixer_instance.eventFilter(
-        "LogSecretCiphers", {'fromBlock': 'latest'})
-    event_logs_log_secret_ciphers = \
-        event_filter_log_secret_ciphers.get_all_entries()
-
-    nullifiers = [ev.args.nullifier for ev in event_log_log_nullifiers]
-    new_merkle_root = event_logs_log_merkle_root[0].args.root
-    sender_k_pk_bytes = event_logs_log_secret_ciphers[0].args.pk_sender
-
-    output_events = _extract_output_event_data(
-        event_logs_log_address, event_logs_log_secret_ciphers)
-
-    return MixResult(
-        nullifiers=nullifiers,
-        output_events=output_events,
-        new_merkle_root=new_merkle_root,
-        sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
+    log_mix_filter = mixer_instance.eventFilter("LogMix", {'fromBlock': 'latest'})
+    log_mix_events = log_mix_filter.get_all_entries()
+    mix_results = [_event_args_to_mix_result(ev.args) for ev in log_mix_events]
+    return mix_results[0]
 
 
 def _next_nullifier_or_none(nullifier_iter: Iterator[bytes]) -> Optional[Any]:
@@ -259,60 +243,6 @@ def _next_commit_or_none(
     return addr_commit, next(ciphertext_iter)
 
 
-def _parse_events(
-        merkle_root_events: List[Any],
-        nullifier_events: List[Any],
-        commit_address_events: List[Any],
-        ciphertext_events: List[Any]) -> Iterator[MixResult]:
-    """
-    Receive lists of events from the merkle, address and ciphertext filters,
-    grouping them correctly as a MixResult per Transaction.  (This is
-    non-trivial, because there may be multiple address and ciphertext events per
-    new merkle root.
-    """
-    assert len(commit_address_events) == len(ciphertext_events)
-    nullifier_iter = iter(nullifier_events)
-    commit_address_iter = iter(commit_address_events)
-    ciphertext_iter = iter(ciphertext_events)
-
-    addr_commit, ciphertext = _next_commit_or_none(
-        commit_address_iter, ciphertext_iter)
-    nullifier = _next_nullifier_or_none(nullifier_iter)
-    for mk_root_event in merkle_root_events:
-        assert nullifier is not None
-        assert addr_commit is not None
-        assert ciphertext is not None
-
-        tx_hash = mk_root_event.transactionHash
-        mk_root = mk_root_event.args.root
-        sender_k_pk_bytes = ciphertext.args.pk_sender
-        nullifier_values: List[bytes] = []
-        output_events: List[MixOutputEvents] = []
-
-        while nullifier and nullifier.transactionHash == tx_hash:
-            nullifier_values.append(nullifier.args.nullifier)
-            nullifier = _next_nullifier_or_none(nullifier_iter)
-
-        while addr_commit and addr_commit.transactionHash == tx_hash:
-            assert ciphertext.transactionHash == tx_hash
-            address = addr_commit.args.commAddr
-            commit = addr_commit.args.commit
-            ct = ciphertext.args.ciphertext
-            output_events.append(MixOutputEvents(address, commit, ct))
-            addr_commit, ciphertext = _next_commit_or_none(
-                commit_address_iter, ciphertext_iter)
-
-        if output_events:
-            yield MixResult(
-                nullifiers=nullifier_values,
-                output_events=output_events,
-                new_merkle_root=mk_root,
-                sender_k_pk=get_public_key_from_bytes(sender_k_pk_bytes))
-
-    assert addr_commit is None
-    assert ciphertext is None
-
-
 def get_mix_results(
         web3: Any,
         mixer_instance: Any,
@@ -330,38 +260,9 @@ def get_mix_results(
                 'fromBlock': batch_start,
                 'toBlock': batch_start + SYNC_BLOCKS_PER_BATCH - 1,
             }
-            merkle_root_filter = mixer_instance.eventFilter(
-                "LogMerkleRoot", filter_params)
-            nullifier_filter = mixer_instance.eventFilter(
-                "LogNullifier", filter_params)
-            commitment_filter = mixer_instance.eventFilter(
-                "LogCommitment", filter_params)
-            ciphertext_filter = mixer_instance.eventFilter(
-                "LogSecretCiphers", filter_params)
-
-            for entry in _parse_events(
-                    merkle_root_filter.get_all_entries(),
-                    nullifier_filter.get_all_entries(),
-                    commitment_filter.get_all_entries(),
-                    ciphertext_filter.get_all_entries()):
-                yield entry
+            log_mix_filter = mixer_instance.eventFilter("LogMix", filter_params)
+            for log_mix_event in log_mix_filter.get_all_entries():
+                yield _event_args_to_mix_result(log_mix_event.args)
 
         finally:
-            web3.eth.uninstallFilter(merkle_root_filter.filter_id)
-            web3.eth.uninstallFilter(commitment_filter.filter_id)
-            web3.eth.uninstallFilter(ciphertext_filter.filter_id)
-
-
-def _extract_output_event_data(
-        log_commitments: List[Any],
-        log_ciphertexts: List[Any]) -> List[MixOutputEvents]:
-    assert len(log_commitments) == len(log_ciphertexts)
-
-    def _extract_event_data(log_commit: Any, log_ciph: Any) -> MixOutputEvents:
-        addr = log_commit.args.commAddr
-        commit = log_commit.args.commit
-        ciphertext = log_ciph.args.ciphertext
-        return MixOutputEvents(addr, commit, ciphertext)
-
-    return [_extract_event_data(log_commit, log_ciph) for
-            log_commit, log_ciph in zip(log_commitments, log_ciphertexts)]
+            web3.eth.uninstallFilter(log_mix_filter.filter_id)

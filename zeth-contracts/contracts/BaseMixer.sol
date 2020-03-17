@@ -119,32 +119,21 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // the python wrappers. Use Szabos (10^12 Wei).
     uint64 constant public_unit_value_wei = 1 szabo;
 
-    // Event to emit the value and address of new commitments in the merke tree.
-    // Clients can use this when syncing with the latest state. As they
-    // encounter ciphertexts which they can decrypt and parse, they can verify
-    // that the note data opens the commitment (that the message is valid), and
-    // record the location of this commitment in order to later generate a
-    // Merkle path for it.
-    event LogCommitment(uint256 commAddr, bytes32 commit);
-
-    // Event to emit the root of a the merkle tree
-    event LogMerkleRoot(bytes32 root);
-
-    // Event to emit the encryption public key of the sender and ciphertexts of
-    // the coins' data to be sent to the recipient of the payment.  This event
-    // is key to obfuscate the transaction graph while enabling on-chain storage
-    // of the coins' data (useful to ease backup of user's wallets)
-    event LogSecretCiphers(bytes32 pk_sender, bytes ciphertext);
-
-    // Event to emit the nullifiers for the mix call.
-    event LogNullifier(bytes32 nullifier);
+    // solium complains if the parameters here are indented.
+    event LogMix(
+    bytes32 root,
+    bytes32[jsIn] nullifiers,
+    bytes32 pk_sender,
+    bytes32[jsOut] commitments,
+    uint256[jsOut] commAddrs,
+    bytes[jsOut] ciphertexts);
 
     // Debug only
     event LogDebug(string message);
 
     // Constructor
-    constructor(
-        uint256 depth, address token_address) MerkleTreeMiMC7(depth) public {
+    constructor(uint256 depth, address token_address) MerkleTreeMiMC7(depth)
+        public {
         bytes32 initialRoot = nodes[0];
         roots[initialRoot] = true;
 
@@ -291,7 +280,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // tree, appends the nullifiers to the list and so on).
     function check_mkroot_nullifiers_hsig_append_nullifiers_state(
         uint256[4] memory vk,
-        uint256[nbInputs] memory primary_inputs)
+        uint256[nbInputs] memory primary_inputs,
+        bytes32[jsIn] memory nfs)
         internal {
         // 1. We re-assemble the full root digest and check it is in the tree
         require(
@@ -301,7 +291,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
         // 2. We re-assemble the nullifiers (JSInputs) and check they were not
         // already seen.
-        bytes32[jsIn] memory nfs;
         for (uint256 i = 0; i < jsIn; i++) {
             bytes32 nullifier = assemble_nullifier(i, primary_inputs);
             require(
@@ -309,7 +298,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
                 "Invalid nullifier: This nullifier has already been used"
             );
             nullifiers[nullifier] = true;
-            emit LogNullifier(nullifier);
 
             nfs[i] = nullifier;
         }
@@ -325,14 +313,16 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         );
     }
 
-    function append_commitments_to_state(
-        uint256[nbInputs] memory primary_inputs)
+    function assemble_commitments_and_append_to_state(
+        uint256[nbInputs] memory primary_inputs,
+        bytes32[jsOut] memory comms,
+        uint256[jsOut] memory commAddrs)
         internal {
         // We re-assemble the commitments (JSOutputs)
         for (uint256 i = 0; i < jsOut; i++) {
             bytes32 current_commitment = bytes32(primary_inputs[1 + i]);
-            uint256 commitmentAddress = insert(current_commitment);
-            emit LogCommitment(commitmentAddress, current_commitment);
+            comms[i] = current_commitment;
+            commAddrs[i] = insert(current_commitment);
         }
     }
 
@@ -377,17 +367,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
     }
 
-    function add_and_emit_merkle_root(bytes32 root) internal {
+    function add_merkle_root(bytes32 root) internal {
         roots[root] = true;
-        emit LogMerkleRoot(root);
-    }
-
-    function emit_ciphertexts(
-        bytes32 pk_sender,
-        bytes[jsOut] memory ciphertexts)
-        internal {
-        for (uint256 i = 0 ; i < jsOut ; ++i) {
-            emit LogSecretCiphers(pk_sender, ciphertexts[i]);
-        }
     }
 }

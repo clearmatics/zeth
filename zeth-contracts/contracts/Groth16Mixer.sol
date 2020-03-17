@@ -80,8 +80,11 @@ contract Groth16Mixer is BaseMixer {
         bytes32 pk_sender,
         bytes[jsOut] memory ciphertexts)
         public payable {
+
         // 1. Check the root and the nullifiers
-        check_mkroot_nullifiers_hsig_append_nullifiers_state(vk, input);
+        bytes32[jsIn] memory nullifiers;
+        check_mkroot_nullifiers_hsig_append_nullifiers_state(
+            vk, input, nullifiers);
 
         // 2.a Verify the signature on the hash of data_to_be_signed
         bytes32 hash_to_be_signed = sha256(
@@ -111,18 +114,27 @@ contract Groth16Mixer is BaseMixer {
         );
 
         // 3. Append the commitments to the tree
-        append_commitments_to_state(input);
+        bytes32[jsOut] memory commitments;
+        uint256[jsOut] memory commitment_addresses;
+        assemble_commitments_and_append_to_state(
+            input, commitments, commitment_addresses);
 
         // 4. Get the public values in Wei and modify the state depending on
         // their values
         process_public_values(input);
 
         // 5. Add the new root to the list of existing roots and emit it
-        add_and_emit_merkle_root(recomputeRoot(jsIn));
+        bytes32 new_merkle_root = recomputeRoot(jsOut);
+        add_merkle_root(new_merkle_root);
 
-        // 6. Emit the all the coins' secret data encrypted with the recipients'
-        // respective keys
-        emit_ciphertexts(pk_sender, ciphertexts);
+        // 6. Emit the all Mix data
+        emit LogMix(
+            new_merkle_root,
+            nullifiers,
+            pk_sender,
+            commitments,
+            commitment_addresses,
+            ciphertexts);
     }
 
     function verify(uint256[] memory input, Proof memory proof)
