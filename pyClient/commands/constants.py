@@ -18,7 +18,5 @@ ADDRESS_FILE_DEFAULT = "zeth-address.json"
 INSTANCE_FILE_DEFAULT = "zeth-instance.json"
 ETH_ADDRESS_DEFAULT = "eth-address"
 
-WALLET_DIR_DEFAULT = "./notes"
+WALLET_DIR_DEFAULT = "./wallet"
 WALLET_USERNAME = "zeth"
-
-MERKLE_TREE_FILE_DEFAULT = "./merkle_tree.dat"

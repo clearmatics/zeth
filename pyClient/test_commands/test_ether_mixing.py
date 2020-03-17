@@ -53,6 +53,12 @@ def main() -> None:
         tree_depth,
         deployer_eth_address,
         zksnark)
+
+    # Set up Merkle tree and Wallets. Note that each wallet holds an internal
+    # Merkle Tree, unused in this test. Instead, we instantiate an in-memory
+    # version shared by all virtual users. This avoids having to pass all mix
+    # results to all wallets.
+
     mk_tree = zeth.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
 
     # Keys and wallets

@@ -30,7 +30,7 @@ import os
 import json
 from Crypto import Random
 from hashlib import blake2s, sha256
-from typing import Tuple, Dict, List, Callable, Iterator, Optional, Any
+from typing import Tuple, Dict, List, Callable, Optional, Any
 
 
 # Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
@@ -655,11 +655,11 @@ def encrypt_notes(
     return (eph_pk, ciphertexts)
 
 
-def receive_notes(
-        event_data: List[contracts.MixOutputEvents],
+def receive_note(
+        out_ev: contracts.MixOutputEvents,
         sender_k_pk: EncryptionPublicKey,
         receiver_k_sk: EncryptionSecretKey
-) -> Iterator[Tuple[int, bytes, ZethNote]]:
+) -> Optional[Tuple[int, bytes, ZethNote]]:
     """
     Given the receivers secret key, and the event data from a transaction
     (encrypted notes), decrypt any that are intended for the receiver. Return
@@ -667,15 +667,14 @@ def receive_notes(
     address-in-merkle-tree along with ZethNote information, for convenience
     when spending the notes.
     """
-    for out_ev in event_data:
-        try:
-            plaintext = decrypt(out_ev.ciphertext, sender_k_pk, receiver_k_sk)
-            yield (
-                out_ev.commitment_address,
-                out_ev.commitment,
-                zeth_note_from_json_dict(json.loads(plaintext)))
-        except Exception:
-            continue
+    try:
+        plaintext = decrypt(out_ev.ciphertext, sender_k_pk, receiver_k_sk)
+        return (
+            out_ev.commitment_address,
+            out_ev.commitment,
+            zeth_note_from_json_dict(json.loads(plaintext)))
+    except Exception:
+        return None
 
 
 def _encode_proof_and_inputs(proof_json: GenericProof) -> Tuple[bytes, bytes]:

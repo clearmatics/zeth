@@ -6,8 +6,10 @@
 
 from __future__ import annotations
 import zeth.joinsplit as joinsplit
+from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import MixOutputEvents
 from zeth.encryption import EncryptionPublicKey
+from zeth.merkle_tree import PersistentMerkleTree
 from zeth.utils import EtherValue, short_commitment
 from api.util_pb2 import ZethNote
 from os.path import join, basename, exists
@@ -16,11 +18,13 @@ from shutil import move
 from typing import Dict, List, Tuple, Optional, Iterator, Any, cast
 import glob
 import json
+import math
 
 
 # pylint: disable=too-many-instance-attributes
 
 SPENT_SUBDIRECTORY: str = "spent"
+MERKLE_TREE_FILE: str = "merkle-tree.dat"
 
 # Map nullifier to short commitment string identifying the commitment.
 NullifierMap = Dict[str, str]
@@ -128,6 +132,10 @@ class Wallet:
         self.state_file = join(wallet_dir, f"state_{username}")
         self.state = _load_state_or_default(self.state_file)
         _ensure_dir(join(self.wallet_dir, SPENT_SUBDIRECTORY))
+        self.merkle_tree = PersistentMerkleTree.open(
+            join(wallet_dir, MERKLE_TREE_FILE),
+            int(math.pow(2, ZETH_MERKLE_TREE_DEPTH)))
+        self.merkle_tree_changed = False
 
     def receive_notes(
             self,
@@ -138,9 +146,19 @@ class Wallet:
         the database.
         """
         new_notes = []
-        addr_commit_note_iter = joinsplit.receive_notes(
-            output_events, k_pk_sender, self.k_sk_receiver)
-        for addr, commit, note in addr_commit_note_iter:
+
+        self.merkle_tree_changed = len(output_events) != 0
+        for out_ev in output_events:
+            # All commitments must be added to the tree in order.
+            self.merkle_tree.insert(out_ev.commitment)
+
+            # Check this output event to see if it belongs to this wallet.
+            our_note = joinsplit.receive_note(
+                out_ev, k_pk_sender, self.k_sk_receiver)
+            if our_note is None:
+                continue
+
+            (addr, commit, note) = our_note
             if _check_note(commit, note):
                 note_desc = ZethNoteDescription(note, addr, commit)
                 self._write_note(note_desc)
@@ -153,7 +171,7 @@ class Wallet:
 
         # Record full set of notes seen to keep an estimate of the total in the
         # mixer.
-        self.state.num_notes = self.state.num_notes + len(output_events)
+        self.state.num_notes = self.state.num_notes + len(new_notes)
 
         return new_notes
 
@@ -191,6 +209,7 @@ class Wallet:
     def update_and_save_state(self, next_block: int) -> None:
         self.state.next_block = next_block
         _save_state(self.state_file, self.state)
+        self._save_merkle_tree_if_changed()
 
     def find_note(self, note_id: str) -> ZethNoteDescription:
         note_file = self._find_note_file(note_id)
@@ -198,6 +217,12 @@ class Wallet:
             raise Exception(f"no note with id {note_id}")
         with open(note_file, "r") as note_f:
             return ZethNoteDescription.from_json(note_f.read())
+
+    def _save_merkle_tree_if_changed(self) -> None:
+        if self.merkle_tree_changed:
+            self.merkle_tree_changed = False
+            self.merkle_tree.recompute_root()
+            self.merkle_tree.save()
 
     def _write_note(self, note_desc: ZethNoteDescription) -> None:
         """

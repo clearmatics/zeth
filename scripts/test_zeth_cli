@@ -116,3 +116,10 @@ echo BALANCES AFTER WITHDRAW
 show_balances
 
 popd # BASE_DIR
+
+set +x
+set +e
+
+echo "============================================================"
+echo "==                        PASSED                          =="
+echo "============================================================"

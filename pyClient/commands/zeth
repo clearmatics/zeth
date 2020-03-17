@@ -8,8 +8,7 @@ from zeth.zksnark import get_zksnark_provider
 from zeth.prover_client import ProverClient
 from commands.constants import \
     ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
-    ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT, \
-    MERKLE_TREE_FILE_DEFAULT
+    ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT
 from commands.zeth_deploy import deploy
 from commands.zeth_gen_address import gen_address
 from commands.zeth_sync import sync
@@ -60,10 +59,6 @@ def help(ctx) -> None:
     "--wallet-dir",
     default=WALLET_DIR_DEFAULT,
     help=f"Wallet directory (default={WALLET_DIR_DEFAULT})")
-@option(
-    "--merkle-tree-file",
-    default=MERKLE_TREE_FILE_DEFAULT,
-    help=f"Merkle tree file (default={MERKLE_TREE_FILE_DEFAULT})")
 @pass_context
 def zeth(
         ctx: Context,
@@ -72,8 +67,7 @@ def zeth(
         zksnark_name: str,
         instance_file: str,
         address_file: str,
-        wallet_dir: str,
-        merkle_tree_file: str) -> None:
+        wallet_dir: str) -> None:
     if ctx.invoked_subcommand == "help":
         ctx.invoke(help)
     ctx.ensure_object(dict)
@@ -83,7 +77,6 @@ def zeth(
     ctx.obj["INSTANCE_FILE"] = instance_file
     ctx.obj["ADDRESS_FILE"] = address_file
     ctx.obj["WALLET_DIR"] = wallet_dir
-    ctx.obj["MERKLE_TREE_FILE"] = merkle_tree_file
 
 
 zeth.add_command(deploy)
