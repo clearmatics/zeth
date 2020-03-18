@@ -659,7 +659,7 @@ def receive_note(
         out_ev: contracts.MixOutputEvents,
         sender_k_pk: EncryptionPublicKey,
         receiver_k_sk: EncryptionSecretKey
-) -> Optional[Tuple[int, bytes, ZethNote]]:
+) -> Optional[Tuple[bytes, ZethNote]]:
     """
     Given the receivers secret key, and the event data from a transaction
     (encrypted notes), decrypt any that are intended for the receiver. Return
@@ -670,7 +670,6 @@ def receive_note(
     try:
         plaintext = decrypt(out_ev.ciphertext, sender_k_pk, receiver_k_sk)
         return (
-            out_ev.commitment_address,
             out_ev.commitment,
             zeth_note_from_json_dict(json.loads(plaintext)))
     except Exception:

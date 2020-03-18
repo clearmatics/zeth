@@ -136,6 +136,32 @@ class Wallet:
             join(wallet_dir, MERKLE_TREE_FILE),
             int(math.pow(2, ZETH_MERKLE_TREE_DEPTH)))
         self.merkle_tree_changed = False
+        self.next_addr = self.merkle_tree.get_num_entries()
+
+    def receive_note(
+            self,
+            comm_addr: int,
+            out_ev: MixOutputEvents,
+            k_pk_sender: EncryptionPublicKey) -> Optional[ZethNoteDescription]:
+        # Check this output event to see if it belongs to this wallet.
+        our_note = joinsplit.receive_note(
+            out_ev, k_pk_sender, self.k_sk_receiver)
+        if our_note is None:
+            return None
+
+        (commit, note) = our_note
+        if not _check_note(commit, note):
+            return None
+
+        note_desc = ZethNoteDescription(note, comm_addr, commit)
+        self._write_note(note_desc)
+
+        # Add the nullifier to the map in the state file
+        nullifier = \
+            joinsplit.compute_nullifier(note_desc.note, self.a_sk)
+        self.state.nullifier_map[nullifier.hex()] = \
+            short_commitment(commit)
+        return note_desc
 
     def receive_notes(
             self,
@@ -149,29 +175,21 @@ class Wallet:
 
         self.merkle_tree_changed = len(output_events) != 0
         for out_ev in output_events:
+            print(
+                f"wallet.receive_notes: idx:{self.next_addr}, " +
+                f"comm:{out_ev.commitment[:8].hex()}")
+
             # All commitments must be added to the tree in order.
             self.merkle_tree.insert(out_ev.commitment)
-
-            # Check this output event to see if it belongs to this wallet.
-            our_note = joinsplit.receive_note(
-                out_ev, k_pk_sender, self.k_sk_receiver)
-            if our_note is None:
-                continue
-
-            (addr, commit, note) = our_note
-            if _check_note(commit, note):
-                note_desc = ZethNoteDescription(note, addr, commit)
-                self._write_note(note_desc)
+            note_desc = self.receive_note(self.next_addr, out_ev, k_pk_sender)
+            if note_desc is not None:
                 new_notes.append(note_desc)
 
-                # Add the nullifier to the map in the state file
-                nullifier = joinsplit.compute_nullifier(note_desc.note, self.a_sk)
-                self.state.nullifier_map[nullifier.hex()] = \
-                    short_commitment(commit)
+            self.next_addr = self.next_addr + 1
 
         # Record full set of notes seen to keep an estimate of the total in the
         # mixer.
-        self.state.num_notes = self.state.num_notes + len(new_notes)
+        self.state.num_notes = self.state.num_notes + len(output_events)
 
         return new_notes
 

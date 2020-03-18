@@ -27,8 +27,7 @@ class MixOutputEvents:
     commitment and ciphertext.
     """
     def __init__(
-            self, commitment_address: int, commitment: bytes, ciphertext: bytes):
-        self.commitment_address = commitment_address
+            self, commitment: bytes, ciphertext: bytes):
         self.commitment = commitment
         self.ciphertext = ciphertext
 
@@ -50,9 +49,8 @@ class MixResult:
 
 
 def _event_args_to_mix_result(event_args: Any) -> MixResult:
-    mix_out_args = zip(
-        event_args.commAddrs, event_args.commitments, event_args.ciphertexts)
-    out_events = [MixOutputEvents(a, c, ciph) for (a, c, ciph) in mix_out_args]
+    mix_out_args = zip(event_args.commitments, event_args.ciphertexts)
+    out_events = [MixOutputEvents(c, ciph) for (c, ciph) in mix_out_args]
     sender_k_pk = get_public_key_from_bytes(event_args.pk_sender)
     return MixResult(
         new_merkle_root=event_args.root,
@@ -224,23 +222,6 @@ def _next_nullifier_or_none(nullifier_iter: Iterator[bytes]) -> Optional[Any]:
         return next(nullifier_iter)
     except StopIteration:
         return None
-
-
-def _next_commit_or_none(
-        commit_iter: Iterator[Optional[Any]],
-        ciphertext_iter: Iterator[Optional[Any]]
-) -> Tuple[Optional[Any], Optional[Any]]:
-    """
-    Zip the  address and ciphertext iterators.   Avoid StopIteration exceptions,
-    so the caller can rely on reading one entry ahead.
-    """
-    # Assume that the two input iterators are of the same length.
-    try:
-        addr_commit = next(commit_iter)
-    except StopIteration:
-        return None, None
-
-    return addr_commit, next(ciphertext_iter)
 
 
 def get_mix_results(
