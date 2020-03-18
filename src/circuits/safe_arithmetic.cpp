@@ -12,7 +12,7 @@ std::size_t safe_subtraction(std::size_t a, std::size_t b)
     if (b > a) {
         return 0;
     }
-    return a-b;
+    return a - b;
 };
 
 } // namespace libzeth
