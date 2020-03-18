@@ -10,6 +10,13 @@ reset="\033[0m"
 # Run the format script before commits are made
 echo -e "${yellow}\n Formatting files \n${reset}"
 $ZETH/scripts/format
-echo -e "${gree}\n Formatting finished \n${reset}"
+res=$?
+if [ $res -ne 0 ]
+then
+    echo -e "${red}\n Formatting FAILED\n\n commit ABORTED${reset}"
+    exit 1
+else
+    echo -e "${green}\nFormatting OK\n${reset}"
+fi
 
 exit 0
