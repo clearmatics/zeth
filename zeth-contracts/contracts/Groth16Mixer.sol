@@ -115,9 +115,7 @@ contract Groth16Mixer is BaseMixer {
 
         // 3. Append the commitments to the tree
         bytes32[jsOut] memory commitments;
-        uint256[jsOut] memory commitment_addresses;
-        assemble_commitments_and_append_to_state(
-            input, commitments, commitment_addresses);
+        assemble_commitments_and_append_to_state(input, commitments);
 
         // 4. Get the public values in Wei and modify the state depending on
         // their values
@@ -133,7 +131,6 @@ contract Groth16Mixer is BaseMixer {
             nullifiers,
             pk_sender,
             commitments,
-            commitment_addresses,
             ciphertexts);
     }
 

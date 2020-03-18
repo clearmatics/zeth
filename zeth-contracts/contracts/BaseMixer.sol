@@ -125,7 +125,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     bytes32[jsIn] nullifiers,
     bytes32 pk_sender,
     bytes32[jsOut] commitments,
-    uint256[jsOut] commAddrs,
     bytes[jsOut] ciphertexts);
 
     // Debug only
@@ -315,14 +314,13 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     function assemble_commitments_and_append_to_state(
         uint256[nbInputs] memory primary_inputs,
-        bytes32[jsOut] memory comms,
-        uint256[jsOut] memory commAddrs)
+        bytes32[jsOut] memory comms)
         internal {
         // We re-assemble the commitments (JSOutputs)
         for (uint256 i = 0; i < jsOut; i++) {
             bytes32 current_commitment = bytes32(primary_inputs[1 + i]);
             comms[i] = current_commitment;
-            commAddrs[i] = insert(current_commitment);
+            insert(current_commitment);
         }
     }
 
