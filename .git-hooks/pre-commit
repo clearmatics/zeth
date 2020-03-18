@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Git pre-commit hook for Zeth
+
+red="\033[0;31m"
+yellow="\033[1;33m"
+green="\033[1;32m"
+reset="\033[0m"
+
+# Run the format script before commits are made
+echo -e "${yellow}\n Formatting files \n${reset}"
+$ZETH/scripts/format
+echo -e "${gree}\n Formatting finished \n${reset}"
+
+exit 0
