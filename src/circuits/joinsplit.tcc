@@ -10,6 +10,8 @@
 #include "types/joinsplit.hpp"
 // Contains the definitions of the constants we use
 #include "zeth.h"
+// Contains functions for safe arithmetic
+#include "safe_arithmetic.hpp"
 
 #include <boost/static_assert.hpp>
 #include <src/types/merkle_tree_field.hpp>
@@ -254,7 +256,10 @@ public:
                 unpacked_inputs[i].insert(
                     unpacked_inputs[i].end(),
                     input_nullifiers[i]->bits.rbegin() +
-                        (HashT::get_digest_len() - FieldT::capacity()),
+                        safe_subtraction(
+                            HashT::get_digest_len(),
+                            FieldT::capacity()
+                        ),
                     input_nullifiers[i]->bits.rend());
             }
 
@@ -266,7 +271,10 @@ public:
                 unpacked_inputs[i].insert(
                     unpacked_inputs[i].end(),
                     output_commitments[j]->bits.rbegin() +
-                        (HashT::get_digest_len() - FieldT::capacity()),
+                        safe_subtraction(
+                            HashT::get_digest_len(),
+                            FieldT::capacity()
+                        ),
                     output_commitments[j]->bits.rend());
             }
 
@@ -274,7 +282,10 @@ public:
             unpacked_inputs[NumOutputs + NumInputs].insert(
                 unpacked_inputs[NumOutputs + NumInputs].end(),
                 h_sig->bits.rbegin() +
-                    (HashT::get_digest_len() - FieldT::capacity()),
+                        safe_subtraction(
+                            HashT::get_digest_len(),
+                            FieldT::capacity()
+                        ),
                 h_sig->bits.rend());
 
             // Initialize the unpacked input corresponding to the h_is
@@ -284,7 +295,10 @@ public:
                 unpacked_inputs[i].insert(
                     unpacked_inputs[i].end(),
                     h_is[j]->bits.rbegin() +
-                        (HashT::get_digest_len() - FieldT::capacity()),
+                        safe_subtraction(
+                            HashT::get_digest_len(),
+                            FieldT::capacity()
+                        ),
                     h_is[j]->bits.rend());
             }
 
@@ -305,7 +319,11 @@ public:
                                     .end(),
                             h_is[NumInputs - i - 1]->bits.rbegin(),
                             h_is[NumInputs - i - 1]->bits.rbegin() +
-                                (HashT::get_digest_len() - FieldT::capacity()));
+                                safe_subtraction(
+                                    HashT::get_digest_len(),
+                                    FieldT::capacity()
+                                )
+                        );
                 }
 
                 // Filling with the residual bits of the output CommitmentS
@@ -318,8 +336,11 @@ public:
                             output_commitments[NumOutputs - i - 1]
                                 ->bits.rbegin(),
                             output_commitments[NumOutputs - i - 1]
-                                    ->bits.rbegin() +
-                                (HashT::get_digest_len() - FieldT::capacity()));
+                                    ->bits.rbegin() + safe_subtraction(
+                                        HashT::get_digest_len(),
+                                        FieldT::capacity()
+                                    )
+                        );
                 }
 
                 // Filling with the residual bits of the input NullifierS
@@ -331,7 +352,10 @@ public:
                                     .end(),
                             input_nullifiers[NumInputs - i - 1]->bits.rbegin(),
                             input_nullifiers[NumInputs - i - 1]->bits.rbegin() +
-                                (HashT::get_digest_len() - FieldT::capacity()));
+                                safe_subtraction(HashT::get_digest_len(),
+                                    FieldT::capacity()
+                                )
+                        );
                 }
 
                 // Filling with the residual bits of the h_sig
@@ -340,7 +364,10 @@ public:
                         .end(),
                     h_sig->bits.rbegin(),
                     h_sig->bits.rbegin() +
-                        (HashT::get_digest_len() - FieldT::capacity()));
+                        safe_subtraction(HashT::get_digest_len(),
+                            FieldT::capacity()
+                    )
+                );
 
                 // Filling with the vpub_out (public value taken out of the mix)
                 unpacked_inputs[NumOutputs + NumInputs + 1 + NumInputs].insert(
