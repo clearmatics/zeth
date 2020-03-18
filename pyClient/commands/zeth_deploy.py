@@ -8,10 +8,8 @@ from commands.utils import \
     write_mixer_description, MixerDescription
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import InstanceDescription
-from zeth.prover_client import ProverClient
 from zeth.joinsplit import ZethClient
 from zeth.utils import EtherValue
-from zeth.zksnark import IZKSnarkProvider
 from click import Context, command, option, pass_context
 from typing import Optional
 
@@ -35,7 +33,8 @@ def deploy(
     Deploy the zeth contracts and record the instantiation details.
     """
     eth_address = load_eth_address(eth_addr)
-    web3 = open_web3_from_ctx(ctx)
+    client_ctx = ctx.obj
+    web3 = open_web3_from_ctx(client_ctx)
     deploy_gas_value = EtherValue(deploy_gas, 'wei') if deploy_gas else None
 
     print(f"deploy: eth_address={eth_address}")
@@ -45,14 +44,12 @@ def deploy(
     token_instance_desc = get_erc20_instance_description(token_address) \
         if token_address else None
 
-    prover_client: ProverClient = ctx.obj["PROVER_CLIENT"]
-    zksnark: IZKSnarkProvider = ctx.obj["ZKSNARK"]
     zeth_client = ZethClient.deploy(
         web3,
-        prover_client,
+        client_ctx.prover_client,
         ZETH_MERKLE_TREE_DEPTH,
         eth_address,
-        zksnark,
+        client_ctx.zksnark,
         token_address,
         deploy_gas_value)
 

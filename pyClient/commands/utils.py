@@ -7,18 +7,40 @@ from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT
 from zeth.contracts import InstanceDescription, get_block_number, get_mix_results
 from zeth.joinsplit import \
     ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient, from_zeth_units
+from zeth.prover_client import ProverClient
 from zeth.utils import open_web3, short_commitment, EtherValue, get_zeth_dir
 from zeth.wallet import ZethNoteDescription, Wallet
-from click import ClickException, Context
+from zeth.zksnark import get_zksnark_provider
+from click import ClickException
 import json
 from os.path import exists, join
 from solcx import compile_files  # type: ignore
-from typing import Dict, Tuple, Optional, Any
+from typing import Dict, Tuple, Optional, Callable, Any
 from web3 import Web3  # type: ignore
 
 
-def open_web3_from_ctx(ctx: Context) -> Any:
-    return open_web3(ctx.obj["ETH_RPC"])
+class ClientContext:
+    """
+    Context for users of these client tools
+    """
+    def __init__(
+            self,
+            eth_rpc_endpoint: str,
+            prover_server_endpoint: str,
+            zksnark_name: str,
+            instance_file: str,
+            address_file: str,
+            wallet_dir: str):
+        self.eth_rpc_endpoint = eth_rpc_endpoint
+        self.prover_client = ProverClient(prover_server_endpoint)
+        self.zksnark = get_zksnark_provider(zksnark_name)
+        self.instance_file = instance_file
+        self.address_file = address_file
+        self.wallet_dir = wallet_dir
+
+
+def open_web3_from_ctx(ctx: ClientContext) -> Any:
+    return open_web3(ctx.eth_rpc_endpoint)
 
 
 class MixerDescription:
@@ -84,15 +106,15 @@ def load_mixer_description(mixer_description_file: str) -> MixerDescription:
         return MixerDescription.from_json(desc_f.read())
 
 
-def load_mixer_description_from_ctx(ctx: Context) -> MixerDescription:
-    return load_mixer_description(ctx.obj["INSTANCE_FILE"])
+def load_mixer_description_from_ctx(ctx: ClientContext) -> MixerDescription:
+    return load_mixer_description(ctx.instance_file)
 
 
-def get_zeth_address_file(ctx: Context) -> str:
-    return ctx.obj["ADDRESS_FILE"]
+def get_zeth_address_file(ctx: ClientContext) -> str:
+    return ctx.address_file
 
 
-def load_zeth_address_public(ctx: Context) -> ZethAddressPub:
+def load_zeth_address_public(ctx: ClientContext) -> ZethAddressPub:
     """
     Load a ZethAddressPub from a key file.
     """
@@ -111,7 +133,7 @@ def write_zeth_address_public(
         pub_addr_f.write(str(pub_addr))
 
 
-def load_zeth_address_secret(ctx: Context) -> ZethAddressPriv:
+def load_zeth_address_secret(ctx: ClientContext) -> ZethAddressPriv:
     """
     Read ZethAddressPriv
     """
@@ -129,7 +151,7 @@ def write_zeth_address_secret(
         addr_f.write(secret_addr.to_json())
 
 
-def load_zeth_address(ctx: Context) -> ZethAddress:
+def load_zeth_address(ctx: ClientContext) -> ZethAddress:
     """
     Load a ZethAddress secret from a file, and the associated public address,
     and return as a ZethAddress.
@@ -142,15 +164,19 @@ def load_zeth_address(ctx: Context) -> ZethAddress:
 def open_wallet(
         mixer_instance: Any,
         js_secret: ZethAddressPriv,
-        ctx: Context) -> Wallet:
+        ctx: ClientContext) -> Wallet:
     """
     Load a wallet using a secret key.
     """
-    wallet_dir = ctx.obj["WALLET_DIR"]
+    wallet_dir = ctx.wallet_dir
     return Wallet(mixer_instance, WALLET_USERNAME, wallet_dir, js_secret)
 
 
-def do_sync(web3: Any, wallet: Wallet, wait_tx: Optional[str]) -> int:
+def do_sync(
+        web3: Any,
+        wallet: Wallet,
+        wait_tx: Optional[str],
+        callback: Optional[Callable[[ZethNoteDescription], None]] = None) -> int:
     """
     Implementation of sync, reused by several commands.  Returns the
     block_number synced to.  Also updates and saves the MerkleTree.
@@ -169,7 +195,8 @@ def do_sync(web3: Any, wallet: Wallet, wait_tx: Optional[str]) -> int:
                 new_merkle_root = mix_result.new_merkle_root
                 for note_desc in wallet.receive_notes(
                         mix_result.output_events, mix_result.sender_k_pk):
-                    print(f" NEW NOTE: {zeth_note_short(note_desc)}")
+                    if callback:
+                        callback(note_desc)
 
                 spent_commits = wallet.mark_nullifiers_used(mix_result.nullifiers)
                 for commit in spent_commits:
@@ -219,28 +246,28 @@ def find_pub_address_file(base_file: str) -> str:
     raise ClickException(f"No public key file {pub_addr_file} or {base_file}")
 
 
-def create_zeth_client(ctx: Context) -> ZethClient:
+def create_zeth_client(ctx: ClientContext) -> ZethClient:
     """
     Create a ZethClient for an existing deployment.
     """
     web3 = open_web3_from_ctx(ctx)
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
-    prover_client = ctx.obj["PROVER_CLIENT"]
-    zksnark = ctx.obj["ZKSNARK"]
+    prover_client = ctx.prover_client
+    zksnark = ctx.zksnark
     return ZethClient.open(web3, prover_client, mixer_instance, zksnark)
 
 
 def create_zeth_client_and_mixer_desc(
-        ctx: Context) -> Tuple[ZethClient, MixerDescription]:
+        ctx: ClientContext) -> Tuple[ZethClient, MixerDescription]:
     """
     Create a ZethClient and MixerDescription object, for an existing deployment.
     """
     web3 = open_web3_from_ctx(ctx)
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
-    prover_client = ctx.obj["PROVER_CLIENT"]
-    zksnark = ctx.obj["ZKSNARK"]
+    prover_client = ctx.prover_client
+    zksnark = ctx.zksnark
     zeth_client = ZethClient.open(web3, prover_client, mixer_instance, zksnark)
     return (zeth_client, mixer_desc)
 
@@ -252,6 +279,10 @@ def zeth_note_short(note_desc: ZethNoteDescription) -> str:
     value = from_zeth_units(int(note_desc.note.value, 16)).ether()
     cm = short_commitment(note_desc.commitment)
     return f"{cm}: value={value} ETH, addr={note_desc.address}"
+
+
+def zeth_note_short_print(note_desc: ZethNoteDescription) -> None:
+    print(f" NEW NOTE: {zeth_note_short(note_desc)}")
 
 
 def parse_output(output_str: str) -> Tuple[ZethAddressPub, EtherValue]:

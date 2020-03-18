@@ -14,9 +14,11 @@ def ls_commits(ctx: Context) -> None:
     """
     List all commitments in the joinsplit contract
     """
-    zeth_client, _mixer_desc = create_zeth_client_and_mixer_desc(ctx)
-    zeth_address = load_zeth_address(ctx)
-    wallet = open_wallet(zeth_client.mixer_instance, zeth_address.addr_sk, ctx)
+    client_ctx = ctx.obj
+    zeth_client, _mixer_desc = create_zeth_client_and_mixer_desc(client_ctx)
+    zeth_address = load_zeth_address(client_ctx)
+    wallet = open_wallet(
+        zeth_client.mixer_instance, zeth_address.addr_sk, client_ctx)
     print("COMMITMENTS:")
     for commit in wallet.merkle_tree.get_leaves():
         print(f"  {short_commitment(commit)}")

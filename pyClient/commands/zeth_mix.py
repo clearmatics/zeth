@@ -43,9 +43,11 @@ def mix(
 
     vin_pub = EtherValue(vin)
     vout_pub = EtherValue(vout)
-    zeth_client, mixer_desc = create_zeth_client_and_mixer_desc(ctx)
-    zeth_address = load_zeth_address(ctx)
-    wallet = open_wallet(zeth_client.mixer_instance, zeth_address.addr_sk, ctx)
+    client_ctx = ctx.obj
+    zeth_client, mixer_desc = create_zeth_client_and_mixer_desc(client_ctx)
+    zeth_address = load_zeth_address(client_ctx)
+    wallet = open_wallet(
+        zeth_client.mixer_instance, zeth_address.addr_sk, client_ctx)
 
     inputs: List[Tuple[int, ZethNote]] = [
         wallet.find_note(note_id).as_input() for note_id in input_notes]

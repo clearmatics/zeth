@@ -15,7 +15,8 @@ def gen_address(ctx: Context) -> None:
     """
     Generate a new Zeth secret key and public address
     """
-    addr_file = get_zeth_address_file(ctx)
+    client_ctx = ctx.obj
+    addr_file = get_zeth_address_file(client_ctx)
     if exists(addr_file):
         raise ClickException(f"ZethAddress file {addr_file} exists")
 
