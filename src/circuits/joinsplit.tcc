@@ -28,11 +28,14 @@ template<
 class joinsplit_gadget : libsnark::gadget<FieldT>
 {
 private:
+    const size_t digest_len_minus_field_cap =
+        safe_subtraction(HashT::get_digest_len(), FieldT::capacity());
+
     // Number of residual bits from packing of hash digests into smaller
     // field elements to which are added the public value of size 64 bits
     const size_t length_bit_residual =
-        2 * (ZETH_V_SIZE * 8) + (HashT::get_digest_len() - FieldT::capacity()) *
-                                    (1 + 2 * NumInputs + NumOutputs);
+        2 * (ZETH_V_SIZE * 8) +
+        digest_len_minus_field_cap * (1 + 2 * NumInputs + NumOutputs);
     // Number of field elements needed to pack this number of bits
     const size_t nb_field_residual =
         libff::div_ceil(length_bit_residual, FieldT::capacity());
@@ -256,8 +259,7 @@ public:
                 unpacked_inputs[i].insert(
                     unpacked_inputs[i].end(),
                     input_nullifiers[i]->bits.rbegin() +
-                        safe_subtraction(
-                            HashT::get_digest_len(), FieldT::capacity()),
+                        digest_len_minus_field_cap,
                     input_nullifiers[i]->bits.rend());
             }
 
@@ -269,17 +271,14 @@ public:
                 unpacked_inputs[i].insert(
                     unpacked_inputs[i].end(),
                     output_commitments[j]->bits.rbegin() +
-                        safe_subtraction(
-                            HashT::get_digest_len(), FieldT::capacity()),
+                        digest_len_minus_field_cap,
                     output_commitments[j]->bits.rend());
             }
 
             // Initialize the unpacked input corresponding to the h_sig
             unpacked_inputs[NumOutputs + NumInputs].insert(
                 unpacked_inputs[NumOutputs + NumInputs].end(),
-                h_sig->bits.rbegin() +
-                    safe_subtraction(
-                        HashT::get_digest_len(), FieldT::capacity()),
+                h_sig->bits.rbegin() + digest_len_minus_field_cap,
                 h_sig->bits.rend());
 
             // Initialize the unpacked input corresponding to the h_is
@@ -288,9 +287,7 @@ public:
                  i++, j++) {
                 unpacked_inputs[i].insert(
                     unpacked_inputs[i].end(),
-                    h_is[j]->bits.rbegin() +
-                        safe_subtraction(
-                            HashT::get_digest_len(), FieldT::capacity()),
+                    h_is[j]->bits.rbegin() + digest_len_minus_field_cap,
                     h_is[j]->bits.rend());
             }
 
@@ -311,9 +308,7 @@ public:
                                     .end(),
                             h_is[NumInputs - i - 1]->bits.rbegin(),
                             h_is[NumInputs - i - 1]->bits.rbegin() +
-                                safe_subtraction(
-                                    HashT::get_digest_len(),
-                                    FieldT::capacity()));
+                                digest_len_minus_field_cap);
                 }
 
                 // Filling with the residual bits of the output CommitmentS
@@ -327,9 +322,7 @@ public:
                                 ->bits.rbegin(),
                             output_commitments[NumOutputs - i - 1]
                                     ->bits.rbegin() +
-                                safe_subtraction(
-                                    HashT::get_digest_len(),
-                                    FieldT::capacity()));
+                                digest_len_minus_field_cap);
                 }
 
                 // Filling with the residual bits of the input NullifierS
@@ -341,9 +334,7 @@ public:
                                     .end(),
                             input_nullifiers[NumInputs - i - 1]->bits.rbegin(),
                             input_nullifiers[NumInputs - i - 1]->bits.rbegin() +
-                                safe_subtraction(
-                                    HashT::get_digest_len(),
-                                    FieldT::capacity()));
+                                digest_len_minus_field_cap);
                 }
 
                 // Filling with the residual bits of the h_sig
@@ -351,9 +342,7 @@ public:
                     unpacked_inputs[NumOutputs + NumInputs + 1 + NumInputs]
                         .end(),
                     h_sig->bits.rbegin(),
-                    h_sig->bits.rbegin() +
-                        safe_subtraction(
-                            HashT::get_digest_len(), FieldT::capacity()));
+                    h_sig->bits.rbegin() + digest_len_minus_field_cap);
 
                 // Filling with the vpub_out (public value taken out of the mix)
                 unpacked_inputs[NumOutputs + NumInputs + 1 + NumInputs].insert(
@@ -724,7 +713,7 @@ public:
         // `nb_field_residual` field elements
         nb_elements += libff::div_ceil(
             2 * (ZETH_V_SIZE * 8) +
-                (HashT::get_digest_len() - FieldT::capacity()) *
+                safe_subtraction(HashT::get_digest_len(), FieldT::capacity()) *
                     (1 + 2 * NumInputs + NumOutputs),
             FieldT::capacity());
 
