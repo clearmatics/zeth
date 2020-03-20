@@ -10,7 +10,6 @@ from zeth.joinsplit import \
 from zeth.prover_client import ProverClient
 from zeth.utils import open_web3, short_commitment, EtherValue, get_zeth_dir
 from zeth.wallet import ZethNoteDescription, Wallet
-from zeth.zksnark import get_zksnark_provider
 from click import ClickException
 import json
 from os.path import exists, join
@@ -27,13 +26,11 @@ class ClientContext:
             self,
             eth_rpc_endpoint: str,
             prover_server_endpoint: str,
-            zksnark_name: str,
             instance_file: str,
             address_file: str,
             wallet_dir: str):
         self.eth_rpc_endpoint = eth_rpc_endpoint
         self.prover_client = ProverClient(prover_server_endpoint)
-        self.zksnark = get_zksnark_provider(zksnark_name)
         self.instance_file = instance_file
         self.address_file = address_file
         self.wallet_dir = wallet_dir
@@ -254,8 +251,7 @@ def create_zeth_client(ctx: ClientContext) -> ZethClient:
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
     prover_client = ctx.prover_client
-    zksnark = ctx.zksnark
-    return ZethClient.open(web3, prover_client, mixer_instance, zksnark)
+    return ZethClient.open(web3, prover_client, mixer_instance)
 
 
 def create_zeth_client_and_mixer_desc(
@@ -267,8 +263,7 @@ def create_zeth_client_and_mixer_desc(
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
     prover_client = ctx.prover_client
-    zksnark = ctx.zksnark
-    zeth_client = ZethClient.open(web3, prover_client, mixer_instance, zksnark)
+    zeth_client = ZethClient.open(web3, prover_client, mixer_instance)
     return (zeth_client, mixer_desc)
 
 

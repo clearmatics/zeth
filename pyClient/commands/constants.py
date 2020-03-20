@@ -7,10 +7,6 @@
 Constants and defaults specific to the CLI interface.
 """
 
-from zeth.constants import GROTH16_ZKSNARK
-
-
-ZKSNARK_DEFAULT = GROTH16_ZKSNARK
 ETH_RPC_ENDPOINT_DEFAULT = "http://localhost:8545"
 PROVER_SERVER_ENDPOINT_DEFAULT = "localhost:50051"
 

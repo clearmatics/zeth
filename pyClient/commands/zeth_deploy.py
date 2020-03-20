@@ -6,7 +6,6 @@ from commands.constants import INSTANCE_FILE_DEFAULT
 from commands.utils import \
     open_web3_from_ctx, get_erc20_instance_description, load_eth_address, \
     write_mixer_description, MixerDescription
-from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import InstanceDescription
 from zeth.joinsplit import ZethClient
 from zeth.utils import EtherValue
@@ -47,9 +46,7 @@ def deploy(
     zeth_client = ZethClient.deploy(
         web3,
         client_ctx.prover_client,
-        ZETH_MERKLE_TREE_DEPTH,
         eth_address,
-        client_ctx.zksnark,
         token_address,
         deploy_gas_value)
 

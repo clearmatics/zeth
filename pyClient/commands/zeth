@@ -4,9 +4,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.zksnark import get_zksnark_provider
 from commands.constants import \
-    ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
+    PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
     ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT
 from commands.utils import ClientContext
 from commands.zeth_deploy import deploy
@@ -43,11 +42,6 @@ def help(ctx) -> None:
     default=PROVER_SERVER_ENDPOINT_DEFAULT,
     help=f"Prover server endpoint (default={PROVER_SERVER_ENDPOINT_DEFAULT})")
 @option(
-    "--zksnark",
-    "zksnark_name",
-    default=ZKSNARK_DEFAULT,
-    help="GROTH16 or PGHR13 (default=GROTH16)")
-@option(
     "--instance-file",
     default=INSTANCE_FILE_DEFAULT,
     help=f"Instance file (default={INSTANCE_FILE_DEFAULT})")
@@ -64,7 +58,6 @@ def zeth(
         ctx: Context,
         eth_rpc: Optional[str],
         prover_server: str,
-        zksnark_name: str,
         instance_file: str,
         address_file: str,
         wallet_dir: str) -> None:
@@ -74,7 +67,6 @@ def zeth(
     ctx.obj = ClientContext(
         eth_rpc_endpoint=eth_rpc,
         prover_server_endpoint=prover_server,
-        zksnark_name=zksnark_name,
         instance_file=instance_file,
         address_file=address_file,
         wallet_dir=wallet_dir)

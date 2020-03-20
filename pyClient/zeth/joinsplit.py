@@ -18,7 +18,8 @@ from zeth.encryption import \
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
 import zeth.signing as signing
 from zeth.timer import Timer
-from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
+from zeth.zksnark import \
+    IZKSnarkProvider, get_zksnark_provider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, encrypt, \
     decrypt, int64_to_hex, encode_message_to_bytes, encode_eth_address
@@ -413,8 +414,7 @@ class ZethClient:
     def open(
             web3: Any,
             prover_client: ProverClient,
-            mixer_instance: Any,
-            zksnark: IZKSnarkProvider) -> ZethClient:
+            mixer_instance: Any) -> ZethClient:
         """
         Create a client for an existing Zeth deployment.
         """
@@ -422,21 +422,21 @@ class ZethClient:
             web3,
             prover_client,
             mixer_instance,
-            zksnark)
+            get_zksnark_provider(constants.ZKSNARK_DEFAULT))
 
     @staticmethod
     def deploy(
             web3: Any,
             prover_client: ProverClient,
-            mk_tree_depth: int,
             deployer_eth_address: str,
-            zksnark: IZKSnarkProvider,
             token_address: Optional[str] = None,
-            deploy_gas: Optional[EtherValue] = None) -> ZethClient:
+            deploy_gas: Optional[EtherValue] = None,
+            zksnark: Optional[IZKSnarkProvider] = None) -> ZethClient:
         """
         Deploy Zeth contracts.
         """
         print("[INFO] 1. Fetching verification key from the proving server")
+        zksnark = zksnark or get_zksnark_provider(constants.ZKSNARK_DEFAULT)
         vk_obj = prover_client.get_verification_key()
         vk_json = zksnark.parse_verification_key(vk_obj)
         deploy_gas = deploy_gas or \
@@ -449,7 +449,7 @@ class ZethClient:
         mixer_interface = contracts.compile_mixer(zksnark)
         mixer_instance = contracts.deploy_mixer(
             web3,
-            mk_tree_depth,
+            constants.ZETH_MERKLE_TREE_DEPTH,
             mixer_interface,
             vk_json,
             deployer_eth_address,

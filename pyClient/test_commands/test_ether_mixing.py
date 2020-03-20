@@ -55,8 +55,9 @@ def main() -> None:
     zeth_client = zeth.joinsplit.ZethClient.deploy(
         web3,
         prover_client,
-        tree_depth,
         deployer_eth_address,
+        None,
+        None,
         zksnark)
 
     # Set up Merkle tree and Wallets. Note that each wallet holds an internal

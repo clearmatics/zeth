@@ -6,7 +6,6 @@
 
 import zeth.joinsplit
 import zeth.merkle_tree
-import zeth.zksnark
 import zeth.utils
 import zeth.constants as constants
 from zeth.contracts import MixOutputEvents
@@ -79,10 +78,10 @@ def main() -> None:
     zeth_client = zeth.joinsplit.ZethClient.deploy(
         web3,
         prover_client,
-        tree_depth,
         deployer_eth_address,
-        zksnark,
-        token_instance.address)
+        token_instance.address,
+        None,
+        zksnark)
     mk_tree = zeth.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
     mixer_instance = zeth_client.mixer_instance
 
