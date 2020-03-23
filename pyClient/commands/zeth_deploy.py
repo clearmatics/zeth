@@ -45,7 +45,7 @@ def deploy(
 
     zeth_client = MixerClient.deploy(
         web3,
-        client_ctx.prover_client,
+        client_ctx.prover_server_endpoint,
         eth_address,
         token_address,
         deploy_gas_value)

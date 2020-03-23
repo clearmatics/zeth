@@ -8,7 +8,6 @@ from zeth.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.contracts import \
     InstanceDescription, get_block_number, get_mix_results, compile_files
 from zeth.mixer_client import MixerClient
-from zeth.prover_client import ProverClient
 from zeth.utils import \
     open_web3, short_commitment, EtherValue, get_zeth_dir, from_zeth_units
 from zeth.wallet import ZethNoteDescription, Wallet
@@ -19,7 +18,7 @@ from typing import Dict, Tuple, Optional, Callable, Any
 from web3 import Web3  # type: ignore
 
 
-class ClientContext:
+class ClientConfig:
     """
     Context for users of these client tools
     """
@@ -31,13 +30,13 @@ class ClientContext:
             address_file: str,
             wallet_dir: str):
         self.eth_rpc_endpoint = eth_rpc_endpoint
-        self.prover_client = ProverClient(prover_server_endpoint)
+        self.prover_server_endpoint = prover_server_endpoint
         self.instance_file = instance_file
         self.address_file = address_file
         self.wallet_dir = wallet_dir
 
 
-def open_web3_from_ctx(ctx: ClientContext) -> Any:
+def open_web3_from_ctx(ctx: ClientConfig) -> Any:
     return open_web3(ctx.eth_rpc_endpoint)
 
 
@@ -104,15 +103,15 @@ def load_mixer_description(mixer_description_file: str) -> MixerDescription:
         return MixerDescription.from_json(desc_f.read())
 
 
-def load_mixer_description_from_ctx(ctx: ClientContext) -> MixerDescription:
+def load_mixer_description_from_ctx(ctx: ClientConfig) -> MixerDescription:
     return load_mixer_description(ctx.instance_file)
 
 
-def get_zeth_address_file(ctx: ClientContext) -> str:
+def get_zeth_address_file(ctx: ClientConfig) -> str:
     return ctx.address_file
 
 
-def load_zeth_address_public(ctx: ClientContext) -> ZethAddressPub:
+def load_zeth_address_public(ctx: ClientConfig) -> ZethAddressPub:
     """
     Load a ZethAddressPub from a key file.
     """
@@ -131,7 +130,7 @@ def write_zeth_address_public(
         pub_addr_f.write(str(pub_addr))
 
 
-def load_zeth_address_secret(ctx: ClientContext) -> ZethAddressPriv:
+def load_zeth_address_secret(ctx: ClientConfig) -> ZethAddressPriv:
     """
     Read ZethAddressPriv
     """
@@ -149,7 +148,7 @@ def write_zeth_address_secret(
         addr_f.write(secret_addr.to_json())
 
 
-def load_zeth_address(ctx: ClientContext) -> ZethAddress:
+def load_zeth_address(ctx: ClientConfig) -> ZethAddress:
     """
     Load a ZethAddress secret from a file, and the associated public address,
     and return as a ZethAddress.
@@ -162,7 +161,7 @@ def load_zeth_address(ctx: ClientContext) -> ZethAddress:
 def open_wallet(
         mixer_instance: Any,
         js_secret: ZethAddressPriv,
-        ctx: ClientContext) -> Wallet:
+        ctx: ClientConfig) -> Wallet:
     """
     Load a wallet using a secret key.
     """
@@ -244,27 +243,26 @@ def find_pub_address_file(base_file: str) -> str:
     raise ClickException(f"No public key file {pub_addr_file} or {base_file}")
 
 
-def create_mixer_client(ctx: ClientContext) -> MixerClient:
+def create_mixer_client(ctx: ClientConfig) -> MixerClient:
     """
     Create a MixerClient for an existing deployment.
     """
     web3 = open_web3_from_ctx(ctx)
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
-    prover_client = ctx.prover_client
-    return MixerClient.open(web3, prover_client, mixer_instance)
+    return MixerClient.open(web3, ctx.prover_server_endpoint, mixer_instance)
 
 
 def create_zeth_client_and_mixer_desc(
-        ctx: ClientContext) -> Tuple[MixerClient, MixerDescription]:
+        ctx: ClientConfig) -> Tuple[MixerClient, MixerDescription]:
     """
     Create a MixerClient and MixerDescription object, for an existing deployment.
     """
     web3 = open_web3_from_ctx(ctx)
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
-    prover_client = ctx.prover_client
-    zeth_client = MixerClient.open(web3, prover_client, mixer_instance)
+    zeth_client = MixerClient.open(
+        web3, ctx.prover_server_endpoint, mixer_instance)
     return (zeth_client, mixer_desc)
 
 

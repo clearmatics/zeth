@@ -7,7 +7,7 @@
 from commands.constants import \
     PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
     ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT
-from commands.utils import ClientContext
+from commands.utils import ClientConfig
 from commands.zeth_deploy import deploy
 from commands.zeth_gen_address import gen_address
 from commands.zeth_sync import sync
@@ -17,12 +17,12 @@ from commands.zeth_ls_commits import ls_commits
 from commands.zeth_token_approve import token_approve
 from click import group, command, option, pass_context, ClickException, Context
 from click_default_group import DefaultGroup
-from typing import Optional
+from typing import Optional, Any
 
 
 @command()
 @pass_context
-def help(ctx) -> None:
+def help(ctx: Any) -> None:
     """
     Print help and exit
     """
@@ -64,7 +64,7 @@ def zeth(
     if ctx.invoked_subcommand == "help":
         ctx.invoke(help)
     ctx.ensure_object(dict)
-    ctx.obj = ClientContext(
+    ctx.obj = ClientConfig(
         eth_rpc_endpoint=eth_rpc,
         prover_server_endpoint=prover_server,
         instance_file=instance_file,

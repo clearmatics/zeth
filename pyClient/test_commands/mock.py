@@ -7,7 +7,6 @@
 from zeth.zeth_address import ZethAddress
 from zeth.encryption import EncryptionKeyPair
 from zeth.ownership import gen_ownership_keypair
-from zeth.prover_client import ProverClient
 from zeth.utils import get_contracts_dir, get_private_key_from_bytes, \
     get_public_key_from_bytes, open_web3
 from os.path import join
@@ -24,10 +23,6 @@ KeyStore = Dict[str, ZethAddress]
 def open_test_web3() -> Tuple[Any, Any]:
     web3 = open_web3(TEST_WEB3_PROVIDER_ENDPOINT)
     return web3, web3.eth  # pylint: disable=no-member # type: ignore
-
-
-def open_test_prover_client() -> ProverClient:
-    return ProverClient(TEST_PROVER_SERVER_ENDPOINT)
 
 
 def init_test_keystore() -> KeyStore:

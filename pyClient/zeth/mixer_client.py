@@ -292,21 +292,21 @@ class MixerClient:
     @staticmethod
     def open(
             web3: Any,
-            prover_client: ProverClient,
+            prover_server_endpoint: str,
             mixer_instance: Any) -> MixerClient:
         """
         Create a client for an existing Zeth deployment.
         """
         return MixerClient(
             web3,
-            prover_client,
+            ProverClient(prover_server_endpoint),
             mixer_instance,
             get_zksnark_provider(constants.ZKSNARK_DEFAULT))
 
     @staticmethod
     def deploy(
             web3: Any,
-            prover_client: ProverClient,
+            prover_server_endpoint: str,
             deployer_eth_address: str,
             token_address: Optional[str] = None,
             deploy_gas: Optional[EtherValue] = None,
@@ -316,6 +316,7 @@ class MixerClient:
         """
         print("[INFO] 1. Fetching verification key from the proving server")
         zksnark = zksnark or get_zksnark_provider(constants.ZKSNARK_DEFAULT)
+        prover_client = ProverClient(prover_server_endpoint)
         vk_obj = prover_client.get_verification_key()
         vk_json = zksnark.parse_verification_key(vk_obj)
         deploy_gas = deploy_gas or \

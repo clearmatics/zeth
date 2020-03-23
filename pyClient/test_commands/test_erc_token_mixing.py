@@ -66,8 +66,6 @@ def main() -> None:
     # Zeth addresses
     keystore = mock.init_test_keystore()
 
-    prover_client = mock.open_test_prover_client()
-
     coinstore_dir = os.environ['ZETH_COINSTORE']
 
     # Deploy the token contract
@@ -77,7 +75,7 @@ def main() -> None:
     tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client = MixerClient.deploy(
         web3,
-        prover_client,
+        mock.TEST_PROVER_SERVER_ENDPOINT,
         deployer_eth_address,
         token_instance.address,
         None,
