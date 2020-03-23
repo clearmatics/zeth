@@ -14,7 +14,7 @@
 
 /*
  * This file uses types and preprocessor variables defined in the `gmp.h`
- *header:
+ * header:
  *  - `mp_size_t`
  *  - `GMP_LIMB_BITS`
  *  - `GMP_NAIL_BITS`
