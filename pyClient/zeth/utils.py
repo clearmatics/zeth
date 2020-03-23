@@ -139,6 +139,20 @@ def hex_extend_32bytes(element: str) -> str:
     return extend_32bytes(bytes.fromhex(res)).hex()
 
 
+def to_zeth_units(value: EtherValue) -> int:
+    """
+    Convert a quantity of ether / token to Zeth units
+    """
+    return int(value.wei / constants.ZETH_PUBLIC_UNIT_VALUE)
+
+
+def from_zeth_units(zeth_units: int) -> EtherValue:
+    """
+    Convert a quantity of ether / token to Zeth units
+    """
+    return EtherValue(zeth_units * constants.ZETH_PUBLIC_UNIT_VALUE, "wei")
+
+
 def get_private_key_from_bytes(sk_bytes: bytes) -> PrivateKey:
     """
     Gets PrivateKey object from raw representation

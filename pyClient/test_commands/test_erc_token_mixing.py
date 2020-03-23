@@ -4,13 +4,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import zeth.joinsplit
 import zeth.merkle_tree
 import zeth.utils
 import zeth.constants as constants
 from zeth.contracts import MixOutputEvents
 from zeth.encryption import EncryptionPublicKey
-from zeth.joinsplit import ZethAddressPriv
+from zeth.mixer_client import MixerClient, ZethAddressPriv
 from zeth.wallet import Wallet, ZethNoteDescription
 import test_commands.mock as mock
 import test_commands.scenario as scenario
@@ -75,7 +74,7 @@ def main() -> None:
 
     # Deploy Zeth contracts
     tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
-    zeth_client = zeth.joinsplit.ZethClient.deploy(
+    zeth_client = MixerClient.deploy(
         web3,
         prover_client,
         deployer_eth_address,

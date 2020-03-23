@@ -4,12 +4,14 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import zeth.joinsplit as joinsplit
+from zeth.mixer_client import MixerClient, OwnershipKeyPair, joinsplit_sign, \
+    encrypt_notes, get_dummy_input_and_address, compute_h_sig, \
+    JoinsplitSigVerificationKey
 import zeth.contracts as contracts
 from zeth.constants import ZETH_PRIME, FIELD_CAPACITY, DEFAULT_MIX_GAS_WEI
 import zeth.signing as signing
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
-from zeth.utils import EtherValue
+from zeth.utils import EtherValue, to_zeth_units
 import test_commands.mock as mock
 import api.util_pb2 as util_pb2
 
@@ -36,7 +38,7 @@ def dump_merkle_tree(mk_tree: List[bytes]) -> None:
 
 
 def wait_for_tx_update_mk_tree(
-        zeth_client: joinsplit.ZethClient,
+        zeth_client: MixerClient,
         mk_tree: MerkleTree,
         tx_hash: str) -> contracts.MixResult:
     tx_receipt = zeth_client.web3.eth.waitForTransactionReceipt(tx_hash, 10000)
@@ -50,7 +52,7 @@ def wait_for_tx_update_mk_tree(
 
 
 def bob_deposit(
-        zeth_client: joinsplit.ZethClient,
+        zeth_client: MixerClient,
         mk_tree: MerkleTree,
         bob_eth_address: str,
         keystore: mock.KeyStore,
@@ -78,7 +80,7 @@ def bob_deposit(
 
 
 def bob_to_charlie(
-        zeth_client: joinsplit.ZethClient,
+        zeth_client: MixerClient,
         mk_tree: MerkleTree,
         input1: Tuple[int, util_pb2.ZethNote],
         bob_eth_address: str,
@@ -99,7 +101,7 @@ def bob_to_charlie(
     # Send the tx
     tx_hash = zeth_client.joinsplit(
         mk_tree,
-        joinsplit.OwnershipKeyPair(bob_ask, bob_addr.a_pk),
+        OwnershipKeyPair(bob_ask, bob_addr.a_pk),
         bob_eth_address,
         [input1],
         [output0, output1],
@@ -110,7 +112,7 @@ def bob_to_charlie(
 
 
 def charlie_withdraw(
-        zeth_client: joinsplit.ZethClient,
+        zeth_client: MixerClient,
         mk_tree: MerkleTree,
         input1: Tuple[int, util_pb2.ZethNote],
         charlie_eth_address: str,
@@ -123,7 +125,7 @@ def charlie_withdraw(
     charlie_apk = charlie_pk.a_pk
     charlie_ask = keystore["Charlie"].addr_sk.a_sk
     charlie_ownership_key = \
-        joinsplit.OwnershipKeyPair(charlie_ask, charlie_apk)
+        OwnershipKeyPair(charlie_ask, charlie_apk)
 
     tx_hash = zeth_client.joinsplit(
         mk_tree,
@@ -138,7 +140,7 @@ def charlie_withdraw(
 
 
 def charlie_double_withdraw(
-        zeth_client: joinsplit.ZethClient,
+        zeth_client: MixerClient,
         mk_tree: MerkleTree,
         input1: Tuple[int, util_pb2.ZethNote],
         charlie_eth_address: str,
@@ -158,11 +160,11 @@ def charlie_double_withdraw(
     mk_path1 = compute_merkle_path(input1[0], mk_tree)
     mk_root = mk_tree.get_root()
 
-    # Create the an additional dummy input for the JoinSplit
-    input2 = joinsplit.get_dummy_input_and_address(charlie_apk)
+    # Create the an additional dummy input for the MixerClient
+    input2 = get_dummy_input_and_address(charlie_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(tree_depth)
 
-    note1_value = joinsplit.to_zeth_units(EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH))
+    note1_value = to_zeth_units(EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH))
     v_out = EtherValue(CHARLIE_WITHDRAW_ETH)
 
     # ### ATTACK BLOCK
@@ -178,7 +180,7 @@ def charlie_double_withdraw(
     def compute_h_sig_attack_nf(
             nf0: bytes,
             nf1: bytes,
-            sign_vk: joinsplit.JoinsplitSigVerificationKey) -> bytes:
+            sign_vk: JoinsplitSigVerificationKey) -> bytes:
         # We disassemble the nfs to get the formatting of the primary inputs
         input_nullifier0 = nf0.hex()
         input_nullifier1 = nf1.hex()
@@ -206,7 +208,7 @@ def charlie_double_withdraw(
             len(attack_primary_input4_bits) - FIELD_CAPACITY:] +\
             primary_input4_res_bits
         attack_nf1 = "{0:064x}".format(int(attack_nf1_bits, 2))
-        return joinsplit.compute_h_sig(
+        return compute_h_sig(
             bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_vk)
 
     (output_note1, output_note2, proof_json, signing_keypair) = \
@@ -219,8 +221,8 @@ def charlie_double_withdraw(
             charlie_ask,  # sender
             (charlie_apk, note1_value),  # recipient1
             (charlie_apk, 0),  # recipient2
-            joinsplit.to_zeth_units(EtherValue(0)),  # v_in
-            joinsplit.to_zeth_units(v_out),  # v_out
+            to_zeth_units(EtherValue(0)),  # v_in
+            to_zeth_units(v_out),  # v_out
             compute_h_sig_attack_nf)
 
     # Update the primary inputs to the modified nullifiers, since libsnark
@@ -240,12 +242,12 @@ def charlie_double_withdraw(
     pk_charlie = keystore["Charlie"].addr_pk.k_pk
 
     # encrypt the coins
-    (sender_eph_pk, ciphertexts) = joinsplit.encrypt_notes([
+    (sender_eph_pk, ciphertexts) = encrypt_notes([
         (output_note1, pk_charlie),
         (output_note2, pk_charlie)])
 
     # Compute the joinSplit signature
-    joinsplit_sig_charlie = joinsplit.joinsplit_sign(
+    joinsplit_sig_charlie = joinsplit_sign(
         signing_keypair,
         charlie_eth_address,
         sender_eph_pk,
@@ -267,7 +269,7 @@ def charlie_double_withdraw(
 
 
 def charlie_corrupt_bob_deposit(
-        zeth_client: joinsplit.ZethClient,
+        zeth_client: MixerClient,
         mk_tree: MerkleTree,
         bob_eth_address: str,
         charlie_eth_address: str,
@@ -305,14 +307,14 @@ def charlie_corrupt_bob_deposit(
     # mk_root = zeth_client.merkle_root
 
     # Create the JoinSplit dummy inputs for the deposit
-    input1 = joinsplit.get_dummy_input_and_address(bob_apk)
-    input2 = joinsplit.get_dummy_input_and_address(bob_apk)
+    input1 = get_dummy_input_and_address(bob_apk)
+    input2 = get_dummy_input_and_address(bob_apk)
     dummy_mk_path = mock.get_dummy_merkle_path(tree_depth)
 
-    note1_value = joinsplit.to_zeth_units(EtherValue(BOB_SPLIT_1_ETH))
-    note2_value = joinsplit.to_zeth_units(EtherValue(BOB_SPLIT_2_ETH))
+    note1_value = to_zeth_units(EtherValue(BOB_SPLIT_1_ETH))
+    note2_value = to_zeth_units(EtherValue(BOB_SPLIT_2_ETH))
 
-    v_in = joinsplit.to_zeth_units(EtherValue(BOB_DEPOSIT_ETH))
+    v_in = to_zeth_units(EtherValue(BOB_DEPOSIT_ETH))
 
     (output_note1, output_note2, proof_json, joinsplit_keypair) = \
         zeth_client.get_proof_joinsplit_2_by_2(
@@ -325,12 +327,12 @@ def charlie_corrupt_bob_deposit(
             (bob_apk, note1_value),  # recipient1
             (bob_apk, note2_value),  # recipient2
             v_in,  # v_in
-            joinsplit.to_zeth_units(EtherValue(0))  # v_out
+            to_zeth_units(EtherValue(0))  # v_out
         )
 
     # Encrypt the coins to bob
     pk_bob = keystore["Bob"].addr_pk.k_pk
-    (sender_eph_pk, ciphertexts) = joinsplit.encrypt_notes([
+    (sender_eph_pk, ciphertexts) = encrypt_notes([
         (output_note1, pk_bob),
         (output_note2, pk_bob)])
 
@@ -346,7 +348,7 @@ def charlie_corrupt_bob_deposit(
 
     result_corrupt1 = None
     try:
-        joinsplit_sig_charlie = joinsplit.joinsplit_sign(
+        joinsplit_sig_charlie = joinsplit_sign(
             joinsplit_keypair,
             charlie_eth_address,
             sender_eph_pk,
@@ -383,7 +385,7 @@ def charlie_corrupt_bob_deposit(
 
     result_corrupt2 = None
     try:
-        joinsplit_sig_charlie = joinsplit.joinsplit_sign(
+        joinsplit_sig_charlie = joinsplit_sign(
             new_joinsplit_keypair,
             charlie_eth_address,
             sender_eph_pk,
@@ -412,7 +414,7 @@ def charlie_corrupt_bob_deposit(
     # call from his own address (thereby receiving the output).
     result_corrupt3 = None
     try:
-        joinsplit_sig_bob = joinsplit.joinsplit_sign(
+        joinsplit_sig_bob = joinsplit_sign(
             joinsplit_keypair,
             bob_eth_address,
             sender_eph_pk,
@@ -439,7 +441,7 @@ def charlie_corrupt_bob_deposit(
     # ### ATTACK BLOCK
 
     # Bob transaction is finally mined
-    joinsplit_sig_bob = joinsplit.joinsplit_sign(
+    joinsplit_sig_bob = joinsplit_sign(
         joinsplit_keypair,
         bob_eth_address,
         sender_eph_pk,

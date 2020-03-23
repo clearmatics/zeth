@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.joinsplit import EncryptionKeyPair, ZethAddress
+from zeth.mixer_client import EncryptionKeyPair, ZethAddress
 from zeth.ownership import gen_ownership_keypair
 from zeth.prover_client import ProverClient
 from zeth.utils import get_contracts_dir, get_private_key_from_bytes, \

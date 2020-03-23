@@ -22,7 +22,8 @@ from zeth.zksnark import \
     IZKSnarkProvider, get_zksnark_provider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, encrypt, \
-    decrypt, int64_to_hex, encode_message_to_bytes, encode_eth_address
+    decrypt, int64_to_hex, encode_message_to_bytes, encode_eth_address, \
+    to_zeth_units
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 import api.prover_pb2 as prover_pb2
@@ -34,15 +35,7 @@ from hashlib import blake2s, sha256
 from typing import Tuple, Dict, List, Callable, Optional, Any
 
 
-# Value of a single unit (in Wei) of vpub_in and vpub_out.  Use Szabos (10^12
-# Wei).
-ZETH_PUBLIC_UNIT_VALUE = 1000000000000
-
-
 ZERO_UNITS_HEX = "0000000000000000"
-
-
-COMMITMENT_VALUE_PADDING = bytes(int(192/8))
 
 
 # JoinSplit Signature Keys definitions
@@ -75,7 +68,7 @@ def blake2s_compress_pad_right64(left256: bytes, right64: bytes) -> bytes:
     assert len(right64) == 8
     blake = blake2s()
     blake.update(left256)
-    blake.update(COMMITMENT_VALUE_PADDING)
+    blake.update(constants.COMMITMENT_VALUE_PADDING)
     blake.update(right64)
     return blake.digest()
 
@@ -187,20 +180,6 @@ class JoinsplitInputNote:
         self.note = note
         self.nullifier = nullifier
         self.merkle_location = merkle_location
-
-
-def to_zeth_units(value: EtherValue) -> int:
-    """
-    Convert a quantity of ether / token to Zeth units
-    """
-    return int(value.wei / ZETH_PUBLIC_UNIT_VALUE)
-
-
-def from_zeth_units(zeth_units: int) -> EtherValue:
-    """
-    Convert a quantity of ether / token to Zeth units
-    """
-    return EtherValue(zeth_units * ZETH_PUBLIC_UNIT_VALUE, "wei")
 
 
 def create_zeth_notes(
@@ -395,9 +374,9 @@ def compute_joinsplit2x2_inputs(
         phi=phi)
 
 
-class ZethClient:
+class MixerClient:
     """
-    Context for zeth operations
+    Interface to operations on the Mixer contract.
     """
     def __init__(
             self,
@@ -414,11 +393,11 @@ class ZethClient:
     def open(
             web3: Any,
             prover_client: ProverClient,
-            mixer_instance: Any) -> ZethClient:
+            mixer_instance: Any) -> MixerClient:
         """
         Create a client for an existing Zeth deployment.
         """
-        return ZethClient(
+        return MixerClient(
             web3,
             prover_client,
             mixer_instance,
@@ -431,7 +410,7 @@ class ZethClient:
             deployer_eth_address: str,
             token_address: Optional[str] = None,
             deploy_gas: Optional[EtherValue] = None,
-            zksnark: Optional[IZKSnarkProvider] = None) -> ZethClient:
+            zksnark: Optional[IZKSnarkProvider] = None) -> MixerClient:
         """
         Deploy Zeth contracts.
         """
@@ -456,7 +435,7 @@ class ZethClient:
             deploy_gas.wei,
             token_address or "0x0000000000000000000000000000000000000000",
             zksnark)
-        return ZethClient(
+        return MixerClient(
             web3,
             prover_client,
             mixer_instance,

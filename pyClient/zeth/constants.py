@@ -54,3 +54,9 @@ SOL_COMPILER_VERSION = 'v0.5.16'
 
 # Seed for MIMC
 MIMC_MT_SEED: str = "clearmatics_mt_seed"
+
+# Units for vpub_in and vpub_out, given in Wei. i.e.
+#   Value (in Wei) = vpub_{in,out} * ZETH_PUBLIC_UNIT_VALUE
+ZETH_PUBLIC_UNIT_VALUE = 1000000000000  # 1 Szabo (10^12 Wei).
+
+COMMITMENT_VALUE_PADDING = bytes(int(192/8))

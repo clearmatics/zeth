@@ -4,16 +4,17 @@
 
 from __future__ import annotations
 from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT
-from zeth.contracts import InstanceDescription, get_block_number, get_mix_results
-from zeth.joinsplit import \
-    ZethAddressPub, ZethAddressPriv, ZethAddress, ZethClient, from_zeth_units
+from zeth.contracts import \
+    InstanceDescription, get_block_number, get_mix_results, compile_files
+from zeth.mixer_client import \
+    ZethAddressPub, ZethAddressPriv, ZethAddress, MixerClient
 from zeth.prover_client import ProverClient
-from zeth.utils import open_web3, short_commitment, EtherValue, get_zeth_dir
+from zeth.utils import \
+    open_web3, short_commitment, EtherValue, get_zeth_dir, from_zeth_units
 from zeth.wallet import ZethNoteDescription, Wallet
 from click import ClickException
 import json
 from os.path import exists, join
-from solcx import compile_files  # type: ignore
 from typing import Dict, Tuple, Optional, Callable, Any
 from web3 import Web3  # type: ignore
 
@@ -243,27 +244,27 @@ def find_pub_address_file(base_file: str) -> str:
     raise ClickException(f"No public key file {pub_addr_file} or {base_file}")
 
 
-def create_zeth_client(ctx: ClientContext) -> ZethClient:
+def create_mixer_client(ctx: ClientContext) -> MixerClient:
     """
-    Create a ZethClient for an existing deployment.
+    Create a MixerClient for an existing deployment.
     """
     web3 = open_web3_from_ctx(ctx)
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
     prover_client = ctx.prover_client
-    return ZethClient.open(web3, prover_client, mixer_instance)
+    return MixerClient.open(web3, prover_client, mixer_instance)
 
 
 def create_zeth_client_and_mixer_desc(
-        ctx: ClientContext) -> Tuple[ZethClient, MixerDescription]:
+        ctx: ClientContext) -> Tuple[MixerClient, MixerDescription]:
     """
-    Create a ZethClient and MixerDescription object, for an existing deployment.
+    Create a MixerClient and MixerDescription object, for an existing deployment.
     """
     web3 = open_web3_from_ctx(ctx)
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
     prover_client = ctx.prover_client
-    zeth_client = ZethClient.open(web3, prover_client, mixer_instance)
+    zeth_client = MixerClient.open(web3, prover_client, mixer_instance)
     return (zeth_client, mixer_desc)
 
 

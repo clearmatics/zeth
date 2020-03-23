@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.joinsplit import generate_zeth_address
+from zeth.mixer_client import generate_zeth_address
 from commands.utils import get_zeth_address_file, pub_address_file, \
     write_zeth_address_secret, write_zeth_address_public
 from click import command, pass_context, ClickException, Context

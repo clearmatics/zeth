@@ -5,9 +5,8 @@
 from commands.utils import create_zeth_client_and_mixer_desc, \
     load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address
 from zeth.constants import JS_INPUTS, JS_OUTPUTS
-from zeth.joinsplit import ZethAddressPub
-from zeth.joinsplit import from_zeth_units
-from zeth.utils import EtherValue
+from zeth.mixer_client import ZethAddressPub
+from zeth.utils import EtherValue, from_zeth_units
 from api.util_pb2 import ZethNote
 from click import command, option, pass_context, ClickException, Context
 from typing import List, Tuple, Optional

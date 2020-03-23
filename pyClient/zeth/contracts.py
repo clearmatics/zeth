@@ -13,7 +13,7 @@ from zeth.constants import SOL_COMPILER_VERSION
 
 import os
 import solcx
-from typing import Tuple, Dict, List, Iterator, Optional, Any
+from typing import Dict, List, Iterator, Optional, Any
 
 # Avoid trying to read too much data into memory
 SYNC_BLOCKS_PER_BATCH = 10
@@ -124,7 +124,7 @@ def deploy_mixer(
         deployer_address: str,
         deployment_gas: int,
         token_address: str,
-        zksnark: IZKSnarkProvider) -> Tuple[Any, bytes]:
+        zksnark: IZKSnarkProvider) -> Any:
     """
     Common function to deploy a mixer contract. Returns the mixer and the
     initial merkle root of the commitment tree

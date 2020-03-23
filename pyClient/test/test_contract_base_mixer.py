@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zeth.constants import JS_INPUTS, JS_OUTPUTS, PUBLIC_VALUE_LENGTH
-from zeth.joinsplit import ZethClient
+from zeth.mixer_client import MixerClient
 from typing import Any
 import test_commands.mock as mock
 
@@ -142,7 +142,7 @@ def main() -> None:
     deployer_eth_address = eth.accounts[0]
 
     prover_client = mock.open_test_prover_client()
-    zeth_client = ZethClient.deploy(web3, prover_client, deployer_eth_address)
+    zeth_client = MixerClient.deploy(web3, prover_client, deployer_eth_address)
 
     mixer_instance = zeth_client.mixer_instance
 
