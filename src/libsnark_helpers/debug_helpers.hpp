@@ -32,6 +32,6 @@ bool replace(std::string &str, const std::string &from, const std::string &to);
 
 } // namespace libzeth
 
-#include "libsnark_helpers/debug_helpers.hpp"
+#include "libsnark_helpers/debug_helpers.tcc"
 
 #endif // __ZETH_DEBUG_HELPERS_HPP__

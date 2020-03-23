@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <libff/algebra/fields/bigint.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
 #include <sstream>
 
@@ -51,7 +52,9 @@ std::string hex_from_libsnark_bigint(libff::bigint<FieldT::num_limbs> limbs)
     uint8_t x[bytes_per_limb * FieldT::num_limbs];
     for (unsigned i = 0; i < FieldT::num_limbs; i++) {
         for (unsigned j = 0; j < bytes_per_limb; j++) {
-            x[i * 8 + j] = uint8_t(uint64_t(limbs.data[(FieldT::num_limbs - 1) - i]) >> (GMP_LIMB_BITS - 8*(j+1))));
+            x[i * 8 + j] = uint8_t(
+                uint64_t(limbs.data[(FieldT::num_limbs - 1) - i]) >>
+                (GMP_LIMB_BITS - 8 * (j + 1)));
         }
     }
 
@@ -107,25 +110,30 @@ libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(
     return res;
 };
 
-template<typename ppT>
-std::string point_g1_affine_as_hex(libff::G1<ppT> point)
+template<typename ppT> std::string point_g1_affine_as_hex(libff::G1<ppT> point)
 {
     libff::G1<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
-    return "\"0x" + hex_from_libsnark_bigint(affine_p.X.as_bigint()) +
-           "\", \"0x" + hex_from_libsnark_bigint(affine_p.Y.as_bigint()) + "\"";
+    return "\"0x" +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.X.as_bigint()) +
+           "\", \"0x" +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.Y.as_bigint()) +
+           "\"";
 };
 
-template<typename ppT>
-std::string point_g2_affine_as_hex(libff::G2<ppT> point)
+template<typename ppT> std::string point_g2_affine_as_hex(libff::G2<ppT> point)
 {
     libff::G2<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
-    return "[\"0x" + hex_from_libsnark_bigint(affine_p.X.c1.as_bigint()) +
-           "\", \"0x" + hex_from_libsnark_bigint(affine_p.X.c0.as_bigint()) +
+    return "[\"0x" +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.X.c1.as_bigint()) +
+           "\", \"0x" +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.X.c0.as_bigint()) +
            "\"],\n [\"0x" +
-           hex_from_libsnark_bigint(affine_p.Y.c1.as_bigint()) + "\", \"0x" +
-           hex_from_libsnark_bigint(affine_p.Y.c0.as_bigint()) + "\"]";
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.Y.c1.as_bigint()) +
+           "\", \"0x" +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.Y.c0.as_bigint()) +
+           "\"]";
 };
 
 } // namespace libzeth
