@@ -7,9 +7,10 @@
 import zeth.merkle_tree
 import zeth.utils
 import zeth.constants as constants
+from zeth.zeth_address import ZethAddressPriv
 from zeth.contracts import MixOutputEvents
 from zeth.encryption import EncryptionPublicKey
-from zeth.mixer_client import MixerClient, ZethAddressPriv
+from zeth.mixer_client import MixerClient
 from zeth.wallet import Wallet, ZethNoteDescription
 import test_commands.mock as mock
 import test_commands.scenario as scenario

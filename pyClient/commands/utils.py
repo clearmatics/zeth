@@ -4,10 +4,10 @@
 
 from __future__ import annotations
 from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT
+from zeth.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.contracts import \
     InstanceDescription, get_block_number, get_mix_results, compile_files
-from zeth.mixer_client import \
-    ZethAddressPub, ZethAddressPriv, ZethAddress, MixerClient
+from zeth.mixer_client import MixerClient
 from zeth.prover_client import ProverClient
 from zeth.utils import \
     open_web3, short_commitment, EtherValue, get_zeth_dir, from_zeth_units

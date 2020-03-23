@@ -5,8 +5,9 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
+from zeth.zeth_address import ZethAddressPriv
 from zeth.mixer_client import zeth_note_to_json_dict, zeth_note_from_json_dict, \
-    ZethAddressPriv, receive_note, compute_nullifier, compute_commitment
+    receive_note, compute_nullifier, compute_commitment
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import MixOutputEvents
 from zeth.encryption import EncryptionPublicKey
