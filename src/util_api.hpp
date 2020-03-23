@@ -25,12 +25,16 @@ template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
     const prover_proto::JoinsplitInput &input);
 
+template<typename ppT>
 prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
-    libff::alt_bn128_G1 point);
+    libff::G1<ppT> point);
+
+template<typename ppT>
 prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
-    libff::alt_bn128_G2 point);
+    libff::G2<ppT> point);
 
 } // namespace libzeth
+
 #include "util_api.tcc"
 
 #endif // __ZETH_UTIL_API_HPP__

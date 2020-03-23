@@ -13,7 +13,7 @@ namespace libzeth
 template<typename FieldT> FieldT parse_merkle_node(std::string mk_node)
 {
     return string_to_field<FieldT>(mk_node);
-}
+};
 
 template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
@@ -43,7 +43,47 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
         input_note,
         input_spending_ask,
         input_nullifier);
-}
+};
+
+template<typename ppT>
+prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
+    libff::G1<ppT> point)
+{
+    libff::G1<ppT> aff = point;
+    aff.to_affine_coordinates();
+    std::string x_coord = "0x" + hex_from_libsnark_bigint(aff.X.as_bigint());
+    std::string y_coord = "0x" + hex_from_libsnark_bigint(aff.Y.as_bigint());
+
+    prover_proto::HexPointBaseGroup1Affine res;
+    res.set_x_coord(x_coord);
+    res.set_y_coord(y_coord);
+
+    return res;
+};
+
+template<typename ppT>
+prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
+    libff::G2<ppT> point)
+{
+    libff::G2<ppT> aff = point;
+    aff.to_affine_coordinates();
+    std::string x_c1_coord =
+        "0x" + hex_from_libsnark_bigint(aff.X.c1.as_bigint());
+    std::string x_c0_coord =
+        "0x" + hex_from_libsnark_bigint(aff.X.c0.as_bigint());
+    std::string y_c1_coord =
+        "0x" + hex_from_libsnark_bigint(aff.Y.c1.as_bigint());
+    std::string y_c0_coord =
+        "0x" + hex_from_libsnark_bigint(aff.Y.c0.as_bigint());
+
+    prover_proto::HexPointBaseGroup2Affine res;
+    res.set_x_c0_coord(x_c0_coord);
+    res.set_x_c1_coord(x_c1_coord);
+    res.set_y_c0_coord(y_c0_coord);
+    res.set_y_c1_coord(y_c1_coord);
+
+    return res;
+};
 
 } // namespace libzeth
 
