@@ -8,9 +8,8 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <sstream>
-
 #include <libff/common/default_types/ec_pp.hpp>
+#include <sstream>
 
 /*
  * This file uses types and preprocessor variables defined in the `gmp.h`
@@ -85,14 +84,15 @@ std::string hex_from_libsnark_bigint(libff::bigint<FieldT::num_limbs> limbs)
  *            |            |              |              |
  *          Limb3        Limb2          Limb1          Limb0
  * where all x_i's are bytes (uint8_t)
- * 
+ *
  * then the function returns:
  * and we have `res_bigint = [Limb0, Limb1, Limb2, Limb3]`,
- * where every Limb{i} is of type `mp_limb_t`, 
- * 
+ * where every Limb{i} is of type `mp_limb_t`,
+ *
  **/
 template<typename FieldT>
-libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(const uint8_t bytes[(FieldT::num_bits + 8 - 1) / 8])
+libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(
+    const uint8_t bytes[(FieldT::num_bits + 8 - 1) / 8])
 {
     const unsigned bytes_per_limb = (GMP_LIMB_BITS + 8 - 1) / 8;
 
@@ -100,30 +100,30 @@ libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(const uint8_t bytes[
 
     for (unsigned i = 0; i < FieldT::num_limbs; i++) {
         for (unsigned j = 0; j < bytes_per_limb; j++) {
-            res.data[FieldT::num_limbs - i] |= mp_limb_t(bytes[i * 8 + j]) << (GMP_LIMB_BITS - 8*(j+1));
+            res.data[FieldT::num_limbs - i] |= mp_limb_t(bytes[i * 8 + j])
+                                               << (GMP_LIMB_BITS - 8 * (j + 1));
         }
     }
     return res;
 };
 
-template<typename ppT>
-std::string point_g1_affine_as_hex(ppT::G1_type point)
+template<typename ppT> std::string point_g1_affine_as_hex(ppT::G1_type point)
 {
     ppT::G1_type affine_p = point;
     affine_p.to_affine_coordinates();
-    return "\"0x" + hex_from_libsnark_bigint(affine_p.X.as_bigint()) + "\", \"0x" +
-           hex_from_libsnark_bigint(affine_p.Y.as_bigint()) + "\"";
+    return "\"0x" + hex_from_libsnark_bigint(affine_p.X.as_bigint()) +
+           "\", \"0x" + hex_from_libsnark_bigint(affine_p.Y.as_bigint()) + "\"";
 };
 
-template<typename ppT>
-std::string point_g2_affine_as_hex(ppT::G2_type point)
+template<typename ppT> std::string point_g2_affine_as_hex(ppT::G2_type point)
 {
     ppT::G2_type affine_p = point;
     affine_p.to_affine_coordinates();
     return "[\"0x" + hex_from_libsnark_bigint(affine_p.X.c1.as_bigint()) +
            "\", \"0x" + hex_from_libsnark_bigint(affine_p.X.c0.as_bigint()) +
-           "\"],\n [\"0x" + hex_from_libsnark_bigint(affine_p.Y.c1.as_bigint()) +
-           "\", \"0x" + hex_from_libsnark_bigint(affine_p.Y.c0.as_bigint()) + "\"]";
+           "\"],\n [\"0x" +
+           hex_from_libsnark_bigint(affine_p.Y.c1.as_bigint()) + "\", \"0x" +
+           hex_from_libsnark_bigint(affine_p.Y.c0.as_bigint()) + "\"]";
 };
 
 } // namespace libzeth

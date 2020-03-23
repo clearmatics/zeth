@@ -12,14 +12,11 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <libff/common/default_types/ec_pp.hpp>
+#include <libsnark/gadgetlib1/gadget.hpp>
 #include <sstream>
 #include <stdbool.h>
 #include <stdint.h>
-
-// Contains definition of alt_bn128 ec public parameters
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libff/common/default_types/ec_pp.hpp>
-#include <libsnark/gadgetlib1/gadget.hpp>
 
 // Contains required interfaces and types (keypair, proof, generator, prover,
 // verifier)
