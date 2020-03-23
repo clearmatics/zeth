@@ -7,26 +7,25 @@
 
 #include <boost/filesystem.hpp>
 #include <cassert>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
 #include <stdbool.h>
 #include <stdint.h>
 
-// Contains definition of alt_bn128 ec public parameters
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
 
 namespace libzeth
 {
 
-libff::bigint<libff::alt_bn128_r_limbs> libsnark_bigint_from_bytes(
-    const uint8_t *_x);
-std::string hex_from_libsnark_bigint(
-    libff::bigint<libff::alt_bn128_r_limbs> _x);
-std::string point_g1_affine_as_hex(libff::alt_bn128_G1 _p);
-std::string point_g2_affine_as_hex(libff::alt_bn128_G2 _p);
+template<typename FieldT>
+std::string hex_from_libsnark_bigint(libff::bigint<FieldT::num_limbs> limbs);
+
+template<typename FieldT>
+libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(const uint8_t bytes[(FieldT::num_bits + 8 - 1) / 8]);
+
+template<typename ppT>
+std::string point_g1_affine_as_hex(ppT::G1_type point);
+
+template<typename ppT>
+std::string point_g2_affine_as_hex(ppT::G2_type point);
 
 boost::filesystem::path get_path_to_setup_directory();
 boost::filesystem::path get_path_to_debug_directory();
@@ -34,5 +33,7 @@ boost::filesystem::path get_path_to_debug_directory();
 bool replace(std::string &str, const std::string &from, const std::string &to);
 
 } // namespace libzeth
+
+#include "libsnark_helpers/debug_helpers.hpp"
 
 #endif // __ZETH_DEBUG_HELPERS_HPP__
