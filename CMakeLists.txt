@@ -69,6 +69,12 @@ set(
 )
 
 option(
+  IS_ZETH_PARENT
+  "Zeth parent folder option"
+  ON
+)
+
+option(
   MULTICORE
   "Enable parallelized execution, using OpenMP"
   ON
@@ -173,7 +179,9 @@ endif()
 # Add the given directories to those the compiler uses to search for include files
 include_directories(.)
 
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+if ("${IS_ZETH_PARENT}")
+  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+endif()
 
 # Add sub-directories for the build
 add_subdirectory(depends)

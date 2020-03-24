@@ -139,58 +139,60 @@ if(${ZKSNARK} STREQUAL "GROTH16")
 endif()
 
 ## Tests
-include(CTest)
+if ("${IS_ZETH_PARENT}")
+  include(CTest)
 
-# A target which builds all tests, even if they will not be run.
-add_custom_target(build_tests)
+  # A target which builds all tests, even if they will not be run.
+  add_custom_target(build_tests)
 
-function(zeth_test TEST_NAME)
-  cmake_parse_arguments(zeth_test "FAST" "" "SOURCE" ${ARGN} )
-  file(GLOB test_src ${zeth_test_SOURCE})
+  function(zeth_test TEST_NAME)
+    cmake_parse_arguments(zeth_test "FAST" "" "SOURCE" ${ARGN} )
+    file(GLOB test_src ${zeth_test_SOURCE})
 
-  # Test executable
-  add_executable(${TEST_NAME} EXCLUDE_FROM_ALL ${test_src})
-  target_link_libraries(${TEST_NAME} zeth gtest_main)
+    # Test executable
+    add_executable(${TEST_NAME} EXCLUDE_FROM_ALL ${test_src})
+    target_link_libraries(${TEST_NAME} zeth gtest_main)
 
-  # Add all tests to the 'build_tests' target
-  add_dependencies(build_tests ${TEST_NAME})
+    # Add all tests to the 'build_tests' target
+    add_dependencies(build_tests ${TEST_NAME})
 
-  if((NOT FAST_TESTS_ONLY) OR zeth_test_FAST)
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-    add_dependencies(check ${TEST_NAME})
-  else()
-    message("Skipping slow test ${TEST_NAME}")
-  endif()
-endfunction(zeth_test)
+    if((NOT FAST_TESTS_ONLY) OR zeth_test_FAST)
+      add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+      add_dependencies(check ${TEST_NAME})
+    else()
+      message("Skipping slow test ${TEST_NAME}")
+    endif()
+  endfunction(zeth_test)
 
-zeth_test(test_addition SOURCE test/packed_addition_test.cpp FAST)
-zeth_test(test_hex_to_field SOURCE test/hex_to_field_test.cpp FAST)
-zeth_test(test_binary_operation SOURCE test/binary_operation_test.cpp FAST)
-zeth_test(test_blake2s SOURCE test/blake2s_test.cpp FAST)
-zeth_test(test_mimc_mp SOURCE test/mimc_mp_test.cpp FAST)
-zeth_test(test_prfs SOURCE test/prfs_test.cpp FAST)
-zeth_test(test_commitments SOURCE test/commitments_test.cpp FAST)
-zeth_test(test_merkle_tree SOURCE test/merkle_tree_test.cpp FAST)
-zeth_test(test_note SOURCE test/note_test.cpp FAST)
-zeth_test(test_prover SOURCE test/prover_test.cpp)
+  zeth_test(test_addition SOURCE test/packed_addition_test.cpp FAST)
+  zeth_test(test_hex_to_field SOURCE test/hex_to_field_test.cpp FAST)
+  zeth_test(test_binary_operation SOURCE test/binary_operation_test.cpp FAST)
+  zeth_test(test_blake2s SOURCE test/blake2s_test.cpp FAST)
+  zeth_test(test_mimc_mp SOURCE test/mimc_mp_test.cpp FAST)
+  zeth_test(test_prfs SOURCE test/prfs_test.cpp FAST)
+  zeth_test(test_commitments SOURCE test/commitments_test.cpp FAST)
+  zeth_test(test_merkle_tree SOURCE test/merkle_tree_test.cpp FAST)
+  zeth_test(test_note SOURCE test/note_test.cpp FAST)
+  zeth_test(test_prover SOURCE test/prover_test.cpp)
 
-# Old Tests
-# zeth_test(test_sha256 test/sha256_test.cpp TRUE)
+  # Old Tests
+  # zeth_test(test_sha256 test/sha256_test.cpp TRUE)
 
-# prover test has extra dependencies
-target_link_libraries(
-  test_prover
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
-)
-
-# Groth16-only tests and MPC
-if(${ZKSNARK} STREQUAL "GROTH16")
-  zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
-  zeth_test(test_powersoftau SOURCE test/powersoftau_test.cpp FAST)
-  zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
+  # prover test has extra dependencies
   target_link_libraries(
-    test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+    test_prover
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+  )
 
-  add_subdirectory(mpc)
+  # Groth16-only tests and MPC
+  if(${ZKSNARK} STREQUAL "GROTH16")
+    zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
+    zeth_test(test_powersoftau SOURCE test/powersoftau_test.cpp FAST)
+    zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
+    target_link_libraries(
+      test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+
+    add_subdirectory(mpc)
+  endif()
 endif()
