@@ -15,15 +15,18 @@ namespace libzeth
 {
 
 template<typename FieldT>
-std::string hex_from_libsnark_bigint(libff::bigint<FieldT::num_limbs> limbs);
+std::string hex_from_libsnark_bigint(
+    const libff::bigint<FieldT::num_limbs> &limbs);
 
 template<typename FieldT>
 libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(
     const uint8_t bytes[(FieldT::num_bits + 8 - 1) / 8]);
 
-template<typename ppT> std::string point_g1_affine_as_hex(libff::G1<ppT> point);
+template<typename ppT>
+std::string point_g1_affine_as_hex(const libff::G1<ppT> &point);
 
-template<typename ppT> std::string point_g2_affine_as_hex(libff::G2<ppT> point);
+template<typename ppT>
+std::string point_g2_affine_as_hex(const libff::G2<ppT> &point);
 
 boost::filesystem::path get_path_to_setup_directory();
 boost::filesystem::path get_path_to_debug_directory();

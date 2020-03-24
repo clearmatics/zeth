@@ -21,19 +21,19 @@ extended_proof<ppT>::extended_proof(
     this->primary_inputs =
         std::make_shared<libsnark::r1cs_primary_input<libff::Fr<ppT>>>(
             in_primary_input);
-};
+}
 
 template<typename ppT> const proofT<ppT> &extended_proof<ppT>::get_proof() const
 {
     return *this->proof;
-};
+}
 
 template<typename ppT>
 const libsnark::r1cs_primary_input<libff::Fr<ppT>>
     &extended_proof<ppT>::get_primary_input() const
 {
     return *this->primary_inputs;
-};
+}
 
 template<typename ppT>
 void extended_proof<ppT>::write_primary_input(
@@ -71,7 +71,7 @@ void extended_proof<ppT>::write_primary_input(
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-};
+}
 
 template<typename ppT> void extended_proof<ppT>::dump_primary_inputs() const
 {
@@ -89,25 +89,25 @@ template<typename ppT> void extended_proof<ppT>::dump_primary_inputs() const
     }
     std::cout << "]\n";
     std::cout << "}";
-};
+}
 
 template<typename ppT>
 void extended_proof<ppT>::write_proof(boost::filesystem::path path) const
 {
     proof_to_json<ppT>(*this->proof, path);
-};
+}
 
 template<typename ppT>
 void extended_proof<ppT>::write_extended_proof(
     boost::filesystem::path path) const
 {
     proof_and_inputs_to_json<ppT>(*this->proof, *this->primary_inputs, path);
-};
+}
 
 template<typename ppT> void extended_proof<ppT>::dump_proof() const
 {
     display_proof<ppT>(*this->proof);
-};
+}
 
 } // namespace libzeth
 

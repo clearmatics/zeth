@@ -41,7 +41,8 @@ namespace libzeth
 //
 // where all x_i's are bytes (uint8_t)
 template<typename FieldT>
-std::string hex_from_libsnark_bigint(libff::bigint<FieldT::num_limbs> limbs)
+std::string hex_from_libsnark_bigint(
+    const libff::bigint<FieldT::num_limbs> &limbs)
 {
     const unsigned bytes_per_limb = (GMP_LIMB_BITS + 8 - 1) / 8;
 
@@ -65,7 +66,7 @@ std::string hex_from_libsnark_bigint(libff::bigint<FieldT::num_limbs> limbs)
 
     // Remove leading 0's
     return str.erase(0, std::min(str.find_first_not_of('0'), str.size() - 1));
-};
+}
 
 // WARNING: The following function assumes that NAILS are NOT used
 // See Section 8.2 (page 68): https://gmplib.org/gmp-man-6.2.0.pdf
@@ -101,9 +102,10 @@ libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(
         }
     }
     return res;
-};
+}
 
-template<typename ppT> std::string point_g1_affine_as_hex(libff::G1<ppT> point)
+template<typename ppT>
+std::string point_g1_affine_as_hex(const libff::G1<ppT> &point)
 {
     libff::G1<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
@@ -112,9 +114,10 @@ template<typename ppT> std::string point_g1_affine_as_hex(libff::G1<ppT> point)
            "\", \"0x" +
            hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.Y.as_bigint()) +
            "\"";
-};
+}
 
-template<typename ppT> std::string point_g2_affine_as_hex(libff::G2<ppT> point)
+template<typename ppT>
+std::string point_g2_affine_as_hex(const libff::G2<ppT> &point)
 {
     libff::G2<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
@@ -127,7 +130,7 @@ template<typename ppT> std::string point_g2_affine_as_hex(libff::G2<ppT> point)
            "\", \"0x" +
            hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.Y.c0.as_bigint()) +
            "\"]";
-};
+}
 
 } // namespace libzeth
 

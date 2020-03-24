@@ -13,7 +13,7 @@ namespace libzeth
 template<typename FieldT> FieldT parse_merkle_node(std::string mk_node)
 {
     return string_to_field<FieldT>(mk_node);
-};
+}
 
 template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
@@ -43,11 +43,11 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
         input_note,
         input_spending_ask,
         input_nullifier);
-};
+}
 
 template<typename ppT>
 prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
-    libff::G1<ppT> point)
+    const libff::G1<ppT> &point)
 {
     libff::G1<ppT> aff = point;
     aff.to_affine_coordinates();
@@ -61,11 +61,11 @@ prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
     res.set_y_coord(y_coord);
 
     return res;
-};
+}
 
 template<typename ppT>
 prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
-    libff::G2<ppT> point)
+    const libff::G2<ppT> &point)
 {
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
@@ -85,7 +85,7 @@ prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     res.set_y_c1_coord(y_c1_coord);
 
     return res;
-};
+}
 
 } // namespace libzeth
 

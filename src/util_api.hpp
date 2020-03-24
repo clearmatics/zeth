@@ -27,11 +27,11 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
 
 template<typename ppT>
 prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
-    libff::G1<ppT> point);
+    const libff::G1<ppT> &point);
 
 template<typename ppT>
 prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
-    libff::G2<ppT> point);
+    const libff::G2<ppT> &point);
 
 } // namespace libzeth
 
