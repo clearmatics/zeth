@@ -4,11 +4,11 @@ if [ "" == "$1" ] ; then
     files=`git ls-files '*.cpp' '*.cc' '*.hpp' '*.hh' '*.tcc'`
     for f in $files ; do
         echo "FORMATTING $f"
-        clang-format -style=file -i $f
+        clang-format-8 -style=file -i $f
     done
 else
     for f in $@ ; do
         echo "FORMATTING $f"
-        clang-format -style=file -i $f
+        clang-format-8 -style=file -i $f
     done
 fi

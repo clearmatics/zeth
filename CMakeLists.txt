@@ -45,8 +45,8 @@ option(
 
 # Flags and compilation options for use with libsnark
 set(
-  CURVE # Variable name
-  "ALT_BN128" # We use the ALT_BN128 curve here, this is useful to pick the settings related to alt_bn128 in https://github.com/scipr-lab/libff/blob/master/libff/common/default_types/ec_pp.hpp
+  CURVE
+  "ALT_BN128"
   CACHE
   STRING
   "Default curve: one of ALT_BN128, BN128, EDWARDS, MNT4, MNT6"
@@ -198,4 +198,8 @@ endif()
 
 # Add sub-directories for the build
 add_subdirectory(depends)
-add_subdirectory(src)
+add_subdirectory(libzeth)
+add_subdirectory(prover_server)
+if(${ZKSNARK} STREQUAL "GROTH16")
+  add_subdirectory(mpc_tools)
+endif()
