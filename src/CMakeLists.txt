@@ -40,8 +40,8 @@ include_directories(${PROTO_SRC_DIR})
 # Generating sensibly into a python module requires setting --proto_path to the
 # zeth root, and referencing files as 'api/prover.proto' etc.  This requires us
 # to tweak the references to the source files.
-set(PROTOBUF_IMPORT_DIRS ..)
-set(PROTOBUF_PROTO_PATH ..)
+set(PROTOBUF_IMPORT_DIRS ${ZETH})
+set(PROTOBUF_PROTO_PATH ${ZETH})
 set(PROTOBUF_APPEND_DEST_PATH "/api")
 set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
 set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
@@ -84,8 +84,9 @@ string(TOLOWER ${ZKSNARK} ZKSNARK_NAME)
 file(
   GLOB_RECURSE
   ZETH_SOURCE
-  types/**.cpp types/**.hpp types/**.tcc
-  circuits/**.cpp circuits/**.hpp circuits/**.tcc circuit_wrapper.???
+  types/**.?pp types/**.tcc
+  circuits/**.?pp circuits/**.tcc
+  circuit_wrapper.???
   commitments/**.?pp commitments/**.tcc
   libsnark_helpers/**.?pp libsnark_helpers/**.tcc
   snarks/**.hpp snarks/**.tcc snarks/${ZKSNARK_NAME}/**.cpp
@@ -95,7 +96,12 @@ file(
   util_api.?pp util_api.tcc
   zeth.h
 )
-add_library(zeth ${ZETH_SOURCE} ${PROTO_SRCS})
+add_library(
+  zeth
+
+  ${ZETH_SOURCE}
+  ${PROTO_SRCS}
+)
 target_include_directories(
   zeth
 

@@ -55,9 +55,6 @@ set(
 set(
   DEPENDS_DIR
   "${CMAKE_CURRENT_SOURCE_DIR}/depends"
-  CACHE
-  STRING
-  "Optionally specify the dependency installation directory relative to the source directory (default: inside dependency folder)"
 )
 
 set(
@@ -66,6 +63,22 @@ set(
   CACHE
   STRING
   "Override C++ compiler optimization flags"
+)
+
+set(
+  ZETH
+  "${PROJECT_SOURCE_DIR}"
+  CACHE
+  PATH
+  "Path to Zeth repository"
+)
+
+set(
+  ZETH_API_DIR
+  "${ZETH}/api"
+  CACHE
+  PATH
+  "Path to Zeth API directory"
 )
 
 option(
