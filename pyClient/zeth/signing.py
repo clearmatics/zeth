@@ -17,6 +17,7 @@ from hashlib import sha256
 from py_ecc import bn128 as ec
 from zeth.utils import FQ, G1, encode_g1_to_bytes
 from zeth.constants import ZETH_PRIME
+from typing import List
 
 
 class SigningVerificationKey:
@@ -45,6 +46,9 @@ class SigningKeyPair:
         # We include y_g1 in the signing key
         self.sk = SigningSecretKey(x, y, y_g1)
         self.vk = SigningVerificationKey(x_g1, y_g1)
+
+
+Signature = int
 
 
 def gen_signing_keypair() -> SigningKeyPair:
@@ -115,3 +119,36 @@ def verify(
     right_part = ec.add(vk.spk, ec.multiply(vk.ppk, FQ(challenge).n))
 
     return ec.eq(left_part, right_part)
+
+
+def verification_key_as_mix_parameter(vk: SigningVerificationKey) -> List[int]:
+    """
+    Transform a verification key to the format required by the mix function.
+    """
+    return [int(vk.ppk[0]), int(vk.ppk[1]), int(vk.spk[0]), int(vk.spk[1])]
+
+
+def verification_key_from_mix_parameter(
+        param: List[int]) -> SigningVerificationKey:
+    """
+    Transform mix function parameter to verification key.
+    """
+    return SigningVerificationKey(
+        (FQ(param[0]), FQ(param[1])),
+        (FQ(param[2]), FQ(param[3])))
+
+
+def signature_as_mix_parameter(signature: Signature) -> int:
+    """
+    Transform a signature to the format required by the mix function.
+    """
+    # This function happens to be the identity but in the general case some
+    # transform will be required.
+    return signature
+
+
+def signature_from_mix_parameter(param: int) -> Signature:
+    """
+    Transform mix function parameters to a signature.
+    """
+    return param
