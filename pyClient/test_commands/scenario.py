@@ -254,12 +254,15 @@ def charlie_double_withdraw(
         ciphertexts,
         proof_json)
 
-    tx_hash = zeth_client.mix(
-        sender_eph_pk,
-        ciphertexts,
+    mix_params = contracts.MixParameters(
         proof_json,
         signing_keypair.vk,
         joinsplit_sig_charlie,
+        sender_eph_pk,
+        ciphertexts)
+
+    tx_hash = zeth_client.mix(
+        mix_params,
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
@@ -354,12 +357,15 @@ def charlie_corrupt_bob_deposit(
             sender_eph_pk,
             ciphertexts,
             proof_json)
-        tx_hash = zeth_client.mix(
-            sender_eph_pk,
-            [fake_ciphertext0, fake_ciphertext1],
+
+        mix_params = contracts.MixParameters(
             proof_json,
             joinsplit_keypair.vk,
             joinsplit_sig_charlie,
+            sender_eph_pk,
+            [fake_ciphertext0, fake_ciphertext1])
+        tx_hash = zeth_client.mix(
+            mix_params,
             charlie_eth_address,
             Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
             DEFAULT_MIX_GAS_WEI)
@@ -391,12 +397,14 @@ def charlie_corrupt_bob_deposit(
             sender_eph_pk,
             [fake_ciphertext0, fake_ciphertext1],
             proof_json)
-        tx_hash = zeth_client.mix(
-            sender_eph_pk,
-            [fake_ciphertext0, fake_ciphertext1],
+        mix_params = contracts.MixParameters(
             proof_json,
             new_joinsplit_keypair.vk,
             joinsplit_sig_charlie,
+            sender_eph_pk,
+            [fake_ciphertext0, fake_ciphertext1])
+        tx_hash = zeth_client.mix(
+            mix_params,
             charlie_eth_address,
             Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
             DEFAULT_MIX_GAS_WEI)
@@ -420,12 +428,14 @@ def charlie_corrupt_bob_deposit(
             sender_eph_pk,
             ciphertexts,
             proof_json)
-        tx_hash = zeth_client.mix(
-            sender_eph_pk,
-            ciphertexts,
+        mix_params = contracts.MixParameters(
             proof_json,
             joinsplit_keypair.vk,
             joinsplit_sig_bob,
+            sender_eph_pk,
+            ciphertexts)
+        tx_hash = zeth_client.mix(
+            mix_params,
             charlie_eth_address,
             Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
             4000000)
@@ -447,12 +457,14 @@ def charlie_corrupt_bob_deposit(
         sender_eph_pk,
         ciphertexts,
         proof_json)
-    tx_hash = zeth_client.mix(
-        sender_eph_pk,
-        ciphertexts,
+    mix_params = contracts.MixParameters(
         proof_json,
         joinsplit_keypair.vk,
         joinsplit_sig_bob,
+        sender_eph_pk,
+        ciphertexts)
+    tx_hash = zeth_client.mix(
+        mix_params,
         bob_eth_address,
         Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
         DEFAULT_MIX_GAS_WEI)

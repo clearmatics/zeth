@@ -374,6 +374,37 @@ class MixerClient:
             v_out: EtherValue,
             tx_value: Optional[EtherValue] = None,
             compute_h_sig_cb: Optional[ComputeHSigCB] = None) -> str:
+        mix_params = self.create_mix_parameters(
+            mk_tree,
+            sender_ownership_keypair,
+            sender_eth_address,
+            inputs,
+            outputs,
+            v_in,
+            v_out,
+            compute_h_sig_cb)
+
+        # By default transfer exactly v_in, otherwise allow caller to manually
+        # specify.
+        tx_value = tx_value or v_in
+        return self.mix(
+            mix_params,
+            sender_eth_address,
+            tx_value.wei,
+            constants.DEFAULT_MIX_GAS_WEI)
+
+    def create_mix_parameters(
+            self,
+            mk_tree: MerkleTree,
+            sender_ownership_keypair: OwnershipKeyPair,
+            sender_eth_address: str,
+            inputs: List[Tuple[int, ZethNote]],
+            outputs: List[Tuple[ZethAddressPub, EtherValue]],
+            v_in: EtherValue,
+            v_out: EtherValue,
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None
+    ) -> contracts.MixParameters:
+
         assert len(inputs) <= constants.JS_INPUTS
         assert len(outputs) <= constants.JS_OUTPUTS
 
@@ -434,41 +465,26 @@ class MixerClient:
             ciphertexts,
             proof_json)
 
-        # By default transfer exactly v_in, otherwise allow caller to manually
-        # specify.
-        tx_value = tx_value or v_in
-
-        return self.mix(
-            sender_eph_pk,
-            ciphertexts,
+        return contracts.MixParameters(
             proof_json,
             signing_keypair.vk,
             signature,
-            sender_eth_address,
-            tx_value.wei,
-            constants.DEFAULT_MIX_GAS_WEI)
+            sender_eph_pk,
+            ciphertexts)
 
     def mix(
             self,
-            pk_sender: EncryptionPublicKey,
-            ciphertexts: List[bytes],
-            parsed_proof: GenericProof,
-            vk: JoinsplitSigVerificationKey,
-            sigma: int,
-            sender_address: str,
+            mix_params: contracts.MixParameters,
+            sender_eth_address: str,
             wei_pub_value: int,
             call_gas: int) -> str:
         return contracts.mix(
+            self._zksnark,
             self.mixer_instance,
-            pk_sender,
-            ciphertexts,
-            parsed_proof,
-            vk,
-            sigma,
-            sender_address,
+            mix_params,
+            sender_eth_address,
             wei_pub_value,
-            call_gas,
-            self._zksnark)
+            call_gas)
 
     def get_proof_joinsplit_2_by_2(
             self,

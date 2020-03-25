@@ -6,12 +6,15 @@
 
 from __future__ import annotations
 from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
-from zeth.signing import SigningVerificationKey
+from zeth.signing import SigningVerificationKey, Signature, \
+    verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
+    signature_as_mix_parameter, signature_from_mix_parameter
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
 from zeth.utils import get_contracts_dir, hex_to_int, get_public_key_from_bytes
 from zeth.constants import SOL_COMPILER_VERSION
 
 import os
+import json
 import solcx
 from typing import Dict, List, Iterator, Optional, Any
 
@@ -19,6 +22,57 @@ from typing import Dict, List, Iterator, Optional, Any
 SYNC_BLOCKS_PER_BATCH = 10
 
 Interface = Dict[str, Any]
+
+
+class MixParameters:
+    """
+    Arguments to the mix call.
+    """
+    def __init__(
+            self,
+            extended_proof: GenericProof,
+            signature_vk: SigningVerificationKey,
+            signature: Signature,
+            pk_sender: EncryptionPublicKey,
+            ciphertexts: List[bytes]):
+        self.extended_proof = extended_proof
+        self.signature_vk = signature_vk
+        self.signature = signature
+        self.pk_sender = pk_sender
+        self.ciphertexts = ciphertexts
+
+    @staticmethod
+    def from_json(params_json: str) -> MixParameters:
+        return MixParameters._from_json_dict(json.loads(params_json))
+
+    def to_json(self) -> str:
+        return json.dumps(self._to_json_dict())
+
+    def _to_json_dict(self) -> Dict[str, Any]:
+        signature_vk_json = [
+            str(x) for x in verification_key_as_mix_parameter(self.signature_vk)]
+        signature_json = str(signature_as_mix_parameter(self.signature))
+        pk_sender_json = encode_encryption_public_key(self.pk_sender).hex()
+        ciphertexts_json = [x.hex() for x in self.ciphertexts]
+        return {
+            "extended_proof": self.extended_proof,
+            "signature_vk": signature_vk_json,
+            "signature": signature_json,
+            "pk_sender": pk_sender_json,
+            "ciphertexts": ciphertexts_json,
+        }
+
+    @staticmethod
+    def _from_json_dict(json_dict: Dict[str, Any]) -> MixParameters:
+        ext_proof = json_dict["extended_proof"]
+        signature_pk_param = [int(x) for x in json_dict["signature_vk"]]
+        signature_pk = verification_key_from_mix_parameter(signature_pk_param)
+        signature = signature_from_mix_parameter(int(json_dict["signature"]))
+        pk_sender = decode_encryption_public_key(
+            bytes.fromhex(json_dict["pk_sender"]))
+        ciphertexts = [bytes.fromhex(x) for x in json_dict["ciphertexts"]]
+        return MixParameters(
+            ext_proof, signature_pk, signature, pk_sender, ciphertexts)
 
 
 class MixOutputEvents:
@@ -177,30 +231,29 @@ def deploy_tree_contract(
 
 
 def mix(
+        zksnark: IZKSnarkProvider,
         mixer_instance: Any,
-        pk_sender: EncryptionPublicKey,
-        ciphertexts: List[bytes],
-        parsed_proof: GenericProof,
-        vk: SigningVerificationKey,
-        sigma: int,
+        mix_parameters: MixParameters,
         sender_address: str,
         wei_pub_value: int,
-        call_gas: int,
-        zksnark: IZKSnarkProvider) -> str:
+        call_gas: int) -> str:
     """
     Run the mixer
     """
-    pk_sender_encoded = encode_encryption_public_key(pk_sender)
-    proof_params = zksnark.mixer_proof_parameters(parsed_proof)
-    inputs = hex_to_int(parsed_proof["inputs"])
-
+    # Convert all params to the correct form for calling the mix method.
+    proof_param = zksnark.mixer_proof_parameters(mix_parameters.extended_proof)
+    proof_inputs_param = hex_to_int(mix_parameters.extended_proof["inputs"])
+    vk_param = verification_key_as_mix_parameter(mix_parameters.signature_vk)
+    signature_param = signature_as_mix_parameter(mix_parameters.signature)
+    pk_sender_param = encode_encryption_public_key(mix_parameters.pk_sender)
+    ciphertexts_param = mix_parameters.ciphertexts
     tx_hash = mixer_instance.functions.mix(
-        *proof_params,
-        [int(vk.ppk[0]), int(vk.ppk[1]), int(vk.spk[0]), int(vk.spk[1])],
-        sigma,
-        inputs,
-        pk_sender_encoded,
-        ciphertexts
+        *proof_param,
+        vk_param,
+        signature_param,
+        proof_inputs_param,
+        pk_sender_param,
+        ciphertexts_param
     ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
     return tx_hash.hex()
 
