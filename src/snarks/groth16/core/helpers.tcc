@@ -16,22 +16,22 @@ void export_verification_key(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair)
     std::cout << "\tVerification key in Solidity compliant format:{"
               << "\n"
               << "\t\tvk.alpha = Pairing.G1Point("
-              << point_g1_affine_as_hex(keypair.vk.alpha_g1) << ");"
+              << point_g1_affine_as_hex<ppT>(keypair.vk.alpha_g1) << ");"
               << "\n"
               << "\t\tvk.beta = Pairing.G2Point("
-              << point_g2_affine_as_hex(keypair.vk.beta_g2) << ");"
+              << point_g2_affine_as_hex<ppT>(keypair.vk.beta_g2) << ");"
               << "\n"
               << "\t\tvk.delta = Pairing.G2Point("
-              << point_g2_affine_as_hex(keypair.vk.delta_g2) << ");"
+              << point_g2_affine_as_hex<ppT>(keypair.vk.delta_g2) << ");"
               << "\n"
               << "\t\tvk.ABC = new Pairing.G1Point[](" << abc_length << ");"
               << "\n"
               << "\t\tvk.ABC[0] = Pairing.G1Point("
-              << point_g1_affine_as_hex(keypair.vk.ABC_g1.first) << ");"
+              << point_g1_affine_as_hex<ppT>(keypair.vk.ABC_g1.first) << ");"
               << "\n";
     for (size_t i = 1; i < abc_length; ++i) {
         auto vk_abc_i =
-            point_g1_affine_as_hex(keypair.vk.ABC_g1.rest.values[i - 1]);
+            point_g1_affine_as_hex<ppT>(keypair.vk.ABC_g1.rest.values[i - 1]);
         std::cout << "\t\tvk.ABC[" << i << "] = Pairing.G1Point(" << vk_abc_i
                   << ");"
                   << "\n";
@@ -46,13 +46,13 @@ void display_proof(libsnark::r1cs_gg_ppzksnark_proof<ppT> proof)
     std::cout << "Proof:"
               << "\n"
               << "proof.A = Pairing.G1Point("
-              << point_g1_affine_as_hex(proof.g_A) << ");"
+              << point_g1_affine_as_hex<ppT>(proof.g_A) << ");"
               << "\n"
               << "proof.B = Pairing.G2Point("
-              << point_g2_affine_as_hex(proof.g_B) << ");"
+              << point_g2_affine_as_hex<ppT>(proof.g_B) << ");"
               << "\n"
               << "proof.C = Pairing.G1Point("
-              << point_g1_affine_as_hex(proof.g_C)
+              << point_g1_affine_as_hex<ppT>(proof.g_C)
               // We flush std::cout only once at the end of the function
               << ");" << std::endl;
 };
@@ -78,18 +78,19 @@ void verification_key_to_json(
     ss << "{"
        << "\n"
        << "\t\"alpha\""
-       << " :[" << point_g1_affine_as_hex(vk.alpha_g1) << "],"
+       << " :[" << point_g1_affine_as_hex<ppT>(vk.alpha_g1) << "],"
        << "\n"
        << "\t\"beta\""
-       << " :[" << point_g2_affine_as_hex(vk.beta_g2) << "],"
+       << " :[" << point_g2_affine_as_hex<ppT>(vk.beta_g2) << "],"
        << "\n"
        << "\t\"delta\""
-       << " :[" << point_g2_affine_as_hex(vk.delta_g2) << "],"
+       << " :[" << point_g2_affine_as_hex<ppT>(vk.delta_g2) << "],"
        << "\n";
     ss << "\t\"ABC\""
-       << " :[[" << point_g1_affine_as_hex(vk.ABC_g1.first) << "]";
+       << " :[[" << point_g1_affine_as_hex<ppT>(vk.ABC_g1.first) << "]";
     for (size_t i = 1; i < abc_length; ++i) {
-        auto vk_abc_i = point_g1_affine_as_hex(vk.ABC_g1.rest.values[i - 1]);
+        auto vk_abc_i =
+            point_g1_affine_as_hex<ppT>(vk.ABC_g1.rest.values[i - 1]);
         ss << ",[" << vk_abc_i << "]";
     }
     ss << "]"
@@ -121,11 +122,11 @@ void proof_to_json(
 
     ss << "{"
        << "\n"
-       << "\t\"a\" :[" << point_g1_affine_as_hex(proof.g_A) << "],"
+       << "\t\"a\" :[" << point_g1_affine_as_hex<ppT>(proof.g_A) << "],"
        << "\n"
-       << "\t\"b\" :[" << point_g2_affine_as_hex(proof.g_B) << "],"
+       << "\t\"b\" :[" << point_g2_affine_as_hex<ppT>(proof.g_B) << "],"
        << "\n"
-       << "\t\"c\" :[" << point_g1_affine_as_hex(proof.g_C) << "],"
+       << "\t\"c\" :[" << point_g1_affine_as_hex<ppT>(proof.g_C) << "],"
        << "\n"
        << "}";
 
@@ -157,15 +158,17 @@ void proof_and_inputs_to_json(
 
     ss << "{"
        << "\n"
-       << "\t\"a\" :[" << point_g1_affine_as_hex(proof.g_A) << "],"
+       << "\t\"a\" :[" << point_g1_affine_as_hex<ppT>(proof.g_A) << "],"
        << "\n"
-       << "\t\"b\" :[" << point_g2_affine_as_hex(proof.g_B) << "],"
+       << "\t\"b\" :[" << point_g2_affine_as_hex<ppT>(proof.g_B) << "],"
        << "\n"
-       << "\t\"c\" :[" << point_g1_affine_as_hex(proof.g_C) << "],"
+       << "\t\"c\" :[" << point_g1_affine_as_hex<ppT>(proof.g_C) << "],"
        << "\n"
        << "\t\"inputs\" :[";
     for (size_t i = 0; i < input.size(); ++i) {
-        ss << "\"0x" << hex_from_libsnark_bigint(input[i].as_bigint()) << "\"";
+        ss << "\"0x"
+           << hex_from_libsnark_bigint<libff::Fr<ppT>>(input[i].as_bigint())
+           << "\"";
         if (i < input.size() - 1) {
             ss << ", ";
         }

@@ -20,42 +20,4 @@ zeth_note parse_zeth_note(const prover_proto::ZethNote &note)
     return zeth_note(note_apk, note_value, note_rho, note_trap_r);
 }
 
-prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
-    libff::alt_bn128_G1 point)
-{
-    libff::alt_bn128_G1 aff = point;
-    aff.to_affine_coordinates();
-    std::string x_coord = "0x" + hex_from_libsnark_bigint(aff.X.as_bigint());
-    std::string y_coord = "0x" + hex_from_libsnark_bigint(aff.Y.as_bigint());
-
-    prover_proto::HexPointBaseGroup1Affine res;
-    res.set_x_coord(x_coord);
-    res.set_y_coord(y_coord);
-
-    return res;
-}
-
-prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
-    libff::alt_bn128_G2 point)
-{
-    libff::alt_bn128_G2 aff = point;
-    aff.to_affine_coordinates();
-    std::string x_c1_coord =
-        "0x" + hex_from_libsnark_bigint(aff.X.c1.as_bigint());
-    std::string x_c0_coord =
-        "0x" + hex_from_libsnark_bigint(aff.X.c0.as_bigint());
-    std::string y_c1_coord =
-        "0x" + hex_from_libsnark_bigint(aff.Y.c1.as_bigint());
-    std::string y_c0_coord =
-        "0x" + hex_from_libsnark_bigint(aff.Y.c0.as_bigint());
-
-    prover_proto::HexPointBaseGroup2Affine res;
-    res.set_x_c0_coord(x_c0_coord);
-    res.set_x_c1_coord(x_c1_coord);
-    res.set_y_c0_coord(y_c0_coord);
-    res.set_y_c1_coord(y_c1_coord);
-
-    return res;
-}
-
 } // namespace libzeth

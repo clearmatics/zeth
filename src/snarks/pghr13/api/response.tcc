@@ -31,21 +31,23 @@ void prepare_proof_response(
     prover_proto::HexPointBaseGroup1Affine *k =
         new prover_proto::HexPointBaseGroup1Affine();
 
-    a->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_A.g));
-    a_p->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_A.h));
-    b->CopyFrom(format_hexPointBaseGroup2Affine(proofObj.g_B.g)); // in G2
-    b_p->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_B.h));
-    c->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_C.g));
-    c_p->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_C.h));
-    h->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_H));
-    k->CopyFrom(format_hexPointBaseGroup1Affine(proofObj.g_K));
+    a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A.g));
+    a_p->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A.h));
+    b->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(proofObj.g_B.g)); // in G2
+    b_p->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_B.h));
+    c->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_C.g));
+    c_p->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_C.h));
+    h->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_H));
+    k->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_K));
 
     libsnark::r1cs_ppzksnark_primary_input<ppT> pub_inputs =
         ext_proof.get_primary_input();
     std::stringstream ss;
     ss << "[";
     for (size_t i = 0; i < pub_inputs.size(); ++i) {
-        ss << "\"0x" << hex_from_libsnark_bigint(pub_inputs[i].as_bigint())
+        ss << "\"0x"
+           << hex_from_libsnark_bigint<libff::Fr<ppT>>(
+                  pub_inputs[i].as_bigint())
            << "\"";
         if (i < pub_inputs.size() - 1) {
             ss << ", ";
@@ -91,20 +93,22 @@ void prepare_verification_key_response(
     prover_proto::HexPointBaseGroup2Affine *z =
         new prover_proto::HexPointBaseGroup2Affine(); // in G2
 
-    a->CopyFrom(format_hexPointBaseGroup2Affine(vk.alphaA_g2));       // in G2
-    b->CopyFrom(format_hexPointBaseGroup1Affine(vk.alphaB_g1));       // in G1
-    c->CopyFrom(format_hexPointBaseGroup2Affine(vk.alphaC_g2));       // in G2
-    g->CopyFrom(format_hexPointBaseGroup2Affine(vk.gamma_g2));        // in G2
-    gb1->CopyFrom(format_hexPointBaseGroup1Affine(vk.gamma_beta_g1)); // in G1
-    gb2->CopyFrom(format_hexPointBaseGroup2Affine(vk.gamma_beta_g2)); // in G2
-    z->CopyFrom(format_hexPointBaseGroup2Affine(vk.rC_Z_g2));         // in G2
+    a->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(vk.alphaA_g2)); // in G2
+    b->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(vk.alphaB_g1)); // in G1
+    c->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(vk.alphaC_g2)); // in G2
+    g->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(vk.gamma_g2));  // in G2
+    gb1->CopyFrom(
+        format_hexPointBaseGroup1Affine<ppT>(vk.gamma_beta_g1)); // in G1
+    gb2->CopyFrom(
+        format_hexPointBaseGroup2Affine<ppT>(vk.gamma_beta_g2));   // in G2
+    z->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(vk.rC_Z_g2)); // in G2
 
     std::stringstream ss;
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
-    ss << "[[" << point_g1_affine_as_hex(vk.encoded_IC_query.first) << "]";
+    ss << "[[" << point_g1_affine_as_hex<ppT>(vk.encoded_IC_query.first) << "]";
     for (size_t i = 1; i < ic_length; ++i) {
         auto vk_ic_i =
-            point_g1_affine_as_hex(vk.encoded_IC_query.rest.values[i - 1]);
+            point_g1_affine_as_hex<ppT>(vk.encoded_IC_query.rest.values[i - 1]);
         ss << ",[" << vk_ic_i << "]";
     }
     ss << "]";

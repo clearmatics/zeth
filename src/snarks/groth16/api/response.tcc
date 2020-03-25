@@ -21,16 +21,18 @@ void prepare_proof_response(
     prover_proto::HexPointBaseGroup1Affine *c =
         new prover_proto::HexPointBaseGroup1Affine();
 
-    a->CopyFrom(format_hexPointBaseGroup1Affine(proof_obj.g_A));
-    b->CopyFrom(format_hexPointBaseGroup2Affine(proof_obj.g_B)); // in G2
-    c->CopyFrom(format_hexPointBaseGroup1Affine(proof_obj.g_C));
+    a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proof_obj.g_A));
+    b->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(proof_obj.g_B)); // in G2
+    c->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proof_obj.g_C));
 
     libsnark::r1cs_ppzksnark_primary_input<ppT> public_inputs =
         ext_proof.get_primary_input();
     std::stringstream ss;
     ss << "[";
     for (size_t i = 0; i < public_inputs.size(); ++i) {
-        ss << "\"0x" << hex_from_libsnark_bigint(public_inputs[i].as_bigint())
+        ss << "\"0x"
+           << hex_from_libsnark_bigint<libff::Fr<ppT>>(
+                  public_inputs[i].as_bigint())
            << "\"";
         if (i < public_inputs.size() - 1) {
             ss << ", ";
@@ -63,15 +65,16 @@ void prepare_verification_key_response(
     prover_proto::HexPointBaseGroup2Affine *d =
         new prover_proto::HexPointBaseGroup2Affine(); // in G2
 
-    a->CopyFrom(format_hexPointBaseGroup1Affine(vk.alpha_g1)); // in G1
-    b->CopyFrom(format_hexPointBaseGroup2Affine(vk.beta_g2));  // in G2
-    d->CopyFrom(format_hexPointBaseGroup2Affine(vk.delta_g2)); // in G2
+    a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(vk.alpha_g1)); // in G1
+    b->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(vk.beta_g2));  // in G2
+    d->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(vk.delta_g2)); // in G2
 
     std::stringstream ss;
     unsigned abc_length = vk.ABC_g1.rest.indices.size() + 1;
-    ss << "[[" << point_g1_affine_as_hex(vk.ABC_g1.first) << "]";
+    ss << "[[" << point_g1_affine_as_hex<ppT>(vk.ABC_g1.first) << "]";
     for (size_t i = 1; i < abc_length; ++i) {
-        auto vk_abc_i = point_g1_affine_as_hex(vk.ABC_g1.rest.values[i - 1]);
+        auto vk_abc_i =
+            point_g1_affine_as_hex<ppT>(vk.ABC_g1.rest.values[i - 1]);
         ss << ",[" << vk_abc_i << "]";
     }
     ss << "]";

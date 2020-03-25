@@ -57,7 +57,8 @@ void extended_proof<ppT>::write_primary_input(
        << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < *this->primary_inputs.size(); ++i) {
         ss << "\"0x"
-           << hex_from_libsnark_bigint(*this->primary_inputs[i].as_bigint())
+           << hex_from_libsnark_bigint<libff::Fr<ppT>>(
+                  *this->primary_inputs[i].as_bigint())
            << "\"";
         if (i < *this->primary_inputs.size() - 1) {
             ss << ", ";
@@ -79,7 +80,7 @@ template<typename ppT> void extended_proof<ppT>::dump_primary_inputs() const
               << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < (*this->primary_inputs).size(); ++i) {
         std::cout << "\"0x"
-                  << hex_from_libsnark_bigint(
+                  << hex_from_libsnark_bigint<libff::Fr<ppT>>(
                          (*this->primary_inputs)[i].as_bigint())
                   << "\"";
         if (i < (*this->primary_inputs).size() - 1) {
@@ -94,19 +95,19 @@ template<typename ppT>
 void extended_proof<ppT>::write_proof(boost::filesystem::path path) const
 {
     proof_to_json<ppT>(*this->proof, path);
-};
+}
 
 template<typename ppT>
 void extended_proof<ppT>::write_extended_proof(
     boost::filesystem::path path) const
 {
     proof_and_inputs_to_json<ppT>(*this->proof, *this->primary_inputs, path);
-};
+}
 
 template<typename ppT> void extended_proof<ppT>::dump_proof() const
 {
     display_proof<ppT>(*this->proof);
-};
+}
 
 } // namespace libzeth
 
