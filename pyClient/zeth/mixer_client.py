@@ -11,17 +11,16 @@ from zeth.zeth_address import ZethAddressPub, ZethAddress
 from zeth.ownership import OwnershipPublicKey, OwnershipSecretKey, \
     OwnershipKeyPair, ownership_key_as_hex
 from zeth.encryption import \
-    EncryptionPublicKey, EncryptionSecretKey, \
-    generate_encryption_keypair, encode_encryption_public_key
+    EncryptionPublicKey, EncryptionSecretKey, generate_encryption_keypair, \
+    encode_encryption_public_key, encrypt, decrypt
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
 import zeth.signing as signing
 from zeth.timer import Timer
 from zeth.zksnark import \
     IZKSnarkProvider, get_zksnark_provider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
-    hex_digest_to_binary_string, digest_to_binary_string, encrypt, \
-    decrypt, int64_to_hex, encode_message_to_bytes, encode_eth_address, \
-    to_zeth_units
+    hex_digest_to_binary_string, digest_to_binary_string, int64_to_hex, \
+    encode_message_to_bytes, encode_eth_address, to_zeth_units
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 import api.prover_pb2 as prover_pb2

@@ -16,8 +16,6 @@ import os
 from os.path import join, dirname, normpath
 # Import Pynacl required modules
 import eth_abi
-import nacl.utils  # type: ignore
-from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
 from typing import List, Tuple, Union, Any, cast
@@ -151,64 +149,6 @@ def from_zeth_units(zeth_units: int) -> EtherValue:
     Convert a quantity of ether / token to Zeth units
     """
     return EtherValue(zeth_units * constants.ZETH_PUBLIC_UNIT_VALUE, "wei")
-
-
-def get_private_key_from_bytes(sk_bytes: bytes) -> PrivateKey:
-    """
-    Gets PrivateKey object from raw representation
-    (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
-    """
-    return PrivateKey(sk_bytes, encoder=nacl.encoding.RawEncoder)
-
-
-def get_public_key_from_bytes(pk_bytes: bytes) -> PublicKey:
-    """
-    Gets PublicKey object from raw representation
-    (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
-    """
-    return PublicKey(pk_bytes, encoder=nacl.encoding.RawEncoder)
-
-
-def encrypt(message: str, pk_receiver: PublicKey, sk_sender: PrivateKey) -> bytes:
-    """
-    Encrypts a string message by using valid ec25519 public key and
-    private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
-    """
-    # Init encryption box instance
-    encryption_box = Box(sk_sender, pk_receiver)
-
-    # Encode str message to bytes
-    message_bytes = message.encode('utf-8')
-
-    # Encrypt the message. The nonce is chosen randomly.
-    encrypted = encryption_box.encrypt(
-        message_bytes,
-        encoder=nacl.encoding.RawEncoder)
-
-    # Need to cast to the parent class Bytes of nacl.utils.EncryptedMessage
-    # to make it accepted from `Mix` Solidity function
-    return bytes(encrypted)
-
-
-def decrypt(
-        encrypted_message: bytes,
-        pk_sender: PublicKey,
-        sk_receiver: PrivateKey) -> str:
-    """
-    Decrypts a string message by using valid ec25519 public key and private key
-    objects.  See: https://pynacl.readthedocs.io/en/stable/public/
-    """
-    assert(isinstance(pk_sender, PublicKey)), \
-        f"PublicKey: {pk_sender} ({type(pk_sender)})"
-    assert(isinstance(sk_receiver, PrivateKey)), \
-        f"PrivateKey: {sk_receiver} ({type(sk_receiver)})"
-
-    # Init encryption box instance
-    decryption_box = Box(sk_receiver, pk_sender)
-
-    # Check integrity of the ciphertext and decrypt it
-    message = decryption_box.decrypt(encrypted_message)
-    return str(message, encoding='utf-8')
 
 
 def parse_zksnark_arg() -> str:

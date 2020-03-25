@@ -5,12 +5,13 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key
+from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key, \
+    decode_encryption_public_key
 from zeth.signing import SigningVerificationKey, Signature, \
     verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
     signature_as_mix_parameter, signature_from_mix_parameter
 from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
-from zeth.utils import get_contracts_dir, hex_to_int, get_public_key_from_bytes
+from zeth.utils import get_contracts_dir, hex_to_int
 from zeth.constants import SOL_COMPILER_VERSION
 
 import os
@@ -105,7 +106,7 @@ class MixResult:
 def _event_args_to_mix_result(event_args: Any) -> MixResult:
     mix_out_args = zip(event_args.commitments, event_args.ciphertexts)
     out_events = [MixOutputEvents(c, ciph) for (c, ciph) in mix_out_args]
-    sender_k_pk = get_public_key_from_bytes(event_args.pk_sender)
+    sender_k_pk = decode_encryption_public_key(event_args.pk_sender)
     return MixResult(
         new_merkle_root=event_args.root,
         nullifiers=event_args.nullifiers,
