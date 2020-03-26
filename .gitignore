@@ -1,6 +1,3 @@
-/jsClient/node_modules/*
-/jsClient/package-lock.json
-
 # Ignore the build repo
 /build/
 
@@ -8,12 +5,10 @@
 /coinstore/
 
 # Ignore the content of the keystore
-/keystore/*.pem
-/keystore/*.json
+/keystore/
 
 # Ignore the output of the trusted setup (ie: Proving and Verifying key)
-/trusted_setup/*.raw
-/trusted_setup/*.json
+/trusted_setup/
 
 # Ignore the content of the debug folder
 debug/*json
@@ -32,6 +27,8 @@ debug/*json
 /_test_contributors_from_csv/
 /_test_server_phase*/
 /_test_phase2_data/
+/_test_zeth_cli/
+/_test_zeth_cli_token/
 
 # Ignore python cache dirs
 
