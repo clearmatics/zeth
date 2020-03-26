@@ -17,14 +17,14 @@ endif()
 project(zeth)
 
 # Versionning of the project
-set (ZETH_VERSION_MAJOR 0)
-set (ZETH_VERSION_MINOR 3)
+set(ZETH_VERSION_MAJOR 0)
+set(ZETH_VERSION_MINOR 3)
 
 # Configure a header file to pass some of the CMake settings
 # to the source code
-configure_file (
-    "${PROJECT_SOURCE_DIR}/zethConfig.h.in"
-    "${PROJECT_BINARY_DIR}/zethConfig.h"
+configure_file(
+  "${PROJECT_SOURCE_DIR}/zethConfig.h.in"
+  "${PROJECT_BINARY_DIR}/zethConfig.h"
 )
 
 # Flags and compilation options to chose the type of zksnark
@@ -65,21 +65,22 @@ set(
   "Override C++ compiler optimization flags"
 )
 
-set(
-  ZETH
-  "${PROJECT_SOURCE_DIR}"
-  CACHE
-  PATH
-  "Path to Zeth repository"
-)
-
-set(
-  ZETH_API_DIR
-  "${ZETH}/api"
-  CACHE
-  PATH
-  "Path to Zeth API directory"
-)
+# TODO: Set these to env var in a make init rule
+#set(
+#  ZETH
+#  "${PROJECT_SOURCE_DIR}"
+#  CACHE
+#  PATH
+#  "Path to Zeth repository"
+#)
+#
+#set(
+#  ZETH_API_DIR
+#  "${ZETH}/api"
+#  CACHE
+#  PATH
+#  "Path to Zeth API directory"
+#)
 
 option(
   IS_ZETH_PARENT
@@ -195,6 +196,40 @@ include_directories(.)
 if ("${IS_ZETH_PARENT}")
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
 endif()
+
+# Global gRPC and Protocol Buffers configuration.
+# The libraries location can be known by running:
+# `ldconfig -p | grep libgrpc`
+# `ldconfig -p | grep libprotobuf`
+#
+# CMAKE_MODULE_PATH: Path used for searching by FIND_XXX(), with appropriate suffixes added.
+# See: https://cmake.org/cmake/help/v3.0/variable/CMAKE_PREFIX_PATH.html
+list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib" "/usr/lib")
+# Cmake find modules
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
+# Set the target of the Protobuf and gRPC generated files.
+set(
+  PROTO_SRC_DIR
+  ${PROJECT_BINARY_DIR}/proto_src
+)
+file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
+
+# Get the proto files
+file(
+  GLOB
+  PROTO_FILES
+  ${PROJECT_SOURCE_DIR}/api/*.proto
+)
+
+# Generating sensibly into a python module requires setting --proto_path to the
+# zeth root, and referencing files as 'api/prover.proto' etc. This requires us
+# to tweak the references to the source files.
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
+set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
+set(PROTOBUF_APPEND_DEST_PATH "/api")
+set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
+set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
 
 # Add sub-directories for the build
 add_subdirectory(depends)
