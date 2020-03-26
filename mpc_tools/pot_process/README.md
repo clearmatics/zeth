@@ -1,8 +1,8 @@
 # pot-process command
 
 Command for processing powersoftau data (output from commands in
-https:://github.com/clearmatics/powersoftau), independent of any
-specific circuit.  Main use-case is to pre-compute the evaluations of
+https://github.com/clearmatics/powersoftau), independent of any
+specific circuit. Main use-case is to pre-compute the evaluations of
 the Lagrange polynomials for domains of specific sizes, so that this
 data can be used during the remaining steps of the SRS computation,
 across multiple circuits.
