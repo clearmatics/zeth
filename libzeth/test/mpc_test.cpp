@@ -16,6 +16,7 @@
 #include <libzeth/util.hpp>
 #include <thread>
 
+using namespace libzeth;
 using namespace libsnark;
 
 using Fr = libff::Fr<ppT>;
