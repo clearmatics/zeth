@@ -94,4 +94,5 @@ class MPCCommand:
 
 def _default_mpc_tool() -> str:
     return os.path.join(
-        os.path.dirname(__file__), "..", "..", "build", "mpc_tools", "mpc_phase2", "mpc-coord-phase2")
+        os.path.dirname(__file__), "..", "..",
+        "build", "mpc_tools", "mpc_phase2", "mpc-coord-phase2")
