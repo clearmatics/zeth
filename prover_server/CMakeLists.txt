@@ -1,34 +1,21 @@
 list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib" "/usr/lib")
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-#message( $ENV{ZETH} )
-#message( ${CMAKE_CURRENT_BINARY_DIR} )
-#message( ${PROJECT_BINARY_DIR} )
-#
+
 find_package(Protobuf REQUIRED)
 find_package(GRPC REQUIRED)
 
-set(PROTOS
-    $ENV{ZETH_API_DIR}/prover.proto
+file(
+  GLOB
+  PROTO_FILES
+  $ENV{ZETH_API_DIR}/*.proto
 )
 
-set(PROTOS_UTIL
-    $ENV{ZETH_API_DIR}/util.proto
-)
-
-set(PROTOS_PGHR13
-    $ENV{ZETH_API_DIR}/pghr13_messages.proto
-)
-
-set(PROTOS_GROTH16
-    $ENV{ZETH_API_DIR}/groth16_messages.proto
-)
-#
 ## To clean up since these files are already generated
 ## in the binary dir of the zeth library
 #set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto_src)
 set(PROTO_SRC_DIR ${PROJECT_BINARY_DIR}/proto_src)
-#file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 include_directories(${PROTO_SRC_DIR})
+
 #
 ## Generating sensibly into a python module requires setting --proto_path to the
 ## zeth root, and referencing files as 'api/prover.proto' etc.  This requires us
@@ -42,8 +29,8 @@ set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
 ## See cmake scripts in the cmake folder
 ## Generate the grpc and protobuf files and set the result of the generation
 ## in the given env var (PROTO_SRCS, PROTO_HDRS, GRPC_SRCS, GRPC_HDRS)
-#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_GROTH16} ${PROTOS_UTIL} ${PROTOS})
-grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_GROTH16} ${PROTOS_UTIL} ${PROTOS})
+#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
+grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
 
 #set_property(SOURCE ${PROTO_SRCS} PROPERTY
 #  COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
