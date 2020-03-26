@@ -34,7 +34,6 @@ boost::filesystem::path get_path_to_debug_directory();
 bool replace(std::string &str, const std::string &from, const std::string &to);
 
 } // namespace libzeth
-
-#include "libsnark_helpers/debug_helpers.tcc"
+#include <libzeth/libsnark_helpers/debug_helpers.tcc>
 
 #endif // __ZETH_DEBUG_HELPERS_HPP__

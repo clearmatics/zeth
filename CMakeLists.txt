@@ -65,23 +65,6 @@ set(
   "Override C++ compiler optimization flags"
 )
 
-# TODO: Set these to env var in a make init rule
-#set(
-#  ZETH
-#  "${PROJECT_SOURCE_DIR}"
-#  CACHE
-#  PATH
-#  "Path to Zeth repository"
-#)
-#
-#set(
-#  ZETH_API_DIR
-#  "${ZETH}/api"
-#  CACHE
-#  PATH
-#  "Path to Zeth API directory"
-#)
-
 option(
   IS_ZETH_PARENT
   "Zeth parent folder option"
