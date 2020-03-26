@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 POT_PROCESS=$1
-[ "" == "${POT_PROCESS}" ] && POT_PROCESS="build/src/pot-process"
+[ "" == "${POT_PROCESS}" ] && POT_PROCESS="build/mpc_tools/pot-process"
 
 POT_DATA="testdata/powersoftau_challenge.4.bin"
 POT_DATA_DEGREE=16
