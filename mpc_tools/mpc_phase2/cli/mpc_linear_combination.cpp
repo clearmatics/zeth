@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "circuits/blake2s/blake2s_comp.hpp"
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc/mpc_utils.hpp"
-#include "snarks/groth16/mpc/powersoftau_utils.hpp"
-#include "util.hpp"
 
 #include <boost/program_options.hpp>
 #include <functional>
+#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
+#include <libzeth/snarks/groth16/mpc/mpc_utils.hpp>
+#include <libzeth/snarks/groth16/mpc/powersoftau_utils.hpp>
+#include <libzeth/util.hpp>
 #include <vector>
 
 using namespace libzeth;

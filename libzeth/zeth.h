@@ -3,6 +3,9 @@
 
 #include <stddef.h>
 
+namespace libzeth
+{
+
 static const size_t ZETH_NUM_JS_INPUTS = 2;
 static const size_t ZETH_NUM_JS_OUTPUTS = 2;
 
@@ -18,5 +21,7 @@ static const size_t ZETH_R_SIZE = 48; // 384 bits for r
 
 // Size of a HashT digest in hex characters
 static const size_t ZETH_DIGEST_HEX_SIZE = 64;
+
+} // namespace libzeth
 
 #endif // __ZETH_CONSTANTS__

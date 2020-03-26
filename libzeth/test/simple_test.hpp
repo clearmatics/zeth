@@ -5,7 +5,7 @@
 #ifndef __ZETH_TEST_SIMPLE_TEST_HPP__
 #define __ZETH_TEST_SIMPLE_TEST_HPP__
 
-#include "include_libsnark.hpp"
+#include <libzeth/include_libsnark.hpp>
 
 namespace libzeth
 {

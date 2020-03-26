@@ -44,29 +44,29 @@ class prover_server final : public prover_proto::Prover::Service
 {
 private:
     libzeth::circuit_wrapper<
-        FieldT,
-        HashT,
-        HashTreeT,
-        ppT,
-        ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS,
-        ZETH_MERKLE_TREE_DEPTH>
+        libzeth::FieldT,
+        libzeth::HashT,
+        libzeth::HashTreeT,
+        libzeth::ppT,
+        libzeth::ZETH_NUM_JS_INPUTS,
+        libzeth::ZETH_NUM_JS_OUTPUTS,
+        libzeth::ZETH_MERKLE_TREE_DEPTH>
         prover;
 
     // The keypair is the result of the setup
-    keyPairT<ppT> keypair;
+    libzeth::keyPairT<libzeth::ppT> keypair;
 
 public:
     explicit prover_server(
         libzeth::circuit_wrapper<
-            FieldT,
-            HashT,
-            HashTreeT,
-            ppT,
-            ZETH_NUM_JS_INPUTS,
-            ZETH_NUM_JS_OUTPUTS,
-            ZETH_MERKLE_TREE_DEPTH> &prover,
-        keyPairT<ppT> &keypair)
+            libzeth::FieldT,
+            libzeth::HashT,
+            libzeth::HashTreeT,
+            libzeth::ppT,
+            libzeth::ZETH_NUM_JS_INPUTS,
+            libzeth::ZETH_NUM_JS_OUTPUTS,
+            libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
+        libzeth::keyPairT<libzeth::ppT> &keypair)
         : prover(prover), keypair(keypair)
     {
     }
@@ -81,7 +81,8 @@ public:
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            prepare_verification_key_response<ppT>(this->keypair.vk, response);
+            libzeth::prepare_verification_key_response<libzeth::ppT>(
+                this->keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -106,8 +107,8 @@ public:
 
         // Parse received message to feed to the prover
         try {
-            FieldT root =
-                libzeth::string_to_field<FieldT>(proof_inputs->mk_root());
+            libzeth::FieldT root = libzeth::string_to_field<libzeth::FieldT>(
+                proof_inputs->mk_root());
             libzeth::bits64 vpub_in =
                 libzeth::hex_value_to_bits64(proof_inputs->pub_in_value());
             libzeth::bits64 vpub_out =
@@ -117,61 +118,71 @@ public:
             libzeth::bits256 phi_in =
                 libzeth::hex_digest_to_bits256(proof_inputs->phi());
 
-            if (ZETH_NUM_JS_INPUTS != proof_inputs->js_inputs_size()) {
+            if (libzeth::ZETH_NUM_JS_INPUTS != proof_inputs->js_inputs_size()) {
                 throw std::invalid_argument("Invalid number of JS inputs");
             }
-            if (ZETH_NUM_JS_OUTPUTS != proof_inputs->js_outputs_size()) {
+            if (libzeth::ZETH_NUM_JS_OUTPUTS !=
+                proof_inputs->js_outputs_size()) {
                 throw std::invalid_argument("Invalid number of JS outputs");
             }
 
             std::cout << "[DEBUG] Process all inputs of the JoinSplit"
                       << std::endl;
             std::array<
-                libzeth::joinsplit_input<FieldT, ZETH_MERKLE_TREE_DEPTH>,
-                ZETH_NUM_JS_INPUTS>
+                libzeth::joinsplit_input<
+                    libzeth::FieldT,
+                    libzeth::ZETH_MERKLE_TREE_DEPTH>,
+                libzeth::ZETH_NUM_JS_INPUTS>
                 joinsplit_inputs;
-            for (size_t i = 0; i < ZETH_NUM_JS_INPUTS; i++) {
-                printf("\r  input (%zu / %zu)\n", i, ZETH_NUM_JS_INPUTS);
+            for (size_t i = 0; i < libzeth::ZETH_NUM_JS_INPUTS; i++) {
+                printf(
+                    "\r  input (%zu / %zu)\n", i, libzeth::ZETH_NUM_JS_INPUTS);
                 prover_proto::JoinsplitInput received_input =
                     proof_inputs->js_inputs(i);
-                libzeth::joinsplit_input<FieldT, ZETH_MERKLE_TREE_DEPTH>
-                    parsed_input =
-                        parse_joinsplit_input<FieldT, ZETH_MERKLE_TREE_DEPTH>(
-                            received_input);
+                libzeth::joinsplit_input<
+                    libzeth::FieldT,
+                    libzeth::ZETH_MERKLE_TREE_DEPTH>
+                    parsed_input = libzeth::parse_joinsplit_input<
+                        libzeth::FieldT,
+                        libzeth::ZETH_MERKLE_TREE_DEPTH>(received_input);
                 joinsplit_inputs[i] = parsed_input;
             }
 
             std::cout << "[DEBUG] Process all outputs of the JoinSplit"
                       << std::endl;
-            std::array<libzeth::zeth_note, ZETH_NUM_JS_OUTPUTS>
+            std::array<libzeth::zeth_note, libzeth::ZETH_NUM_JS_OUTPUTS>
                 joinsplit_outputs;
-            for (size_t i = 0; i < ZETH_NUM_JS_OUTPUTS; i++) {
-                printf("\r  output (%zu / %zu)\n", i, ZETH_NUM_JS_OUTPUTS);
+            for (size_t i = 0; i < libzeth::ZETH_NUM_JS_OUTPUTS; i++) {
+                printf(
+                    "\r  output (%zu / %zu)\n",
+                    i,
+                    libzeth::ZETH_NUM_JS_OUTPUTS);
                 prover_proto::ZethNote received_output =
                     proof_inputs->js_outputs(i);
                 libzeth::zeth_note parsed_output =
-                    parse_zeth_note(received_output);
+                    libzeth::parse_zeth_note(received_output);
                 joinsplit_outputs[i] = parsed_output;
             }
 
             std::cout << "[DEBUG] Data parsed successfully" << std::endl;
             std::cout << "[DEBUG] Generating the proof..." << std::endl;
-            extended_proof<ppT> ext_proof = this->prover.prove(
-                root,
-                joinsplit_inputs,
-                joinsplit_outputs,
-                vpub_in,
-                vpub_out,
-                h_sig_in,
-                phi_in,
-                this->keypair.pk);
+            libzeth::extended_proof<libzeth::ppT> ext_proof =
+                this->prover.prove(
+                    root,
+                    joinsplit_inputs,
+                    joinsplit_outputs,
+                    vpub_in,
+                    vpub_out,
+                    h_sig_in,
+                    phi_in,
+                    this->keypair.pk);
 
             std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
             ext_proof.dump_proof();
             ext_proof.dump_primary_inputs();
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
-            prepare_proof_response<ppT>(ext_proof, proof);
+            libzeth::prepare_proof_response<libzeth::ppT>(ext_proof, proof);
 
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
@@ -223,14 +234,14 @@ void display_server_start_message()
 
 static void RunServer(
     libzeth::circuit_wrapper<
-        FieldT,
-        HashT,
-        HashTreeT,
-        ppT,
-        ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS,
-        ZETH_MERKLE_TREE_DEPTH> &prover,
-    keyPairT<ppT> &keypair)
+        libzeth::FieldT,
+        libzeth::HashT,
+        libzeth::HashTreeT,
+        libzeth::ppT,
+        libzeth::ZETH_NUM_JS_INPUTS,
+        libzeth::ZETH_NUM_JS_OUTPUTS,
+        libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
+    libzeth::keyPairT<libzeth::ppT> &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50051
     std::string server_address("0.0.0.0:50051");
@@ -257,12 +268,13 @@ static void RunServer(
 }
 
 #ifdef ZKSNARK_GROTH16
-static keyPairT<ppT> load_keypair(const std::string &keypair_file)
+static libzeth::keyPairT<libzeth::ppT> load_keypair(
+    const std::string &keypair_file)
 {
     std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return libzeth::mpc_read_keypair<ppT>(in);
+    return libzeth::mpc_read_keypair<libzeth::ppT>(in);
 }
 #endif
 
@@ -316,18 +328,18 @@ int main(int argc, char **argv)
 
     // We inititalize the curve parameters here
     std::cout << "[INFO] Init params" << std::endl;
-    ppT::init_public_params();
+    libzeth::ppT::init_public_params();
 
     libzeth::circuit_wrapper<
-        FieldT,
-        HashT,
-        HashTreeT,
-        ppT,
-        ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS,
-        ZETH_MERKLE_TREE_DEPTH>
+        libzeth::FieldT,
+        libzeth::HashT,
+        libzeth::HashTreeT,
+        libzeth::ppT,
+        libzeth::ZETH_NUM_JS_INPUTS,
+        libzeth::ZETH_NUM_JS_OUTPUTS,
+        libzeth::ZETH_MERKLE_TREE_DEPTH>
         prover;
-    keyPairT<ppT> keypair = [&keypair_file, &prover]() {
+    libzeth::keyPairT<libzeth::ppT> keypair = [&keypair_file, &prover]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
             std::cout << "[INFO] Loading keypair: " << keypair_file

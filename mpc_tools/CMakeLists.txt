@@ -1,4 +1,5 @@
 # Build for mpc utilities
+
 find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
 include_directories( ${Boost_INCLUDE_DIR} )
 
@@ -15,4 +16,5 @@ if(${ZKSNARK} STREQUAL "GROTH16")
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
   )
+  add_subdirectory(mpc_phase2)
 endif()

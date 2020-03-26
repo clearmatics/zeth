@@ -69,7 +69,8 @@ const std::string &subcommand::description() const
     return subcommand_description;
 }
 
-void subcommand::init_protoboard(libsnark::protoboard<FieldT> &pb) const
+void subcommand::init_protoboard(
+    libsnark::protoboard<libzeth::FieldT> &pb) const
 {
     protoboard_init(pb);
 }
@@ -106,7 +107,7 @@ int mpc_main(
     const std::map<std::string, subcommand *> &commands,
     ProtoboardInitFn pb_init)
 {
-    ppT::init_public_params();
+    libzeth::ppT::init_public_params();
     po::options_description global("Global options");
     global.add_options()("help,h", "This help")("verbose,v", "Verbose output");
 

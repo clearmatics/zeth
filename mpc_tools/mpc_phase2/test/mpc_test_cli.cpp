@@ -3,11 +3,12 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "mpc_common.hpp"
-#include "test/simple_test.hpp"
 
-void simple_protoboard(libsnark::protoboard<FieldT> &pb)
+#include <libzeth/test/simple_test.hpp>
+
+void simple_protoboard(libsnark::protoboard<libzeth::FieldT> &pb)
 {
-    libzeth::test::simple_circuit<FieldT>(pb);
+    libzeth::test::simple_circuit<libzeth::FieldT>(pb);
 }
 
 int main(int argc, char **argv)

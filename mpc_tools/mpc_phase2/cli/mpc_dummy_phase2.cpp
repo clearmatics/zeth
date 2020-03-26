@@ -2,12 +2,13 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "circuits/blake2s/blake2s_comp.hpp"
 #include "mpc_common.hpp"
-#include "snarks/groth16/mpc/mpc_utils.hpp"
-#include "snarks/groth16/mpc/phase2.hpp"
-#include "util.hpp"
-#include "zeth.h"
+
+#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
+#include <libzeth/snarks/groth16/mpc/mpc_utils.hpp>
+#include <libzeth/snarks/groth16/mpc/phase2.hpp>
+#include <libzeth/util.hpp>
+#include <libzeth/zeth.h>
 
 using namespace libzeth;
 namespace po = boost::program_options;

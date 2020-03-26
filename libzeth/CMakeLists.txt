@@ -1,43 +1,11 @@
 include_directories(.)
 
-# GRPC and Protocol Buffers libraries location
-# `ldconfig -p | grep libgrpc`
-# `ldconfig -p | grep libprotobuf`
-# Returns the location of the GRPC and Protocol Buffers libraries
-#
-# CMAKE_MODULE_PATH: Path used for searching by FIND_XXX(), with appropriate suffixes added.
-# See: https://cmake.org/cmake/help/v3.0/variable/CMAKE_PREFIX_PATH.html
-list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib" "/usr/lib")
-
-# Cmake find modules
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-
 find_package(Protobuf REQUIRED)
 find_package(GRPC REQUIRED)
 
-file(
-  GLOB
-  PROTO_FILES
-  $ENV{ZETH_API_DIR}/*.proto
-)
-
-# Set the target of the generated files to ${CMAKE_CURRENT_BINARY_DIR}/proto-src
-# Then create this folder and add it to the include directories
-# We create the folder from PROJECT_BINARY_DIR to make sure
-# we can generate the proto files and re-use them for
-# different targets.
-set(PROTO_SRC_DIR ${PROJECT_BINARY_DIR}/proto_src)
-file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
+# Add the directory containing the Protobuf generated files.
+# `PROTO_SRC_DIR` is defined in the parent CMakeLists.txt
 include_directories(${PROTO_SRC_DIR})
-
-# Generating sensibly into a python module requires setting --proto_path to the
-# zeth root, and referencing files as 'api/prover.proto' etc.  This requires us
-# to tweak the references to the source files.
-set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
-set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
-set(PROTOBUF_APPEND_DEST_PATH "/api")
-set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
-set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
 
 # Function defined in the cmake scripts in the cmake folder.
 # Generate the protobuf files and set the result of the generation
@@ -45,9 +13,6 @@ set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
 
 set_property(SOURCE ${PROTO_SRCS} PROPERTY
-  COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
-)
-set_property(SOURCE ${GRPC_SRCS} PROPERTY
   COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
 )
 

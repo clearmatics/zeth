@@ -5,15 +5,15 @@
 #ifndef __ZETH_MPC_CLI_COMMON_HPP__
 #define __ZETH_MPC_CLI_COMMON_HPP__
 
-#include "circuit_types.hpp"
-
 #include <boost/program_options.hpp>
 #include <fstream>
+#include <libzeth/circuit_types.hpp>
 #include <map>
 #include <string>
 #include <vector>
 
-using ProtoboardInitFn = std::function<void(libsnark::protoboard<FieldT> &)>;
+using ProtoboardInitFn =
+    std::function<void(libsnark::protoboard<libzeth::FieldT> &)>;
 
 class subcommand
 {
@@ -34,7 +34,7 @@ public:
     const std::string &description() const;
 
 protected:
-    void init_protoboard(libsnark::protoboard<FieldT> &pb) const;
+    void init_protoboard(libsnark::protoboard<libzeth::FieldT> &pb) const;
 
 private:
     void usage(const boost::program_options::options_description &all_options);
@@ -70,10 +70,10 @@ inline ReadableT read_from_file(const std::string &file_name)
 // constraints above.
 template<typename ReadableT>
 inline ReadableT read_from_file_and_hash(
-    const std::string &file_name, srs_mpc_hash_t out_hash)
+    const std::string &file_name, libzeth::srs_mpc_hash_t out_hash)
 {
     std::ifstream inf(file_name, std::ios_base::binary | std::ios_base::in);
-    hash_istream_wrapper in(inf);
+    libzeth::hash_istream_wrapper in(inf);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
     ReadableT v = ReadableT::read(in);

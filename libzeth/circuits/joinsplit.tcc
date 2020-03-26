@@ -15,7 +15,8 @@
 #include <libzeth/circuits/safe_arithmetic.hpp>
 #include <libzeth/types/merkle_tree_field.hpp>
 
-using namespace libzeth;
+namespace libzeth
+{
 
 template<
     typename FieldT,
@@ -719,5 +720,7 @@ public:
         return nb_elements;
     }
 };
+
+} // namespace libzeth
 
 #endif // __ZETH_CIRCUITS_JOINSPLIT_TCC__
