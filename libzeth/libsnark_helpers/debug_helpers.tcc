@@ -110,9 +110,9 @@ std::string point_g1_affine_as_hex(const libff::G1<ppT> &point)
     libff::G1<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
     return "\"0x" +
-           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.X.as_bigint()) +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.X().as_bigint()) +
            "\", \"0x" +
-           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.Y.as_bigint()) +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.Y().as_bigint()) +
            "\"";
 }
 
@@ -122,13 +122,17 @@ std::string point_g2_affine_as_hex(const libff::G2<ppT> &point)
     libff::G2<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
     return "[\"0x" +
-           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.X.c1.as_bigint()) +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(
+               affine_p.X().c1.as_bigint()) +
            "\", \"0x" +
-           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.X.c0.as_bigint()) +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(
+               affine_p.X().c0.as_bigint()) +
            "\"],\n [\"0x" +
-           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.Y.c1.as_bigint()) +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(
+               affine_p.Y().c1.as_bigint()) +
            "\", \"0x" +
-           hex_from_libsnark_bigint<libff::Fq<ppT>>(affine_p.Y.c0.as_bigint()) +
+           hex_from_libsnark_bigint<libff::Fq<ppT>>(
+               affine_p.Y().c0.as_bigint()) +
            "\"]";
 }
 
