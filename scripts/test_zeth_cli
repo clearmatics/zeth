@@ -3,49 +3,20 @@
 set -e
 set -x
 
-TRUFFLE_DIR=`pwd`/zeth-contracts
+. scripts/test_zeth_cli_common.sh
+
 BASE_DIR=_test_zeth_cli
 DEPLOYER_DIR=${BASE_DIR}/deployer
 ALICE_DIR=${BASE_DIR}/alice
 BOB_DIR=${BASE_DIR}/bob
 CHARLIE_DIR=${BASE_DIR}/charlie
 
-function run_truffle() {
-    pushd ${TRUFFLE_DIR}
-    eval truffle $@
-    popd
-}
-
-function run_as() {
-    pushd $1
-    shift
-    eval $@
-    popd
-}
-
-function show_balances() {
-    run_truffle exec ../scripts/test_zeth_cli_show_balances.js
-}
-
 # Setup addresses
 
 mkdir -p ${BASE_DIR}
 pushd ${BASE_DIR}
 
-if ! [ -e accounts ] ; then
-    (run_truffle exec ../scripts/test_zeth_cli_get_accounts.js) > accounts
-fi
-
-# 1 - name
-function setup_user() {
-    mkdir -p $1
-    pushd $1
-    ! [ -e eth-address ] && \
-        (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
-    ! [ -e zeth-address.json ] && \
-        (zeth gen-address)
-    popd
-}
+get_accounts
 
 setup_user deployer
 setup_user alice
@@ -56,9 +27,9 @@ setup_user charlie
 ! [ -e deployer/zeth-instance.json ] && \
     run_as deployer zeth deploy
 
-cp deployer/zeth-instance.json alice
-cp deployer/zeth-instance.json bob
-cp deployer/zeth-instance.json charlie
+copy_deployment_info deployer alice
+copy_deployment_info deployer bob
+copy_deployment_info deployer charlie
 
 # Alice deposits 200 and sends 100 to Bob
 pushd alice
