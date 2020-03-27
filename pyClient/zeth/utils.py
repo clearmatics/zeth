@@ -61,6 +61,9 @@ class EtherValue:
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
+    def __bool__(self) -> bool:
+        return int(self.wei) != 0
+
     def ether(self) -> str:
         return str(Web3.fromWei(self.wei, 'ether'))
 
