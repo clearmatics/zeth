@@ -89,7 +89,7 @@ std::string hex_from_libsnark_bigint(
 // where every Limb{i} is of type `mp_limb_t`,
 template<typename FieldT>
 libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(
-    const uint8_t bytes[(FieldT::num_bits + 8 - 1) / 8])
+    const uint8_t bytes[((GMP_LIMB_BITS + 8 - 1) / 8) * FieldT::num_limbs])
 {
     const unsigned bytes_per_limb = (GMP_LIMB_BITS + 8 - 1) / 8;
 
