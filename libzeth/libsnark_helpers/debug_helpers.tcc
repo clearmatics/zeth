@@ -64,8 +64,7 @@ std::string hex_from_libsnark_bigint(
     }
     std::string str = ss.str();
 
-    // Remove leading 0's
-    return str.erase(0, std::min(str.find_first_not_of('0'), str.size() - 1));
+    return str;
 }
 
 // WARNING: The following function assumes that NAILS are NOT used
