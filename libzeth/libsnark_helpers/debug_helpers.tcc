@@ -97,8 +97,8 @@ libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(
 
     for (unsigned i = 0; i < FieldT::num_limbs; i++) {
         for (unsigned j = 0; j < bytes_per_limb; j++) {
-            res.data[FieldT::num_limbs - i] |= mp_limb_t(bytes[i * 8 + j])
-                                               << (GMP_LIMB_BITS - 8 * (j + 1));
+            res.data[FieldT::num_limbs - i - 1] |=
+                mp_limb_t(bytes[i * 8 + j]) << (GMP_LIMB_BITS - 8 * (j + 1));
         }
     }
     return res;
