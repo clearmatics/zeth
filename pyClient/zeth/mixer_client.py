@@ -485,6 +485,20 @@ class MixerClient:
             wei_pub_value,
             call_gas)
 
+    def mix_call(
+            self,
+            mix_params: contracts.MixParameters,
+            sender_eth_address: str,
+            wei_pub_value: int,
+            call_gas: int) -> bool:
+        return contracts.mix_call(
+            self._zksnark,
+            self.mixer_instance,
+            mix_params,
+            sender_eth_address,
+            wei_pub_value,
+            call_gas)
+
     def get_proof_joinsplit_2_by_2(
             self,
             mk_root: bytes,

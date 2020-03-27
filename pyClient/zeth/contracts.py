@@ -17,6 +17,7 @@ from zeth.constants import SOL_COMPILER_VERSION
 import os
 import json
 import solcx
+import traceback
 from typing import Dict, List, Iterator, Optional, Any
 
 # Avoid trying to read too much data into memory
@@ -231,6 +232,53 @@ def deploy_tree_contract(
     return instance
 
 
+def _create_web3_mixer_call(
+        zksnark: IZKSnarkProvider,
+        mixer_instance: Any,
+        mix_parameters: MixParameters) -> Any:
+    # Convert all params to the correct form for calling the mix method.
+    proof_param = zksnark.mixer_proof_parameters(mix_parameters.extended_proof)
+    proof_inputs_param = hex_to_int(mix_parameters.extended_proof["inputs"])
+    vk_param = verification_key_as_mix_parameter(mix_parameters.signature_vk)
+    signature_param = signature_as_mix_parameter(mix_parameters.signature)
+    pk_sender_param = encode_encryption_public_key(mix_parameters.pk_sender)
+    ciphertexts_param = mix_parameters.ciphertexts
+    return mixer_instance.functions.mix(
+        *proof_param,
+        vk_param,
+        signature_param,
+        proof_inputs_param,
+        pk_sender_param,
+        ciphertexts_param)
+
+
+def mix_call(
+        zksnark: IZKSnarkProvider,
+        mixer_instance: Any,
+        mix_parameters: MixParameters,
+        sender_address: str,
+        wei_pub_value: int,
+        call_gas: int) -> bool:
+    """
+    Call the mix method (executes on the RPC host, without creating a
+    transaction). Returns True if the call succeeds.  False, otherwise.
+    """
+    mixer_call = _create_web3_mixer_call(zksnark, mixer_instance, mix_parameters)
+    try:
+        mixer_call.call({
+            'from': sender_address,
+            'value': wei_pub_value,
+            'gas': call_gas
+        })
+        return True
+
+    except ValueError:
+        print("error executing mix call:")
+        traceback.print_exc()
+
+    return False
+
+
 def mix(
         zksnark: IZKSnarkProvider,
         mixer_instance: Any,
@@ -239,23 +287,14 @@ def mix(
         wei_pub_value: int,
         call_gas: int) -> str:
     """
-    Run the mixer
+    Create and broadcast a transaction that calls the mix method of the Mixer
     """
-    # Convert all params to the correct form for calling the mix method.
-    proof_param = zksnark.mixer_proof_parameters(mix_parameters.extended_proof)
-    proof_inputs_param = hex_to_int(mix_parameters.extended_proof["inputs"])
-    vk_param = verification_key_as_mix_parameter(mix_parameters.signature_vk)
-    signature_param = signature_as_mix_parameter(mix_parameters.signature)
-    pk_sender_param = encode_encryption_public_key(mix_parameters.pk_sender)
-    ciphertexts_param = mix_parameters.ciphertexts
-    tx_hash = mixer_instance.functions.mix(
-        *proof_param,
-        vk_param,
-        signature_param,
-        proof_inputs_param,
-        pk_sender_param,
-        ciphertexts_param
-    ).transact({'from': sender_address, 'value': wei_pub_value, 'gas': call_gas})
+    mixer_call = _create_web3_mixer_call(zksnark, mixer_instance, mix_parameters)
+    tx_hash = mixer_call.transact({
+        'from': sender_address,
+        'value': wei_pub_value,
+        'gas': call_gas
+    })
     return tx_hash.hex()
 
 
