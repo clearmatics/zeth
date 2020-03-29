@@ -27,19 +27,9 @@ void prepare_proof_response(
 
     libsnark::r1cs_ppzksnark_primary_input<ppT> public_inputs =
         ext_proof.get_primary_input();
-    std::stringstream ss;
-    ss << "[";
-    for (size_t i = 0; i < public_inputs.size(); ++i) {
-        ss << "\"0x"
-           << hex_from_libsnark_bigint<libff::Fr<ppT>>(
-                  public_inputs[i].as_bigint())
-           << "\"";
-        if (i < public_inputs.size() - 1) {
-            ss << ", ";
-        }
-    }
-    ss << "]";
-    std::string inputs_json_str = ss.str();
+
+    std::string inputs_json_str =
+        format_primary_inputs<ppT>(std::vector<libff::Fr<ppT>>(public_inputs));
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
