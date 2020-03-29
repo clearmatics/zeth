@@ -33,6 +33,9 @@ template<typename ppT>
 prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     const libff::G2<ppT> &point);
 
+template<typename ppT>
+std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs);
+
 } // namespace libzeth
 #include <libzeth/util_api.tcc>
 

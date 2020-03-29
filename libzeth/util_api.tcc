@@ -87,6 +87,25 @@ prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     return res;
 }
 
+template<ppT>
+std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs)
+{
+    std::stringstream ss;
+    ss << "[";
+    for (size_t i = 0; i < public_inputs.size(); ++i) {
+        ss << "0x"
+           << libzeth::hex_from_libsnark_bigint<libff::Fr<ppT>>(
+                  public_inputs[i].as_bigint());
+        if (i < public_inputs.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    std::string inputs_json_str = ss.str();
+
+    return inputs_json_str;
+}
+
 } // namespace libzeth
 
 #endif // __ZETH_UTIL_API_TCC__
