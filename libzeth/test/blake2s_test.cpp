@@ -23,7 +23,7 @@ namespace
 {
 
 // This test corresponds to the first call of the g_primitive of blake2s(b"hello
-// world"). As blake2s first formats the input blocks in 32bit words in little
+// world"). As blake2s first formats the input blocks in 32-bit words in little
 // endian, the inputs of the first g_primitive are "lleh" and "ow o"
 // ("hello world" -> "hell" "o wo" "rld" plus padding-> "lleh" "ow o" "dlr" plus
 // padding)
@@ -94,16 +94,16 @@ TEST(TestG, TestTrue)
         ZERO);
 
     libsnark::pb_variable_array<FieldT> a2;
-    a2.allocate(pb, 32, "a2");
+    a2.allocate(pb, BLAKE2s_word_size, "a2");
 
     libsnark::pb_variable_array<FieldT> b2;
-    b2.allocate(pb, 32, "b2");
+    b2.allocate(pb, BLAKE2s_word_size, "b2");
 
     libsnark::pb_variable_array<FieldT> c2;
-    c2.allocate(pb, 32, "c2");
+    c2.allocate(pb, BLAKE2s_word_size, "c2");
 
     libsnark::pb_variable_array<FieldT> d2;
-    d2.allocate(pb, 32, "d2");
+    d2.allocate(pb, BLAKE2s_word_size, "d2");
 
     g_primitive<FieldT> g_gadget(pb, a, b, c, d, x, y, a2, b2, c2, d2);
     g_gadget.generate_r1cs_constraints();

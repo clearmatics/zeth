@@ -7,6 +7,9 @@
 #include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
+// Header to get the constants
+#include "zeth.h"
+
 // Header to use the merkle tree data structure
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
@@ -195,19 +198,19 @@ TEST(TestCOMMs, TestCOMMGadget)
 
     // hex: 0xAF000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_pk;
-    a_pk.allocate(pb, 256, "a_pk");
+    a_pk.allocate(pb, ZETH_A_PK_SIZE, "a_pk");
     a_pk.fill_with_bits(pb, get_vector_from_bits256(a_pk_bits256));
 
     libsnark::pb_variable_array<FieldT> rho;
-    rho.allocate(pb, 256, "rho");
+    rho.allocate(pb, ZETH_RHO_SIZE, "rho");
     rho.fill_with_bits(pb, get_vector_from_bits256(rho_bits256));
 
     libsnark::pb_variable_array<FieldT> r;
-    r.allocate(pb, 384, "r");
+    r.allocate(pb, ZETH_R_SIZE, "r");
     r.fill_with_bits(pb, get_vector_from_bits384(trap_r_bits384));
 
     libsnark::pb_variable_array<FieldT> v;
-    v.allocate(pb, 64, "v");
+    v.allocate(pb, ZETH_V_SIZE, "v");
     v.fill_with_bits(pb, get_vector_from_bits64(value_bits64));
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;

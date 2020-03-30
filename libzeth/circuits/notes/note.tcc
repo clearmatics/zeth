@@ -17,22 +17,22 @@ note_gadget<FieldT>::note_gadget(
 {
     value.allocate(
         pb,
-        ZETH_V_SIZE * 8,
-        FMT(this->annotation_prefix, " value")); // ZETH_V_SIZE * 8 = 8 * 8 = 64
+        ZETH_V_SIZE,
+        FMT(this->annotation_prefix, " value")); // ZETH_V_SIZE = 64
     r.allocate(
         pb,
-        ZETH_R_SIZE * 8,
-        FMT(this->annotation_prefix, " r")); // ZETH_R_SIZE * 8 = 48 * 8 = 384
+        ZETH_R_SIZE,
+        FMT(this->annotation_prefix, " r")); // ZETH_R_SIZE = 384
 }
 
 template<typename FieldT> void note_gadget<FieldT>::generate_r1cs_constraints()
 {
-    for (size_t i = 0; i < ZETH_V_SIZE * 8; i++) {
+    for (size_t i = 0; i < ZETH_V_SIZE; i++) {
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
             this->pb, value[i], FMT(this->annotation_prefix, " value[%zu]", i));
     }
 
-    for (size_t i = 0; i < ZETH_R_SIZE * 8; i++) {
+    for (size_t i = 0; i < ZETH_R_SIZE; i++) {
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
             this->pb, r[i], FMT(this->annotation_prefix, " r[%zu]", i));
     }
@@ -59,8 +59,8 @@ input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::input_note_gadget(
     const std::string &annotation_prefix)
     : note_gadget<FieldT>(pb, annotation_prefix)
 {
-    // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
-    rho.allocate(pb, ZETH_RHO_SIZE * 8, " rho");
+    // ZETH_RHO_SIZE = 256
+    rho.allocate(pb, ZETH_RHO_SIZE, " rho");
     address_bits_va.allocate(
         pb, TreeDepth, FMT(this->annotation_prefix, " merkle_tree_depth"));
     a_pk.reset(new libsnark::digest_variable<FieldT>(
@@ -154,8 +154,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
     note_gadget<FieldT>::generate_r1cs_constraints();
 
     // Generate the constraints for the rho 256-bit string
-    for (size_t i = 0; i < ZETH_RHO_SIZE * 8;
-         i++) { // ZETH_RHO_SIZE * 8 = 32 * 8 = 256
+    for (size_t i = 0; i < ZETH_RHO_SIZE; i++) { // ZETH_RHO_SIZE = 256
         libsnark::generate_boolean_r1cs_constraint<FieldT>(
             this->pb, rho[i], FMT(this->annotation_prefix, " rho"));
     }

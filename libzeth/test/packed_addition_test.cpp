@@ -42,12 +42,12 @@ TEST(TestPackedAddition, TestPackedAddition1)
 
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> value_left1;
-    value_left1.allocate(pb, 64, "value_left1");
+    value_left1.allocate(pb, ZETH_V_SIZE, "value_left1");
     libsnark::pb_variable_array<FieldT> value_left2;
-    value_left2.allocate(pb, 64, "value_left2");
+    value_left2.allocate(pb, ZETH_V_SIZE, "value_left2");
 
     libsnark::pb_variable_array<FieldT> value_right1;
-    value_right1.allocate(pb, 64, "value_right1");
+    value_right1.allocate(pb, ZETH_V_SIZE, "value_right1");
 
     libsnark::linear_combination<FieldT> left_side =
         packed_addition(value_left1) + packed_addition(value_left2);
@@ -89,14 +89,14 @@ TEST(TestPackedAddition, TestPackedAddition2)
 
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> value_left1;
-    value_left1.allocate(pb, 64, "value_left1");
+    value_left1.allocate(pb, ZETH_V_SIZE, "value_left1");
     libsnark::pb_variable_array<FieldT> value_left2;
-    value_left2.allocate(pb, 64, "value_left2");
+    value_left2.allocate(pb, ZETH_V_SIZE, "value_left2");
 
     libsnark::pb_variable_array<FieldT> value_right1;
-    value_right1.allocate(pb, 64, "value_right1");
+    value_right1.allocate(pb, ZETH_V_SIZE, "value_right1");
     libsnark::pb_variable_array<FieldT> value_right2;
-    value_right2.allocate(pb, 64, "value_right2");
+    value_right2.allocate(pb, ZETH_V_SIZE, "value_right2");
 
     libsnark::linear_combination<FieldT> left_side =
         packed_addition(value_left1);
@@ -146,19 +146,19 @@ TEST(TestPackedAddition, TestPackedAddition3)
 
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> v_pub_in;
-    v_pub_in.allocate(pb, 64, "v_pub_in");
+    v_pub_in.allocate(pb, ZETH_V_SIZE, "v_pub_in");
     libsnark::pb_variable_array<FieldT> v_pub_out;
-    v_pub_out.allocate(pb, 64, "v_pub_out");
+    v_pub_out.allocate(pb, ZETH_V_SIZE, "v_pub_out");
 
     libsnark::pb_variable_array<FieldT> in_val_note1;
-    in_val_note1.allocate(pb, 64, "in_val_note1");
+    in_val_note1.allocate(pb, ZETH_V_SIZE, "in_val_note1");
     libsnark::pb_variable_array<FieldT> in_val_note2;
-    in_val_note2.allocate(pb, 64, "in_val_note2");
+    in_val_note2.allocate(pb, ZETH_V_SIZE, "in_val_note2");
 
     libsnark::pb_variable_array<FieldT> out_val_note1;
-    out_val_note1.allocate(pb, 64, "out_val_note1");
+    out_val_note1.allocate(pb, ZETH_V_SIZE, "out_val_note1");
     libsnark::pb_variable_array<FieldT> out_val_note2;
-    out_val_note2.allocate(pb, 64, "out_val_note2");
+    out_val_note2.allocate(pb, ZETH_V_SIZE, "out_val_note2");
 
     libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
     left_side = left_side + packed_addition(in_val_note1);
@@ -212,19 +212,19 @@ TEST(TestPackedAddition, TestPackedAddition4)
     // === Set the constraints
     std::cout << "[DEBUG] variables allocation" << std::endl;
     libsnark::pb_variable_array<FieldT> v_pub_in;
-    v_pub_in.allocate(pb, 64, "v_pub_in");
+    v_pub_in.allocate(pb, ZETH_V_SIZE, "v_pub_in");
     libsnark::pb_variable_array<FieldT> v_pub_out;
-    v_pub_out.allocate(pb, 64, "v_pub_out");
+    v_pub_out.allocate(pb, ZETH_V_SIZE, "v_pub_out");
 
     libsnark::pb_variable_array<FieldT> in_val_note1;
-    in_val_note1.allocate(pb, 64, "in_val_note1");
+    in_val_note1.allocate(pb, ZETH_V_SIZE, "in_val_note1");
     libsnark::pb_variable_array<FieldT> in_val_note2;
-    in_val_note2.allocate(pb, 64, "in_val_note2");
+    in_val_note2.allocate(pb, ZETH_V_SIZE, "in_val_note2");
 
     libsnark::pb_variable_array<FieldT> out_val_note1;
-    out_val_note1.allocate(pb, 64, "out_val_note1");
+    out_val_note1.allocate(pb, ZETH_V_SIZE, "out_val_note1");
     libsnark::pb_variable_array<FieldT> out_val_note2;
-    out_val_note2.allocate(pb, 64, "out_val_note2");
+    out_val_note2.allocate(pb, ZETH_V_SIZE, "out_val_note2");
 
     libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
     left_side = left_side + packed_addition(in_val_note1);
@@ -282,19 +282,19 @@ TEST(TestPackedAddition, TestPackedAddition5)
 
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> v_pub_in;
-    v_pub_in.allocate(pb, 64, "v_pub_in");
+    v_pub_in.allocate(pb, ZETH_V_SIZE, "v_pub_in");
     libsnark::pb_variable_array<FieldT> v_pub_out;
-    v_pub_out.allocate(pb, 64, "v_pub_out");
+    v_pub_out.allocate(pb, ZETH_V_SIZE, "v_pub_out");
 
     libsnark::pb_variable_array<FieldT> in_val_note1;
-    in_val_note1.allocate(pb, 64, "in_val_note1");
+    in_val_note1.allocate(pb, ZETH_V_SIZE, "in_val_note1");
     libsnark::pb_variable_array<FieldT> in_val_note2;
-    in_val_note2.allocate(pb, 64, "in_val_note2");
+    in_val_note2.allocate(pb, ZETH_V_SIZE, "in_val_note2");
 
     libsnark::pb_variable_array<FieldT> out_val_note1;
-    out_val_note1.allocate(pb, 64, "out_val_note1");
+    out_val_note1.allocate(pb, ZETH_V_SIZE, "out_val_note1");
     libsnark::pb_variable_array<FieldT> out_val_note2;
-    out_val_note2.allocate(pb, 64, "out_val_note2");
+    out_val_note2.allocate(pb, ZETH_V_SIZE, "out_val_note2");
 
     libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
     left_side = left_side + packed_addition(in_val_note1);
@@ -351,19 +351,19 @@ TEST(TestPackedAddition, TestPackedAddition6)
 
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> v_pub_in;
-    v_pub_in.allocate(pb, 64, "v_pub_in");
+    v_pub_in.allocate(pb, ZETH_V_SIZE, "v_pub_in");
     libsnark::pb_variable_array<FieldT> v_pub_out;
-    v_pub_out.allocate(pb, 64, "v_pub_out");
+    v_pub_out.allocate(pb, ZETH_V_SIZE, "v_pub_out");
 
     libsnark::pb_variable_array<FieldT> in_val_note1;
-    in_val_note1.allocate(pb, 64, "in_val_note1");
+    in_val_note1.allocate(pb, ZETH_V_SIZE, "in_val_note1");
     libsnark::pb_variable_array<FieldT> in_val_note2;
-    in_val_note2.allocate(pb, 64, "in_val_note2");
+    in_val_note2.allocate(pb, ZETH_V_SIZE, "in_val_note2");
 
     libsnark::pb_variable_array<FieldT> out_val_note1;
-    out_val_note1.allocate(pb, 64, "out_val_note1");
+    out_val_note1.allocate(pb, ZETH_V_SIZE, "out_val_note1");
     libsnark::pb_variable_array<FieldT> out_val_note2;
-    out_val_note2.allocate(pb, 64, "out_val_note2");
+    out_val_note2.allocate(pb, ZETH_V_SIZE, "out_val_note2");
 
     libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
     left_side = left_side + packed_addition(in_val_note1);
