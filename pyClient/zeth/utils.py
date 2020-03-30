@@ -53,6 +53,9 @@ class EtherValue:
     def __add__(self, other: EtherValue) -> EtherValue:
         return EtherValue(self.wei + other.wei, 'wei')
 
+    def __sub__(self, other: EtherValue) -> EtherValue:
+        return EtherValue(self.wei - other.wei, 'wei')
+
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, EtherValue):
             return False
@@ -60,6 +63,18 @@ class EtherValue:
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
+
+    def __lt__(self, other: EtherValue) -> bool:
+        return self.wei < other.wei
+
+    def __le__(self, other: EtherValue) -> bool:
+        return self.wei <= other.wei
+
+    def __gt__(self, other: EtherValue) -> bool:
+        return self.wei > other.wei
+
+    def __ge__(self, other: EtherValue) -> bool:
+        return self.wei >= other.wei
 
     def __bool__(self) -> bool:
         return int(self.wei) != 0
