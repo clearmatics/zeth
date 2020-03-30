@@ -49,6 +49,31 @@ DIGEST_LENGTH: int = 256
 # Public value length (v_pub_in and v_pub_out)
 PUBLIC_VALUE_LENGTH: int = 64
 
+# Number of residual bits when encoding digests into field values
+DIGEST_RESIDUAL_BITS = max(0, DIGEST_LENGTH - FIELD_CAPACITY)
+
+# Bits per public value (embedded into the 'residual bits" public input)
+PUBLIC_VALUE_BITS = 64
+PUBLIC_VALUE_BYTES = PUBLIC_VALUE_BITS >> 3
+PUBLIC_VALUE_MASK = (1 << PUBLIC_VALUE_BITS) - 1
+
+# Public inputs are (see BaseMixer.sol):
+#   [0                 ] - 1     x merkle root
+#   [1                 ] - jsOut x commitment
+#   [1 + jsOut         ] - jsIn  x nullifier (partial)
+#   [1 + jsOut + jsIn  ] - 1     x hsig (partial)
+#   [2 + jsOut + jsIn  ] - JsIn  x message auth tags (partial)
+#   [2 + jsOut + 2*jsIn] - 1     x residual bits, v_in, v_out
+
+# Index (in public inputs) of residual bits
+RESIDUAL_BITS_INDEX = (2 * JS_INPUTS) + JS_OUTPUTS + 2
+
+# Number of full-length digests to be encoded in public inputs
+NUM_INPUT_DIGESTS = (2 * JS_INPUTS) + 1
+
+# Total number of residual bits corresponding to digests in public inputs
+TOTAL_DIGEST_RESIDUAL_BITS = NUM_INPUT_DIGESTS * DIGEST_RESIDUAL_BITS
+
 # Solidity compiler version
 SOL_COMPILER_VERSION = 'v0.5.16'
 

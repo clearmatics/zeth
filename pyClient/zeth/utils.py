@@ -91,6 +91,11 @@ def eth_address_to_bytes(eth_addr: str) -> bytes:
     return bytes.fromhex(hex_extend_32bytes(eth_addr[2:]))
 
 
+def eth_uint256_to_int(eth_uint256: str) -> int:
+    assert isinstance(eth_uint256, str)
+    return int.from_bytes(eth_address_to_bytes(eth_uint256), byteorder='big')
+
+
 def g1_to_bytes(group_el: G1) -> bytes:
     """
     Encode a group element into a byte string

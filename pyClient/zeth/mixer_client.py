@@ -20,7 +20,7 @@ from zeth.zksnark import \
     IZKSnarkProvider, get_zksnark_provider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, int64_to_hex, \
-    message_to_bytes, eth_address_to_bytes, to_zeth_units
+    message_to_bytes, eth_address_to_bytes, eth_uint256_to_int, to_zeth_units
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 import api.prover_pb2 as prover_pb2
@@ -534,6 +534,14 @@ class MixerClient:
         proof_obj = self._prover_client.get_proof(proof_input)
         proof_json = self._zksnark.parse_proof(proof_obj)
 
+        # Sanity check our unpacking code against the prover server output.
+        pub_inputs = proof_json["inputs"]
+        print(f"pub_inputs: {pub_inputs}")
+        # pub_inputs_bytes = [bytes.fromhex(x) for x in pub_inputs]
+        (v_in, v_out) = public_inputs_extract_public_values(pub_inputs)
+        assert public_in_value_zeth_units == v_in
+        assert public_out_value_zeth_units == v_out
+
         # We return the zeth notes to be able to spend them later
         # and the proof used to create them
         return (
@@ -655,6 +663,20 @@ def trap_r_randomness() -> str:
     Compute randomness "r" as 48 random bytes
     """
     return bytes(Random.get_random_bytes(48)).hex()
+
+
+def public_inputs_extract_public_values(
+        public_inputs: List[str]) -> Tuple[int, int]:
+    """
+    Extract (v_in, v_out) from encoded public inputs. Allows client code to
+    check these properties of MixParameters without needing to know the details
+    of the structure / packing policy.
+    """
+    residual = eth_uint256_to_int(public_inputs[constants.RESIDUAL_BITS_INDEX])
+    residual = residual >> constants.TOTAL_DIGEST_RESIDUAL_BITS
+    v_out = (residual & constants.PUBLIC_VALUE_MASK)
+    v_in = (residual >> constants.PUBLIC_VALUE_BITS) & constants.PUBLIC_VALUE_MASK
+    return (v_in, v_out)
 
 
 def _compute_rho_i(phi: str, hsig: bytes, i: int) -> bytes:
