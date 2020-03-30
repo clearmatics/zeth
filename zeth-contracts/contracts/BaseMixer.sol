@@ -85,6 +85,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     //   jsOut (commitment per JS output)
     uint256 constant nb_hash_digests = 1 + 2*jsIn;
 
+    // Bit offset of v_out in residual_bits
+    uint256 constant residual_hash_bits = packing_residue_length*nb_hash_digests;
+
     // Total number of residual bits from packing of 256-bit long string into
     // 253-bit long field elements to which are added the public value of size
     // 64 bits
@@ -192,17 +195,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // We know vpub_in corresponds to the first 64 bits of the first
         // residual field element after padding. We retrieve the public value
         // in and remove any extra bits (due to the padding)
-        uint256 residual_hash_size = packing_residue_length*nb_hash_digests;
 
-        bytes32 vpub_bytes = bytes32(primary_inputs[1 + jsOut + nb_hash_digests])
-            >> (residual_hash_size + public_value_length);
-        vpub_in = uint64(uint(vpub_bytes));
-
-        // We retrieve the public value out and remove any extra bits (due to
-        // the padding)
-        vpub_bytes = bytes32(primary_inputs[1 + jsOut + nb_hash_digests])
-            >> residual_hash_size;
-        vpub_out = uint64(uint(vpub_bytes));
+        uint256 residual_bits = primary_inputs[1 + jsOut + nb_hash_digests];
+        residual_bits = residual_bits >> residual_hash_bits;
+        vpub_out = uint64(residual_bits);
+        vpub_in = uint64(residual_bits >> public_value_length);
     }
 
     // This function is used to reassemble hsig given the the primary_inputs To
