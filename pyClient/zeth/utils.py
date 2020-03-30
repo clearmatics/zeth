@@ -82,15 +82,16 @@ def encode_abi(type_names: List[str], data: List[bytes]) -> bytes:
     return eth_abi.encode_abi(type_names, data)  # type: ignore
 
 
-def encode_eth_address(eth_addr: str) -> bytes:
+def eth_address_to_bytes(eth_addr: str) -> bytes:
     """
     Binary encoding of ethereum address to 32 bytes
     """
     # Strip the leading '0x' and hex-decode.
+    assert eth_addr.startswith("0x")
     return bytes.fromhex(hex_extend_32bytes(eth_addr[2:]))
 
 
-def encode_g1_to_bytes(group_el: G1) -> bytes:
+def g1_to_bytes(group_el: G1) -> bytes:
     """
     Encode a group element into a byte string
     We assume here the group prime $p$ is written in less than 256 bits
@@ -204,7 +205,7 @@ def string_list_flatten(
     return cast(List[str], strs_list)
 
 
-def encode_message_to_bytes(message_list: Any) -> bytes:
+def message_to_bytes(message_list: Any) -> bytes:
     # message_list: Union[List[str], List[Union[int, str, List[str]]]]) -> bytes:
     """
     Encode a list of variables, or list of lists of variables into a byte

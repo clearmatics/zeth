@@ -20,7 +20,7 @@ from zeth.zksnark import \
     IZKSnarkProvider, get_zksnark_provider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, int64_to_hex, \
-    encode_message_to_bytes, encode_eth_address, to_zeth_units
+    message_to_bytes, eth_address_to_bytes, to_zeth_units
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 import api.prover_pb2 as prover_pb2
@@ -596,8 +596,8 @@ def _encode_proof_and_inputs(proof_json: GenericProof) -> Tuple[bytes, bytes]:
         if key != "inputs":
             proof_elements.extend(proof_json[key])
     return (
-        encode_message_to_bytes(proof_elements),
-        encode_message_to_bytes(proof_json["inputs"]))
+        message_to_bytes(proof_elements),
+        message_to_bytes(proof_json["inputs"]))
 
 
 def joinsplit_sign(
@@ -623,7 +623,7 @@ def joinsplit_sign(
     #   - proof elements
     #   - public input elements
     h = sha256()
-    h.update(encode_eth_address(sender_eth_address))
+    h.update(eth_address_to_bytes(sender_eth_address))
     h.update(encode_encryption_public_key(sender_eph_pk))
     for ciphertext in ciphertexts:
         h.update(ciphertext)

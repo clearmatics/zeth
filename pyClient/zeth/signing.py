@@ -15,7 +15,7 @@ from math import ceil
 from os import urandom
 from hashlib import sha256
 from py_ecc import bn128 as ec
-from zeth.utils import FQ, G1, encode_g1_to_bytes
+from zeth.utils import FQ, G1, g1_to_bytes
 from zeth.constants import ZETH_PRIME
 from typing import List
 
@@ -72,8 +72,8 @@ def encode_vk_to_bytes(vk: SigningVerificationKey) -> bytes:
     We assume here the group prime $p$ is written in less than 256 bits
     to conform with Ethereum bytes32 type
     """
-    vk_byte = encode_g1_to_bytes(vk.ppk)
-    vk_byte += encode_g1_to_bytes(vk.spk)
+    vk_byte = g1_to_bytes(vk.ppk)
+    vk_byte += g1_to_bytes(vk.spk)
     return vk_byte
 
 
@@ -88,7 +88,7 @@ def sign(
     """
 
     # Encode and hash the verifying key and input hashes
-    challenge_to_hash = encode_g1_to_bytes(sk.ssk[1]) + m
+    challenge_to_hash = g1_to_bytes(sk.ssk[1]) + m
 
     # Convert the hex digest into a field element
     challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
@@ -110,7 +110,7 @@ def verify(
     less than 256 bits to conform with Ethereum bytes32 type.
     """
     # Encode and hash the verifying key and input hashes
-    challenge_to_hash = encode_g1_to_bytes(vk.spk) + m
+    challenge_to_hash = g1_to_bytes(vk.spk) + m
 
     challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
     challenge = challenge % ZETH_PRIME
