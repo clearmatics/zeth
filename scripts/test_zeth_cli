@@ -70,7 +70,7 @@ zeth mix \
 popd # bob
 
 echo BALANCES FOR WITHDRAW
-show_balances
+show_balances_named
 
 # Charlie scans the chain and withdraws his 50 ETH
 pushd charlie
@@ -84,7 +84,7 @@ zeth mix \
 popd # charlie
 
 echo BALANCES AFTER WITHDRAW
-show_balances
+show_balances_named
 
 popd # BASE_DIR
 

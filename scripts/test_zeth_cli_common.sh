@@ -18,6 +18,19 @@ function show_balances() {
     run_truffle exec ../scripts/test_zeth_cli_show_balances.js
 }
 
+function show_balances_named() {
+    run_truffle exec ../scripts/test_zeth_cli_show_balances_named.js
+}
+
+function new_account() {
+    run_truffle exec ../scripts/test_zeth_cli_new_account.js | grep -e '^0x.*'
+}
+
+# 1 - Address to show balance for
+function show_balance() {
+    show_balances | grep $1 | sed -e 's/^'$1': //g'
+}
+
 # Record all Ethereum accounts in an 'accounts'
 function get_accounts() {
     if ! [ -e accounts ] ; then
