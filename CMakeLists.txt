@@ -65,6 +65,11 @@ set(
   "Override C++ compiler optimization flags"
 )
 
+# This option allows to set Zeth as a top-level project
+# or a dependency. This option is used to manage conflicting
+# targets definitions.
+# See, discussion here for more details:
+# https://github.com/clearmatics/zeth/pull/177#discussion_r399424467
 option(
   IS_ZETH_PARENT
   "Zeth parent folder option"
