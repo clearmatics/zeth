@@ -5,7 +5,7 @@
 #ifndef __ZETH_CIRCUITS_MIMC_MP_HPP__
 #define __ZETH_CIRCUITS_MIMC_MP_HPP__
 
-#include <libzeth/circuits/mimc/mimc.hpp>
+#include "libzeth/circuits/mimc/mimc.hpp"
 
 // This gadget implements the interface of the HashTreeT template
 //
@@ -46,6 +46,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/mimc/mimc_mp.tcc>
+#include "libzeth/circuits/mimc/mimc_mp.tcc"
 
 #endif // __ZETH_CIRCUITS_MIMC_MP_HPP__

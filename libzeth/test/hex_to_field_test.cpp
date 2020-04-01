@@ -2,16 +2,16 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/util.hpp"
+
 #include "gtest/gtest.h"
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/curves/public_params.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
-#include <libzeth/util.hpp>
 
 // Access zeth configuration constants
 #include "assert.h"
-
-#include <libzeth/zeth.h>
+#include "libzeth/zeth.h"
 
 // Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;

@@ -5,13 +5,13 @@
 #ifndef __ZETH_CIRCUIT_WRAPPER_HPP__
 #define __ZETH_CIRCUIT_WRAPPER_HPP__
 
-#include <libzeth/circuits/joinsplit.tcc>
-#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
-#include <libzeth/types/note.hpp>
+#include "libzeth/circuits/joinsplit.tcc"
+#include "libzeth/libsnark_helpers/libsnark_helpers.hpp"
+#include "libzeth/types/note.hpp"
 
 // zkSNARK specific aliases and imports
-#include <libzeth/snarks_alias.hpp>
-#include <libzeth/snarks_core_imports.hpp>
+#include "libzeth/snarks_alias.hpp"
+#include "libzeth/snarks_core_imports.hpp"
 
 namespace libzeth
 {
@@ -62,6 +62,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuit_wrapper.tcc>
+#include "libzeth/circuit_wrapper.tcc"
 
 #endif // __ZETH_CIRCUIT_WRAPPER_HPP__

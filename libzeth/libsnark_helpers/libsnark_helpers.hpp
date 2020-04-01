@@ -5,6 +5,8 @@
 #ifndef __ZETH_LIBSNARK_HELPERS_HPP__
 #define __ZETH_LIBSNARK_HELPERS_HPP__
 
+#include "libzeth/libsnark_helpers/debug_helpers.hpp"
+
 #include <boost/filesystem.hpp>
 #include <cassert>
 #include <fstream>
@@ -12,17 +14,16 @@
 #include <iostream>
 #include <libff/common/default_types/ec_pp.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
-#include <libzeth/libsnark_helpers/debug_helpers.hpp>
 #include <sstream>
 #include <stdbool.h>
 #include <stdint.h>
 
 // Contains required interfaces and types (keypair, proof, generator, prover,
 // verifier)
-#include <libzeth/libsnark_helpers/extended_proof.hpp>
-#include <libzeth/snarks_alias.hpp>
-#include <libzeth/snarks_core_imports.hpp>
-#include <libzeth/zeth.h>
+#include "libzeth/libsnark_helpers/extended_proof.hpp"
+#include "libzeth/snarks_alias.hpp"
+#include "libzeth/snarks_core_imports.hpp"
+#include "libzeth/zeth.h"
 
 namespace libzeth
 {
@@ -57,6 +58,6 @@ void r1cs_to_json(
     libsnark::protoboard<libff::Fr<ppT>> pb, boost::filesystem::path path = "");
 
 } // namespace libzeth
-#include <libzeth/libsnark_helpers/libsnark_helpers.tcc>
+#include "libzeth/libsnark_helpers/libsnark_helpers.tcc"
 
 #endif // __ZETH_LIBSNARK_HELPERS_HPP__

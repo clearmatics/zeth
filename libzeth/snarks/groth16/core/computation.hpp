@@ -5,10 +5,11 @@
 #ifndef __ZETH_COMPUTATION_HPP__
 #define __ZETH_COMPUTATION_HPP__
 
+#include "libzeth/libsnark_helpers/debug_helpers.hpp"
+#include "libzeth/libsnark_helpers/extended_proof.hpp"
+
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-#include <libzeth/libsnark_helpers/debug_helpers.hpp>
-#include <libzeth/libsnark_helpers/extended_proof.hpp>
 
 namespace libzeth
 {
@@ -29,6 +30,6 @@ bool verify(
 
 } // namespace libzeth
 
-#include <libzeth/snarks/groth16/core/computation.tcc>
+#include "libzeth/snarks/groth16/core/computation.tcc"
 
 #endif // __ZETH_COMPUTATION_HPP__

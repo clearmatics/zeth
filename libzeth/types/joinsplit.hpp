@@ -5,9 +5,10 @@
 #ifndef __ZETH_TYPES_JOINSPLIT_HPP__
 #define __ZETH_TYPES_JOINSPLIT_HPP__
 
+#include "libzeth/types/bits.hpp"
+#include "libzeth/types/note.hpp"
+
 #include <libsnark/common/data_structures/merkle_tree.hpp>
-#include <libzeth/types/bits.hpp>
-#include <libzeth/types/note.hpp>
 #include <vector>
 
 namespace libzeth

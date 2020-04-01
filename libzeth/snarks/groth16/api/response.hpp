@@ -6,9 +6,8 @@
 #define __ZETH_RESPONSE_HPP__
 
 #include "api/prover.grpc.pb.h"
-
-#include <libzeth/libsnark_helpers/extended_proof.hpp>
-#include <libzeth/util_api.hpp>
+#include "libzeth/libsnark_helpers/extended_proof.hpp"
+#include "libzeth/util_api.hpp"
 
 namespace libzeth
 {
@@ -22,6 +21,6 @@ void prepare_verification_key_response(
     prover_proto::VerificationKey *message);
 
 } // namespace libzeth
-#include <libzeth/snarks/groth16/api/response.tcc>
+#include "libzeth/snarks/groth16/api/response.tcc"
 
 #endif // __ZETH_RESPONSE_HPP__

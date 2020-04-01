@@ -5,7 +5,8 @@
 #ifndef __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_HPP__
 #define __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_HPP__
 
-#include <libzeth/include_libsnark.hpp>
+#include "libzeth/include_libsnark.hpp"
+
 #include <map>
 
 namespace libzeth
@@ -31,6 +32,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/snarks/groth16/mpc/evaluator_from_lagrange.tcc>
+#include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.tcc"
 
 #endif // __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_HPP__

@@ -5,8 +5,8 @@
 #ifndef __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_TCC__
 #define __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_TCC__
 
-#include <libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp>
-#include <libzeth/snarks/groth16/mpc/multi_exp.hpp>
+#include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp"
+#include "libzeth/snarks/groth16/mpc/multi_exp.hpp"
 
 namespace libzeth
 {

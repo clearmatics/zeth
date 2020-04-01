@@ -6,7 +6,7 @@
 #ifndef __ZETH_CIRCUITS_MERKLE_PATH_COMPUTE_HPP__
 #define __ZETH_CIRCUITS_MERKLE_PATH_COMPUTE_HPP__
 
-#include <libzeth/circuits/merkle_tree/merkle_path_selector.hpp>
+#include "libzeth/circuits/merkle_tree/merkle_path_selector.hpp"
 
 namespace libzeth
 {
@@ -49,6 +49,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/merkle_tree/merkle_path_compute.tcc>
+#include "libzeth/circuits/merkle_tree/merkle_path_compute.tcc"
 
 #endif // __ZETH_CIRCUITS_MERKLE_PATH_COMPUTE_HPP__

@@ -5,9 +5,9 @@
 #ifndef __ZETH_CIRCUIT_TYPES_HPP__
 #define __ZETH_CIRCUIT_TYPES_HPP__
 
-#include <libzeth/circuit_wrapper.hpp>
-#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
-#include <libzeth/include_libsnark.hpp>
+#include "libzeth/circuit_wrapper.hpp"
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/include_libsnark.hpp"
 
 // Types that must be common across all executable, defined once here. Outside
 // of tests, these should not be set anywhere else in the code. Do not include

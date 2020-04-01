@@ -2,11 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp"
+#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
+#include "libzeth/util.hpp"
+
 #include <fstream>
 #include <gtest/gtest.h>
-#include <libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp>
-#include <libzeth/snarks/groth16/mpc/powersoftau_utils.hpp>
-#include <libzeth/util.hpp>
 
 using ppT = libff::default_ec_pp;
 using Fr = libff::Fr<ppT>;

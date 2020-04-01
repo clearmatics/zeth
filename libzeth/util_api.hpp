@@ -6,13 +6,13 @@
 #define __ZETH_UTIL_API_HPP__
 
 #include "api/util.pb.h"
+#include "libzeth/libsnark_helpers/debug_helpers.hpp"
+#include "libzeth/types/bits.hpp"
+#include "libzeth/types/joinsplit.hpp"
+#include "libzeth/types/note.hpp"
+#include "libzeth/util.hpp"
 
 #include <libff/common/default_types/ec_pp.hpp>
-#include <libzeth/libsnark_helpers/debug_helpers.hpp>
-#include <libzeth/types/bits.hpp>
-#include <libzeth/types/joinsplit.hpp>
-#include <libzeth/types/note.hpp>
-#include <libzeth/util.hpp>
 
 namespace libzeth
 {
@@ -34,6 +34,6 @@ prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     const libff::G2<ppT> &point);
 
 } // namespace libzeth
-#include <libzeth/util_api.tcc>
+#include "libzeth/util_api.tcc"
 
 #endif // __ZETH_UTIL_API_HPP__

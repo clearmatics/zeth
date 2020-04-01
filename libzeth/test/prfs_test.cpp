@@ -16,14 +16,14 @@
 #include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
 
 // Header to use the blake2s gadget
-#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
 
 // Access the `from_bits` function and other utils
-#include <libzeth/circuits/circuits-utils.hpp>
-#include <libzeth/util.hpp>
+#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/util.hpp"
 
 // Gadget to test
-#include <libzeth/circuits/prfs/prf.hpp>
+#include "libzeth/circuits/prfs/prf.hpp"
 
 using namespace libsnark;
 using namespace libzeth;

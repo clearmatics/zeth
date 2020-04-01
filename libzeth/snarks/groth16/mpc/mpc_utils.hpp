@@ -5,7 +5,8 @@
 #ifndef __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
 #define __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
 
-#include <libzeth/include_libsnark.hpp>
+#include "libzeth/include_libsnark.hpp"
+
 #include <vector>
 
 // Structures and utility functions related to CRS generation via an
@@ -74,6 +75,6 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
 } // namespace libzeth
-#include <libzeth/snarks/groth16/mpc/mpc_utils.tcc>
+#include "libzeth/snarks/groth16/mpc/mpc_utils.tcc"
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__

@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include <libzeth/libsnark_helpers/debug_helpers.hpp>
-#include <libzeth/util.hpp>
+#include "libzeth/libsnark_helpers/debug_helpers.hpp"
+
+#include "libzeth/util.hpp"
 
 namespace libzeth
 {

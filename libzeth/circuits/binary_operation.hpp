@@ -5,12 +5,12 @@
 #ifndef __ZETH_CIRCUITS_BINARY_OPERATION_HPP__
 #define __ZETH_CIRCUITS_BINARY_OPERATION_HPP__
 
+#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/types/bits.hpp"
 #include "math.h"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
-#include <libzeth/circuits/circuits-utils.hpp>
-#include <libzeth/types/bits.hpp>
 
 namespace libzeth
 {
@@ -119,6 +119,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/binary_operation.tcc>
+#include "libzeth/circuits/binary_operation.tcc"
 
 #endif // __ZETH_CIRCUITS_BINARY_OPERATION_HPP__

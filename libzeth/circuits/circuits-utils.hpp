@@ -5,8 +5,9 @@
 #ifndef __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__
 #define __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__
 
+#include "libzeth/types/bits.hpp"
+
 #include <libsnark/gadgetlib1/pb_variable.hpp>
-#include <libzeth/types/bits.hpp>
 
 namespace libzeth
 {
@@ -27,6 +28,6 @@ std::vector<unsigned long> bit_list_to_ints(
     std::vector<bool> bit_list, const size_t wordsize);
 
 } // namespace libzeth
-#include <libzeth/circuits/circuits-utils.tcc>
+#include "libzeth/circuits/circuits-utils.tcc"
 
 #endif // __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__

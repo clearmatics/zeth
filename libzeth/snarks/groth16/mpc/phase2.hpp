@@ -5,8 +5,8 @@
 #ifndef __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__
 #define __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__
 
-#include <libzeth/include_libsnark.hpp>
-#include <libzeth/snarks/groth16/mpc/hash_utils.hpp>
+#include "libzeth/include_libsnark.hpp"
+#include "libzeth/snarks/groth16/mpc/hash_utils.hpp"
 
 // Structures and operations related to the "Phase 2" MPC described in
 // [BoweGM17].  Parts of the implementation use techniques from the
@@ -314,6 +314,6 @@ template<typename ppT>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_read_keypair(std::istream &in);
 
 } // namespace libzeth
-#include <libzeth/snarks/groth16/mpc/phase2.tcc>
+#include "libzeth/snarks/groth16/mpc/phase2.tcc"
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__

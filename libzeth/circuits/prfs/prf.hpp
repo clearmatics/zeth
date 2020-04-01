@@ -5,8 +5,9 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
 
+#include "libzeth/circuits/circuits-utils.hpp"
+
 #include <libsnark/gadgetlib1/gadget.hpp>
-#include <libzeth/circuits/circuits-utils.hpp>
 
 namespace libzeth
 {
@@ -128,6 +129,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/prfs/prf.tcc>
+#include "libzeth/circuits/prfs/prf.tcc"
 
 #endif // __ZETH_CIRCUITS_PRF_HPP__

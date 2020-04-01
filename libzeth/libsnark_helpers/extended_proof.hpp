@@ -5,9 +5,9 @@
 #ifndef __ZETH_EXTENDED_PROOF_HPP__
 #define __ZETH_EXTENDED_PROOF_HPP__
 
-#include <libzeth/libsnark_helpers/debug_helpers.hpp>
-#include <libzeth/snarks_alias.hpp>
-#include <libzeth/zeth.h>
+#include "libzeth/libsnark_helpers/debug_helpers.hpp"
+#include "libzeth/snarks_alias.hpp"
+#include "libzeth/zeth.h"
 
 namespace libzeth
 {
@@ -42,6 +42,6 @@ public:
 
 } // namespace libzeth
 
-#include <libzeth/libsnark_helpers/extended_proof.tcc>
+#include "libzeth/libsnark_helpers/extended_proof.tcc"
 
 #endif

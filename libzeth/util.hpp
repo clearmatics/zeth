@@ -5,10 +5,11 @@
 #ifndef __ZETH_UTIL_HPP__
 #define __ZETH_UTIL_HPP__
 
+#include "libzeth/types/bits.hpp"
+
 #include <cstdint>
 #include <gmp.h>
 #include <libff/algebra/fields/bigint.hpp>
-#include <libzeth/types/bits.hpp>
 #include <string>
 #include <vector>
 
@@ -56,6 +57,6 @@ template<typename StructuredTs>
 bool container_is_well_formed(const StructuredTs &values);
 
 } // namespace libzeth
-#include <libzeth/util.tcc>
+#include "libzeth/util.tcc"
 
 #endif // __ZETH_UTIL_HPP__

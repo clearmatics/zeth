@@ -5,10 +5,11 @@
 #ifndef __ZETH_HELPERS_HPP__
 #define __ZETH_HELPERS_HPP__
 
+#include "libzeth/libsnark_helpers/debug_helpers.hpp"
+
 #include <boost/filesystem.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-#include <libzeth/libsnark_helpers/debug_helpers.hpp>
 
 namespace libzeth
 {
@@ -35,6 +36,6 @@ void proof_to_json(
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof, boost::filesystem::path path);
 
 } // namespace libzeth
-#include <libzeth/snarks/groth16/core/helpers.tcc>
+#include "libzeth/snarks/groth16/core/helpers.tcc"
 
 #endif // __ZETH_HELPERS_HPP__

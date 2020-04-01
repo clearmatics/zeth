@@ -11,14 +11,14 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 // Header to use the blake2s gadget
-#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
 
 // Access the `from_bits` function and other utils
-#include <libzeth/circuits/circuits-utils.hpp>
-#include <libzeth/util.hpp>
+#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/util.hpp"
 
 // Get the gadget to test
-#include <libzeth/circuits/commitments/commitment.hpp>
+#include "libzeth/circuits/commitments/commitment.hpp"
 
 using namespace libzeth;
 

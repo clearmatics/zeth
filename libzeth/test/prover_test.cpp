@@ -14,14 +14,15 @@
 
 // Have access to a chrono to measure the rough time of execution of a set of
 // instructions
+#include "libzeth/snarks_alias.hpp"
+
 #include <chrono>
-#include <libzeth/snarks_alias.hpp>
 // Import only the core components of the SNARK (not the API components)
-#include <libzeth/circuit_wrapper.hpp>
-#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
-#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
-#include <libzeth/snarks_core_imports.hpp>
-#include <libzeth/util.hpp>
+#include "libzeth/circuit_wrapper.hpp"
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/libsnark_helpers/libsnark_helpers.hpp"
+#include "libzeth/snarks_core_imports.hpp"
+#include "libzeth/util.hpp"
 
 using namespace libzeth;
 

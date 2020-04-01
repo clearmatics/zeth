@@ -5,14 +5,15 @@
 #ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
 #define __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
 
+#include "libzeth/circuits/binary_operation.hpp"
+#include "libzeth/circuits/blake2s/g_primitive.hpp"
+#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/types/bits.hpp"
+#include "libzeth/util.hpp"
+
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
-#include <libzeth/circuits/binary_operation.hpp>
-#include <libzeth/circuits/blake2s/g_primitive.hpp>
-#include <libzeth/circuits/circuits-utils.hpp>
-#include <libzeth/types/bits.hpp>
-#include <libzeth/util.hpp>
 #include <math.h>
 
 namespace libzeth
@@ -115,7 +116,7 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/blake2s/blake2s_comp.tcc>
-#include <libzeth/circuits/blake2s/blake2s_comp_setup.tcc>
+#include "libzeth/circuits/blake2s/blake2s_comp.tcc"
+#include "libzeth/circuits/blake2s/blake2s_comp_setup.tcc"
 
 #endif // __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__

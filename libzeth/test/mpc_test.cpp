@@ -2,18 +2,19 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/circuit_types.hpp"
+#include "libzeth/circuits/sha256/sha256_ethereum.hpp"
+#include "libzeth/snarks/groth16/mpc/chacha_rng.hpp"
+#include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp"
+#include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
+#include "libzeth/snarks/groth16/mpc/multi_exp.hpp"
+#include "libzeth/snarks/groth16/mpc/phase2.hpp"
+#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
+#include "libzeth/test/simple_test.hpp"
+#include "libzeth/util.hpp"
+
 #include <fstream>
 #include <gtest/gtest.h>
-#include <libzeth/circuit_types.hpp>
-#include <libzeth/circuits/sha256/sha256_ethereum.hpp>
-#include <libzeth/snarks/groth16/mpc/chacha_rng.hpp>
-#include <libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp>
-#include <libzeth/snarks/groth16/mpc/mpc_utils.hpp>
-#include <libzeth/snarks/groth16/mpc/multi_exp.hpp>
-#include <libzeth/snarks/groth16/mpc/phase2.hpp>
-#include <libzeth/snarks/groth16/mpc/powersoftau_utils.hpp>
-#include <libzeth/test/simple_test.hpp>
-#include <libzeth/util.hpp>
 #include <thread>
 
 using namespace libzeth;

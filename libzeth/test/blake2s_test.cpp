@@ -2,15 +2,16 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/circuits/blake2s/g_primitive.hpp"
+#include "libzeth/snarks_alias.hpp"
+
 #include "gtest/gtest.h"
 #include <libff/common/default_types/ec_pp.hpp>
-#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
-#include <libzeth/circuits/blake2s/g_primitive.hpp>
-#include <libzeth/snarks_alias.hpp>
 
 // Access the `from_bits` function and other utils
-#include <libzeth/circuits/circuits-utils.hpp>
-#include <libzeth/util.hpp>
+#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/util.hpp"
 
 using namespace libsnark;
 using namespace libzeth;

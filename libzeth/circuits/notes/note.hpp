@@ -5,18 +5,18 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
 
-#include <libzeth/circuits/merkle_tree/merkle_path_authenticator.hpp>
+#include "libzeth/circuits/merkle_tree/merkle_path_authenticator.hpp"
 
 // Get the prfs and commitments circuits
-#include <libzeth/circuits/commitments/commitment.hpp>
-#include <libzeth/circuits/prfs/prf.hpp>
+#include "libzeth/circuits/commitments/commitment.hpp"
+#include "libzeth/circuits/prfs/prf.hpp"
 // Get the utils functions
-#include <libzeth/circuits/circuits-utils.hpp>
+#include "libzeth/circuits/circuits-utils.hpp"
 
 // Get the bits typedefs and associated functions
-#include <libzeth/types/bits.hpp>
+#include "libzeth/types/bits.hpp"
 // Get the zeth_note class
-#include <libzeth/types/note.hpp>
+#include "libzeth/types/note.hpp"
 
 namespace libzeth
 {
@@ -127,6 +127,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/notes/note.tcc>
+#include "libzeth/circuits/notes/note.tcc"
 
 #endif // __ZETH_CIRCUITS_NOTE_HPP__

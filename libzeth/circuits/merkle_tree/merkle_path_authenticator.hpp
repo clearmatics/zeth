@@ -6,7 +6,7 @@
 #ifndef __ZETH_CIRCUITS_MERKLE_PATH_AUTHENTICATOR_HPP__
 #define __ZETH_CIRCUITS_MERKLE_PATH_AUTHENTICATOR_HPP__
 
-#include <libzeth/circuits/merkle_tree/merkle_path_compute.hpp>
+#include "libzeth/circuits/merkle_tree/merkle_path_compute.hpp"
 
 namespace libzeth
 {
@@ -49,6 +49,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/merkle_tree/merkle_path_authenticator.tcc>
+#include "libzeth/circuits/merkle_tree/merkle_path_authenticator.tcc"
 
 #endif // __ZETH_CIRCUITS_MERKLE_PATH_AUTHENTICATOR_HPP__

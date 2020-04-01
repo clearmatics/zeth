@@ -5,9 +5,10 @@
 #ifndef __ZETH_TYPES_BITS_HPP__
 #define __ZETH_TYPES_BITS_HPP__
 
+#include "libzeth/zeth.h"
+
 #include <array>
 #include <iostream>
-#include <libzeth/zeth.h>
 #include <vector>
 
 namespace libzeth
@@ -55,6 +56,6 @@ std::array<bool, BitLen> binary_xor(
 bits64 sum_bits64(bits64 a, bits64 b);
 
 } // namespace libzeth
-#include <libzeth/types/bits.tcc>
+#include "libzeth/types/bits.tcc"
 
 #endif // __ZETH_TYPES_BITS_HPP__

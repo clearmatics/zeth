@@ -2,11 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/circuits/merkle_tree/merkle_path_authenticator.hpp"
+#include "libzeth/circuits/merkle_tree/merkle_path_selector.hpp"
+#include "libzeth/circuits/mimc/mimc_mp.hpp"
+
 #include "gtest/gtest.h"
 #include <libff/common/default_types/ec_pp.hpp>
-#include <libzeth/circuits/merkle_tree/merkle_path_authenticator.hpp>
-#include <libzeth/circuits/merkle_tree/merkle_path_selector.hpp>
-#include <libzeth/circuits/mimc/mimc_mp.hpp>
 
 using namespace libzeth;
 

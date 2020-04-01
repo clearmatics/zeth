@@ -5,8 +5,9 @@
 #ifndef __ZETH_SNARKS_GROTH_POWERSOFTAU_UTILS_HPP__
 #define __ZETH_SNARKS_GROTH_POWERSOFTAU_UTILS_HPP__
 
+#include "libzeth/include_libsnark.hpp"
+
 #include <istream>
-#include <libzeth/include_libsnark.hpp>
 
 namespace libzeth
 {
@@ -172,6 +173,6 @@ srs_lagrange_evaluations<ppT> powersoftau_compute_lagrange_evaluations(
     const srs_powersoftau<ppT> &pot, const size_t n);
 
 } // namespace libzeth
-#include <libzeth/snarks/groth16/mpc/powersoftau_utils.tcc>
+#include "libzeth/snarks/groth16/mpc/powersoftau_utils.tcc"
 
 #endif // __ZETH_SNARKS_GROTH_POWERSOFTAU_UTILS_HPP__

@@ -10,14 +10,14 @@
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
 // Access zeth configuration constants
-#include <libzeth/zeth.h>
+#include "libzeth/zeth.h"
 
 // Include the type we need
-#include <libzeth/circuits/circuits-utils.hpp>
-#include <libzeth/circuits/notes/note.hpp>
-#include <libzeth/types/bits.hpp>
-#include <libzeth/types/joinsplit.hpp>
-#include <libzeth/types/note.hpp>
+#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/circuits/notes/note.hpp"
+#include "libzeth/types/bits.hpp"
+#include "libzeth/types/joinsplit.hpp"
+#include "libzeth/types/note.hpp"
 
 using namespace libzeth;
 

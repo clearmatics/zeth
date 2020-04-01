@@ -8,24 +8,24 @@
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
 // Header to use the merkle tree data structure
-#include <libzeth/types/merkle_tree_field.hpp>
+#include "libzeth/types/merkle_tree_field.hpp"
 
 // Header to use the blake2s gadget
-#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
 
 // Access the `from_bits` function and other utils
-#include <libzeth/circuits/circuits-utils.hpp>
-#include <libzeth/util.hpp>
+#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/util.hpp"
 
 // Access the defined constants
-#include <libzeth/zeth.h>
+#include "libzeth/zeth.h"
 
 // Bring the types in scope
-#include <libzeth/types/bits.hpp>
-#include <libzeth/types/note.hpp>
+#include "libzeth/types/bits.hpp"
+#include "libzeth/types/note.hpp"
 
 // Gadget to test
-#include <libzeth/circuits/notes/note.hpp>
+#include "libzeth/circuits/notes/note.hpp"
 
 using namespace libzeth;
 

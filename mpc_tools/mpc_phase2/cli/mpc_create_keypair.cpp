@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include <libzeth/snarks/groth16/mpc/phase2.hpp>
+#include "libzeth/snarks/groth16/mpc/phase2.hpp"
 // This comment preserves include order under clang-format.
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
+#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
+#include "libzeth/util.hpp"
 #include "mpc_common.hpp"
 
-#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
-#include <libzeth/snarks/groth16/mpc/mpc_utils.hpp>
-#include <libzeth/snarks/groth16/mpc/powersoftau_utils.hpp>
-#include <libzeth/util.hpp>
 #include <vector>
 
 using namespace libzeth;

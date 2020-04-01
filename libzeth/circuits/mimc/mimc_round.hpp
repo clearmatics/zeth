@@ -5,8 +5,9 @@
 #ifndef __ZETH_CIRCUITS_MIMC_ROUND_HPP__
 #define __ZETH_CIRCUITS_MIMC_ROUND_HPP__
 
+#include "libzeth/circuits/circuits-utils.hpp"
+
 #include <libsnark/gadgetlib1/gadget.hpp>
-#include <libzeth/circuits/circuits-utils.hpp>
 
 // MiMCe7_round_gadget enforces correct computation of a MiMC permutation round
 // with exponent 7. In MiMC permutation last round differs from the others since
@@ -61,6 +62,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/mimc/mimc_round.tcc>
+#include "libzeth/circuits/mimc/mimc_round.tcc"
 
 #endif // __ZETH_CIRCUITS_MIMC_ROUND_HPP__
