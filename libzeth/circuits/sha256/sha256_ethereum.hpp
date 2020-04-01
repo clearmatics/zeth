@@ -61,6 +61,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/sha256/sha256_ethereum.tcc>
+#include "libzeth/circuits/sha256/sha256_ethereum.tcc"
 
 #endif // __ZETH_CIRCUITS_SHA256_ETHEREUM_HPP__

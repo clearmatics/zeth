@@ -5,7 +5,7 @@
 #ifndef __ZETH_TYPES_BITS_TCC__
 #define __ZETH_TYPES_BITS_TCC__
 
-#include <libzeth/types/bits.hpp>
+#include "libzeth/types/bits.hpp"
 
 namespace libzeth
 {

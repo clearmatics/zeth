@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/snarks/groth16/mpc/phase2.hpp"
 #include "mpc_common.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
-#include <libzeth/snarks/groth16/mpc/phase2.hpp>
 
 using namespace libzeth;
 namespace po = boost::program_options;

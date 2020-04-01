@@ -5,7 +5,7 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
 
-#include <libzeth/circuits/notes/note.hpp>
+#include "libzeth/circuits/notes/note.hpp"
 
 namespace libzeth
 {

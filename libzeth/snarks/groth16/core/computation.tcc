@@ -5,7 +5,7 @@
 #ifndef __ZETH_COMPUTATION_TCC__
 #define __ZETH_COMPUTATION_TCC__
 
-#include <libzeth/snarks/groth16/core/computation.hpp>
+#include "libzeth/snarks/groth16/core/computation.hpp"
 
 namespace libzeth
 {

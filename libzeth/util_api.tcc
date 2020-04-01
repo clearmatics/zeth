@@ -5,7 +5,7 @@
 #ifndef __ZETH_UTIL_API_TCC__
 #define __ZETH_UTIL_API_TCC__
 
-#include <libzeth/util_api.hpp>
+#include "libzeth/util_api.hpp"
 
 namespace libzeth
 {

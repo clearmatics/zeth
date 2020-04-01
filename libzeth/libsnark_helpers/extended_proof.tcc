@@ -7,7 +7,7 @@
 
 // Snark dependent implementation for generate_trusted_setup() and prove()
 // functions
-#include <libzeth/snarks_core_imports.hpp>
+#include "libzeth/snarks_core_imports.hpp"
 
 namespace libzeth
 {

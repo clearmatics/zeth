@@ -5,10 +5,11 @@
 #ifndef __ZETH_TYPES_MERKLE_TREE_FIELD_TCC__
 #define __ZETH_TYPES_MERKLE_TREE_FIELD_TCC__
 
+#include "libzeth/circuits/mimc/mimc_mp.hpp"
+
 #include <algorithm>
 #include <libff/common/profiling.hpp>
 #include <libff/common/utils.hpp>
-#include <libzeth/circuits/mimc/mimc_mp.hpp>
 
 namespace libzeth
 {

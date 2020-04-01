@@ -28,6 +28,6 @@ std::vector<unsigned long> bit_list_to_ints(
     std::vector<bool> bit_list, const size_t wordsize);
 
 } // namespace libzeth
-#include "libzeth/circuits/circuits-utils.tcc"
+#include "libzeth/circuits/circuits_utils.tcc"
 
 #endif // __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__

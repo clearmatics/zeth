@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/test/simple_test.hpp"
 #include "mpc_common.hpp"
-
-#include <libzeth/test/simple_test.hpp>
 
 void simple_protoboard(libsnark::protoboard<libzeth::FieldT> &pb)
 {

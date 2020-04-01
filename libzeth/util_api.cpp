@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include <libzeth/util_api.hpp>
+#include "libzeth/util_api.hpp"
 
 // Message formatting and parsing utility
 

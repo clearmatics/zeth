@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/snarks/groth16/mpc/chacha_rng.hpp"
+
 #include <algorithm>
 #include <cstring>
-#include <libzeth/snarks/groth16/mpc/chacha_rng.hpp>
 #include <sodium/crypto_stream_chacha20.h>
 
 /// RNG based on:

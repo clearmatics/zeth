@@ -19,7 +19,7 @@
 #include "circuits/sha256/sha256_ethereum.hpp"
 
 // Access the `from_bits` function and other utils
-#include "circuits/circuits-utils.hpp"
+#include "circuits/circuits_utils.hpp"
 #include "util.hpp"
 
 // Use the bits256 type util functions

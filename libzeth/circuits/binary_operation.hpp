@@ -5,7 +5,7 @@
 #ifndef __ZETH_CIRCUITS_BINARY_OPERATION_HPP__
 #define __ZETH_CIRCUITS_BINARY_OPERATION_HPP__
 
-#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/circuits/circuits_utils.hpp"
 #include "libzeth/types/bits.hpp"
 #include "math.h"
 

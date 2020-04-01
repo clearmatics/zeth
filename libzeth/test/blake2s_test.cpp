@@ -10,7 +10,7 @@
 #include <libff/common/default_types/ec_pp.hpp>
 
 // Access the `from_bits` function and other utils
-#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/circuits/circuits_utils.hpp"
 #include "libzeth/util.hpp"
 
 using namespace libsnark;

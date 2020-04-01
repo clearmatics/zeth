@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include <libzeth/snarks/groth16/mpc/powersoftau_utils.hpp>
+#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
 
 namespace libzeth
 {

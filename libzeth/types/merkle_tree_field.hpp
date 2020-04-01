@@ -51,6 +51,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/types/merkle_tree_field.tcc>
+#include "libzeth/types/merkle_tree_field.tcc"
 
 #endif // __ZETH_TYPES_MERKLE_TREE_FIELD_HPP__

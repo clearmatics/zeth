@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include <libzeth/circuits/safe_arithmetic.hpp>
+#include "libzeth/circuits/safe_arithmetic.hpp"
 
 namespace libzeth
 {

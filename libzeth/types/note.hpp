@@ -5,8 +5,9 @@
 #ifndef __ZETH_TYPES_NOTE_HPP__
 #define __ZETH_TYPES_NOTE_HPP__
 
+#include "libzeth/types/bits.hpp"
+
 #include <array>
-#include <libzeth/types/bits.hpp>
 
 namespace libzeth
 {

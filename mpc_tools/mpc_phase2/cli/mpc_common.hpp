@@ -5,9 +5,10 @@
 #ifndef __ZETH_MPC_CLI_COMMON_HPP__
 #define __ZETH_MPC_CLI_COMMON_HPP__
 
+#include "libzeth/circuit_types.hpp"
+
 #include <boost/program_options.hpp>
 #include <fstream>
-#include <libzeth/circuit_types.hpp>
 #include <map>
 #include <string>
 #include <vector>

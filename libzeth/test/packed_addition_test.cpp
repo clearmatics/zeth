@@ -13,7 +13,7 @@
 #include "libzeth/zeth.h"
 
 // Include the type we need
-#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/circuits/circuits_utils.hpp"
 #include "libzeth/circuits/notes/note.hpp"
 #include "libzeth/types/bits.hpp"
 #include "libzeth/types/joinsplit.hpp"

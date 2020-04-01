@@ -69,6 +69,6 @@ public:
 };
 
 } // namespace libzeth
-#include <libzeth/circuits/merkle_tree/merkle_path_selector.tcc>
+#include "libzeth/circuits/merkle_tree/merkle_path_selector.tcc"
 
 #endif // __ZETH_CIRCUITS_MERKLE_PATH_SELECTOR_HPP___

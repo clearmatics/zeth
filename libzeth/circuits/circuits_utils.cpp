@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include <libzeth/circuits/circuits-utils.hpp>
+#include "libzeth/circuits/circuits_utils.hpp"
 
 namespace libzeth
 {

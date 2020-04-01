@@ -14,7 +14,7 @@
 #include "libzeth/circuits/blake2s/blake2s_comp.hpp"
 
 // Access the `from_bits` function and other utils
-#include "libzeth/circuits/circuits-utils.hpp"
+#include "libzeth/circuits/circuits_utils.hpp"
 #include "libzeth/util.hpp"
 
 // Access the defined constants
