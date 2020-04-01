@@ -50,7 +50,7 @@ def main() -> None:
 
     # Deploy Zeth contracts
     tree_depth = zeth.constants.ZETH_MERKLE_TREE_DEPTH
-    zeth_client = MixerClient.deploy(
+    zeth_client, _contract_desc = MixerClient.deploy(
         web3,
         mock.TEST_PROVER_SERVER_ENDPOINT,
         deployer_eth_address,

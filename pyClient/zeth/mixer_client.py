@@ -20,7 +20,8 @@ from zeth.zksnark import \
     IZKSnarkProvider, get_zksnark_provider, GenericProof, GenericVerificationKey
 from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, int64_to_hex, \
-    message_to_bytes, eth_address_to_bytes, eth_uint256_to_int, to_zeth_units
+    message_to_bytes, eth_address_to_bytes, eth_uint256_to_int, to_zeth_units, \
+    get_contracts_dir
 from zeth.prover_client import ProverClient
 from api.util_pb2 import ZethNote, JoinsplitInput
 import api.prover_pb2 as prover_pb2
@@ -309,7 +310,8 @@ class MixerClient:
             deployer_eth_address: str,
             token_address: Optional[str] = None,
             deploy_gas: Optional[EtherValue] = None,
-            zksnark: Optional[IZKSnarkProvider] = None) -> MixerClient:
+            zksnark: Optional[IZKSnarkProvider] = None) \
+            -> Tuple[MixerClient, contracts.InstanceDescription]:
         """
         Deploy Zeth contracts.
         """
@@ -325,21 +327,24 @@ class MixerClient:
         write_verification_key(vk_json)
 
         print("[INFO] 3. VK written, deploying smart contracts...")
-        mixer_interface = contracts.compile_mixer(zksnark)
-        mixer_instance = contracts.deploy_mixer(
+        contracts_dir = get_contracts_dir()
+        mixer_name = zksnark.get_contract_name()
+        mixer_src = os.path.join(contracts_dir, mixer_name + ".sol")
+
+        verification_key_params = zksnark.verification_key_parameters(vk_json)
+        mixer_description = contracts.InstanceDescription.deploy(
             web3,
-            constants.ZETH_MERKLE_TREE_DEPTH,
-            mixer_interface,
-            vk_json,
+            mixer_src,
+            mixer_name,
             deployer_eth_address,
             deploy_gas.wei,
-            token_address or "0x0000000000000000000000000000000000000000",
-            zksnark)
-        return MixerClient(
-            web3,
-            prover_client,
-            mixer_instance,
-            zksnark)
+            {},
+            mk_depth=constants.ZETH_MERKLE_TREE_DEPTH,
+            token=token_address or "0x0000000000000000000000000000000000000000",
+            **verification_key_params)
+        mixer_instance = mixer_description.instantiate(web3)
+        client = MixerClient(web3, prover_client, mixer_instance, zksnark)
+        return client, mixer_description
 
     def deposit(
             self,

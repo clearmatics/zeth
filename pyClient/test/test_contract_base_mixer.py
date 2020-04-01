@@ -141,7 +141,7 @@ def main() -> None:
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]
 
-    zeth_client = MixerClient.deploy(
+    zeth_client, _ = MixerClient.deploy(
         web3, mock.TEST_PROVER_SERVER_ENDPOINT, deployer_eth_address)
 
     mixer_instance = zeth_client.mixer_instance
