@@ -10,5 +10,5 @@
         "tls_certificate": "cert.pem",
         "port": PORT
     },
-    "mpc_tool": "../build/src/mpc/mpc-test"
+    "mpc_tool": "../build/mpc_tools/mpc_phase2/mpc-test-phase2"
 }

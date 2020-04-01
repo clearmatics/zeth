@@ -13,7 +13,7 @@ set -x
 
 # Directories
 TEST_DATA_DIR=`pwd`/testdata
-BIN_DIR=`pwd`/build/src
+BIN_DIR=`pwd`/build/mpc_tools
 PHASE1_SERVER_DIR=`pwd`/_test_server_phase1
 PHASE2_SERVER_DIR=`pwd`/_test_server_phase2
 
@@ -30,7 +30,7 @@ SERVER_CERT=cert.pem
 
 # Commands
 POT_PROCESS="${BIN_DIR}/pot-process"
-MPC="${BIN_DIR}/mpc/mpc-test"
+MPC="${BIN_DIR}/mpc_phase2/mpc-test-phase2"
 POT_DIR=`pwd`"/../powersoftau"
 QAP_DEGREE=8
 
