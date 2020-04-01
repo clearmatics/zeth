@@ -77,9 +77,17 @@ def encode_vk_to_bytes(vk: SigningVerificationKey) -> bytes:
     return vk_byte
 
 
+def encode_signature_to_bytes(signature: Signature) -> bytes:
+    return signature.to_bytes(32, byteorder='big')
+
+
+def decode_signature_from_bytes(sig_bytes: bytes) -> Signature:
+    return int.from_bytes(sig_bytes, byteorder='big')
+
+
 def sign(
         sk: SigningSecretKey,
-        m: bytes) -> int:
+        m: bytes) -> Signature:
     """
     Generate a Schnorr signature on a message m.
     We assume here that the message fits in an Ethereum word (i.e. bit_len(m)
