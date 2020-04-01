@@ -122,8 +122,12 @@ def g1_to_bytes(group_el: G1) -> bytes:
         int(group_el[1]).to_bytes(32, byteorder='big')
 
 
+def int64_to_bytes(number: int) -> bytes:
+    return number.to_bytes(8, 'big')
+
+
 def int64_to_hex(number: int) -> str:
-    return '{:016x}'.format(number)
+    return int64_to_bytes(number).hex()
 
 
 def hex_digest_to_binary_string(digest: str) -> str:
