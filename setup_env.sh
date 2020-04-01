@@ -1,12 +1,8 @@
 #!/bin/bash
 
 export ZETH=`pwd`
-export ZETH_API_DIR=$ZETH/api
 export ZETH_CONTRACTS_DIR=$ZETH/zeth-contracts/contracts
 export ZETH_DEBUG_DIR=$ZETH/debug
-
-mkdir -p $ZETH/keystore
-export ZETH_KEYSTORE=$ZETH/keystore
 
 mkdir -p $ZETH/coinstore
 export ZETH_COINSTORE=$ZETH/coinstore
