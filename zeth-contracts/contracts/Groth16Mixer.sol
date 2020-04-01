@@ -7,6 +7,7 @@ pragma experimental ABIEncoderV2;
 
 import "./OTSchnorrVerifier.sol";
 import "./BaseMixer.sol";
+import "./Pairing.sol";
 
 contract Groth16Mixer is BaseMixer {
 

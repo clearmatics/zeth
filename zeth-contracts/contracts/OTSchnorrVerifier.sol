@@ -13,10 +13,8 @@ pragma solidity ^0.5.0;
  * International Workshop on Public Key Cryptography, 2007,
  * <https://eprint.iacr.org/2007/273.pdf>
 **/
-import "./Pairing.sol";
 
 library OTSchnorrVerifier {
-    using Pairing for *;
 
     function verify(
         uint256 vk0,

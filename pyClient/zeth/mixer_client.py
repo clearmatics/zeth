@@ -337,7 +337,7 @@ class MixerClient:
             mixer_src,
             mixer_name,
             deployer_eth_address,
-            deploy_gas.wei,
+            deploy_gas,
             {},
             mk_depth=constants.ZETH_MERKLE_TREE_DEPTH,
             token=token_address or "0x0000000000000000000000000000000000000000",

@@ -11,7 +11,7 @@ from zeth.signing import SigningVerificationKey, Signature, \
     verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
     signature_as_mix_parameter, signature_from_mix_parameter
 from zeth.zksnark import IZKSnarkProvider, GenericProof
-from zeth.utils import hex_to_int
+from zeth.utils import EtherValue, hex_to_int
 from zeth.constants import SOL_COMPILER_VERSION
 import json
 import solcx
@@ -137,9 +137,14 @@ class InstanceDescription:
             source_file: str,
             contract_name: str,
             deployer_address: str,
-            deployment_gas: int,
+            deployment_gas: EtherValue,
             compiler_flags: Dict[str, Any] = None,
             **kwargs: Any) -> InstanceDescription:
+        """
+        Compile and deploy a contract, returning the live instance and an instance
+        description (which the caller should save in order to access the
+        instance in the future).
+        """
         compiled = compile_files([source_file], **(compiler_flags or {}))
         interface = compiled[f"{source_file}:{contract_name}"]
         assert interface
@@ -147,7 +152,7 @@ class InstanceDescription:
             abi=interface['abi'], bytecode=interface['bin'])
         tx_hash = contract.constructor(**kwargs).transact({
             'from': deployer_address,
-            'gas': deployment_gas
+            'gas': deployment_gas.wei
         })
         tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
         contract_address = tx_receipt['contractAddress']
@@ -156,15 +161,7 @@ class InstanceDescription:
         print(
             f"deploy:   tx_hash={tx_hash[0:8].hex()}, " +
             f"gasUsed={tx_receipt.gasUsed}, status={tx_receipt.status}")
-        return InstanceDescription(
-            contract_address, interface['abi'])
-
-    @staticmethod
-    def from_instance(instance: Any) -> InstanceDescription:
-        """
-        Return the description of an existing deployed contract.
-        """
-        return InstanceDescription(instance.address, instance.abi)
+        return InstanceDescription(contract_address, interface['abi'])
 
     def instantiate(self, web3: Any) -> Any:
         """
