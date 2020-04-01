@@ -4,9 +4,6 @@
 # Ignore the coins we created
 /coinstore/
 
-# Ignore the content of the keystore
-/keystore/
-
 # Ignore the output of the trusted setup (ie: Proving and Verifying key)
 /trusted_setup/
 
