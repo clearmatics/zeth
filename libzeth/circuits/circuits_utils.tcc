@@ -35,7 +35,7 @@ namespace libzeth
 // multiplicative identity of the field FieldT) Thus we are safe here. The ONE
 // is well equal to the value FieldT::one()
 
-// Addition of binary strings in F_r in big endian
+// Pack input binary strings into F_r and add the resulting field elements together
 template<typename FieldT>
 libsnark::linear_combination<FieldT> packed_addition(
     libsnark::pb_variable_array<FieldT> inputs)
