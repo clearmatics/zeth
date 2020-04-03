@@ -19,12 +19,6 @@ static const size_t ZETH_A_SK_SIZE = 256; // 256 bits for a_sk
 static const size_t ZETH_A_PK_SIZE = 256; // 256 bits for a_pk
 static const size_t ZETH_R_SIZE = 384; // 384 bits for r
 
-// Size of a HashT digest in bits
-// static const size_t ZETH_DIGEST_BIT_SIZE = 256;
-
-// Size of a HashT digest in hex characters
-// static const size_t ZETH_DIGEST_HEX_SIZE = 64;
-
 } // namespace libzeth
 
 #endif // __ZETH_CONSTANTS__
