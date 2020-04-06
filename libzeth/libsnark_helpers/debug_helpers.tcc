@@ -64,8 +64,7 @@ std::string hex_from_libsnark_bigint(
     }
     std::string str = ss.str();
 
-    // Remove leading 0's
-    return str.erase(0, std::min(str.find_first_not_of('0'), str.size() - 1));
+    return str;
 }
 
 // WARNING: The following function assumes that NAILS are NOT used
@@ -89,7 +88,7 @@ std::string hex_from_libsnark_bigint(
 // where every Limb{i} is of type `mp_limb_t`,
 template<typename FieldT>
 libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(
-    const uint8_t bytes[(FieldT::num_bits + 8 - 1) / 8])
+    const uint8_t bytes[((GMP_LIMB_BITS + 8 - 1) / 8) * FieldT::num_limbs])
 {
     const unsigned bytes_per_limb = (GMP_LIMB_BITS + 8 - 1) / 8;
 
@@ -97,8 +96,8 @@ libff::bigint<FieldT::num_limbs> libsnark_bigint_from_bytes(
 
     for (unsigned i = 0; i < FieldT::num_limbs; i++) {
         for (unsigned j = 0; j < bytes_per_limb; j++) {
-            res.data[FieldT::num_limbs - i] |= mp_limb_t(bytes[i * 8 + j])
-                                               << (GMP_LIMB_BITS - 8 * (j + 1));
+            res.data[FieldT::num_limbs - i - 1] |=
+                mp_limb_t(bytes[i * 8 + j]) << (GMP_LIMB_BITS - 8 * (j + 1));
         }
     }
     return res;
