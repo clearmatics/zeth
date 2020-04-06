@@ -35,51 +35,8 @@ namespace libzeth
 // multiplicative identity of the field FieldT) Thus we are safe here. The ONE
 // is well equal to the value FieldT::one()
 
-// Converts a given number encoded on bitlen bits into a
-// binary string of lentgh bitlen.
-// The encoding is Little Endian.
-template<typename T> std::vector<bool> convert_to_binary_LE(T x, int bitlen)
-{
-    std::vector<bool> ret;
-    for (int i = 0; i < bitlen; i++) {
-        if (x & 1)
-            ret.push_back(1);
-        else
-            ret.push_back(0);
-        x >>= 1;
-    }
-    return ret;
-};
-
-// This function reverses the byte endianness
-//
-//  Example input/output:
-//
-//  Before swap (in):  After Swap (out):
-//    0011 0111         0000 0000
-//    1000 0010         0000 0000
-//    1101 1010         1001 0000
-//    1100 1110         1001 1101
-//    1001 1101         1100 1110
-//    1001 0000         1101 1010
-//    0000 0000         1000 0010
-//    0000 0000         0011 0111
-template<typename T> T swap_endianness_u64(T v)
-{
-    if (v.size() != 64) {
-        throw std::length_error(
-            "invalid bit length for 64-bit unsigned integer");
-    }
-
-    for (size_t i = 0; i < 4; i++) {
-        for (size_t j = 0; j < 8; j++) {
-            std::swap(v[i * 8 + j], v[((7 - i) * 8) + j]);
-        }
-    }
-
-    return v;
-};
-
+// Pack input binary strings into F_r and add the resulting field elements
+// together
 template<typename FieldT>
 libsnark::linear_combination<FieldT> packed_addition(
     libsnark::pb_variable_array<FieldT> inputs)

@@ -123,6 +123,11 @@ std::vector<bool> hex_digest_to_binary_vector(std::string hex_str)
     return hex_to_binary_vector(hex_str);
 }
 
+bits384 hex_value_to_bits384(std::string str)
+{
+    return get_bits384_from_vector(hex_to_binary_vector(str));
+}
+
 bits256 hex_digest_to_bits256(std::string str)
 {
     if (str.length() != 64) {
