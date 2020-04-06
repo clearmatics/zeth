@@ -5,8 +5,6 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key, \
-    decode_encryption_public_key
 from zeth.signing import SigningVerificationKey, Signature, \
     verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
     signature_as_mix_parameter, signature_from_mix_parameter
@@ -35,12 +33,10 @@ class MixParameters:
             extended_proof: GenericProof,
             signature_vk: SigningVerificationKey,
             signature: Signature,
-            pk_sender: EncryptionPublicKey,
             ciphertexts: List[bytes]):
         self.extended_proof = extended_proof
         self.signature_vk = signature_vk
         self.signature = signature
-        self.pk_sender = pk_sender
         self.ciphertexts = ciphertexts
 
     @staticmethod
@@ -54,13 +50,11 @@ class MixParameters:
         signature_vk_json = [
             str(x) for x in verification_key_as_mix_parameter(self.signature_vk)]
         signature_json = str(signature_as_mix_parameter(self.signature))
-        pk_sender_json = encode_encryption_public_key(self.pk_sender).hex()
         ciphertexts_json = [x.hex() for x in self.ciphertexts]
         return {
             "extended_proof": self.extended_proof,
             "signature_vk": signature_vk_json,
             "signature": signature_json,
-            "pk_sender": pk_sender_json,
             "ciphertexts": ciphertexts_json,
         }
 
@@ -70,11 +64,9 @@ class MixParameters:
         signature_pk_param = [int(x) for x in json_dict["signature_vk"]]
         signature_pk = verification_key_from_mix_parameter(signature_pk_param)
         signature = signature_from_mix_parameter(int(json_dict["signature"]))
-        pk_sender = decode_encryption_public_key(
-            bytes.fromhex(json_dict["pk_sender"]))
         ciphertexts = [bytes.fromhex(x) for x in json_dict["ciphertexts"]]
         return MixParameters(
-            ext_proof, signature_pk, signature, pk_sender, ciphertexts)
+            ext_proof, signature_pk, signature, ciphertexts)
 
 
 class MixOutputEvents:
@@ -96,22 +88,18 @@ class MixResult:
             self,
             new_merkle_root: bytes,
             nullifiers: List[bytes],
-            sender_k_pk: EncryptionPublicKey,
             output_events: List[MixOutputEvents]):
         self.new_merkle_root = new_merkle_root
         self.nullifiers = nullifiers
-        self.sender_k_pk = sender_k_pk
         self.output_events = output_events
 
 
 def _event_args_to_mix_result(event_args: Any) -> MixResult:
     mix_out_args = zip(event_args.commitments, event_args.ciphertexts)
     out_events = [MixOutputEvents(c, ciph) for (c, ciph) in mix_out_args]
-    sender_k_pk = decode_encryption_public_key(event_args.pk_sender)
     return MixResult(
         new_merkle_root=event_args.root,
         nullifiers=event_args.nullifiers,
-        sender_k_pk=sender_k_pk,
         output_events=out_events)
 
 
@@ -241,14 +229,12 @@ def _create_web3_mixer_call(
     proof_inputs_param = hex_to_int(mix_parameters.extended_proof["inputs"])
     vk_param = verification_key_as_mix_parameter(mix_parameters.signature_vk)
     signature_param = signature_as_mix_parameter(mix_parameters.signature)
-    pk_sender_param = encode_encryption_public_key(mix_parameters.pk_sender)
     ciphertexts_param = mix_parameters.ciphertexts
     return mixer_instance.functions.mix(
         *proof_param,
         vk_param,
         signature_param,
         proof_inputs_param,
-        pk_sender_param,
         ciphertexts_param)
 
 

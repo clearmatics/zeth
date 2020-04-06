@@ -30,7 +30,6 @@ class TestMerkleTree(TestCase):
     @staticmethod
     def tearDownClass() -> None:
         if exists(MERKLE_TREE_TEST_DIR):
-            print(f"Removing test dir: {MERKLE_TREE_TEST_DIR}")
             rmtree(MERKLE_TREE_TEST_DIR)
 
     def test_combine(self) -> None:

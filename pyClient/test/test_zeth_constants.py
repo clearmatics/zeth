@@ -5,8 +5,12 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 import zeth.encryption as encryption
-from . import test_utils
+from zeth import testing_utils
+from zeth.utils import bits_to_bytes_len
 from unittest import TestCase
+from secrets import token_bytes
+from zeth.constants import APK_LENGTH, HIDDEN_VALUE_LENGTH,\
+    RHO_LENGTH, TRAPR_LENGTH
 
 
 class TestZethConstants(TestCase):
@@ -14,29 +18,30 @@ class TestZethConstants(TestCase):
     def test_encrypt_decrypt(self) -> None:
         """
         Tests the correct encrypt-decrypt flow: decrypt(encrypt(m)) == m
+        where m is 120 bytes long.
         """
-        message = "Join Clearmatics, we are hiring!"
+        apk = token_bytes(bits_to_bytes_len(APK_LENGTH))
+        value = token_bytes(bits_to_bytes_len(HIDDEN_VALUE_LENGTH))
+        rho = token_bytes(bits_to_bytes_len(RHO_LENGTH))
+        trap_r = token_bytes(bits_to_bytes_len(TRAPR_LENGTH))
+        message = (apk + value + rho + trap_r)
+        keypair_alice_bytes, _, _ = testing_utils.\
+            gen_keys_utility()
 
-        keypair_alice_bytes, keypair_bob_bytes, _ = test_utils.gen_keys_utility()
-
-        pk_alice = encryption.decode_encryption_public_key(keypair_alice_bytes[0])
-        sk_alice = encryption.decode_encryption_secret_key(keypair_alice_bytes[1])
-
-        pk_bob = encryption.decode_encryption_public_key(keypair_bob_bytes[0])
-        sk_bob = encryption.decode_encryption_secret_key(keypair_bob_bytes[1])
+        pk_alice = encryption.\
+            get_public_key_from_bytes(keypair_alice_bytes[0])
+        sk_alice = encryption.\
+            get_private_key_from_bytes(keypair_alice_bytes[1])
 
         # Subtest 1: Alice to Alice
-        ciphertext_alice_alice = encryption.encrypt(message, pk_alice, sk_alice)
+        ciphertext_alice_alice = encryption.\
+            encrypt(message, pk_alice)
         plaintext_alice_alice = encryption.decrypt(
-            ciphertext_alice_alice, pk_alice, sk_alice)
+            ciphertext_alice_alice, sk_alice)
         self.assertEqual(plaintext_alice_alice, message)
 
         # Subest 2: Bob to Alice
-        ciphertext_bob_alice = encryption.encrypt(message, pk_alice, sk_bob)
+        ciphertext_bob_alice = encryption.encrypt(message, pk_alice)
         plaintext_bob_alice = encryption.decrypt(
-            ciphertext_bob_alice, pk_alice, sk_bob)
-        self.assertEqual(plaintext_bob_alice, message)
-
-        plaintext_bob_alice = encryption.decrypt(
-            ciphertext_bob_alice, pk_bob, sk_alice)
+            ciphertext_bob_alice, sk_alice)
         self.assertEqual(plaintext_bob_alice, message)

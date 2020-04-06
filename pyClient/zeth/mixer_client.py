@@ -11,8 +11,8 @@ from zeth.zeth_address import ZethAddressPub, ZethAddress
 from zeth.ownership import OwnershipPublicKey, OwnershipSecretKey, \
     OwnershipKeyPair, ownership_key_as_hex
 from zeth.encryption import \
-    EncryptionPublicKey, EncryptionSecretKey, generate_encryption_keypair, \
-    encode_encryption_public_key, encrypt, decrypt
+    EncryptionPublicKey, EncryptionSecretKey, \
+    generate_encryption_keypair, encrypt, decrypt
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
 import zeth.signing as signing
 from zeth.timer import Timer
@@ -122,12 +122,30 @@ def zeth_note_to_json_dict(zeth_note_grpc_obj: ZethNote) -> Dict[str, str]:
     }
 
 
+def zeth_note_to_bytes(zeth_note_grpc_obj: ZethNote) -> bytes:
+    apk_bytes = bytes.fromhex(zeth_note_grpc_obj.apk)
+    value_bytes = bytes.fromhex(zeth_note_grpc_obj.value)
+    rho_bytes = bytes.fromhex(zeth_note_grpc_obj.rho)
+    trap_r_bytes = bytes.fromhex(zeth_note_grpc_obj.trap_r)
+    return apk_bytes+value_bytes+rho_bytes+trap_r_bytes
+
+
 def zeth_note_from_json_dict(parsed_zeth_note: Dict[str, str]) -> ZethNote:
     note = ZethNote(
         apk=parsed_zeth_note["a_pk"],
         value=parsed_zeth_note["value"],
         rho=parsed_zeth_note["rho"],
         trap_r=parsed_zeth_note["trap_r"]
+    )
+    return note
+
+
+def zeth_note_from_bytes(zeth_note_bytes: bytes) -> ZethNote:
+    note = ZethNote(
+        apk=zeth_note_bytes[:32].hex(),
+        value=zeth_note_bytes[32:40].hex(),
+        rho=zeth_note_bytes[40:72].hex(),
+        trap_r=zeth_note_bytes[72:].hex()
     )
     return note
 
@@ -454,13 +472,12 @@ class MixerClient:
         output_notes_with_k_pk = \
             [(note, zeth_addr.k_pk)
              for ((zeth_addr, _), note) in outputs_and_notes]
-        (sender_eph_pk, ciphertexts) = encrypt_notes(output_notes_with_k_pk)
+        ciphertexts = encrypt_notes(output_notes_with_k_pk)
 
         # Sign
         signature = joinsplit_sign(
             signing_keypair,
             sender_eth_address,
-            sender_eph_pk,
             ciphertexts,
             proof_json)
 
@@ -468,7 +485,6 @@ class MixerClient:
             proof_json,
             signing_keypair.vk,
             signature,
-            sender_eph_pk,
             ciphertexts)
 
     def mix(
@@ -553,28 +569,23 @@ class MixerClient:
 
 def encrypt_notes(
         notes: List[Tuple[ZethNote, EncryptionPublicKey]]
-) -> Tuple[EncryptionPublicKey, List[bytes]]:
+) -> List[bytes]:
     """
     Encrypts a set of output notes to be decrypted by the respective receivers.
-    Returns the senders (ephemeral) public key (encoded as bytes) and the
-    ciphertexts corresponding to each note.
+    Returns the ciphertexts corresponding to each note.
     """
-    # generate ephemeral ec25519 key
-    eph_enc_key_pair = generate_encryption_keypair()
-    eph_sk = eph_enc_key_pair.k_sk
-    eph_pk = eph_enc_key_pair.k_pk
 
     def _encrypt_note(out_note: ZethNote, pub_key: EncryptionPublicKey) -> bytes:
-        out_note_str = json.dumps(zeth_note_to_json_dict(out_note))
-        return encrypt(out_note_str, pub_key, eph_sk)
+        out_note_bytes = zeth_note_to_bytes(out_note)
+
+        return encrypt(out_note_bytes, pub_key)
 
     ciphertexts = [_encrypt_note(note, pk) for (note, pk) in notes]
-    return (eph_pk, ciphertexts)
+    return ciphertexts
 
 
 def receive_note(
         out_ev: contracts.MixOutputEvents,
-        sender_k_pk: EncryptionPublicKey,
         receiver_k_sk: EncryptionSecretKey
 ) -> Optional[Tuple[bytes, ZethNote]]:
     """
@@ -585,10 +596,10 @@ def receive_note(
     when spending the notes.
     """
     try:
-        plaintext = decrypt(out_ev.ciphertext, sender_k_pk, receiver_k_sk)
+        plaintext = decrypt(out_ev.ciphertext, receiver_k_sk)
         return (
             out_ev.commitment,
-            zeth_note_from_json_dict(json.loads(plaintext)))
+            zeth_note_from_bytes(plaintext))
     except Exception:
         return None
 
@@ -611,7 +622,6 @@ def _encode_proof_and_inputs(proof_json: GenericProof) -> Tuple[bytes, bytes]:
 def joinsplit_sign(
         signing_keypair: JoinsplitSigKeyPair,
         sender_eth_address: str,
-        sender_eph_pk: EncryptionPublicKey,
         ciphertexts: List[bytes],
         proof_json: GenericProof,
 ) -> int:
@@ -626,13 +636,11 @@ def joinsplit_sign(
 
     # The message to sign consists of (in order):
     #   - senders Ethereum address
-    #   - senders public encryption key
     #   - ciphertexts
     #   - proof elements
     #   - public input elements
     h = sha256()
     h.update(eth_address_to_bytes(sender_eth_address))
-    h.update(encode_encryption_public_key(sender_eph_pk))
     for ciphertext in ciphertexts:
         h.update(ciphertext)
 

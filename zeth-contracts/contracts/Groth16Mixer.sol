@@ -77,7 +77,6 @@ contract Groth16Mixer is BaseMixer {
         uint256[4] memory vk,
         uint256 sigma,
         uint256[nbInputs] memory input,
-        bytes32 pk_sender,
         bytes[jsOut] memory ciphertexts)
         public payable {
 
@@ -90,7 +89,6 @@ contract Groth16Mixer is BaseMixer {
         bytes32 hash_to_be_signed = sha256(
             abi.encodePacked(
                 uint256(msg.sender),
-                pk_sender,
                 // Unfortunately, we have to unroll this for now. We could
                 // replace encodePacked with a custom function but this would
                 // increase complexity and possibly gas usage.
@@ -129,7 +127,6 @@ contract Groth16Mixer is BaseMixer {
         emit LogMix(
             new_merkle_root,
             nullifiers,
-            pk_sender,
             commitments,
             ciphertexts);
     }

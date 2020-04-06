@@ -14,7 +14,6 @@ import argparse
 import sys
 import os
 from os.path import join, dirname, normpath
-# Import Pynacl required modules
 import eth_abi
 from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
@@ -263,3 +262,13 @@ def short_commitment(cm: bytes) -> str:
     Summary of the commitment value, in some standard format.
     """
     return cm[0:4].hex()
+
+
+def bits_to_bytes_len(bit_length: int) -> int:
+    """
+    Convert bit length to byte length
+    """
+    assert \
+        bit_length >= 0 and bit_length % 8 == 0, \
+        "Not valid bit_length inserted"
+    return int(bit_length/8)

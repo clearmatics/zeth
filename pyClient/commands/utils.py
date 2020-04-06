@@ -190,8 +190,7 @@ def do_sync(
             for mix_result in get_mix_results(
                     web3, mixer_instance, wallet_next_block, chain_block_number):
                 new_merkle_root = mix_result.new_merkle_root
-                for note_desc in wallet.receive_notes(
-                        mix_result.output_events, mix_result.sender_k_pk):
+                for note_desc in wallet.receive_notes(mix_result.output_events):
                     if callback:
                         callback(note_desc)
 

@@ -126,7 +126,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     event LogMix(
     bytes32 root,
     bytes32[jsIn] nullifiers,
-    bytes32 pk_sender,
     bytes32[jsOut] commitments,
     bytes[jsOut] ciphertexts);
 

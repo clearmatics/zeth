@@ -242,7 +242,7 @@ def charlie_double_withdraw(
     pk_charlie = keystore["Charlie"].addr_pk.k_pk
 
     # encrypt the coins
-    (sender_eph_pk, ciphertexts) = encrypt_notes([
+    ciphertexts = encrypt_notes([
         (output_note1, pk_charlie),
         (output_note2, pk_charlie)])
 
@@ -250,7 +250,6 @@ def charlie_double_withdraw(
     joinsplit_sig_charlie = joinsplit_sign(
         signing_keypair,
         charlie_eth_address,
-        sender_eph_pk,
         ciphertexts,
         proof_json)
 
@@ -258,7 +257,6 @@ def charlie_double_withdraw(
         proof_json,
         signing_keypair.vk,
         joinsplit_sig_charlie,
-        sender_eph_pk,
         ciphertexts)
 
     tx_hash = zeth_client.mix(
@@ -335,7 +333,7 @@ def charlie_corrupt_bob_deposit(
 
     # Encrypt the coins to bob
     pk_bob = keystore["Bob"].addr_pk.k_pk
-    (sender_eph_pk, ciphertexts) = encrypt_notes([
+    ciphertexts = encrypt_notes([
         (output_note1, pk_bob),
         (output_note2, pk_bob)])
 
@@ -354,7 +352,6 @@ def charlie_corrupt_bob_deposit(
         joinsplit_sig_charlie = joinsplit_sign(
             joinsplit_keypair,
             charlie_eth_address,
-            sender_eph_pk,
             ciphertexts,
             proof_json)
 
@@ -362,7 +359,6 @@ def charlie_corrupt_bob_deposit(
             proof_json,
             joinsplit_keypair.vk,
             joinsplit_sig_charlie,
-            sender_eph_pk,
             [fake_ciphertext0, fake_ciphertext1])
         tx_hash = zeth_client.mix(
             mix_params,
@@ -394,14 +390,12 @@ def charlie_corrupt_bob_deposit(
         joinsplit_sig_charlie = joinsplit_sign(
             new_joinsplit_keypair,
             charlie_eth_address,
-            sender_eph_pk,
             [fake_ciphertext0, fake_ciphertext1],
             proof_json)
         mix_params = contracts.MixParameters(
             proof_json,
             new_joinsplit_keypair.vk,
             joinsplit_sig_charlie,
-            sender_eph_pk,
             [fake_ciphertext0, fake_ciphertext1])
         tx_hash = zeth_client.mix(
             mix_params,
@@ -425,14 +419,12 @@ def charlie_corrupt_bob_deposit(
         joinsplit_sig_bob = joinsplit_sign(
             joinsplit_keypair,
             bob_eth_address,
-            sender_eph_pk,
             ciphertexts,
             proof_json)
         mix_params = contracts.MixParameters(
             proof_json,
             joinsplit_keypair.vk,
             joinsplit_sig_bob,
-            sender_eph_pk,
             ciphertexts)
         tx_hash = zeth_client.mix(
             mix_params,
@@ -454,14 +446,12 @@ def charlie_corrupt_bob_deposit(
     joinsplit_sig_bob = joinsplit_sign(
         joinsplit_keypair,
         bob_eth_address,
-        sender_eph_pk,
         ciphertexts,
         proof_json)
     mix_params = contracts.MixParameters(
         proof_json,
         joinsplit_keypair.vk,
         joinsplit_sig_bob,
-        sender_eph_pk,
         ciphertexts)
     tx_hash = zeth_client.mix(
         mix_params,
