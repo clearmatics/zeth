@@ -4,12 +4,27 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
-import nacl.encoding  # type: ignore
 from typing import NewType
 
-# Thin wrapper around the nacl PublicKey and PrivateKey.  Note nacl doesn't
-# include much type information, so we try to enforce strict types.
+from zeth.constants import KDF_TAG, EC_PUBLIC_KEY_LENGTH, SYM_KEY_LENGTH,\
+    NOTE_LENGTH, TAG_LENGTH, SYM_NONCE_VALUE, SYM_NONCE_LENGTH
+from zeth.utils import bits_to_bytes_len
+
+from cryptography.hazmat.primitives.asymmetric.x25519 \
+    import X25519PrivateKey, X25519PublicKey
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, poly1305
+from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat,\
+    PublicFormat, NoEncryption
+
+
+# Encryption constants byte length
+_PK_BYTE_LENGTH = bits_to_bytes_len(EC_PUBLIC_KEY_LENGTH)
+_SYM_KEY_BYTE_LENGTH = bits_to_bytes_len(SYM_KEY_LENGTH)
+_SYM_NONCE_BYTE_LENGTH = bits_to_bytes_len(SYM_NONCE_LENGTH)
+_NOTE_BYTE_LENGTH = bits_to_bytes_len(NOTE_LENGTH)
+_TAG_BYTE_LENGTH = bits_to_bytes_len(TAG_LENGTH)
 
 
 # Represents a secret key for encryption
@@ -17,24 +32,27 @@ EncryptionSecretKey = NewType('EncryptionSecretKey', object)
 
 
 def encode_encryption_secret_key(sk: EncryptionSecretKey) -> bytes:
-    return sk.encode(encoder=nacl.encoding.RawEncoder)  # type: ignore
+    return sk.private_bytes(    # type: ignore
+        Encoding.Raw, PrivateFormat.Raw, NoEncryption())
 
 
 def decode_encryption_secret_key(sk_bytes: bytes) -> EncryptionSecretKey:
     return EncryptionSecretKey(
-        PrivateKey(sk_bytes, encoder=nacl.encoding.RawEncoder))
+        X25519PrivateKey.from_private_bytes(sk_bytes))
 
 
 def encryption_secret_key_as_hex(sk: EncryptionSecretKey) -> str:
-    return encode_encryption_secret_key(sk).hex()
+    return encode_encryption_secret_key(sk).hex()  # type: ignore
 
 
-def encryption_secret_key_from_hex(sk_hex: str) -> EncryptionSecretKey:
-    return decode_encryption_secret_key(bytes.fromhex(sk_hex))
+def encryption_secret_key_from_hex(pk_str: str) -> EncryptionSecretKey:
+    return EncryptionSecretKey(
+        X25519PrivateKey.from_private_bytes(bytes.fromhex(pk_str)))
 
 
 def generate_encryption_secret_key() -> EncryptionSecretKey:
-    return PrivateKey.generate()  # type: ignore
+    return EncryptionSecretKey(
+        X25519PrivateKey.generate())  # type: ignore
 
 
 # Public key for decryption
@@ -42,12 +60,12 @@ EncryptionPublicKey = NewType('EncryptionPublicKey', object)
 
 
 def encode_encryption_public_key(pk: EncryptionPublicKey) -> bytes:
-    return pk.encode(encoder=nacl.encoding.RawEncoder)  # type: ignore
+    return pk.public_bytes(Encoding.Raw, PublicFormat.Raw)  # type: ignore
 
 
 def decode_encryption_public_key(pk_data: bytes) -> EncryptionPublicKey:
     return EncryptionPublicKey(
-        PublicKey(pk_data, encoder=nacl.encoding.RawEncoder))
+        X25519PublicKey.from_public_bytes(pk_data))
 
 
 def encryption_public_key_as_hex(pk: EncryptionPublicKey) -> str:
@@ -60,10 +78,7 @@ def encryption_public_key_from_hex(pk_str: str) -> EncryptionPublicKey:
 
 def get_encryption_public_key(
         enc_secret: EncryptionSecretKey) -> EncryptionPublicKey:
-    """
-    Derive the public key from the secret key
-    """
-    return enc_secret.public_key  # type: ignore
+    return enc_secret.public_key()  # type: ignore
 
 
 class EncryptionKeyPair:
@@ -80,43 +95,115 @@ def generate_encryption_keypair() -> EncryptionKeyPair:
     return EncryptionKeyPair(sk, get_encryption_public_key(sk))
 
 
-def encrypt(message: str, pk_receiver: PublicKey, sk_sender: PrivateKey) -> bytes:
+def kdf(eph_pk: bytes, shared_key: bytes) -> bytes:
     """
-    Encrypts a string message by using valid ec25519 public key and
-    private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
+    Key derivation function
     """
-    # Init encryption box instance
-    encryption_box = Box(sk_sender, pk_receiver)
+    # Hashing
+    key_material = hashes.Hash(
+        hashes.BLAKE2b(64),
+        backend=default_backend())
+    key_material.update(KDF_TAG)
+    key_material.update(eph_pk)
+    key_material.update(shared_key)
+    digest = key_material.finalize()
 
-    # Encode str message to bytes
-    message_bytes = message.encode('utf-8')
+    return digest
 
-    # Encrypt the message. The nonce is chosen randomly.
-    encrypted = encryption_box.encrypt(
-        message_bytes,
-        encoder=nacl.encoding.RawEncoder)
 
-    # Need to cast to the parent class Bytes of nacl.utils.EncryptedMessage
-    # to make it accepted from `Mix` Solidity function
-    return bytes(encrypted)
+def get_private_key_from_bytes(sk_bytes: bytes) -> EncryptionSecretKey:
+    """
+    Gets PrivateKey object from raw representation
+    """
+    return EncryptionSecretKey(
+        X25519PrivateKey.from_private_bytes(sk_bytes))
+
+
+def get_public_key_from_bytes(pk_bytes: bytes) -> EncryptionPublicKey:
+    """
+    Gets PublicKey object from raw representation
+    """
+    return EncryptionPublicKey(
+        X25519PublicKey.from_public_bytes(pk_bytes))
+
+
+def exchange(sk: EncryptionSecretKey, pk: EncryptionPublicKey) -> bytes:
+    return sk.exchange(pk)  # type: ignore
+
+
+def encrypt(message: bytes, pk_receiver: EncryptionPublicKey) -> bytes:
+    """
+    Encrypts a string message under a ec25519 public key
+    by using a custom dhaes-based scheme.
+    See: https://eprint.iacr.org/1999/007
+    """
+    # Generate ephemeral keypair
+    eph_keypair = generate_encryption_keypair()
+
+    # Compute shared secret and eph key
+    shared_key = exchange(eph_keypair.k_sk, pk_receiver)
+    pk_sender_bytes = encode_encryption_public_key(eph_keypair.k_pk)
+
+    # Generate key material
+    key_material = kdf(pk_sender_bytes, shared_key)
+
+    # Generate symmetric ciphertext
+    # Chacha encryption
+    sym_key = key_material[:_PK_BYTE_LENGTH]
+    mac_key = key_material[_PK_BYTE_LENGTH:]
+    nonce = (SYM_NONCE_VALUE).to_bytes(_SYM_NONCE_BYTE_LENGTH, byteorder='little')
+    algorithm = algorithms.ChaCha20(sym_key, nonce)
+    cipher = Cipher(algorithm, mode=None, backend=default_backend())
+    encryptor = cipher.encryptor()
+    sym_ciphertext = encryptor.update(message)
+
+    # Generate mac
+    mac = poly1305.Poly1305(mac_key)
+    mac.update(sym_ciphertext)
+    tag = mac.finalize()
+
+    # Arrange ciphertext
+    return pk_sender_bytes+sym_ciphertext+tag
 
 
 def decrypt(
         encrypted_message: bytes,
-        pk_sender: PublicKey,
-        sk_receiver: PrivateKey) -> str:
+        sk_receiver: EncryptionSecretKey) -> bytes:
     """
     Decrypts a string message by using valid ec25519 public key and private key
     objects.  See: https://pynacl.readthedocs.io/en/stable/public/
     """
-    assert(isinstance(pk_sender, PublicKey)), \
-        f"PublicKey: {pk_sender} ({type(pk_sender)})"
-    assert(isinstance(sk_receiver, PrivateKey)), \
+    assert(isinstance(sk_receiver, X25519PrivateKey)), \
         f"PrivateKey: {sk_receiver} ({type(sk_receiver)})"
 
-    # Init encryption box instance
-    decryption_box = Box(sk_receiver, pk_sender)
+    # Compute shared secret
+    pk_sender_bytes = encrypted_message[:_PK_BYTE_LENGTH]
+    pk_sender = decode_encryption_public_key(pk_sender_bytes)
+    shared_key = exchange(sk_receiver, pk_sender)
 
-    # Check integrity of the ciphertext and decrypt it
-    message = decryption_box.decrypt(encrypted_message)
-    return str(message, encoding='utf-8')
+    # Generate key material and recover keys
+    key_material = kdf(pk_sender_bytes, shared_key)
+    sym_key = key_material[:_SYM_KEY_BYTE_LENGTH]
+    mac_key = key_material[_SYM_KEY_BYTE_LENGTH:]
+
+    # ct_sym and mac
+    ct_sym = encrypted_message[
+        _PK_BYTE_LENGTH:
+        _PK_BYTE_LENGTH + _NOTE_BYTE_LENGTH]
+    tag = encrypted_message[
+        _PK_BYTE_LENGTH + _NOTE_BYTE_LENGTH:
+        _PK_BYTE_LENGTH + _NOTE_BYTE_LENGTH + _TAG_BYTE_LENGTH]
+
+    # Verify the mac
+    mac = poly1305.Poly1305(mac_key)
+    mac.update(ct_sym)
+    mac.verify(tag)
+
+    # Decrypt sym ciphertext
+    nonce = (SYM_NONCE_VALUE).to_bytes(_SYM_NONCE_BYTE_LENGTH, byteorder='little')
+    algorithm = algorithms.ChaCha20(sym_key, nonce)
+    cipher = Cipher(algorithm, mode=None, backend=default_backend())
+    decryptor = cipher.decryptor()
+    message = decryptor.update(ct_sym)
+
+    return message

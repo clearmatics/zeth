@@ -31,14 +31,12 @@ class TestContracts(TestCase):
         sig_vk = sig_keypair.vk
         sig = sign(sig_keypair.sk, bytes.fromhex("00112233"))
         receiver_enc_keypair = generate_encryption_keypair()
-        enc_keypair = generate_encryption_keypair()
-        enc_pk = enc_keypair.k_pk
         ciphertexts = [
-            encrypt("asdf", receiver_enc_keypair.k_pk, enc_keypair.k_sk),
-            encrypt("qwer", receiver_enc_keypair.k_pk, enc_keypair.k_sk),
+            encrypt("asdf".encode(), receiver_enc_keypair.k_pk),
+            encrypt("qwer".encode(), receiver_enc_keypair.k_pk),
         ]
 
-        mix_params = MixParameters(ext_proof, sig_vk, sig, enc_pk, ciphertexts)
+        mix_params = MixParameters(ext_proof, sig_vk, sig, ciphertexts)
 
         mix_params_json = mix_params.to_json()
         mix_params_2 = MixParameters.from_json(mix_params_json)
@@ -48,5 +46,4 @@ class TestContracts(TestCase):
             encode_vk_to_bytes(mix_params.signature_vk),
             encode_vk_to_bytes(mix_params_2.signature_vk))
         self.assertEqual(mix_params.signature, mix_params_2.signature)
-        self.assertEqual(mix_params.pk_sender, mix_params_2.pk_sender)
         self.assertEqual(mix_params.ciphertexts, mix_params_2.ciphertexts)

@@ -27,6 +27,8 @@ To use the Zeth functionality, 3 components are required:
 
 We use 3 terminals, one for each of the above components.
 
+Note: Mac users should increase docker runtime memory from 2gb to 4gb to allow Terminal 1 to complete successfully.
+
 #### Terminal 1: Build and run prover_server
 
 ```bash
