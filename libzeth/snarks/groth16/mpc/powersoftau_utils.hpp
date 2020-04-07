@@ -8,6 +8,7 @@
 #include "libzeth/include_libsnark.hpp"
 
 #include <istream>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 namespace libzeth
 {
