@@ -397,7 +397,7 @@ class MixerClient:
             tx_value.wei,
             constants.DEFAULT_MIX_GAS_WEI)
 
-    def create_mix_parameters(
+    def create_mix_parameters_keep_signing_key(
             self,
             mk_tree: MerkleTree,
             sender_ownership_keypair: OwnershipKeyPair,
@@ -407,8 +407,7 @@ class MixerClient:
             v_in: EtherValue,
             v_out: EtherValue,
             compute_h_sig_cb: Optional[ComputeHSigCB] = None
-    ) -> contracts.MixParameters:
-
+    ) -> Tuple[contracts.MixParameters, JoinsplitSigKeyPair]:
         assert len(inputs) <= constants.JS_INPUTS
         assert len(outputs) <= constants.JS_OUTPUTS
 
@@ -469,12 +468,35 @@ class MixerClient:
             ciphertexts,
             proof_json)
 
-        return contracts.MixParameters(
+        mix_params = contracts.MixParameters(
             proof_json,
             signing_keypair.vk,
             signature,
             sender_eph_pk,
             ciphertexts)
+        return mix_params, signing_keypair
+
+    def create_mix_parameters(
+            self,
+            mk_tree: MerkleTree,
+            sender_ownership_keypair: OwnershipKeyPair,
+            sender_eth_address: str,
+            inputs: List[Tuple[int, ZethNote]],
+            outputs: List[Tuple[ZethAddressPub, EtherValue]],
+            v_in: EtherValue,
+            v_out: EtherValue,
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None
+    ) -> contracts.MixParameters:
+        mix_params, _sig_keypair = self.create_mix_parameters_keep_signing_key(
+            mk_tree,
+            sender_ownership_keypair,
+            sender_eth_address,
+            inputs,
+            outputs,
+            v_in,
+            v_out,
+            compute_h_sig_cb)
+        return mix_params
 
     def mix(
             self,
