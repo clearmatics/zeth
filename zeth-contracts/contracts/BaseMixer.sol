@@ -186,20 +186,20 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     //    2*public_value_length + (1+2*NumInputs)*(digest_length-field_capacity)]
     // ============================================================================================ //
 
-    // This function is used to extract the public values (vpub_in and
-    // vpub_out) from the residual field element(S)
-
+    // This function is used to extract the public values (vpub_in, vpub_out)
+    // from the residual field element(S)
     function assemble_public_values(uint256[nbInputs] memory primary_inputs)
         public pure
-        returns (uint64 vpub_in, uint64 vpub_out){
+        returns (uint256 vpub_in, uint256 vpub_out){
         // We know vpub_in corresponds to the first 64 bits of the first
         // residual field element after padding. We retrieve the public value
         // in and remove any extra bits (due to the padding)
 
         uint256 residual_bits = primary_inputs[1 + jsOut + nb_hash_digests];
         residual_bits = residual_bits >> residual_hash_bits;
-        vpub_out = uint64(residual_bits);
-        vpub_in = uint64(residual_bits >> public_value_length);
+        vpub_out = uint256(uint64(residual_bits)) * public_unit_value_wei;
+        vpub_in = uint256(uint64(residual_bits >> public_value_length)) *
+            public_unit_value_wei;
     }
 
     // This function is used to reassemble hsig given the the primary_inputs To
@@ -323,12 +323,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
 
     function process_public_values(uint256[nbInputs] memory primary_inputs)
         internal {
-        // 0. We get vpub_in and vpub_out
-        (uint256 vpub_in_zeth_units, uint256 vpub_out_zeth_units) =
-        assemble_public_values(primary_inputs);
-
-        // 1. We get the vpub_in in wei
-        uint256 vpub_in = vpub_in_zeth_units * public_unit_value_wei;
+        // We get vpub_in and vpub_out in wei
+        (uint256 vpub_in, uint256 vpub_out) =
+            assemble_public_values(primary_inputs);
 
         // If the vpub_in is > 0, we need to make sure the right amount is paid
         if (vpub_in > 0) {
@@ -346,9 +343,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
             // send the amount paid back to the caller
             msg.sender.transfer(msg.value);
         }
-
-        // 2. Get vpub_out in wei
-        uint256 vpub_out = vpub_out_zeth_units * public_unit_value_wei;
 
         // If value_pub_out > 0 then we do a withdraw.  We retrieve the
         // msg.sender and send him the appropriate value IF proof is valid

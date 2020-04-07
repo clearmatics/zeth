@@ -4,7 +4,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.constants import JS_INPUTS, JS_OUTPUTS, PUBLIC_VALUE_LENGTH
+from zeth.constants import \
+    JS_INPUTS, JS_OUTPUTS, PUBLIC_VALUE_LENGTH, ZETH_PUBLIC_UNIT_VALUE
 from zeth.mixer_client import MixerClient
 from typing import Any
 import test_commands.mock as mock
@@ -115,20 +116,20 @@ def test_assemble_hsig(mixer_instance: Any) -> Any:
     return 0
 
 
-def test_assemble_vpub(mixer_instance: Any) -> Any:
+def test_assemble_vpub(mixer_instance: Any) -> int:
     # Test retrieving commitments
     print("--- testing ", "test_assemble_vpub")
-    v_in, v_out = mixer_instance.functions.\
-        assemble_public_values(PACKED_PRIMARY_INPUTS).call()
-    if v_in != UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 1] or\
-            v_out != UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 2]:
+    v_in, v_out = mixer_instance.functions.assemble_public_values(
+        PACKED_PRIMARY_INPUTS).call()
+    v_in_expect = UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 1] \
+        * ZETH_PUBLIC_UNIT_VALUE
+    v_out_expect = UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 2] \
+        * ZETH_PUBLIC_UNIT_VALUE
+
+    if v_in != v_in_expect or v_out != v_out_expect:
         print("ERROR: extracted wrong public values")
-        print(
-            "expected:",
-            UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 1],
-            UNPACKED_PRIMARY_INPUTS[JS_INPUTS + JS_OUTPUTS + 2]
-        )
-        print("got:", v_in, v_out)
+        print(f"expected: {(v_in_expect, v_out_expect)}")
+        print(f"actual  : {(v_in, v_out)}")
         return 1
     return 0
 
