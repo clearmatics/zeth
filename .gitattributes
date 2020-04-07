@@ -1,1 +1,4 @@
-*.tcc gitlab-language=cpp
+# See: https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
+
+*.tcc linguist-language=C++
+*.sol linguist-language=Solidity
