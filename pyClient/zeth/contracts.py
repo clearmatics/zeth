@@ -187,24 +187,31 @@ def compile_files(files: List[str], **kwargs: Any) -> Any:
     return solcx.compile_files(files, optimize=True, **kwargs)
 
 
+def mix_parameters_as_contract_arguments(
+        zksnark: IZKSnarkProvider,
+        mix_parameters: MixParameters) -> List[Any]:
+    """
+    Convert MixParameters to a list of eth ABI objects which can be passed to
+    the contract's mix method.
+    """
+    proof_params: List[Any] = zksnark.mixer_proof_parameters(
+        mix_parameters.extended_proof)
+    proof_params.extend([
+        verification_key_as_mix_parameter(mix_parameters.signature_vk),
+        signature_as_mix_parameter(mix_parameters.signature),
+        hex_to_int(mix_parameters.extended_proof["inputs"]),
+        encode_encryption_public_key(mix_parameters.pk_sender),
+        mix_parameters.ciphertexts
+    ])
+    return proof_params
+
+
 def _create_web3_mixer_call(
         zksnark: IZKSnarkProvider,
         mixer_instance: Any,
         mix_parameters: MixParameters) -> Any:
-    # Convert all params to the correct form for calling the mix method.
-    proof_param = zksnark.mixer_proof_parameters(mix_parameters.extended_proof)
-    proof_inputs_param = hex_to_int(mix_parameters.extended_proof["inputs"])
-    vk_param = verification_key_as_mix_parameter(mix_parameters.signature_vk)
-    signature_param = signature_as_mix_parameter(mix_parameters.signature)
-    pk_sender_param = encode_encryption_public_key(mix_parameters.pk_sender)
-    ciphertexts_param = mix_parameters.ciphertexts
-    return mixer_instance.functions.mix(
-        *proof_param,
-        vk_param,
-        signature_param,
-        proof_inputs_param,
-        pk_sender_param,
-        ciphertexts_param)
+    mix_params_eth = mix_parameters_as_contract_arguments(zksnark, mix_parameters)
+    return mixer_instance.functions.mix(*mix_params_eth)
 
 
 def mix_call(
