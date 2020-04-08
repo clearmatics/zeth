@@ -22,7 +22,7 @@ from typing import Optional, Any
 
 @command()
 @pass_context
-def help(ctx: Any) -> None:
+def help(ctx: Context) -> None:
     """
     Print help and exit
     """
