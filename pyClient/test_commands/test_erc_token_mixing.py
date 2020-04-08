@@ -87,6 +87,8 @@ def main() -> None:
     def _mk_wallet(name: str, sk: ZethAddressPriv) -> Wallet:
         wallet_dir = join(notestore_dir, name + "-erc")
         if exists(wallet_dir):
+            # Note: symlink-attack resistance
+            #   https://docs.python.org/3/library/shutil.html#shutil.rmtree.avoids_symlink_attacks
             shutil.rmtree(wallet_dir)
         return Wallet(mixer_instance, name, wallet_dir, sk)
     sk_alice = keystore["Alice"].addr_sk
