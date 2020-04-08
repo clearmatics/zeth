@@ -183,15 +183,12 @@ TEST(TestCOMMs, TestCOMMGadget)
 
     bits384 trap_r_bits384 = hex_value_to_bits384(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
-        "000000000000FF00000000000000FF"));
-    bits64 value_bits64 =
-        get_bits64_from_vector(hex_to_binary_vector("2F0000000000000F"));
-    bits256 rho_bits256 = get_bits256_from_vector(
-        hex_digest_to_binary_vector("FFFF000000000000000000000000000000"
-                                    "000000000000000000000000009009"));
-    bits256 a_pk_bits256 = get_bits256_from_vector(
-        hex_digest_to_binary_vector("5c36fea42b82800d74304aa4f875142b42"
-                                    "1b4f2847e7c41c1077fbbcfd63f886"));
+        "000000000000FF00000000000000FF");
+    bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
+    bits256 rho_bits256 = hex_digest_to_bits256("FFFF000000000000000000000000000000"
+                                    "000000000000000000000000009009");
+    bits256 a_pk_bits256 = hex_digest_to_bits256("5c36fea42b82800d74304aa4f875142b42"
+                                    "1b4f2847e7c41c1077fbbcfd63f886");
     FieldT cm_field = FieldT("2155258442620509676458556185366050817769574716974"
                              "5897618121094192716929220955");
 
