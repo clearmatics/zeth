@@ -46,7 +46,7 @@ def main() -> None:
     alice_eth_address = eth.accounts[2]
     charlie_eth_address = eth.accounts[3]
 
-    coinstore_dir = os.environ['ZETH_COINSTORE']
+    notestore_dir = os.environ['ZETH_NOTESTORE']
 
     # Deploy Zeth contracts
     tree_depth = zeth.constants.ZETH_MERKLE_TREE_DEPTH
@@ -68,7 +68,7 @@ def main() -> None:
 
     # Keys and wallets
     def _mk_wallet(name: str, sk: ZethAddressPriv) -> Wallet:
-        wallet_dir = join(coinstore_dir, name + "-eth")
+        wallet_dir = join(notestore_dir, name + "-eth")
         if exists(wallet_dir):
             shutil.rmtree(wallet_dir)
         return Wallet(mixer_instance, name, wallet_dir, sk)

@@ -66,7 +66,7 @@ def main() -> None:
     # Zeth addresses
     keystore = mock.init_test_keystore()
 
-    coinstore_dir = os.environ['ZETH_COINSTORE']
+    notestore_dir = os.environ['ZETH_NOTESTORE']
 
     # Deploy the token contract
     token_instance = deploy_token(eth, deployer_eth_address, 4000000)
@@ -85,7 +85,7 @@ def main() -> None:
 
     # Keys and wallets
     def _mk_wallet(name: str, sk: ZethAddressPriv) -> Wallet:
-        wallet_dir = join(coinstore_dir, name + "-erc")
+        wallet_dir = join(notestore_dir, name + "-erc")
         if exists(wallet_dir):
             shutil.rmtree(wallet_dir)
         return Wallet(mixer_instance, name, wallet_dir, sk)

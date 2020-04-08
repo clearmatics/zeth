@@ -4,8 +4,8 @@ export ZETH=`pwd`
 export ZETH_CONTRACTS_DIR=$ZETH/zeth-contracts/contracts
 export ZETH_DEBUG_DIR=$ZETH/debug
 
-mkdir -p $ZETH/coinstore
-export ZETH_COINSTORE=$ZETH/coinstore
+mkdir -p $ZETH/notestore
+export ZETH_NOTESTORE=$ZETH/notestore
 
 mkdir -p $ZETH/trusted_setup
 export ZETH_TRUSTED_SETUP_DIR=$ZETH/trusted_setup
