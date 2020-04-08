@@ -35,8 +35,7 @@ private:
     // Number of residual bits from packing of hash digests into smaller
     // field elements to which are added the public value of size 64 bits
     const size_t length_bit_residual =
-        2 * ZETH_V_SIZE +
-        digest_len_minus_field_cap * (1 + 2 * NumInputs);
+        2 * ZETH_V_SIZE + digest_len_minus_field_cap * (1 + 2 * NumInputs);
     // Number of field elements needed to pack this number of bits
     const size_t nb_field_residual =
         libff::div_ceil(length_bit_residual, FieldT::capacity());
