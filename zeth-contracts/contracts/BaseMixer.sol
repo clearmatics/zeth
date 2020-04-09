@@ -339,9 +339,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
                 );
             }
         } else {
-            // If vpub_in is = 0, since we have a payable function, we need to
-            // send the amount paid back to the caller
-            msg.sender.transfer(msg.value);
+            // If vpub_in = 0, return incoming Ether to the caller
+            if (msg.value > 0) {
+                (bool success, ) = msg.sender.call.value(msg.value)("");
+                require(success, "vpub_in return transfer failed");
+            }
         }
 
         // If value_pub_out > 0 then we do a withdraw.  We retrieve the
@@ -351,7 +353,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
                 ERC20 erc20Token = ERC20(token);
                 erc20Token.transfer(msg.sender, vpub_out);
             } else {
-                msg.sender.transfer(vpub_out);
+                (bool success, ) = msg.sender.call.value(vpub_out)("");
+                require(success, "vpub_out transfer failed");
             }
         }
     }
