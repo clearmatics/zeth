@@ -16,7 +16,7 @@
   "dependencies": {
     "add": "^2.0.6",
     "ethereumjs-abi": "^0.6.8",
-    "ganache-cli": "^6.8.0-istanbul.0",
+    "ganache-cli": "^6.9.1",
     "openzeppelin-solidity": "^2.4.0",
     "shell-escape": "^0.2.0",
     "solium": "^1.2.5",
