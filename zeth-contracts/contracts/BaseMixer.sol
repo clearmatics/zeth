@@ -152,6 +152,23 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         );
     }
 
+    // Function allowing external users of the contract to retrieve some of the
+    // constants used in the mixer (since the solidity interfaces do not export
+    // this information as-of the current version). The intention is that
+    // external users and contraacts can query this function and ensure that
+    // they are compatible with the mixer configurations.
+    //
+    // Returns the number of input notes, the number of output notes and the
+    // total number of
+    function get_constants()
+        external pure
+        returns (uint256 js_in, uint256 js_out, uint256 num_inputs)
+    {
+        js_in = jsIn;
+        js_out = jsOut;
+        num_inputs = nbInputs;
+    }
+
     // ====================================================================== //
     // Reminder: Remember that the primary inputs are ordered as follows:
     //
