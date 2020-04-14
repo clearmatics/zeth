@@ -145,11 +145,25 @@ class InstanceDescription:
         description (which the caller should save in order to access the
         instance in the future).
         """
-        compiled = compile_files([source_file], **(compiler_flags or {}))
-        interface = compiled[f"{source_file}:{contract_name}"]
-        assert interface
+        compiled = InstanceDescription.compile(
+            source_file, contract_name, compiler_flags)
+        assert compiled
+        instance_desc = InstanceDescription.deploy_from_compiled(
+            web3, deployer_address, deployment_gas, compiled, **kwargs)
+        print(
+            f"deploy: contract: {contract_name} "
+            f"to address: {instance_desc.address}")
+        return instance_desc
+
+    @staticmethod
+    def deploy_from_compiled(
+            web3: Any,
+            deployer_address: str,
+            deployment_gas: EtherValue,
+            compiled: Any,
+            **kwargs: Any) -> InstanceDescription:
         contract = web3.eth.contract(
-            abi=interface['abi'], bytecode=interface['bin'])
+            abi=compiled['abi'], bytecode=compiled['bin'])
         tx_hash = contract.constructor(**kwargs).transact({
             'from': deployer_address,
             'gas': deployment_gas.wei
@@ -157,11 +171,21 @@ class InstanceDescription:
         tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
         contract_address = tx_receipt['contractAddress']
         print(
-            f"deploy: contract: {contract_name} to address: {contract_address}")
-        print(
             f"deploy:   tx_hash={tx_hash[0:8].hex()}, " +
-            f"gasUsed={tx_receipt.gasUsed}, status={tx_receipt.status}")
-        return InstanceDescription(contract_address, interface['abi'])
+            f"  gasUsed={tx_receipt.gasUsed}, status={tx_receipt.status}")
+        return InstanceDescription(contract_address, compiled['abi'])
+
+    @staticmethod
+    def compile(
+            source_file: str,
+            contract_name: str,
+            compiler_flags: Dict[str, Any] = None) \
+            -> Any:
+        compiled_all = compile_files([source_file], **(compiler_flags or {}))
+        assert compiled_all
+        compiled = compiled_all[f"{source_file}:{contract_name}"]
+        assert compiled
+        return compiled
 
     def instantiate(self, web3: Any) -> Any:
         """
