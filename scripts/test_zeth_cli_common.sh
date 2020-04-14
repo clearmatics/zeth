@@ -28,7 +28,7 @@ function new_account() {
 
 # 1 - Address to show balance for
 function show_balance() {
-    show_balances | grep $1 | sed -e 's/^'$1': //g'
+    python -m test_commands.get_balance $1
 }
 
 # Record all Ethereum accounts in an 'accounts'
