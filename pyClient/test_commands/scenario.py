@@ -172,8 +172,8 @@ def charlie_double_withdraw(
     # {0;1}^256 so that they appear different to the contract.
     # See: https://github.com/clearmatics/zeth/issues/38
 
-    attack_primary_input1: int = 0
-    attack_primary_input2: int = 0
+    attack_primary_input3: int = 0
+    attack_primary_input4: int = 0
 
     def compute_h_sig_attack_nf(
             nf0: bytes,
@@ -183,28 +183,28 @@ def charlie_double_withdraw(
         input_nullifier0 = nf0.hex()
         input_nullifier1 = nf1.hex()
         nf0_rev = "{0:0256b}".format(int(input_nullifier0, 16))
-        primary_input1_bits = nf0_rev[:FIELD_CAPACITY]
-        primary_input1_res_bits = nf0_rev[FIELD_CAPACITY:]
+        primary_input3_bits = nf0_rev[:FIELD_CAPACITY]
+        primary_input3_res_bits = nf0_rev[FIELD_CAPACITY:]
         nf1_rev = "{0:0256b}".format(int(input_nullifier1, 16))
-        primary_input2_bits = nf1_rev[:FIELD_CAPACITY]
-        primary_input2_res_bits = nf1_rev[FIELD_CAPACITY:]
+        primary_input4_bits = nf1_rev[:FIELD_CAPACITY]
+        primary_input4_res_bits = nf1_rev[FIELD_CAPACITY:]
 
         # We perform the attack, recoding the modified public input values
-        nonlocal attack_primary_input1
-        nonlocal attack_primary_input2
-        attack_primary_input1 = int(primary_input1_bits, 2) + ZETH_PRIME
-        attack_primary_input2 = int(primary_input2_bits, 2) + ZETH_PRIME
+        nonlocal attack_primary_input3
+        nonlocal attack_primary_input4
+        attack_primary_input3 = int(primary_input3_bits, 2) + ZETH_PRIME
+        attack_primary_input4 = int(primary_input4_bits, 2) + ZETH_PRIME
 
         # We reassemble the nfs
-        attack_primary_input1_bits = "{0:0256b}".format(attack_primary_input1)
-        attack_nf0_bits = attack_primary_input1_bits[
-            len(attack_primary_input1_bits) - FIELD_CAPACITY:] +\
-            primary_input1_res_bits
+        attack_primary_input3_bits = "{0:0256b}".format(attack_primary_input3)
+        attack_nf0_bits = attack_primary_input3_bits[
+            len(attack_primary_input3_bits) - FIELD_CAPACITY:] +\
+            primary_input3_res_bits
         attack_nf0 = "{0:064x}".format(int(attack_nf0_bits, 2))
-        attack_primary_input2_bits = "{0:0256b}".format(attack_primary_input2)
-        attack_nf1_bits = attack_primary_input2_bits[
-            len(attack_primary_input2_bits) - FIELD_CAPACITY:] +\
-            primary_input2_res_bits
+        attack_primary_input4_bits = "{0:0256b}".format(attack_primary_input4)
+        attack_nf1_bits = attack_primary_input4_bits[
+            len(attack_primary_input4_bits) - FIELD_CAPACITY:] +\
+            primary_input4_res_bits
         attack_nf1 = "{0:064x}".format(int(attack_nf1_bits, 2))
         return joinsplit.compute_h_sig(
             bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_vk)
@@ -226,14 +226,14 @@ def charlie_double_withdraw(
     # Update the primary inputs to the modified nullifiers, since libsnark
     # overwrites them with values in Z_p
 
-    assert attack_primary_input1 != 0
-    assert attack_primary_input2 != 0
+    assert attack_primary_input3 != 0
+    assert attack_primary_input4 != 0
 
     print("proof_json => ", proof_json)
-    print("proof_json[inputs][1] => ", proof_json["inputs"][1])
-    print("proof_json[inputs][2] => ", proof_json["inputs"][2])
-    proof_json["inputs"][1] = hex(attack_primary_input1)
-    proof_json["inputs"][2] = hex(attack_primary_input2)
+    print("proof_json[inputs][3] => ", proof_json["inputs"][3])
+    print("proof_json[inputs][4] => ", proof_json["inputs"][4])
+    proof_json["inputs"][3] = hex(attack_primary_input3)
+    proof_json["inputs"][4] = hex(attack_primary_input4)
     # ### ATTACK BLOCK
 
     # construct pk object from bytes

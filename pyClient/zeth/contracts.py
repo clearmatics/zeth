@@ -184,6 +184,7 @@ def mix(
     pk_sender_encoded = encode_encryption_public_key(pk_sender)
     proof_params = zksnark.mixer_proof_parameters(parsed_proof)
     inputs = hex_to_int(parsed_proof["inputs"])
+
     tx_hash = mixer_instance.functions.mix(
         *proof_params,
         [int(vk.ppk[0]), int(vk.ppk[1]), int(vk.spk[0]), int(vk.spk[1])],

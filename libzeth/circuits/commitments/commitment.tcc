@@ -95,7 +95,7 @@ COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(
     libsnark::pb_variable_array<FieldT> &rho,
     libsnark::pb_variable_array<FieldT> &trap_r,
     libsnark::pb_variable_array<FieldT> &value_v,
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+    libsnark::pb_variable<FieldT> result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
@@ -105,6 +105,9 @@ COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(
 
     outer_k.reset(new libsnark::digest_variable<FieldT>(
         pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " outer_k")));
+
+    final_k.reset(new libsnark::digest_variable<FieldT>(
+        pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " final_k")));
 
     // Allocate gadgets
     inner_com_gadget.reset(new COMM_gadget<FieldT, HashT>(
@@ -117,8 +120,18 @@ COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(
         pb,
         outer_k->bits,
         getRightSideCMCOMM(ZERO, value_v),
-        result,
+        final_k,
         annotation_prefix));
+
+    // This gadget cast the `final_k` from bits to field element
+    // We reverse the order otherwise the resulting linear combination is built
+    // by interpreting our bit string as little endian.
+    bits_to_field.reset(new libsnark::packing_gadget<FieldT>(
+        pb,
+        libsnark::pb_variable_array<FieldT>(
+            final_k->bits.rbegin(), final_k->bits.rend()),
+        result,
+        FMT(this->annotation_prefix, " cm_bits_to_field")));
 }
 
 template<typename FieldT, typename HashT>
@@ -127,6 +140,9 @@ void COMM_cm_gadget<FieldT, HashT>::generate_r1cs_constraints()
     inner_com_gadget->generate_r1cs_constraints();
     outer_com_gadget->generate_r1cs_constraints();
     final_com_gadget->generate_r1cs_constraints();
+
+    // Flag set to true, to check booleaness of `final_k`
+    bits_to_field->generate_r1cs_constraints(true);
 }
 
 template<typename FieldT, typename HashT>
@@ -135,6 +151,8 @@ void COMM_cm_gadget<FieldT, HashT>::generate_r1cs_witness()
     inner_com_gadget->generate_r1cs_witness();
     outer_com_gadget->generate_r1cs_witness();
     final_com_gadget->generate_r1cs_witness();
+
+    bits_to_field->generate_r1cs_witness_from_bits();
 }
 
 } // namespace libzeth
