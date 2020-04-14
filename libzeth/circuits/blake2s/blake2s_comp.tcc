@@ -8,7 +8,7 @@
 namespace libzeth
 {
 
-// This gadget implements the interface of the HashT template
+/// This gadget implements the interface of the HashT template
 template<typename FieldT>
 BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
     libsnark::protoboard<FieldT> &pb,
@@ -118,8 +118,6 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
             gadget.generate_r1cs_witness();
         }
     }
-
-    // TODO: batch equality constraints (should save ~200 constraints (~1%))
 
     for (auto &gadget : xor_vector) {
         gadget.generate_r1cs_witness();

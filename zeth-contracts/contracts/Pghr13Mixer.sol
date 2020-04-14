@@ -128,7 +128,7 @@ contract Pghr13Mixer is BaseMixer {
 
 
         // 3. Append the commitments to the tree
-        assemble_commitments_and_append_to_state(input);
+        append_commitments_to_state(input);
 
         // 4. get the public values in Wei and modify the state depending on
         // their values

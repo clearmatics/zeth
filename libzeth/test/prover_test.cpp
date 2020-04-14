@@ -139,7 +139,7 @@ bool TestValidJS2In2Case1(
         a_pk_out_bits256,
         hex_value_to_bits64("0000000000000000"),
         rho_out_bits256,
-        trap_r_out_bits384);
+        trap_r_out_bits256);
     bits64 value_pub_out_bits64 = hex_value_to_bits64("1700000000000007");
     std::array<zeth_note, 2> outputs;
     outputs[0] = note_output;

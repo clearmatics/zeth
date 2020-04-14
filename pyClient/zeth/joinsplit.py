@@ -269,7 +269,9 @@ def compute_commitment(zeth_note: ZethNote) -> bytes:
 
     # cm = blake2s(outer_k || zero_pad_64_to_256(value))
     cm = blake2s_compress_pad_right64(outer_k, bytes.fromhex(zeth_note.value))
-    return cm
+
+    cm_field = int.from_bytes(cm, byteorder="big") % constants.ZETH_PRIME
+    return cm_field.to_bytes(int(constants.DIGEST_LENGTH/8), byteorder="big")
 
 
 def compute_nullifier(

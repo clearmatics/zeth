@@ -35,34 +35,33 @@ private:
     // Number of residual bits from packing of hash digests into smaller
     // field elements to which are added the public value of size 64 bits
     const size_t length_bit_residual =
-        2 * ZETH_V_SIZE +
-        digest_len_minus_field_cap * (NumInputs + NumOutputs + 1 + NumInputs);
+        2 * ZETH_V_SIZE + digest_len_minus_field_cap * (1 + 2 * NumInputs);
     // Number of field elements needed to pack this number of bits
     const size_t nb_field_residual =
         libff::div_ceil(length_bit_residual, FieldT::capacity());
 
-    // Multipacking gadgets for the inputs (nullifierS, commitmentS, hsig,
-    // message authentication tags (h_is) and the residual bits (comprising the
+    // Multipacking gadgets for the inputs (nullifierS, hsig, message
+    // authentication tags (h_is) and the residual bits (comprising the
     // previous variables' bits not containable in a single field element as
-    // well as the public values) (the root is a field element) because we pack
-    // the nullifiers (Inputs of JS = NumInputs), the commitments (Output of JS
-    // = NumOutputs) AND the signature hash h_sig (+1) AND the message
-    // authentication tags h_iS (+ NumInputs) AND the residual field elements
+    // well as the public values) (the root and cms are field elements)
+    // because we pack the nullifiers (Inputs of JS = NumInputs),
+    // AND the signature hash h_sig (+1) AND the message authentication tags
+    // h_iS (+ NumInputs) AND the residual field elements
     // which aggregate the extra bits and public values (+1)
     std::array<
         libsnark::pb_variable_array<FieldT>,
-        NumInputs + NumOutputs + 1 + NumInputs + 1>
+        NumInputs + 1 + NumInputs + 1>
         packed_inputs;
     std::array<
         libsnark::pb_variable_array<FieldT>,
-        NumInputs + NumOutputs + 1 + NumInputs + 1>
+        NumInputs + 1 + NumInputs + 1>
         unpacked_inputs;
 
     // We use an array of multipackers here instead of a single packer that
     // packs everything.
     std::array<
         std::shared_ptr<libsnark::multipacking_gadget<FieldT>>,
-        NumInputs + NumOutputs + 1 + NumInputs + 1>
+        NumInputs + 1 + NumInputs + 1>
         packers;
 
     libsnark::pb_variable<FieldT> ZERO;
@@ -74,8 +73,7 @@ private:
     std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumInputs>
         input_nullifiers;
     // List of commitments generated for the new notes
-    std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumOutputs>
-        output_commitments;
+    libsnark::pb_variable_array<FieldT> output_commitments;
     // Public value that is put into the mix
     libsnark::pb_variable_array<FieldT> zk_vpub_in;
     // Value that is taken out of the mix
@@ -159,38 +157,32 @@ public:
             merkle_root->allocate(
                 pb, FMT(this->annotation_prefix, " merkle_root"));
 
-            // We allocate a field element for each of the input nullifiers and
-            // output commitments to pack their first FieldT::capacity() bits
+            output_commitments.allocate(pb, NumOutputs, " output_commitments");
+
+            // We allocate a field element for each of the input nullifiers
+            // to pack their first FieldT::capacity() bits
             for (size_t i = 0; i < NumInputs; i++) {
                 packed_inputs[i].allocate(
                     pb,
                     1,
                     FMT(this->annotation_prefix, " in_nullifier[%zu]", i));
             }
-            for (size_t i = NumInputs; i < NumInputs + NumOutputs; i++) {
-                packed_inputs[i].allocate(
-                    pb,
-                    1,
-                    FMT(this->annotation_prefix, " out_commitment[%zu]", i));
-            }
 
             // We allocate a field element for h_sig to pack its first
             // FieldT::capacity() bits
-            packed_inputs[NumInputs + NumOutputs].allocate(
+            packed_inputs[NumInputs].allocate(
                 pb, 1, FMT(this->annotation_prefix, " h_sig"));
 
             // We allocate a field element for each message authentication tags
             // h_iS to pack their first FieldT::capacity() bits
-            for (size_t i = NumInputs + NumOutputs + 1;
-                 i < NumInputs + NumOutputs + 1 + NumInputs;
-                 i++) {
+            for (size_t i = NumInputs + 1; i < NumInputs + 1 + NumInputs; i++) {
                 packed_inputs[i].allocate(
                     pb, 1, FMT(this->annotation_prefix, " h_i[%zu]", i));
             }
 
             // We allocate as many field elements as needed to pack the public
             // values and the hash digests' residual bits
-            packed_inputs[NumInputs + NumOutputs + 1 + NumInputs].allocate(
+            packed_inputs[NumInputs + 1 + NumInputs].allocate(
                 pb,
                 nb_field_residual,
                 FMT(this->annotation_prefix, " residual_bits"));
@@ -204,8 +196,8 @@ public:
             // and value_pub_out take `nb_field_residual` field element(s) to be
             // represented
             const size_t nb_packed_inputs =
-                NumInputs + NumOutputs + 1 + NumInputs + nb_field_residual;
-            const size_t nb_inputs = 1 + nb_packed_inputs;
+                2 * NumInputs + 1 + nb_field_residual;
+            const size_t nb_inputs = 1 + NumOutputs + nb_packed_inputs;
             pb.set_input_sizes(nb_inputs);
             // ---------------------------------------------------------------
 
@@ -235,13 +227,6 @@ public:
                     pb,
                     HashT::get_digest_len(),
                     FMT(this->annotation_prefix, " rho_is[%zu]", i)));
-                output_commitments[i].reset(
-                    new libsnark::digest_variable<FieldT>(
-                        pb,
-                        HashT::get_digest_len(),
-                        FMT(this->annotation_prefix,
-                            " output_commitments[%zu]",
-                            i)));
             }
 
             // Allocate the zk_vpub_in and zk_vpub_out
@@ -260,27 +245,15 @@ public:
                     input_nullifiers[i]->bits.rend());
             }
 
-            // Initialize the unpacked input corresponding to the output
-            // CommitmentS
-            for (size_t i = NumInputs, j = 0;
-                 i < NumOutputs + NumInputs && j < NumOutputs;
-                 i++, j++) {
-                unpacked_inputs[i].insert(
-                    unpacked_inputs[i].end(),
-                    output_commitments[j]->bits.rbegin() +
-                        digest_len_minus_field_cap,
-                    output_commitments[j]->bits.rend());
-            }
-
             // Initialize the unpacked input corresponding to the h_sig
-            unpacked_inputs[NumOutputs + NumInputs].insert(
-                unpacked_inputs[NumOutputs + NumInputs].end(),
+            unpacked_inputs[NumInputs].insert(
+                unpacked_inputs[NumInputs].end(),
                 h_sig->bits.rbegin() + digest_len_minus_field_cap,
                 h_sig->bits.rend());
 
             // Initialize the unpacked input corresponding to the h_is
-            for (size_t i = NumOutputs + NumInputs + 1, j = 0;
-                 i < NumInputs + NumOutputs + 1 + NumInputs && j < NumInputs;
+            for (size_t i = NumInputs + 1, j = 0;
+                 i < NumInputs + 1 + NumInputs && j < NumInputs;
                  i++, j++) {
                 unpacked_inputs[i].insert(
                     unpacked_inputs[i].end(),
@@ -291,82 +264,54 @@ public:
             // Initialize the unpacked input corresponding to the variables of
             // size different to 253 (FieldT::capacity()) bits (smaller inputs
             // and residual bits). We obtain an unpacked value equal to v_in ||
-            // v_out || h_sig || nf_{1..NumInputs} || cm_{1..NumOutputs} ||
-            // h_i_{1..NumInput}. We fill them here in reverse order because of
-            // the use of .insert() function which adds a variable before a
+            // v_out || h_sig || nf_{1..NumInputs} || h_i_{1..NumInput}.
+            // We fill them here in reverse order because of the use of
+            // the .insert() function which adds a variable before a
             // given position
             {
                 // Filling with the residual bits of the h_is
                 for (size_t i = 0; i < NumInputs; i++) {
-                    unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs]
-                        .insert(
-                            unpacked_inputs
-                                [NumInputs + NumOutputs + 1 + NumInputs]
-                                    .end(),
-                            h_is[NumInputs - i - 1]->bits.rbegin(),
-                            h_is[NumInputs - i - 1]->bits.rbegin() +
-                                digest_len_minus_field_cap);
-                }
-
-                // Filling with the residual bits of the output CommitmentS
-                for (size_t i = 0; i < NumOutputs; i++) {
-                    unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs]
-                        .insert(
-                            unpacked_inputs
-                                [NumInputs + NumOutputs + 1 + NumInputs]
-                                    .end(),
-                            output_commitments[NumOutputs - i - 1]
-                                ->bits.rbegin(),
-                            output_commitments[NumOutputs - i - 1]
-                                    ->bits.rbegin() +
-                                digest_len_minus_field_cap);
+                    unpacked_inputs[NumInputs + 1 + NumInputs].insert(
+                        unpacked_inputs[NumInputs + 1 + NumInputs].end(),
+                        h_is[NumInputs - i - 1]->bits.rbegin(),
+                        h_is[NumInputs - i - 1]->bits.rbegin() +
+                            digest_len_minus_field_cap);
                 }
 
                 // Filling with the residual bits of the input NullifierS
                 for (size_t i = 0; i < NumInputs; i++) {
-                    unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs]
-                        .insert(
-                            unpacked_inputs
-                                [NumInputs + NumOutputs + 1 + NumInputs]
-                                    .end(),
-                            input_nullifiers[NumInputs - i - 1]->bits.rbegin(),
-                            input_nullifiers[NumInputs - i - 1]->bits.rbegin() +
-                                digest_len_minus_field_cap);
+                    unpacked_inputs[NumInputs + 1 + NumInputs].insert(
+                        unpacked_inputs[NumInputs + 1 + NumInputs].end(),
+                        input_nullifiers[NumInputs - i - 1]->bits.rbegin(),
+                        input_nullifiers[NumInputs - i - 1]->bits.rbegin() +
+                            digest_len_minus_field_cap);
                 }
 
                 // Filling with the residual bits of the h_sig
-                unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs].insert(
-                    unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs]
-                        .end(),
+                unpacked_inputs[NumInputs + 1 + NumInputs].insert(
+                    unpacked_inputs[NumInputs + 1 + NumInputs].end(),
                     h_sig->bits.rbegin(),
                     h_sig->bits.rbegin() + digest_len_minus_field_cap);
 
                 // Filling with the vpub_out (public value taken out of the mix)
-                unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs].insert(
-                    unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs]
-                        .end(),
+                unpacked_inputs[NumInputs + 1 + NumInputs].insert(
+                    unpacked_inputs[NumInputs + 1 + NumInputs].end(),
                     zk_vpub_out.rbegin(),
                     zk_vpub_out.rend());
 
                 // Filling with the vpub_in (public value added to the mix)
-                unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs].insert(
-                    unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs]
-                        .end(),
+                unpacked_inputs[NumInputs + 1 + NumInputs].insert(
+                    unpacked_inputs[NumInputs + 1 + NumInputs].end(),
                     zk_vpub_in.rbegin(),
                     zk_vpub_in.rend());
             }
 
             // [SANITY CHECK]
-            // The root is a FieldT, hence is not packed
-            // The size of the packed inputs should be NumInputs + NumOutputs
-            // + 1 + NumInputs + 1 since we are packing all the inputs
-            // nullifiers
-            // + all the output commitments + the h_sig + the h_iS + the
-            // residual bits of the previous variables and of the two public
-            // values v_pub_in and v_pub_out
-            assert(
-                packed_inputs.size() ==
-                NumInputs + NumOutputs + 1 + NumInputs + 1);
+            // The root is a FieldT, hence is not packed, likewise for the cms.
+            // The size of the packed inputs should be 2*NumInputs + 1 + 1
+            // since we are packing all the inputs nullifiers + the h_is +
+            // + the h_sig + the residual bits
+            assert(packed_inputs.size() == NumInputs + 1 + NumInputs + 1);
             assert(nb_packed_inputs == [this]() {
                 size_t sum = 0;
                 for (const auto &i : packed_inputs) {
@@ -378,8 +323,7 @@ public:
 
             // [SANITY CHECK] Total size of unpacked inputs
             size_t total_size_unpacked_inputs = 0;
-            for (size_t i = 0; i < NumInputs + NumOutputs + 1 + NumInputs + 1;
-                 i++) {
+            for (size_t i = 0; i < NumInputs + 1 + NumInputs + 1; i++) {
                 total_size_unpacked_inputs += unpacked_inputs[i].size();
             }
             assert(
@@ -401,31 +345,16 @@ public:
                         i)));
             }
 
-            // 2. Pack the output commitments
-            for (size_t i = NumInputs; i < NumOutputs + NumInputs; i++) {
-                packers[i].reset(new libsnark::multipacking_gadget<FieldT>(
-                    pb,
-                    unpacked_inputs[i],
-                    packed_inputs[i],
-                    FieldT::capacity(),
-                    FMT(this->annotation_prefix,
-                        " packer_output_commitments[%zu]",
-                        i)));
-            }
+            // 2. Pack the h_sig
+            packers[NumInputs].reset(new libsnark::multipacking_gadget<FieldT>(
+                pb,
+                unpacked_inputs[NumInputs],
+                packed_inputs[NumInputs],
+                FieldT::capacity(),
+                FMT(this->annotation_prefix, " packer_h_sig")));
 
-            // 3. Pack the h_sig
-            packers[NumInputs + NumOutputs].reset(
-                new libsnark::multipacking_gadget<FieldT>(
-                    pb,
-                    unpacked_inputs[NumInputs + NumOutputs],
-                    packed_inputs[NumInputs + NumOutputs],
-                    FieldT::capacity(),
-                    FMT(this->annotation_prefix, " packer_h_sig")));
-
-            // 4. Pack the h_iS
-            for (size_t i = NumInputs + NumOutputs + 1;
-                 i < NumInputs + NumOutputs + 1 + NumInputs;
-                 i++) {
+            // 3. Pack the h_iS
+            for (size_t i = NumInputs + 1; i < NumInputs + 1 + NumInputs; i++) {
                 packers[i].reset(new libsnark::multipacking_gadget<FieldT>(
                     pb,
                     unpacked_inputs[i],
@@ -434,12 +363,12 @@ public:
                     FMT(this->annotation_prefix, " packer_h_i[%zu]", i)));
             }
 
-            // 5. Pack the other values and residual bits
-            packers[NumInputs + NumOutputs + 1 + NumInputs].reset(
+            // 4. Pack the other values and residual bits
+            packers[NumInputs + 1 + NumInputs].reset(
                 new libsnark::multipacking_gadget<FieldT>(
                     pb,
-                    unpacked_inputs[NumInputs + NumOutputs + 1 + NumInputs],
-                    packed_inputs[NumInputs + NumOutputs + 1 + NumInputs],
+                    unpacked_inputs[NumInputs + 1 + NumInputs],
+                    packed_inputs[NumInputs + 1 + NumInputs],
                     FieldT::capacity(),
                     FMT(this->annotation_prefix, " packer_residual_bits")));
 
@@ -591,13 +520,13 @@ public:
 
         {
             // Witness total_uint64 bits
-            // We add binary numbers here
-            // see:
+            // We add binary numbers here see:
             // https://stackoverflow.com/questions/13282825/adding-binary-numbers-in-c
+            // To check left_side_acc < 2^64, we set the function's bool to true
             bits64 left_side_acc = vpub_in;
             for (size_t i = 0; i < NumInputs; i++) {
                 left_side_acc = binary_addition<ZETH_V_SIZE>(
-                    left_side_acc, inputs[i].note.value());
+                    left_side_acc, inputs[i].note.value(), true);
             }
 
             zk_total_uint64.fill_with_bits(
@@ -636,13 +565,13 @@ public:
         // Bit-length of the Merkle Root
         acc += FieldT::capacity();
 
-        // Bit-length of the NullifierS
-        for (size_t i = 0; i < NumInputs; i++) {
-            acc += HashT::get_digest_len();
-        }
-
         // Bit-length of the CommitmentS
         for (size_t i = 0; i < NumOutputs; i++) {
+            acc += FieldT::capacity();
+        }
+
+        // Bit-length of the NullifierS
+        for (size_t i = 0; i < NumInputs; i++) {
             acc += HashT::get_digest_len();
         }
 
@@ -666,10 +595,10 @@ public:
     // Computes the total bit-length of the unpacked primary inputs
     static size_t get_unpacked_inputs_bit_size()
     {
-        // The Merkle root is not in the `unpacked_inputs` so we subtract its
-        // bit-length to get the total bit-length of the primary inputs in
-        // `unpacked_inputs`
-        return get_inputs_bit_size() - FieldT::capacity();
+        // The Merkle root and commitments are not in the `unpacked_inputs`
+        // so we subtract their bit-length to get the total bit-length of
+        // the primary inputs in `unpacked_inputs`
+        return get_inputs_bit_size() - (1 + NumOutputs) * FieldT::capacity();
     }
 
     // Computes the number of field elements in the primary inputs
@@ -681,17 +610,16 @@ public:
         // FieldT::capacity())
         nb_elements += 1;
 
+        // Each commitment is represented by 1 field element (bit_length(cm) =
+        // FieldT::capacity())
+        for (size_t i = 0; i < NumOutputs; i++) {
+            nb_elements += 1;
+        }
+
         // Each nullifier is represented by 1 field element and
         // (HashT::get_digest_len() - FieldT::capacity()) bits we aggregate in
         // the residual field element(s) later on (c.f. last incrementation)
         for (size_t i = 0; i < NumInputs; i++) {
-            nb_elements += 1;
-        }
-
-        // Each commitment is represented by 1 field element and
-        // (HashT::get_digest_len() - FieldT::capacity()) bits we aggregate in
-        // the residual field element(s) later on (c.f. last incrementation)
-        for (size_t i = 0; i < NumOutputs; i++) {
             nb_elements += 1;
         }
 
@@ -712,7 +640,7 @@ public:
         nb_elements += libff::div_ceil(
             2 * ZETH_V_SIZE +
                 safe_subtraction(HashT::get_digest_len(), FieldT::capacity()) *
-                    (NumInputs + NumOutputs + 1 + NumInputs),
+                    (1 + 2 * NumInputs),
             FieldT::capacity());
 
         return nb_elements;

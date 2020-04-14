@@ -65,13 +65,7 @@ input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::input_note_gadget(
         pb, TreeDepth, FMT(this->annotation_prefix, " merkle_tree_depth"));
     a_pk.reset(new libsnark::digest_variable<FieldT>(
         pb, HashT::get_digest_len(), FMT(this->annotation_prefix, " a_pk")));
-
-    commitment.reset(new libsnark::digest_variable<FieldT>(
-        pb,
-        HashT::get_digest_len(),
-        FMT(this->annotation_prefix, " commitment")));
-    field_cm.reset(new libsnark::pb_variable<FieldT>);
-    field_cm->allocate(pb, FMT(this->annotation_prefix, " field_cm"));
+    commitment.allocate(pb, FMT(this->annotation_prefix, " commitment"));
 
     libsnark::pb_variable_array<FieldT> *pb_auth_path =
         new libsnark::pb_variable_array<FieldT>();
@@ -117,19 +111,8 @@ input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::input_note_gadget(
     // since it is submitted to boolean constraints
     value_enforce.allocate(pb, FMT(this->annotation_prefix, " value_enforce"));
 
-    // These gadgets make sure that the computed
+    // This gadget makes sure that the computed
     // commitment is in the merkle tree of root rt
-
-    // This gadget cast the input commitment from bits to field element
-    // We reverse the order otherwise the resulting linear combination is built
-    // by interpreting our bit string as little endian.
-    bits_to_field.reset(new libsnark::packing_gadget<FieldT>(
-        pb,
-        libsnark::pb_variable_array<FieldT>(
-            commitment->bits.rbegin(), commitment->bits.rend()),
-        *field_cm,
-        FMT(this->annotation_prefix, " cm_bits_to_field")));
-
     // We finally compute a root from the (field) commitment and the
     // authentication path We furthermore check, depending on value_enforce, if
     // the computed root is equal to the current one
@@ -137,7 +120,7 @@ input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::input_note_gadget(
         pb,
         TreeDepth,
         address_bits_va,
-        *field_cm,
+        commitment,
         rt,
         *auth_path,
         value_enforce, // boolean that is set to ONE if the cm needs to be in
@@ -173,7 +156,6 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
         libsnark::r1cs_constraint<FieldT>(
             packed_addition(this->value), (1 - value_enforce), 0),
         FMT(this->annotation_prefix, " wrap_constraint_mkpath_dummy_inputs"));
-    bits_to_field->generate_r1cs_constraints(true);
     check_membership->generate_r1cs_constraints();
 }
 
@@ -279,7 +261,6 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
     // Set auth_path values
     auth_path->fill_with_field_elements(this->pb, merkle_path);
 
-    bits_to_field->generate_r1cs_witness_from_bits();
     check_membership->generate_r1cs_witness();
 }
 
@@ -289,7 +270,7 @@ output_note_gadget<FieldT, HashT>::output_note_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> &ZERO,
     std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
-    std::shared_ptr<libsnark::digest_variable<FieldT>> commitment,
+    libsnark::pb_variable<FieldT> cm,
     const std::string &annotation_prefix)
     : note_gadget<FieldT>(pb, annotation_prefix)
 {
@@ -298,7 +279,7 @@ output_note_gadget<FieldT, HashT>::output_note_gadget(
 
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_cm.reset(new COMM_cm_gadget<FieldT, HashT>(
-        pb, ZERO, a_pk->bits, rho->bits, this->r, this->value, commitment));
+        pb, ZERO, a_pk->bits, rho->bits, this->r, this->value, cm));
 }
 
 template<typename FieldT, typename HashT>

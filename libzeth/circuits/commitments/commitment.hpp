@@ -60,11 +60,15 @@ private:
     // intermediary results
     std::shared_ptr<libsnark::digest_variable<FieldT>> inner_k;
     std::shared_ptr<libsnark::digest_variable<FieldT>> outer_k;
+    std::shared_ptr<libsnark::digest_variable<FieldT>> final_k;
 
     // Hash gadgets used as inner, outer and final commitments
     std::shared_ptr<COMM_gadget<FieldT, HashT>> inner_com_gadget;
     std::shared_ptr<COMM_gadget<FieldT, HashT>> outer_com_gadget;
     std::shared_ptr<COMM_gadget<FieldT, HashT>> final_com_gadget;
+
+    // Packing gadget to output field element
+    std::shared_ptr<libsnark::packing_gadget<FieldT>> bits_to_field;
 
 public:
     COMM_cm_gadget(
@@ -78,7 +82,7 @@ public:
         libsnark::pb_variable_array<FieldT> &trap_r,
         // ZethNote value 64 bits
         libsnark::pb_variable_array<FieldT> &value_v,
-        std::shared_ptr<libsnark::digest_variable<FieldT>> result,
+        libsnark::pb_variable<FieldT> result,
         const std::string &annotation_prefix = "COMM_cm_gadget");
 
     void generate_r1cs_constraints();

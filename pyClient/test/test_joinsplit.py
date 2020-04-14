@@ -4,6 +4,8 @@
 
 from zeth.joinsplit import compute_commitment
 from api.util_pb2 import ZethNote
+import zeth.constants as constants
+
 from unittest import TestCase
 
 
@@ -19,10 +21,12 @@ class TestJoinsplit(TestCase):
         trap_r = \
             "1e3063320fd43f2d6c456d7f1ee11b7ab486308133e2a5afe916daa4ff5357f6" + \
             "b4c262c9732b6d4d6d10f493a5e77f8c"
-        cm_expect = \
-            "9b8c1cb39ae9da05b9be0d8538ca6ad83181ecbfad95105dd584200414122026"
+        cm_expect = int(
+            "9b8c1cb39ae9da05b9be0d8538ca6ad83181ecbfad95105dd584200414122026",
+            16)
+        cm_expect_field = cm_expect % constants.ZETH_PRIME
 
         note = ZethNote(apk=apk, value=value, rho=rho, trap_r=trap_r)
-        cm = compute_commitment(note)
+        cm = int.from_bytes(compute_commitment(note), byteorder="big")
 
-        self.assertEqual(cm_expect, cm.hex())
+        self.assertEqual(cm_expect_field, cm)
