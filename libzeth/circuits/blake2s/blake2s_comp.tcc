@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUITS_BLAKE2s_COMP_TCC__
-#define __ZETH_CIRCUITS_BLAKE2s_COMP_TCC__
+#ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_TCC__
+#define __ZETH_CIRCUITS_BLAKE2S_COMP_TCC__
 
 namespace libzeth
 {
@@ -197,4 +197,4 @@ libff::bit_vector BLAKE2s_256_comp<FieldT>::get_hash(
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUITS_BLAKE2s_COMP_TCC__
+#endif // __ZETH_CIRCUITS_BLAKE2S_COMP_TCC__
