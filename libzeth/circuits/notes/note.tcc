@@ -22,7 +22,7 @@ note_gadget<FieldT>::note_gadget(
     r.allocate(
         pb,
         ZETH_R_SIZE,
-        FMT(this->annotation_prefix, " r")); // ZETH_R_SIZE = 384
+        FMT(this->annotation_prefix, " r")); // ZETH_R_SIZE = 256
 }
 
 template<typename FieldT> void note_gadget<FieldT>::generate_r1cs_constraints()
@@ -41,7 +41,7 @@ template<typename FieldT> void note_gadget<FieldT>::generate_r1cs_constraints()
 template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_witness(const zeth_note &note)
 {
-    r.fill_with_bits(this->pb, get_vector_from_bits384(note.r));
+    r.fill_with_bits(this->pb, get_vector_from_bits256(note.r));
     value.fill_with_bits(this->pb, get_vector_from_bits64(note.value()));
 }
 
@@ -105,13 +105,13 @@ input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::input_note_gadget(
     // interactions with the mixer (that we know affect the public state and
     // leak data)).
     commit_to_inputs_cm.reset(new COMM_cm_gadget<FieldT, HashT>(
-        pb, ZERO, a_pk->bits, rho, this->r, this->value, commitment));
+        pb, a_pk->bits, rho, this->r, this->value, commitment));
 
     // We do not forget to allocate the `value_enforce` variable
     // since it is submitted to boolean constraints
     value_enforce.allocate(pb, FMT(this->annotation_prefix, " value_enforce"));
 
-    // This gadget makes sure that the computed
+    // Theis gadget makes sure that the computed
     // commitment is in the merkle tree of root rt
     // We finally compute a root from the (field) commitment and the
     // authentication path We furthermore check, depending on value_enforce, if
@@ -152,10 +152,12 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
         this->pb,
         value_enforce,
         FMT(this->annotation_prefix, " value_enforce"));
+
     this->pb.add_r1cs_constraint(
         libsnark::r1cs_constraint<FieldT>(
             packed_addition(this->value), (1 - value_enforce), 0),
         FMT(this->annotation_prefix, " wrap_constraint_mkpath_dummy_inputs"));
+
     check_membership->generate_r1cs_constraints();
 }
 
@@ -268,9 +270,8 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
 template<typename FieldT, typename HashT>
 output_note_gadget<FieldT, HashT>::output_note_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> &ZERO,
     std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
-    libsnark::pb_variable<FieldT> cm,
+    libsnark::pb_variable<FieldT> commitment,
     const std::string &annotation_prefix)
     : note_gadget<FieldT>(pb, annotation_prefix)
 {
@@ -279,7 +280,7 @@ output_note_gadget<FieldT, HashT>::output_note_gadget(
 
     // Commit to the output notes publicly without disclosing them.
     commit_to_outputs_cm.reset(new COMM_cm_gadget<FieldT, HashT>(
-        pb, ZERO, a_pk->bits, rho->bits, this->r, this->value, cm));
+        pb, a_pk->bits, rho->bits, this->r, this->value, commitment));
 }
 
 template<typename FieldT, typename HashT>

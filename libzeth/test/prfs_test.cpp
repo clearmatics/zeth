@@ -16,7 +16,7 @@
 #include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
 
 // Header to use the blake2s gadget
-#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/circuits/blake2s/blake2s.hpp"
 
 // Access the `from_bits` function and other utils
 #include "libzeth/circuits/circuits_utils.hpp"
@@ -32,7 +32,7 @@ typedef libff::default_ec_pp ppT;
 // Should be alt_bn128 in the CMakeLists.txt
 typedef libff::Fr<ppT> FieldT;
 // We use our hash function to do the tests
-typedef BLAKE2s_256_comp<FieldT> HashT;
+typedef BLAKE2s_256<FieldT> HashT;
 
 namespace
 {

@@ -395,7 +395,7 @@ public:
                 pb, ZERO, phi->bits, h_sig->bits, i, rho_is[i]));
 
             output_notes[i].reset(new output_note_gadget<FieldT, HashT>(
-                pb, ZERO, rho_is[i], output_commitments[i]));
+                pb, rho_is[i], output_commitments[i]));
         }
     }
 

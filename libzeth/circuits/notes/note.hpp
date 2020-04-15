@@ -23,13 +23,13 @@ namespace libzeth
 
 // Gadget that makes sure that the note:
 // - Has a value < 2^64
-// - Has a valid r trapdoor which is a 384-bit string
+// - Has a valid r trapdoor which is a 256-bit string
 template<typename FieldT> class note_gadget : public libsnark::gadget<FieldT>
 {
 public:
     // Binary value of the note (64 bits)
     libsnark::pb_variable_array<FieldT> value;
-    // Trapdoor r of the note (384 bits)
+    // Trapdoor r of the note (256 bits)
     libsnark::pb_variable_array<FieldT> r;
 
     note_gadget(
@@ -53,7 +53,7 @@ private:
     libsnark::pb_variable_array<FieldT> rho;
 
     std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> commit_to_inputs_cm;
-    // Note commitment (bits), output of COMM gadget
+    // Note commitment (bits), output of COMMIT gadget
     libsnark::pb_variable<FieldT> commitment;
 
     // Bit that checks whether the commitment (leaf) has to be found in the
@@ -110,9 +110,8 @@ private:
 public:
     output_note_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> &ZERO,
         std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
-        libsnark::pb_variable<FieldT> cm,
+        libsnark::pb_variable<FieldT> commitment,
         const std::string &annotation_prefix = "output_note_gadget");
 
     // Check the booleaness of the a_pk
