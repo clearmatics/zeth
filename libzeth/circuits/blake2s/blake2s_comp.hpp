@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUITS_BLAKE2SC_HPP__
-#define __ZETH_CIRCUITS_BLAKE2SC_HPP__
+#ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
+#define __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
 
 #include "libzeth/circuits/binary_operation.hpp"
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
@@ -123,4 +123,4 @@ public:
 #include "libzeth/circuits/blake2s/blake2s_comp.tcc"
 #include "libzeth/circuits/blake2s/blake2s_comp_setup.tcc"
 
-#endif // __ZETH_CIRCUITS_BLAKE2SC_HPP__
+#endif // __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
