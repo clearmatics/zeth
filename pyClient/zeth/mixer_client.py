@@ -44,32 +44,6 @@ JoinsplitSigKeyPair = signing.SigningKeyPair
 ComputeHSigCB = Callable[[bytes, bytes, JoinsplitSigVerificationKey], bytes]
 
 
-def blake2s_compress(left: bytes, right: bytes) -> bytes:
-    """
-    Execute blake2s as a compression function, ensuring that the input is of
-    the correct length. (The case len(left) != len(right) is supported, but the
-    total input length must be 64 bytes).
-    """
-    assert len(left) + len(right) == 64
-    blake = blake2s()
-    blake.update(left)
-    blake.update(right)
-    return blake.digest()
-
-
-def blake2s_compress_pad_right64(left256: bytes, right64: bytes) -> bytes:
-    """
-    As blake2s_compress, but pad right from 64 bits to 256.
-    """
-    assert len(left256) == 32
-    assert len(right64) == 8
-    blake = blake2s()
-    blake.update(left256)
-    blake.update(constants.COMMITMENT_VALUE_PADDING)
-    blake.update(right64)
-    return blake.digest()
-
-
 class JoinsplitInputNote:
     """
     A ZethNote, along with the nullifier and location in Merkle tree.
@@ -137,17 +111,13 @@ def compute_commitment(zeth_note: ZethNote) -> bytes:
     Used by the recipient of a payment to recompute the commitment and check
     the membership in the tree to confirm the validity of a payment
     """
-    # inner_k = blake2s(a_pk || rho)
-    inner_k = blake2s_compress(
-        bytes.fromhex(zeth_note.apk),
-        bytes.fromhex(zeth_note.rho))
-
-    # outer_k = blake2s(r || [inner_k]_128)
-    inner_k_128 = inner_k[0:16]  # 128 bits = 16 hex chars
-    outer_k = blake2s_compress(bytes.fromhex(zeth_note.trap_r), inner_k_128)
-
-    # cm = blake2s(outer_k || zero_pad_64_to_256(value))
-    cm = blake2s_compress_pad_right64(outer_k, bytes.fromhex(zeth_note.value))
+    # inner_k = blake2s(r || a_pk || rho || v)
+    blake = blake2s()
+    blake.update(bytes.fromhex(zeth_note.trap_r))
+    blake.update(bytes.fromhex(zeth_note.apk))
+    blake.update(bytes.fromhex(zeth_note.rho))
+    blake.update(bytes.fromhex(zeth_note.value))
+    cm = blake.digest()
 
     cm_field = int.from_bytes(cm, byteorder="big") % constants.ZETH_PRIME
     return cm_field.to_bytes(int(constants.DIGEST_LENGTH/8), byteorder="big")
@@ -662,7 +632,7 @@ def trap_r_randomness() -> str:
     """
     Compute randomness "r" as 48 random bytes
     """
-    return bytes(Random.get_random_bytes(48)).hex()
+    return bytes(Random.get_random_bytes(32)).hex()
 
 
 def public_inputs_extract_public_values(

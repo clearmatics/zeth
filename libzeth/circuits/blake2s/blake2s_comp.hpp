@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
-#define __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
+#ifndef __ZETH_CIRCUITS_BLAKE2SC_HPP__
+#define __ZETH_CIRCUITS_BLAKE2SC_HPP__
 
 #include "libzeth/circuits/binary_operation.hpp"
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
@@ -33,10 +33,6 @@ template<typename FieldT>
 class BLAKE2s_256_comp : public libsnark::gadget<FieldT>
 {
 private:
-    // Section 2.1 of https://blake2.net/blake2.pdf specifies that BLAKE2s has
-    // 10 rounds
-    static const int rounds = 10;
-
     // Finalization flags. See Section 2.3 of https://blake2.net/blake2.pdf
     // We do a single call to the compression function: the first block is the
     // last. Thus, f0 is set to xFFFFFFFF
@@ -45,7 +41,7 @@ private:
     // We use the workaround described here
     // https://stackoverflow.com/questions/32912921/whats-wrong-with-this-inline-initialization-of-stdarray
     // to initialize the const std::arrays
-    const std::array<bool, BLAKE2s_word_size> f0 = {{
+    const std::array<bool, BLAKE2s_word_size> flag_to_1 = {{
         1, 1, 1, 1, 1, 1, 1, 1, // FF
         1, 1, 1, 1, 1, 1, 1, 1, // FF
         1, 1, 1, 1, 1, 1, 1, 1, // FF
@@ -60,13 +56,16 @@ private:
         0, 0, 0, 0, 0, 0, 0, 0  // 00
     }};
 
-    // Chaining values
-    std::array<std::array<bool, BLAKE2s_word_size>, 8> h;
+    // Section 2.1 of https://blake2.net/blake2.pdf specifies that BLAKE2s has
+    // 10 rounds
+    static const int rounds = 10;
 
     // Low and High words of the offset
     std::array<std::array<bool, BLAKE2s_word_size>, 2> t;
 
-    std::array<libsnark::pb_variable_array<FieldT>, BLAKE2s_word_number> block;
+    // Chaining values
+    libsnark::digest_variable<FieldT> h;
+    std::array<libsnark::pb_variable_array<FieldT>, 8> h_array;
     std::array<
         std::array<libsnark::pb_variable_array<FieldT>, BLAKE2s_word_number>,
         rounds + 1>
@@ -75,31 +74,37 @@ private:
         std::array<libsnark::pb_variable_array<FieldT>, BLAKE2s_word_number>,
         rounds>
         v_temp;
-    std::array<libsnark::pb_variable_array<FieldT>, 8> output_bytes;
 
     libsnark::block_variable<FieldT> input_block;
-    libsnark::digest_variable<FieldT> output;
+    std::array<libsnark::pb_variable_array<FieldT>, BLAKE2s_word_number> block;
+
+    std::array<libsnark::pb_variable_array<FieldT>, 8> output_bytes;
+    std::array<libsnark::pb_variable_array<FieldT>, 8> out_temp;
 
     // Array of mixing functions G used in each rounds in the compression
     // function
     std::array<std::vector<g_primitive<FieldT>>, rounds> g_arrays;
-    std::vector<xor_constant_gadget<FieldT>> xor_vector;
+    std::vector<xor_gadget<FieldT>> xor_vector;
 
 public:
-    std::array<std::array<bool, BLAKE2s_word_size>, 8> IV;
-    std::array<std::array<uint8_t, 16>, 10> sigma;
+    libsnark::digest_variable<FieldT> output;
 
     BLAKE2s_256_comp(
         libsnark::protoboard<FieldT> &pb,
+        const libsnark::digest_variable<FieldT> &h,
         const libsnark::block_variable<FieldT> &input_block,
         const libsnark::digest_variable<FieldT> &output,
-        const std::string &annotation_prefix = "blake2s_compression_gadget");
+        const std::string &annotation_prefix = "BLAKE2sCompression_gadget");
 
     // //!\\ Beware we do not check the booleaness of the input block
     // Unused ensure_output_bitness
     // This gadget ensures automatically the booleaness of the digest output
     void generate_r1cs_constraints(const bool ensure_output_bitness = true);
-    void generate_r1cs_witness();
+
+    // We set the flags' and counters' default value for one compression
+    // function with full block length input
+    void generate_r1cs_witness(
+        size_t len_byte_total = 32, bool is_last_block = true);
 
     static size_t get_block_len();
     static size_t get_digest_len();
@@ -108,10 +113,9 @@ public:
     static size_t expected_constraints(const bool ensure_output_bitness);
 
     // Helper functions to initialize the compression function parameters
-    void setup_constants();
     void setup_h();
-    void setup_counter(size_t len_input_block);
-    void setup_v();
+    void setup_counter(size_t len_byte_total);
+    void setup_v(bool is_last_block);
     void setup_mixing_gadgets();
 };
 
@@ -119,4 +123,4 @@ public:
 #include "libzeth/circuits/blake2s/blake2s_comp.tcc"
 #include "libzeth/circuits/blake2s/blake2s_comp_setup.tcc"
 
-#endif // __ZETH_CIRCUITS_BLAKE2S_COMP_HPP__
+#endif // __ZETH_CIRCUITS_BLAKE2SC_HPP__

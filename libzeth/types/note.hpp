@@ -38,11 +38,11 @@ class zeth_note : public base_note
 public:
     bits256 a_pk; // 256-bit vector
     bits256 rho;  // 256-bit vector
-    bits384 r;    // 384-bit random vector
+    bits256 r;    // 384-bit random vector
     // bits256 cm; // 256-bit vector
 
     zeth_note(
-        bits256 a_pk, bits64 value, bits256 rho, bits384 r /*, bits256 cm*/)
+        bits256 a_pk, bits64 value, bits256 rho, bits256 r /*, bits256 cm*/)
         : base_note(value), a_pk(a_pk), rho(rho), r(r) /*, cm(cm)*/
     {
     }

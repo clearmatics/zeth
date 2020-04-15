@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
 #include "libzeth/snarks_alias.hpp"
 
@@ -162,7 +162,7 @@ TEST(TestBlake2sComp, TestTrue)
     pb.val(ZERO) = FieldT::zero();
 
     // b"hello world" in big endian
-    libsnark::pb_variable_array<FieldT> pb_va_input = from_bits(
+    libsnark::pb_variable_array<FieldT> pb_var_input = from_bits(
         {
             0, 1, 1, 0, 1, 0, 0, 0, // 68
             0, 1, 1, 0, 0, 1, 0, 1, // 65
@@ -175,17 +175,42 @@ TEST(TestBlake2sComp, TestTrue)
             0, 1, 1, 1, 0, 0, 1, 0, // 72
             0, 1, 1, 0, 1, 1, 0, 0, // 6C
             0, 1, 1, 0, 0, 1, 0, 0, // 64
+            0, 0, 0, 0, 0, 0, 0, 0, // padding
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         },
         ZERO);
 
     libsnark::block_variable<FieldT> input(
-        pb, {pb_va_input}, "blake2s_block_input");
+        pb, {pb_var_input}, "blake2s_block_input");
+
+    // default chaining value
+    libsnark::pb_variable_array<FieldT> pb_var_h = from_bits(
+        {0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0,
+         0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1,
+         1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0,
+         0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0,
+         1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1,
+         0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0,
+         0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1,
+         0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0,
+         0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1,
+         1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+         1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1},
+        ZERO);
+    libsnark::digest_variable<FieldT> h(
+        pb, BLAKE2s_digest_size, pb_var_h, ZERO, "blake2s_h");
 
     libsnark::digest_variable<FieldT> output(pb, BLAKE2s_digest_size, "output");
 
-    BLAKE2s_256_comp<FieldT> blake2s_comp_gadget(pb, input, output);
-    blake2s_comp_gadget.generate_r1cs_constraints();
-    blake2s_comp_gadget.generate_r1cs_witness();
+    BLAKE2s_256_comp<FieldT> BLAKE2sC_gadget(pb, h, input, output);
+    BLAKE2sC_gadget.generate_r1cs_constraints();
+    BLAKE2sC_gadget.generate_r1cs_witness(11);
 
     // blake2s(b"hello world")
     libsnark::pb_variable_array<FieldT> expected = from_bits(
@@ -226,6 +251,243 @@ TEST(TestBlake2sComp, TestTrue)
         ZERO);
 
     ASSERT_EQ(expected.get_bits(pb), output.bits.get_bits(pb));
+}
+
+// The test correponds to blake2s(b"hello world")
+// The test vectors were computed with hashlib's blake2s function
+TEST(TestBlake2s, TestTrue)
+{
+    libsnark::protoboard<FieldT> pb;
+
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb, "zero");
+    pb.val(ZERO) = FieldT::zero();
+
+    // b"hello world" in big endian
+    libsnark::pb_variable_array<FieldT> pb_var_input = from_bits(
+        {
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 0, 1, 1, 0, 0, // 6C
+            0, 1, 1, 0, 1, 1, 0, 0, // 6C
+            0, 1, 1, 0, 1, 1, 1, 1, // 6F
+            0, 0, 1, 0, 0, 0, 0, 0, // 20
+            0, 1, 1, 1, 0, 1, 1, 1, // 77
+            0, 1, 1, 0, 1, 1, 1, 1, // 6F
+            0, 1, 1, 1, 0, 0, 1, 0, // 72
+            0, 1, 1, 0, 1, 1, 0, 0, // 6C
+            0, 1, 1, 0, 0, 1, 0, 0  // 64
+        },
+        ZERO);
+
+    libsnark::block_variable<FieldT> input(
+        pb, {pb_var_input}, "blake2s_block_input");
+
+    libsnark::digest_variable<FieldT> output(pb, BLAKE2s_digest_size, "output");
+
+    BLAKE2s_256<FieldT> blake2s_gadget(pb, input, output);
+    blake2s_gadget.generate_r1cs_constraints();
+    blake2s_gadget.generate_r1cs_witness();
+
+    // blake2s(b"hello world")
+    libsnark::pb_variable_array<FieldT> expected = from_bits(
+        {
+            1, 0, 0, 1, 1, 0, 1, 0, // 9A
+            1, 1, 1, 0, 1, 1, 0, 0, // EC
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 0, 0, 0, 0, 1, 1, 0, // 06
+            0, 1, 1, 1, 1, 0, 0, 1, // 79
+            0, 1, 0, 0, 0, 1, 0, 1, // 45
+            0, 1, 1, 0, 0, 0, 0, 1, // 61
+            0, 0, 0, 1, 0, 0, 0, 0, // 10
+            0, 1, 1, 1, 1, 1, 1, 0, // 7E
+            0, 1, 0, 1, 1, 0, 0, 1, // 59
+            0, 1, 0, 0, 1, 0, 1, 1, // 4B
+            0, 0, 0, 1, 1, 1, 1, 1, // 1F
+            0, 1, 1, 0, 1, 0, 1, 0, // 6A
+            1, 0, 0, 0, 1, 0, 1, 0, // 8A
+            0, 1, 1, 0, 1, 0, 1, 1, // 6B
+            0, 0, 0, 0, 1, 1, 0, 0, // 0C
+            1, 0, 0, 1, 0, 0, 1, 0, // 92
+            1, 0, 1, 0, 0, 0, 0, 0, // A0
+            1, 1, 0, 0, 1, 0, 1, 1, // CB
+            1, 0, 1, 0, 1, 0, 0, 1, // A9
+            1, 0, 1, 0, 1, 1, 0, 0, // AC
+            1, 1, 1, 1, 0, 1, 0, 1, // F5
+            1, 1, 1, 0, 0, 1, 0, 1, // E5
+            1, 1, 1, 0, 1, 0, 0, 1, // E9
+            0, 0, 1, 1, 1, 1, 0, 0, // 3C
+            1, 1, 0, 0, 1, 0, 1, 0, // CA
+            0, 0, 0, 0, 0, 1, 1, 0, // 06
+            1, 1, 1, 1, 0, 1, 1, 1, // F7
+            1, 0, 0, 0, 0, 0, 0, 1, // 81
+            1, 0, 0, 0, 0, 0, 0, 1, // 81
+            0, 0, 1, 1, 1, 0, 1, 1, // 3B
+            0, 0, 0, 0, 1, 0, 1, 1  // 0B
+        },
+        ZERO);
+
+    ASSERT_EQ(expected.get_bits(pb), output.bits.get_bits(pb));
+}
+
+// The test correponds to blake2s(b"hello world")
+// The test vectors were computed with hashlib's blake2s function
+TEST(TestBlake2s, TestTrue2)
+{
+    libsnark::protoboard<FieldT> pb;
+
+    libsnark::pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb, "zero");
+    pb.val(ZERO) = FieldT::zero();
+
+    // b"zeth" in big endian
+    libsnark::pb_variable_array<FieldT> pb_var_input = from_bits(
+        {
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0, // 68
+            0, 1, 1, 1, 1, 0, 1, 0, // 7A
+            0, 1, 1, 0, 0, 1, 0, 1, // 65
+            0, 1, 1, 1, 0, 1, 0, 0, // 74
+            0, 1, 1, 0, 1, 0, 0, 0  // 68
+        },
+        ZERO);
+
+    libsnark::block_variable<FieldT> input(
+        pb, {pb_var_input}, "blake2s_block_input");
+
+    libsnark::digest_variable<FieldT> output(pb, BLAKE2s_digest_size, "output");
+
+    BLAKE2s_256<FieldT> blake2s_gadget(pb, input, output);
+    blake2s_gadget.generate_r1cs_constraints();
+    blake2s_gadget.generate_r1cs_witness();
+
+    // blake2s(b"zeth")
+    bits256 expected = get_bits256_from_vector(hex_digest_to_binary_vector(
+        "b5f199b422df36c99363725d886e64c07ffd8852063adbbfbb86f43716ffab0e"));
+
+    ASSERT_EQ(get_vector_from_bits256(expected), output.bits.get_bits(pb));
 }
 
 } // namespace
