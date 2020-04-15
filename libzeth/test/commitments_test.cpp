@@ -44,16 +44,15 @@ TEST(TestCOMMs, TestCOMMGadget)
     ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
-    bits256 trap_r_bits256 = get_bits256_from_vector(hex_to_binary_vector(
-        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
-    bits64 value_bits64 =
-        hex_value_to_bits64("2F0000000000000F"));
-    bits256 rho_bits256 = get_bits256_from_vector(
-        hex_digest_to_binary_vector("FFFF000000000000000000000000000000"
-                                    "000000000000000000000000009009"));
-    bits256 a_pk_bits256 = get_bits256_from_vector(
-        hex_digest_to_binary_vector("5c36fea42b82800d74304aa4f875142b42"
-                                    "1b4f2847e7c41c1077fbbcfd63f886"));
+    bits256 trap_r_bits256 = hex_digest_to_bits256(
+        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
+    bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
+    bits256 rho_bits256 =
+        hex_digest_to_bits256("FFFF000000000000000000000000000000"
+                              "000000000000000000000000009009");
+    bits256 a_pk_bits256 =
+        hex_digest_to_bits256("5c36fea42b82800d74304aa4f875142b42"
+                              "1b4f2847e7c41c1077fbbcfd63f886");
     FieldT cm = FieldT("5198426621382268363215668966254183876371659610992196341"
                        "1853437166529959660400");
 
