@@ -111,7 +111,7 @@ input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::input_note_gadget(
     // since it is submitted to boolean constraints
     value_enforce.allocate(pb, FMT(this->annotation_prefix, " value_enforce"));
 
-    // Theis gadget makes sure that the computed
+    // This gadget makes sure that the computed
     // commitment is in the merkle tree of root rt
     // We finally compute a root from the (field) commitment and the
     // authentication path We furthermore check, depending on value_enforce, if
