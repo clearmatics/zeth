@@ -51,14 +51,13 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
 
     libff::enter_block(
         "Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
-    bits256 trap_r_bits256 = get_bits256_from_vector(hex_to_binary_vector(
-        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
-    bits64 value_bits64 =
-        hex_value_to_bits64("2F0000000000000F"));
+    bits256 trap_r_bits256 = hex_digest_to_bits256(
+        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
+    bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
     bits256 a_sk_bits256 = hex_digest_to_bits256(
-        "FF0000000000000000000000000000000000000000000000000000000000000F"));
+        "FF0000000000000000000000000000000000000000000000000000000000000F");
     bits256 rho_bits256 = hex_digest_to_bits256(
-        "FFFF000000000000000000000000000000000000000000000000000000009009"));
+        "FFFF000000000000000000000000000000000000000000000000000000009009");
 
     // Get a_pk from a_sk (PRF)
     //
@@ -170,14 +169,13 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
 
     libff::enter_block(
         "Initialize the output coins' data (a_pk, cm, rho)", true);
-    bits256 trap_r_bits256 = get_bits256_from_vector(hex_to_binary_vector(
-        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
-    bits64 value_bits64 =
-        hex_value_to_bits64("2F0000000000000F"));
+    bits256 trap_r_bits256 = hex_digest_to_bits256(
+        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
+    bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
     bits256 rho_bits256 = hex_digest_to_bits256(
-        "FFFF000000000000000000000000000000000000000000000000000000009009"));
+        "FFFF000000000000000000000000000000000000000000000000000000009009");
     bits256 a_pk_bits256 = hex_digest_to_bits256(
-        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b"));
+        "6461f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
 
     // Get the coin's commitment (COMM)
     //

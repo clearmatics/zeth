@@ -485,7 +485,7 @@ TEST(TestBlake2s, TestTrue2)
 
     // blake2s(b"zeth")
     bits256 expected = hex_digest_to_bits256(
-        "b5f199b422df36c99363725d886e64c07ffd8852063adbbfbb86f43716ffab0e"));
+        "b5f199b422df36c99363725d886e64c07ffd8852063adbbfbb86f43716ffab0e");
 
     ASSERT_EQ(get_vector_from_bits256(expected), output.bits.get_bits(pb));
 }
