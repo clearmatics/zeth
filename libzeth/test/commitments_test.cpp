@@ -47,7 +47,7 @@ TEST(TestCOMMs, TestCOMMGadget)
     bits256 trap_r_bits256 = get_bits256_from_vector(hex_to_binary_vector(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF"));
     bits64 value_bits64 =
-        get_bits64_from_vector(hex_to_binary_vector("2F0000000000000F"));
+        hex_value_to_bits64("2F0000000000000F"));
     bits256 rho_bits256 = get_bits256_from_vector(
         hex_digest_to_binary_vector("FFFF000000000000000000000000000000"
                                     "000000000000000000000000009009"));
