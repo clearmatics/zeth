@@ -5,10 +5,14 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-import zeth.joinsplit as joinsplit
+from zeth.zeth_address import ZethAddressPriv
+from zeth.mixer_client import zeth_note_to_json_dict, zeth_note_from_json_dict, \
+    receive_note, compute_nullifier, compute_commitment
+from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import MixOutputEvents
 from zeth.encryption import EncryptionPublicKey
-from zeth.utils import EtherValue, short_commitment
+from zeth.merkle_tree import PersistentMerkleTree
+from zeth.utils import EtherValue, short_commitment, from_zeth_units
 from api.util_pb2 import ZethNote
 from os.path import join, basename, exists
 from os import makedirs
@@ -16,11 +20,13 @@ from shutil import move
 from typing import Dict, List, Tuple, Optional, Iterator, Any, cast
 import glob
 import json
+import math
 
 
 # pylint: disable=too-many-instance-attributes
 
 SPENT_SUBDIRECTORY: str = "spent"
+MERKLE_TREE_FILE: str = "merkle-tree.dat"
 
 # Map nullifier to short commitment string identifying the commitment.
 NullifierMap = Dict[str, str]
@@ -44,7 +50,7 @@ class ZethNoteDescription:
 
     def to_json(self) -> str:
         json_dict = {
-            "note": joinsplit.zeth_note_to_json_dict(self.note),
+            "note": zeth_note_to_json_dict(self.note),
             "address": str(self.address),
             "commitment": self.commitment.hex(),
         }
@@ -54,7 +60,7 @@ class ZethNoteDescription:
     def from_json(json_str: str) -> ZethNoteDescription:
         json_dict = json.loads(json_str)
         return ZethNoteDescription(
-            note=joinsplit.zeth_note_from_json_dict(json_dict["note"]),
+            note=zeth_note_from_json_dict(json_dict["note"]),
             address=int(json_dict["address"]),
             commitment=bytes.fromhex(json_dict["commitment"]))
 
@@ -117,7 +123,7 @@ class Wallet:
             mixer_instance: Any,
             username: str,
             wallet_dir: str,
-            secret_address: joinsplit.ZethAddressPriv):
+            secret_address: ZethAddressPriv):
         # k_sk_receiver: EncryptionSecretKey):
         assert "_" not in username
         self.mixer_instance = mixer_instance
@@ -128,6 +134,34 @@ class Wallet:
         self.state_file = join(wallet_dir, f"state_{username}")
         self.state = _load_state_or_default(self.state_file)
         _ensure_dir(join(self.wallet_dir, SPENT_SUBDIRECTORY))
+        self.merkle_tree = PersistentMerkleTree.open(
+            join(wallet_dir, MERKLE_TREE_FILE),
+            int(math.pow(2, ZETH_MERKLE_TREE_DEPTH)))
+        self.merkle_tree_changed = False
+        self.next_addr = self.merkle_tree.get_num_entries()
+
+    def receive_note(
+            self,
+            comm_addr: int,
+            out_ev: MixOutputEvents,
+            k_pk_sender: EncryptionPublicKey) -> Optional[ZethNoteDescription]:
+        # Check this output event to see if it belongs to this wallet.
+        our_note = receive_note(out_ev, k_pk_sender, self.k_sk_receiver)
+        if our_note is None:
+            return None
+
+        (commit, note) = our_note
+        if not _check_note(commit, note):
+            return None
+
+        note_desc = ZethNoteDescription(note, comm_addr, commit)
+        self._write_note(note_desc)
+
+        # Add the nullifier to the map in the state file
+        nullifier = compute_nullifier(note_desc.note, self.a_sk)
+        self.state.nullifier_map[nullifier.hex()] = \
+            short_commitment(commit)
+        return note_desc
 
     def receive_notes(
             self,
@@ -138,18 +172,20 @@ class Wallet:
         the database.
         """
         new_notes = []
-        addr_commit_note_iter = joinsplit.receive_notes(
-            output_events, k_pk_sender, self.k_sk_receiver)
-        for addr, commit, note in addr_commit_note_iter:
-            if _check_note(commit, note):
-                note_desc = ZethNoteDescription(note, addr, commit)
-                self._write_note(note_desc)
+
+        self.merkle_tree_changed = len(output_events) != 0
+        for out_ev in output_events:
+            print(
+                f"wallet.receive_notes: idx:{self.next_addr}, " +
+                f"comm:{out_ev.commitment[:8].hex()}")
+
+            # All commitments must be added to the tree in order.
+            self.merkle_tree.insert(out_ev.commitment)
+            note_desc = self.receive_note(self.next_addr, out_ev, k_pk_sender)
+            if note_desc is not None:
                 new_notes.append(note_desc)
 
-                # Add the nullifier to the map in the state file
-                nullifier = joinsplit.compute_nullifier(note_desc.note, self.a_sk)
-                self.state.nullifier_map[nullifier.hex()] = \
-                    short_commitment(commit)
+            self.next_addr = self.next_addr + 1
 
         # Record full set of notes seen to keep an estimate of the total in the
         # mixer.
@@ -191,6 +227,7 @@ class Wallet:
     def update_and_save_state(self, next_block: int) -> None:
         self.state.next_block = next_block
         _save_state(self.state_file, self.state)
+        self._save_merkle_tree_if_changed()
 
     def find_note(self, note_id: str) -> ZethNoteDescription:
         note_file = self._find_note_file(note_id)
@@ -198,6 +235,12 @@ class Wallet:
             raise Exception(f"no note with id {note_id}")
         with open(note_file, "r") as note_f:
             return ZethNoteDescription.from_json(note_f.read())
+
+    def _save_merkle_tree_if_changed(self) -> None:
+        if self.merkle_tree_changed:
+            self.merkle_tree_changed = False
+            self.merkle_tree.recompute_root()
+            self.merkle_tree.save()
 
     def _write_note(self, note_desc: ZethNoteDescription) -> None:
         """
@@ -221,8 +264,7 @@ class Wallet:
         del self.state.nullifier_map[nullifier_hex]
 
     def _note_basename(self, note_desc: ZethNoteDescription) -> str:
-        value_eth = joinsplit.from_zeth_units(
-            int(note_desc.note.value, 16)).ether()
+        value_eth = from_zeth_units(int(note_desc.note.value, 16)).ether()
         cm_str = short_commitment(note_desc.commitment)
         return "note_%s_%04d_%s_%s" % (
             self.username, note_desc.address, cm_str, value_eth)
@@ -271,7 +313,7 @@ def _check_note(commit: bytes, note: ZethNote) -> bool:
     Recalculate the note commitment and check that it matches `commit`, the
     value emitted by the contract.
     """
-    cm = joinsplit.compute_commitment(note)
+    cm = compute_commitment(note)
     if commit != cm:
         print(f"WARN: bad commitment commit={commit.hex()}, cm={cm.hex()}")
         return False

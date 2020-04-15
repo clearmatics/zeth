@@ -16,8 +16,6 @@ import os
 from os.path import join, dirname, normpath
 # Import Pynacl required modules
 import eth_abi
-import nacl.utils  # type: ignore
-from nacl.public import PrivateKey, PublicKey, Box  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
 from typing import List, Tuple, Union, Any, cast
@@ -55,6 +53,9 @@ class EtherValue:
     def __add__(self, other: EtherValue) -> EtherValue:
         return EtherValue(self.wei + other.wei, 'wei')
 
+    def __sub__(self, other: EtherValue) -> EtherValue:
+        return EtherValue(self.wei - other.wei, 'wei')
+
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, EtherValue):
             return False
@@ -62,6 +63,21 @@ class EtherValue:
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
+
+    def __lt__(self, other: EtherValue) -> bool:
+        return self.wei < other.wei
+
+    def __le__(self, other: EtherValue) -> bool:
+        return self.wei <= other.wei
+
+    def __gt__(self, other: EtherValue) -> bool:
+        return self.wei > other.wei
+
+    def __ge__(self, other: EtherValue) -> bool:
+        return self.wei >= other.wei
+
+    def __bool__(self) -> bool:
+        return int(self.wei) != 0
 
     def ether(self) -> str:
         return str(Web3.fromWei(self.wei, 'ether'))
@@ -81,15 +97,21 @@ def encode_abi(type_names: List[str], data: List[bytes]) -> bytes:
     return eth_abi.encode_abi(type_names, data)  # type: ignore
 
 
-def encode_eth_address(eth_addr: str) -> bytes:
+def eth_address_to_bytes(eth_addr: str) -> bytes:
     """
     Binary encoding of ethereum address to 32 bytes
     """
     # Strip the leading '0x' and hex-decode.
+    assert eth_addr.startswith("0x")
     return bytes.fromhex(hex_extend_32bytes(eth_addr[2:]))
 
 
-def encode_g1_to_bytes(group_el: G1) -> bytes:
+def eth_uint256_to_int(eth_uint256: str) -> int:
+    assert isinstance(eth_uint256, str)
+    return int.from_bytes(eth_address_to_bytes(eth_uint256), byteorder='big')
+
+
+def g1_to_bytes(group_el: G1) -> bytes:
     """
     Encode a group element into a byte string
     We assume here the group prime $p$ is written in less than 256 bits
@@ -100,8 +122,12 @@ def encode_g1_to_bytes(group_el: G1) -> bytes:
         int(group_el[1]).to_bytes(32, byteorder='big')
 
 
+def int64_to_bytes(number: int) -> bytes:
+    return number.to_bytes(8, 'big')
+
+
 def int64_to_hex(number: int) -> str:
-    return '{:016x}'.format(number)
+    return int64_to_bytes(number).hex()
 
 
 def hex_digest_to_binary_string(digest: str) -> str:
@@ -139,62 +165,18 @@ def hex_extend_32bytes(element: str) -> str:
     return extend_32bytes(bytes.fromhex(res)).hex()
 
 
-def get_private_key_from_bytes(sk_bytes: bytes) -> PrivateKey:
+def to_zeth_units(value: EtherValue) -> int:
     """
-    Gets PrivateKey object from raw representation
-    (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PrivateKey)
+    Convert a quantity of ether / token to Zeth units
     """
-    return PrivateKey(sk_bytes, encoder=nacl.encoding.RawEncoder)
+    return int(value.wei / constants.ZETH_PUBLIC_UNIT_VALUE)
 
 
-def get_public_key_from_bytes(pk_bytes: bytes) -> PublicKey:
+def from_zeth_units(zeth_units: int) -> EtherValue:
     """
-    Gets PublicKey object from raw representation
-    (see: https://pynacl.readthedocs.io/en/stable/public/#nacl.public.PublicKey)
+    Convert a quantity of ether / token to Zeth units
     """
-    return PublicKey(pk_bytes, encoder=nacl.encoding.RawEncoder)
-
-
-def encrypt(message: str, pk_receiver: PublicKey, sk_sender: PrivateKey) -> bytes:
-    """
-    Encrypts a string message by using valid ec25519 public key and
-    private key objects. See: https://pynacl.readthedocs.io/en/stable/public/
-    """
-    # Init encryption box instance
-    encryption_box = Box(sk_sender, pk_receiver)
-
-    # Encode str message to bytes
-    message_bytes = message.encode('utf-8')
-
-    # Encrypt the message. The nonce is chosen randomly.
-    encrypted = encryption_box.encrypt(
-        message_bytes,
-        encoder=nacl.encoding.RawEncoder)
-
-    # Need to cast to the parent class Bytes of nacl.utils.EncryptedMessage
-    # to make it accepted from `Mix` Solidity function
-    return bytes(encrypted)
-
-
-def decrypt(
-        encrypted_message: bytes,
-        pk_sender: PublicKey,
-        sk_receiver: PrivateKey) -> str:
-    """
-    Decrypts a string message by using valid ec25519 public key and private key
-    objects.  See: https://pynacl.readthedocs.io/en/stable/public/
-    """
-    assert(isinstance(pk_sender, PublicKey)), \
-        f"PublicKey: {pk_sender} ({type(pk_sender)})"
-    assert(isinstance(sk_receiver, PrivateKey)), \
-        f"PrivateKey: {sk_receiver} ({type(sk_receiver)})"
-
-    # Init encryption box instance
-    decryption_box = Box(sk_receiver, pk_sender)
-
-    # Check integrity of the ciphertext and decrypt it
-    message = decryption_box.decrypt(encrypted_message)
-    return str(message, encoding='utf-8')
+    return EtherValue(zeth_units * constants.ZETH_PUBLIC_UNIT_VALUE, "wei")
 
 
 def parse_zksnark_arg() -> str:
@@ -247,7 +229,7 @@ def string_list_flatten(
     return cast(List[str], strs_list)
 
 
-def encode_message_to_bytes(message_list: Any) -> bytes:
+def message_to_bytes(message_list: Any) -> bytes:
     # message_list: Union[List[str], List[Union[int, str, List[str]]]]) -> bytes:
     """
     Encode a list of variables, or list of lists of variables into a byte

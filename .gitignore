@@ -1,8 +1,8 @@
 # Ignore the build repo
 /build/
 
-# Ignore the coins we created
-/coinstore/
+# Ignore the notes we created
+/notestore/
 
 # Ignore the output of the trusted setup (ie: Proving and Verifying key)
 /trusted_setup/

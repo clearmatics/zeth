@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.joinsplit import generate_zeth_address
+from zeth.zeth_address import generate_zeth_address
 from commands.utils import get_zeth_address_file, pub_address_file, \
     write_zeth_address_secret, write_zeth_address_public
 from click import command, pass_context, ClickException, Context
@@ -15,7 +15,8 @@ def gen_address(ctx: Context) -> None:
     """
     Generate a new Zeth secret key and public address
     """
-    addr_file = get_zeth_address_file(ctx)
+    client_ctx = ctx.obj
+    addr_file = get_zeth_address_file(client_ctx)
     if exists(addr_file):
         raise ClickException(f"ZethAddress file {addr_file} exists")
 

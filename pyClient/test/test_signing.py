@@ -12,15 +12,16 @@ from os import urandom
 
 class TestSigning(TestCase):
 
+    keypair = signing.gen_signing_keypair()
+
     def test_sign_verify(self) -> None:
         """
         Test the correct signing-verification flow:
         verify(vk, sign(sk,m), m) = 1
         """
         m = sha256("clearmatics".encode()).digest()
-        keypair = signing.gen_signing_keypair()
-        sigma = signing.sign(keypair.sk, m)
-        self.assertTrue(signing.verify(keypair.vk, m, sigma))
+        sigma = signing.sign(self.keypair.sk, m)
+        self.assertTrue(signing.verify(self.keypair.vk, m, sigma))
 
         keypair2 = signing.gen_signing_keypair()
         self.assertFalse(signing.verify(keypair2.vk, m, sigma))
@@ -31,9 +32,18 @@ class TestSigning(TestCase):
         verify(vk, sign(sk,m), m) = 1
         """
         m = urandom(32)
-        keypair = signing.gen_signing_keypair()
-        sigma = signing.sign(keypair.sk, m)
-        self.assertTrue(signing.verify(keypair.vk, m, sigma))
+        sigma = signing.sign(self.keypair.sk, m)
+        self.assertTrue(signing.verify(self.keypair.vk, m, sigma))
 
         keypair2 = signing.gen_signing_keypair()
         self.assertFalse(signing.verify(keypair2.vk, m, sigma))
+
+    def test_signature_encoding(self) -> None:
+        """
+        Test encoding and decoding of signatures.
+        """
+        m = sha256("clearmatics".encode()).digest()
+        sig = signing.sign(self.keypair.sk, m)
+        sig_encoded = signing.encode_signature_to_bytes(sig)
+        sig_decoded = signing.decode_signature_from_bytes(sig_encoded)
+        self.assertEqual(sig, sig_decoded)

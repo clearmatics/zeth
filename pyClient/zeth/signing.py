@@ -15,8 +15,9 @@ from math import ceil
 from os import urandom
 from hashlib import sha256
 from py_ecc import bn128 as ec
-from zeth.utils import FQ, G1, encode_g1_to_bytes
+from zeth.utils import FQ, G1, g1_to_bytes
 from zeth.constants import ZETH_PRIME
+from typing import List
 
 
 class SigningVerificationKey:
@@ -47,6 +48,9 @@ class SigningKeyPair:
         self.vk = SigningVerificationKey(x_g1, y_g1)
 
 
+Signature = int
+
+
 def gen_signing_keypair() -> SigningKeyPair:
     """
     Return a one-time signature key-pair
@@ -68,14 +72,22 @@ def encode_vk_to_bytes(vk: SigningVerificationKey) -> bytes:
     We assume here the group prime $p$ is written in less than 256 bits
     to conform with Ethereum bytes32 type
     """
-    vk_byte = encode_g1_to_bytes(vk.ppk)
-    vk_byte += encode_g1_to_bytes(vk.spk)
+    vk_byte = g1_to_bytes(vk.ppk)
+    vk_byte += g1_to_bytes(vk.spk)
     return vk_byte
+
+
+def encode_signature_to_bytes(signature: Signature) -> bytes:
+    return signature.to_bytes(32, byteorder='big')
+
+
+def decode_signature_from_bytes(sig_bytes: bytes) -> Signature:
+    return int.from_bytes(sig_bytes, byteorder='big')
 
 
 def sign(
         sk: SigningSecretKey,
-        m: bytes) -> int:
+        m: bytes) -> Signature:
     """
     Generate a Schnorr signature on a message m.
     We assume here that the message fits in an Ethereum word (i.e. bit_len(m)
@@ -84,7 +96,7 @@ def sign(
     """
 
     # Encode and hash the verifying key and input hashes
-    challenge_to_hash = encode_g1_to_bytes(sk.ssk[1]) + m
+    challenge_to_hash = g1_to_bytes(sk.ssk[1]) + m
 
     # Convert the hex digest into a field element
     challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
@@ -106,7 +118,7 @@ def verify(
     less than 256 bits to conform with Ethereum bytes32 type.
     """
     # Encode and hash the verifying key and input hashes
-    challenge_to_hash = encode_g1_to_bytes(vk.spk) + m
+    challenge_to_hash = g1_to_bytes(vk.spk) + m
 
     challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
     challenge = challenge % ZETH_PRIME
@@ -115,3 +127,36 @@ def verify(
     right_part = ec.add(vk.spk, ec.multiply(vk.ppk, FQ(challenge).n))
 
     return ec.eq(left_part, right_part)
+
+
+def verification_key_as_mix_parameter(vk: SigningVerificationKey) -> List[int]:
+    """
+    Transform a verification key to the format required by the mix function.
+    """
+    return [int(vk.ppk[0]), int(vk.ppk[1]), int(vk.spk[0]), int(vk.spk[1])]
+
+
+def verification_key_from_mix_parameter(
+        param: List[int]) -> SigningVerificationKey:
+    """
+    Transform mix function parameter to verification key.
+    """
+    return SigningVerificationKey(
+        (FQ(param[0]), FQ(param[1])),
+        (FQ(param[2]), FQ(param[3])))
+
+
+def signature_as_mix_parameter(signature: Signature) -> int:
+    """
+    Transform a signature to the format required by the mix function.
+    """
+    # This function happens to be the identity but in the general case some
+    # transform will be required.
+    return signature
+
+
+def signature_from_mix_parameter(param: int) -> Signature:
+    """
+    Transform mix function parameters to a signature.
+    """
+    return param

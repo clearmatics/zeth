@@ -4,10 +4,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.constants import JS_INPUTS, JS_OUTPUTS, ZETH_MERKLE_TREE_DEPTH,\
-    PUBLIC_VALUE_LENGTH
-from zeth.joinsplit import ZethClient
-from zeth.zksnark import get_zksnark_provider
+from zeth.constants import JS_INPUTS, JS_OUTPUTS, PUBLIC_VALUE_LENGTH
+from zeth.mixer_client import MixerClient
 from typing import Any
 import test_commands.mock as mock
 
@@ -143,14 +141,8 @@ def main() -> None:
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]
 
-    zksnark = get_zksnark_provider("GROTH16")
-    prover_client = mock.open_test_prover_client()
-    zeth_client = ZethClient.deploy(
-        web3,
-        prover_client,
-        ZETH_MERKLE_TREE_DEPTH,
-        deployer_eth_address,
-        zksnark)
+    zeth_client = MixerClient.deploy(
+        web3, mock.TEST_PROVER_SERVER_ENDPOINT, deployer_eth_address)
 
     mixer_instance = zeth_client.mixer_instance
 

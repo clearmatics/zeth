@@ -4,12 +4,10 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.zksnark import get_zksnark_provider
-from zeth.prover_client import ProverClient
 from commands.constants import \
-    ZKSNARK_DEFAULT, PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
-    ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT, \
-    MERKLE_TREE_FILE_DEFAULT
+    PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
+    ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT
+from commands.utils import ClientConfig
 from commands.zeth_deploy import deploy
 from commands.zeth_gen_address import gen_address
 from commands.zeth_sync import sync
@@ -19,12 +17,12 @@ from commands.zeth_ls_commits import ls_commits
 from commands.zeth_token_approve import token_approve
 from click import group, command, option, pass_context, ClickException, Context
 from click_default_group import DefaultGroup
-from typing import Optional
+from typing import Optional, Any
 
 
 @command()
 @pass_context
-def help(ctx) -> None:
+def help(ctx: Context) -> None:
     """
     Print help and exit
     """
@@ -44,11 +42,6 @@ def help(ctx) -> None:
     default=PROVER_SERVER_ENDPOINT_DEFAULT,
     help=f"Prover server endpoint (default={PROVER_SERVER_ENDPOINT_DEFAULT})")
 @option(
-    "--zksnark",
-    "zksnark_name",
-    default=ZKSNARK_DEFAULT,
-    help="GROTH16 or PGHR13 (default=GROTH16)")
-@option(
     "--instance-file",
     default=INSTANCE_FILE_DEFAULT,
     help=f"Instance file (default={INSTANCE_FILE_DEFAULT})")
@@ -60,30 +53,23 @@ def help(ctx) -> None:
     "--wallet-dir",
     default=WALLET_DIR_DEFAULT,
     help=f"Wallet directory (default={WALLET_DIR_DEFAULT})")
-@option(
-    "--merkle-tree-file",
-    default=MERKLE_TREE_FILE_DEFAULT,
-    help=f"Merkle tree file (default={MERKLE_TREE_FILE_DEFAULT})")
 @pass_context
 def zeth(
         ctx: Context,
         eth_rpc: Optional[str],
         prover_server: str,
-        zksnark_name: str,
         instance_file: str,
         address_file: str,
-        wallet_dir: str,
-        merkle_tree_file: str) -> None:
+        wallet_dir: str) -> None:
     if ctx.invoked_subcommand == "help":
         ctx.invoke(help)
     ctx.ensure_object(dict)
-    ctx.obj["ETH_RPC"] = eth_rpc
-    ctx.obj["PROVER_CLIENT"] = ProverClient(prover_server)
-    ctx.obj["ZKSNARK"] = get_zksnark_provider(zksnark_name)
-    ctx.obj["INSTANCE_FILE"] = instance_file
-    ctx.obj["ADDRESS_FILE"] = address_file
-    ctx.obj["WALLET_DIR"] = wallet_dir
-    ctx.obj["MERKLE_TREE_FILE"] = merkle_tree_file
+    ctx.obj = ClientConfig(
+        eth_rpc_endpoint=eth_rpc,
+        prover_server_endpoint=prover_server,
+        instance_file=instance_file,
+        address_file=address_file,
+        wallet_dir=wallet_dir)
 
 
 zeth.add_command(deploy)

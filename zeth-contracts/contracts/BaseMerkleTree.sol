@@ -46,7 +46,7 @@ contract BaseMerkleTree {
     }
 
     // Appends a commitment to the tree, and returns its address
-    function insert(bytes32 commitment) public returns (uint) {
+    function insert(bytes32 commitment) public {
 
         // If this require fails => the merkle tree is full, we can't append
         // leaves anymore.
@@ -62,6 +62,5 @@ contract BaseMerkleTree {
         ++num_leaves;
         uint256 next_entry_idx = (MAX_NUM_LEAVES - 1) + next_address;
         nodes[next_entry_idx] = commitment;
-        return next_address;
     }
 }

@@ -16,11 +16,12 @@ def ls_notes(ctx: Context, balance: bool, spent: bool) -> None:
     """
     List the set of notes owned by this wallet
     """
-    web3 = open_web3_from_ctx(ctx)
-    mixer_desc = load_mixer_description_from_ctx(ctx)
+    client_ctx = ctx.obj
+    web3 = open_web3_from_ctx(client_ctx)
+    mixer_desc = load_mixer_description_from_ctx(client_ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
-    js_secret = load_zeth_address_secret(ctx)
-    wallet = open_wallet(mixer_instance, js_secret, ctx)
+    js_secret = load_zeth_address_secret(client_ctx)
+    wallet = open_wallet(mixer_instance, js_secret, client_ctx)
 
     total = EtherValue(0)
     for addr, short_commit, value in wallet.note_summaries():

@@ -4,11 +4,11 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.joinsplit import EncryptionKeyPair, ZethAddress
+from zeth.zeth_address import ZethAddress
+from zeth.encryption import EncryptionKeyPair, decode_encryption_secret_key, \
+    decode_encryption_public_key
 from zeth.ownership import gen_ownership_keypair
-from zeth.prover_client import ProverClient
-from zeth.utils import get_contracts_dir, get_private_key_from_bytes, \
-    get_public_key_from_bytes, open_web3
+from zeth.utils import get_contracts_dir, open_web3
 from os.path import join
 from solcx import compile_files  # type: ignore
 from typing import Dict, List, Tuple, Optional, Any
@@ -23,10 +23,6 @@ KeyStore = Dict[str, ZethAddress]
 def open_test_web3() -> Tuple[Any, Any]:
     web3 = open_web3(TEST_WEB3_PROVIDER_ENDPOINT)
     return web3, web3.eth  # pylint: disable=no-member # type: ignore
-
-
-def open_test_prover_client() -> ProverClient:
-    return ProverClient(TEST_PROVER_SERVER_ENDPOINT)
 
 
 def init_test_keystore() -> KeyStore:
@@ -57,20 +53,20 @@ def init_test_keystore() -> KeyStore:
     # Alice credentials in the zeth abstraction
     alice_ownership = gen_ownership_keypair()
     alice_encryption = EncryptionKeyPair(
-        get_private_key_from_bytes(alice_25519_enc_private_key),
-        get_public_key_from_bytes(alice_25519_enc_public_key))
+        decode_encryption_secret_key(alice_25519_enc_private_key),
+        decode_encryption_public_key(alice_25519_enc_public_key))
 
     # Bob credentials in the zeth abstraction
     bob_ownership = gen_ownership_keypair()
     bob_encryption = EncryptionKeyPair(
-        get_private_key_from_bytes(bob_25519_enc_private_key),
-        get_public_key_from_bytes(bob_25519_enc_public_key))
+        decode_encryption_secret_key(bob_25519_enc_private_key),
+        decode_encryption_public_key(bob_25519_enc_public_key))
 
     # Charlie credentials in the zeth abstraction
     charlie_ownership = gen_ownership_keypair()
     charlie_encryption = EncryptionKeyPair(
-        get_private_key_from_bytes(charlie_25519_enc_private_key),
-        get_public_key_from_bytes(charlie_25519_enc_public_key))
+        decode_encryption_secret_key(charlie_25519_enc_private_key),
+        decode_encryption_public_key(charlie_25519_enc_public_key))
 
     return {
         "Alice": ZethAddress.from_key_pairs(

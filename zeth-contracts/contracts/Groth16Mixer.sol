@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
 
 import "./OTSchnorrVerifier.sol";
 import "./BaseMixer.sol";
@@ -77,19 +78,24 @@ contract Groth16Mixer is BaseMixer {
         uint256 sigma,
         uint256[nbInputs] memory input,
         bytes32 pk_sender,
-        bytes memory ciphertext0,
-        bytes memory ciphertext1)
+        bytes[jsOut] memory ciphertexts)
         public payable {
+
         // 1. Check the root and the nullifiers
-        check_mkroot_nullifiers_hsig_append_nullifiers_state(vk, input);
+        bytes32[jsIn] memory nullifiers;
+        check_mkroot_nullifiers_hsig_append_nullifiers_state(
+            vk, input, nullifiers);
 
         // 2.a Verify the signature on the hash of data_to_be_signed
         bytes32 hash_to_be_signed = sha256(
             abi.encodePacked(
                 uint256(msg.sender),
                 pk_sender,
-                ciphertext0,
-                ciphertext1,
+                // Unfortunately, we have to unroll this for now. We could
+                // replace encodePacked with a custom function but this would
+                // increase complexity and possibly gas usage.
+                ciphertexts[0],
+                ciphertexts[1],
                 a,
                 b,
                 c,
@@ -108,18 +114,24 @@ contract Groth16Mixer is BaseMixer {
         );
 
         // 3. Append the commitments to the tree
-        append_commitments_to_state(input);
+        bytes32[jsOut] memory commitments;
+        assemble_commitments_and_append_to_state(input, commitments);
 
         // 4. Get the public values in Wei and modify the state depending on
         // their values
         process_public_values(input);
 
         // 5. Add the new root to the list of existing roots and emit it
-        add_and_emit_merkle_root(recomputeRoot(jsIn));
+        bytes32 new_merkle_root = recomputeRoot(jsOut);
+        add_merkle_root(new_merkle_root);
 
-        // 6. Emit the all the coins' secret data encrypted with the recipients'
-        // respective keys
-        emit_ciphertexts(pk_sender, ciphertext0, ciphertext1);
+        // 6. Emit the all Mix data
+        emit LogMix(
+            new_merkle_root,
+            nullifiers,
+            pk_sender,
+            commitments,
+            ciphertexts);
     }
 
     function verify(uint256[] memory input, Proof memory proof)

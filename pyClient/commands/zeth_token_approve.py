@@ -18,8 +18,9 @@ def token_approve(ctx: Context, tokens: str, eth_addr: str, wait: bool) -> None:
     """
     approve_value = EtherValue(tokens)
     eth_addr = load_eth_address(eth_addr)
-    web3 = open_web3_from_ctx(ctx)
-    mixer_desc = load_mixer_description_from_ctx(ctx)
+    client_ctx = ctx.obj
+    web3 = open_web3_from_ctx(client_ctx)
+    mixer_desc = load_mixer_description_from_ctx(client_ctx)
     if not mixer_desc.token:
         raise ClickException("no token for mixer {mixer_desc.mixer.address}")
 
