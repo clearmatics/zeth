@@ -55,4 +55,4 @@ target_link_libraries(
   protobuf::libprotobuf
 )
 # See: https://foonathan.net/2018/10/cmake-warnings/
-target_compile_options(prover_server PRIVATE -Werror -Wall -Wextra)
+target_compile_options(prover_server PRIVATE -Wall -Wextra)
