@@ -9,7 +9,10 @@ Tests for zeth.contracts module
 from zeth.contracts import MixParameters
 from zeth.encryption import generate_encryption_keypair, encrypt
 from zeth.signing import gen_signing_keypair, sign, encode_vk_to_bytes
+from zeth.constants import NOTE_LENGTH
+from zeth.utils import bits_to_bytes_len
 from unittest import TestCase
+from secrets import token_bytes
 
 
 class TestContracts(TestCase):
@@ -32,9 +35,13 @@ class TestContracts(TestCase):
         sig = sign(sig_keypair.sk, bytes.fromhex("00112233"))
         receiver_enc_keypair = generate_encryption_keypair()
         ciphertexts = [
-            encrypt("asdf".encode(), receiver_enc_keypair.k_pk),
-            encrypt("qwer".encode(), receiver_enc_keypair.k_pk),
-        ]
+            encrypt(token_bytes(
+                bits_to_bytes_len(NOTE_LENGTH)),
+                    receiver_enc_keypair.k_pk),
+            encrypt(token_bytes(
+                bits_to_bytes_len(NOTE_LENGTH)),
+                    receiver_enc_keypair.k_pk)
+            ]
 
         mix_params = MixParameters(ext_proof, sig_vk, sig, ciphertexts)
 

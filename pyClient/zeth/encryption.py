@@ -7,7 +7,8 @@
 from typing import NewType
 
 from zeth.constants import KDF_TAG, EC_PUBLIC_KEY_LENGTH, SYM_KEY_LENGTH,\
-    NOTE_LENGTH, TAG_LENGTH, SYM_NONCE_VALUE, SYM_NONCE_LENGTH
+    NOTE_LENGTH, TAG_LENGTH, SYM_NONCE_VALUE, SYM_NONCE_LENGTH,\
+    ENCRYPTED_NOTE_LENGTH
 from zeth.utils import bits_to_bytes_len
 
 from cryptography.hazmat.primitives.asymmetric.x25519 \
@@ -25,6 +26,7 @@ _SYM_KEY_BYTE_LENGTH = bits_to_bytes_len(SYM_KEY_LENGTH)
 _SYM_NONCE_BYTE_LENGTH = bits_to_bytes_len(SYM_NONCE_LENGTH)
 _NOTE_BYTE_LENGTH = bits_to_bytes_len(NOTE_LENGTH)
 _TAG_BYTE_LENGTH = bits_to_bytes_len(TAG_LENGTH)
+_ENCRYPTED_NOTE_BYTE_LENGTH = bits_to_bytes_len(ENCRYPTED_NOTE_LENGTH)
 
 
 # Represents a secret key for encryption
@@ -137,6 +139,10 @@ def encrypt(message: bytes, pk_receiver: EncryptionPublicKey) -> bytes:
     by using a custom dhaes-based scheme.
     See: https://eprint.iacr.org/1999/007
     """
+    assert \
+        len(message) == _NOTE_BYTE_LENGTH, \
+        "message byte-length must be equal to: "+str(_NOTE_BYTE_LENGTH)
+
     # Generate ephemeral keypair
     eph_keypair = generate_encryption_keypair()
 
@@ -170,9 +176,13 @@ def decrypt(
         encrypted_message: bytes,
         sk_receiver: EncryptionSecretKey) -> bytes:
     """
-    Decrypts a string message by using valid ec25519 public key and private key
+    Decrypts a NOTE_LENGTH-byte message by using valid ec25519 private key
     objects.  See: https://pynacl.readthedocs.io/en/stable/public/
     """
+    assert \
+        len(encrypted_message) == _ENCRYPTED_NOTE_BYTE_LENGTH, \
+        "encrypted_message byte-length must be: "+str(_ENCRYPTED_NOTE_BYTE_LENGTH)
+
     assert(isinstance(sk_receiver, X25519PrivateKey)), \
         f"PrivateKey: {sk_receiver} ({type(sk_receiver)})"
 
