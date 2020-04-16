@@ -18,9 +18,7 @@ class TestZethConstants(TestCase):
     def test_encrypt_decrypt(self) -> None:
         """
         Tests the correct encrypt-decrypt flow: decrypt(encrypt(m)) == m
-        where m is encoded on
-        (APK_LENGTH + NOTE_VALUE_LENGTH + RHO_LENGTH + TRAPR_LENGTH)/BYTE_LEN
-        bytes.
+        where m is encoded on NOTE_LENGTH/BYTE_LEN bytes.
         """
         apk = token_bytes(bits_to_bytes_len(APK_LENGTH))
         value = token_bytes(bits_to_bytes_len(NOTE_VALUE_LENGTH))
