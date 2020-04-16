@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Check Contracts
-      run: scripts/ci contracts_check
+      run: CI_USE_DOCKER=1 scripts/ci contracts_check
 
   check-pyclient:
     runs-on: ubuntu-18.04

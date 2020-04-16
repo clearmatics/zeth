@@ -123,8 +123,9 @@ function ci_setup() {
              || echo
     fi
 
+    # The base docker image we use is Alpine
     if [ "${platform}" == "Linux" ] ; then
-        # The base docker image we use is Alpine
+        apk add --update npm
         apk add \
             py3-virtualenv \
             libffi-dev \
