@@ -237,7 +237,7 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_mixing_gadgets()
     // See: Section 3.2 of https://tools.ietf.org/html/rfc7693
     for (size_t i = 0; i < rounds; i++) {
         // Message word selection permutation for this round
-        std::array<uint, 16> s = sigma[i % rounds];
+        std::array<uint8_t, 16> s = sigma[i % rounds];
 
         g_arrays[i].emplace_back(g_primitive<FieldT>(
             this->pb,
