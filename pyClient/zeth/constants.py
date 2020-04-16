@@ -91,7 +91,7 @@ KDF_TAG: bytes = b'ZethEnc'
 
 # Note constants
 APK_LENGTH: int = 256
-HIDDEN_VALUE_LENGTH: int = 64
+NOTE_VALUE_LENGTH: int = 64
 RHO_LENGTH: int = 256
 TRAPR_LENGTH: int = 384
 NOTE_LENGTH: int = 960

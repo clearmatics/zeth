@@ -9,7 +9,7 @@ from zeth import testing_utils
 from zeth.utils import bits_to_bytes_len
 from unittest import TestCase
 from secrets import token_bytes
-from zeth.constants import APK_LENGTH, HIDDEN_VALUE_LENGTH,\
+from zeth.constants import APK_LENGTH, NOTE_VALUE_LENGTH,\
     RHO_LENGTH, TRAPR_LENGTH
 
 
@@ -18,10 +18,12 @@ class TestZethConstants(TestCase):
     def test_encrypt_decrypt(self) -> None:
         """
         Tests the correct encrypt-decrypt flow: decrypt(encrypt(m)) == m
-        where m is 120 bytes long.
+        where m is encoded on
+        (APK_LENGTH + NOTE_VALUE_LENGTH + RHO_LENGTH + TRAPR_LENGTH)/BYTE_LEN
+        bytes.
         """
         apk = token_bytes(bits_to_bytes_len(APK_LENGTH))
-        value = token_bytes(bits_to_bytes_len(HIDDEN_VALUE_LENGTH))
+        value = token_bytes(bits_to_bytes_len(NOTE_VALUE_LENGTH))
         rho = token_bytes(bits_to_bytes_len(RHO_LENGTH))
         trap_r = token_bytes(bits_to_bytes_len(TRAPR_LENGTH))
         message = (apk + value + rho + trap_r)
