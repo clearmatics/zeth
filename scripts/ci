@@ -124,7 +124,11 @@ function ci_setup() {
     fi
 
     if [ "${platform}" == "Linux" ] ; then
-        sudo apt install -y python3-venv
+        # The base docker image we use is Alpine
+        apk add \
+            py3-virtualenv \
+            libffi-dev \
+            python3-dev
     fi
 }
 
