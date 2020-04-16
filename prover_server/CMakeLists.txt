@@ -54,3 +54,5 @@ target_link_libraries(
   gRPC::grpc++_reflection
   protobuf::libprotobuf
 )
+# See: https://foonathan.net/2018/10/cmake-warnings/
+target_compile_options(prover_server PRIVATE -Werror -Wall -Wextra)

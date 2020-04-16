@@ -66,8 +66,8 @@ function command_tests() {
 }
 
 function build() {
-    # Enable warnings-as-errors
-    cxx_flags="-Werror"
+    # Additional compilation flags
+    cxx_flags=""
 
     if [ "${platform}" == "Darwin" ] ; then
         openssl_path=$(brew --prefix openssl)
@@ -127,11 +127,12 @@ function ci_setup() {
     # See: https://www.alpinelinux.org/
     if [ "${platform}" == "Linux" ] ; then
         apk add --update npm
+
+        # `py3-virtualenv` depends on `python3`
+        # which installs the latest version of python3
+        # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
+        # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
         apk add \
-            # `py3-virtualenv` depends on `python3`
-            # which installs the latest version of python3
-            # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
-            # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
             py3-virtualenv \
             libffi-dev \
             python3-dev

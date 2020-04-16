@@ -16,5 +16,7 @@ if(${ZKSNARK} STREQUAL "GROTH16")
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
   )
+  # See: https://foonathan.net/2018/10/cmake-warnings/
+  target_compile_options(pot-process PRIVATE -Werror -Wall -Wextra)
   add_subdirectory(mpc_phase2)
 endif()
