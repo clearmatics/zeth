@@ -87,7 +87,7 @@ private:
 
 public:
     std::array<std::array<bool, BLAKE2s_word_size>, 8> IV;
-    std::array<std::array<uint, 16>, 10> sigma;
+    std::array<std::array<uint8_t, 16>, 10> sigma;
 
     BLAKE2s_256_comp(
         libsnark::protoboard<FieldT> &pb,

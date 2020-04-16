@@ -115,7 +115,7 @@ void fill_stringstream_with_json_constraints(
     std::stringstream &ss)
 {
     ss << "[";
-    uint count = 0;
+    size_t count = 0;
     for (const libsnark::linear_term<libff::Fr<ppT>> &lt : constraints.terms) {
         if (count != 0) {
             ss << ",";
