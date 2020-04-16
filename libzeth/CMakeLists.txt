@@ -70,7 +70,7 @@ target_link_libraries(
 )
 # See: https://foonathan.net/2018/10/cmake-warnings/
 # TODO: Use generator expressions to support various compilers
-target_compile_options(zeth PRIVATE -Werror -Wall -Wextra)
+target_compile_options(zeth PRIVATE -Wall -Wextra)
 add_dependencies(zeth libsodium)
 
 ## Tests
