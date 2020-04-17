@@ -26,12 +26,12 @@ set_property(SOURCE ${GRPC_SRCS} PROPERTY
 )
 
 # Enable Boost for program_options
-find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
-include_directories( ${Boost_INCLUDE_DIR} )
+find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Add the binary tree to the search path for include files
 # so that we will find zethConfig.h
-include_directories( ${PROJECT_BINARY_DIR} )
+include_directories(${PROJECT_BINARY_DIR})
 
 # prover_server executable
 file(

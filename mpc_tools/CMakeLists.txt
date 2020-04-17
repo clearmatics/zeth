@@ -1,7 +1,7 @@
 # Build for mpc utilities
 
-find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
-include_directories( ${Boost_INCLUDE_DIR} )
+find_package(Boost REQUIRED COMPONENTS program_options)
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Compile the pot-process utility (GROTH16 only)
 if(${ZKSNARK} STREQUAL "GROTH16")

@@ -20,8 +20,8 @@ set_property(SOURCE ${PROTO_SRCS} PROPERTY
 )
 
 # Enable Boost for program_options
-find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
-include_directories( ${Boost_INCLUDE_DIR} )
+find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
+include_directories(${Boost_INCLUDE_DIR})
 
 # libsodium
 ExternalProject_Get_Property(libsodium INSTALL_DIR)
@@ -30,7 +30,7 @@ set(libsodium_LIBRARY "${INSTALL_DIR}/lib/libsodium.a")
 
 # Add the binary tree to the search path for include files
 # so that we will find zethConfig.h
-include_directories( ${PROJECT_BINARY_DIR} )
+include_directories(${PROJECT_BINARY_DIR})
 
 string(TOLOWER ${ZKSNARK} ZKSNARK_NAME)
 
