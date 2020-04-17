@@ -3,17 +3,20 @@ include_directories(.)
 find_package(Protobuf REQUIRED)
 find_package(GRPC REQUIRED)
 
+# NOTE: dependency include directories use SYSTEM, to prevent the compiler from
+# issuing warnings from their headers. See:
+# https://foonathan.net/2018/10/cmake-warnings/
+
 # Add the directory containing the Protobuf generated files.
 # `PROTO_SRC_DIR` is defined in the parent CMakeLists.txt
-include_directories(${PROTO_SRC_DIR})
+include_directories(SYSTEM ${PROTO_SRC_DIR})
 
 # Function defined in the cmake scripts in the cmake folder.
 # Generate the protobuf files and set the result of the generation
 # in the given env var (PROTO_SRCS, PROTO_HDRS).
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
-
 set_property(SOURCE ${PROTO_SRCS} PROPERTY
-  COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
+  COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter -Wno-error"
 )
 
 # Enable Boost for program_options
@@ -56,6 +59,7 @@ add_library(
 target_include_directories(
   zeth
 
+  SYSTEM
   PUBLIC
   ${DEPENDS_DIR}/libsnark
   ${DEPENDS_DIR}/libsnark/depends/libff
@@ -68,9 +72,6 @@ target_link_libraries(
   snark
   ${libsodium_LIBRARY}
 )
-# See: https://foonathan.net/2018/10/cmake-warnings/
-# TODO: Use generator expressions to support various compilers
-target_compile_options(zeth PRIVATE -Wall -Wextra)
 add_dependencies(zeth libsodium)
 
 ## Tests

@@ -13,7 +13,7 @@ find_package(GRPC REQUIRED)
 
 # Add the directory containing the Protobuf and gRPC generated files.
 # `PROTO_SRC_DIR` is defined in the parent CMakeLists.txt
-include_directories(${PROTO_SRC_DIR})
+include_directories(SYSTEM ${PROTO_SRC_DIR})
 
 # Function defined in the cmake scripts in the cmake folder.
 # Generate the gRPC files, and set the result of the generation in the
@@ -54,5 +54,3 @@ target_link_libraries(
   gRPC::grpc++_reflection
   protobuf::libprotobuf
 )
-# See: https://foonathan.net/2018/10/cmake-warnings/
-target_compile_options(prover_server PRIVATE -Wall -Wextra)
