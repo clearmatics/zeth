@@ -178,6 +178,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/blake2s/blake2s_comp.tcc"
 #include "libzeth/circuits/blake2s/blake2s_comp_setup.tcc"
 

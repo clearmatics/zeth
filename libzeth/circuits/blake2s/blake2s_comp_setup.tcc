@@ -5,6 +5,8 @@
 #ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_SETUP_TCC__
 #define __ZETH_CIRCUITS_BLAKE2S_COMP_SETUP_TCC__
 
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+
 namespace libzeth
 {
 

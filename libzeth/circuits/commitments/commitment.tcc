@@ -71,7 +71,7 @@ COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(
     com_gadget.reset(new COMM_gadget<FieldT, HashT>(
         pb, trap_r, input, temp_result, annotation_prefix));
 
-    // This gadget cast the `temp_result` from bits to field element
+    // This gadget casts the `temp_result` from bits to field element
     // We reverse the order otherwise the resulting linear combination is built
     // by interpreting our bit string as little endian.
     bits_to_field.reset(new libsnark::packing_gadget<FieldT>(

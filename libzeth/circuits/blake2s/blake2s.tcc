@@ -5,6 +5,8 @@
 #ifndef __ZETH_CIRCUITS_BLAKE2S_TCC__
 #define __ZETH_CIRCUITS_BLAKE2S_TCC__
 
+#include "libzeth/circuits/blake2s/blake2s.hpp"
+
 namespace libzeth
 {
 
@@ -66,11 +68,10 @@ template<typename FieldT> void BLAKE2s_256<FieldT>::generate_r1cs_witness()
     size_t input_size = input.bits.size();
     size_t nb_blocks = libff::div_ceil(input_size, BLAKE2s_block_size);
     // We do not use block_size because the value might not be entered
-    // (c.f. block_variable<FieldT>::block_variable(protoboard<FieldT> &pb,
-    //                                   const
-    //                                   std::vector<pb_variable_array<FieldT>>
-    //                                   &parts, const std::string
-    //                                   &annotation_prefix))
+    // (c.f. block_variable<FieldT>::block_variable(
+    //     protoboard<FieldT> &pb,
+    //     const std::vector<pb_variable_array<FieldT>> &parts,
+    //     const std::string &annotation_prefix))
 
     // Push the block variable in local variable to be padded
     std::vector<FieldT> padded_input;
