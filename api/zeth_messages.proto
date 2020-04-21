@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package prover_proto;
+
+message ZethNote {
+    string apk = 1;
+    // Hex string representing a int64 value
+    string value = 2;
+    string rho = 3;
+    string trap_r = 4;
+}
+
+message JoinsplitInput {
+    // Merkle authentication path to the commitment
+    // of the note in the Merkle tree. Each node of
+    // the merkle tree is treated as a string
+    repeated string merkle_path = 1;
+    int64 address = 2;
+    ZethNote note = 3;
+    string spending_ask = 4;
+    string nullifier = 5;
+}
