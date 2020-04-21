@@ -43,7 +43,8 @@ file(
   circuit_wrapper.???
   commitments/**.?pp commitments/**.tcc
   libsnark_helpers/**.?pp libsnark_helpers/**.tcc
-  snarks/**.hpp snarks/**.tcc snarks/${ZKSNARK_NAME}/**.cpp
+  snarks/${ZKSNARK_NAME}/core/**.???
+  snarks/${ZKSNARK_NAME}/api/**.???
   snarks_alias.hpp
   include_libsnark.hpp
   util.?pp util.tcc
