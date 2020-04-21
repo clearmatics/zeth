@@ -43,6 +43,8 @@ file(
   libsnark_helpers/**.?pp libsnark_helpers/**.tcc
   snarks/${ZKSNARK_NAME}/core/**.???
   snarks/${ZKSNARK_NAME}/api/**.???
+  # We only implement the MPC for Groth16 for now
+  snarks/groth16/mpc/**.???
   snarks_alias.hpp
   include_libsnark.hpp
   util.?pp util.tcc
