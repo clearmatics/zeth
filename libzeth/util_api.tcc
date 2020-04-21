@@ -87,7 +87,7 @@ prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     return res;
 }
 
-template<ppT>
+template<typename ppT>
 std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs)
 {
     std::stringstream ss;
