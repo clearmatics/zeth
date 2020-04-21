@@ -2,36 +2,25 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/commitments/commitment.hpp"
+#include "libzeth/util.hpp"
+#include "libzeth/zeth.h"
+
 #include "gtest/gtest.h"
 #include <libff/common/default_types/ec_pp.hpp>
 #include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
-// Header to get the constants
-#include "zeth.h"
-
 // Header to use the merkle tree data structure
 #include <libsnark/common/data_structures/merkle_tree.hpp>
-
-// Header to use the blake2s gadget
-#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
-
-// Access the `from_bits` function and other utils
-#include "libzeth/circuits/circuits_utils.hpp"
-#include "libzeth/util.hpp"
-
-// Get the gadget to test
-#include "libzeth/circuits/commitments/commitment.hpp"
 
 using namespace libzeth;
 
 // Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
-
-// Should be alt_bn128 in the CMakeLists.txt
 typedef libff::Fr<ppT> FieldT;
-
-// We use our hash function to do the tests
 typedef BLAKE2s_256_comp<FieldT> HashT;
 
 namespace
