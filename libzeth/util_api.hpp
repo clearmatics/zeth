@@ -5,7 +5,8 @@
 #ifndef __ZETH_UTIL_API_HPP__
 #define __ZETH_UTIL_API_HPP__
 
-#include "api/util.pb.h"
+#include "api/ec_group_messages.pb.h"
+#include "api/zeth_messages.pb.h"
 #include "libzeth/libsnark_helpers/debug_helpers.hpp"
 #include "libzeth/types/bits.hpp"
 #include "libzeth/types/joinsplit.hpp"
