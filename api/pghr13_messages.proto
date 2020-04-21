@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package prover_proto;
 
-import public "api/util.proto";
+import "api/ec_group_messages.proto";
 
 message VerificationKeyPGHR13 {
     HexPointBaseGroup2Affine a = 1;

@@ -3,8 +3,9 @@ syntax = "proto3";
 package prover_proto;
 
 import "google/protobuf/empty.proto";
-import "api/pghr13_messages.proto";
-import "api/groth16_messages.proto";
+
+import "api/zeth_messages.proto";
+import "api/snark_messages.proto";
 
 service Prover {
     // Fetch the verification key from the proving service
@@ -27,18 +28,4 @@ message ProofInputs {
     string pub_out_value = 5;
     string h_sig = 6;
     string phi = 7;
-}
-
-message VerificationKey {
-    oneof VK {
-        VerificationKeyPGHR13 pghr13_verification_key = 1;
-        VerificationKeyGROTH16 groth16_verification_key = 2;
-    }
-}
-
-message ExtendedProof {
-    oneof EP {
-        ExtendedProofPGHR13 pghr13_extended_proof = 1;
-        ExtendedProofGROTH16 groth16_extended_proof = 2;
-    }
 }
