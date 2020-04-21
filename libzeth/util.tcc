@@ -57,38 +57,28 @@ std::vector<bool> address_bits_from_address(size_t address)
     return binary;
 }
 
-// string_to_field(std::string input) converts a string ob bytes of size <=32 to
-// a FieldT element.
-template<typename FieldT> FieldT string_to_field(std::string input)
+/// Function that converts an hexadecimal string into a field element
+template<typename FieldT> FieldT hex_str_to_field_element(std::string field_str)
 {
-    int input_len = input.length();
+    // Remove prefix if any
+    erase_substring(field_str, std::string("0x"));
 
-    // Sanity checks
-    // length
-    if (input_len == 0 || input.length() > 64) {
-        throw std::length_error(
-            "Invalid byte string length for the given field string");
+    // 1 byte will be populated by 2 hexadecimal characters
+    uint8_t val[field_str.size() / 2];
+
+    char cstr[field_str.size() + 1];
+    strcpy(cstr, field_str.c_str());
+
+    int res = hex_str_to_bin(cstr, val);
+    if (res == 0) {
+        // TODO: Do exception throwing/catching properly
+        std::cerr << "hex_str_to_bin: No data converted" << std::endl;
+        exit(1);
     }
 
-    // Copy the string into a char array
-    char char_array[input.length() + 1];
-    strcpy(char_array, input.c_str());
-
-    // Construct gmp integer from the string
-    mpz_t n;
-    mpz_init(n);
-
-    int flag = mpz_set_str(n, char_array, 16);
-    if (flag != 0) {
-        throw std::runtime_error(std::string("Invalid hex string"));
-    };
-
-    // Construct libff::bigint from gmp integer
-    libff::bigint<4> n_big_int = libff::bigint<4>(n);
-
-    // Construct field element from a bigint
-    FieldT element = FieldT(n_big_int);
-    return element;
+    libff::bigint<FieldT::num_limbs> el =
+        libsnark_bigint_from_bytes<FieldT>(val);
+    return FieldT(el);
 }
 
 template<typename StructuredTs>
