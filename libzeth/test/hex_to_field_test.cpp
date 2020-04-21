@@ -2,7 +2,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/libsnark_helpers/debug_helpers.hpp"
 #include "libzeth/util.hpp"
+#include "libzeth/zeth.h"
 
 #include "gtest/gtest.h"
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
@@ -15,97 +17,43 @@
 
 // Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
-
-// Should be alt_bn128 in the CMakeLists.txt
 typedef libff::Fr<ppT> FieldT;
 
 namespace
 {
 TEST(TestHexConvertion, TestHexToFieldTrue)
 {
-    ppT::init_public_params();
+    FieldT starting_field_element = FieldT::random_element();
+    std::string field_el_str =
+        libzeth::hex_from_libsnark_bigint(starting_field_element.as_bigint());
 
-    std::string sample =
-        "1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-    FieldT expected_field_element =
-        FieldT("144740111546645244279463731260859884816587480832050705049321980"
-               "00989141204991");
-    FieldT computed_field_element =
-        libzeth::hex_str_to_field_element<FieldT>(sample);
+    // We read the string and convert it back to a field element
+    FieldT retrieved_field_element =
+        libzeth::hex_str_to_field_element<FieldT>(field_el_str);
 
     bool res = false;
-    res = (computed_field_element == expected_field_element);
-
+    res = (starting_field_element == retrieved_field_element);
     ASSERT_TRUE(res);
 };
 
 TEST(TestHexConvertion, TestHexToFieldFalse)
 {
-    ppT::init_public_params();
+    FieldT starting_field_element = FieldT::random_element();
+    FieldT modified_field_element = starting_field_element += FieldT::one();
+    std::string modified_field_el_str =
+        libzeth::hex_from_libsnark_bigint(modified_field_element.as_bigint());
 
-    std::string sample =
-        "1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1";
-    FieldT expected_field_element =
-        FieldT("144740111546645244279463731260859884816587480832050705049321980"
-               "00989141204991");
-    FieldT computed_field_element =
-        libzeth::hex_str_to_field_element<FieldT>(sample);
+    // We read the string and convert it back to a field element
+    FieldT retrieved_field_element =
+        libzeth::hex_str_to_field_element<FieldT>(modified_field_el_str);
 
     bool res = false;
-    res = (computed_field_element == expected_field_element);
-
+    res = (starting_field_element == retrieved_field_element);
     ASSERT_FALSE(res);
-};
-
-TEST(TestHexConvertion, TestHexToFieldSmallTrue)
-{
-    ppT::init_public_params();
-
-    std::string sample = "1ffffffffffffffffffffffff";
-    FieldT expected_field_element = FieldT("158456325028528675187087900671");
-    FieldT computed_field_element =
-        libzeth::hex_str_to_field_element<FieldT>(sample);
-
-    bool res = false;
-    res = (computed_field_element == expected_field_element);
-
-    ASSERT_TRUE(res);
-};
-
-TEST(TestHexConvertion, TestHexToFieldSmallFalse)
-{
-    ppT::init_public_params();
-
-    std::string sample = "1fffffffffffffffffffffff1";
-    FieldT expected_field_element = FieldT("158456325028528675187087900671");
-    FieldT computed_field_element =
-        libzeth::hex_str_to_field_element<FieldT>(sample);
-
-    bool res = false;
-    res = (computed_field_element == expected_field_element);
-
-    ASSERT_FALSE(res);
-};
-
-TEST(TestHexConvertion, TestHexToFieldMixedLetters)
-{
-    ppT::init_public_params();
-
-    std::string sample = "1FfffFfffffffffffffffffff";
-    FieldT expected_field_element = FieldT("158456325028528675187087900671");
-    FieldT computed_field_element =
-        libzeth::hex_str_to_field_element<FieldT>(sample);
-
-    bool res = false;
-    res = (computed_field_element == expected_field_element);
-
-    ASSERT_TRUE(res);
 };
 
 TEST(TestHexConvertion, TestHexToFieldBadString)
 {
-    ppT::init_public_params();
-
     std::string sample = "xxx";
     bool res = true;
 
