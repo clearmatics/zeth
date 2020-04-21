@@ -31,7 +31,8 @@ std::vector<bool> convert_uint_to_binary(size_t x);
 template<size_t TreeDepth>
 std::vector<bool> address_bits_from_address(size_t address);
 
-template<typename FieldT> FieldT hex_str_to_field_element(std::string input);
+template<typename FieldT>
+FieldT hexadecimal_str_to_field_element(std::string input);
 
 std::string hexadecimal_str_to_binary_str(const std::string &s);
 int hexadecimal_str_to_binary(char *source_str, uint8_t *dest_buffer);

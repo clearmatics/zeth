@@ -59,7 +59,8 @@ std::vector<bool> address_bits_from_address(size_t address)
 
 /// Function that converts an hexadecimal string into a field element.
 /// This function throws a `invalid_argument` exception if the conversion fails.
-template<typename FieldT> FieldT hex_str_to_field_element(std::string field_str)
+template<typename FieldT>
+FieldT hexadecimal_str_to_field_element(std::string field_str)
 {
     // Remove prefix if any
     erase_substring(field_str, std::string("0x"));
