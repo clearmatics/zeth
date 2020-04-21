@@ -203,6 +203,22 @@ std::string hexadecimal_str_to_binary_str(const std::string &s)
     return out;
 }
 
+/// Takes an hexadecimal string and converts it to an array of bytes (uint8_t*)
+int hexadecimal_str_to_binary(char *source_str, uint8_t *dest_buffer)
+{
+    char *line = source_str;
+    char *data = line;
+    int offset;
+    int read_byte;
+    int data_len = 0;
+
+    while (sscanf(data, "%02x%n", &read_byte, &offset) == 1) {
+        dest_buffer[data_len++] = read_byte;
+        data += offset;
+    }
+    return data_len;
+}
+
 std::string binary_str_to_hexadecimal_str(const void *s, const size_t size)
 {
     std::string out;
@@ -233,6 +249,15 @@ std::string binary_str_to_hexadecimal_str(const std::string &s)
     }
 
     return out;
+}
+
+void erase_substring(std::string &string, const std::string &substring)
+{
+    size_t position = string.find(substring);
+
+    if (position != std::string::npos) {
+        string.erase(position, substring.length());
+    }
 }
 
 } // namespace libzeth

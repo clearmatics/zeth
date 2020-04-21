@@ -12,7 +12,7 @@ namespace libzeth
 
 template<typename FieldT> FieldT parse_merkle_node(std::string mk_node)
 {
-    return string_to_field<FieldT>(mk_node);
+    return hex_str_to_field_element<FieldT>(mk_node);
 }
 
 template<typename FieldT, size_t TreeDepth>

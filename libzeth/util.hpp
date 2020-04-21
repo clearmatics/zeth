@@ -5,6 +5,7 @@
 #ifndef __ZETH_UTIL_HPP__
 #define __ZETH_UTIL_HPP__
 
+#include "libzeth/libsnark_helpers/debug_helpers.hpp"
 #include "libzeth/types/bits.hpp"
 
 #include <cstdint>
@@ -33,8 +34,10 @@ std::vector<bool> address_bits_from_address(size_t address);
 template<typename FieldT> FieldT hex_str_to_field_element(std::string input);
 
 std::string hexadecimal_str_to_binary_str(const std::string &s);
+int hexadecimal_str_to_binary(char *source_str, uint8_t *dest_buffer);
 std::string binary_str_to_hexadecimal_str(const void *s, const size_t size);
 std::string binary_str_to_hexadecimal_str(const std::string &s);
+void erase_substring(std::string &string, const std::string &substring);
 
 // interface for StructuredT typed below:
 // {

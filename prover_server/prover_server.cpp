@@ -107,8 +107,9 @@ public:
 
         // Parse received message to feed to the prover
         try {
-            libzeth::FieldT root = libzeth::string_to_field<libzeth::FieldT>(
-                proof_inputs->mk_root());
+            libzeth::FieldT root =
+                libzeth::hex_str_to_field_element<libzeth::FieldT>(
+                    proof_inputs->mk_root());
             libzeth::bits64 vpub_in =
                 libzeth::hex_value_to_bits64(proof_inputs->pub_in_value());
             libzeth::bits64 vpub_out =
