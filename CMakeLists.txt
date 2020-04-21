@@ -199,9 +199,9 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 # Set the target of the Protobuf and gRPC generated files.
 set(
   PROTO_SRC_DIR
-  ${PROJECT_BINARY_DIR}/proto_src
+  ${PROJECT_BINARY_DIR}
 )
-file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
+#file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 
 # Get the proto files
 file(
@@ -216,8 +216,8 @@ file(
 set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
 set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
 set(PROTOBUF_APPEND_DEST_PATH "/api")
-set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
-set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
+set(PROTOBUF_GENERATE_CPP_APPEND_PATH OFF)
+set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
 
 # Add sub-directories for the build
 add_subdirectory(depends)

@@ -11,6 +11,7 @@ include_directories(${PROTO_SRC_DIR})
 # Generate the protobuf files and set the result of the generation
 # in the given env var (PROTO_SRCS, PROTO_HDRS).
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
+grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
 
 set_property(SOURCE ${PROTO_SRCS} PROPERTY
   COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
@@ -40,7 +41,8 @@ file(
   circuit_wrapper.???
   commitments/**.?pp commitments/**.tcc
   libsnark_helpers/**.?pp libsnark_helpers/**.tcc
-  snarks/**.hpp snarks/**.tcc snarks/${ZKSNARK_NAME}/**.cpp
+  snarks/${ZKSNARK_NAME}/core/**.???
+  snarks/${ZKSNARK_NAME}/api/**.???
   snarks_alias.hpp
   include_libsnark.hpp
   util.?pp util.tcc
@@ -52,6 +54,8 @@ add_library(
 
   ${ZETH_SOURCE}
   ${PROTO_SRCS}
+  ${PROTO_HDRS}
+  ${GRPC_SRCS}
 )
 target_include_directories(
   zeth
