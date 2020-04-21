@@ -30,7 +30,8 @@ TEST(TestHexConvertion, TestHexToFieldTrue)
     FieldT expected_field_element =
         FieldT("144740111546645244279463731260859884816587480832050705049321980"
                "00989141204991");
-    FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
+    FieldT computed_field_element =
+        libzeth::hex_str_to_field_element<FieldT>(sample);
 
     bool res = false;
     res = (computed_field_element == expected_field_element);
@@ -47,7 +48,8 @@ TEST(TestHexConvertion, TestHexToFieldFalse)
     FieldT expected_field_element =
         FieldT("144740111546645244279463731260859884816587480832050705049321980"
                "00989141204991");
-    FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
+    FieldT computed_field_element =
+        libzeth::hex_str_to_field_element<FieldT>(sample);
 
     bool res = false;
     res = (computed_field_element == expected_field_element);
@@ -61,7 +63,8 @@ TEST(TestHexConvertion, TestHexToFieldSmallTrue)
 
     std::string sample = "1ffffffffffffffffffffffff";
     FieldT expected_field_element = FieldT("158456325028528675187087900671");
-    FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
+    FieldT computed_field_element =
+        libzeth::hex_str_to_field_element<FieldT>(sample);
 
     bool res = false;
     res = (computed_field_element == expected_field_element);
@@ -75,7 +78,8 @@ TEST(TestHexConvertion, TestHexToFieldSmallFalse)
 
     std::string sample = "1fffffffffffffffffffffff1";
     FieldT expected_field_element = FieldT("158456325028528675187087900671");
-    FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
+    FieldT computed_field_element =
+        libzeth::hex_str_to_field_element<FieldT>(sample);
 
     bool res = false;
     res = (computed_field_element == expected_field_element);
@@ -89,7 +93,8 @@ TEST(TestHexConvertion, TestHexToFieldMixedLetters)
 
     std::string sample = "1FfffFfffffffffffffffffff";
     FieldT expected_field_element = FieldT("158456325028528675187087900671");
-    FieldT computed_field_element = libzeth::string_to_field<FieldT>(sample);
+    FieldT computed_field_element =
+        libzeth::hex_str_to_field_element<FieldT>(sample);
 
     bool res = false;
     res = (computed_field_element == expected_field_element);
@@ -106,7 +111,7 @@ TEST(TestHexConvertion, TestHexToFieldBadString)
 
     try {
         FieldT computed_field_element =
-            libzeth::string_to_field<FieldT>(sample);
+            libzeth::hex_str_to_field_element<FieldT>(sample);
         libff::UNUSED(computed_field_element);
     } catch (const std::exception &exc) {
         res = false;

@@ -69,10 +69,11 @@ template<typename FieldT> FieldT hex_str_to_field_element(std::string field_str)
     char cstr[field_str.size() + 1];
     strcpy(cstr, field_str.c_str());
 
-    int res = hex_str_to_bin(cstr, val);
+    int res = hexadecimal_str_to_binary(cstr, val);
+    // TODO: Do exception throwing/catching properly
     if (res == 0) {
-        // TODO: Do exception throwing/catching properly
-        std::cerr << "hex_str_to_bin: No data converted" << std::endl;
+        std::cerr << "hexadecimal_str_to_binary: No data converted"
+                  << std::endl;
         exit(1);
     }
 
