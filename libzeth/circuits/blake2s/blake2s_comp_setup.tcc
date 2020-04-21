@@ -13,10 +13,10 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_h()
     std::vector<bool> bits = h.get_digest();
     // See: Appendix A.1 of https://blake2.net/blake2.pdf
     for (size_t i = 0; i < 8; i++) {
-        std::array<bool, BLAKE2s_word_size> pb_swapped =
-            swap_byte_endianness(parameter_block[i]);
-        std::array<bool, BLAKE2s_word_size> IVi = IV[i];
-        h[i] = binary_xor(pb_swapped, IVi);
+        std::vector<bool> temp_vector(
+            bits.begin() + BLAKE2s_word_size * i,
+            bits.begin() + BLAKE2s_word_size * (i + 1));
+        h_array[i].fill_with_bits(this->pb, temp_vector);
     }
 }
 
