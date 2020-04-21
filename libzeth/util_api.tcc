@@ -165,7 +165,7 @@ std::vector<libff::Fr<ppT>> parse_str_primary_inputs(std::string input_str)
 
     while (pos != NULL) {
         res.push_back(
-            hex_str_to_field_element<libff::Fr<ppT>>(std::string(pos)));
+            hexadecimal_str_to_field_element<libff::Fr<ppT>>(std::string(pos)));
         pos = strtok(NULL, "[, ]");
     }
 
@@ -285,9 +285,9 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
 
     libsnark::accumulation_vector<libff::G1<ppT>> acc_res;
     libff::Fq<ppT> x_coordinate =
-        hex_str_to_field_element<libff::Fq<ppT>>(res[0]);
+        hexadecimal_str_to_field_element<libff::Fq<ppT>>(res[0]);
     libff::Fq<ppT> y_coordinate =
-        hex_str_to_field_element<libff::Fq<ppT>>(res[1]);
+        hexadecimal_str_to_field_element<libff::Fq<ppT>>(res[1]);
 
     libff::G1<ppT> first_point_g1 = libff::G1<ppT>(x_coordinate, y_coordinate);
     acc_res.first = first_point_g1;
@@ -298,15 +298,15 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
     for (size_t i = 2; i < res.size(); i += 2) {
         // TODO:
         // This is BAD => this code is a duplicate of the function
-        // `hex_str_to_field_element` Let's re-use the content of the function
-        // `hex_str_to_field_element` here. To do this properly this means that
-        // we need to modify the type of `abc_g1` in the proto file to be a
-        // repeated G1 element (and not a string) Likewise for the inputs which
-        // should be changed to repeated field elements
+        // `hexadecimal_str_to_field_element` Let's re-use the content of the
+        // function `hexadecimal_str_to_field_element` here. To do this properly
+        // this means that we need to modify the type of `abc_g1` in the proto
+        // file to be a repeated G1 element (and not a string) Likewise for the
+        // inputs which should be changed to repeated field elements
         libff::Fq<ppT> x_coordinate =
-            hex_str_to_field_element<libff::Fq<ppT>>(res[i]);
+            hexadecimal_str_to_field_element<libff::Fq<ppT>>(res[i]);
         libff::Fq<ppT> y_coordinate =
-            hex_str_to_field_element<libff::Fq<ppT>>(res[i + 1]);
+            hexadecimal_str_to_field_element<libff::Fq<ppT>>(res[i + 1]);
 
         point_g1 = libff::G1<ppT>(x_coordinate, y_coordinate);
         rest[i / 2 - 1] = point_g1;
