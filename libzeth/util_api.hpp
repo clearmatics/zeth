@@ -5,7 +5,7 @@
 #ifndef __ZETH_UTIL_API_HPP__
 #define __ZETH_UTIL_API_HPP__
 
-#include "api/ec_group_messages.pb.h"
+#include "api/snark_messages.pb.h"
 #include "api/zeth_messages.pb.h"
 #include "libzeth/libsnark_helpers/debug_helpers.hpp"
 #include "libzeth/libsnark_helpers/extended_proof.hpp"
