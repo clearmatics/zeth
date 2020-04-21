@@ -93,9 +93,10 @@ std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs)
     std::stringstream ss;
     ss << "[";
     for (size_t i = 0; i < public_inputs.size(); ++i) {
-        ss << "0x"
+        ss << "\"0x"
            << libzeth::hex_from_libsnark_bigint<libff::Fr<ppT>>(
-                  public_inputs[i].as_bigint());
+                  public_inputs[i].as_bigint())
+           << "\"";
         if (i < public_inputs.size() - 1) {
             ss << ", ";
         }
