@@ -24,8 +24,8 @@ namespace
 TEST(TestHexConvertion, TestHexToFieldTrue)
 {
     FieldT starting_field_element = FieldT::random_element();
-    std::string field_el_str =
-        libzeth::hex_from_libsnark_bigint(starting_field_element.as_bigint());
+    std::string field_el_str = libzeth::hex_from_libsnark_bigint<FieldT>(
+        starting_field_element.as_bigint());
 
     // We read the string and convert it back to a field element
     FieldT retrieved_field_element =
@@ -39,9 +39,10 @@ TEST(TestHexConvertion, TestHexToFieldTrue)
 TEST(TestHexConvertion, TestHexToFieldFalse)
 {
     FieldT starting_field_element = FieldT::random_element();
-    FieldT modified_field_element = starting_field_element += FieldT::one();
+    FieldT modified_field_element = starting_field_element + FieldT::one();
     std::string modified_field_el_str =
-        libzeth::hex_from_libsnark_bigint(modified_field_element.as_bigint());
+        libzeth::hex_from_libsnark_bigint<FieldT>(
+            modified_field_element.as_bigint());
 
     // We read the string and convert it back to a field element
     FieldT retrieved_field_element =

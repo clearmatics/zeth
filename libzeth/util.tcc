@@ -57,7 +57,8 @@ std::vector<bool> address_bits_from_address(size_t address)
     return binary;
 }
 
-/// Function that converts an hexadecimal string into a field element
+/// Function that converts an hexadecimal string into a field element.
+/// This function throws a `invalid_argument` exception if the conversion fails.
 template<typename FieldT> FieldT hex_str_to_field_element(std::string field_str)
 {
     // Remove prefix if any
@@ -70,11 +71,8 @@ template<typename FieldT> FieldT hex_str_to_field_element(std::string field_str)
     strcpy(cstr, field_str.c_str());
 
     int res = hexadecimal_str_to_binary(cstr, val);
-    // TODO: Do exception throwing/catching properly
     if (res == 0) {
-        std::cerr << "hexadecimal_str_to_binary: No data converted"
-                  << std::endl;
-        exit(1);
+        throw std::invalid_argument("Invalid hexadecimal string");
     }
 
     libff::bigint<FieldT::num_limbs> el =
