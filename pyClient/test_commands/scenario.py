@@ -13,7 +13,7 @@ import zeth.signing as signing
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
 from zeth.utils import EtherValue, to_zeth_units
 import test_commands.mock as mock
-import api.util_pb2 as util_pb2
+from api.zeth_messages_pb2 import ZethNote
 
 from os import urandom
 from web3 import Web3  # type: ignore
@@ -82,7 +82,7 @@ def bob_deposit(
 def bob_to_charlie(
         zeth_client: MixerClient,
         mk_tree: MerkleTree,
-        input1: Tuple[int, util_pb2.ZethNote],
+        input1: Tuple[int, ZethNote],
         bob_eth_address: str,
         keystore: mock.KeyStore) -> contracts.MixResult:
     print(
@@ -114,7 +114,7 @@ def bob_to_charlie(
 def charlie_withdraw(
         zeth_client: MixerClient,
         mk_tree: MerkleTree,
-        input1: Tuple[int, util_pb2.ZethNote],
+        input1: Tuple[int, ZethNote],
         charlie_eth_address: str,
         keystore: mock.KeyStore) -> contracts.MixResult:
     print(
@@ -142,7 +142,7 @@ def charlie_withdraw(
 def charlie_double_withdraw(
         zeth_client: MixerClient,
         mk_tree: MerkleTree,
-        input1: Tuple[int, util_pb2.ZethNote],
+        input1: Tuple[int, ZethNote],
         charlie_eth_address: str,
         keystore: mock.KeyStore) -> contracts.MixResult:
     """

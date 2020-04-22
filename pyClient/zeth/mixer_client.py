@@ -22,8 +22,7 @@ from zeth.utils import EtherValue, get_trusted_setup_dir, \
     hex_digest_to_binary_string, digest_to_binary_string, int64_to_hex, \
     message_to_bytes, eth_address_to_bytes, eth_uint256_to_int, to_zeth_units
 from zeth.prover_client import ProverClient
-from api.util_pb2 import ZethNote, JoinsplitInput
-import api.prover_pb2 as prover_pb2
+from api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
 
 import os
 import json
@@ -228,7 +227,7 @@ def compute_joinsplit2x2_inputs(
         public_out_value_zeth_units: int,
         sign_vk: JoinsplitSigVerificationKey,
         compute_h_sig_cb: Optional[ComputeHSigCB] = None
-) -> prover_pb2.ProofInputs:
+) -> ProofInputs:
     """
     Create a ProofInput object for joinsplit parameters
     """
@@ -263,7 +262,7 @@ def compute_joinsplit2x2_inputs(
         output_note1
     ]
 
-    return prover_pb2.ProofInputs(
+    return ProofInputs(
         mk_root=mk_root.hex(),
         js_inputs=js_inputs,
         js_outputs=js_outputs,
