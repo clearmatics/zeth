@@ -93,7 +93,7 @@ KDF_TAG: bytes = b'ZethEnc'
 APK_LENGTH: int = 256
 NOTE_VALUE_LENGTH: int = 64
 RHO_LENGTH: int = 256
-TRAPR_LENGTH: int = 384
+TRAPR_LENGTH: int = 256
 
 # Encryption constants length in bits
 EC_PRIVATE_KEY_LENGTH: int = 256
