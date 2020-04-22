@@ -4,6 +4,57 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
+"""
+Encryption operations for Zeth notes. Supports an `encrypt` operation using
+receivers public key, and a `decrypt` operation using the corresponding private
+key. `decrypt` fails (except with negligible probability) if the ciphertext was
+encrypted with a different public key.
+
+This implementation makes use of the `cryptography` library with OpenSSL
+backend. For the avoidance of doubt, the implementation adheres to the
+appropriate standards as follows. (links refer to specific versions of external
+libraries, to ensure that line numbers are correct, but the descriptions are
+expected to hold for all versions.)
+
+As described in [Bernstein06], private keys may be generated as 32 random bytes
+with bits 0, 1 and 2 of the first byte cleared, bit 7 of the last byte cleared,
+and bit 6 of the last byte set. This happens at key generation time. See:
+
+  https://github.com/openssl/openssl/blob/be9d82bb35812ac65cd92316d1ae7c7c75efe9cf/crypto/ec/ecx_meth.c#L81
+
+[LangleyN18] describes Poly1305, including the requirement that the "r" value of
+the key (r, s) be "clamped". Note that this clamping is carried out by the
+cryptography library when the key is generated. See:
+
+  https://github.com/openssl/openssl/blob/master/crypto/poly1305/poly1305.c#L143
+
+The specification of the ChaCha20 stream cipher in [LangleyN18] (page 10)
+describes the inputs to the encryption functions as a 256-bit key, a 32-bit
+counter and a 96-bit nonce. This differs slightly from the signature of the
+encryption function in the cryptography library, which accepts a 256-bit key and
+128-bit nonce.  That is, no counter is mentioned leaving ambiguity as to whether
+this data is processed exactly as described in [LangleyN18]. Internally, the
+cryptography library treats the first 32-bit word of the nonce as a counter and
+increments this as necessary in accordance with [LangleyN18]. See:
+
+  https://github.com/openssl/openssl/blob/be9d82bb35812ac65cd92316d1ae7c7c75efe9cf/crypto/chacha/chacha_enc.c#L128
+  https://github.com/openssl/openssl/blob/be9d82bb35812ac65cd92316d1ae7c7c75efe9cf/crypto/evp/e_chacha20_poly1305.c#L95
+
+References:
+
+\\[Bernstein06]
+ "Curve25519:new Diffie-Hellman speed records"
+ Daniel J. Bernstein,
+ International Workshop on Public Key Cryptography, 2006,
+ <https://cr.yp.to/ecdh/curve25519-20060209.pdf>
+
+\\[LangleyN18]
+ "Chacha20 and poly1305 for ietf protocols."
+ Adam Langley and Yoav Nir,
+ RFC 8439, 2018,
+ <https://tools.ietf.org/html/rfc8439>
+"""
+
 from typing import NewType
 
 from zeth.constants import KDF_TAG, EC_PUBLIC_KEY_LENGTH, SYM_KEY_LENGTH,\
@@ -16,65 +67,11 @@ from cryptography.hazmat.primitives.asymmetric.x25519 \
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, poly1305
-from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat,\
-    PublicFormat, NoEncryption
+from cryptography.hazmat.primitives.serialization import \
+    Encoding, PrivateFormat, PublicFormat, NoEncryption
 from cryptography.exceptions import InvalidSignature \
     as cryptography_InvalidSignature
 
-
-# Expose the exception type
-InvalidSignature = cryptography_InvalidSignature
-
-
-# pylint: disable=line-too-long
-
-# References:
-#
-# \[Bernstein06]
-#  "Curve25519:new Diffie-Hellman speed records"
-#  Daniel J. Bernstein,
-#  International Workshop on Public Key Cryptography, 2006,
-#  <https://cr.yp.to/ecdh/curve25519-20060209.pdf>
-#
-# \[LangleyN18]
-#  "Chacha20 and poly1305 for ietf protocols."
-#  Adam Langley and Yoav Nir,
-#  RFC 8439, 2018,
-#  <https://tools.ietf.org/html/rfc8439>
-
-# This implementation makes use of the `cryptography` library with OpenSSL
-# backend. For the avoidance of doubt, the implementation adheres to the
-# appropriate standards as follows. (links refer to specific versions of external
-# libraries, to ensure that line numbers are correct, but the descriptions are
-# expected to hold for all versions.)
-
-# As described in [Bernstein06], private keys may be generated as 32 random
-# bytes with bits 0, 1 and 2 of the first byte cleared, bit 7 of the last byte
-# cleared, and bit 6 of the last byte set. This happens at key generation
-# time. See:
-#
-#   https://github.com/openssl/openssl/blob/be9d82bb35812ac65cd92316d1ae7c7c75efe9cf/crypto/ec/ecx_meth.c#L81
-
-# [LangleyN18] describes Poly1305, including the requirement that the "r" value of
-# the key (r, s) be "clamped". Note that this clamping is carried out by
-# the cryptography library when the key is generated. See:
-#
-#   https://github.com/openssl/openssl/blob/master/crypto/poly1305/poly1305.c#L143
-
-# The specification of the ChaCha20 stream cipher in [LangleyN18] (page 10)
-# describes the inputs to the encryption functions as a 256-bit key, a 32-bit
-# counter and a 96-bit nonce. This differs slightly from the signature of the
-# encryption function in the cryptography library, which accepts a 256-bit key
-# and 128-bit nonce.  That is, no counter is mentioned leaving ambiguity as to
-# whether this data is processed exactly as described in
-# [LangleyN18]. Internally, the cryptography library treats the first 32-bit
-# word of the nonce as a counter and increments this as necessary in accordance
-# with [LangleyN18]. See:
-#
-#   https://github.com/openssl/openssl/blob/be9d82bb35812ac65cd92316d1ae7c7c75efe9cf/crypto/chacha/chacha_enc.c#L128
-#   https://github.com/openssl/openssl/blob/be9d82bb35812ac65cd92316d1ae7c7c75efe9cf/crypto/evp/e_chacha20_poly1305.c#L95
-
-# pylint: enable=line-too-long
 
 # Encryption constants byte length
 _PK_BYTE_LENGTH = bits_to_bytes_len(EC_PUBLIC_KEY_LENGTH)
@@ -84,6 +81,8 @@ _NOTE_BYTE_LENGTH = bits_to_bytes_len(NOTE_LENGTH)
 _TAG_BYTE_LENGTH = bits_to_bytes_len(TAG_LENGTH)
 _ENCRYPTED_NOTE_BYTE_LENGTH = bits_to_bytes_len(ENCRYPTED_NOTE_LENGTH)
 
+# Expose the exception type
+InvalidSignature = cryptography_InvalidSignature
 
 # Represents a secret key for encryption
 EncryptionSecretKey = NewType('EncryptionSecretKey', object)
