@@ -40,7 +40,7 @@ namespace po = boost::program_options;
 /// The prover_server class inherits from the Prover service
 /// defined in the proto files, and provides an implementation
 /// of the service.
-class prover_server final : public prover_proto::Prover::Service
+class prover_server final : public zeth_proto::Prover::Service
 {
 private:
     libzeth::circuit_wrapper<
@@ -74,7 +74,7 @@ public:
     grpc::Status GetVerificationKey(
         grpc::ServerContext *,
         const proto::Empty *,
-        prover_proto::VerificationKey *response) override
+        zeth_proto::VerificationKey *response) override
     {
         std::cout << "[ACK] Received the request to get the verification key"
                   << std::endl;
@@ -97,8 +97,8 @@ public:
 
     grpc::Status Prove(
         grpc::ServerContext *,
-        const prover_proto::ProofInputs *proof_inputs,
-        prover_proto::ExtendedProof *proof) override
+        const zeth_proto::ProofInputs *proof_inputs,
+        zeth_proto::ExtendedProof *proof) override
     {
         std::cout << "[ACK] Received the request to generate a proof"
                   << std::endl;
@@ -138,7 +138,7 @@ public:
             for (size_t i = 0; i < libzeth::ZETH_NUM_JS_INPUTS; i++) {
                 printf(
                     "\r  input (%zu / %zu)\n", i, libzeth::ZETH_NUM_JS_INPUTS);
-                prover_proto::JoinsplitInput received_input =
+                zeth_proto::JoinsplitInput received_input =
                     proof_inputs->js_inputs(i);
                 libzeth::joinsplit_input<
                     libzeth::FieldT,
@@ -158,7 +158,7 @@ public:
                     "\r  output (%zu / %zu)\n",
                     i,
                     libzeth::ZETH_NUM_JS_OUTPUTS);
-                prover_proto::ZethNote received_output =
+                zeth_proto::ZethNote received_output =
                     proof_inputs->js_outputs(i);
                 libzeth::zeth_note parsed_output =
                     libzeth::parse_zeth_note(received_output);

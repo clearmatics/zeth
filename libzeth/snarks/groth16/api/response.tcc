@@ -10,16 +10,16 @@ namespace libzeth
 
 template<typename ppT>
 void prepare_proof_response(
-    extended_proof<ppT> &ext_proof, prover_proto::ExtendedProof *message)
+    extended_proof<ppT> &ext_proof, zeth_proto::ExtendedProof *message)
 {
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof_obj = ext_proof.get_proof();
 
-    prover_proto::HexPointBaseGroup1Affine *a =
-        new prover_proto::HexPointBaseGroup1Affine();
-    prover_proto::HexPointBaseGroup2Affine *b =
-        new prover_proto::HexPointBaseGroup2Affine(); // in G2
-    prover_proto::HexPointBaseGroup1Affine *c =
-        new prover_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *a =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup2Affine *b =
+        new zeth_proto::HexPointBaseGroup2Affine(); // in G2
+    zeth_proto::HexPointBaseGroup1Affine *c =
+        new zeth_proto::HexPointBaseGroup1Affine();
 
     a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proof_obj.g_A));
     b->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(proof_obj.g_B)); // in G2
@@ -34,7 +34,7 @@ void prepare_proof_response(
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    prover_proto::ExtendedProofGROTH16 *grpc_extended_groth16_proof_obj =
+    zeth_proto::ExtendedProofGROTH16 *grpc_extended_groth16_proof_obj =
         message->mutable_groth16_extended_proof();
 
     grpc_extended_groth16_proof_obj->set_allocated_a(a);
@@ -46,14 +46,14 @@ void prepare_proof_response(
 template<typename ppT>
 void prepare_verification_key_response(
     libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &vk,
-    prover_proto::VerificationKey *message)
+    zeth_proto::VerificationKey *message)
 {
-    prover_proto::HexPointBaseGroup1Affine *a =
-        new prover_proto::HexPointBaseGroup1Affine(); // in G1
-    prover_proto::HexPointBaseGroup2Affine *b =
-        new prover_proto::HexPointBaseGroup2Affine(); // in G2
-    prover_proto::HexPointBaseGroup2Affine *d =
-        new prover_proto::HexPointBaseGroup2Affine(); // in G2
+    zeth_proto::HexPointBaseGroup1Affine *a =
+        new zeth_proto::HexPointBaseGroup1Affine(); // in G1
+    zeth_proto::HexPointBaseGroup2Affine *b =
+        new zeth_proto::HexPointBaseGroup2Affine(); // in G2
+    zeth_proto::HexPointBaseGroup2Affine *d =
+        new zeth_proto::HexPointBaseGroup2Affine(); // in G2
 
     a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(vk.alpha_g1)); // in G1
     b->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(vk.beta_g2));  // in G2
@@ -73,7 +73,7 @@ void prepare_verification_key_response(
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    prover_proto::VerificationKeyGROTH16 *grpc_verification_key_groth16 =
+    zeth_proto::VerificationKeyGROTH16 *grpc_verification_key_groth16 =
         message->mutable_groth16_verification_key();
 
     grpc_verification_key_groth16->set_allocated_alpha_g1(a);
