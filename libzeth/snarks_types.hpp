@@ -13,11 +13,11 @@
 namespace libzeth
 {
 template<typename ppT>
-using provingKeyT = libsnark::r1cs_ppzksnark_proving_key<ppT>;
+using ProvingKeyT = libsnark::r1cs_ppzksnark_proving_key<ppT>;
 template<typename ppT>
-using verificationKeyT = libsnark::r1cs_ppzksnark_verification_key<ppT>;
-template<typename ppT> using proofT = libsnark::r1cs_ppzksnark_proof<ppT>;
-template<typename ppT> using keyPairT = libsnark::r1cs_ppzksnark_keypair<ppT>;
+using VerifKeyT = libsnark::r1cs_ppzksnark_verification_key<ppT>;
+template<typename ppT> using ProofT = libsnark::r1cs_ppzksnark_proof<ppT>;
+template<typename ppT> using KeypairT = libsnark::r1cs_ppzksnark_keypair<ppT>;
 } // namespace libzeth
 #endif
 
@@ -27,12 +27,12 @@ template<typename ppT> using keyPairT = libsnark::r1cs_ppzksnark_keypair<ppT>;
 namespace libzeth
 {
 template<typename ppT>
-using provingKeyT = libsnark::r1cs_gg_ppzksnark_proving_key<ppT>;
+using ProvingKeyT = libsnark::r1cs_gg_ppzksnark_proving_key<ppT>;
 template<typename ppT>
-using verificationKeyT = libsnark::r1cs_gg_ppzksnark_verification_key<ppT>;
-template<typename ppT> using proofT = libsnark::r1cs_gg_ppzksnark_proof<ppT>;
+using VerifKeyT = libsnark::r1cs_gg_ppzksnark_verification_key<ppT>;
+template<typename ppT> using ProofT = libsnark::r1cs_gg_ppzksnark_proof<ppT>;
 template<typename ppT>
-using keyPairT = libsnark::r1cs_gg_ppzksnark_keypair<ppT>;
+using KeypairT = libsnark::r1cs_gg_ppzksnark_keypair<ppT>;
 } // namespace libzeth
 #endif
 

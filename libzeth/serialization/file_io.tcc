@@ -59,34 +59,34 @@ serializableT load_from_file(boost::filesystem::path path)
 
 template<typename ppT>
 void serialize_proving_key_to_file(
-    provingKeyT<ppT> &pk, boost::filesystem::path pk_path)
+    ProvingKeyT<ppT> &pk, boost::filesystem::path pk_path)
 {
-    write_to_file<provingKeyT<ppT>>(pk_path, pk);
+    write_to_file<ProvingKeyT<ppT>>(pk_path, pk);
 };
 
 template<typename ppT>
-provingKeyT<ppT> deserialize_proving_key_from_file(
+ProvingKeyT<ppT> deserialize_proving_key_from_file(
     boost::filesystem::path pk_path)
 {
-    return load_from_file<provingKeyT<ppT>>(pk_path);
+    return load_from_file<ProvingKeyT<ppT>>(pk_path);
 };
 
 template<typename ppT>
 void serialize_verification_key_to_file(
-    verificationKeyT<ppT> &vk, boost::filesystem::path vk_path)
+    VerifKeyT<ppT> &vk, boost::filesystem::path vk_path)
 {
-    write_to_file<verificationKeyT<ppT>>(vk_path, vk);
+    write_to_file<VerifKeyT<ppT>>(vk_path, vk);
 };
 
 template<typename ppT>
-verificationKeyT<ppT> deserialize_verification_key_from_file(
+VerifKeyT<ppT> deserialize_verification_key_from_file(
     boost::filesystem::path vk_path)
 {
-    return load_from_file<verificationKeyT<ppT>>(vk_path);
+    return load_from_file<VerifKeyT<ppT>>(vk_path);
 };
 
 template<typename ppT>
-void serialize_setup_to_file(keyPairT<ppT> keypair, boost::filesystem::path setup_path)
+void serialize_setup_to_file(KeypairT<ppT> keypair, boost::filesystem::path setup_path)
 {
     if (setup_path.empty()) {
         setup_path = get_path_to_setup_directory();
@@ -100,8 +100,8 @@ void serialize_setup_to_file(keyPairT<ppT> keypair, boost::filesystem::path setu
     boost::filesystem::path path_vk_raw = setup_path / vk_raw;
     boost::filesystem::path path_pk_raw = setup_path / pk_raw;
 
-    provingKeyT<ppT> proving_key = keypair.pk;
-    verificationKeyT<ppT> verification_key = keypair.vk;
+    ProvingKeyT<ppT> proving_key = keypair.pk;
+    VerifKeyT<ppT> verification_key = keypair.vk;
 
     // Write the verification key in json format
     verification_key_to_json<ppT>(verification_key, path_vk_json);

@@ -5,23 +5,23 @@
 #ifndef __ZETH_TYPES_EXTENDED_PROOF_TCC__
 #define __ZETH_TYPES_EXTENDED_PROOF_TCC__
 
-#include "libzeth/snarks_core_imports.hpp"
+#include "libzeth/sciprlab_libs_util.hpp"
 
 namespace libzeth
 {
 
 template<typename ppT>
 extended_proof<ppT>::extended_proof(
-    proofT<ppT> &in_proof,
+    ProofT<ppT> &in_proof,
     libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input)
 {
-    this->proof = std::make_shared<proofT<ppT>>(in_proof);
+    this->proof = std::make_shared<ProofT<ppT>>(in_proof);
     this->primary_inputs =
         std::make_shared<libsnark::r1cs_primary_input<libff::Fr<ppT>>>(
             in_primary_input);
 }
 
-template<typename ppT> const proofT<ppT> &extended_proof<ppT>::get_proof() const
+template<typename ppT> const ProofT<ppT> &extended_proof<ppT>::get_proof() const
 {
     return *this->proof;
 }

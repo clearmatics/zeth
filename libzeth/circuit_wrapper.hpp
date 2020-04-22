@@ -9,7 +9,7 @@
 #include "libzeth/serialization/file_io.hpp"
 #include "libzeth/types/note.hpp"
 
-#include "libzeth/snarks_alias.hpp"
+#include "libzeth/snarks_types.hpp"
 #include "libzeth/snarks_core_imports.hpp"
 #include "libzeth/zeth.h"
 
@@ -41,7 +41,7 @@ public:
         : setup_path(setup_path){};
 
     // Generate the trusted setup
-    keyPairT<ppT> generate_trusted_setup() const;
+    KeypairT<ppT> generate_trusted_setup() const;
 
 #ifdef DEBUG
     // Used to debug the constraint system
@@ -58,7 +58,7 @@ public:
         bits64 vpub_out,
         const bits256 h_sig_in,
         const bits256 phi_in,
-        const provingKeyT<ppT> &proving_key) const;
+        const ProvingKeyT<ppT> &proving_key) const;
 };
 
 } // namespace libzeth

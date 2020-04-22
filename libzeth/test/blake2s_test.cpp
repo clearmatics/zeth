@@ -4,7 +4,7 @@
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
-#include "libzeth/snarks_alias.hpp"
+#include "libzeth/snarks_types.hpp"
 
 #include "gtest/gtest.h"
 #include <libff/common/default_types/ec_pp.hpp>

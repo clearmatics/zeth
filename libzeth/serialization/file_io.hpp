@@ -19,7 +19,7 @@
 // Contains required interfaces and types (keypair, proof, generator, prover,
 // verifier)
 #include "libzeth/types/extended_proof.hpp"
-#include "libzeth/snarks_alias.hpp"
+#include "libzeth/snarks_types.hpp"
 #include "libzeth/snarks_core_imports.hpp"
 #include "libzeth/zeth.h"
 
@@ -34,22 +34,22 @@ serializableT load_from_file(boost::filesystem::path path);
 
 template<typename ppT>
 void serialize_proving_key_to_file(
-    provingKeyT<ppT> &pk, boost::filesystem::path pk_path);
+    ProvingKeyT<ppT> &pk, boost::filesystem::path pk_path);
 
 template<typename ppT>
-provingKeyT<ppT> deserialize_proving_key_from_file(
+ProvingKeyT<ppT> deserialize_proving_key_from_file(
     boost::filesystem::path pk_path);
 
 template<typename ppT>
 void serialize_verification_key_to_file(
-    verificationKeyT<ppT> &vk, boost::filesystem::path vk_path);
+    VerifKeyT<ppT> &vk, boost::filesystem::path vk_path);
 
 template<typename ppT>
-verificationKeyT<ppT> deserialize_verification_key_from_file(
+VerifKeyT<ppT> deserialize_verification_key_from_file(
     boost::filesystem::path vk_path);
 
 template<typename ppT>
-void serialize_setup_to_file(keyPairT<ppT> keypair, boost::filesystem::path setup_path = "");
+void serialize_setup_to_file(KeypairT<ppT> keypair, boost::filesystem::path setup_path = "");
 
 template<typename ppT>
 void fill_stringstream_with_json_constraints(

@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_HELPERS_HPP__
-#define __ZETH_HELPERS_HPP__
+#ifndef __ZETH_SNARKS_CORE_HELPERS_HPP__
+#define __ZETH_SNARKS_CORE_HELPERS_HPP__
 
 #include "libzeth/libsnark_helpers/debug_helpers.hpp"
 
@@ -34,4 +34,4 @@ void proof_to_json(
 } // namespace libzeth
 #include "libzeth/snarks/pghr13/core/helpers.tcc"
 
-#endif // __ZETH_HELPERS_HPP__
+#endif // __ZETH_SNARKS_CORE_HELPERS_HPP__

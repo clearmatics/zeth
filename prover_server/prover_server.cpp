@@ -2,10 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/types/extended_proof.hpp"
+
 #include "libzeth/circuit_types.hpp"
 #include "libzeth/serialization/file_io.hpp"
-#include "libzeth/serialization/api_io.hpp"
-#include "libzeth/snarks_alias.hpp"
+#include "libzeth/serialization/api/api_io.hpp"
+#include "libzeth/snarks_types.hpp"
 #include "libzeth/util.hpp"
 #include "libzeth/zeth.h"
 #include "zethConfig.h"
@@ -51,7 +53,7 @@ private:
         prover;
 
     // The keypair is the result of the setup
-    libzeth::keyPairT<libzeth::ppT> keypair;
+    libzeth::KeypairT<libzeth::ppT> keypair;
 
 public:
     explicit prover_server(
@@ -63,7 +65,7 @@ public:
             libzeth::ZETH_NUM_JS_INPUTS,
             libzeth::ZETH_NUM_JS_OUTPUTS,
             libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
-        libzeth::keyPairT<libzeth::ppT> &keypair)
+        libzeth::KeypairT<libzeth::ppT> &keypair)
         : prover(prover), keypair(keypair)
     {
     }
@@ -239,7 +241,7 @@ static void RunServer(
         libzeth::ZETH_NUM_JS_INPUTS,
         libzeth::ZETH_NUM_JS_OUTPUTS,
         libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
-    libzeth::keyPairT<libzeth::ppT> &keypair)
+    libzeth::KeypairT<libzeth::ppT> &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50051
     std::string server_address("0.0.0.0:50051");
@@ -266,7 +268,7 @@ static void RunServer(
 }
 
 #ifdef ZKSNARK_GROTH16
-static libzeth::keyPairT<libzeth::ppT> load_keypair(
+static libzeth::KeypairT<libzeth::ppT> load_keypair(
     const std::string &keypair_file)
 {
     std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
@@ -337,7 +339,7 @@ int main(int argc, char **argv)
         libzeth::ZETH_NUM_JS_OUTPUTS,
         libzeth::ZETH_MERKLE_TREE_DEPTH>
         prover;
-    libzeth::keyPairT<libzeth::ppT> keypair = [&keypair_file, &prover]() {
+    libzeth::KeypairT<libzeth::ppT> keypair = [&keypair_file, &prover]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
             std::cout << "[INFO] Loading keypair: " << keypair_file

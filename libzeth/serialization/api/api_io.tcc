@@ -255,7 +255,7 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
 }
 
 template<typename ppT>
-libzeth::verificationKeyT<ppT> parse_verification_key(
+libzeth::VerifKeyT<ppT> parse_verification_key(
     const zeth_proto::VerificationKey &verification_key)
 {
 #ifdef ZKSNARK_PGHR13

@@ -14,7 +14,7 @@
 
 // Have access to a chrono to measure the rough time of execution of a set of
 // instructions
-#include "libzeth/snarks_alias.hpp"
+#include "libzeth/snarks_types.hpp"
 
 #include <chrono>
 // Import only the core components of the SNARK (not the API components)
@@ -40,7 +40,7 @@ namespace
 
 bool TestValidJS2In2Case1(
     circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    libzeth::KeypairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
     libff::print_header(
@@ -158,7 +158,7 @@ bool TestValidJS2In2Case1(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    libzeth::VerifKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
@@ -173,7 +173,7 @@ bool TestValidJS2In2Case1(
 
 bool TestValidJS2In2Case2(
     circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    libzeth::KeypairT<ppT> keypair)
 {
     libff::print_header(
         "Starting test: IN => v_pub = 0, note0 = 0x2F0000000000000F, note1 = "
@@ -292,7 +292,7 @@ bool TestValidJS2In2Case2(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    libzeth::VerifKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
@@ -307,7 +307,7 @@ bool TestValidJS2In2Case2(
 
 bool TestValidJS2In2Case3(
     circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    libzeth::KeypairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
     libff::print_header(
@@ -428,7 +428,7 @@ bool TestValidJS2In2Case3(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    libzeth::VerifKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verfy? " << res << std::endl;
     libff::leave_block("Verify proof", true);
@@ -443,7 +443,7 @@ bool TestValidJS2In2Case3(
 
 bool TestValidJS2In2Deposit(
     circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    libzeth::KeypairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
     libff::print_header("Starting test: IN => v_pub = 0x6124FEE993BC0000, "
@@ -562,7 +562,7 @@ bool TestValidJS2In2Deposit(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    libzeth::VerifKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
 
     ext_proof.dump_primary_inputs();
@@ -579,7 +579,7 @@ bool TestValidJS2In2Deposit(
 
 bool TestInvalidJS2In2(
     circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    libzeth::KeypairT<ppT> keypair)
 {
     // --- General setup for the tests --- //
     libff::print_header("Starting test: IN => v_pub = 0xFA80001400000000, "
@@ -703,7 +703,7 @@ bool TestInvalidJS2In2(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
+    libzeth::VerifKeyT<ppT> vk = keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify ? " << res << std::endl;
     libff::leave_block("Verify proof", true);
@@ -723,7 +723,7 @@ TEST(MainTests, ProofGenAndVerifJS2to2)
     circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth>
         proverJS2to2;
 
-    libzeth::keyPairT<ppT> keypair = proverJS2to2.generate_trusted_setup();
+    libzeth::KeypairT<ppT> keypair = proverJS2to2.generate_trusted_setup();
     bool res = false;
 
     res = TestValidJS2In2Case1(proverJS2to2, keypair);

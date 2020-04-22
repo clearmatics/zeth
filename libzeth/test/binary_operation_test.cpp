@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/circuits/binary_operation.hpp"
-#include "libzeth/snarks_alias.hpp"
+#include "libzeth/snarks_types.hpp"
 
 #include "gtest/gtest.h"
 #include <libff/common/default_types/ec_pp.hpp>

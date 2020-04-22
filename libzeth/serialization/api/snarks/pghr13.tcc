@@ -8,6 +8,27 @@
 namespace libzeth
 {
 
+// Forward declarations
+template<typename ppT>
+zeth_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
+    const libff::G1<ppT> &point);
+template<typename ppT>
+zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
+    const libff::G2<ppT> &point);
+template<typename ppT>
+std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs);
+template<typename ppT>
+libff::G1<ppT> parse_hexPointBaseGroup1Affine(
+    const zeth_proto::HexPointBaseGroup1Affine &point);
+template<typename ppT>
+libff::G2<ppT> parse_hexPointBaseGroup2Affine(
+    const zeth_proto::HexPointBaseGroup2Affine &point);
+template<typename ppT>
+std::vector<libff::Fr<ppT>> parse_str_primary_inputs(std::string input_str);
+template<typename ppT>
+libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
+    std::string acc_vector_str);
+
 template<typename ppT>
 void format_extendedProofPGHR13(
     extended_proof<ppT> &ext_proof, zeth_proto::ExtendedProof *message)

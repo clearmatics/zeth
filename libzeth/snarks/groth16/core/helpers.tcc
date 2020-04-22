@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_HELPER_TCC__
-#define __ZETH_HELPER_TCC__
+#ifndef __ZETH_SNARKS_CORE_HELPERS_TCC__
+#define __ZETH_SNARKS_CORE_HELPERS_TCC__
 
 namespace libzeth
 {
@@ -139,7 +139,7 @@ void proof_to_json(
 template<typename ppT>
 void proof_and_inputs_to_json(
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof,
-    libsnark::r1cs_ppzksnark_primary_input<ppT> input,
+    libsnark::r1cs_primary_input<ppT> input,
     boost::filesystem::path path)
 {
     if (path.empty()) {
@@ -185,4 +185,4 @@ void proof_and_inputs_to_json(
 
 } // namespace libzeth
 
-#endif // __ZETH_HELPERS_TCC__
+#endif // __ZETH_SNARKS_CORE_HELPERS_TCC__

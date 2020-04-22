@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_HELPERS_HPP__
-#define __ZETH_HELPERS_HPP__
+#ifndef __ZETH_SNARKS_CORE_HELPERS_HPP__
+#define __ZETH_SNARKS_CORE_HELPERS_HPP__
 
 #include "libzeth/serialization/filesystem_util.hpp"
 #include "libzeth/sciprlab_libs_util.hpp"
@@ -29,7 +29,7 @@ void verification_key_to_json(
 template<typename ppT>
 void proof_and_inputs_to_json(
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof,
-    libsnark::r1cs_ppzksnark_primary_input<ppT> input,
+    libsnark::r1cs_primary_input<ppT> input,
     boost::filesystem::path path = "");
 
 template<typename ppT>
@@ -39,4 +39,4 @@ void proof_to_json(
 } // namespace libzeth
 #include "libzeth/snarks/groth16/core/helpers.tcc"
 
-#endif // __ZETH_HELPERS_HPP__
+#endif // __ZETH_SNARKS_CORE_HELPERS_HPP__

@@ -5,8 +5,9 @@
 #ifndef __ZETH_TYPES_EXTENDED_PROOF_HPP__
 #define __ZETH_TYPES_EXTENDED_PROOF_HPP__
 
+#include "libzeth/snarks_core_imports.hpp"
+#include "libzeth/snarks_types.hpp"
 #include "libzeth/serialization/filesystem_util.hpp"
-#include "libzeth/snarks_alias.hpp"
 #include "libzeth/zeth.h"
 
 namespace libzeth
@@ -18,15 +19,15 @@ namespace libzeth
 template<typename ppT> class extended_proof
 {
 private:
-    std::shared_ptr<proofT<ppT>> proof;
+    std::shared_ptr<ProofT<ppT>> proof;
     std::shared_ptr<libsnark::r1cs_primary_input<libff::Fr<ppT>>>
         primary_inputs;
 
 public:
     extended_proof(
-        proofT<ppT> &in_proof,
+        ProofT<ppT> &in_proof,
         libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input);
-    const proofT<ppT> &get_proof() const;
+    const ProofT<ppT> &get_proof() const;
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_input()
         const;
 

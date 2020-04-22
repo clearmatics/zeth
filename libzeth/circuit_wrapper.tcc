@@ -16,7 +16,7 @@ template<
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-keyPairT<ppT> circuit_wrapper<
+KeypairT<ppT> circuit_wrapper<
     FieldT,
     HashT,
     HashTreeT,
@@ -33,7 +33,7 @@ keyPairT<ppT> circuit_wrapper<
 
     // Generate a verification and proving key (trusted setup)
     // and write them in a file
-    keyPairT<ppT> keypair = gen_trusted_setup<ppT>(pb);
+    KeypairT<ppT> keypair = generate_setup<ppT>(pb);
     serialize_setup_to_file<ppT>(keypair, this->setup_path);
 
     return keypair;
@@ -91,7 +91,7 @@ extended_proof<ppT> circuit_wrapper<
         bits64 vpub_out,
         const bits256 h_sig_in,
         const bits256 phi_in,
-        const provingKeyT<ppT> &proving_key) const
+        const ProvingKeyT<ppT> &proving_key) const
 {
     // left hand side and right hand side of the joinsplit
     bits64 lhs_value = vpub_in;
@@ -128,7 +128,7 @@ extended_proof<ppT> circuit_wrapper<
     std::cout << "******* [DEBUG] Satisfiability result: " << is_valid_witness
               << " *******" << std::endl;
 
-    proofT<ppT> proof = libzeth::gen_proof<ppT>(pb, proving_key);
+    ProofT<ppT> proof = libzeth::generate_proof<ppT>(pb, proving_key);
     libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input =
         pb.primary_input();
 

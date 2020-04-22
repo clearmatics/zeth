@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_COMPUTATION_TCC__
-#define __ZETH_COMPUTATION_TCC__
+#ifndef __ZETH_SNARKS_CORE_COMPUTATION_TCC__
+#define __ZETH_SNARKS_CORE_COMPUTATION_TCC__
 
 namespace libzeth
 {
 
 // Generate the proof and returns a struct {proof, primary_input}
 template<typename ppT>
-libsnark::r1cs_ppzksnark_proof<ppT> gen_proof(
+libsnark::r1cs_ppzksnark_proof<ppT> generate_proof(
     const libsnark::protoboard<libff::Fr<ppT>> &pb,
     const libsnark::r1cs_ppzksnark_proving_key<ppT> &proving_key)
 {
@@ -24,7 +24,7 @@ libsnark::r1cs_ppzksnark_proof<ppT> gen_proof(
 
     // Generate proof from public input, auxiliary input (private/secret data),
     // and proving key
-    proofT<ppT> proof = libsnark::r1cs_ppzksnark_prover(
+    ProofT<ppT> proof = libsnark::r1cs_ppzksnark_prover(
         proving_key, primary_input, auxiliary_input);
 
     return proof;
@@ -32,7 +32,7 @@ libsnark::r1cs_ppzksnark_proof<ppT> gen_proof(
 
 // Run the trusted setup and returns a struct {proving_key, verifying_key}
 template<typename ppT>
-libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(
+libsnark::r1cs_ppzksnark_keypair<ppT> generate_setup(
     const libsnark::protoboard<libff::Fr<ppT>> &pb)
 {
     // Generate verification and proving key (Trusted setup) from the R1CS
@@ -56,4 +56,4 @@ bool verify(
 
 } // namespace libzeth
 
-#endif // __ZETH_COMPUTATION_TCC__
+#endif // __ZETH_SNARKS_CORE_COMPUTATION_TCC__

@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/util.hpp"
-
 #include "libzeth/zeth.h"
 
 #include <algorithm>

@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_COMPUTATION_HPP__
-#define __ZETH_COMPUTATION_HPP__
+#ifndef __ZETH_SNARKS_CORE_COMPUTATION_HPP__
+#define __ZETH_SNARKS_CORE_COMPUTATION_HPP__
 
 #include "libzeth/types/extended_proof.hpp"
 
@@ -14,11 +14,11 @@ namespace libzeth
 {
 
 template<typename ppT>
-libsnark::r1cs_ppzksnark_proof<ppT> gen_proof(
+libsnark::r1cs_ppzksnark_proof<ppT> generate_proof(
     const libsnark::protoboard<libff::Fr<ppT>> &pb,
     const libsnark::r1cs_ppzksnark_proving_key<ppT> &proving_key);
 template<typename ppT>
-libsnark::r1cs_ppzksnark_keypair<ppT> gen_trusted_setup(
+libsnark::r1cs_ppzksnark_keypair<ppT> generate_setup(
     const libsnark::protoboard<libff::Fr<ppT>> &pb);
 template<typename ppT>
 bool verify(
@@ -28,4 +28,4 @@ bool verify(
 } // namespace libzeth
 #include "libzeth/snarks/pghr13/core/computation.tcc"
 
-#endif // __ZETH_COMPUTATION_HPP__
+#endif // __ZETH_SNARKS_CORE_COMPUTATION_HPP__
