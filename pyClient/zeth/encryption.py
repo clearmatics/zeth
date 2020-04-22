@@ -88,8 +88,12 @@ InvalidSignature = cryptography_InvalidSignature
 EncryptionSecretKey = NewType('EncryptionSecretKey', object)
 
 
+def generate_encryption_secret_key() -> EncryptionSecretKey:
+    return EncryptionSecretKey(X25519PrivateKey.generate())  # type: ignore
+
+
 def encode_encryption_secret_key(sk: EncryptionSecretKey) -> bytes:
-    return sk.private_bytes(    # type: ignore
+    return sk.private_bytes(  # type: ignore
         Encoding.Raw, PrivateFormat.Raw, NoEncryption())
 
 
@@ -107,13 +111,13 @@ def encryption_secret_key_from_hex(pk_str: str) -> EncryptionSecretKey:
         X25519PrivateKey.from_private_bytes(bytes.fromhex(pk_str)))
 
 
-def generate_encryption_secret_key() -> EncryptionSecretKey:
-    return EncryptionSecretKey(
-        X25519PrivateKey.generate())  # type: ignore
-
-
 # Public key for decryption
 EncryptionPublicKey = NewType('EncryptionPublicKey', object)
+
+
+def get_encryption_public_key(
+        enc_secret: EncryptionSecretKey) -> EncryptionPublicKey:
+    return enc_secret.public_key()  # type: ignore
 
 
 def encode_encryption_public_key(pk: EncryptionPublicKey) -> bytes:
@@ -121,8 +125,7 @@ def encode_encryption_public_key(pk: EncryptionPublicKey) -> bytes:
 
 
 def decode_encryption_public_key(pk_data: bytes) -> EncryptionPublicKey:
-    return EncryptionPublicKey(
-        X25519PublicKey.from_public_bytes(pk_data))
+    return EncryptionPublicKey(X25519PublicKey.from_public_bytes(pk_data))
 
 
 def encryption_public_key_as_hex(pk: EncryptionPublicKey) -> str:
@@ -131,11 +134,6 @@ def encryption_public_key_as_hex(pk: EncryptionPublicKey) -> str:
 
 def encryption_public_key_from_hex(pk_str: str) -> EncryptionPublicKey:
     return decode_encryption_public_key(bytes.fromhex(pk_str))
-
-
-def get_encryption_public_key(
-        enc_secret: EncryptionSecretKey) -> EncryptionPublicKey:
-    return enc_secret.public_key()  # type: ignore
 
 
 class EncryptionKeyPair:
@@ -152,42 +150,6 @@ def generate_encryption_keypair() -> EncryptionKeyPair:
     return EncryptionKeyPair(sk, get_encryption_public_key(sk))
 
 
-def kdf(eph_pk: bytes, shared_key: bytes) -> bytes:
-    """
-    Key derivation function
-    """
-    # Hashing
-    key_material = hashes.Hash(
-        hashes.BLAKE2b(64),
-        backend=default_backend())
-    key_material.update(KDF_TAG)
-    key_material.update(eph_pk)
-    key_material.update(shared_key)
-    digest = key_material.finalize()
-
-    return digest
-
-
-def get_private_key_from_bytes(sk_bytes: bytes) -> EncryptionSecretKey:
-    """
-    Gets PrivateKey object from raw representation
-    """
-    return EncryptionSecretKey(
-        X25519PrivateKey.from_private_bytes(sk_bytes))
-
-
-def get_public_key_from_bytes(pk_bytes: bytes) -> EncryptionPublicKey:
-    """
-    Gets PublicKey object from raw representation
-    """
-    return EncryptionPublicKey(
-        X25519PublicKey.from_public_bytes(pk_bytes))
-
-
-def exchange(sk: EncryptionSecretKey, pk: EncryptionPublicKey) -> bytes:
-    return sk.exchange(pk)  # type: ignore
-
-
 def encrypt(message: bytes, pk_receiver: EncryptionPublicKey) -> bytes:
     """
     Encrypts a string message under a ec25519 public key
@@ -202,11 +164,11 @@ def encrypt(message: bytes, pk_receiver: EncryptionPublicKey) -> bytes:
     eph_keypair = generate_encryption_keypair()
 
     # Compute shared secret and eph key
-    shared_key = exchange(eph_keypair.k_sk, pk_receiver)
+    shared_key = _exchange(eph_keypair.k_sk, pk_receiver)
     pk_sender_bytes = encode_encryption_public_key(eph_keypair.k_pk)
 
     # Generate key material
-    key_material = kdf(pk_sender_bytes, shared_key)
+    key_material = _kdf(pk_sender_bytes, shared_key)
 
     # Generate symmetric ciphertext
     # Chacha encryption
@@ -244,10 +206,10 @@ def decrypt(
     # Compute shared secret
     pk_sender_bytes = encrypted_message[:_PK_BYTE_LENGTH]
     pk_sender = decode_encryption_public_key(pk_sender_bytes)
-    shared_key = exchange(sk_receiver, pk_sender)
+    shared_key = _exchange(sk_receiver, pk_sender)
 
     # Generate key material and recover keys
-    key_material = kdf(pk_sender_bytes, shared_key)
+    key_material = _kdf(pk_sender_bytes, shared_key)
     sym_key = key_material[:_SYM_KEY_BYTE_LENGTH]
     mac_key = key_material[_SYM_KEY_BYTE_LENGTH:]
 
@@ -272,3 +234,23 @@ def decrypt(
     message = decryptor.update(ct_sym)
 
     return message
+
+
+def _exchange(sk: EncryptionSecretKey, pk: EncryptionPublicKey) -> bytes:
+    return sk.exchange(pk)  # type: ignore
+
+
+def _kdf(eph_pk: bytes, shared_key: bytes) -> bytes:
+    """
+    Key derivation function
+    """
+    # Hashing
+    key_material = hashes.Hash(
+        hashes.BLAKE2b(64),
+        backend=default_backend())
+    key_material.update(KDF_TAG)
+    key_material.update(eph_pk)
+    key_material.update(shared_key)
+    digest = key_material.finalize()
+
+    return digest
