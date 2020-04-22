@@ -224,7 +224,7 @@ set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
 set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
 
 # By default, compile with all warning flags
-add_compile_options(-Wall -Wextra -Werror)
+add_compile_options(-Wall -Wextra)
 
 # Add all local subdirecetories
 add_subdirectory(libzeth)
