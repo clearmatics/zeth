@@ -158,7 +158,7 @@ def encrypt(message: bytes, pk_receiver: EncryptionPublicKey) -> bytes:
     """
     assert \
         len(message) == _NOTE_BYTE_LENGTH, \
-        "message byte-length must be equal to: "+str(_NOTE_BYTE_LENGTH)
+        f"expected message length {_NOTE_BYTE_LENGTH}, saw {len(message)}"
 
     # Generate ephemeral keypair
     eph_keypair = generate_encryption_keypair()

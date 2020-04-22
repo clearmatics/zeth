@@ -11,7 +11,7 @@ from zeth.zeth_address import ZethAddressPub, ZethAddress
 from zeth.ownership import OwnershipPublicKey, OwnershipSecretKey, \
     OwnershipKeyPair, ownership_key_as_hex
 from zeth.encryption import \
-    EncryptionPublicKey, EncryptionSecretKey, \
+    EncryptionPublicKey, EncryptionSecretKey, InvalidSignature, \
     generate_encryption_keypair, encrypt, decrypt
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
 import zeth.signing as signing
@@ -102,7 +102,9 @@ def zeth_note_to_bytes(zeth_note_grpc_obj: ZethNote) -> bytes:
     value_bytes = bytes.fromhex(zeth_note_grpc_obj.value)
     rho_bytes = bytes.fromhex(zeth_note_grpc_obj.rho)
     trap_r_bytes = bytes.fromhex(zeth_note_grpc_obj.trap_r)
-    return apk_bytes+value_bytes+rho_bytes+trap_r_bytes
+    note_bytes = apk_bytes+value_bytes+rho_bytes+trap_r_bytes
+    assert len(note_bytes) == (constants.NOTE_LENGTH >> 3)
+    return note_bytes
 
 
 def zeth_note_from_json_dict(parsed_zeth_note: Dict[str, str]) -> ZethNote:
@@ -116,6 +118,10 @@ def zeth_note_from_json_dict(parsed_zeth_note: Dict[str, str]) -> ZethNote:
 
 
 def zeth_note_from_bytes(zeth_note_bytes: bytes) -> ZethNote:
+    if len(zeth_note_bytes) != (constants.NOTE_LENGTH >> 3):
+        raise ValueError(
+            f"note_bytes len {len(zeth_note_bytes)}, "
+            f"(expected {constants.NOTE_LENGTH >> 3})")
     note = ZethNote(
         apk=zeth_note_bytes[:32].hex(),
         value=zeth_note_bytes[32:40].hex(),
@@ -597,7 +603,9 @@ def receive_note(
         return (
             out_ev.commitment,
             zeth_note_from_bytes(plaintext))
-    except Exception:
+    except InvalidSignature:
+        return None
+    except ValueError:
         return None
 
 
@@ -665,9 +673,11 @@ def compute_h_sig(
 
 def trap_r_randomness() -> str:
     """
-    Compute randomness "r" as 48 random bytes
+    Compute randomness "r" as 32 random bytes
     """
-    return bytes(Random.get_random_bytes(32)).hex()
+    assert (constants.TRAPR_LENGTH & 7) == 0
+    trapr_len_bytes = constants.TRAPR_LENGTH >> 3
+    return bytes(Random.get_random_bytes(trapr_len_bytes)).hex()
 
 
 def public_inputs_extract_public_values(
