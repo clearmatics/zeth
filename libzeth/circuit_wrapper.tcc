@@ -37,7 +37,7 @@ keyPairT<ppT> circuit_wrapper<
     // Generate a verification and proving key (trusted setup)
     // and write them in a file
     keyPairT<ppT> keypair = gen_trusted_setup<ppT>(pb);
-    write_setup<ppT>(keypair, this->setup_path);
+    serialize_setup_to_file<ppT>(keypair, this->setup_path);
 
     return keypair;
 }

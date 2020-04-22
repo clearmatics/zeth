@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_EXTENDED_PROOF_HPP__
-#define __ZETH_EXTENDED_PROOF_HPP__
+#ifndef __ZETH_TYPES_EXTENDED_PROOF_HPP__
+#define __ZETH_TYPES_EXTENDED_PROOF_HPP__
 
 #include "libzeth/libsnark_helpers/debug_helpers.hpp"
 #include "libzeth/snarks_alias.hpp"
@@ -41,7 +41,6 @@ public:
 };
 
 } // namespace libzeth
+#include "libzeth/types/extended_proof.tcc"
 
-#include "libzeth/libsnark_helpers/extended_proof.tcc"
-
-#endif
+#endif // __ZETH_TYPES_EXTENDED_PROOF_HPP__

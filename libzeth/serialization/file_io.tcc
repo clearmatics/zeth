@@ -2,16 +2,16 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_LIBSNARK_HELPERS_TCC__
-#define __ZETH_LIBSNARK_HELPERS_TCC__
+#ifndef __ZETH_SERIALIZATION_FILE_IO_TCC__
+#define __ZETH_SERIALIZATION_FILE_IO_TCC__
 
 namespace libzeth
 {
 
-// SerializableT represents any type that overloads the operator<< and
-// operator>> of ostream and istream Note: Both r1cs_ppzksnark_proving_key and
-// r1cs_ppzksnark_verifying_key implement these overloading, so both of them can
-// easily be writen and loaded from files
+/// SerializableT represents any type that overloads the operator<< and
+/// operator>> of ostream and istream Note: Both r1cs_ppzksnark_proving_key and
+/// r1cs_ppzksnark_verifying_key implement these overloading, so both of them can
+/// easily be writen and loaded from files
 template<typename serializableT>
 void write_to_file(boost::filesystem::path path, serializableT &obj)
 {
@@ -86,25 +86,27 @@ verificationKeyT<ppT> deserialize_verification_key_from_file(
 };
 
 template<typename ppT>
-void write_setup(keyPairT<ppT> keypair, boost::filesystem::path setup_dir)
+void serialize_setup_to_file(keyPairT<ppT> keypair, boost::filesystem::path setup_path)
 {
-    if (setup_dir.empty()) {
-        setup_dir = get_path_to_setup_directory();
+    if (setup_path.empty()) {
+        setup_path = get_path_to_setup_directory();
     }
 
     boost::filesystem::path vk_json("vk.json");
     boost::filesystem::path vk_raw("vk.raw");
     boost::filesystem::path pk_raw("pk.raw");
 
-    boost::filesystem::path path_vk_json = setup_dir / vk_json;
-    boost::filesystem::path path_vk_raw = setup_dir / vk_raw;
-    boost::filesystem::path path_pk_raw = setup_dir / pk_raw;
+    boost::filesystem::path path_vk_json = setup_path / vk_json;
+    boost::filesystem::path path_vk_raw = setup_path / vk_raw;
+    boost::filesystem::path path_pk_raw = setup_path / pk_raw;
 
     provingKeyT<ppT> proving_key = keypair.pk;
     verificationKeyT<ppT> verification_key = keypair.vk;
 
+    // Write the verification key in json format
     verification_key_to_json<ppT>(verification_key, path_vk_json);
 
+    // Write the verification and proving keys in raw format
     serialize_verification_key_to_file<ppT>(verification_key, path_vk_raw);
     serialize_proving_key_to_file<ppT>(proving_key, path_pk_raw);
 };
@@ -135,16 +137,16 @@ void fill_stringstream_with_json_constraints(
 
 template<typename ppT>
 void r1cs_to_json(
-    libsnark::protoboard<libff::Fr<ppT>> pb, boost::filesystem::path path)
+    libsnark::protoboard<libff::Fr<ppT>> pb, boost::filesystem::path r1cs_path)
 {
-    if (path.empty()) {
+    if (r1cs_path.empty()) {
         // Used for debugging purpose
         boost::filesystem::path tmp_path = get_path_to_debug_directory();
         boost::filesystem::path r1cs_json_file("r1cs.json");
-        path = tmp_path / r1cs_json_file;
+        r1cs_path = tmp_path / r1cs_json_file;
     }
     // Convert the boost path into char*
-    const char *str_path = path.string().c_str();
+    const char *str_path = r1cs_path.string().c_str();
 
     // output inputs, right now need to compile with debug flag so that the
     // `variable_annotations` exists. Having trouble setting that up so will
@@ -212,4 +214,4 @@ void r1cs_to_json(
 
 } // namespace libzeth
 
-#endif // __ZETH_LIBSNARK_HELPERS_TCC__
+#endif // __ZETH_SERIALIZATION_FILE_IO_TCC__

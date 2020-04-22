@@ -2,11 +2,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_EXTENDED_PROOF_TCC__
-#define __ZETH_EXTENDED_PROOF_TCC__
+#ifndef __ZETH_TYPES_EXTENDED_PROOF_TCC__
+#define __ZETH_TYPES_EXTENDED_PROOF_TCC__
 
-// Snark dependent implementation for generate_trusted_setup() and prove()
-// functions
 #include "libzeth/snarks_core_imports.hpp"
 
 namespace libzeth
@@ -111,4 +109,4 @@ template<typename ppT> void extended_proof<ppT>::dump_proof() const
 
 } // namespace libzeth
 
-#endif // __ZETH_EXTENDED_PROOF_TCC__
+#endif // __ZETH_TYPES_EXTENDED_PROOF_TCC__
