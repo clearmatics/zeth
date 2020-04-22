@@ -5,17 +5,21 @@
 #ifndef __ZETH_CIRCUITS_BLAKE2S_COMP_TCC__
 #define __ZETH_CIRCUITS_BLAKE2S_COMP_TCC__
 
+#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+
 namespace libzeth
 {
 
-// This gadget implements the interface of the HashT template
+/// This gadget implements the interface of the HashT template
 template<typename FieldT>
 BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
     libsnark::protoboard<FieldT> &pb,
+    const libsnark::digest_variable<FieldT> &h,
     const libsnark::block_variable<FieldT> &input_block,
     const libsnark::digest_variable<FieldT> &output,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , h(h)
     , input_block(input_block)
     , output(output)
 {
@@ -27,9 +31,24 @@ BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
             FMT(this->annotation_prefix, " block_%zu", i));
     }
 
-    // Setup constants, hash parameters and initialize the state
-    BLAKE2s_256_comp<FieldT>::setup_constants();
-    BLAKE2s_256_comp<FieldT>::setup_h();
+    // Allocate the init state variables and output bytes (before swapping
+    // endianness and appending)
+    for (size_t i = 0; i < 8; i++) {
+        h_array[i].allocate(
+            this->pb,
+            BLAKE2s_word_size,
+            FMT(this->annotation_prefix, " h_%zu", i));
+
+        out_temp[i].allocate(
+            pb,
+            BLAKE2s_word_size,
+            FMT(this->annotation_prefix, " out_temp_%zu", i));
+
+        output_bytes[i].allocate(
+            pb,
+            BLAKE2s_word_size,
+            FMT(this->annotation_prefix, " output_byte_%zu", i));
+    }
 
     // Allocate the state variables
     for (size_t i = 0; i < rounds + 1; i++) {
@@ -47,14 +66,6 @@ BLAKE2s_256_comp<FieldT>::BLAKE2s_256_comp(
                 BLAKE2s_word_size,
                 FMT(this->annotation_prefix, " v_temp_%zu", i * rounds + j));
         }
-    }
-
-    // Allocate output bytes (before swapping endianness and appending)
-    for (size_t i = 0; i < 8; i++) {
-        output_bytes[i].allocate(
-            pb,
-            BLAKE2s_word_size,
-            FMT(this->annotation_prefix, " output_byte_%zu", i));
     }
 
     // Set up the g_primitive gadgets used in the compression function
@@ -78,17 +89,18 @@ void BLAKE2s_256_comp<FieldT>::generate_r1cs_constraints(
     }
 };
 
-template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
+template<typename FieldT>
+void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness(
+    size_t len_byte_total, bool is_last_block)
 {
     // Format two 256-bit long big endian inputs into one 512 long little endian
     // input (with padding if necessary)
     size_t input_size = input_block.bits.size();
     // We do not use block_size because the value might not be entered
-    // (c.f. block_variable<FieldT>::block_variable(protoboard<FieldT> &pb,
-    //                                   const
-    //                                   std::vector<pb_variable_array<FieldT>>
-    //                                   &parts, const std::string
-    //                                   &annotation_prefix))
+    // (c.f. block_variable<FieldT>::block_variable(
+    //     protoboard<FieldT> &pb,
+    //     const std::vector<pb_variable_array<FieldT>> &parts,
+    //     const std::string &annotation_prefix))
 
     // Push the block variable in local to be swapped
     std::vector<FieldT> padded_input;
@@ -106,12 +118,13 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
         std::vector<FieldT> temp_vector(
             padded_input.begin() + BLAKE2s_word_size * i,
             padded_input.begin() + BLAKE2s_word_size * (i + 1));
-        std::vector<FieldT> swapped_vector = swap_byte_endianness(temp_vector);
-        block[i].fill_with_field_elements(this->pb, swapped_vector);
+        temp_vector = swap_byte_endianness(temp_vector);
+        block[i].fill_with_field_elements(this->pb, temp_vector);
     }
 
-    BLAKE2s_256_comp<FieldT>::setup_counter(ceil(input_size / 8));
-    BLAKE2s_256_comp<FieldT>::setup_v();
+    BLAKE2s_256_comp<FieldT>::setup_h();
+    BLAKE2s_256_comp<FieldT>::setup_counter(len_byte_total);
+    BLAKE2s_256_comp<FieldT>::setup_v(is_last_block);
 
     for (size_t i = 0; i < rounds; i++) {
         for (auto &gadget : g_arrays[i]) {
@@ -129,15 +142,17 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness()
     // final output
     std::vector<FieldT> output_conversion;
     for (size_t i = 0; i < 8; i++) {
-        std::vector<FieldT> output_conversion_temp;
         std::vector<FieldT> output_byte_value =
             output_bytes[i].get_vals(this->pb);
 
-        output_conversion_temp = swap_byte_endianness(output_byte_value);
+        // We swap to big endian if it is the last call.
+        if (is_last_block) {
+            output_byte_value = swap_byte_endianness(output_byte_value);
+        }
         output_conversion.insert(
             output_conversion.end(),
-            output_conversion_temp.begin(),
-            output_conversion_temp.end());
+            output_byte_value.begin(),
+            output_byte_value.end());
     }
 
     output.bits.fill_with_field_elements(this->pb, output_conversion);
@@ -158,7 +173,7 @@ size_t BLAKE2s_256_comp<FieldT>::expected_constraints(
     const bool ensure_output_bitness)
 {
     libff::UNUSED(ensure_output_bitness);
-    return 21216;
+    return 21472;
     // ~38.89% of sha256_ethereum
 }
 

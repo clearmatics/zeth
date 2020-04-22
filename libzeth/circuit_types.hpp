@@ -6,7 +6,7 @@
 #define __ZETH_CIRCUIT_TYPES_HPP__
 
 #include "libzeth/circuit_wrapper.hpp"
-#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/include_libsnark.hpp"
 
 // Types that must be common across all executable, defined once here. Outside
@@ -23,7 +23,7 @@ using ppT = libff::default_ec_pp;
 using FieldT = libff::Fr<ppT>;
 
 // Hash used for the commitments and PRFs
-using HashT = BLAKE2s_256_comp<FieldT>;
+using HashT = BLAKE2s_256<FieldT>;
 
 // Hash function to be used in the Merkle Tree
 using HashTreeT = MiMC_mp_gadget<FieldT>;

@@ -11,7 +11,7 @@
 #include "libzeth/types/merkle_tree_field.hpp"
 
 // Header to use the blake2s gadget
-#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/circuits/blake2s/blake2s.hpp"
 
 // Access the `from_bits` function and other utils
 #include "libzeth/circuits/circuits_utils.hpp"
@@ -35,7 +35,7 @@ typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
 
 // We use our hash functions to do the tests
-typedef BLAKE2s_256_comp<FieldT> HashT;
+typedef BLAKE2s_256<FieldT> HashT;
 typedef MiMC_mp_gadget<FieldT> HashTreeT;
 static const size_t TreeDepth = 4;
 
@@ -51,9 +51,8 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
 
     libff::enter_block(
         "Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
-    bits384 trap_r_bits384 = hex_value_to_bits384(
-        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
-        "000000000000FF00000000000000FF");
+    bits256 trap_r_bits256 = hex_digest_to_bits256(
+        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
     bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
     bits256 a_sk_bits256 = hex_digest_to_bits256(
         "FF0000000000000000000000000000000000000000000000000000000000000F");
@@ -66,14 +65,14 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // 0xCFF0000000000000000000000000000000000000000000000000000000000000
     // 0^256 =
     // 0x0000000000000000000000000000000000000000000000000000000000000000
-    // a_pk = blake2sCompress( 1100 || [a_sk]_252 || 0^256)
+    // a_pk = blake2s( 1100 || [a_sk]_252 || 0^256)
     // Generated directly from a_sk and hashlib blake2s
     bits256 a_pk_bits256 = hex_digest_to_bits256(
         "f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49");
 
     // Get nf from a_sk and rho (PRF)
     //
-    // nf = blake2sCompress( 1110 || [a_sk]_252 || rho)
+    // nf = blake2s( 1110 || [a_sk]_252 || rho)
     // 1110 || [a_sk]_252 =
     // 0xEFF0000000000000000000000000000000000000000000000000000000000000
     // rho = FFFF000000000000000000000000000000000000000000000000000000009009
@@ -83,11 +82,13 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
 
     // Get the coin's commitment (COMM)
     //
-    // inner_k = blake2sCompress(a_pk || rho)
-    // outer_k = blake2sCompress(r || [inner_commitment]_128)
-    // cm_field = int(blake2sCompress(outer_k || 0^192 || value_v))% r
-    FieldT cm_field = FieldT("9047913389147464750130699723564635396506448356890"
-                             "6678810249472230384841563494");
+    // cm = blake2s(r || a_pk || rho || value_v)
+    // Converted from old hex string
+    // "e672300b3f422966e7cf8ea77e38ef0da595f3933eaf2d698a9859eb3bf674aa"
+    // (big-endian)
+    FieldT cm_field = FieldT("1042337073265819561558789652115525918926201435246"
+                             "16864409706009242461667751082");
+
     libff::leave_block(
         "Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
@@ -145,7 +146,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
 
     // Create a note from the coin's data
-    zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits384);
+    zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);
 
     input_note_g->generate_r1cs_constraints();
     input_note_g->generate_r1cs_witness(path, address_bits, note);
@@ -168,9 +169,8 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
 
     libff::enter_block(
         "Initialize the output coins' data (a_pk, cm, rho)", true);
-    bits384 trap_r_bits384 = hex_value_to_bits384(
-        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
-        "000000000000FF00000000000000FF");
+    bits256 trap_r_bits256 = hex_digest_to_bits256(
+        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
     bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
     bits256 rho_bits256 = hex_digest_to_bits256(
         "FFFF000000000000000000000000000000000000000000000000000000009009");
@@ -179,11 +179,9 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
 
     // Get the coin's commitment (COMM)
     //
-    // inner_k = blake2sCompress(a_pk || rho)
-    // outer_k = blake2sCompress(r || [inner_commitment]_128)
-    // cm = int(blake2sCompress(outer_k || 0^192 || value_v)) % r
-    FieldT cm = FieldT("7347447679663648782381558941340994878602749621591600723"
-                       "22531099530620623139");
+    // cm = blake2s(r || a_pk || rho || value_v)
+    FieldT cm = FieldT("9406909043221549055272426494996854870843153378267758164"
+                       "1552564308222111558638");
     libff::leave_block(
         "Initialize the output coins' data (a_pk, cm, rho)", true);
 
@@ -197,14 +195,14 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
         libff::bit_vector(get_vector_from_bits256(rho_bits256)));
 
     libsnark::pb_variable<FieldT> commitment;
-    commitment.allocate(pb, "commitment");
+    commitment.allocate(pb, " commitment");
+
     std::shared_ptr<output_note_gadget<FieldT, HashT>> output_note_g =
         std::shared_ptr<output_note_gadget<FieldT, HashT>>(
-            new output_note_gadget<FieldT, HashT>(
-                pb, ZERO, rho_digest, commitment));
+            new output_note_gadget<FieldT, HashT>(pb, rho_digest, commitment));
 
     // Create a note from the coin's data
-    zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits384);
+    zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);
 
     output_note_g->generate_r1cs_constraints();
     output_note_g->generate_r1cs_witness(note);

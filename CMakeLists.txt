@@ -122,6 +122,7 @@ if(APPLE)
   # These must be disabled to make dependencies build on macos
   set(WITH_PROCPS OFF)
   set(WITH_SUPERCOP OFF CACHE BOOL "Build libff with supercop")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 
   # (Currently) OpenMP only available with custom llvm compilers
   if(${CMAKE_C_COMPILER} MATCHES ".*cc$")

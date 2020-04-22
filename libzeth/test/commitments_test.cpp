@@ -14,7 +14,7 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 // Header to use the blake2s gadget
-#include "libzeth/circuits/blake2s/blake2s_comp.hpp"
+#include "libzeth/circuits/blake2s/blake2s.hpp"
 
 // Access the `from_bits` function and other utils
 #include "libzeth/circuits/circuits_utils.hpp"
@@ -32,147 +32,10 @@ typedef libff::default_ec_pp ppT;
 typedef libff::Fr<ppT> FieldT;
 
 // We use our hash function to do the tests
-typedef BLAKE2s_256_comp<FieldT> HashT;
+typedef BLAKE2s_256<FieldT> HashT;
 
 namespace
 {
-
-TEST(TestCOMMs, TestGet128bits)
-{
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
-
-    // hex: 0xF00000000000000000000000000000000000000000000000000000000000000F
-    libsnark::pb_variable_array<FieldT> input = from_bits(
-        {
-            1, 1, 1, 1, 0, 0, 0, 0, // 1,1,1,1,0,0,0,0
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 1, 1, 1, 1, // 0,0,0,0,1,1,1,1
-        },
-        ZERO);
-
-    // hex: 0xF0000000000000000000000000000000
-    libsnark::pb_variable_array<FieldT> expected = from_bits(
-        {
-            1, 1, 1, 1, 0, 0, 0, 0, // 1,1,1,1,0,0,0,0
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0  //
-        },
-        ZERO);
-
-    libsnark::pb_variable_array<FieldT> result = get128bits<FieldT>(input);
-    ASSERT_EQ(result.get_bits(pb), expected.get_bits(pb));
-};
-
-TEST(TestCOMMs, TestGetRightSideCMCOMM)
-{
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
-
-    // 64 bits
-    // hex: 0xF000000000000000
-    libsnark::pb_variable_array<FieldT> input_value = from_bits(
-        {
-            1, 1, 1, 1, 0, 0, 0, 0, // 1,1,1,1,0,0,0,0
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0  //
-        },
-        ZERO);
-
-    // 192 zero bits
-    // hex: 0x000000000000000000000000000000000000000000000000 F000000000000000
-    libsnark::pb_variable_array<FieldT> expected = from_bits(
-        {
-            0, 0, 0, 0, 0, 0, 0, 0, // 192 zero bits
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 0, 0, 0, 0, // 64 bits of the value
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0  //
-        },
-        ZERO);
-
-    libsnark::pb_variable_array<FieldT> result =
-        getRightSideCMCOMM<FieldT>(ZERO, input_value);
-    ASSERT_EQ(result.get_bits(pb), expected.get_bits(pb));
-};
 
 TEST(TestCOMMs, TestCOMMGadget)
 {
@@ -181,9 +44,8 @@ TEST(TestCOMMs, TestCOMMGadget)
     ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
-    bits384 trap_r_bits384 = hex_value_to_bits384(
-        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF00"
-        "000000000000FF00000000000000FF");
+    bits256 trap_r_bits256 = hex_digest_to_bits256(
+        "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
     bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
     bits256 rho_bits256 =
         hex_digest_to_bits256("FFFF000000000000000000000000000000"
@@ -191,8 +53,8 @@ TEST(TestCOMMs, TestCOMMGadget)
     bits256 a_pk_bits256 =
         hex_digest_to_bits256("5c36fea42b82800d74304aa4f875142b42"
                               "1b4f2847e7c41c1077fbbcfd63f886");
-    FieldT cm_field = FieldT("2155258442620509676458556185366050817769574716974"
-                             "5897618121094192716929220955");
+    FieldT cm = FieldT("5198426621382268363215668966254183876371659610992196341"
+                       "1853437166529959660400");
 
     // hex: 0xAF000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_pk;
@@ -205,25 +67,27 @@ TEST(TestCOMMs, TestCOMMGadget)
 
     libsnark::pb_variable_array<FieldT> r;
     r.allocate(pb, ZETH_R_SIZE, "r");
-    r.fill_with_bits(pb, get_vector_from_bits384(trap_r_bits384));
+    r.fill_with_bits(pb, get_vector_from_bits256(trap_r_bits256));
 
     libsnark::pb_variable_array<FieldT> v;
     v.allocate(pb, ZETH_V_SIZE, "v");
     v.fill_with_bits(pb, get_vector_from_bits64(value_bits64));
 
     libsnark::pb_variable<FieldT> result;
-    result.allocate(pb, " result");
+    result.allocate(pb, "result");
 
     std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> comm_cm_gadget;
     comm_cm_gadget.reset(
-        new COMM_cm_gadget<FieldT, HashT>(pb, ZERO, a_pk, rho, r, v, result));
+        new COMM_cm_gadget<FieldT, HashT>(pb, a_pk, rho, r, v, result));
+
     comm_cm_gadget->generate_r1cs_constraints();
+
     comm_cm_gadget->generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
 
-    ASSERT_EQ(pb.val(result), cm_field);
+    ASSERT_EQ(pb.val(result), cm);
 };
 
 } // namespace
