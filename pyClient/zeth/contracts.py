@@ -10,11 +10,9 @@ from zeth.encryption import EncryptionPublicKey, encode_encryption_public_key, \
 from zeth.signing import SigningVerificationKey, Signature, \
     verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
     signature_as_mix_parameter, signature_from_mix_parameter
-from zeth.zksnark import IZKSnarkProvider, GenericProof, GenericVerificationKey
-from zeth.utils import get_contracts_dir, hex_to_int
+from zeth.zksnark import IZKSnarkProvider, GenericProof
+from zeth.utils import EtherValue, hex_to_int
 from zeth.constants import SOL_COMPILER_VERSION
-
-import os
 import json
 import solcx
 import traceback
@@ -134,11 +132,60 @@ class InstanceDescription:
         return InstanceDescription(desc_json["address"], desc_json["abi"])
 
     @staticmethod
-    def from_instance(instance: Any) -> InstanceDescription:
+    def deploy(
+            web3: Any,
+            source_file: str,
+            contract_name: str,
+            deployer_address: str,
+            deployment_gas: EtherValue,
+            compiler_flags: Dict[str, Any] = None,
+            **kwargs: Any) -> InstanceDescription:
         """
-        Return the description of an existing deployed contract.
+        Compile and deploy a contract, returning the live instance and an instance
+        description (which the caller should save in order to access the
+        instance in the future).
         """
-        return InstanceDescription(instance.address, instance.abi)
+        compiled = InstanceDescription.compile(
+            source_file, contract_name, compiler_flags)
+        assert compiled
+        instance_desc = InstanceDescription.deploy_from_compiled(
+            web3, deployer_address, deployment_gas, compiled, **kwargs)
+        print(
+            f"deploy: contract: {contract_name} "
+            f"to address: {instance_desc.address}")
+        return instance_desc
+
+    @staticmethod
+    def deploy_from_compiled(
+            web3: Any,
+            deployer_address: str,
+            deployment_gas: EtherValue,
+            compiled: Any,
+            **kwargs: Any) -> InstanceDescription:
+        contract = web3.eth.contract(
+            abi=compiled['abi'], bytecode=compiled['bin'])
+        tx_hash = contract.constructor(**kwargs).transact({
+            'from': deployer_address,
+            'gas': deployment_gas.wei
+        })
+        tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
+        contract_address = tx_receipt['contractAddress']
+        print(
+            f"deploy:   tx_hash={tx_hash[0:8].hex()}, " +
+            f"  gasUsed={tx_receipt.gasUsed}, status={tx_receipt.status}")
+        return InstanceDescription(contract_address, compiled['abi'])
+
+    @staticmethod
+    def compile(
+            source_file: str,
+            contract_name: str,
+            compiler_flags: Dict[str, Any] = None) \
+            -> Any:
+        compiled_all = compile_files([source_file], **(compiler_flags or {}))
+        assert compiled_all
+        compiled = compiled_all[f"{source_file}:{contract_name}"]
+        assert compiled
+        return compiled
 
     def instantiate(self, web3: Any) -> Any:
         """
@@ -155,101 +202,40 @@ def install_sol() -> None:
     solcx.install_solc(SOL_COMPILER_VERSION)
 
 
-def compile_files(files: List[str]) -> Any:
+def compile_files(files: List[str], **kwargs: Any) -> Any:
     """
     Wrapper around solcx which ensures the required version of the compiler is
     used.
     """
     solcx.set_solc_version(SOL_COMPILER_VERSION)
-    return solcx.compile_files(files, optimize=True)
+    return solcx.compile_files(files, optimize=True, **kwargs)
 
 
-def compile_mixer(zksnark: IZKSnarkProvider) -> Interface:
-    contracts_dir = get_contracts_dir()
-    mixer_name = zksnark.get_contract_name()
-    path_to_mixer = os.path.join(contracts_dir, mixer_name + ".sol")
-    compiled_sol = compile_files([path_to_mixer])
-    return compiled_sol[path_to_mixer + ':' + mixer_name]
-
-
-def deploy_mixer(
-        web3: Any,
-        mk_tree_depth: int,
-        mixer_interface: Interface,
-        vk: GenericVerificationKey,
-        deployer_address: str,
-        deployment_gas: int,
-        token_address: str,
-        zksnark: IZKSnarkProvider) -> Any:
+def mix_parameters_as_contract_arguments(
+        zksnark: IZKSnarkProvider,
+        mix_parameters: MixParameters) -> List[Any]:
     """
-    Common function to deploy a mixer contract. Returns the mixer and the
-    initial merkle root of the commitment tree
+    Convert MixParameters to a list of eth ABI objects which can be passed to
+    the contract's mix method.
     """
-    # Deploy the Mixer
-    mixer = web3.eth.contract(
-        abi=mixer_interface['abi'], bytecode=mixer_interface['bin'])
-
-    verification_key_params = zksnark.verification_key_parameters(vk)
-    tx_hash = mixer.constructor(
-        mk_depth=mk_tree_depth,
-        token=token_address,
-        **verification_key_params
-    ).transact({'from': deployer_address, 'gas': deployment_gas})
-    # Get tx receipt to get Mixer contract address
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    mixer_address = tx_receipt['contractAddress']
-    gas_used = tx_receipt.gasUsed
-    status = tx_receipt.status
-    print(f"{tx_hash[0:8]}: gasUsed={gas_used}, status={status}")
-    # Get the mixer contract instance
-    return web3.eth.contract(
-        address=mixer_address,
-        abi=mixer_interface['abi']
-    )
-
-
-def deploy_tree_contract(
-        web3: Any,
-        interface: Interface,
-        depth: int,
-        hasher_address: str,
-        account: str) -> Any:
-    """
-    Deploy tree contract
-    """
-    contract = web3.eth.contract(abi=interface['abi'], bytecode=interface['bin'])
-    tx_hash = contract \
-        .constructor(hasher_address, depth) \
-        .transact({'from': account})
-    # Get tx receipt to get Mixer contract address
-    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
-    address = tx_receipt['contractAddress']
-    # Get the mixer contract instance
-    instance = web3.eth.contract(
-        address=address,
-        abi=interface['abi']
-    )
-    return instance
+    proof_params: List[Any] = zksnark.mixer_proof_parameters(
+        mix_parameters.extended_proof)
+    proof_params.extend([
+        verification_key_as_mix_parameter(mix_parameters.signature_vk),
+        signature_as_mix_parameter(mix_parameters.signature),
+        hex_to_int(mix_parameters.extended_proof["inputs"]),
+        encode_encryption_public_key(mix_parameters.pk_sender),
+        mix_parameters.ciphertexts
+    ])
+    return proof_params
 
 
 def _create_web3_mixer_call(
         zksnark: IZKSnarkProvider,
         mixer_instance: Any,
         mix_parameters: MixParameters) -> Any:
-    # Convert all params to the correct form for calling the mix method.
-    proof_param = zksnark.mixer_proof_parameters(mix_parameters.extended_proof)
-    proof_inputs_param = hex_to_int(mix_parameters.extended_proof["inputs"])
-    vk_param = verification_key_as_mix_parameter(mix_parameters.signature_vk)
-    signature_param = signature_as_mix_parameter(mix_parameters.signature)
-    pk_sender_param = encode_encryption_public_key(mix_parameters.pk_sender)
-    ciphertexts_param = mix_parameters.ciphertexts
-    return mixer_instance.functions.mix(
-        *proof_param,
-        vk_param,
-        signature_param,
-        proof_inputs_param,
-        pk_sender_param,
-        ciphertexts_param)
+    mix_params_eth = mix_parameters_as_contract_arguments(zksnark, mix_parameters)
+    return mixer_instance.functions.mix(*mix_params_eth)
 
 
 def mix_call(

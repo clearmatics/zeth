@@ -16,8 +16,9 @@
       "error",
       "unix"
     ],
-    "security/no-inline-assembly": 0,
     "max-len": [ "error", 82 ],
+    "security/no-inline-assembly": 0,
+    "security/no-call-value": 0,
     "operator-whitespace": 0
   }
 }

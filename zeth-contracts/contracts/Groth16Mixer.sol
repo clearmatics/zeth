@@ -7,6 +7,7 @@ pragma experimental ABIEncoderV2;
 
 import "./OTSchnorrVerifier.sol";
 import "./BaseMixer.sol";
+import "./Pairing.sol";
 
 contract Groth16Mixer is BaseMixer {
 
@@ -67,9 +68,7 @@ contract Groth16Mixer is BaseMixer {
         }
     }
 
-    // This function allows to mix coins and execute payments in zero
-    // knowledge.  The nb of ciphertexts depends on the JS description (Here 2
-    // inputs)
+    // This function mixes coins and executes payments in zero knowledge.
     function mix(
         uint256[2] memory a,
         uint256[4] memory b,
@@ -117,21 +116,21 @@ contract Groth16Mixer is BaseMixer {
         bytes32[jsOut] memory commitments;
         assemble_commitments_and_append_to_state(input, commitments);
 
-        // 4. Get the public values in Wei and modify the state depending on
-        // their values
-        process_public_values(input);
-
-        // 5. Add the new root to the list of existing roots and emit it
+        // 4. Add the new root to the list of existing roots
         bytes32 new_merkle_root = recomputeRoot(jsOut);
         add_merkle_root(new_merkle_root);
 
-        // 6. Emit the all Mix data
+        // 5. Emit the all Mix data
         emit LogMix(
             new_merkle_root,
             nullifiers,
             pk_sender,
             commitments,
             ciphertexts);
+
+        // 6. Get the public values in Wei and modify the state depending on
+        // their values
+        process_public_values(input);
     }
 
     function verify(uint256[] memory input, Proof memory proof)

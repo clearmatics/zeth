@@ -6,7 +6,6 @@ from commands.constants import INSTANCE_FILE_DEFAULT
 from commands.utils import \
     open_web3_from_ctx, get_erc20_instance_description, load_eth_address, \
     write_mixer_description, MixerDescription
-from zeth.contracts import InstanceDescription
 from zeth.mixer_client import MixerClient
 from zeth.utils import EtherValue
 from click import Context, command, option, pass_context
@@ -43,14 +42,12 @@ def deploy(
     token_instance_desc = get_erc20_instance_description(token_address) \
         if token_address else None
 
-    zeth_client = MixerClient.deploy(
+    _zeth_client, mixer_instance_desc = MixerClient.deploy(
         web3,
         client_ctx.prover_server_endpoint,
         eth_address,
         token_address,
         deploy_gas_value)
 
-    mixer_instance_desc = \
-        InstanceDescription.from_instance(zeth_client.mixer_instance)
     mixer_desc = MixerDescription(mixer_instance_desc, token_instance_desc)
     write_mixer_description(instance_out, mixer_desc)

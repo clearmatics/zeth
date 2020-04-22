@@ -50,7 +50,7 @@ def main() -> None:
 
     # Deploy Zeth contracts
     tree_depth = zeth.constants.ZETH_MERKLE_TREE_DEPTH
-    zeth_client = MixerClient.deploy(
+    zeth_client, _contract_desc = MixerClient.deploy(
         web3,
         mock.TEST_PROVER_SERVER_ENDPOINT,
         deployer_eth_address,
@@ -181,12 +181,14 @@ def main() -> None:
 
     input_charlie_withdraw = notes_charlie[0]
 
+    charlie_balance_before_withdrawal = eth.getBalance(charlie_eth_address)
     _ = scenario.charlie_withdraw(
         zeth_client,
         mk_tree,
         input_charlie_withdraw.as_input(),
         charlie_eth_address,
         keystore)
+    charlie_balance_after_withdrawal = eth.getBalance(charlie_eth_address)
     print("Balances after Charlie's withdrawal: ")
     print_balances(
         web3,
@@ -194,6 +196,8 @@ def main() -> None:
         alice_eth_address,
         charlie_eth_address,
         zeth_client.mixer_instance.address)
+    if charlie_balance_after_withdrawal <= charlie_balance_before_withdrawal:
+        raise Exception("Charlie's balance did not increase after withdrawal")
 
     # Charlie tries to double-spend by withdrawing twice the same note
     result_double_spending = None
