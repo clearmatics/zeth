@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package prover_proto;
+package zeth_proto;
 
 import "api/ec_group_messages.proto";
 

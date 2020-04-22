@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package prover_proto;
+package zeth_proto;
 
 // Every point coordinate (ie: base field element)
 // is treated as an hexadecimal string.

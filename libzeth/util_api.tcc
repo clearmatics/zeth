@@ -17,7 +17,7 @@ template<typename FieldT> FieldT parse_merkle_node(std::string mk_node)
 
 template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
-    const prover_proto::JoinsplitInput &input)
+    const zeth_proto::JoinsplitInput &input)
 {
     if (TreeDepth != input.merkle_path_size()) {
         throw std::invalid_argument("Invalid merkle path length");
@@ -46,7 +46,7 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
 }
 
 template<typename ppT>
-prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
+zeth_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
     const libff::G1<ppT> &point)
 {
     libff::G1<ppT> aff = point;
@@ -56,7 +56,7 @@ prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
     std::string y_coord =
         "0x" + hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.as_bigint());
 
-    prover_proto::HexPointBaseGroup1Affine res;
+    zeth_proto::HexPointBaseGroup1Affine res;
     res.set_x_coord(x_coord);
     res.set_y_coord(y_coord);
 
@@ -64,7 +64,7 @@ prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
 }
 
 template<typename ppT>
-prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
+zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     const libff::G2<ppT> &point)
 {
     libff::G2<ppT> aff = point;
@@ -78,7 +78,7 @@ prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     std::string y_c0_coord =
         "0x" + hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.c0.as_bigint());
 
-    prover_proto::HexPointBaseGroup2Affine res;
+    zeth_proto::HexPointBaseGroup2Affine res;
     res.set_x_c0_coord(x_c0_coord);
     res.set_x_c1_coord(x_c1_coord);
     res.set_y_c0_coord(y_c0_coord);
@@ -110,7 +110,7 @@ std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs)
 /// Parse points in affine coordinates
 template<typename ppT>
 libff::G1<ppT> parse_hexPointBaseGroup1Affine(
-    const prover_proto::HexPointBaseGroup1Affine &point)
+    const zeth_proto::HexPointBaseGroup1Affine &point)
 {
     libff::Fq<ppT> x_coordinate =
         hexadecimal_str_to_field_element<libff::Fq<ppT>>(point.x_coord());
@@ -125,7 +125,7 @@ libff::G1<ppT> parse_hexPointBaseGroup1Affine(
 /// Parse points in affine coordinates
 template<typename ppT>
 libff::G2<ppT> parse_hexPointBaseGroup2Affine(
-    const prover_proto::HexPointBaseGroup2Affine &point)
+    const zeth_proto::HexPointBaseGroup2Affine &point)
 {
     libff::Fq<ppT> x_c1 =
         hexadecimal_str_to_field_element<libff::Fq<ppT>>(point.x_c1_coord());
@@ -177,9 +177,9 @@ std::vector<libff::Fr<ppT>> parse_str_primary_inputs(std::string input_str)
 
 template<typename ppT>
 libzeth::extended_proof<ppT> parse_groth16_extended_proof(
-    const prover_proto::ExtendedProof &ext_proof)
+    const zeth_proto::ExtendedProof &ext_proof)
 {
-    const prover_proto::ExtendedProofGROTH16 &e_proof =
+    const zeth_proto::ExtendedProofGROTH16 &e_proof =
         ext_proof.groth16_extended_proof();
     // G1
     libff::G1<ppT> a = parse_hexPointBaseGroup1Affine<ppT>(e_proof.a());
@@ -201,9 +201,9 @@ libzeth::extended_proof<ppT> parse_groth16_extended_proof(
 
 template<typename ppT>
 libzeth::extended_proof<ppT> parse_pghr13_extended_proof(
-    const prover_proto::ExtendedProof &ext_proof)
+    const zeth_proto::ExtendedProof &ext_proof)
 {
-    const prover_proto::ExtendedProofPGHR13 &e_proof =
+    const zeth_proto::ExtendedProofPGHR13 &e_proof =
         ext_proof.pghr13_extended_proof();
 
     libff::G1<ppT> a = parse_hexPointBaseGroup1Affine<ppT>(e_proof.a());
@@ -237,7 +237,7 @@ libzeth::extended_proof<ppT> parse_pghr13_extended_proof(
 
 template<typename ppT>
 libzeth::extended_proof<ppT> parse_extended_proof(
-    const prover_proto::ExtendedProof &ext_proof)
+    const zeth_proto::ExtendedProof &ext_proof)
 {
 #ifdef ZKSNARK_PGHR13
     return parse_pghr13_extended_proof<ppT>(ext_proof);
@@ -298,11 +298,11 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
     for (size_t i = 2; i < res.size(); i += 2) {
         // TODO:
         // This is BAD => this code is a duplicate of the function
-        // `hexadecimal_str_to_field_element` Let's re-use the content of the
-        // function `hexadecimal_str_to_field_element` here. To do this properly
-        // this means that we need to modify the type of `abc_g1` in the proto
-        // file to be a repeated G1 element (and not a string) Likewise for the
-        // inputs which should be changed to repeated field elements
+        // `hexadecimal_str_to_field_element` Let's re-use the content of the function
+        // `hexadecimal_str_to_field_element` here. To do this properly this means that
+        // we need to modify the type of `abc_g1` in the proto file to be a
+        // repeated G1 element (and not a string) Likewise for the inputs which
+        // should be changed to repeated field elements
         libff::Fq<ppT> x_coordinate =
             hexadecimal_str_to_field_element<libff::Fq<ppT>>(res[i]);
         libff::Fq<ppT> y_coordinate =
@@ -318,9 +318,9 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
 
 template<typename ppT>
 libsnark::r1cs_gg_ppzksnark_verification_key<ppT> parse_groth16_vk(
-    const prover_proto::VerificationKey &verification_key)
+    const zeth_proto::VerificationKey &verification_key)
 {
-    const prover_proto::VerificationKeyGROTH16 &verif_key =
+    const zeth_proto::VerificationKeyGROTH16 &verif_key =
         verification_key.groth16_verification_key();
     // G1
     libff::G1<ppT> alpha_g1 =
@@ -350,9 +350,9 @@ libsnark::r1cs_gg_ppzksnark_verification_key<ppT> parse_groth16_vk(
 
 template<typename ppT>
 libsnark::r1cs_ppzksnark_verification_key<ppT> parse_pghr13_vk(
-    const prover_proto::VerificationKey &verification_key)
+    const zeth_proto::VerificationKey &verification_key)
 {
-    const prover_proto::VerificationKeyPGHR13 &verif_key =
+    const zeth_proto::VerificationKeyPGHR13 &verif_key =
         verification_key.pghr13_verification_key();
     // G2
     libff::G2<ppT> a = parse_hexPointBaseGroup2Affine<ppT>(verif_key.a());
@@ -383,7 +383,7 @@ libsnark::r1cs_ppzksnark_verification_key<ppT> parse_pghr13_vk(
 
 template<typename ppT>
 libzeth::verificationKeyT<ppT> parse_verification_key(
-    const prover_proto::VerificationKey &verification_key)
+    const zeth_proto::VerificationKey &verification_key)
 {
 #ifdef ZKSNARK_PGHR13
     return parse_pghr13_vk<ppT>(verification_key);

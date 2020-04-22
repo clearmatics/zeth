@@ -10,26 +10,26 @@ namespace libzeth
 
 template<typename ppT>
 void prepare_proof_response(
-    extended_proof<ppT> &ext_proof, prover_proto::ExtendedProof *message)
+    extended_proof<ppT> &ext_proof, zeth_proto::ExtendedProof *message)
 {
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
 
-    prover_proto::HexPointBaseGroup1Affine *a =
-        new prover_proto::HexPointBaseGroup1Affine();
-    prover_proto::HexPointBaseGroup1Affine *a_p =
-        new prover_proto::HexPointBaseGroup1Affine();
-    prover_proto::HexPointBaseGroup2Affine *b =
-        new prover_proto::HexPointBaseGroup2Affine(); // in G2
-    prover_proto::HexPointBaseGroup1Affine *b_p =
-        new prover_proto::HexPointBaseGroup1Affine();
-    prover_proto::HexPointBaseGroup1Affine *c =
-        new prover_proto::HexPointBaseGroup1Affine();
-    prover_proto::HexPointBaseGroup1Affine *c_p =
-        new prover_proto::HexPointBaseGroup1Affine();
-    prover_proto::HexPointBaseGroup1Affine *h =
-        new prover_proto::HexPointBaseGroup1Affine();
-    prover_proto::HexPointBaseGroup1Affine *k =
-        new prover_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *a =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *a_p =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup2Affine *b =
+        new zeth_proto::HexPointBaseGroup2Affine(); // in G2
+    zeth_proto::HexPointBaseGroup1Affine *b_p =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *c =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *c_p =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *h =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *k =
+        new zeth_proto::HexPointBaseGroup1Affine();
 
     a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A.g));
     a_p->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A.h));
@@ -49,7 +49,7 @@ void prepare_proof_response(
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    prover_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
+    zeth_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
         message->mutable_pghr13_extended_proof();
 
     grpc_extended_pghr13_proof_obj->set_allocated_a(a);
@@ -66,22 +66,22 @@ void prepare_proof_response(
 template<typename ppT>
 void prepare_verification_key_response(
     libsnark::r1cs_ppzksnark_verification_key<ppT> &vk,
-    prover_proto::VerificationKey *message)
+    zeth_proto::VerificationKey *message)
 {
-    prover_proto::HexPointBaseGroup2Affine *a =
-        new prover_proto::HexPointBaseGroup2Affine(); // in G2
-    prover_proto::HexPointBaseGroup1Affine *b =
-        new prover_proto::HexPointBaseGroup1Affine(); // in G1
-    prover_proto::HexPointBaseGroup2Affine *c =
-        new prover_proto::HexPointBaseGroup2Affine(); // in G2
-    prover_proto::HexPointBaseGroup2Affine *g =
-        new prover_proto::HexPointBaseGroup2Affine(); // in G2
-    prover_proto::HexPointBaseGroup1Affine *gb1 =
-        new prover_proto::HexPointBaseGroup1Affine(); // in G1
-    prover_proto::HexPointBaseGroup2Affine *gb2 =
-        new prover_proto::HexPointBaseGroup2Affine(); // in G2
-    prover_proto::HexPointBaseGroup2Affine *z =
-        new prover_proto::HexPointBaseGroup2Affine(); // in G2
+    zeth_proto::HexPointBaseGroup2Affine *a =
+        new zeth_proto::HexPointBaseGroup2Affine(); // in G2
+    zeth_proto::HexPointBaseGroup1Affine *b =
+        new zeth_proto::HexPointBaseGroup1Affine(); // in G1
+    zeth_proto::HexPointBaseGroup2Affine *c =
+        new zeth_proto::HexPointBaseGroup2Affine(); // in G2
+    zeth_proto::HexPointBaseGroup2Affine *g =
+        new zeth_proto::HexPointBaseGroup2Affine(); // in G2
+    zeth_proto::HexPointBaseGroup1Affine *gb1 =
+        new zeth_proto::HexPointBaseGroup1Affine(); // in G1
+    zeth_proto::HexPointBaseGroup2Affine *gb2 =
+        new zeth_proto::HexPointBaseGroup2Affine(); // in G2
+    zeth_proto::HexPointBaseGroup2Affine *z =
+        new zeth_proto::HexPointBaseGroup2Affine(); // in G2
 
     a->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(vk.alphaA_g2)); // in G2
     b->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(vk.alphaB_g1)); // in G1
@@ -107,7 +107,7 @@ void prepare_verification_key_response(
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    prover_proto::VerificationKeyPGHR13 *grpc_verification_key_pghr13 =
+    zeth_proto::VerificationKeyPGHR13 *grpc_verification_key_pghr13 =
         message->mutable_pghr13_verification_key();
 
     grpc_verification_key_pghr13->set_allocated_a(a);
