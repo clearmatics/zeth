@@ -6,7 +6,8 @@
 
 import grpc  # type: ignore
 from google.protobuf import empty_pb2
-from api import prover_pb2  # type: ignore
+from api.zeth_messages_pb2 import ProofInputs
+from api.snark_messages_pb2 import VerificationKey, ExtendedProof
 from api import prover_pb2_grpc  # type: ignore
 
 
@@ -14,7 +15,7 @@ class ProverClient:
     def __init__(self, endpoint: str):
         self.endpoint = endpoint
 
-    def get_verification_key(self) -> prover_pb2.VerificationKey:
+    def get_verification_key(self) -> VerificationKey:
         """
         Fetch the verification key from the proving service
         """
@@ -26,7 +27,7 @@ class ProverClient:
 
     def get_proof(
             self,
-            proof_inputs: prover_pb2.ProofInputs) -> prover_pb2.ExtendedProof:
+            proof_inputs: ProofInputs) -> ExtendedProof:
         """
         Request a proof generation to the proving service
         """

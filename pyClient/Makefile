@@ -14,7 +14,9 @@ PROTOBUF_OUTPUT := \
   api/prover_pb2.py api/prover_pb2_grpc.py \
   api/pghr13_messages_pb2.py api/pghr13_messages_pb2_grpc.py \
   api/groth16_messages_pb2.py api/groth16_messages_pb2_grpc.py \
-  api/util_pb2.py api/util_pb2_grpc.py
+  api/ec_group_messages_pb2.py api/ec_group_messages_pb2_grpc.py \
+  api/snark_messages_pb2.py api/snark_messages_pb2_grpc.py \
+  api/zeth_messages_pb2.py api/zeth_messages_pb2_grpc.py
 
 api/%_pb2.py api/%_pb2_grpc.py: ../api/%.proto
 	python -m grpc_tools.protoc \
