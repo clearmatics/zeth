@@ -6,6 +6,12 @@
 
 from typing import List
 
+"""
+Holds constants used by zeth.  By convention lengths are given in bits as
+`*_LENGTH` and the corresponding `*_LENGTH_BYTES` variable holds the size in
+bytes (where this is meaningful.
+"""
+
 # GROTH16 constants
 GROTH16_ZKSNARK: str = "GROTH16"
 GROTH16_MIXER_CONTRACT: str = "Groth16Mixer"
@@ -18,7 +24,7 @@ PGHR13_MIXER_CONTRACT: str = "Pghr13Mixer"
 VALID_ZKSNARKS: List[str] = [GROTH16_ZKSNARK, PGHR13_ZKSNARK]
 
 # Default zk-snark
-ZKSNARK_DEFAULT = GROTH16_ZKSNARK
+ZKSNARK_DEFAULT: str = GROTH16_ZKSNARK
 
 # Merkle tree depth
 ZETH_MERKLE_TREE_DEPTH: int = 32
@@ -48,14 +54,26 @@ DIGEST_LENGTH: int = 256
 
 # Public value length (v_pub_in and v_pub_out)
 PUBLIC_VALUE_LENGTH: int = 64
+PUBLIC_VALUE_LENGTH_BYTES: int = PUBLIC_VALUE_LENGTH >> 3
+PUBLIC_VALUE_MASK: int = (1 << PUBLIC_VALUE_LENGTH) - 1
 
 # Number of residual bits when encoding digests into field values
-DIGEST_RESIDUAL_BITS = max(0, DIGEST_LENGTH - FIELD_CAPACITY)
+DIGEST_RESIDUAL_BITS: int = max(0, DIGEST_LENGTH - FIELD_CAPACITY)
 
-# Bits per public value (embedded into the 'residual bits" public input)
-PUBLIC_VALUE_BITS = 64
-PUBLIC_VALUE_BYTES = PUBLIC_VALUE_BITS >> 3
-PUBLIC_VALUE_MASK = (1 << PUBLIC_VALUE_BITS) - 1
+PHI_LENGTH: int = 256
+PHI_LENGTH_BYTES: int = PHI_LENGTH >> 3
+
+APK_LENGTH: int = 256
+APK_LENGTH_BYTES: int = APK_LENGTH >> 3
+
+RHO_LENGTH: int = 256
+RHO_LENGTH_BYTES: int = RHO_LENGTH >> 3
+
+TRAPR_LENGTH: int = 256
+TRAPR_LENGTH_BYTES: int = TRAPR_LENGTH >> 3
+
+NOTE_LENGTH: int = APK_LENGTH + PUBLIC_VALUE_LENGTH + RHO_LENGTH + TRAPR_LENGTH
+NOTE_LENGTH_BYTES: int = NOTE_LENGTH >> 3
 
 # Public inputs are (see BaseMixer.sol):
 #   [0                 ] - 1     x merkle root
@@ -66,34 +84,26 @@ PUBLIC_VALUE_MASK = (1 << PUBLIC_VALUE_BITS) - 1
 #   [2 + jsOut + 2*jsIn] - 1     x residual bits, v_in, v_out
 
 # Index (in public inputs) of residual bits
-RESIDUAL_BITS_INDEX = (2 * JS_INPUTS) + JS_OUTPUTS + 2
+RESIDUAL_BITS_INDEX: int = (2 * JS_INPUTS) + JS_OUTPUTS + 2
 
 # Number of full-length digests to be encoded in public inputs
-NUM_INPUT_DIGESTS = (2 * JS_INPUTS) + 1
+NUM_INPUT_DIGESTS: int = (2 * JS_INPUTS) + 1
 
 # Total number of residual bits corresponding to digests in public inputs
-TOTAL_DIGEST_RESIDUAL_BITS = NUM_INPUT_DIGESTS * DIGEST_RESIDUAL_BITS
+TOTAL_DIGEST_RESIDUAL_BITS: int = NUM_INPUT_DIGESTS * DIGEST_RESIDUAL_BITS
 
 # Solidity compiler version
-SOL_COMPILER_VERSION = 'v0.5.16'
+SOL_COMPILER_VERSION: str = 'v0.5.16'
 
 # Seed for MIMC
 MIMC_MT_SEED: str = "clearmatics_mt_seed"
 
 # Units for vpub_in and vpub_out, given in Wei. i.e.
 #   Value (in Wei) = vpub_{in,out} * ZETH_PUBLIC_UNIT_VALUE
-ZETH_PUBLIC_UNIT_VALUE = 1000000000000  # 1 Szabo (10^12 Wei).
-
-COMMITMENT_VALUE_PADDING = bytes(int(192/8))
+ZETH_PUBLIC_UNIT_VALUE: int = 1000000000000  # 1 Szabo (10^12 Wei).
 
 # Key Derivation Tag "ZethEnc" utf-8 encoding
 KDF_TAG: bytes = b'ZethEnc'
-
-# Note constants
-APK_LENGTH: int = 256
-NOTE_VALUE_LENGTH: int = 64
-RHO_LENGTH: int = 256
-TRAPR_LENGTH: int = 256
 
 # Encryption constants length in bits
 EC_PRIVATE_KEY_LENGTH: int = 256
@@ -103,7 +113,6 @@ MAC_KEY_LENGTH: int = 256
 TAG_LENGTH: int = 128
 KEY_MATERIAL: int = SYM_KEY_LENGTH + MAC_KEY_LENGTH
 SYM_NONCE_LENGTH: int = 128
-NOTE_LENGTH: int = APK_LENGTH + NOTE_VALUE_LENGTH + RHO_LENGTH + TRAPR_LENGTH
 ENCRYPTED_NOTE_LENGTH: int = EC_PUBLIC_KEY_LENGTH + NOTE_LENGTH + TAG_LENGTH
 
 # Encryption constants values
