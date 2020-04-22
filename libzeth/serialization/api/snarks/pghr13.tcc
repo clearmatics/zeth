@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_RESPONSE_TCC__
-#define __ZETH_RESPONSE_TCC__
+#ifndef __ZETH_SERIALIZATION_API_SNARKS_TCC__
+#define __ZETH_SERIALIZATION_API_SNARKS_TCC__
 
 namespace libzeth
 {
 
 template<typename ppT>
-void prepare_proof_response(
+void format_extendedProofPGHR13(
     extended_proof<ppT> &ext_proof, zeth_proto::ExtendedProof *message)
 {
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
@@ -64,7 +64,7 @@ void prepare_proof_response(
 }
 
 template<typename ppT>
-void prepare_verification_key_response(
+void format_verificationKeyPGHR13(
     libsnark::r1cs_ppzksnark_verification_key<ppT> &vk,
     zeth_proto::VerificationKey *message)
 {
@@ -95,10 +95,10 @@ void prepare_verification_key_response(
 
     std::stringstream ss;
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
-    ss << "[[" << point_g1_affine_as_hex<ppT>(vk.encoded_IC_query.first) << "]";
+    ss << "[[" << point_g1_affine_to_hexadecimal_str<ppT>(vk.encoded_IC_query.first) << "]";
     for (size_t i = 1; i < ic_length; ++i) {
         auto vk_ic_i =
-            point_g1_affine_as_hex<ppT>(vk.encoded_IC_query.rest.values[i - 1]);
+            point_g1_affine_to_hexadecimal_str<ppT>(vk.encoded_IC_query.rest.values[i - 1]);
         ss << ",[" << vk_ic_i << "]";
     }
     ss << "]";
@@ -120,6 +120,75 @@ void prepare_verification_key_response(
     grpc_verification_key_pghr13->set_ic(ic_json);
 };
 
+template<typename ppT>
+libzeth::extended_proof<ppT> parse_extendedProofPGHR13(
+    const zeth_proto::ExtendedProof &ext_proof)
+{
+    const zeth_proto::ExtendedProofPGHR13 &e_proof =
+        ext_proof.pghr13_extended_proof();
+
+    libff::G1<ppT> a = parse_hexPointBaseGroup1Affine<ppT>(e_proof.a());
+    libff::G1<ppT> a_p = parse_hexPointBaseGroup1Affine<ppT>(e_proof.a_p());
+    libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>> g_A(a, a_p);
+
+    libff::G2<ppT> b = parse_hexPointBaseGroup2Affine<ppT>(e_proof.b());
+    libff::G1<ppT> b_p = parse_hexPointBaseGroup1Affine<ppT>(e_proof.b_p());
+    libsnark::knowledge_commitment<libff::G2<ppT>, libff::G1<ppT>> g_B(b, b_p);
+
+    libff::G1<ppT> c = parse_hexPointBaseGroup1Affine<ppT>(e_proof.c());
+    libff::G1<ppT> c_p = parse_hexPointBaseGroup1Affine<ppT>(e_proof.c_p());
+    libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>> g_C(c, c_p);
+
+    libff::G1<ppT> h = parse_hexPointBaseGroup1Affine<ppT>(e_proof.h());
+    libff::G1<ppT> k = parse_hexPointBaseGroup1Affine<ppT>(e_proof.k());
+
+    libsnark::r1cs_ppzksnark_proof<ppT> proof(
+        std::move(g_A),
+        std::move(g_B),
+        std::move(g_C),
+        std::move(h),
+        std::move(k));
+    libsnark::r1cs_primary_input<libff::Fr<ppT>> inputs =
+        libsnark::r1cs_primary_input<libff::Fr<ppT>>(
+            parse_str_primary_inputs<ppT>(e_proof.inputs()));
+    libzeth::extended_proof<ppT> res(proof, inputs);
+
+    return res;
+}
+
+template<typename ppT>
+libsnark::r1cs_ppzksnark_verification_key<ppT> parse_verificationKeyPGHR13(
+    const zeth_proto::VerificationKey &verification_key)
+{
+    const zeth_proto::VerificationKeyPGHR13 &verif_key =
+        verification_key.pghr13_verification_key();
+    // G2
+    libff::G2<ppT> a = parse_hexPointBaseGroup2Affine<ppT>(verif_key.a());
+    // G1
+    libff::G1<ppT> b = parse_hexPointBaseGroup1Affine<ppT>(verif_key.b());
+    // G2
+    libff::G2<ppT> c = parse_hexPointBaseGroup2Affine<ppT>(verif_key.c());
+    // G2
+    libff::G1<ppT> gamma =
+        parse_hexPointBaseGroup2Affine<ppT>(verif_key.gamma());
+    // G1
+    libff::G1<ppT> gamma_beta_g1 =
+        parse_hexPointBaseGroup1Affine<ppT>(verif_key.gamma_beta_g1());
+    // G2
+    libff::G2<ppT> gamma_beta_g2 =
+        parse_hexPointBaseGroup2Affine<ppT>(verif_key.gamma_beta_g2());
+    // G2
+    libff::G2<ppT> z = parse_hexPointBaseGroup2Affine<ppT>(verif_key.z());
+
+    libsnark::accumulation_vector<libff::G1<ppT>> ic =
+        parse_str_accumulation_vector<ppT>(verif_key.ic());
+
+    libsnark::r1cs_ppzksnark_verification_key<ppT> vk(
+        a, b, c, gamma, gamma_beta_g1, gamma_beta_g2, z, ic);
+
+    return vk;
+}
+
 } // namespace libzeth
 
-#endif // __ZETH_RESPONSE_TCC__
+#endif // __ZETH_SERIALIZATION_API_SNARKS_TCC__

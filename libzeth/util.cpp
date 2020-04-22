@@ -14,13 +14,12 @@
 namespace libzeth
 {
 
-// Takes an hexadecimal string and converts it into a binary vector
-std::vector<bool> hex_to_binary_vector(std::string hex_str)
+std::vector<bool> hexadecimal_str_to_binary_vector(std::string hex_str)
 {
     std::vector<bool> result;
     std::vector<bool> tmp;
-    std::vector<bool> zero_vector(
-        hex_str.length() * 4, 0); // Each hex character is encoded on 4bits
+    // Each hex character is encoded on 4 bits
+    std::vector<bool> zero_vector(hex_str.length() * 4, 0);
 
     const std::vector<bool> vect0 = {0, 0, 0, 0};
     const std::vector<bool> vect1 = {0, 0, 0, 1};
@@ -117,39 +116,13 @@ std::vector<bool> hex_to_binary_vector(std::string hex_str)
     return result;
 }
 
-// Takes an hexadecimal digest and converts it into a binary vector
-std::vector<bool> hex_digest_to_binary_vector(std::string hex_str)
+std::vector<bool> hexadecimal_digest_to_binary_vector(std::string hex_str)
 {
-    return hex_to_binary_vector(hex_str);
+    return hexadecimal_str_to_binary_vector(hex_str);
 }
 
-bits384 hex_value_to_bits384(std::string str)
-{
-    return get_bits384_from_vector(hex_to_binary_vector(str));
-}
-
-bits256 hex_digest_to_bits256(std::string str)
-{
-    if (str.length() != 64) {
-        throw std::length_error(
-            "Invalid string length for the given hex digest (should be "
-            "64)");
-    }
-
-    return get_bits256_from_vector(hex_to_binary_vector(str));
-}
-
-bits64 hex_value_to_bits64(std::string str)
-{
-    if (str.length() != 16) {
-        throw std::length_error(
-            "Invalid string length for the given hex digest (should be "
-            "16)");
-    }
-
-    return get_bits64_from_vector(hex_to_binary_vector(str));
-}
-
+/// Returns the binary representation of the given
+/// unsigned integer of type `size_t`.
 std::vector<bool> convert_uint_to_binary(size_t x)
 {
     std::vector<bool> ret;
@@ -203,22 +176,6 @@ std::string hexadecimal_str_to_binary_str(const std::string &s)
     return out;
 }
 
-/// Takes an hexadecimal string and converts it to an array of bytes (uint8_t*)
-int hexadecimal_str_to_binary(char *source_str, uint8_t *dest_buffer)
-{
-    char *line = source_str;
-    char *data = line;
-    int offset;
-    int read_byte;
-    int data_len = 0;
-
-    while (sscanf(data, "%02x%n", &read_byte, &offset) == 1) {
-        dest_buffer[data_len++] = read_byte;
-        data += offset;
-    }
-    return data_len;
-}
-
 std::string binary_str_to_hexadecimal_str(const void *s, const size_t size)
 {
     std::string out;
@@ -227,7 +184,6 @@ std::string binary_str_to_hexadecimal_str(const void *s, const size_t size)
     const uint8_t *in = (const uint8_t *)s;
     for (size_t i = 0; i < size; ++i) {
         const uint8_t byte = in[i];
-        // printf("byte: %x\n", (uint32_t)byte);
         out.push_back(nibble_hex(byte >> 4));
         out.push_back(nibble_hex(byte & 0x0f));
     }
@@ -243,12 +199,26 @@ std::string binary_str_to_hexadecimal_str(const std::string &s)
     const uint8_t *in = (const uint8_t *)s.c_str();
     for (size_t i = 0; i < s.size(); ++i) {
         const uint8_t byte = in[i];
-        // printf("byte: %x\n", (int)(int8_t)byte);
         out.push_back(nibble_hex(byte >> 4));
         out.push_back(nibble_hex(byte & 0x0f));
     }
 
     return out;
+}
+
+int hexadecimal_str_to_byte_array(char *source_str, uint8_t *dest_buffer)
+{
+    char *line = source_str;
+    char *data = line;
+    int offset;
+    int read_byte;
+    int data_len = 0;
+
+    while (sscanf(data, "%02x%n", &read_byte, &offset) == 1) {
+        dest_buffer[data_len++] = read_byte;
+        data += offset;
+    }
+    return data_len;
 }
 
 void erase_substring(std::string &string, const std::string &substring)
@@ -258,6 +228,17 @@ void erase_substring(std::string &string, const std::string &substring)
     if (position != std::string::npos) {
         string.erase(position, substring.length());
     }
+}
+
+bool replace(std::string &str, const std::string &from, const std::string &to)
+{
+    size_t start_pos = str.find(from);
+    if (start_pos == std::string::npos) {
+        return false;
+    }
+
+    str.replace(start_pos, from.length(), to);
+    return true;
 }
 
 } // namespace libzeth

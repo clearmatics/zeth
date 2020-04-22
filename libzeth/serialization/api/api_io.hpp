@@ -2,19 +2,23 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_UTIL_API_HPP__
-#define __ZETH_UTIL_API_HPP__
+#ifndef __ZETH_SERIALIZATION_API_IO_HPP__
+#define __ZETH_SERIALIZATION_API_IO_HPP__
 
 #include "api/snark_messages.pb.h"
 #include "api/zeth_messages.pb.h"
-#include "libzeth/libsnark_helpers/debug_helpers.hpp"
-#include "libzeth/libsnark_helpers/extended_proof.hpp"
+
+#include "libzeth/serialization/api/snarks_api_imports.hpp"
+#include "libzeth/types/extended_proof.hpp"
 #include "libzeth/types/bits.hpp"
 #include "libzeth/types/joinsplit.hpp"
 #include "libzeth/types/note.hpp"
 #include "libzeth/util.hpp"
 
 #include <libff/common/default_types/ec_pp.hpp>
+
+/// This set of function allows to consume RPC calls data
+/// and to format zeth data structures into proto messages
 
 namespace libzeth
 {
@@ -28,17 +32,6 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
     const zeth_proto::JoinsplitInput &input);
 
 template<typename ppT>
-zeth_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
-    const libff::G1<ppT> &point);
-
-template<typename ppT>
-zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
-    const libff::G2<ppT> &point);
-
-template<typename ppT>
-std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs);
-
-template<typename ppT>
 libff::G1<ppT> parse_hexPointBaseGroup1Affine(
     const zeth_proto::HexPointBaseGroup1Affine &point);
 
@@ -50,14 +43,6 @@ template<typename ppT>
 std::vector<libff::Fr<ppT>> parse_str_primary_inputs(std::string input_str);
 
 template<typename ppT>
-libzeth::extended_proof<ppT> parse_groth16_extended_proof(
-    const zeth_proto::ExtendedProof &ext_proof);
-
-template<typename ppT>
-libzeth::extended_proof<ppT> parse_pghr13_extended_proof(
-    const zeth_proto::ExtendedProof &ext_proof);
-
-template<typename ppT>
 libzeth::extended_proof<ppT> parse_extended_proof(
     const zeth_proto::ExtendedProof &ext_proof);
 
@@ -66,18 +51,33 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
     std::string acc_vector_str);
 
 template<typename ppT>
-libsnark::r1cs_gg_ppzksnark_verification_key<ppT> parse_groth16_vk(
-    const zeth_proto::VerificationKey &verification_key);
-
-template<typename ppT>
-libsnark::r1cs_ppzksnark_verification_key<ppT> parse_pghr13_vk(
-    const zeth_proto::VerificationKey &verification_key);
-
-template<typename ppT>
 libzeth::verificationKeyT<ppT> parse_verification_key(
     const zeth_proto::VerificationKey &verification_key);
 
-} // namespace libzeth
-#include "libzeth/util_api.tcc"
+template<typename ppT>
+zeth_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
+    const libff::G1<ppT> &point);
 
-#endif // __ZETH_UTIL_API_HPP__
+template<typename ppT>
+zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
+    const libff::G2<ppT> &point);
+
+template<typename ppT>
+std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs);
+
+template<typename ppT>
+void format_extendedProof(
+    extended_proof<ppT> &ext_proof, zeth_proto::ExtendedProof *message);
+
+template<typename ppT>
+std::string format_accumulation_vector(std::vector<libff::Fr<ppT>> acc_vector);
+
+template<typename ppT>
+void format_verificationKey(
+    libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &vk,
+    zeth_proto::VerificationKey *message);
+
+} // namespace libzeth
+#include "libzeth/serialization/api/api_io.tcc"
+
+#endif // __ZETH_SERIALIZATION_API_IO_HPP__

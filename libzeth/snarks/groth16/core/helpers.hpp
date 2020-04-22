@@ -5,7 +5,8 @@
 #ifndef __ZETH_HELPERS_HPP__
 #define __ZETH_HELPERS_HPP__
 
-#include "libzeth/libsnark_helpers/debug_helpers.hpp"
+#include "libzeth/serialization/filesystem_util.hpp"
+#include "libzeth/sciprlab_libs_util.hpp"
 
 #include <boost/filesystem.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>

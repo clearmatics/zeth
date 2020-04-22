@@ -5,8 +5,6 @@
 #ifndef __ZETH_SERIALIZATION_FILE_IO_HPP__
 #define __ZETH_SERIALIZATION_FILE_IO_HPP__
 
-#include "libzeth/libsnark_helpers/debug_helpers.hpp"
-
 #include <boost/filesystem.hpp>
 #include <cassert>
 #include <fstream>
@@ -20,7 +18,7 @@
 
 // Contains required interfaces and types (keypair, proof, generator, prover,
 // verifier)
-#include "libzeth/libsnark_helpers/extended_proof.hpp"
+#include "libzeth/types/extended_proof.hpp"
 #include "libzeth/snarks_alias.hpp"
 #include "libzeth/snarks_core_imports.hpp"
 #include "libzeth/zeth.h"

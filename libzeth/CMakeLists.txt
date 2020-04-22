@@ -40,17 +40,16 @@ file(
   ZETH_SOURCE
   types/**.?pp types/**.tcc
   circuits/**.?pp circuits/**.tcc
+  serialization/**.???
   circuit_wrapper.???
   commitments/**.?pp commitments/**.tcc
-  libsnark_helpers/**.?pp libsnark_helpers/**.tcc
+  sciprlab_libs_util.hpp sciprlab_libs_util.tcc
   snarks/${ZKSNARK_NAME}/core/**.???
-  snarks/${ZKSNARK_NAME}/api/**.???
   # We only implement the MPC for Groth16 for now
   snarks/groth16/mpc/**.???
   snarks_alias.hpp
   include_libsnark.hpp
   util.?pp util.tcc
-  util_api.?pp util_api.tcc
   zeth.h
 )
 add_library(

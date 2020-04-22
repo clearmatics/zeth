@@ -127,7 +127,7 @@ void fill_stringstream_with_json_constraints(
         ss << "\"index\":" << lt.index << ",";
         ss << "\"value\":"
            << "\"0x" +
-                  hex_from_libsnark_bigint<libff::Fr<ppT>>(lt.coeff.as_bigint())
+                  libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(lt.coeff.as_bigint())
            << "\"";
         ss << "}";
         count++;

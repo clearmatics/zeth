@@ -10,8 +10,6 @@
 namespace libzeth
 {
 
-// Takes a containers with a size method and reverse the elements' order
-// The elements should represent bits
 template<typename T> T swap_byte_endianness(T v)
 {
     size_t len = v.size();
@@ -39,8 +37,8 @@ std::vector<bool> address_bits_from_address(size_t address)
     std::vector<bool> binary = convert_uint_to_binary(address);
     std::vector<bool> result(TreeDepth, 0);
 
+    // Address encoded on more bits that the address space allows
     if (binary.size() > TreeDepth) {
-        // Address encoded on more bits that the address space allows
         throw std::invalid_argument("Address overflow");
     }
 
@@ -50,6 +48,7 @@ std::vector<bool> address_bits_from_address(size_t address)
         for (size_t i = 0; i < binary.size(); i++) {
             result[i] = binary[i];
         }
+
         // We return the "back padded" vector
         return result;
     }
@@ -57,28 +56,12 @@ std::vector<bool> address_bits_from_address(size_t address)
     return binary;
 }
 
-/// Function that converts an hexadecimal string into a field element.
-/// This function throws a `invalid_argument` exception if the conversion fails.
-template<typename FieldT>
-FieldT hexadecimal_str_to_field_element(std::string field_str)
+template<typename StructuredT>
+void check_well_formed_(const StructuredT &v, const char *name)
 {
-    // Remove prefix if any
-    erase_substring(field_str, std::string("0x"));
-
-    // 1 byte will be populated by 2 hexadecimal characters
-    uint8_t val[field_str.size() / 2];
-
-    char cstr[field_str.size() + 1];
-    strcpy(cstr, field_str.c_str());
-
-    int res = hexadecimal_str_to_binary(cstr, val);
-    if (res == 0) {
-        throw std::invalid_argument("Invalid hexadecimal string");
+    if (!is_well_formed(v)) {
+        throw std::invalid_argument(std::string(name) + " not well-formed");
     }
-
-    libff::bigint<FieldT::num_limbs> el =
-        libsnark_bigint_from_bytes<FieldT>(val);
-    return FieldT(el);
 }
 
 template<typename StructuredTs>
@@ -97,14 +80,6 @@ template<typename StructuredT>
 void check_well_formed(const StructuredT &v, const char *name)
 {
     if (!v.is_well_formed()) {
-        throw std::invalid_argument(std::string(name) + " not well-formed");
-    }
-}
-
-template<typename StructuredT>
-void check_well_formed_(const StructuredT &v, const char *name)
-{
-    if (!is_well_formed(v)) {
         throw std::invalid_argument(std::string(name) + " not well-formed");
     }
 }

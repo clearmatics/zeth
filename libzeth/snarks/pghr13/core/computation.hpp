@@ -5,7 +5,7 @@
 #ifndef __ZETH_COMPUTATION_HPP__
 #define __ZETH_COMPUTATION_HPP__
 
-#include "libzeth/libsnark_helpers/extended_proof.hpp"
+#include "libzeth/types/extended_proof.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>

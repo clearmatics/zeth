@@ -8,24 +8,24 @@
 #include "libzeth/include_libsnark.hpp"
 #include "libzeth/snarks/groth16/mpc/hash_utils.hpp"
 
-// Structures and operations related to the "Phase 2" MPC described in
-// [BoweGM17].  Parts of the implementation use techniques from the
-// "Phase2" library from "zk-SNARK MPCs, made easy".
-//
-// References:
-//
-// \[BoweGM17]
-//  "Scalable Multi-party Computation for zk-SNARK Parameters in the Random
-//  Beacon Model"
-//  Sean Bowe and Ariel Gabizon and Ian Miers,
-//  IACR Cryptology ePrint Archive 2017,
-//  <http://eprint.iacr.org/2017/1050>
-//
-// "Phase2" (From "zk-SNARK MPCs, made easy" library
-//  https://github.com/ebfull/phase2)
-//
-// "Sapling MPC" ("Multi-party computation for Zcash's Sapling zk-SNARK public
-//  parameters" https://github.com/zcash-hackworks/sapling-mpc)
+/// Structures and operations related to the "Phase 2" MPC described in
+/// [BoweGM17].  Parts of the implementation use techniques from the
+/// "Phase2" library from "zk-SNARK MPCs, made easy".
+///
+/// References:
+///
+/// \[BoweGM17]
+///  "Scalable Multi-party Computation for zk-SNARK Parameters in the Random
+///  Beacon Model"
+///  Sean Bowe and Ariel Gabizon and Ian Miers,
+///  IACR Cryptology ePrint Archive 2017,
+///  <http://eprint.iacr.org/2017/1050>
+///
+/// "Phase2" (From "zk-SNARK MPCs, made easy" library
+///  https://github.com/ebfull/phase2)
+///
+/// "Sapling MPC" ("Multi-party computation for Zcash's Sapling zk-SNARK public
+///  parameters" https://github.com/zcash-hackworks/sapling-mpc)
 namespace libzeth
 {
 

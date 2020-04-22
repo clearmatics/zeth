@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/circuit_types.hpp"
-#include "libzeth/libsnark_helpers/libsnark_helpers.hpp"
+#include "libzeth/serialization/file_io.hpp"
+#include "libzeth/serialization/api_io.hpp"
 #include "libzeth/snarks_alias.hpp"
 #include "libzeth/util.hpp"
-#include "libzeth/util_api.hpp"
 #include "libzeth/zeth.h"
 #include "zethConfig.h"
 
@@ -30,9 +30,6 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "api/prover.grpc.pb.h"
 #pragma GCC diagnostic pop
-
-// Include the API for the given SNARK
-#include "libzeth/snarks_api_imports.hpp"
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
@@ -81,7 +78,7 @@ public:
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            libzeth::prepare_verification_key_response<libzeth::ppT>(
+            libzeth::format_verificationKey<libzeth::ppT>(
                 this->keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
@@ -111,13 +108,13 @@ public:
                 libzeth::hexadecimal_str_to_field_element<libzeth::FieldT>(
                     proof_inputs->mk_root());
             libzeth::bits64 vpub_in =
-                libzeth::hex_value_to_bits64(proof_inputs->pub_in_value());
+                libzeth::get_bits64_from_hexadecimal_str(proof_inputs->pub_in_value());
             libzeth::bits64 vpub_out =
-                libzeth::hex_value_to_bits64(proof_inputs->pub_out_value());
+                libzeth::get_bits64_from_hexadecimal_str(proof_inputs->pub_out_value());
             libzeth::bits256 h_sig_in =
-                libzeth::hex_digest_to_bits256(proof_inputs->h_sig());
+                libzeth::get_bits256_from_hexadecimal_str(proof_inputs->h_sig());
             libzeth::bits256 phi_in =
-                libzeth::hex_digest_to_bits256(proof_inputs->phi());
+                libzeth::get_bits256_from_hexadecimal_str(proof_inputs->phi());
 
             if (libzeth::ZETH_NUM_JS_INPUTS != proof_inputs->js_inputs_size()) {
                 throw std::invalid_argument("Invalid number of JS inputs");
@@ -183,7 +180,7 @@ public:
             ext_proof.dump_primary_inputs();
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
-            libzeth::prepare_proof_response<libzeth::ppT>(ext_proof, proof);
+            libzeth::format_extendedProof<libzeth::ppT>(ext_proof, proof);
 
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;

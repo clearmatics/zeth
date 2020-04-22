@@ -55,7 +55,7 @@ void extended_proof<ppT>::write_primary_input(
        << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < *this->primary_inputs.size(); ++i) {
         ss << "\"0x"
-           << hex_from_libsnark_bigint<libff::Fr<ppT>>(
+           << libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
                   *this->primary_inputs[i].as_bigint())
            << "\"";
         if (i < *this->primary_inputs.size() - 1) {
@@ -78,7 +78,7 @@ template<typename ppT> void extended_proof<ppT>::dump_primary_inputs() const
               << "["; // 1 should always be the first variable passed
     for (size_t i = 0; i < (*this->primary_inputs).size(); ++i) {
         std::cout << "\"0x"
-                  << hex_from_libsnark_bigint<libff::Fr<ppT>>(
+                  << libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
                          (*this->primary_inputs)[i].as_bigint())
                   << "\"";
         if (i < (*this->primary_inputs).size() - 1) {

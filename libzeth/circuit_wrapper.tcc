@@ -5,9 +5,6 @@
 #ifndef __ZETH_CIRCUIT_WRAPPER_TCC__
 #define __ZETH_CIRCUIT_WRAPPER_TCC__
 
-#include "libzeth/snarks_alias.hpp"
-#include "libzeth/zeth.h"
-
 namespace libzeth
 {
 

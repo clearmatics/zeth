@@ -6,12 +6,12 @@
 #define __ZETH_CIRCUIT_WRAPPER_HPP__
 
 #include "libzeth/circuits/joinsplit.tcc"
-#include "libzeth/libsnark_helpers/libsnark_helpers.hpp"
+#include "libzeth/serialization/file_io.hpp"
 #include "libzeth/types/note.hpp"
 
-// zkSNARK specific aliases and imports
 #include "libzeth/snarks_alias.hpp"
 #include "libzeth/snarks_core_imports.hpp"
+#include "libzeth/zeth.h"
 
 namespace libzeth
 {

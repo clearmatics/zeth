@@ -14,7 +14,17 @@
 namespace libzeth
 {
 
+/// This function returns the path to the setup directory in which the
+/// SRS will be written.
+/// This function assumes that the host OS is compliant with the POSIX
+/// specification since it assumes that the HOME environment variable is set.
+/// See: https://pubs.opengroup.org/onlinepubs/9699919799/
 boost::filesystem::path get_path_to_setup_directory();
+
+/// This function returns the path to the debug directory used in Zeth.
+/// This function assumes that the host OS is compliant with the POSIX
+/// specification since it assumes that the HOME environment variable is set.
+/// See: https://pubs.opengroup.org/onlinepubs/9699919799/
 boost::filesystem::path get_path_to_debug_directory();
 
 } // namespace libzeth
