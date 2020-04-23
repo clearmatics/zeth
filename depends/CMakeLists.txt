@@ -10,6 +10,10 @@ set_target_properties(ff PROPERTIES COMPILE_FLAGS
   "-Wno-unused-variable -Wno-unused-parameter"
 )
 
+set_target_properties(gtest PROPERTIES COMPILE_FLAGS
+  "-Wno-error"
+)
+
 # get NUM_CPUS
 include(ProcessorCount)
 ProcessorCount(NUM_CPUS)
