@@ -14,7 +14,6 @@ from zeth.wallet import Wallet, ZethNoteDescription
 import test_commands.mock as mock
 import test_commands.scenario as scenario
 from test_commands.deploy_test_token import deploy_token, mint_token
-import os
 from os.path import join, exists
 import shutil
 from web3 import Web3  # type: ignore
@@ -65,8 +64,6 @@ def main() -> None:
     # Zeth addresses
     keystore = mock.init_test_keystore()
 
-    notestore_dir = os.environ['ZETH_NOTESTORE']
-
     # Deploy the token contract
     token_instance = deploy_token(eth, deployer_eth_address, 4000000)
 
@@ -84,7 +81,7 @@ def main() -> None:
 
     # Keys and wallets
     def _mk_wallet(name: str, sk: ZethAddressPriv) -> Wallet:
-        wallet_dir = join(notestore_dir, name + "-erc")
+        wallet_dir = join(mock.TEST_NOTE_DIR, name + "-erc")
         if exists(wallet_dir):
             # Note: symlink-attack resistance
             #   https://docs.python.org/3/library/shutil.html#shutil.rmtree.avoids_symlink_attacks

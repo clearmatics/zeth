@@ -16,11 +16,9 @@ from zeth.wallet import Wallet, ZethNoteDescription
 import test_commands.mock as mock
 import test_commands.scenario as scenario
 
-import os
 from os.path import join, exists
 import shutil
 from typing import Dict, List, Any
-# from web3 import Web3, HTTPProvider  # type: ignore
 
 
 def print_balances(
@@ -45,8 +43,6 @@ def main() -> None:
     alice_eth_address = eth.accounts[2]
     charlie_eth_address = eth.accounts[3]
 
-    notestore_dir = os.environ['ZETH_NOTESTORE']
-
     # Deploy Zeth contracts
     tree_depth = zeth.constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client, _contract_desc = MixerClient.deploy(
@@ -67,7 +63,7 @@ def main() -> None:
 
     # Keys and wallets
     def _mk_wallet(name: str, sk: ZethAddressPriv) -> Wallet:
-        wallet_dir = join(notestore_dir, name + "-eth")
+        wallet_dir = join(mock.TEST_NOTE_DIR, name + "-eth")
         if exists(wallet_dir):
             # Note: symlink-attack resistance
             #   https://docs.python.org/3/library/shutil.html#shutil.rmtree.avoids_symlink_attacks
