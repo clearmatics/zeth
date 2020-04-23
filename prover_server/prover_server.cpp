@@ -5,6 +5,7 @@
 #include "libzeth/types/extended_proof.hpp"
 
 #include "libzeth/circuit_types.hpp"
+#include "libzeth/serialization/api/api_io.hpp"
 #include "libzeth/serialization/file_io.hpp"
 #include "libzeth/serialization/api/api_io.hpp"
 #include "libzeth/snarks_types.hpp"

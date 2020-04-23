@@ -7,10 +7,8 @@
 
 #include "api/snark_messages.pb.h"
 #include "api/zeth_messages.pb.h"
-
-#include "libzeth/serialization/api/snarks_api_imports.hpp"
-#include "libzeth/types/extended_proof.hpp"
 #include "libzeth/types/bits.hpp"
+#include "libzeth/types/extended_proof.hpp"
 #include "libzeth/types/joinsplit.hpp"
 #include "libzeth/types/note.hpp"
 #include "libzeth/util.hpp"
@@ -78,6 +76,11 @@ void format_verificationKey(
     zeth_proto::VerificationKey *message);
 
 } // namespace libzeth
+
+// snark-specific include depends on the functions above
+#include "libzeth/serialization/api/snarks_api_imports.hpp"
+
+// templatized implementations
 #include "libzeth/serialization/api/api_io.tcc"
 
 #endif // __ZETH_SERIALIZATION_API_IO_HPP__
