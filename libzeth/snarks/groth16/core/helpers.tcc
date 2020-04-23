@@ -139,7 +139,7 @@ void proof_to_json(
 template<typename ppT>
 void proof_and_inputs_to_json(
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof,
-    libsnark::r1cs_primary_input<ppT> input,
+    libsnark::r1cs_primary_input<libff::Fr<ppT>> input,
     boost::filesystem::path path)
 {
     if (path.empty()) {
@@ -158,16 +158,20 @@ void proof_and_inputs_to_json(
 
     ss << "{"
        << "\n"
-       << "\t\"a\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_A) << "],"
+       << "\t\"a\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_A)
+       << "],"
        << "\n"
-       << "\t\"b\" :[" << point_g2_affine_to_hexadecimal_str<ppT>(proof.g_B) << "],"
+       << "\t\"b\" :[" << point_g2_affine_to_hexadecimal_str<ppT>(proof.g_B)
+       << "],"
        << "\n"
-       << "\t\"c\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_C) << "],"
+       << "\t\"c\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_C)
+       << "],"
        << "\n"
        << "\t\"inputs\" :[";
     for (size_t i = 0; i < input.size(); ++i) {
         ss << "\"0x"
-           << libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(input[i].as_bigint())
+           << libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
+                  input[i].as_bigint())
            << "\"";
         if (i < input.size() - 1) {
             ss << ", ";
