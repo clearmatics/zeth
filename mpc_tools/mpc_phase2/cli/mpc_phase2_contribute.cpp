@@ -127,7 +127,13 @@ private:
         std::random_device rd;
         hash_ostream hs;
         uint64_t buf[4];
-        const size_t buf_size_in_words = sizeof(buf) / sizeof(random_word);
+        // The computation below looks (to some compilers) like an attempt to
+        // compute the number of elements in the array 'buf', and generates a
+        // warning.  In fact, we want to know how many `std::random_device`
+        // elements to generate, so the calculation is correct.  The cast to
+        // `size_t` prevents the compile warning.
+        const size_t buf_size_in_words =
+            sizeof(buf) / (size_t)sizeof(random_word);
 
         // 1024 bytes of system randomness,
         for (size_t i = 0; i < 1024 / sizeof(buf); ++i) {
