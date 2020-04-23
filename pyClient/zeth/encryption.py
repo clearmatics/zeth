@@ -55,13 +55,7 @@ References:
  <https://tools.ietf.org/html/rfc8439>
 """
 
-from typing import NewType
-
-from zeth.constants import KDF_TAG, EC_PUBLIC_KEY_LENGTH, SYM_KEY_LENGTH,\
-    NOTE_LENGTH, TAG_LENGTH, SYM_NONCE_VALUE, SYM_NONCE_LENGTH,\
-    ENCRYPTED_NOTE_LENGTH
-from zeth.utils import bits_to_bytes_len
-
+from zeth.constants import NOTE_LENGTH_BYTES, bit_length_to_byte_length
 from cryptography.hazmat.primitives.asymmetric.x25519 \
     import X25519PrivateKey, X25519PublicKey
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
@@ -71,15 +65,36 @@ from cryptography.hazmat.primitives.serialization import \
     Encoding, PrivateFormat, PublicFormat, NoEncryption
 from cryptography.exceptions import InvalidSignature \
     as cryptography_InvalidSignature
+from typing import Tuple, NewType
 
 
-# Encryption constants byte length
-_PK_BYTE_LENGTH = bits_to_bytes_len(EC_PUBLIC_KEY_LENGTH)
-_SYM_KEY_BYTE_LENGTH = bits_to_bytes_len(SYM_KEY_LENGTH)
-_SYM_NONCE_BYTE_LENGTH = bits_to_bytes_len(SYM_NONCE_LENGTH)
-_NOTE_BYTE_LENGTH = bits_to_bytes_len(NOTE_LENGTH)
-_TAG_BYTE_LENGTH = bits_to_bytes_len(TAG_LENGTH)
-_ENCRYPTED_NOTE_BYTE_LENGTH = bits_to_bytes_len(ENCRYPTED_NOTE_LENGTH)
+# Internal sizes for the scheme
+_SYM_KEY_LENGTH: int = 256
+_SYM_KEY_LENGTH_BYTES: int = bit_length_to_byte_length(_SYM_KEY_LENGTH)
+
+_MAC_KEY_LENGTH: int = 256
+_MAC_KEY_LENGTH_BYTES: int = bit_length_to_byte_length(_MAC_KEY_LENGTH)
+
+_KEY_MATERIAL_LENGTH_BYTES: int = _SYM_KEY_LENGTH_BYTES + _MAC_KEY_LENGTH_BYTES
+
+_TAG_LENGTH: int = 128
+_TAG_LENGTH_BYTES = bit_length_to_byte_length(_TAG_LENGTH)
+
+_SYM_NONCE_LENGTH: int = 128
+_SYM_NONCE_LENGTH_BYTES: int = bit_length_to_byte_length(_SYM_NONCE_LENGTH)
+
+# Nonce as 4 32-bit words [counter, nonce, nonce, nonce] (see above).
+_SYM_NONCE_VALUE: bytes = b"\x00" * _SYM_NONCE_LENGTH_BYTES
+
+# Key Derivation Tag "ZethEnc" utf-8 encoding
+_KDF_TAG: bytes = b'ZethEnc'
+
+# Public sizes
+EC_PRIVATE_KEY_LENGTH: int = 256
+EC_PUBLIC_KEY_LENGTH: int = 256
+EC_PUBLIC_KEY_LENGTH_BYTES: int = bit_length_to_byte_length(EC_PUBLIC_KEY_LENGTH)
+ENCRYPTED_NOTE_LENGTH_BYTES: int = \
+    EC_PUBLIC_KEY_LENGTH_BYTES + NOTE_LENGTH_BYTES + _TAG_LENGTH_BYTES
 
 # Expose the exception type
 InvalidSignature = cryptography_InvalidSignature
@@ -152,13 +167,12 @@ def generate_encryption_keypair() -> EncryptionKeyPair:
 
 def encrypt(message: bytes, pk_receiver: EncryptionPublicKey) -> bytes:
     """
-    Encrypts a string message under a ec25519 public key
-    by using a custom dhaes-based scheme.
-    See: https://eprint.iacr.org/1999/007
+    Encrypts a string message under a ec25519 public key by using a custom
+    dhaes-based scheme.  See: https://eprint.iacr.org/1999/007
     """
     assert \
-        len(message) == _NOTE_BYTE_LENGTH, \
-        f"expected message length {_NOTE_BYTE_LENGTH}, saw {len(message)}"
+        len(message) == NOTE_LENGTH_BYTES, \
+        f"expected message length {NOTE_LENGTH_BYTES}, saw {len(message)}"
 
     # Generate ephemeral keypair
     eph_keypair = generate_encryption_keypair()
@@ -168,14 +182,11 @@ def encrypt(message: bytes, pk_receiver: EncryptionPublicKey) -> bytes:
     pk_sender_bytes = encode_encryption_public_key(eph_keypair.k_pk)
 
     # Generate key material
-    key_material = _kdf(pk_sender_bytes, shared_key)
+    sym_key, mac_key = _kdf(pk_sender_bytes, shared_key)
 
     # Generate symmetric ciphertext
     # Chacha encryption
-    sym_key = key_material[:_PK_BYTE_LENGTH]
-    mac_key = key_material[_PK_BYTE_LENGTH:]
-    nonce = (SYM_NONCE_VALUE).to_bytes(_SYM_NONCE_BYTE_LENGTH, byteorder='little')
-    algorithm = algorithms.ChaCha20(sym_key, nonce)
+    algorithm = algorithms.ChaCha20(sym_key, _SYM_NONCE_VALUE)
     cipher = Cipher(algorithm, mode=None, backend=default_backend())
     encryptor = cipher.encryptor()
     sym_ciphertext = encryptor.update(message)
@@ -197,29 +208,27 @@ def decrypt(
     objects.  See: https://pynacl.readthedocs.io/en/stable/public/
     """
     assert \
-        len(encrypted_message) == _ENCRYPTED_NOTE_BYTE_LENGTH, \
-        "encrypted_message byte-length must be: "+str(_ENCRYPTED_NOTE_BYTE_LENGTH)
+        len(encrypted_message) == ENCRYPTED_NOTE_LENGTH_BYTES, \
+        "encrypted_message byte-length must be: "+str(ENCRYPTED_NOTE_LENGTH_BYTES)
 
     assert(isinstance(sk_receiver, X25519PrivateKey)), \
         f"PrivateKey: {sk_receiver} ({type(sk_receiver)})"
 
     # Compute shared secret
-    pk_sender_bytes = encrypted_message[:_PK_BYTE_LENGTH]
+    pk_sender_bytes = encrypted_message[:EC_PUBLIC_KEY_LENGTH_BYTES]
     pk_sender = decode_encryption_public_key(pk_sender_bytes)
     shared_key = _exchange(sk_receiver, pk_sender)
 
     # Generate key material and recover keys
-    key_material = _kdf(pk_sender_bytes, shared_key)
-    sym_key = key_material[:_SYM_KEY_BYTE_LENGTH]
-    mac_key = key_material[_SYM_KEY_BYTE_LENGTH:]
+    sym_key, mac_key = _kdf(pk_sender_bytes, shared_key)
 
     # ct_sym and mac
     ct_sym = encrypted_message[
-        _PK_BYTE_LENGTH:
-        _PK_BYTE_LENGTH + _NOTE_BYTE_LENGTH]
+        EC_PUBLIC_KEY_LENGTH_BYTES:
+        EC_PUBLIC_KEY_LENGTH_BYTES + NOTE_LENGTH_BYTES]
     tag = encrypted_message[
-        _PK_BYTE_LENGTH + _NOTE_BYTE_LENGTH:
-        _PK_BYTE_LENGTH + _NOTE_BYTE_LENGTH + _TAG_BYTE_LENGTH]
+        EC_PUBLIC_KEY_LENGTH_BYTES + NOTE_LENGTH_BYTES:
+        EC_PUBLIC_KEY_LENGTH_BYTES + NOTE_LENGTH_BYTES + _TAG_LENGTH_BYTES]
 
     # Verify the mac
     mac = poly1305.Poly1305(mac_key)
@@ -227,8 +236,7 @@ def decrypt(
     mac.verify(tag)
 
     # Decrypt sym ciphertext
-    nonce = (SYM_NONCE_VALUE).to_bytes(_SYM_NONCE_BYTE_LENGTH, byteorder='little')
-    algorithm = algorithms.ChaCha20(sym_key, nonce)
+    algorithm = algorithms.ChaCha20(sym_key, _SYM_NONCE_VALUE)
     cipher = Cipher(algorithm, mode=None, backend=default_backend())
     decryptor = cipher.decryptor()
     message = decryptor.update(ct_sym)
@@ -240,7 +248,7 @@ def _exchange(sk: EncryptionSecretKey, pk: EncryptionPublicKey) -> bytes:
     return sk.exchange(pk)  # type: ignore
 
 
-def _kdf(eph_pk: bytes, shared_key: bytes) -> bytes:
+def _kdf(eph_pk: bytes, shared_key: bytes) -> Tuple[bytes, bytes]:
     """
     Key derivation function
     """
@@ -248,9 +256,11 @@ def _kdf(eph_pk: bytes, shared_key: bytes) -> bytes:
     key_material = hashes.Hash(
         hashes.BLAKE2b(64),
         backend=default_backend())
-    key_material.update(KDF_TAG)
+    key_material.update(_KDF_TAG)
     key_material.update(eph_pk)
     key_material.update(shared_key)
-    digest = key_material.finalize()
-
-    return digest
+    key_material = key_material.finalize()
+    assert len(key_material) == _KEY_MATERIAL_LENGTH_BYTES
+    return \
+        key_material[:_SYM_KEY_LENGTH_BYTES], \
+        key_material[_SYM_KEY_LENGTH_BYTES:]
