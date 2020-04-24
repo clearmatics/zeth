@@ -82,7 +82,8 @@ if ("${IS_ZETH_PARENT}")
   add_custom_target(build_tests)
 
   function(zeth_test TEST_NAME)
-    cmake_parse_arguments(zeth_test "FAST" "" "SOURCE" ${ARGN} )
+    set(multiValueArgs SOURCE ARGS)
+    cmake_parse_arguments(zeth_test "FAST" "" "SOURCE;ARGS" ${ARGN})
     file(GLOB test_src ${zeth_test_SOURCE})
 
     # Test executable
@@ -93,7 +94,7 @@ if ("${IS_ZETH_PARENT}")
     add_dependencies(build_tests ${TEST_NAME})
 
     if((NOT FAST_TESTS_ONLY) OR zeth_test_FAST)
-      add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+      add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} ${zeth_test_ARGS})
       add_dependencies(check ${TEST_NAME})
     else()
       message("Skipping slow test ${TEST_NAME}")
@@ -111,22 +112,28 @@ if ("${IS_ZETH_PARENT}")
   zeth_test(test_note SOURCE test/note_test.cpp FAST)
   zeth_test(test_prover SOURCE test/prover_test.cpp)
 
-  # Old Tests
-  # zeth_test(test_sha256 test/sha256_test.cpp TRUE)
+  # Groth16-only tests and MPC
+  if(${ZKSNARK} STREQUAL "GROTH16")
+    zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
+    zeth_test(
+      test_powersoftau
+      SOURCE test/powersoftau_test.cpp
+      ARGS "${CMAKE_CURRENT_LIST_DIR}/.."
+      FAST)
+    zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
+    target_link_libraries(
+      test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+  endif()
 
-  # prover test has extra dependencies
+  # Extra dependencies for specific tests
   target_link_libraries(
     test_prover
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
   )
+  target_link_libraries(
+    test_powersoftau
+    ${Boost_FILESYSTEM_LIBRARY}
+  )
 
-  # Groth16-only tests and MPC
-  if(${ZKSNARK} STREQUAL "GROTH16")
-    zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
-    zeth_test(test_powersoftau SOURCE test/powersoftau_test.cpp FAST)
-    zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
-    target_link_libraries(
-      test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
-  endif()
 endif()
