@@ -169,7 +169,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
 
     libff::enter_block(
         "Initialize the output coins' data (a_pk, cm, rho)", true);
-    bits256 trap_r_bits256 = get_bits256(
+    bits256 trap_r_bits256 = get_bits256_from_hexadecimal_str(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
     bits64 value_bits64 = get_bits64_from_hexadecimal_str("2F0000000000000F");
     bits256 rho_bits256 = get_bits256_from_hexadecimal_str(

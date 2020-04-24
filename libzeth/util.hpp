@@ -16,6 +16,21 @@
 namespace libzeth
 {
 
+// template<typename StructuredT>
+// bool is_well_formed(const StructuredT &structured);
+// {
+//     return structured.is_well_formed();
+// }
+
+// template<> bool well_formed_checker<int>::is_well_formed(const int &)
+// {
+//     return true;
+// }
+
+// /// Function required by `check_well_formed_`
+// template<typename StructuredT>
+// bool is_well_formed(const StructuredT &);
+
 /// Takes a container with a `size()` method and reverse the order
 /// of the elements. The elements should represent bits.
 template<typename T> T swap_byte_endianness(T v);
@@ -70,10 +85,10 @@ void erase_substring(std::string &string, const std::string &substring);
 template<typename StructuredT>
 void check_well_formed(const StructuredT &v, const char *name);
 
-/// Throw if input is not well-formed. The type being checked should conform
-/// to the StructuredT interface above.
-template<typename StructuredT>
-void check_well_formed_(const StructuredT &v, const char *name);
+// /// Throw if input is not well-formed. The type being checked should conform
+// /// to the StructuredT interface above.
+// template<typename StructuredT>
+// void check_well_formed_(const StructuredT &v, const char *name);
 
 /// For some iterable container of objects comforming to StructuredT, throw if
 /// any entry is not well-formed.

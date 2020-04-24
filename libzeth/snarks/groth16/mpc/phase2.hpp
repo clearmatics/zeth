@@ -295,15 +295,6 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> &&cs,
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
-/// Check proving key entries
-template<typename ppT>
-bool is_well_formed(const libsnark::r1cs_gg_ppzksnark_proving_key<ppT> &pk);
-
-/// Check verification key entries
-template<typename ppT>
-bool is_well_formed(
-    const libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &vk);
-
 /// Write a keypair to a stream.
 template<typename ppT>
 void mpc_write_keypair(

@@ -32,24 +32,26 @@ void write_to_file(boost::filesystem::path path, serializableT &obj);
 template<typename serializableT>
 serializableT load_from_file(boost::filesystem::path path);
 
-template<typename ppT>
+template<typename snarkT>
 void serialize_proving_key_to_file(
-    ProvingKeyT<ppT> &pk, boost::filesystem::path pk_path);
+    const typename snarkT::ProvingKeyT &pk, boost::filesystem::path pk_path);
 
-template<typename ppT>
-ProvingKeyT<ppT> deserialize_proving_key_from_file(
+template<typename snarkT>
+typename snarkT::ProvingKeyT deserialize_proving_key_from_file(
     boost::filesystem::path pk_path);
 
-template<typename ppT>
+template<typename snarkT>
 void serialize_verification_key_to_file(
-    VerifKeyT<ppT> &vk, boost::filesystem::path vk_path);
+    const typename snarkT::VerifKeyT &vk, boost::filesystem::path vk_path);
 
-template<typename ppT>
-VerifKeyT<ppT> deserialize_verification_key_from_file(
+template<typename snarkT>
+typename snarkT::VerifKeyT deserialize_verification_key_from_file(
     boost::filesystem::path vk_path);
 
-template<typename ppT>
-void serialize_setup_to_file(KeypairT<ppT> keypair, boost::filesystem::path setup_path = "");
+template<typename snarkT>
+void serialize_setup_to_file(
+    const typename snarkT::KeypairT &keypair,
+    boost::filesystem::path setup_path = "");
 
 template<typename ppT>
 void fill_stringstream_with_json_constraints(
@@ -58,7 +60,8 @@ void fill_stringstream_with_json_constraints(
 
 template<typename ppT>
 void r1cs_to_json(
-    libsnark::protoboard<libff::Fr<ppT>> pb, boost::filesystem::path r1cs_path = "");
+    libsnark::protoboard<libff::Fr<ppT>> pb,
+    boost::filesystem::path r1cs_path = "");
 
 } // namespace libzeth
 #include "libzeth/serialization/file_io.tcc"

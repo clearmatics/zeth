@@ -741,6 +741,7 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
         std::move(pk), std::move(vk));
 }
 
+// Overload the `is_well_formed` method for proving key
 template<typename ppT>
 bool is_well_formed(const libsnark::r1cs_gg_ppzksnark_proving_key<ppT> &pk)
 {

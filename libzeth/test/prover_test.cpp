@@ -20,7 +20,6 @@
 // Import only the core components of the SNARK (not the API components)
 #include "libzeth/circuit_wrapper.hpp"
 #include "libzeth/circuits/blake2s/blake2s.hpp"
-#include "libzeth/libsnark_helpers/libsnark_helpers.hpp"
 #include "libzeth/snarks_core_imports.hpp"
 #include "libzeth/util.hpp"
 
@@ -121,7 +120,8 @@ bool TestValidJS2In2Case1(
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
-    bits64 value_out_bits64 = get_bits64_from_hexadecimal_str("1800000000000008");
+    bits64 value_out_bits64 =
+        get_bits64_from_hexadecimal_str("1800000000000008");
     bits256 a_pk_out_bits256 = get_bits256_from_hexadecimal_str(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
     bits256 rho_out_bits256;
@@ -138,7 +138,8 @@ bool TestValidJS2In2Case1(
         get_bits64_from_hexadecimal_str("0000000000000000"),
         rho_out_bits256,
         trap_r_out_bits256);
-    bits64 value_pub_out_bits64 = get_bits64_from_hexadecimal_str("1700000000000007");
+    bits64 value_pub_out_bits64 =
+        get_bits64_from_hexadecimal_str("1700000000000007");
     std::array<zeth_note, 2> outputs;
     outputs[0] = note_output;
     outputs[1] = note_dummy_output;
@@ -331,7 +332,7 @@ bool TestValidJS2In2Case3(
     // (commitment to spend in this test)
     bits256 trap_r_bits256 = get_bits256_from_hexadecimal_str(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
-    bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
+    bits64 value_bits64 = get_bits64_from_hexadecimal_str("2F0000000000000F");
     bits256 a_sk_bits256 = get_bits256_from_hexadecimal_str(
         "FF0000000000000000000000000000000000000000000000000000000000000F");
     bits256 rho_bits256 = get_bits256_from_hexadecimal_str(
@@ -341,7 +342,8 @@ bool TestValidJS2In2Case3(
     bits256 nf_bits256 = get_bits256_from_hexadecimal_str(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7");
     FieldT cm_field = FieldT(
-        "104233707326581956155878965211552591892620143524616864409706009242461667751082");
+        "1042337073265819561558789652115525918926201435246168644097060092"
+        "42461667751082");
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
     for (size_t i = 0; i < TreeDepth; ++i) {
@@ -464,15 +466,15 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
-    bits256 trap_r_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_bits256 = get_bits256_from_hexadecimal_str(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
-    bits256 a_sk_bits256 = hex_digest_to_bits256(
+    bits256 a_sk_bits256 = get_bits256_from_hexadecimal_str(
         "FF0000000000000000000000000000000000000000000000000000000000000F");
-    bits256 rho_bits256 = hex_digest_to_bits256(
+    bits256 rho_bits256 = get_bits256_from_hexadecimal_str(
         "FFFF000000000000000000000000000000000000000000000000000000009009");
-    bits256 a_pk_bits256 = hex_digest_to_bits256(
+    bits256 a_pk_bits256 = get_bits256_from_hexadecimal_str(
         "f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49");
-    bits256 nf_bits256 = hex_digest_to_bits256(
+    bits256 nf_bits256 = get_bits256_from_hexadecimal_str(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7");
     FieldT cm_field = FieldT("8049045390937310931330301778888084231593485252743"
                              "182393007013989361193264682");

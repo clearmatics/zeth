@@ -2,13 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/types/extended_proof.hpp"
-
 #include "libzeth/circuit_types.hpp"
 #include "libzeth/serialization/api/api_io.hpp"
 #include "libzeth/serialization/file_io.hpp"
-#include "libzeth/serialization/api/api_io.hpp"
-#include "libzeth/snarks_types.hpp"
+#include "libzeth/snarks_api_imports.hpp"
+#include "libzeth/types/extended_proof.hpp"
+// #include "libzeth/snarks_types.hpp"
 #include "libzeth/util.hpp"
 #include "libzeth/zeth.h"
 #include "zethConfig.h"
@@ -34,6 +33,9 @@
 #include "api/prover.grpc.pb.h"
 #pragma GCC diagnostic pop
 
+using snarkT = libzeth::defaultSnark<libzeth::ppT>;
+using snarkApiT = libzeth::defaultSnarkApi<libzeth::ppT>;
+
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
 
@@ -48,13 +50,14 @@ private:
         libzeth::HashT,
         libzeth::HashTreeT,
         libzeth::ppT,
+        snarkT,
         libzeth::ZETH_NUM_JS_INPUTS,
         libzeth::ZETH_NUM_JS_OUTPUTS,
         libzeth::ZETH_MERKLE_TREE_DEPTH>
         prover;
 
     // The keypair is the result of the setup
-    libzeth::KeypairT<libzeth::ppT> keypair;
+    snarkT::KeypairT keypair;
 
 public:
     explicit prover_server(
@@ -63,10 +66,11 @@ public:
             libzeth::HashT,
             libzeth::HashTreeT,
             libzeth::ppT,
+            snarkT,
             libzeth::ZETH_NUM_JS_INPUTS,
             libzeth::ZETH_NUM_JS_OUTPUTS,
             libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
-        libzeth::KeypairT<libzeth::ppT> &keypair)
+        snarkT::KeypairT &keypair)
         : prover(prover), keypair(keypair)
     {
     }
@@ -81,8 +85,7 @@ public:
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            libzeth::format_verificationKey<libzeth::ppT>(
-                this->keypair.vk, response);
+            snarkApiT::format_verification_key(this->keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -110,12 +113,13 @@ public:
             libzeth::FieldT root =
                 libzeth::hexadecimal_str_to_field_element<libzeth::FieldT>(
                     proof_inputs->mk_root());
-            libzeth::bits64 vpub_in =
-                libzeth::get_bits64_from_hexadecimal_str(proof_inputs->pub_in_value());
-            libzeth::bits64 vpub_out =
-                libzeth::get_bits64_from_hexadecimal_str(proof_inputs->pub_out_value());
+            libzeth::bits64 vpub_in = libzeth::get_bits64_from_hexadecimal_str(
+                proof_inputs->pub_in_value());
+            libzeth::bits64 vpub_out = libzeth::get_bits64_from_hexadecimal_str(
+                proof_inputs->pub_out_value());
             libzeth::bits256 h_sig_in =
-                libzeth::get_bits256_from_hexadecimal_str(proof_inputs->h_sig());
+                libzeth::get_bits256_from_hexadecimal_str(
+                    proof_inputs->h_sig());
             libzeth::bits256 phi_in =
                 libzeth::get_bits256_from_hexadecimal_str(proof_inputs->phi());
 
@@ -167,7 +171,7 @@ public:
 
             std::cout << "[DEBUG] Data parsed successfully" << std::endl;
             std::cout << "[DEBUG] Generating the proof..." << std::endl;
-            libzeth::extended_proof<libzeth::ppT> ext_proof =
+            libzeth::extended_proof<libzeth::ppT, snarkT> ext_proof =
                 this->prover.prove(
                     root,
                     joinsplit_inputs,
@@ -183,7 +187,7 @@ public:
             ext_proof.dump_primary_inputs();
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
-            libzeth::format_extendedProof<libzeth::ppT>(ext_proof, proof);
+            snarkApiT::format_extended_proof(ext_proof, proof);
 
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
@@ -239,10 +243,11 @@ static void RunServer(
         libzeth::HashT,
         libzeth::HashTreeT,
         libzeth::ppT,
+        snarkT,
         libzeth::ZETH_NUM_JS_INPUTS,
         libzeth::ZETH_NUM_JS_OUTPUTS,
         libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
-    libzeth::KeypairT<libzeth::ppT> &keypair)
+    typename snarkT::KeypairT &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50051
     std::string server_address("0.0.0.0:50051");
@@ -269,13 +274,12 @@ static void RunServer(
 }
 
 #ifdef ZKSNARK_GROTH16
-static libzeth::KeypairT<libzeth::ppT> load_keypair(
-    const std::string &keypair_file)
+static snarkT::KeypairT load_keypair(const std::string &keypair_file)
 {
     std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return libzeth::mpc_read_keypair<libzeth::ppT>(in);
+    return snarkT::read_keypair(in);
 }
 #endif
 
@@ -336,11 +340,12 @@ int main(int argc, char **argv)
         libzeth::HashT,
         libzeth::HashTreeT,
         libzeth::ppT,
+        snarkT,
         libzeth::ZETH_NUM_JS_INPUTS,
         libzeth::ZETH_NUM_JS_OUTPUTS,
         libzeth::ZETH_MERKLE_TREE_DEPTH>
         prover;
-    libzeth::KeypairT<libzeth::ppT> keypair = [&keypair_file, &prover]() {
+    snarkT::KeypairT keypair = [&keypair_file, &prover]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
             std::cout << "[INFO] Loading keypair: " << keypair_file

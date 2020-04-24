@@ -16,18 +16,18 @@ namespace libzeth
 // An extended_proof is a data structure containing a proof and the
 // corresponding primary inputs It corresponds to the data needed for the
 // verifier to be able to run the verifying algorithm.
-template<typename ppT> class extended_proof
+template<typename ppT, typename snarkT> class extended_proof
 {
 private:
-    std::shared_ptr<ProofT<ppT>> proof;
+    std::shared_ptr<typename snarkT::ProofT> proof;
     std::shared_ptr<libsnark::r1cs_primary_input<libff::Fr<ppT>>>
         primary_inputs;
 
 public:
     extended_proof(
-        ProofT<ppT> &in_proof,
+        typename snarkT::ProofT &in_proof,
         libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input);
-    const ProofT<ppT> &get_proof() const;
+    const typename snarkT::ProofT &get_proof() const;
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_input()
         const;
 

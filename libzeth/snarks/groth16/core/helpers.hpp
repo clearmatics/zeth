@@ -15,6 +15,16 @@
 namespace libzeth
 {
 
+// /// Check proving key entries
+// template<typename ppT>
+// bool is_well_formed<libsnark::r1cs_ppzksnark_proving_key<ppT>>(
+//     const libsnark::r1cs_ppzksnark_proving_key<ppT> &pk);
+
+// /// Check verification key entries
+// template<typename ppT>
+// bool is_well_formed(
+//     const libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &vk);
+
 template<typename ppT>
 void export_verification_key(libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair);
 

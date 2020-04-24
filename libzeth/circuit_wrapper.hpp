@@ -21,6 +21,7 @@ template<
     typename HashT,
     typename HashTreeT,
     typename ppT,
+    typename snarkT,
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
@@ -41,7 +42,7 @@ public:
         : setup_path(setup_path){};
 
     // Generate the trusted setup
-    KeypairT<ppT> generate_trusted_setup() const;
+    typename snarkT::KeypairT generate_trusted_setup() const;
 
 #ifdef DEBUG
     // Used to debug the constraint system
@@ -50,7 +51,7 @@ public:
 #endif
 
     // Generate a proof and returns an extended proof
-    extended_proof<ppT> prove(
+    extended_proof<ppT, snarkT> prove(
         const FieldT &root,
         const std::array<joinsplit_input<FieldT, TreeDepth>, NumInputs> &inputs,
         const std::array<zeth_note, NumOutputs> &outputs,
@@ -58,7 +59,7 @@ public:
         bits64 vpub_out,
         const bits256 h_sig_in,
         const bits256 phi_in,
-        const ProvingKeyT<ppT> &proving_key) const;
+        const typename snarkT::ProvingKeyT &proving_key) const;
 };
 
 } // namespace libzeth

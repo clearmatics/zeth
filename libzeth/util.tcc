@@ -56,13 +56,13 @@ std::vector<bool> address_bits_from_address(size_t address)
     return binary;
 }
 
-template<typename StructuredT>
-void check_well_formed_(const StructuredT &v, const char *name)
-{
-    if (!is_well_formed(v)) {
-        throw std::invalid_argument(std::string(name) + " not well-formed");
-    }
-}
+// template<typename StructuredT>
+// void check_well_formed_(const StructuredT &v, const char *name)
+// {
+//     if (!is_well_formed(v)) {
+//         throw std::invalid_argument(std::string(name) + " not well-formed");
+//     }
+// }
 
 template<typename StructuredTs>
 bool container_is_well_formed(const StructuredTs &values)

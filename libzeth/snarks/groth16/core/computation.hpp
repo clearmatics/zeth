@@ -13,22 +13,25 @@
 namespace libzeth
 {
 
-// Forward declaration
-template<typename ppT> class extended_proof;
+// // Forward declaration
+// template<typename ppT> class extended_proof;
 
-template<typename ppT>
-libsnark::r1cs_gg_ppzksnark_proof<ppT> generate_proof(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const libsnark::r1cs_gg_ppzksnark_proving_key<ppT> &proving_key);
+// template<typename ppT>
+// libsnark::r1cs_gg_ppzksnark_proof<ppT> generate_proof(
+//     const libsnark::protoboard<libff::Fr<ppT>> &pb,
+//     const libsnark::r1cs_gg_ppzksnark_proving_key<ppT> &proving_key);
 
-template<typename ppT>
-libsnark::r1cs_gg_ppzksnark_keypair<ppT> generate_setup(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb);
+// template<typename ppT>
+// libsnark::r1cs_gg_ppzksnark_keypair<ppT> generate_setup(
+//     const libsnark::protoboard<libff::Fr<ppT>> &pb);
 
-template<typename ppT>
-bool verify(
-    const libzeth::extended_proof<ppT> &ext_proof,
-    const libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &verification_key);
+// template<typename ppT>
+// bool verify(
+//     const ProofT &proof,
+//     std::shared_ptr<libsnark::r1cs_primary_input<libff::Fr<ppT>>>
+
+//     const libsnark::r1cs_gg_ppzksnark_verification_key<ppT>
+//     &verification_key);
 
 } // namespace libzeth
 #include "libzeth/snarks/groth16/core/computation.tcc"

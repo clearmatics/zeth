@@ -11,31 +11,32 @@
 namespace libzeth
 {
 
-template<typename ppT>
-extended_proof<ppT>::extended_proof(
-    ProofT<ppT> &in_proof,
+template<typename ppT, typename snarkT>
+extended_proof<ppT, snarkT>::extended_proof(
+    typename snarkT::ProofT &in_proof,
     libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input)
 {
-    this->proof = std::make_shared<ProofT<ppT>>(in_proof);
+    this->proof = std::make_shared<typename snarkT::ProofT>(in_proof);
     this->primary_inputs =
         std::make_shared<libsnark::r1cs_primary_input<libff::Fr<ppT>>>(
             in_primary_input);
 }
 
-template<typename ppT> const ProofT<ppT> &extended_proof<ppT>::get_proof() const
+template<typename ppT, typename snarkT>
+const typename snarkT::ProofT &extended_proof<ppT, snarkT>::get_proof() const
 {
     return *this->proof;
 }
 
-template<typename ppT>
+template<typename ppT, typename snarkT>
 const libsnark::r1cs_primary_input<libff::Fr<ppT>>
-    &extended_proof<ppT>::get_primary_input() const
+    &extended_proof<ppT, snarkT>::get_primary_input() const
 {
     return *this->primary_inputs;
 }
 
-template<typename ppT>
-void extended_proof<ppT>::write_primary_input(
+template<typename ppT, typename snarkT>
+void extended_proof<ppT, snarkT>::write_primary_input(
     boost::filesystem::path path) const
 {
     if (path.empty()) {
@@ -72,7 +73,8 @@ void extended_proof<ppT>::write_primary_input(
     fh.close();
 }
 
-template<typename ppT> void extended_proof<ppT>::dump_primary_inputs() const
+template<typename ppT, typename snarkT>
+void extended_proof<ppT, snarkT>::dump_primary_inputs() const
 {
     std::cout << "{\n";
     std::cout << " \"inputs\" :"
@@ -90,22 +92,24 @@ template<typename ppT> void extended_proof<ppT>::dump_primary_inputs() const
     std::cout << "}";
 }
 
-template<typename ppT>
-void extended_proof<ppT>::write_proof(boost::filesystem::path path) const
-{
-    proof_to_json<ppT>(*this->proof, path);
-}
-
-template<typename ppT>
-void extended_proof<ppT>::write_extended_proof(
+template<typename ppT, typename snarkT>
+void extended_proof<ppT, snarkT>::write_proof(
     boost::filesystem::path path) const
 {
-    proof_and_inputs_to_json<ppT>(*this->proof, *this->primary_inputs, path);
+    snarkT::proof_to_json(*this->proof, path);
 }
 
-template<typename ppT> void extended_proof<ppT>::dump_proof() const
+template<typename ppT, typename snarkT>
+void extended_proof<ppT, snarkT>::write_extended_proof(
+    boost::filesystem::path path) const
 {
-    display_proof<ppT>(*this->proof);
+    snarkT::proof_and_inputs_to_json(*proof, *primary_inputs, path);
+}
+
+template<typename ppT, typename snarkT>
+void extended_proof<ppT, snarkT>::dump_proof() const
+{
+    snarkT::display_proof(*this->proof);
 }
 
 } // namespace libzeth

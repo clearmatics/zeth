@@ -5,15 +5,17 @@
 #ifndef __ZETH_SERIALIZATION_FILE_IO_TCC__
 #define __ZETH_SERIALIZATION_FILE_IO_TCC__
 
+#include "libzeth/serialization/file_io.hpp"
+
 namespace libzeth
 {
 
 /// SerializableT represents any type that overloads the operator<< and
 /// operator>> of ostream and istream Note: Both r1cs_ppzksnark_proving_key and
-/// r1cs_ppzksnark_verifying_key implement these overloading, so both of them can
-/// easily be writen and loaded from files
+/// r1cs_ppzksnark_verifying_key implement these overloading, so both of them
+/// can easily be writen and loaded from files
 template<typename serializableT>
-void write_to_file(boost::filesystem::path path, serializableT &obj)
+void write_to_file(boost::filesystem::path path, const serializableT &obj)
 {
     // Convert the boost path into char*
     const char *str_path = path.string().c_str();
@@ -29,7 +31,7 @@ void write_to_file(boost::filesystem::path path, serializableT &obj)
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-};
+}
 
 template<typename serializableT>
 serializableT load_from_file(boost::filesystem::path path)
@@ -55,38 +57,40 @@ serializableT load_from_file(boost::filesystem::path path)
     ss >> obj;
 
     return obj;
-};
+}
 
-template<typename ppT>
+template<typename snarkT>
 void serialize_proving_key_to_file(
-    ProvingKeyT<ppT> &pk, boost::filesystem::path pk_path)
+    const typename snarkT::ProvingKeyT &pk, boost::filesystem::path pk_path)
 {
-    write_to_file<ProvingKeyT<ppT>>(pk_path, pk);
-};
+    write_to_file<typename snarkT::ProvingKeyT>(pk_path, pk);
+}
 
-template<typename ppT>
-ProvingKeyT<ppT> deserialize_proving_key_from_file(
+template<typename snarkT>
+typename snarkT::ProvingKeyT deserialize_proving_key_from_file(
     boost::filesystem::path pk_path)
 {
-    return load_from_file<ProvingKeyT<ppT>>(pk_path);
-};
+    return load_from_file<snarkT::ProvingKeyT>(pk_path);
+}
 
-template<typename ppT>
+template<typename snarkT>
 void serialize_verification_key_to_file(
-    VerifKeyT<ppT> &vk, boost::filesystem::path vk_path)
+    const typename snarkT::VerifKeyT &vk, boost::filesystem::path vk_path)
 {
-    write_to_file<VerifKeyT<ppT>>(vk_path, vk);
-};
+    write_to_file<typename snarkT::VerifKeyT>(vk_path, vk);
+}
 
-template<typename ppT>
-VerifKeyT<ppT> deserialize_verification_key_from_file(
+template<typename snarkT>
+typename snarkT::VerifKeyT deserialize_verification_key_from_file(
     boost::filesystem::path vk_path)
 {
-    return load_from_file<VerifKeyT<ppT>>(vk_path);
-};
+    return load_from_file<snarkT::VerifKeyT>(vk_path);
+}
 
-template<typename ppT>
-void serialize_setup_to_file(KeypairT<ppT> keypair, boost::filesystem::path setup_path)
+template<typename snarkT>
+void serialize_setup_to_file(
+    const typename snarkT::KeypairT &keypair,
+    boost::filesystem::path setup_path)
 {
     if (setup_path.empty()) {
         setup_path = get_path_to_setup_directory();
@@ -100,16 +104,16 @@ void serialize_setup_to_file(KeypairT<ppT> keypair, boost::filesystem::path setu
     boost::filesystem::path path_vk_raw = setup_path / vk_raw;
     boost::filesystem::path path_pk_raw = setup_path / pk_raw;
 
-    ProvingKeyT<ppT> proving_key = keypair.pk;
-    VerifKeyT<ppT> verification_key = keypair.vk;
+    typename snarkT::ProvingKeyT proving_key = keypair.pk;
+    typename snarkT::VerifKeyT verification_key = keypair.vk;
 
     // Write the verification key in json format
-    verification_key_to_json<ppT>(verification_key, path_vk_json);
+    snarkT::verification_key_to_json(verification_key, path_vk_json);
 
     // Write the verification and proving keys in raw format
-    serialize_verification_key_to_file<ppT>(verification_key, path_vk_raw);
-    serialize_proving_key_to_file<ppT>(proving_key, path_pk_raw);
-};
+    serialize_verification_key_to_file<snarkT>(verification_key, path_vk_raw);
+    serialize_proving_key_to_file<snarkT>(proving_key, path_pk_raw);
+}
 
 template<typename ppT>
 void fill_stringstream_with_json_constraints(
@@ -126,14 +130,14 @@ void fill_stringstream_with_json_constraints(
         ss << "{";
         ss << "\"index\":" << lt.index << ",";
         ss << "\"value\":"
-           << "\"0x" +
-                  libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(lt.coeff.as_bigint())
+           << "\"0x" + libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
+                           lt.coeff.as_bigint())
            << "\"";
         ss << "}";
         count++;
     }
     ss << "]";
-};
+}
 
 template<typename ppT>
 void r1cs_to_json(
@@ -210,7 +214,7 @@ void r1cs_to_json(
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-};
+}
 
 } // namespace libzeth
 

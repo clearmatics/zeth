@@ -5,6 +5,8 @@
 #ifndef __ZETH_CIRCUIT_WRAPPER_TCC__
 #define __ZETH_CIRCUIT_WRAPPER_TCC__
 
+#include "libzeth/circuit_wrapper.hpp"
+
 namespace libzeth
 {
 
@@ -13,14 +15,16 @@ template<
     typename HashT,
     typename HashTreeT,
     typename ppT,
+    typename snarkT,
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-KeypairT<ppT> circuit_wrapper<
+typename snarkT::KeypairT circuit_wrapper<
     FieldT,
     HashT,
     HashTreeT,
     ppT,
+    snarkT,
     NumInputs,
     NumOutputs,
     TreeDepth>::generate_trusted_setup() const
@@ -33,8 +37,8 @@ KeypairT<ppT> circuit_wrapper<
 
     // Generate a verification and proving key (trusted setup)
     // and write them in a file
-    KeypairT<ppT> keypair = generate_setup<ppT>(pb);
-    serialize_setup_to_file<ppT>(keypair, this->setup_path);
+    typename snarkT::KeypairT keypair = snarkT::generate_setup(pb);
+    serialize_setup_to_file<snarkT>(keypair, this->setup_path);
 
     return keypair;
 }
@@ -45,6 +49,7 @@ template<
     typename HashT,
     typename HashTreeT,
     typename ppT,
+    typename snarkT,
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
@@ -53,6 +58,7 @@ void circuit_wrapper<
     HashT,
     HashTreeT,
     ppT,
+    snarkT,
     NumInputs,
     NumOutputs,
     TreeDepth>::dump_constraint_system(boost::filesystem::path file_path) const
@@ -72,14 +78,16 @@ template<
     typename HashT,
     typename HashTreeT,
     typename ppT,
+    typename snarkT,
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-extended_proof<ppT> circuit_wrapper<
+extended_proof<ppT, snarkT> circuit_wrapper<
     FieldT,
     HashT,
     HashTreeT,
     ppT,
+    snarkT,
     NumInputs,
     NumOutputs,
     TreeDepth>::
@@ -91,7 +99,7 @@ extended_proof<ppT> circuit_wrapper<
         bits64 vpub_out,
         const bits256 h_sig_in,
         const bits256 phi_in,
-        const ProvingKeyT<ppT> &proving_key) const
+        const typename snarkT::ProvingKeyT &proving_key) const
 {
     // left hand side and right hand side of the joinsplit
     bits64 lhs_value = vpub_in;
@@ -128,13 +136,14 @@ extended_proof<ppT> circuit_wrapper<
     std::cout << "******* [DEBUG] Satisfiability result: " << is_valid_witness
               << " *******" << std::endl;
 
-    ProofT<ppT> proof = libzeth::generate_proof<ppT>(pb, proving_key);
+    typename snarkT::ProofT proof = snarkT::generate_proof(pb, proving_key);
     libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input =
         pb.primary_input();
 
     // Instantiate an extended_proof from the proof we generated and the given
     // primary_input
-    extended_proof<ppT> ext_proof = extended_proof<ppT>(proof, primary_input);
+    extended_proof<ppT, snarkT> ext_proof =
+        extended_proof<ppT, snarkT>(proof, primary_input);
 
     // Write the extended proof in a file (Default path is taken if not
     // specified)
