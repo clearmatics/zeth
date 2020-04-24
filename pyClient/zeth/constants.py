@@ -85,3 +85,26 @@ MIMC_MT_SEED: str = "clearmatics_mt_seed"
 ZETH_PUBLIC_UNIT_VALUE = 1000000000000  # 1 Szabo (10^12 Wei).
 
 COMMITMENT_VALUE_PADDING = bytes(int(192/8))
+
+# Key Derivation Tag "ZethEnc" utf-8 encoding
+KDF_TAG: bytes = b'ZethEnc'
+
+# Note constants
+APK_LENGTH: int = 256
+NOTE_VALUE_LENGTH: int = 64
+RHO_LENGTH: int = 256
+TRAPR_LENGTH: int = 256
+
+# Encryption constants length in bits
+EC_PRIVATE_KEY_LENGTH: int = 256
+EC_PUBLIC_KEY_LENGTH: int = 256
+SYM_KEY_LENGTH: int = 256
+MAC_KEY_LENGTH: int = 256
+TAG_LENGTH: int = 128
+KEY_MATERIAL: int = SYM_KEY_LENGTH + MAC_KEY_LENGTH
+SYM_NONCE_LENGTH: int = 128
+NOTE_LENGTH: int = APK_LENGTH + NOTE_VALUE_LENGTH + RHO_LENGTH + TRAPR_LENGTH
+ENCRYPTED_NOTE_LENGTH: int = EC_PUBLIC_KEY_LENGTH + NOTE_LENGTH + TAG_LENGTH
+
+# Encryption constants values
+SYM_NONCE_VALUE: int = 0

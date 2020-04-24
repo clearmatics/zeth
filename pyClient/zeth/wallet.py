@@ -10,7 +10,6 @@ from zeth.mixer_client import zeth_note_to_json_dict, zeth_note_from_json_dict, 
     receive_note, compute_nullifier, compute_commitment
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.contracts import MixOutputEvents
-from zeth.encryption import EncryptionPublicKey
 from zeth.merkle_tree import PersistentMerkleTree
 from zeth.utils import EtherValue, short_commitment, from_zeth_units
 from api.util_pb2 import ZethNote
@@ -143,10 +142,9 @@ class Wallet:
     def receive_note(
             self,
             comm_addr: int,
-            out_ev: MixOutputEvents,
-            k_pk_sender: EncryptionPublicKey) -> Optional[ZethNoteDescription]:
+            out_ev: MixOutputEvents) -> Optional[ZethNoteDescription]:
         # Check this output event to see if it belongs to this wallet.
-        our_note = receive_note(out_ev, k_pk_sender, self.k_sk_receiver)
+        our_note = receive_note(out_ev, self.k_sk_receiver)
         if our_note is None:
             return None
 
@@ -165,8 +163,7 @@ class Wallet:
 
     def receive_notes(
             self,
-            output_events: List[MixOutputEvents],
-            k_pk_sender: EncryptionPublicKey) -> List[ZethNoteDescription]:
+            output_events: List[MixOutputEvents]) -> List[ZethNoteDescription]:
         """
         Decrypt any notes we can, verify them as being valid, and store them in
         the database.
@@ -181,7 +178,7 @@ class Wallet:
 
             # All commitments must be added to the tree in order.
             self.merkle_tree.insert(out_ev.commitment)
-            note_desc = self.receive_note(self.next_addr, out_ev, k_pk_sender)
+            note_desc = self.receive_note(self.next_addr, out_ev)
             if note_desc is not None:
                 new_notes.append(note_desc)
 

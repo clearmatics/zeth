@@ -11,7 +11,6 @@ import zeth.utils
 import zeth.zksnark
 from zeth.zeth_address import ZethAddressPriv
 from zeth.contracts import MixOutputEvents
-from zeth.encryption import EncryptionPublicKey
 from zeth.mixer_client import MixerClient
 from zeth.wallet import Wallet, ZethNoteDescription
 import test_commands.mock as mock
@@ -84,14 +83,13 @@ def main() -> None:
 
     # Universal update function
     def _receive_notes(
-            out_ev: List[MixOutputEvents],
-            sender_k_pk: EncryptionPublicKey) \
+            out_ev: List[MixOutputEvents]) \
             -> Dict[str, List[ZethNoteDescription]]:
         nonlocal block_num
         notes = {
-            'alice': alice_wallet.receive_notes(out_ev, sender_k_pk),
-            'bob': bob_wallet.receive_notes(out_ev, sender_k_pk),
-            'charlie': charlie_wallet.receive_notes(out_ev, sender_k_pk),
+            'alice': alice_wallet.receive_notes(out_ev),
+            'bob': bob_wallet.receive_notes(out_ev),
+            'charlie': charlie_wallet.receive_notes(out_ev),
         }
         alice_wallet.update_and_save_state(block_num)
         bob_wallet.update_and_save_state(block_num)
@@ -127,9 +125,7 @@ def main() -> None:
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
     # was the recipient but she wasn't the recipient (Bob was), so she fails to
     # decrypt
-    recovered_notes = _receive_notes(
-        result_deposit_bob_to_bob.output_events,
-        result_deposit_bob_to_bob.sender_k_pk)
+    recovered_notes = _receive_notes(result_deposit_bob_to_bob.output_events)
     assert(len(recovered_notes['alice']) == 0), \
         "Alice decrypted a ciphertext that was not encrypted with her key!"
 
@@ -173,8 +169,7 @@ def main() -> None:
 
     # Charlie recovers his notes and attempts to withdraw them.
     recovered_notes = _receive_notes(
-        result_transfer_bob_to_charlie.output_events,
-        result_transfer_bob_to_charlie.sender_k_pk)
+        result_transfer_bob_to_charlie.output_events)
     notes_charlie = recovered_notes['charlie']
     assert(len(notes_charlie) == 1), \
         f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
@@ -234,8 +229,7 @@ def main() -> None:
     # Bob decrypts one of the note he previously received (should fail if
     # Charlie's attack succeeded)
     recovered_notes = _receive_notes(
-        result_deposit_bob_to_bob.output_events,
-        result_deposit_bob_to_bob.sender_k_pk)
+        result_deposit_bob_to_bob.output_events)
     assert(len(recovered_notes['bob']) == 2), \
         f"Bob recovered {len(recovered_notes['bob'])} notes, expected 2"
 
