@@ -14,8 +14,8 @@ namespace libzeth
 {
 
 /// Output from the first phase of the MPC (powersoftau). The structure
-/// matches that data exactly (no indication of degree, etc), so that it can be
-/// loaded directly. Implements the interface of StructuredT.
+/// matches that data exactly (no indication of degree, etc), so that it can
+/// be loaded directly. Implements the interface of StructuredT.
 template<typename ppT> class srs_powersoftau
 {
 public:
@@ -114,8 +114,8 @@ srs_powersoftau<libff::alt_bn128_pp> powersoftau_load(
 void powersoftau_write(
     std::ostream &in, const srs_powersoftau<libff::alt_bn128_pp> &pot);
 
-/// Implements the SameRatio described in "Scalable Multi-party Computation for
-/// zk-SNARK Parameters in the Random Beacon Model"
+/// Implements the SameRatio described in "Scalable Multi-party Computation
+/// for zk-SNARK Parameters in the Random Beacon Model"
 /// http://eprint.iacr.org/2017/1050
 template<typename ppT>
 bool same_ratio(
@@ -131,7 +131,8 @@ bool same_ratio(
 ///   b1 = b1s[0] * r_0 + ... + b1s[n] * r_n
 /// and check same_ratio((a1, b1), (a2, b2)).
 ///
-/// (Based on merge_pairs function from https://github.com/ebfull/powersoftau/)
+/// (Based on merge_pairs function from
+/// https://github.com/ebfull/powersoftau/)
 template<typename ppT>
 bool same_ratio_vectors(
     const std::vector<libff::G1<ppT>> &a1s,
@@ -147,8 +148,8 @@ bool same_ratio_vectors(
     const std::vector<libff::G2<ppT>> &a2s,
     const std::vector<libff::G2<ppT>> &b2s);
 
-/// Checks that consecutive entries in a1s all have a ratio consistent with (a2,
-/// b2).
+/// Checks that consecutive entries in a1s all have a ratio consistent with
+/// (a2, b2).
 template<typename ppT>
 bool same_ratio_consecutive(
     const std::vector<libff::G1<ppT>> &a1s,
@@ -166,9 +167,9 @@ bool same_ratio_consecutive(
 template<typename ppT>
 bool powersoftau_is_well_formed(const srs_powersoftau<ppT> &pot);
 
-/// Compute the evaluation of the lagrange polynomials in G1 and G2, along with
-/// some useful factors. The results can be cached and used against any QAP,
-/// provided its domain size matched.
+/// Compute the evaluation of the lagrange polynomials in G1 and G2, along
+/// with some useful factors. The results can be cached and used against any
+/// QAP, provided its domain size matched.
 template<typename ppT>
 srs_lagrange_evaluations<ppT> powersoftau_compute_lagrange_evaluations(
     const srs_powersoftau<ppT> &pot, const size_t n);

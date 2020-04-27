@@ -6,6 +6,7 @@
 #define __ZETH_MPC_CLI_COMMON_HPP__
 
 #include "libzeth/circuit_types.hpp"
+#include "libzeth/snarks/groth16/mpc/hash_utils.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
