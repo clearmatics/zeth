@@ -2,50 +2,48 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "gtest/gtest.h"
+// Import only the core components of the SNARK (not the API components)
+#include "libzeth/circuit_types.hpp"
+#include "libzeth/circuit_wrapper.hpp"
+#include "libzeth/circuits/blake2s/blake2s.hpp"
+#include "libzeth/snarks/groth16/core.hpp"
+#include "libzeth/util.hpp"
+
+#include <chrono>
+#include <gtest/gtest.h>
 #include <libff/common/default_types/ec_pp.hpp>
+#include <libsnark/common/data_structures/merkle_tree.hpp>
 #include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
 #include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
-// Header to use the merkle tree data structure to keep a local merkle tree
-#include <libsnark/common/data_structures/merkle_tree.hpp>
+// Use the default ppT and otherconfigurations from the circuit code, but force
+// the Merkle tree depth to 4. Parameterize the test code on the snark, so that
+// this code can test all available snark schemes, indepedent of the
+// build configuration.
 
-// Have access to a chrono to measure the rough time of execution of a set of
-// instructions
-#include "libzeth/snarks_types.hpp"
-
-#include <chrono>
-// Import only the core components of the SNARK (not the API components)
-#include "libzeth/circuit_wrapper.hpp"
-#include "libzeth/circuits/blake2s/blake2s.hpp"
-#include "libzeth/snarks_core_imports.hpp"
-#include "libzeth/util.hpp"
+static const size_t TreeDepth = 4;
 
 using namespace libzeth;
 
-// Instantiation of the templates for the tests
-typedef libff::default_ec_pp ppT;
-
-// Should be alt_bn128 in the CMakeLists.txt
-typedef libff::Fr<ppT> FieldT;
-typedef BLAKE2s_256<FieldT> HashT;
-typedef MiMC_mp_gadget<FieldT> HashTreeT;
-static const size_t TreeDepth = 4;
+template<typename snarkT>
+using prover =
+    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, snarkT, 2, 2, TreeDepth>;
 
 namespace
 {
 
+template<typename snarkT>
 bool TestValidJS2In2Case1(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::KeypairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     // --- General setup for the tests --- //
     libff::print_header(
-        "test JS 2-2: IN => vpub_in = 0x0, note0 = 0x2F0000000000000F, note1 = "
-        "0x0 || OUT => vpub_out = 0x1700000000000007, note0 = "
-        "0x1800000000000008, note1 = 0x0");
+        "test JS 2-2:\n"
+        " IN => vpub_in=0x0, note0=0x2F0000000000000F, note1=0x0\n"
+        " OUT=> vpub_out=0x1700000000000007, note0=0x1800000000000008, "
+        "note1=0x0");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -146,7 +144,7 @@ bool TestValidJS2In2Case1(
     libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate proof", true);
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -159,8 +157,9 @@ bool TestValidJS2In2Case1(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::VerifKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
@@ -172,14 +171,15 @@ bool TestValidJS2In2Case1(
     return res;
 }
 
+template<typename snarkT>
 bool TestValidJS2In2Case2(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::KeypairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     libff::print_header(
-        "Starting test: IN => v_pub = 0, note0 = 0x2F0000000000000F, note1 = "
-        "0x0 || OUT => v_pub = 0x000000000000000B, note0 = 0x1A00000000000002, "
-        "note1 = 0x1500000000000002");
+        "Starting test:\n"
+        " IN => v_pub=0, note0=0x2F0000000000000F, note1=0x0\n"
+        " OUT=> v_pub=0x000000000000000B, note0=0x1A00000000000002,"
+        " note1=0x1500000000000002");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -278,7 +278,7 @@ bool TestValidJS2In2Case2(
     libff::enter_block("Generate proof", true);
     // RHS = 0x1A00000000000002 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F (LHS)
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -293,8 +293,9 @@ bool TestValidJS2In2Case2(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::VerifKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
@@ -306,15 +307,16 @@ bool TestValidJS2In2Case2(
     return res;
 }
 
+template<typename snarkT>
 bool TestValidJS2In2Case3(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::KeypairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     // --- General setup for the tests --- //
     libff::print_header(
-        "Starting test: IN => v_pub = 0x0000000000000010, note0 = "
-        "0x2F0000000000000F, note1 = 0x0 || OUT => v_pub = 0x000000000000000B, "
-        "note0 = 0x1A00000000000012, note1 = 0x1500000000000002");
+        "Starting test:\n"
+        " IN => v_pub=0x0000000000000010, note0=0x2F0000000000000F, note1=0x0\n"
+        " OUT=> v_pub=0x000000000000000B, note0=0x1A00000000000012,"
+        " note1=0x1500000000000002");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -415,7 +417,7 @@ bool TestValidJS2In2Case3(
     libff::enter_block("Generate proof", true);
     // (RHS) 0x1A00000000000012 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F + 0x0000000000000010 + 0x0 (LHS)
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -430,8 +432,9 @@ bool TestValidJS2In2Case3(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::VerifKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verfy? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
@@ -443,14 +446,15 @@ bool TestValidJS2In2Case3(
     return res;
 }
 
+template<typename snarkT>
 bool TestValidJS2In2Deposit(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::KeypairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     // --- General setup for the tests --- //
-    libff::print_header("Starting test: IN => v_pub = 0x6124FEE993BC0000, "
-                        "note0 = 0x0, note1 = 0x0 || OUT => v_pub = 0x0, note0 "
-                        "= 0x3782DACE9D900000, note1 = 0x29A2241AF62C0000");
+    libff::print_header(
+        "Starting test:\n"
+        " IN => v_pub=0x6124FEE993BC0000, note0=0x0, note1=0x0\n"
+        " OUT=> v_pub=0x0, note0=0x3782DACE9D900000, note1=0x29A2241AF62C0000");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -549,7 +553,7 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("Generate proof", true);
     // RHS = 0x0 + 0x3782DACE9D900000 + 0x29A2241AF62C0000 = 0x6124FEE993BC0000
     // (LHS)
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -564,8 +568,9 @@ bool TestValidJS2In2Deposit(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::VerifKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
 
     ext_proof.dump_primary_inputs();
     std::cout << "Does the proof verify? " << res << std::endl;
@@ -579,14 +584,15 @@ bool TestValidJS2In2Deposit(
     return res;
 }
 
+template<typename snarkT>
 bool TestInvalidJS2In2(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::KeypairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     // --- General setup for the tests --- //
-    libff::print_header("Starting test: IN => v_pub = 0xFA80001400000000, "
-                        "note0 = 0x0, note1 = 0x0 || OUT => v_pub = 0x0, note0 "
-                        "= 0x8530000A00000001, note1 = 0x7550000A00000000");
+    libff::print_header(
+        "Starting test:\n"
+        " IN => v_pub=0xFA80001400000000, note0=0x0, note1=0x0\n"
+        " OUT=> v_pub=0x0, note0=0x8530000A00000001, note1=0x7550000A00000000");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -690,7 +696,7 @@ bool TestInvalidJS2In2(
     // 0x8530000A00000001 (9.597170848876199937 ETH) + 0x7550000A00000000
     // (8.453256543524093952 ETH) = RHS LHS = 18.050427392400293888 ETH RHS
     // = 18.050427392400293889 ETH (1 wei higher than LHS)
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -705,8 +711,9 @@ bool TestInvalidJS2In2(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::VerifKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify ? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
@@ -718,14 +725,13 @@ bool TestInvalidJS2In2(
     return res;
 }
 
-TEST(MainTests, ProofGenAndVerifJS2to2)
+template<typename snarkT> static void run_prover_tests()
 {
     // Run the trusted setup once for all tests, and keep the keypair in memory
     // for the duration of the tests
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth>
-        proverJS2to2;
+    prover<snarkT> proverJS2to2;
 
-    libzeth::KeypairT<ppT> keypair = proverJS2to2.generate_trusted_setup();
+    typename snarkT::KeypairT keypair = proverJS2to2.generate_trusted_setup();
     bool res = false;
 
     res = TestValidJS2In2Case1(proverJS2to2, keypair);
@@ -740,14 +746,30 @@ TEST(MainTests, ProofGenAndVerifJS2to2)
     res = TestValidJS2In2Deposit(proverJS2to2, keypair);
     ASSERT_TRUE(res);
 
-    // The following test is expected to throw an exception because the LHS =/=
-    // RHS
+    // The following is expected to throw an exception because LHS =/= RHS.
+    // Ensure that the exception is thrown.
+    ASSERT_THROW(
+        (res = TestInvalidJS2In2(proverJS2to2, keypair)),
+        std::invalid_argument);
+
     try {
+        res = false;
         res = TestInvalidJS2In2(proverJS2to2, keypair);
-        ASSERT_TRUE(res);
+        res = true;
     } catch (const std::invalid_argument &e) {
         std::cerr << "Invalid argument exception: " << e.what() << '\n';
     }
+    ASSERT_FALSE(res);
+}
+
+TEST(MainTestsGroth16, ProofGenAndVerifJS2to2)
+{
+    run_prover_tests<groth16snark<ppT>>();
+}
+
+TEST(MainTestsPghr12, ProofGenAndVerifJS2to2)
+{
+    // run_prover_tests<pghr13snark<ppT>>();
 }
 
 } // namespace

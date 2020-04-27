@@ -14,12 +14,12 @@ namespace libzeth
 template<typename ppT, typename snarkT>
 extended_proof<ppT, snarkT>::extended_proof(
     typename snarkT::ProofT &in_proof,
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input)
+    libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_inputs)
 {
-    this->proof = std::make_shared<typename snarkT::ProofT>(in_proof);
-    this->primary_inputs =
+    proof = std::make_shared<typename snarkT::ProofT>(in_proof);
+    primary_inputs =
         std::make_shared<libsnark::r1cs_primary_input<libff::Fr<ppT>>>(
-            in_primary_input);
+            in_primary_inputs);
 }
 
 template<typename ppT, typename snarkT>
@@ -30,13 +30,13 @@ const typename snarkT::ProofT &extended_proof<ppT, snarkT>::get_proof() const
 
 template<typename ppT, typename snarkT>
 const libsnark::r1cs_primary_input<libff::Fr<ppT>>
-    &extended_proof<ppT, snarkT>::get_primary_input() const
+    &extended_proof<ppT, snarkT>::get_primary_inputs() const
 {
     return *this->primary_inputs;
 }
 
 template<typename ppT, typename snarkT>
-void extended_proof<ppT, snarkT>::write_primary_input(
+void extended_proof<ppT, snarkT>::write_primary_inputs(
     boost::filesystem::path path) const
 {
     if (path.empty()) {

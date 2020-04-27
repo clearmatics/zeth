@@ -26,13 +26,13 @@ private:
 public:
     extended_proof(
         typename snarkT::ProofT &in_proof,
-        libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_input);
+        libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_inputs);
     const typename snarkT::ProofT &get_proof() const;
-    const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_input()
+    const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_inputs()
         const;
 
     // Write on disk
-    void write_primary_input(boost::filesystem::path path = "") const;
+    void write_primary_inputs(boost::filesystem::path path = "") const;
     void write_proof(boost::filesystem::path path = "") const;
     void write_extended_proof(boost::filesystem::path path = "") const;
 
@@ -42,6 +42,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/types/extended_proof.tcc"
 
 #endif // __ZETH_TYPES_EXTENDED_PROOF_HPP__
