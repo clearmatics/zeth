@@ -19,11 +19,12 @@ public:
     typedef groth16snark<ppT> snarkT;
 
     static void format_extended_proof(
-        extended_proof<ppT, snarkT> &ext_proof,
+        const extended_proof<ppT, snarkT> &ext_proof,
         zeth_proto::ExtendedProof *message);
 
     static void format_verification_key(
-        typename snarkT::VerifKeyT &vk, zeth_proto::VerificationKey *message);
+        const typename snarkT::VerifKeyT &vk,
+        zeth_proto::VerificationKey *message);
 
     static libzeth::extended_proof<ppT, snarkT> parse_extended_proof(
         const zeth_proto::ExtendedProof &ext_proof);
@@ -32,7 +33,7 @@ public:
         const zeth_proto::VerificationKey &verification_key);
 
     static void prepare_proof_response(
-        extended_proof<ppT, snarkT> &ext_proof,
+        const extended_proof<ppT, snarkT> &ext_proof,
         zeth_proto::ExtendedProof *message);
 
     static void prepare_verification_key_response(
