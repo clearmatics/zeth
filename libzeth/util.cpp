@@ -6,6 +6,7 @@
 #include "libzeth/zeth.h"
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <stdexcept>
 #include <vector>

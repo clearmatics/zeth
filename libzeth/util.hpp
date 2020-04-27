@@ -9,7 +9,6 @@
 
 #include <cstdint>
 #include <gmp.h>
-#include <libff/algebra/fields/bigint.hpp>
 #include <string>
 #include <vector>
 
@@ -55,11 +54,6 @@ std::vector<bool> hexadecimal_digest_to_binary_vector(std::string str);
 
 // Returns the little endian binary encoding of the integer x.
 std::vector<bool> convert_uint_to_binary(size_t x);
-
-/// Function that converts an hexadecimal string into a field element.
-/// This function throws a `invalid_argument` exception if the conversion fails.
-template<typename FieldT>
-FieldT hexadecimal_str_to_field_element(std::string input);
 
 std::string hexadecimal_str_to_binary_str(const std::string &s);
 std::string binary_str_to_hexadecimal_str(const void *s, const size_t size);

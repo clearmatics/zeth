@@ -7,6 +7,8 @@
 
 #include "libzeth/util.hpp"
 
+#include <cmath>
+
 namespace libzeth
 {
 
