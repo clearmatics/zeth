@@ -2,18 +2,16 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/libsnark_helpers/debug_helpers.hpp"
+#include "libzeth/sciprlab_libs_util.hpp"
+#include "libzeth/serialization/debug_helpers.hpp"
 #include "libzeth/util.hpp"
 #include "libzeth/zeth.h"
 
-#include "gtest/gtest.h"
+#include <assert.h>
+#include <gtest/gtest.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/curves/public_params.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
-
-// Access zeth configuration constants
-#include "assert.h"
-#include "libzeth/zeth.h"
 
 // Instantiation of the templates for the tests
 typedef libff::default_ec_pp ppT;
@@ -21,6 +19,7 @@ typedef libff::Fr<ppT> FieldT;
 
 namespace
 {
+
 TEST(TestHexConvertion, TestHexToFieldTrue)
 {
     FieldT starting_field_element = FieldT::random_element();

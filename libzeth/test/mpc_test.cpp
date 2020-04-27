@@ -4,6 +4,7 @@
 
 #include "libzeth/circuit_types.hpp"
 #include "libzeth/circuits/sha256/sha256_ethereum.hpp"
+#include "libzeth/snarks/groth16/core.hpp"
 #include "libzeth/snarks/groth16/mpc/chacha_rng.hpp"
 #include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp"
 #include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
@@ -20,6 +21,7 @@
 using namespace libzeth;
 using namespace libsnark;
 
+using PP = srs_pot_pp;
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
@@ -451,16 +453,16 @@ TEST(MPCTests, KeyPairReadWrite)
     std::string keypair_serialized;
     {
         std::ostringstream out;
-        mpc_write_keypair(out, keypair);
+        groth16snark<PP>::write_keypair(out, keypair);
         keypair_serialized = out.str();
     }
 
-    r1cs_gg_ppzksnark_keypair<ppT> keypair_deserialized = [&]() {
+    typename groth16snark<PP>::KeypairT keypair_deserialized = [&]() {
         std::istringstream in(keypair_serialized);
         in.exceptions(
             std::ios_base::eofbit | std::ios_base::badbit |
             std::ios_base::failbit);
-        return mpc_read_keypair<ppT>(in);
+        return groth16snark<PP>::read_keypair(in);
     }();
 
     ASSERT_EQ(keypair.pk, keypair_deserialized.pk);

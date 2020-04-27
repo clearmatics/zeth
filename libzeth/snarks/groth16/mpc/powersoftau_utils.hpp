@@ -88,6 +88,9 @@ srs_powersoftau<ppT> dummy_powersoftau_from_secrets(
 /// interest.
 template<typename ppT> srs_powersoftau<ppT> dummy_powersoftau(size_t n);
 
+/// The POT code here is specific to the ppT = libff::alt_bn128_pp curve.
+using srs_pot_pp = libff::alt_bn128_pp;
+
 // Utility functions for reading and writing data as formatted by the
 // powersoftau process.
 
@@ -106,13 +109,12 @@ void write_powersoftau_g2(std::ostream &out, const libff::alt_bn128_G2 &g2);
 ///   https://github.com/clearmatics/powersoftau
 ///
 /// Expect at least 'n' powers in the file.
-srs_powersoftau<libff::alt_bn128_pp> powersoftau_load(
-    std::istream &in, size_t n);
+srs_powersoftau<srs_pot_pp> powersoftau_load(std::istream &in, size_t n);
 
 /// Write powersoftau data, in the format compatible with
 /// powersoftau_load.
 void powersoftau_write(
-    std::ostream &in, const srs_powersoftau<libff::alt_bn128_pp> &pot);
+    std::ostream &in, const srs_powersoftau<srs_pot_pp> &pot);
 
 /// Implements the SameRatio described in "Scalable Multi-party Computation
 /// for zk-SNARK Parameters in the Random Beacon Model"

@@ -119,15 +119,12 @@ void write_powersoftau_fp2(
 
 } // namespace
 
-// Functions below are only implemented for the alt_bn128 curve type.
-using ppT = libff::alt_bn128_pp;
-
-void read_powersoftau_fr(std::istream &in, libff::Fr<ppT> &out)
+void read_powersoftau_fr(std::istream &in, libff::alt_bn128_Fr &out)
 {
     read_powersoftau_fp(in, out);
 }
 
-void read_powersoftau_g1(std::istream &in, libff::G1<ppT> &out)
+void read_powersoftau_g1(std::istream &in, libff::alt_bn128_G1 &out)
 {
     uint8_t marker;
     in.read((char *)&marker, 1);
@@ -135,15 +132,15 @@ void read_powersoftau_g1(std::istream &in, libff::G1<ppT> &out)
     switch (marker) {
     case 0x00:
         // zero
-        out = libff::G1<ppT>::zero();
+        out = libff::G1<srs_pot_pp>::zero();
         break;
     case 0x04: {
         // Uncompressed
-        libff::Fq<ppT> x;
-        libff::Fq<ppT> y;
+        libff::Fq<srs_pot_pp> x;
+        libff::Fq<srs_pot_pp> y;
         read_powersoftau_fp(in, x);
         read_powersoftau_fp(in, y);
-        out = libff::G1<ppT>(x, y, libff::Fq<ppT>::one());
+        out = libff::G1<srs_pot_pp>(x, y, libff::Fq<srs_pot_pp>::one());
         break;
     }
     default:
@@ -157,7 +154,7 @@ void read_powersoftau_fq2(std::istream &in, libff::alt_bn128_Fq2 &out)
     read_powersoftau_fp2(in, out);
 }
 
-void read_powersoftau_g2(std::istream &in, libff::G2<ppT> &out)
+void read_powersoftau_g2(std::istream &in, libff::alt_bn128_G2 &out)
 {
     uint8_t marker;
     in.read((char *)&marker, 1);
@@ -165,7 +162,7 @@ void read_powersoftau_g2(std::istream &in, libff::G2<ppT> &out)
     switch (marker) {
     case 0x00:
         // zero
-        out = libff::G2<ppT>::zero();
+        out = libff::G2<srs_pot_pp>::zero();
         break;
 
     case 0x04:
@@ -181,7 +178,7 @@ void read_powersoftau_g2(std::istream &in, libff::G2<ppT> &out)
     }
 }
 
-void write_powersoftau_fr(std::ostream &out, const libff::Fr<ppT> &fr)
+void write_powersoftau_fr(std::ostream &out, const libff::alt_bn128_Fr &fr)
 {
     write_powersoftau_fp(out, fr);
 }
@@ -191,7 +188,7 @@ void write_powersoftau_fq2(std::ostream &out, const libff::alt_bn128_Fq2 &fq2)
     write_powersoftau_fp2(out, fq2);
 }
 
-void write_powersoftau_g1(std::ostream &out, const libff::G1<ppT> &g1)
+void write_powersoftau_g1(std::ostream &out, const libff::alt_bn128_G1 &g1)
 {
     if (g1.is_zero()) {
         const uint8_t zero = 0;
@@ -208,7 +205,7 @@ void write_powersoftau_g1(std::ostream &out, const libff::G1<ppT> &g1)
     write_powersoftau_fp(out, copy.Y);
 }
 
-void write_powersoftau_g2(std::ostream &out, const libff::G2<ppT> &g2)
+void write_powersoftau_g2(std::ostream &out, const libff::alt_bn128_G2 &g2)
 {
     if (g2.is_zero()) {
         const uint8_t zero = 0;
@@ -225,10 +222,10 @@ void write_powersoftau_g2(std::ostream &out, const libff::G2<ppT> &g2)
     write_powersoftau_fp2(out, copy.Y);
 }
 
-srs_powersoftau<ppT> powersoftau_load(std::istream &in, size_t n)
+srs_powersoftau<srs_pot_pp> powersoftau_load(std::istream &in, size_t n)
 {
-    using G1 = libff::G1<ppT>;
-    using G2 = libff::G2<ppT>;
+    using G1 = libff::G1<srs_pot_pp>;
+    using G2 = libff::G2<srs_pot_pp>;
 
     // From:
     //
@@ -290,7 +287,7 @@ srs_powersoftau<ppT> powersoftau_load(std::istream &in, size_t n)
     G2 beta_g2;
     read_powersoftau_g2(in, beta_g2);
 
-    srs_powersoftau<ppT> pot(
+    srs_powersoftau<srs_pot_pp> pot(
         std::move(tau_powers_g1),
         std::move(tau_powers_g2),
         std::move(alpha_tau_powers_g1),
@@ -300,7 +297,8 @@ srs_powersoftau<ppT> powersoftau_load(std::istream &in, size_t n)
     return pot;
 }
 
-void powersoftau_write(std::ostream &out, const srs_powersoftau<ppT> &pot)
+void powersoftau_write(
+    std::ostream &out, const srs_powersoftau<srs_pot_pp> &pot)
 {
     check_well_formed(pot, "powersoftau (write)");
 
