@@ -60,8 +60,6 @@ int hexadecimal_str_to_byte_array(char *source_str, uint8_t *dest_buffer);
 /// passed as first argument.
 void erase_substring(std::string &string, const std::string &substring);
 
-bool replace(std::string &str, const std::string &from, const std::string &to);
-
 /// interface for StructuredT typed below:
 /// {
 ///   bool is_well_formed() const;
