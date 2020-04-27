@@ -81,6 +81,9 @@ if ("${IS_ZETH_PARENT}")
   # A target which builds all tests, even if they will not be run.
   add_custom_target(build_tests)
 
+  # Function to create test targets, based on the FAST flag:
+  #   zeth_test(
+  #     <test name> SOURCE <source files> [ARGS <tst arguments>] [FAST])
   function(zeth_test TEST_NAME)
     set(multiValueArgs SOURCE ARGS)
     cmake_parse_arguments(zeth_test "FAST" "" "SOURCE;ARGS" ${ARGN})
