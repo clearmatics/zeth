@@ -24,7 +24,7 @@ public:
     static KeypairT generate_setup(
         const libsnark::protoboard<libff::Fr<ppT>> &pb);
 
-    static libsnark::r1cs_gg_ppzksnark_proof<ppT> generate_proof(
+    static ProofT generate_proof(
         const libsnark::protoboard<libff::Fr<ppT>> &pb,
         const ProvingKeyT &proving_key);
 
@@ -48,7 +48,8 @@ public:
         const libsnark::r1cs_primary_input<libff::Fr<ppT>> &input,
         boost::filesystem::path path = "");
 
-    static void proof_to_json(ProofT proof, boost::filesystem::path path);
+    static void proof_to_json(
+        const ProofT &proof, boost::filesystem::path path);
 
     /// Write a keypair to a stream.
     static void write_keypair(std::ostream &out, const KeypairT &keypair);
@@ -56,6 +57,14 @@ public:
     /// Read a keypair from a stream.
     static KeypairT read_keypair(std::istream &in);
 };
+
+/// Check well-formedness of a proving key
+template<typename ppT>
+static bool is_well_formed(const typename groth16snark<ppT>::ProvingKeyT &pk);
+
+/// Check well-formedness of a verification key
+template<typename ppT>
+static bool is_well_formed(const typename groth16snark<ppT>::VerifKeyT &vk);
 
 } // namespace libzeth
 

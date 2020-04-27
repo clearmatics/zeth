@@ -741,61 +741,6 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
         std::move(pk), std::move(vk));
 }
 
-// Overload the `is_well_formed` method for proving key
-template<typename ppT>
-bool is_well_formed(const libsnark::r1cs_gg_ppzksnark_proving_key<ppT> &pk)
-{
-    if (!pk.alpha_g1.is_well_formed() || !pk.beta_g1.is_well_formed() ||
-        !pk.beta_g2.is_well_formed() || !pk.delta_g1.is_well_formed() ||
-        !pk.delta_g2.is_well_formed() ||
-        !container_is_well_formed(pk.A_query) ||
-        !container_is_well_formed(pk.L_query)) {
-        return false;
-    }
-
-    using knowledge_commitment =
-        libsnark::knowledge_commitment<libff::G2<ppT>, libff::G1<ppT>>;
-    for (const knowledge_commitment &b : pk.B_query.values) {
-        if (!b.g.is_well_formed() || !b.h.is_well_formed()) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-template<typename ppT>
-bool is_well_formed(const libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &vk)
-{
-    if (!vk.alpha_g1.is_well_formed() || !vk.beta_g2.is_well_formed() ||
-        !vk.delta_g2.is_well_formed() || !vk.ABC_g1.first.is_well_formed()) {
-        return false;
-    }
-
-    return container_is_well_formed(vk.ABC_g1.rest.values);
-}
-
-template<typename ppT>
-void mpc_write_keypair(
-    std::ostream &out, const libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair)
-{
-    check_well_formed_(keypair.pk, "proving key (read)");
-    check_well_formed_(keypair.vk, "verification key (read)");
-    out << keypair.pk;
-    out << keypair.vk;
-}
-
-template<typename ppT>
-libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_read_keypair(std::istream &in)
-{
-    libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair;
-    in >> keypair.pk;
-    in >> keypair.vk;
-    check_well_formed_(keypair.pk, "proving key (read)");
-    check_well_formed_(keypair.vk, "verification key (read)");
-    return keypair;
-}
-
 } // namespace libzeth
 
 #endif // __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__

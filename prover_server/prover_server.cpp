@@ -7,7 +7,6 @@
 #include "libzeth/serialization/file_io.hpp"
 #include "libzeth/snarks_api_imports.hpp"
 #include "libzeth/types/extended_proof.hpp"
-// #include "libzeth/snarks_types.hpp"
 #include "libzeth/util.hpp"
 #include "libzeth/zeth.h"
 #include "zethConfig.h"
