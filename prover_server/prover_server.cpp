@@ -37,8 +37,9 @@ namespace po = boost::program_options;
 class prover_server final : public zeth_proto::Prover::Service
 {
 private:
+    using FieldT = libff::Fr<libzeth::ppT>;
+
     libzeth::circuit_wrapper<
-        libzeth::FieldT,
         libzeth::HashT,
         libzeth::HashTreeT,
         libzeth::ppT,
@@ -54,7 +55,6 @@ private:
 public:
     explicit prover_server(
         libzeth::circuit_wrapper<
-            libzeth::FieldT,
             libzeth::HashT,
             libzeth::HashTreeT,
             libzeth::ppT,
@@ -231,7 +231,6 @@ void display_server_start_message()
 
 static void RunServer(
     libzeth::circuit_wrapper<
-        libzeth::FieldT,
         libzeth::HashT,
         libzeth::HashTreeT,
         libzeth::ppT,
@@ -328,7 +327,6 @@ int main(int argc, char **argv)
     libzeth::ppT::init_public_params();
 
     libzeth::circuit_wrapper<
-        libzeth::FieldT,
         libzeth::HashT,
         libzeth::HashTreeT,
         libzeth::ppT,

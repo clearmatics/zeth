@@ -11,7 +11,26 @@ namespace libzeth
 {
 
 template<
-    typename FieldT,
+    typename HashT,
+    typename HashTreeT,
+    typename ppT,
+    typename snarkT,
+    size_t NumInputs,
+    size_t NumOutputs,
+    size_t TreeDepth>
+circuit_wrapper<
+    HashT,
+    HashTreeT,
+    ppT,
+    snarkT,
+    NumInputs,
+    NumOutputs,
+    TreeDepth>::circuit_wrapper(const boost::filesystem::path setup_path)
+    : setup_path(setup_path)
+{
+}
+
+template<
     typename HashT,
     typename HashTreeT,
     typename ppT,
@@ -20,7 +39,6 @@ template<
     size_t NumOutputs,
     size_t TreeDepth>
 typename snarkT::KeypairT circuit_wrapper<
-    FieldT,
     HashT,
     HashTreeT,
     ppT,
@@ -45,7 +63,6 @@ typename snarkT::KeypairT circuit_wrapper<
 
 #ifdef DEBUG
 template<
-    typename FieldT,
     typename HashT,
     typename HashTreeT,
     typename ppT,
@@ -54,7 +71,6 @@ template<
     size_t NumOutputs,
     size_t TreeDepth>
 void circuit_wrapper<
-    FieldT,
     HashT,
     HashTreeT,
     ppT,
@@ -74,7 +90,6 @@ void circuit_wrapper<
 #endif
 
 template<
-    typename FieldT,
     typename HashT,
     typename HashTreeT,
     typename ppT,
@@ -83,7 +98,6 @@ template<
     size_t NumOutputs,
     size_t TreeDepth>
 extended_proof<ppT, snarkT> circuit_wrapper<
-    FieldT,
     HashT,
     HashTreeT,
     ppT,

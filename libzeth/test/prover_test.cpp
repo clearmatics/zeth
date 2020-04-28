@@ -24,8 +24,7 @@ static const size_t TreeDepth = 4;
 using namespace libzeth;
 
 template<typename snarkT>
-using prover =
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, snarkT, 2, 2, TreeDepth>;
+using prover = circuit_wrapper<HashT, HashTreeT, ppT, snarkT, 2, 2, TreeDepth>;
 
 namespace
 {

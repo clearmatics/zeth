@@ -13,8 +13,9 @@
 namespace libzeth
 {
 
+/// Wrapper around the joinsplit circuit, using parameterized schemes for
+/// hashing, and a snark scheme for generating keys and proofs.
 template<
-    typename FieldT,
     typename HashT,
     typename HashTreeT,
     typename ppT,
@@ -25,18 +26,9 @@ template<
 class circuit_wrapper
 {
 public:
-    boost::filesystem::path setup_path;
-    std::shared_ptr<joinsplit_gadget<
-        FieldT,
-        HashT,
-        HashTreeT,
-        NumInputs,
-        NumOutputs,
-        TreeDepth>>
-        joinsplit_g;
+    using FieldT = libff::Fr<ppT>;
 
-    circuit_wrapper(const boost::filesystem::path setup_path = "")
-        : setup_path(setup_path){};
+    circuit_wrapper(const boost::filesystem::path setup_path = "");
 
     // Generate the trusted setup
     typename snarkT::KeypairT generate_trusted_setup() const;
@@ -57,6 +49,17 @@ public:
         const bits256 h_sig_in,
         const bits256 phi_in,
         const typename snarkT::ProvingKeyT &proving_key) const;
+
+private:
+    boost::filesystem::path setup_path;
+    std::shared_ptr<joinsplit_gadget<
+        FieldT,
+        HashT,
+        HashTreeT,
+        NumInputs,
+        NumOutputs,
+        TreeDepth>>
+        joinsplit_g;
 };
 
 } // namespace libzeth
