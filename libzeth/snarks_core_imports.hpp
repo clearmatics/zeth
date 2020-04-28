@@ -6,8 +6,7 @@
 #define __ZETH_SNARKS_CORE_IMPORTS_HPP__
 
 #ifdef ZKSNARK_PGHR13
-#include "libzeth/snarks/pghr13/core/computation.hpp"
-#include "libzeth/snarks/pghr13/core/helpers.hpp"
+#include "libzeth/snarks/pghr13/core.hpp"
 #elif ZKSNARK_GROTH16
 #include "libzeth/snarks/groth16/core.hpp"
 #else

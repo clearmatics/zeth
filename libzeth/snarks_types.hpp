@@ -7,7 +7,7 @@
 
 #if defined(ZKSNARK_PGHR13)
 #define LIBZETH_SNARK_DEFINED
-#include "libsnark/snarks/pghr13/core.hpp"
+#include "libzeth/snarks/pghr13/core.hpp"
 namespace libzeth
 {
 template<typename ppT> using defaultSnark = pghr13snark<ppT>;

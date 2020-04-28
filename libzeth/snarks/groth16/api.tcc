@@ -31,7 +31,7 @@ void groth16api<ppT>::format_extended_proof(
     c->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proof_obj.g_C));
 
     libsnark::r1cs_gg_ppzksnark_primary_input<ppT> public_inputs =
-        ext_proof.get_primary_input();
+        ext_proof.get_primary_inputs();
 
     std::string inputs_json_str =
         format_primary_inputs<ppT>(std::vector<libff::Fr<ppT>>(public_inputs));

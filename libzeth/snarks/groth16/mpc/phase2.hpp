@@ -5,7 +5,7 @@
 #ifndef __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__
 #define __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__
 
-#include "libzeth/include_libsnark.hpp"
+#include "libzeth/snarks/groth16/core.hpp"
 #include "libzeth/snarks/groth16/mpc/hash_utils.hpp"
 
 /// Structures and operations related to the "Phase 2" MPC described in

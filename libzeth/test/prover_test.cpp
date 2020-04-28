@@ -2,26 +2,22 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-// Import only the core components of the SNARK (not the API components)
 #include "libzeth/circuit_types.hpp"
 #include "libzeth/circuit_wrapper.hpp"
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/snarks/groth16/core.hpp"
+#include "libzeth/snarks/pghr13/core.hpp"
 #include "libzeth/util.hpp"
 
 #include <chrono>
 #include <gtest/gtest.h>
 #include <libff/common/default_types/ec_pp.hpp>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
-#include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
-#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
-// Use the default ppT and otherconfigurations from the circuit code, but force
-// the Merkle tree depth to 4. Parameterize the test code on the snark, so that
-// this code can test all available snark schemes, indepedent of the
-// build configuration.
+// Use the default ppT and otherconfigurations from the circuit code, but
+// force the Merkle tree depth to 4. Parameterize the test code on the
+// snark, so that this code can test all available snark schemes, indepedent
+// of the build configuration.
 
 static const size_t TreeDepth = 4;
 
@@ -769,7 +765,7 @@ TEST(MainTestsGroth16, ProofGenAndVerifJS2to2)
 
 TEST(MainTestsPghr12, ProofGenAndVerifJS2to2)
 {
-    // run_prover_tests<pghr13snark<ppT>>();
+    run_prover_tests<pghr13snark<ppT>>();
 }
 
 } // namespace

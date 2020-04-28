@@ -11,7 +11,7 @@
 #include "libzeth/snarks/pghr13/api.hpp"
 namespace libzeth
 {
-template<typename ppT> using defaultSnarkApi = apghr13api<ppT>;
+template<typename ppT> using defaultSnarkApi = pghr13api<ppT>;
 } // namespace libzeth
 
 #elif ZKSNARK_GROTH16
