@@ -8,6 +8,7 @@
 #include "libzeth/util.hpp"
 
 #include <cmath>
+#include <stdexcept> // required for std::length_error on linux
 
 namespace libzeth
 {
