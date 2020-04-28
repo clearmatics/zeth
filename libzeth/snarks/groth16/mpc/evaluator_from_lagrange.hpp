@@ -5,7 +5,7 @@
 #ifndef __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_HPP__
 #define __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_HPP__
 
-#include "libzeth/include_libsnark.hpp"
+#include "libzeth/core/include_libsnark.hpp"
 
 #include <map>
 

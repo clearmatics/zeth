@@ -5,11 +5,11 @@
 #ifndef __ZETH_SNARKS_GROTH16_MPC_UTILS_TCC__
 #define __ZETH_SNARKS_GROTH16_MPC_UTILS_TCC__
 
+#include "libzeth/core/utils.hpp"
 #include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp"
 #include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
 #include "libzeth/snarks/groth16/mpc/multi_exp.hpp"
 #include "libzeth/snarks/groth16/mpc/phase2.hpp"
-#include "libzeth/util.hpp"
 
 #include <algorithm>
 #include <exception>

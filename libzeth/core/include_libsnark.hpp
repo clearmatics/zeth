@@ -7,7 +7,7 @@
 // Include minimal libsnark headers for snark-independent processing of
 // circuits.
 
-#include "libzeth/include_libff.hpp"
+#include "libzeth/core/include_libff.hpp"
 
 #include <libsnark/gadgetlib1/pb_variable.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>

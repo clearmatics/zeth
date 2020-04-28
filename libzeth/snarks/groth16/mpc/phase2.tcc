@@ -7,10 +7,10 @@
 
 #include "libzeth/snarks/groth16/mpc/phase2.hpp"
 // This comment preserves include order under clang-format.
+#include "libzeth/core/utils.hpp"
 #include "libzeth/snarks/groth16/mpc/chacha_rng.hpp"
 #include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
 #include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
-#include "libzeth/util.hpp"
 
 #include <libff/common/rng.hpp>
 

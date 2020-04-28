@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/sciprlab_libs_util.hpp"
-#include "libzeth/util.hpp"
-#include "libzeth/zeth.h"
+#include "libzeth/core/ff_utils.hpp"
+#include "libzeth/core/utils.hpp"
 
 #include <assert.h>
 #include <gtest/gtest.h>

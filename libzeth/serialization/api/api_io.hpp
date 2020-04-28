@@ -5,13 +5,13 @@
 #ifndef __ZETH_SERIALIZATION_API_IO_HPP__
 #define __ZETH_SERIALIZATION_API_IO_HPP__
 
-#include "libzeth/include_libff.hpp"
-#include "libzeth/include_libsnark.hpp"
-#include "libzeth/types/bits.hpp"
-#include "libzeth/types/extended_proof.hpp"
-#include "libzeth/types/joinsplit.hpp"
-#include "libzeth/types/note.hpp"
-#include "libzeth/util.hpp"
+#include "libzeth/core/bits.hpp"
+#include "libzeth/core/extended_proof.hpp"
+#include "libzeth/core/include_libff.hpp"
+#include "libzeth/core/include_libsnark.hpp"
+#include "libzeth/core/joinsplit.hpp"
+#include "libzeth/core/note.hpp"
+#include "libzeth/core/utils.hpp"
 
 #include <api/snark_messages.pb.h>
 #include <api/zeth_messages.pb.h>

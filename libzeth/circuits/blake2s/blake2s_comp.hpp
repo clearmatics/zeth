@@ -8,8 +8,8 @@
 #include "libzeth/circuits/binary_operation.hpp"
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
-#include "libzeth/types/bits.hpp"
-#include "libzeth/util.hpp"
+#include "libzeth/core/bits.hpp"
+#include "libzeth/core/utils.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>

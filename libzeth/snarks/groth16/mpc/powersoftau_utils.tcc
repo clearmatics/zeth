@@ -5,8 +5,8 @@
 #ifndef __ZETH_SNARKS_GROTH16_POWERSOFTAU_UTILS_TCC__
 #define __ZETH_SNARKS_GROTH16_POWERSOFTAU_UTILS_TCC__
 
+#include "libzeth/core/utils.hpp"
 #include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
-#include "libzeth/util.hpp"
 
 #include <thread>
 

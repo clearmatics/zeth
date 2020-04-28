@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_TYPES_NOTE_HPP__
-#define __ZETH_TYPES_NOTE_HPP__
+#ifndef __ZETH_CORE_NOTE_HPP__
+#define __ZETH_CORE_NOTE_HPP__
 
-#include "libzeth/types/bits.hpp"
+#include "libzeth/core/bits.hpp"
 
 #include <array>
 
@@ -53,4 +53,4 @@ public:
 
 } // namespace libzeth
 
-#endif // __ZETH_TYPES_NOTE_HPP__
+#endif // __ZETH_CORE_NOTE_HPP__

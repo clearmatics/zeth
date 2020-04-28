@@ -5,9 +5,10 @@
 #ifndef __ZETH_SNARKS_GROTH16_GROTH16_API_HPP__
 #define __ZETH_SNARKS_GROTH16_GROTH16_API_HPP__
 
-#include "api/snark_messages.grpc.pb.h"
+#include "libzeth/core/extended_proof.hpp"
 #include "libzeth/snarks/groth16/groth16_core.hpp"
-#include "libzeth/types/extended_proof.hpp"
+
+#include <api/snark_messages.grpc.pb.h>
 
 namespace libzeth
 {

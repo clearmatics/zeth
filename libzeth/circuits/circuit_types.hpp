@@ -7,7 +7,8 @@
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/circuit_wrapper.hpp"
-#include "libzeth/include_libsnark.hpp"
+#include "libzeth/circuits/mimc/mimc_mp.hpp"
+#include "libzeth/core/include_libsnark.hpp"
 
 // Types that must be common across all executable, defined once here. Outside
 // of tests, these should not be set anywhere else in the code. Do not include

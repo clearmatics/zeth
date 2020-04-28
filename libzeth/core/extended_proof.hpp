@@ -5,9 +5,8 @@
 #ifndef __ZETH_TYPES_EXTENDED_PROOF_HPP__
 #define __ZETH_TYPES_EXTENDED_PROOF_HPP__
 
-#include "libzeth/include_libsnark.hpp"
+#include "libzeth/core/include_libsnark.hpp"
 #include "libzeth/serialization/filesystem_util.hpp"
-#include "libzeth/zeth.h"
 
 namespace libzeth
 {
@@ -42,6 +41,6 @@ public:
 
 } // namespace libzeth
 
-#include "libzeth/types/extended_proof.tcc"
+#include "libzeth/core/extended_proof.tcc"
 
 #endif // __ZETH_TYPES_EXTENDED_PROOF_HPP__

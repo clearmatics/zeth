@@ -7,7 +7,7 @@
 
 #include "libzeth/circuits/binary_operation.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
-#include "libzeth/types/bits.hpp"
+#include "libzeth/core/bits.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>

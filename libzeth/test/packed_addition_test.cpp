@@ -5,11 +5,10 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/notes/note.hpp"
-#include "libzeth/types/bits.hpp"
-#include "libzeth/types/joinsplit.hpp"
-#include "libzeth/types/note.hpp"
-#include "libzeth/zeth.h"
-#include "util.hpp"
+#include "libzeth/core/bits.hpp"
+#include "libzeth/core/joinsplit.hpp"
+#include "libzeth/core/note.hpp"
+#include "libzeth/core/utils.hpp"
 
 #include <gtest/gtest.h>
 

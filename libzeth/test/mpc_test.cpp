@@ -4,6 +4,7 @@
 
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/sha256/sha256_ethereum.hpp"
+#include "libzeth/core/utils.hpp"
 #include "libzeth/snarks/groth16/groth16_core.hpp"
 #include "libzeth/snarks/groth16/mpc/chacha_rng.hpp"
 #include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp"
@@ -12,7 +13,6 @@
 #include "libzeth/snarks/groth16/mpc/phase2.hpp"
 #include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
 #include "libzeth/test/simple_test.hpp"
-#include "libzeth/util.hpp"
 
 #include <fstream>
 #include <gtest/gtest.h>

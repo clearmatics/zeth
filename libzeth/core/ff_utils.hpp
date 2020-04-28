@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SCIPRLAB_LIBS_UTIL_HPP__
-#define __ZETH_SCIPRLAB_LIBS_UTIL_HPP__
+#ifndef __ZETH_CORE_FF_UTILS_HPP__
+#define __ZETH_CORE_FF_UTILS_HPP__
 
-#include "libzeth/include_libff.hpp"
-#include "libzeth/util.hpp"
+#include "libzeth/core/include_libff.hpp"
+#include "libzeth/core/utils.hpp"
 
 #include <boost/filesystem.hpp>
 #include <cassert>
@@ -85,6 +85,7 @@ template<typename ppT>
 std::string point_g2_affine_to_hexadecimal_str(const libff::G2<ppT> &point);
 
 } // namespace libzeth
-#include "libzeth/sciprlab_libs_util.tcc"
 
-#endif // __ZETH_SCIPRLAB_LIBS_UTIL_HPP__
+#include "libzeth/core/ff_utils.tcc"
+
+#endif // __ZETH_CORE_FF_UTILS_HPP__

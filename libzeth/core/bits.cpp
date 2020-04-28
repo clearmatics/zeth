@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/types/bits.hpp"
+#include "libzeth/core/bits.hpp"
 
 namespace libzeth
 {

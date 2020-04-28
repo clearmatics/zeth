@@ -5,7 +5,7 @@
 #ifndef __ZETH_SERIALIZATION_FILESYSTEM_UTIL_HPP__
 #define __ZETH_SERIALIZATION_FILESYSTEM_UTIL_HPP__
 
-#include "libzeth/include_libff.hpp"
+#include "libzeth/core/include_libff.hpp"
 
 #include <assert.h>
 #include <boost/filesystem.hpp>

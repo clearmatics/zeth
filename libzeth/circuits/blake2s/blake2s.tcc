@@ -10,6 +10,8 @@
 namespace libzeth
 {
 
+static const size_t BYTE_LEN = 8;
+
 /// This gadget implements the interface of the HashT template
 template<typename FieldT>
 BLAKE2s_256<FieldT>::BLAKE2s_256(

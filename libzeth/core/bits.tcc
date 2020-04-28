@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_TYPES_BITS_TCC__
-#define __ZETH_TYPES_BITS_TCC__
+#ifndef __ZETH_CORE_BITS_TCC__
+#define __ZETH_CORE_BITS_TCC__
 
-#include "libzeth/types/bits.hpp"
+#include "libzeth/core/bits.hpp"
 
 namespace libzeth
 {
@@ -88,4 +88,4 @@ std::array<bool, BitLen> binary_xor(
 
 } // namespace libzeth
 
-#endif // __ZETH_TYPES_BITS_TCC__
+#endif // __ZETH_CORE_BITS_TCC__

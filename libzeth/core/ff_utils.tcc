@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SCIPRLAB_LIBS_UTIL_TCC__
-#define __ZETH_SCIPRLAB_LIBS_UTIL_TCC__
+#ifndef __ZETH_CORE_FF_UTILS_TCC__
+#define __ZETH_CORE_FF_UTILS_TCC__
 
-#include "libzeth/sciprlab_libs_util.hpp"
+#include "libzeth/core/ff_utils.hpp"
 
 #include <fstream>
 #include <iomanip>
@@ -128,4 +128,4 @@ std::string point_g2_affine_to_hexadecimal_str(const libff::G2<ppT> &point)
 
 } // namespace libzeth
 
-#endif // __ZETH_SCIPRLAB_LIBS_UTIL_TCC__
+#endif // __ZETH_CORE_FF_UTILS_TCC__

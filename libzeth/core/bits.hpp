@@ -2,11 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_TYPES_BITS_HPP__
-#define __ZETH_TYPES_BITS_HPP__
+#ifndef __ZETH_CORE_BITS_HPP__
+#define __ZETH_CORE_BITS_HPP__
 
-#include "libzeth/util.hpp"
-#include "libzeth/zeth.h"
+#include "libzeth/core/utils.hpp"
 
 #include <array>
 #include <iostream>
@@ -64,6 +63,7 @@ std::array<bool, BitLen> binary_addition(
     bool withCarry = false);
 
 } // namespace libzeth
-#include "libzeth/types/bits.tcc"
 
-#endif // __ZETH_TYPES_BITS_HPP__
+#include "libzeth/core/bits.tcc"
+
+#endif // __ZETH_CORE_BITS_HPP__

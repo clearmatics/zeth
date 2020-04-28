@@ -6,7 +6,7 @@
 #define __ZETH_CIRCUITS_BINARY_OPERATION_HPP__
 
 #include "libzeth/circuits/circuit_utils.hpp"
-#include "libzeth/types/bits.hpp"
+#include "libzeth/core/bits.hpp"
 #include "math.h"
 
 #include <libsnark/gadgetlib1/gadget.hpp>

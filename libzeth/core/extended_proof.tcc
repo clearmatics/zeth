@@ -5,8 +5,8 @@
 #ifndef __ZETH_TYPES_EXTENDED_PROOF_TCC__
 #define __ZETH_TYPES_EXTENDED_PROOF_TCC__
 
-#include "libzeth/sciprlab_libs_util.hpp"
-#include "libzeth/types/extended_proof.hpp"
+#include "libzeth/core/extended_proof.hpp"
+#include "libzeth/core/ff_utils.hpp"
 
 namespace libzeth
 {

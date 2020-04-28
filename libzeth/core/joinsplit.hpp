@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_TYPES_JOINSPLIT_HPP__
-#define __ZETH_TYPES_JOINSPLIT_HPP__
+#ifndef __ZETH_CORE_JOINSPLIT_HPP__
+#define __ZETH_CORE_JOINSPLIT_HPP__
 
-#include "libzeth/types/bits.hpp"
-#include "libzeth/types/note.hpp"
+#include "libzeth/core/bits.hpp"
+#include "libzeth/core/note.hpp"
 
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 #include <vector>
@@ -48,4 +48,4 @@ public:
 
 } // namespace libzeth
 
-#endif // __ZETH_TYPES_JOINSPLIT_HPP__
+#endif // __ZETH_CORE_JOINSPLIT_HPP__

@@ -4,7 +4,7 @@
 
 #include "libzeth/snarks/groth16/mpc/hash_utils.hpp"
 
-#include "libzeth/util.hpp"
+#include "libzeth/core/utils.hpp"
 
 namespace libzeth
 {

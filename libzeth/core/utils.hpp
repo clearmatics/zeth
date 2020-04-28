@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_UTIL_HPP__
-#define __ZETH_UTIL_HPP__
+#ifndef __ZETH_CORE_UTILS_HPP__
+#define __ZETH_CORE_UTILS_HPP__
 
-#include "libzeth/types/bits.hpp"
+#include "libzeth/core/bits.hpp"
 
 #include <cstdint>
 #include <gmp.h>
@@ -75,6 +75,7 @@ template<typename StructuredTs>
 bool container_is_well_formed(const StructuredTs &values);
 
 } // namespace libzeth
-#include "libzeth/util.tcc"
 
-#endif // __ZETH_UTIL_HPP__
+#include "libzeth/core/utils.tcc"
+
+#endif // __ZETH_CORE_UTILS_HPP__

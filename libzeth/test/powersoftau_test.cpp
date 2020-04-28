@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/core/utils.hpp"
 #include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp"
 #include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
-#include "libzeth/util.hpp"
 
 #include <boost/filesystem.hpp>
 #include <fstream>

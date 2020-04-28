@@ -4,8 +4,8 @@
 
 #include "libzeth/circuits/binary_operation.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
-#include "libzeth/include_libff.hpp"
-#include "libzeth/util.hpp"
+#include "libzeth/core/include_libff.hpp"
+#include "libzeth/core/utils.hpp"
 
 #include <gtest/gtest.h>
 

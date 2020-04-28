@@ -6,13 +6,12 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/notes/note.hpp"
-#include "libzeth/types/bits.hpp"
-#include "libzeth/types/merkle_tree_field.hpp"
-#include "libzeth/types/note.hpp"
-#include "libzeth/util.hpp"
-#include "libzeth/zeth.h"
+#include "libzeth/core/bits.hpp"
+#include "libzeth/core/merkle_tree_field.hpp"
+#include "libzeth/core/note.hpp"
+#include "libzeth/core/utils.hpp"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 using namespace libzeth;
 

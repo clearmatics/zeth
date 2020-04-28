@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__
-#define __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__
+#ifndef __ZETH_CIRCUITS_CIRCUIT_UTILS_HPP__
+#define __ZETH_CIRCUITS_CIRCUIT_UTILS_HPP__
 
-#include "libzeth/types/bits.hpp"
+#include "libzeth/core/bits.hpp"
 
 #include <libsnark/gadgetlib1/pb_variable.hpp>
 
@@ -25,4 +25,4 @@ libsnark::pb_variable_array<FieldT> from_bits(
 
 #include "libzeth/circuits/circuit_utils.tcc"
 
-#endif // __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__
+#endif // __ZETH_CIRCUITS_CIRCUIT_UTILS_HPP__

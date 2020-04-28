@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
+#include "libzeth/circuits/circuit_constants.hpp"
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/commitments/commitment.hpp"
-#include "libzeth/util.hpp"
-#include "libzeth/zeth.h"
+#include "libzeth/core/utils.hpp"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 using namespace libzeth;

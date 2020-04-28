@@ -23,8 +23,8 @@ set(ZETH_VERSION_MINOR 3)
 # Configure a header file to pass some of the CMake settings
 # to the source code
 configure_file(
-  "${PROJECT_SOURCE_DIR}/zethConfig.h.in"
-  "${PROJECT_BINARY_DIR}/zethConfig.h"
+  "${PROJECT_SOURCE_DIR}/zeth_config.h.in"
+  "${PROJECT_BINARY_DIR}/zeth_config.h"
 )
 
 # Flags and compilation options to chose the type of zksnark

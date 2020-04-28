@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/circuits/circuit_constants.hpp"
 #include "libzeth/circuits/circuit_types.hpp"
+#include "libzeth/core/extended_proof.hpp"
+#include "libzeth/core/utils.hpp"
 #include "libzeth/serialization/api/api_io.hpp"
 #include "libzeth/serialization/file_io.hpp"
 #include "libzeth/snarks/default/default_api.hpp"
-#include "libzeth/types/extended_proof.hpp"
-#include "libzeth/util.hpp"
-#include "libzeth/zeth.h"
-#include "zethConfig.h"
+#include "zeth_config.h"
 
 #include <api/prover.grpc.pb.h>
 #include <boost/program_options.hpp>

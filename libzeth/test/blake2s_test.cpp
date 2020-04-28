@@ -6,7 +6,7 @@
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
-#include "libzeth/util.hpp"
+#include "libzeth/core/utils.hpp"
 
 #include <gtest/gtest.h>
 

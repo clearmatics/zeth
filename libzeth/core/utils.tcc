@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_UTIL_TCC__
-#define __ZETH_UTIL_TCC__
+#ifndef __ZETH_CORE_UTILS_TCC__
+#define __ZETH_CORE_UTILS_TCC__
 
-#include "libzeth/util.hpp"
+#include "libzeth/core/utils.hpp"
 
 #include <cmath>
 #include <stdexcept> // required for std::length_error on linux
@@ -59,14 +59,6 @@ std::vector<bool> address_bits_from_address(size_t address)
     return binary;
 }
 
-// template<typename StructuredT>
-// void check_well_formed_(const StructuredT &v, const char *name)
-// {
-//     if (!is_well_formed(v)) {
-//         throw std::invalid_argument(std::string(name) + " not well-formed");
-//     }
-// }
-
 template<typename StructuredTs>
 bool container_is_well_formed(const StructuredTs &values)
 {
@@ -89,4 +81,4 @@ void check_well_formed(const StructuredT &v, const char *name)
 
 } // namespace libzeth
 
-#endif // __ZETH_UTIL_TCC__
+#endif // __ZETH_CORE_UTILS_TCC__
