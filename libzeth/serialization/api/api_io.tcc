@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SERIALIZATION_API_IO_TCC__
-#define __ZETH_SERIALIZATION_API_IO_TCC__
+#ifndef __ZETH_SERIALIZATION_API_API_IO_TCC__
+#define __ZETH_SERIALIZATION_API_API_IO_TCC__
 
 #include "libzeth/serialization/api/api_io.hpp"
 
@@ -48,75 +48,6 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
 }
 
 template<typename ppT>
-zeth_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
-    const libff::G1<ppT> &point)
-{
-    libff::G1<ppT> aff = point;
-    aff.to_affine_coordinates();
-    std::string x_coord =
-        "0x" +
-        libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(aff.X.as_bigint());
-    std::string y_coord =
-        "0x" +
-        libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(aff.Y.as_bigint());
-
-    zeth_proto::HexPointBaseGroup1Affine res;
-    res.set_x_coord(x_coord);
-    res.set_y_coord(y_coord);
-
-    return res;
-}
-
-template<typename ppT>
-zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
-    const libff::G2<ppT> &point)
-{
-    libff::G2<ppT> aff = point;
-    aff.to_affine_coordinates();
-    std::string x_c1_coord =
-        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
-                   aff.X.c1.as_bigint());
-    std::string x_c0_coord =
-        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
-                   aff.X.c0.as_bigint());
-    std::string y_c1_coord =
-        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
-                   aff.Y.c1.as_bigint());
-    std::string y_c0_coord =
-        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
-                   aff.Y.c0.as_bigint());
-
-    zeth_proto::HexPointBaseGroup2Affine res;
-    res.set_x_c0_coord(x_c0_coord);
-    res.set_x_c1_coord(x_c1_coord);
-    res.set_y_c0_coord(y_c0_coord);
-    res.set_y_c1_coord(y_c1_coord);
-
-    return res;
-}
-
-template<typename ppT>
-std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs)
-{
-    std::stringstream ss;
-    ss << "[";
-    for (size_t i = 0; i < public_inputs.size(); ++i) {
-        ss << "\"0x"
-           << libzeth::libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
-                  public_inputs[i].as_bigint())
-           << "\"";
-        if (i < public_inputs.size() - 1) {
-            ss << ", ";
-        }
-    }
-    ss << "]";
-    std::string inputs_json_str = ss.str();
-
-    return inputs_json_str;
-}
-
-/// Parse points in affine coordinates
-template<typename ppT>
 libff::G1<ppT> parse_hexPointBaseGroup1Affine(
     const zeth_proto::HexPointBaseGroup1Affine &point)
 {
@@ -130,7 +61,6 @@ libff::G1<ppT> parse_hexPointBaseGroup1Affine(
     return res;
 }
 
-/// Parse points in affine coordinates
 template<typename ppT>
 libff::G2<ppT> parse_hexPointBaseGroup2Affine(
     const zeth_proto::HexPointBaseGroup2Affine &point)
@@ -249,34 +179,74 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
     return acc_res;
 }
 
-template<typename ppT, typename snarkApiT>
-libzeth::extended_proof<ppT, typename snarkApiT::snarkT> parse_extended_proof(
-    const zeth_proto::ExtendedProof &ext_proof)
+template<typename ppT>
+zeth_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
+    const libff::G1<ppT> &point)
 {
-    return snarkApiT::parse_extended_proof(ext_proof);
-    // #ifdef ZKSNARK_PGHR13
-    //     return parse_extendedProofPGHR13<ppT>(ext_proof);
-    // #elif ZKSNARK_GROTH16
-    //     return parse_extendedProofGROTH16<ppT>(ext_proof);
-    // #else
-    // #error You must define one of the SNARK_* symbols indicated into the
-    // CMakelists.txt file. #endif
+    libff::G1<ppT> aff = point;
+    aff.to_affine_coordinates();
+    std::string x_coord =
+        "0x" +
+        libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(aff.X.as_bigint());
+    std::string y_coord =
+        "0x" +
+        libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(aff.Y.as_bigint());
+
+    zeth_proto::HexPointBaseGroup1Affine res;
+    res.set_x_coord(x_coord);
+    res.set_y_coord(y_coord);
+
+    return res;
 }
 
-template<typename ppT, typename snarkApiT>
-typename snarkApiT::snarkT::VerifKeyT parse_verification_key(
-    const zeth_proto::VerificationKey &verification_key)
+template<typename ppT>
+zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
+    const libff::G2<ppT> &point)
 {
-    // #ifdef ZKSNARK_PGHR13
-    //     return parse_verificationKeyPGHR13<ppT>(verification_key);
-    // #elif ZKSNARK_GROTH16
-    //     return parse_verificationKeyGROTH16<ppT>(verification_key);
-    // #else
-    // #error You must define one of the SNARK_* symbols indicated into the
-    // CMakelists.txt file. #endif
-    return snarkApiT::parse_verification_key(verification_key);
+    libff::G2<ppT> aff = point;
+    aff.to_affine_coordinates();
+    std::string x_c1_coord =
+        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+                   aff.X.c1.as_bigint());
+    std::string x_c0_coord =
+        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+                   aff.X.c0.as_bigint());
+    std::string y_c1_coord =
+        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+                   aff.Y.c1.as_bigint());
+    std::string y_c0_coord =
+        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+                   aff.Y.c0.as_bigint());
+
+    zeth_proto::HexPointBaseGroup2Affine res;
+    res.set_x_c0_coord(x_c0_coord);
+    res.set_x_c1_coord(x_c1_coord);
+    res.set_y_c0_coord(y_c0_coord);
+    res.set_y_c1_coord(y_c1_coord);
+
+    return res;
+}
+
+template<typename ppT>
+std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs)
+{
+    std::stringstream ss;
+    ss << "[";
+    for (size_t i = 0; i < public_inputs.size(); ++i) {
+        ss << "\"0x"
+           << libzeth::libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
+                  public_inputs[i].as_bigint())
+           << "\"";
+        if (i < public_inputs.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    std::string inputs_json_str = ss.str();
+
+    return inputs_json_str;
 }
 
 } // namespace libzeth
 
-#endif // __ZETH_SERIALIZATION_API_IO_TCC__
+#endif // __ZETH_SERIALIZATION_API_API_IO_TCC__

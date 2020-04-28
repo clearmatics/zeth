@@ -41,17 +41,9 @@ libff::G2<ppT> parse_hexPointBaseGroup2Affine(
 template<typename ppT>
 std::vector<libff::Fr<ppT>> parse_str_primary_inputs(std::string input_str);
 
-template<typename ppT, typename snarkT>
-libzeth::extended_proof<ppT, snarkT> parse_extended_proof(
-    const zeth_proto::ExtendedProof &ext_proof);
-
 template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
     std::string acc_vector_str);
-
-template<typename ppT, typename snarkT>
-typename snarkT::VerifKeyT parse_verification_key(
-    const zeth_proto::VerificationKey &verification_key);
 
 template<typename ppT>
 zeth_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
@@ -75,13 +67,9 @@ std::string format_accumulation_vector(std::vector<libff::Fr<ppT>> acc_vector);
 template<typename ppT, typename snarkApiT>
 void format_verificationKey(
     const typename snarkApiT::snarkT::VerifKeyT &vk,
-    // libsnark::r1cs_gg_ppzksnark_verification_key<ppT> &vk,
     zeth_proto::VerificationKey *message);
 
 } // namespace libzeth
-
-// // snark-specific include depends on the functions above
-// #include "libzeth/serialization/api/snarks_api_imports.hpp"
 
 // templatized implementations
 #include "libzeth/serialization/api/api_io.tcc"

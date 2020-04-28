@@ -5,8 +5,8 @@
 #ifndef __ZETH_SNARKS_PGHR13_PGHR13_API_TCC__
 #define __ZETH_SNARKS_PGHR13_PGHR13_API_TCC__
 
+#include "libzeth/sciprlab_libs_util.hpp"
 #include "libzeth/serialization/api/api_io.hpp"
-#include "libzeth/serialization/debug_helpers.hpp"
 #include "libzeth/snarks/pghr13/pghr13_api.hpp"
 
 namespace libzeth
@@ -193,6 +193,7 @@ typename pghr13snark<ppT>::VerifKeyT pghr13api<ppT>::parse_verification_key(
 
     return vk;
 }
+
 template<typename ppT>
 void pghr13api<ppT>::prepare_proof_response(
     const extended_proof<ppT, snarkT> &ext_proof,
@@ -280,10 +281,12 @@ void pghr13api<ppT>::prepare_verification_key_response(
 
     std::stringstream ss;
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
-    ss << "[[" << point_g1_affine_as_hex<ppT>(vk.encoded_IC_query.first) << "]";
+    ss << "[["
+       << point_g1_affine_to_hexadecimal_str<ppT>(vk.encoded_IC_query.first)
+       << "]";
     for (size_t i = 1; i < ic_length; ++i) {
-        auto vk_ic_i =
-            point_g1_affine_as_hex<ppT>(vk.encoded_IC_query.rest.values[i - 1]);
+        auto vk_ic_i = point_g1_affine_to_hexadecimal_str<ppT>(
+            vk.encoded_IC_query.rest.values[i - 1]);
         ss << ",[" << vk_ic_i << "]";
     }
     ss << "]";

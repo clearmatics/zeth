@@ -7,14 +7,14 @@
 
 #include "libzeth/snarks/default/default_core.hpp"
 
-#ifdef ZKSNARK_PGHR13
+#if defined(ZKSNARK_PGHR13)
 #include "libzeth/snarks/pghr13/pghr13_api.hpp"
 namespace libzeth
 {
 template<typename ppT> using defaultSnarkApi = pghr13api<ppT>;
 } // namespace libzeth
 
-#elif ZKSNARK_GROTH16
+#elif defined(ZKSNARK_GROTH16)
 #include "libzeth/snarks/groth16/groth16_api.hpp"
 namespace libzeth
 {
@@ -22,7 +22,7 @@ template<typename ppT> using defaultSnarkApi = groth16api<ppT>;
 } // namespace libzeth
 
 #else
-#error You must define one of the SNARK_* symbols indicated into the CMakelists.txt file.
+#error No recognized SNARK_* macro defined (see CMakelists.txt).
 #endif
 
 #endif // __ZETH_SNARKS_DEFAULT_DEFAULT_API_HPP__
