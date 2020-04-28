@@ -5,7 +5,7 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
 
-#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 

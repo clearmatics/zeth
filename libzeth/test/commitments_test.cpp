@@ -4,7 +4,7 @@
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/circuit_types.hpp"
-#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/commitments/commitment.hpp"
 #include "libzeth/util.hpp"
 #include "libzeth/zeth.h"

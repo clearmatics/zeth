@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "circuits/circuit_types.hpp"
-#include "circuits/circuits_utils.hpp"
+#include "circuits/circuit_utils.hpp"
 #include "circuits/sha256/sha256_ethereum.hpp"
 #include "types/bits.tcc"
 #include "util.hpp"

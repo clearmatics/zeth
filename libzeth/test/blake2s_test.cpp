@@ -5,7 +5,7 @@
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
 #include "libzeth/circuits/circuit_types.hpp"
-#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/util.hpp"
 
 #include <gtest/gtest.h>

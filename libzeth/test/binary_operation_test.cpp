@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/circuits/binary_operation.hpp"
-#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/include_libff.hpp"
 #include "libzeth/util.hpp"
 

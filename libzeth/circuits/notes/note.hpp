@@ -11,7 +11,7 @@
 #include "libzeth/circuits/commitments/commitment.hpp"
 #include "libzeth/circuits/prfs/prf.hpp"
 // Get the utils functions
-#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
 
 // Get the bits typedefs and associated functions
 #include "libzeth/types/bits.hpp"

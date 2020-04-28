@@ -22,6 +22,7 @@ libsnark::pb_variable_array<FieldT> from_bits(
     std::vector<bool> bits, const libsnark::pb_variable<FieldT> &ZERO);
 
 } // namespace libzeth
-#include "libzeth/circuits/circuits_utils.tcc"
+
+#include "libzeth/circuits/circuit_utils.tcc"
 
 #endif // __ZETH_CIRCUITS_CIRCUITS_UTILS_HPP__

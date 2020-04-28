@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/circuits/circuit_types.hpp"
-#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/notes/note.hpp"
 #include "libzeth/types/bits.hpp"
 #include "libzeth/types/joinsplit.hpp"

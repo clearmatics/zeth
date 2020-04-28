@@ -4,7 +4,7 @@
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/circuit_types.hpp"
-#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/notes/note.hpp"
 #include "libzeth/types/bits.hpp"
 #include "libzeth/types/merkle_tree_field.hpp"
