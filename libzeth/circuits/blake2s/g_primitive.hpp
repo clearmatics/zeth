@@ -69,6 +69,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/blake2s/g_primitive.tcc"
 
 #endif // __ZETH_CIRCUITS_G_PRIMITIVE_HPP__

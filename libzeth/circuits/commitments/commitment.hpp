@@ -78,6 +78,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/commitments/commitment.tcc"
 
 #endif // __ZETH_CIRCUITS_COMMITMENT_HPP__

@@ -5,10 +5,9 @@
 #ifndef __ZETH_CORE_BITS_HPP__
 #define __ZETH_CORE_BITS_HPP__
 
-#include "libzeth/core/utils.hpp"
-
 #include <array>
 #include <iostream>
+#include <stddef.h>
 #include <vector>
 
 namespace libzeth

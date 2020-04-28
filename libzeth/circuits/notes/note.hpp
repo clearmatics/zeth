@@ -116,6 +116,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/notes/note.tcc"
 
 #endif // __ZETH_CIRCUITS_NOTE_HPP__

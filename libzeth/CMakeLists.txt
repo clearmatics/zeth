@@ -39,11 +39,11 @@ file(
   GLOB_RECURSE
   ZETH_SOURCE
 
-  core/**.?pp
-  snarks/**.?pp
-  serialization/**.?pp
-  circuits/**.?pp
-  mpc/**.?pp
+  core/**.?pp core/**.tcc
+  snarks/**.?pp snarks/**.tcc
+  serialization/**.?pp serialization/**.tcc
+  circuits/**.?pp circuits/**.tcc
+  mpc/**.?pp mpc/**.tcc
 )
 
 add_library(

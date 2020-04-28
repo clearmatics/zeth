@@ -4,6 +4,8 @@
 
 #include "libzeth/core/bits.hpp"
 
+#include "libzeth/core/utils.hpp"
+
 namespace libzeth
 {
 

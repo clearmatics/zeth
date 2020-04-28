@@ -57,6 +57,7 @@ void r1cs_to_json(
     boost::filesystem::path r1cs_path = "");
 
 } // namespace libzeth
+
 #include "libzeth/serialization/file_io.tcc"
 
 #endif // __ZETH_SERIALIZATION_FILE_IO_HPP__

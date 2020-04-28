@@ -45,7 +45,6 @@ public:
 template<typename FieldT>
 class xor_constant_gadget : public libsnark::gadget<FieldT>
 {
-
 private:
     const libsnark::pb_variable_array<FieldT> a;
     const libsnark::pb_variable_array<FieldT> b;
@@ -119,6 +118,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/binary_operation.tcc"
 
 #endif // __ZETH_CIRCUITS_BINARY_OPERATION_HPP__

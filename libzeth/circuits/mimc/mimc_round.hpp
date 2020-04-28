@@ -62,6 +62,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/mimc/mimc_round.tcc"
 
 #endif // __ZETH_CIRCUITS_MIMC_ROUND_HPP__

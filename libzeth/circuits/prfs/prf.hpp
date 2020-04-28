@@ -129,6 +129,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/prfs/prf.tcc"
 
 #endif // __ZETH_CIRCUITS_PRF_HPP__

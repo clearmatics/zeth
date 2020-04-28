@@ -165,6 +165,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/blake2s/blake2s.tcc"
 
 #endif // __ZETH_CIRCUITS_BLAKE2S_HPP__
