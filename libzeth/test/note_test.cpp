@@ -2,34 +2,21 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "gtest/gtest.h"
-#include <libff/common/default_types/ec_pp.hpp>
-#include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-
-// Header to use the merkle tree data structure
-#include "libzeth/types/merkle_tree_field.hpp"
-
-// Header to use the blake2s gadget
 #include "libzeth/circuits/blake2s/blake2s.hpp"
-
-// Access the `from_bits` function and other utils
+#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/notes/note.hpp"
+#include "libzeth/types/bits.hpp"
+#include "libzeth/types/merkle_tree_field.hpp"
+#include "libzeth/types/note.hpp"
 #include "libzeth/util.hpp"
-
-// Access the defined constants
 #include "libzeth/zeth.h"
 
-// Bring the types in scope
-#include "libzeth/types/bits.hpp"
-#include "libzeth/types/note.hpp"
-
-// Gadget to test
-#include "libzeth/circuits/notes/note.hpp"
+#include "gtest/gtest.h"
 
 using namespace libzeth;
 
-typedef libff::default_ec_pp ppT;
+typedef libzeth::ppT ppT;
 
 // Should be alt_bn128 in the CMakeLists.txt
 typedef libff::Fr<ppT> FieldT;

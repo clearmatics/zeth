@@ -5,11 +5,11 @@
 #ifndef __ZETH_SCIPRLAB_LIBS_UTIL_HPP__
 #define __ZETH_SCIPRLAB_LIBS_UTIL_HPP__
 
+#include "libzeth/include_libff.hpp"
 #include "libzeth/util.hpp"
 
 #include <boost/filesystem.hpp>
 #include <cassert>
-#include <libff/common/default_types/ec_pp.hpp>
 #include <stdbool.h>
 #include <stdint.h>
 

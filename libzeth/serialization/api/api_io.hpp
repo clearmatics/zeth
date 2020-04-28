@@ -5,6 +5,7 @@
 #ifndef __ZETH_SERIALIZATION_API_IO_HPP__
 #define __ZETH_SERIALIZATION_API_IO_HPP__
 
+#include "libzeth/include_libff.hpp"
 #include "libzeth/include_libsnark.hpp"
 #include "libzeth/types/bits.hpp"
 #include "libzeth/types/extended_proof.hpp"
@@ -14,7 +15,6 @@
 
 #include <api/snark_messages.pb.h>
 #include <api/zeth_messages.pb.h>
-#include <libff/common/default_types/ec_pp.hpp>
 
 /// This set of function allows to consume RPC calls data
 /// and to format zeth data structures into proto messages

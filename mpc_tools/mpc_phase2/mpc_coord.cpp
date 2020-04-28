@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuit_wrapper.hpp"
+#include "libzeth/circuits/circuit_wrapper.hpp"
 #include "mpc_common.hpp"
 
 void zeth_protoboard(libsnark::protoboard<libzeth::FieldT> &pb)

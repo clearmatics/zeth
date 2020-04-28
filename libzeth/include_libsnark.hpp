@@ -4,11 +4,10 @@
 
 #pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor"
+// Include minimal libsnark headers for snark-independent processing of
+// circuits.
 
-#include <libff/algebra/fields/field_utils.hpp>
+#include "libzeth/include_libff.hpp"
+
 #include <libsnark/gadgetlib1/pb_variable.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-
-#pragma GCC diagnostic pop

@@ -5,7 +5,8 @@
 #ifndef __ZETH_TYPES_MERKLE_TREE_FIELD_HPP__
 #define __ZETH_TYPES_MERKLE_TREE_FIELD_HPP__
 
-#include <libff/common/default_types/ec_pp.hpp>
+#include "libzeth/include_libff.hpp"
+
 #include <libff/common/utils.hpp>
 #include <map>
 #include <vector>

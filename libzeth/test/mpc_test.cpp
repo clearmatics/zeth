@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuit_types.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/sha256/sha256_ethereum.hpp"
-#include "libzeth/snarks/groth16/core.hpp"
+#include "libzeth/snarks/groth16/groth16_core.hpp"
 #include "libzeth/snarks/groth16/mpc/chacha_rng.hpp"
 #include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp"
 #include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"

@@ -13,8 +13,6 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <libff/common/default_types/ec_pp.hpp>
-#include <libsnark/gadgetlib1/gadget.hpp>
 #include <sstream>
 #include <stdbool.h>
 #include <stdint.h>

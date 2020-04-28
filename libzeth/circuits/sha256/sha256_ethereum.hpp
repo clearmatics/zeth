@@ -8,8 +8,6 @@
 // This gadget implements the interface of the HashT template
 
 #include <iostream>
-#include <libff/common/default_types/ec_pp.hpp>
-#include <libsnark/common/data_structures/merkle_tree.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>

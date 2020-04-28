@@ -5,11 +5,11 @@
 #ifndef __ZETH_SCIPRLAB_LIBS_UTIL_TCC__
 #define __ZETH_SCIPRLAB_LIBS_UTIL_TCC__
 
+#include "libzeth/sciprlab_libs_util.hpp"
+
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <libff/algebra/fields/bigint.hpp>
-#include <libff/common/default_types/ec_pp.hpp>
 #include <sstream>
 
 /// This file uses types and preprocessor variables defined in the `gmp.h`
@@ -82,8 +82,7 @@ FieldT hexadecimal_str_to_field_element(std::string field_str)
         throw std::invalid_argument("Invalid hexadecimal string");
     }
 
-    libff::bigint<FieldT::num_limbs> el =
-        bytes_to_libsnark_bigint<FieldT>(val);
+    libff::bigint<FieldT::num_limbs> el = bytes_to_libsnark_bigint<FieldT>(val);
     return FieldT(el);
 }
 
@@ -99,9 +98,11 @@ std::string point_g1_affine_to_hexadecimal_str(const libff::G1<ppT> &point)
     libff::G1<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
     return "\"0x" +
-           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(affine_p.X.as_bigint()) +
+           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+               affine_p.X.as_bigint()) +
            "\", \"0x" +
-           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(affine_p.Y.as_bigint()) +
+           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+               affine_p.Y.as_bigint()) +
            "\"";
 }
 
@@ -111,13 +112,17 @@ std::string point_g2_affine_to_hexadecimal_str(const libff::G2<ppT> &point)
     libff::G2<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
     return "[\"0x" +
-           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(affine_p.X.c1.as_bigint()) +
+           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+               affine_p.X.c1.as_bigint()) +
            "\", \"0x" +
-           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(affine_p.X.c0.as_bigint()) +
+           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+               affine_p.X.c0.as_bigint()) +
            "\"],\n [\"0x" +
-           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(affine_p.Y.c1.as_bigint()) +
+           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+               affine_p.Y.c1.as_bigint()) +
            "\", \"0x" +
-           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(affine_p.Y.c0.as_bigint()) +
+           libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
+               affine_p.Y.c0.as_bigint()) +
            "\"]";
 }
 

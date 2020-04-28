@@ -8,9 +8,6 @@
 
 #include <assert.h>
 #include <gtest/gtest.h>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libff/algebra/curves/public_params.hpp>
-#include <libff/common/default_types/ec_pp.hpp>
 
 // Instantiation of the templates for the tests
 using pp = libff::default_ec_pp;

@@ -5,9 +5,9 @@
 #ifndef __ZETH_SNARKS_GROTH16_GROTH16_API_TCC__
 #define __ZETH_SNARKS_GROTH16_GROTH16_API_TCC__
 
+#include "libzeth/sciprlab_libs_util.hpp"
 #include "libzeth/serialization/api/api_io.hpp"
-#include "libzeth/serialization/debug_helpers.hpp"
-#include "libzeth/snarks/groth16/api.hpp"
+#include "libzeth/snarks/groth16/groth16_api.hpp"
 
 namespace libzeth
 {
@@ -189,10 +189,11 @@ void groth16api<ppT>::prepare_verification_key_response(
 
     std::stringstream ss;
     unsigned abc_length = vk.ABC_g1.rest.indices.size() + 1;
-    ss << "[[" << point_g1_affine_as_hex<ppT>(vk.ABC_g1.first) << "]";
+    ss << "[[" << point_g1_affine_to_hexadecimal_str<ppT>(vk.ABC_g1.first)
+       << "]";
     for (size_t i = 1; i < abc_length; ++i) {
-        auto vk_abc_i =
-            point_g1_affine_as_hex<ppT>(vk.ABC_g1.rest.values[i - 1]);
+        auto vk_abc_i = point_g1_affine_to_hexadecimal_str<ppT>(
+            vk.ABC_g1.rest.values[i - 1]);
         ss << ",[" << vk_abc_i << "]";
     }
     ss << "]";

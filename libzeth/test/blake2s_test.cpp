@@ -4,16 +4,16 @@
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuits_utils.hpp"
 #include "libzeth/util.hpp"
 
 #include <gtest/gtest.h>
-#include <libff/common/default_types/ec_pp.hpp>
 
 using namespace libsnark;
 using namespace libzeth;
 
-typedef libff::default_ec_pp ppT;
+typedef libzeth::ppT ppT;
 typedef libff::Fr<ppT> FieldT;
 
 namespace

@@ -3,23 +3,19 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuits_utils.hpp"
 #include "libzeth/circuits/commitments/commitment.hpp"
 #include "libzeth/util.hpp"
 #include "libzeth/zeth.h"
 
 #include "gtest/gtest.h"
-#include <libff/common/default_types/ec_pp.hpp>
-#include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-
-// Header to use the merkle tree data structure
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 using namespace libzeth;
 
 // Instantiation of the templates for the tests
-typedef libff::default_ec_pp ppT;
+typedef libzeth::ppT ppT;
 typedef libff::Fr<ppT> FieldT;
 typedef BLAKE2s_256<FieldT> HashT;
 
@@ -36,14 +32,13 @@ TEST(TestCOMMs, TestCOMMGadget)
     bits256 trap_r_bits256 = get_bits256_from_hexadecimal_str(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
     bits64 value_bits64 = get_bits64_from_hexadecimal_str("2F0000000000000F");
-    bits256 rho_bits256 =
-        get_bits256_from_hexadecimal_str("FFFF000000000000000000000000000000"
-                              "000000000000000000000000009009");
-    bits256 a_pk_bits256 =
-        get_bits256_from_hexadecimal_str("5c36fea42b82800d74304aa4f875142b42"
-                              "1b4f2847e7c41c1077fbbcfd63f886");
-    FieldT cm = FieldT("5198426621382268363215668966254183876371659610992196341"
-                       "1853437166529959660400");
+    bits256 rho_bits256 = get_bits256_from_hexadecimal_str(
+        "FFFF000000000000000000000000000000000000000000000000000000009009");
+    bits256 a_pk_bits256 = get_bits256_from_hexadecimal_str(
+        "5c36fea42b82800d74304aa4f875142b421b4f2847e7c41c1077fbbcfd63f886");
+    FieldT cm = FieldT(
+        "5198426621382268363215668966254183876371659610992196341185343716"
+        "6529959660400");
 
     // hex: 0xAF000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_pk;

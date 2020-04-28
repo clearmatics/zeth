@@ -2,35 +2,21 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "gtest/gtest.h"
-#include <libff/common/default_types/ec_pp.hpp>
-#include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-
-// Header to use the merkle tree data structure
-#include <libsnark/common/data_structures/merkle_tree.hpp>
-
-// Used to instantiate our templates
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libff/algebra/curves/public_params.hpp>
-#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
-
-// Header to use the blake2s gadget
 #include "libzeth/circuits/blake2s/blake2s.hpp"
-
-// Access the `from_bits` function and other utils
+#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/prfs/prf.hpp"
 #include "libzeth/util.hpp"
 
-// Gadget to test
-#include "libzeth/circuits/prfs/prf.hpp"
+#include <gtest/gtest.h>
+#include <libsnark/common/data_structures/merkle_tree.hpp>
 
 using namespace libsnark;
 using namespace libzeth;
 
-typedef libff::default_ec_pp ppT;
-// Should be alt_bn128 in the CMakeLists.txt
+typedef libzeth::ppT ppT;
 typedef libff::Fr<ppT> FieldT;
+
 // We use our hash function to do the tests
 typedef BLAKE2s_256<FieldT> HashT;
 

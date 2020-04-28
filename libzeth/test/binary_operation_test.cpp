@@ -4,10 +4,10 @@
 
 #include "libzeth/circuits/binary_operation.hpp"
 #include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/include_libff.hpp"
 #include "libzeth/util.hpp"
 
 #include <gtest/gtest.h>
-#include <libff/common/default_types/ec_pp.hpp>
 
 using namespace libzeth;
 
