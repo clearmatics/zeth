@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_API_TCC__
-#define __ZETH_SNARKS_GROTH16_API_TCC__
+#ifndef __ZETH_SNARKS_GROTH16_GROTH16_API_TCC__
+#define __ZETH_SNARKS_GROTH16_GROTH16_API_TCC__
 
 #include "libzeth/serialization/api/api_io.hpp"
 #include "libzeth/serialization/debug_helpers.hpp"
@@ -212,4 +212,4 @@ void groth16api<ppT>::prepare_verification_key_response(
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_GROTH16_API_TCC__
+#endif // __ZETH_SNARKS_GROTH16_GROTH16_API_TCC__

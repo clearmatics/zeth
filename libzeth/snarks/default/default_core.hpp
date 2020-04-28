@@ -2,12 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_ALIAS_HPP__
-#define __ZETH_SNARKS_ALIAS_HPP__
+#ifndef __ZETH_SNARKS_DEFAULT_DEFAULT_CORE_HPP__
+#define __ZETH_SNARKS_DEFAULT_DEFAULT_CORE_HPP__
 
 #if defined(ZKSNARK_PGHR13)
-#define LIBZETH_SNARK_DEFINED
-#include "libzeth/snarks/pghr13/core.hpp"
+#include "libzeth/snarks/pghr13/pghr13_core.hpp"
 namespace libzeth
 {
 template<typename ppT> using defaultSnark = pghr13snark<ppT>;
@@ -15,14 +14,14 @@ template<typename ppT> using defaultSnark = pghr13snark<ppT>;
 
 #elif defined(ZKSNARK_GROTH16)
 #define LIBZETH_SNARK_DEFINED
-#include "libzeth/snarks/groth16/core.hpp"
+#include "libzeth/snarks/groth16/groth16_core.hpp"
 namespace libzeth
 {
 template<typename ppT> using defaultSnark = groth16snark<ppT>;
 } // namespace libzeth
 
 #else
-#error You must define one of the SNARK_* symbols indicated into the CMakelists.txt file.
+#error No recognized SNARK_* macro defined (see CMakelists.txt).
 #endif
 
-#endif // __ZETH_SNARKS_ALIAS_HPP__
+#endif // __ZETH_SNARKS_DEFAULT_DEFAULT_CORE_HPP__

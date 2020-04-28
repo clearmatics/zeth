@@ -5,8 +5,8 @@
 #include "libzeth/circuit_types.hpp"
 #include "libzeth/circuit_wrapper.hpp"
 #include "libzeth/circuits/blake2s/blake2s.hpp"
-#include "libzeth/snarks/groth16/core.hpp"
-#include "libzeth/snarks/pghr13/core.hpp"
+#include "libzeth/snarks/groth16/groth16_core.hpp"
+#include "libzeth/snarks/pghr13/pghr13_core.hpp"
 #include "libzeth/util.hpp"
 
 #include <chrono>

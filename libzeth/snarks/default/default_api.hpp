@@ -2,20 +2,20 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_API_IMPORTS_HPP__
-#define __ZETH_SNARKS_API_IMPORTS_HPP__
+#ifndef __ZETH_SNARKS_DEFAULT_DEFAULT_API_HPP__
+#define __ZETH_SNARKS_DEFAULT_DEFAULT_API_HPP__
 
-#include "libzeth/snarks_types.hpp"
+#include "libzeth/snarks/default/default_core.hpp"
 
 #ifdef ZKSNARK_PGHR13
-#include "libzeth/snarks/pghr13/api.hpp"
+#include "libzeth/snarks/pghr13/pghr13_api.hpp"
 namespace libzeth
 {
 template<typename ppT> using defaultSnarkApi = pghr13api<ppT>;
 } // namespace libzeth
 
 #elif ZKSNARK_GROTH16
-#include "libzeth/snarks/groth16/api.hpp"
+#include "libzeth/snarks/groth16/groth16_api.hpp"
 namespace libzeth
 {
 template<typename ppT> using defaultSnarkApi = groth16api<ppT>;
@@ -25,4 +25,4 @@ template<typename ppT> using defaultSnarkApi = groth16api<ppT>;
 #error You must define one of the SNARK_* symbols indicated into the CMakelists.txt file.
 #endif
 
-#endif // __ZETH_SNARKS_API_IMPORTS_HPP__
+#endif // __ZETH_SNARKS_DEFAULT_DEFAULT_API_HPP__

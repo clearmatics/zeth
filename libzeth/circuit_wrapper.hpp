@@ -8,9 +8,6 @@
 #include "libzeth/circuits/joinsplit.tcc"
 #include "libzeth/serialization/file_io.hpp"
 #include "libzeth/types/note.hpp"
-
-#include "libzeth/snarks_types.hpp"
-#include "libzeth/snarks_core_imports.hpp"
 #include "libzeth/zeth.h"
 
 namespace libzeth

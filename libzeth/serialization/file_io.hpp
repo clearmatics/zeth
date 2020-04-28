@@ -5,6 +5,9 @@
 #ifndef __ZETH_SERIALIZATION_FILE_IO_HPP__
 #define __ZETH_SERIALIZATION_FILE_IO_HPP__
 
+#include "libzeth/types/extended_proof.hpp"
+#include "libzeth/zeth.h"
+
 #include <boost/filesystem.hpp>
 #include <cassert>
 #include <fstream>
@@ -15,13 +18,6 @@
 #include <sstream>
 #include <stdbool.h>
 #include <stdint.h>
-
-// Contains required interfaces and types (keypair, proof, generator, prover,
-// verifier)
-#include "libzeth/types/extended_proof.hpp"
-#include "libzeth/snarks_types.hpp"
-#include "libzeth/snarks_core_imports.hpp"
-#include "libzeth/zeth.h"
 
 namespace libzeth
 {

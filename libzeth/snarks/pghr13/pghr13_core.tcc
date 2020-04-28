@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_PGHR13_CORE_TCC__
-#define __ZETH_SNARKS_PGHR13_CORE_TCC__
+#ifndef __ZETH_SNARKS_PGHR13_PGHR13_CORE_TCC__
+#define __ZETH_SNARKS_PGHR13_PGHR13_CORE_TCC__
 
 #include "libzeth/sciprlab_libs_util.hpp"
 #include "libzeth/serialization/filesystem_util.hpp" // TODO: remove this
-#include "libzeth/snarks/pghr13/core.hpp"
+#include "libzeth/snarks/pghr13/pghr13_core.hpp"
 
 namespace libzeth
 {
@@ -304,4 +304,4 @@ typename pghr13snark<ppT>::KeypairT pghr13snark<ppT>::read_keypair(
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_PGHR13_CORE_TCC__
+#endif // __ZETH_SNARKS_PGHR13_PGHR13_CORE_TCC__

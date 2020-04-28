@@ -5,8 +5,7 @@
 #ifndef __ZETH_TYPES_EXTENDED_PROOF_HPP__
 #define __ZETH_TYPES_EXTENDED_PROOF_HPP__
 
-#include "libzeth/snarks_core_imports.hpp"
-#include "libzeth/snarks_types.hpp"
+#include "libzeth/include_libsnark.hpp"
 #include "libzeth/serialization/filesystem_util.hpp"
 #include "libzeth/zeth.h"
 

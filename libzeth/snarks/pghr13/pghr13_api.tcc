@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_PGHR13_API_TCC__
-#define __ZETH_SNARKS_PGHR13_API_TCC__
+#ifndef __ZETH_SNARKS_PGHR13_PGHR13_API_TCC__
+#define __ZETH_SNARKS_PGHR13_PGHR13_API_TCC__
 
 #include "libzeth/serialization/api/api_io.hpp"
 #include "libzeth/serialization/debug_helpers.hpp"
-#include "libzeth/snarks/pghr13/api.hpp"
+#include "libzeth/snarks/pghr13/pghr13_api.hpp"
 
 namespace libzeth
 {
@@ -307,4 +307,4 @@ void pghr13api<ppT>::prepare_verification_key_response(
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_PGHR13_API_TCC__
+#endif // __ZETH_SNARKS_PGHR13_PGHR13_API_TCC__

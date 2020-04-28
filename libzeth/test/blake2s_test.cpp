@@ -4,14 +4,11 @@
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
-#include "libzeth/snarks_types.hpp"
-
-#include "gtest/gtest.h"
-#include <libff/common/default_types/ec_pp.hpp>
-
-// Access the `from_bits` function and other utils
 #include "libzeth/circuits/circuits_utils.hpp"
 #include "libzeth/util.hpp"
+
+#include <gtest/gtest.h>
+#include <libff/common/default_types/ec_pp.hpp>
 
 using namespace libsnark;
 using namespace libzeth;

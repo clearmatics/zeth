@@ -5,14 +5,15 @@
 #ifndef __ZETH_SERIALIZATION_API_IO_HPP__
 #define __ZETH_SERIALIZATION_API_IO_HPP__
 
-#include "api/snark_messages.pb.h"
-#include "api/zeth_messages.pb.h"
+#include "libzeth/include_libsnark.hpp"
 #include "libzeth/types/bits.hpp"
 #include "libzeth/types/extended_proof.hpp"
 #include "libzeth/types/joinsplit.hpp"
 #include "libzeth/types/note.hpp"
 #include "libzeth/util.hpp"
 
+#include <api/snark_messages.pb.h>
+#include <api/zeth_messages.pb.h>
 #include <libff/common/default_types/ec_pp.hpp>
 
 /// This set of function allows to consume RPC calls data

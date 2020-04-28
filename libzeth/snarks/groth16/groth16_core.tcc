@@ -2,18 +2,17 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_CORE_TCC__
-#define __ZETH_SNARKS_GROTH16_CORE_TCC__
+#ifndef __ZETH_SNARKS_GROTH16_GROTH16_CORE_TCC__
+#define __ZETH_SNARKS_GROTH16_GROTH16_CORE_TCC__
 
 #include "libzeth/sciprlab_libs_util.hpp"
 #include "libzeth/serialization/filesystem_util.hpp" // TODO: remove this
-#include "libzeth/snarks/groth16/core.hpp"
+#include "libzeth/snarks/groth16/groth16_core.hpp"
 #include "libzeth/util.hpp"
 
 namespace libzeth
 {
 
-// Run the trusted setup and returns a struct {proving_key, verifying_key}
 template<typename ppT>
 typename groth16snark<ppT>::KeypairT groth16snark<ppT>::generate_setup(
     const libsnark::protoboard<libff::Fr<ppT>> &pb)
@@ -23,7 +22,6 @@ typename groth16snark<ppT>::KeypairT groth16snark<ppT>::generate_setup(
         pb.get_constraint_system(), true);
 }
 
-// Generate the proof and returns a struct {proof, primary_input}
 template<typename ppT>
 typename groth16snark<ppT>::ProofT groth16snark<ppT>::generate_proof(
     const libsnark::protoboard<libff::Fr<ppT>> &pb,
@@ -43,17 +41,12 @@ typename groth16snark<ppT>::ProofT groth16snark<ppT>::generate_proof(
     return proof;
 }
 
-// Verification of a proof
 template<typename ppT>
 bool groth16snark<ppT>::verify(
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_inputs,
     const groth16snark<ppT>::ProofT &proof,
     const groth16snark<ppT>::VerifKeyT &verification_key)
 {
-    // const libzeth::extended_proof<ppT> &ext_proof,
-    // const libsnark::r1cs_gg_ppzksnark_verification_key<ppT>
-    // &verification_key)
-    // {
     return libsnark::r1cs_gg_ppzksnark_verifier_strong_IC<ppT>(
         verification_key, primary_inputs, proof);
 }
@@ -315,4 +308,4 @@ bool is_well_formed(const typename groth16snark<ppT>::VerifKeyT &vk)
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_GROTH16_CORE_TCC__
+#endif // __ZETH_SNARKS_GROTH16_GROTH16_CORE_TCC__
