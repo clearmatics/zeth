@@ -27,10 +27,10 @@ void srs_mpc_phase2_accumulator<libff::alt_bn128_pp>::write_compressed(
 
     libff::alt_bn128_G1_write_compressed(out, delta_g1);
     libff::alt_bn128_G2_write_compressed(out, delta_g2);
-    for (const G1 h : H_g1) {
+    for (const G1 &h : H_g1) {
         libff::alt_bn128_G1_write_compressed(out, h);
     }
-    for (const G1 l : L_g1) {
+    for (const G1 &l : L_g1) {
         libff::alt_bn128_G1_write_compressed(out, l);
     }
 }

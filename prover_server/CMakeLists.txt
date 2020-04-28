@@ -13,7 +13,7 @@ find_package(GRPC REQUIRED)
 
 # Add the directory containing the Protobuf and gRPC generated files.
 # `PROTO_SRC_DIR` is defined in the parent CMakeLists.txt
-include_directories(${PROTO_SRC_DIR})
+include_directories(SYSTEM ${PROTO_SRC_DIR})
 
 # Function defined in the cmake scripts in the cmake folder.
 # Generate the gRPC files, and set the result of the generation in the
@@ -26,12 +26,12 @@ set_property(SOURCE ${GRPC_SRCS} PROPERTY
 )
 
 # Enable Boost for program_options
-find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
-include_directories( ${Boost_INCLUDE_DIR} )
+find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Add the binary tree to the search path for include files
 # so that we will find zethConfig.h
-include_directories( ${PROJECT_BINARY_DIR} )
+include_directories(${PROJECT_BINARY_DIR})
 
 # prover_server executable
 file(
@@ -54,5 +54,3 @@ target_link_libraries(
   gRPC::grpc++_reflection
   protobuf::libprotobuf
 )
-# See: https://foonathan.net/2018/10/cmake-warnings/
-target_compile_options(prover_server PRIVATE -Wall -Wextra)

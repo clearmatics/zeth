@@ -67,7 +67,7 @@ function command_tests() {
 
 function build() {
     # Additional compilation flags
-    cxx_flags=""
+    cxx_flags="-Werror"
 
     if [ "${platform}" == "Darwin" ] ; then
         openssl_path=$(brew --prefix openssl)

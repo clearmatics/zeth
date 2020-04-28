@@ -15,8 +15,6 @@ target_link_libraries(
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
-# See: https://foonathan.net/2018/10/cmake-warnings/
-target_compile_options(mpc-cli PRIVATE -Werror -Wall -Wextra)
 
 # mpc coordinator executable
 add_executable(mpc-coord-phase2 mpc_coord.cpp)

@@ -186,17 +186,20 @@ if ("${IS_ZETH_PARENT}")
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
 endif()
 
-# Global gRPC and Protocol Buffers configuration.
-# The libraries location can be known by running:
-# `ldconfig -p | grep libgrpc`
-# `ldconfig -p | grep libprotobuf`
-#
+# Add dependencies (before setting up the configuration for zeth)
+add_subdirectory(depends)
+
 # CMAKE_MODULE_PATH: Path used for searching by FIND_XXX(), with appropriate suffixes added.
 # See: https://cmake.org/cmake/help/v3.0/variable/CMAKE_PREFIX_PATH.html
 list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib" "/usr/lib")
 # Cmake find modules
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
+# Global gRPC and Protocol Buffers configuration.
+# The libraries location can be known by running:
+# `ldconfig -p | grep libgrpc`
+# `ldconfig -p | grep libprotobuf`
+#
 # Set the target of the Protobuf and gRPC generated files.
 set(
   PROTO_SRC_DIR
@@ -220,8 +223,10 @@ set(PROTOBUF_APPEND_DEST_PATH "/api")
 set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
 set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
 
-# Add sub-directories for the build
-add_subdirectory(depends)
+# By default, compile with all warning flags
+add_compile_options(-Wall -Wextra)
+
+# Add all local subdirecetories
 add_subdirectory(libzeth)
 add_subdirectory(prover_server)
 if(${ZKSNARK} STREQUAL "GROTH16")

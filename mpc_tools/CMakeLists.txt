@@ -1,7 +1,7 @@
 # Build for mpc utilities
 
-find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
-include_directories( ${Boost_INCLUDE_DIR} )
+find_package(Boost REQUIRED COMPONENTS program_options)
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Compile the pot-process utility (GROTH16 only)
 if(${ZKSNARK} STREQUAL "GROTH16")
@@ -16,7 +16,5 @@ if(${ZKSNARK} STREQUAL "GROTH16")
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
   )
-  # See: https://foonathan.net/2018/10/cmake-warnings/
-  target_compile_options(pot-process PRIVATE -Werror -Wall -Wextra)
   add_subdirectory(mpc_phase2)
 endif()

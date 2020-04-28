@@ -3,22 +3,25 @@ include_directories(.)
 find_package(Protobuf REQUIRED)
 find_package(GRPC REQUIRED)
 
+# NOTE: dependency include directories use SYSTEM, to prevent the compiler from
+# issuing warnings from their headers. See:
+# https://foonathan.net/2018/10/cmake-warnings/
+
 # Add the directory containing the Protobuf generated files.
 # `PROTO_SRC_DIR` is defined in the parent CMakeLists.txt
-include_directories(${PROTO_SRC_DIR})
+include_directories(SYSTEM ${PROTO_SRC_DIR})
 
 # Function defined in the cmake scripts in the cmake folder.
 # Generate the protobuf files and set the result of the generation
 # in the given env var (PROTO_SRCS, PROTO_HDRS).
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
-
 set_property(SOURCE ${PROTO_SRCS} PROPERTY
-  COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
+  COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter -Wno-error"
 )
 
 # Enable Boost for program_options
-find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
-include_directories( ${Boost_INCLUDE_DIR} )
+find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
+include_directories(${Boost_INCLUDE_DIR})
 
 # libsodium
 ExternalProject_Get_Property(libsodium INSTALL_DIR)
@@ -27,7 +30,7 @@ set(libsodium_LIBRARY "${INSTALL_DIR}/lib/libsodium.a")
 
 # Add the binary tree to the search path for include files
 # so that we will find zethConfig.h
-include_directories( ${PROJECT_BINARY_DIR} )
+include_directories(${PROJECT_BINARY_DIR})
 
 string(TOLOWER ${ZKSNARK} ZKSNARK_NAME)
 
@@ -56,6 +59,7 @@ add_library(
 target_include_directories(
   zeth
 
+  SYSTEM
   PUBLIC
   ${DEPENDS_DIR}/libsnark
   ${DEPENDS_DIR}/libsnark/depends/libff
@@ -68,9 +72,6 @@ target_link_libraries(
   snark
   ${libsodium_LIBRARY}
 )
-# See: https://foonathan.net/2018/10/cmake-warnings/
-# TODO: Use generator expressions to support various compilers
-target_compile_options(zeth PRIVATE -Wall -Wextra)
 add_dependencies(zeth libsodium)
 
 ## Tests
@@ -80,8 +81,12 @@ if ("${IS_ZETH_PARENT}")
   # A target which builds all tests, even if they will not be run.
   add_custom_target(build_tests)
 
+  # Function to create test targets, based on the FAST flag:
+  #   zeth_test(
+  #     <test name> SOURCE <source files> [ARGS <tst arguments>] [FAST])
   function(zeth_test TEST_NAME)
-    cmake_parse_arguments(zeth_test "FAST" "" "SOURCE" ${ARGN} )
+    set(multiValueArgs SOURCE ARGS)
+    cmake_parse_arguments(zeth_test "FAST" "" "SOURCE;ARGS" ${ARGN})
     file(GLOB test_src ${zeth_test_SOURCE})
 
     # Test executable
@@ -92,7 +97,7 @@ if ("${IS_ZETH_PARENT}")
     add_dependencies(build_tests ${TEST_NAME})
 
     if((NOT FAST_TESTS_ONLY) OR zeth_test_FAST)
-      add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+      add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} ${zeth_test_ARGS})
       add_dependencies(check ${TEST_NAME})
     else()
       message("Skipping slow test ${TEST_NAME}")
@@ -110,22 +115,28 @@ if ("${IS_ZETH_PARENT}")
   zeth_test(test_note SOURCE test/note_test.cpp FAST)
   zeth_test(test_prover SOURCE test/prover_test.cpp)
 
-  # Old Tests
-  # zeth_test(test_sha256 test/sha256_test.cpp TRUE)
+  # Groth16-only tests and MPC
+  if(${ZKSNARK} STREQUAL "GROTH16")
+    zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
+    zeth_test(
+      test_powersoftau
+      SOURCE test/powersoftau_test.cpp
+      ARGS "${CMAKE_CURRENT_LIST_DIR}/.."
+      FAST)
+    zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
+    target_link_libraries(
+      test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+  endif()
 
-  # prover test has extra dependencies
+  # Extra dependencies for specific tests
   target_link_libraries(
     test_prover
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
   )
+  target_link_libraries(
+    test_powersoftau
+    ${Boost_FILESYSTEM_LIBRARY}
+  )
 
-  # Groth16-only tests and MPC
-  if(${ZKSNARK} STREQUAL "GROTH16")
-    zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
-    zeth_test(test_powersoftau SOURCE test/powersoftau_test.cpp FAST)
-    zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
-    target_link_libraries(
-      test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
-  endif()
 endif()

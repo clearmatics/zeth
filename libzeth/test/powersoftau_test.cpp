@@ -6,6 +6,7 @@
 #include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
 #include "libzeth/util.hpp"
 
+#include <boost/filesystem.hpp>
 #include <fstream>
 #include <gtest/gtest.h>
 
@@ -15,9 +16,12 @@ using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
 using namespace libsnark;
 using namespace libzeth;
+namespace fs = boost::filesystem;
 
 namespace
 {
+
+fs::path g_testdata_dir = fs::path("..") / "testdata";
 
 static std::string hex_to_bin(const std::string &hex)
 {
@@ -408,18 +412,17 @@ TEST(PowersOfTauTests, ReadWritePowersOfTauG2)
 
 TEST(PowersOfTauTests, ReadWritePowersOfTauOutput)
 {
-    char *zeth = getenv("ZETH");
-    const std::string filename = std::string(zeth == nullptr ? "." : zeth) +
-                                 "/testdata/powersoftau_challenge.4.bin";
+    fs::path filename = g_testdata_dir / "powersoftau_challenge.4.bin";
     const size_t n = 16;
 
-    std::ifstream in(filename, std::ios_base::binary | std::ios_base::in);
+    std::ifstream in(
+        filename.c_str(), std::ios_base::binary | std::ios_base::in);
     srs_powersoftau<ppT> pot = powersoftau_load(in, n);
 
     std::string expect_pot_write;
     {
         std::ifstream in_pot(
-            filename, std::ios_base::binary | std::ios_base::in);
+            filename.c_str(), std::ios_base::binary | std::ios_base::in);
         expect_pot_write = std::string(
             std::istreambuf_iterator<char>(in_pot),
             std::istreambuf_iterator<char>());
@@ -604,5 +607,16 @@ int main(int argc, char **argv)
     libff::inhibit_profiling_info = true;
 
     ::testing::InitGoogleTest(&argc, argv);
+
+    // Extract the testdata dir, if passed on the command line.
+    if (argc > 1) {
+        g_testdata_dir = fs::path(argv[1]) / "testdata";
+    } else {
+        const char *const zeth = getenv("ZETH");
+        if (zeth != nullptr) {
+            g_testdata_dir = fs::path(zeth) / "testdata";
+        }
+    }
+
     return RUN_ALL_TESTS();
 }
