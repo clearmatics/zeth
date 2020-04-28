@@ -10,16 +10,16 @@
 namespace libzeth
 {
 
-template<typename ppT, typename GroupT>
-GroupT multi_exp(
-    typename std::vector<libff::G1<ppT>>::const_iterator gs_start,
-    typename std::vector<libff::G1<ppT>>::const_iterator gs_end,
-    typename std::vector<libff::Fr<ppT>>::const_iterator fs_start,
-    typename std::vector<libff::Fr<ppT>>::const_iterator fs_end);
+template<typename fieldT, typename groupT>
+groupT multi_exp(
+    typename std::vector<groupT>::const_iterator gs_start,
+    typename std::vector<groupT>::const_iterator gs_end,
+    typename std::vector<fieldT>::const_iterator fs_start,
+    typename std::vector<fieldT>::const_iterator fs_end);
 
-template<typename ppT, typename GroupT>
-GroupT multi_exp(
-    const std::vector<GroupT> &gs, const libff::Fr_vector<ppT> &fs);
+template<typename ppT, typename groupT>
+groupT multi_exp(
+    const std::vector<groupT> &gs, const libff::Fr_vector<ppT> &fs);
 
 } // namespace libzeth
 
