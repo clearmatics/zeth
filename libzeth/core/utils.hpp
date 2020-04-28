@@ -15,8 +15,10 @@
 namespace libzeth
 {
 
-/// Takes a container with a `size()` method and reverse the order
-/// of the elements. The elements should represent bits.
+/// Takes a container with a `size()` method containing a multiple of 8
+/// elements. The elements (considered to be bit-like) are divided into "bytes"
+/// (groups of 8), and the order of these "bytes" is reversed. The order of
+/// "bits" within each "byte" is preserved.
 template<typename T> T swap_byte_endianness(T v);
 
 /// Returns the binary encoding of the address of a leaf node in a binary tree.
@@ -37,7 +39,7 @@ std::vector<bool> hexadecimal_str_to_binary_vector(std::string str);
 /// digest.
 std::vector<bool> hexadecimal_digest_to_binary_vector(std::string str);
 
-// Returns the little endian binary encoding of the integer x.
+/// Returns the little endian binary encoding of the integer x.
 std::vector<bool> convert_uint_to_binary(size_t x);
 
 std::string hexadecimal_str_to_binary_str(const std::string &s);
