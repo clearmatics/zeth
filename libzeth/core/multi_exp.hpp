@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GRPOTH16_MULTI_EXP_HPP__
-#define __ZETH_SNARKS_GRPOTH16_MULTI_EXP_HPP__
+#ifndef __ZETH_CORE_MULTI_EXP_HPP__
+#define __ZETH_CORE_MULTI_EXP_HPP__
 
-#include "libzeth/core/include_libsnark.hpp"
+#include "libzeth/core/include_libff.hpp"
 
 namespace libzeth
 {
@@ -23,6 +23,6 @@ GroupT multi_exp(
 
 } // namespace libzeth
 
-#include "libzeth/snarks/groth16/mpc/multi_exp.tcc"
+#include "libzeth/core/multi_exp.tcc"
 
-#endif // __ZETH_SNARKS_GRPOTH16_MULTI_EXP_HPP__
+#endif // __ZETH_CORE_MULTI_EXP_HPP__

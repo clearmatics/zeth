@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_TCC__
-#define __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_TCC__
+#ifndef __ZETH_CORE_EVALUATOR_FROM_LAGRANGE_TCC__
+#define __ZETH_CORE_EVALUATOR_FROM_LAGRANGE_TCC__
 
-#include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.hpp"
-#include "libzeth/snarks/groth16/mpc/multi_exp.hpp"
+#include "libzeth/core/evaluator_from_lagrange.hpp"
+#include "libzeth/core/multi_exp.hpp"
 
 namespace libzeth
 {
@@ -46,4 +46,4 @@ GroupT evaluator_from_lagrange<ppT, GroupT>::evaluate_from_lagrange_factors(
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_TCC__
+#endif // __ZETH_CORE_EVALUATOR_FROM_LAGRANGE_TCC__

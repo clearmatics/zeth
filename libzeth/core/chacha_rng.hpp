@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_MPC_CHACHA_RNG_HPP__
-#define __ZETH_SNARKS_GROTH16_MPC_CHACHA_RNG_HPP__
+#ifndef __ZETH_CORE_CHACHA_RNG_HPP__
+#define __ZETH_CORE_CHACHA_RNG_HPP__
 
 #include <cstddef>
 #include <cstdint>
@@ -43,4 +43,4 @@ private:
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_GROTH16_MPC_CHACHA_RNG_HPP__
+#endif // __ZETH_CORE_CHACHA_RNG_HPP__

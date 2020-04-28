@@ -5,11 +5,10 @@
 #ifndef __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__
 #define __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__
 
-#include "libzeth/snarks/groth16/mpc/phase2.hpp"
-// This comment preserves include order under clang-format.
+#include "libzeth/core/chacha_rng.hpp"
 #include "libzeth/core/utils.hpp"
-#include "libzeth/snarks/groth16/mpc/chacha_rng.hpp"
 #include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
+#include "libzeth/snarks/groth16/mpc/phase2.hpp"
 #include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
 
 #include <libff/common/rng.hpp>

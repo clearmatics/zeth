@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_HPP__
-#define __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_HPP__
+#ifndef __ZETH_CORE_EVALUATOR_FROM_LAGRANGE_HPP__
+#define __ZETH_CORE_EVALUATOR_FROM_LAGRANGE_HPP__
 
 #include "libzeth/core/include_libsnark.hpp"
 
@@ -32,6 +32,7 @@ public:
 };
 
 } // namespace libzeth
-#include "libzeth/snarks/groth16/mpc/evaluator_from_lagrange.tcc"
 
-#endif // __ZETH_SNARKS_GROTH16_EVALUATOR_FROM_LAGRANGE_HPP__
+#include "libzeth/core/evaluator_from_lagrange.tcc"
+
+#endif // __ZETH_CORE_EVALUATOR_FROM_LAGRANGE_HPP__
