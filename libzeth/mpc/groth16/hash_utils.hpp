@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_MPC_HASH_UTILS_HPP__
-#define __ZETH_SNARKS_GROTH16_MPC_HASH_UTILS_HPP__
+#ifndef __ZETH_MPC_GROTH16_HASH_UTILS_HPP__
+#define __ZETH_MPC_GROTH16_HASH_UTILS_HPP__
 
 #include <ios>
 #include <iostream>
@@ -93,4 +93,4 @@ private:
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_GROTH16_MPC_HASH_UTILS_HPP__
+#endif // __ZETH_MPC_GROTH16_HASH_UTILS_HPP__

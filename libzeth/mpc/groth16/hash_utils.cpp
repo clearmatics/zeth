@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/snarks/groth16/mpc/hash_utils.hpp"
+#include "libzeth/mpc/groth16/hash_utils.hpp"
 
 #include "libzeth/core/utils.hpp"
 

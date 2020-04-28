@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/core/utils.hpp"
-#include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
-#include "libzeth/snarks/groth16/mpc/phase2.hpp"
+#include "libzeth/mpc/groth16/mpc_utils.hpp"
+#include "libzeth/mpc/groth16/phase2.hpp"
 #include "mpc_common.hpp"
 
 using namespace libzeth;

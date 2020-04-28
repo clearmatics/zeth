@@ -8,10 +8,10 @@
 #include "libzeth/core/evaluator_from_lagrange.hpp"
 #include "libzeth/core/multi_exp.hpp"
 #include "libzeth/core/utils.hpp"
+#include "libzeth/mpc/groth16/mpc_utils.hpp"
+#include "libzeth/mpc/groth16/phase2.hpp"
+#include "libzeth/mpc/groth16/powersoftau_utils.hpp"
 #include "libzeth/snarks/groth16/groth16_core.hpp"
-#include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
-#include "libzeth/snarks/groth16/mpc/phase2.hpp"
-#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
 #include "libzeth/test/simple_test.hpp"
 
 #include <fstream>

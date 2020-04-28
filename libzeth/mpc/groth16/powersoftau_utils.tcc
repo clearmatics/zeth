@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_POWERSOFTAU_UTILS_TCC__
-#define __ZETH_SNARKS_GROTH16_POWERSOFTAU_UTILS_TCC__
+#ifndef __ZETH_MPC_GROTH16_POWERSOFTAU_UTILS_TCC__
+#define __ZETH_MPC_GROTH16_POWERSOFTAU_UTILS_TCC__
 
 #include "libzeth/core/utils.hpp"
-#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
+#include "libzeth/mpc/groth16/powersoftau_utils.hpp"
 
 #include <thread>
 
@@ -617,4 +617,4 @@ srs_lagrange_evaluations<ppT> powersoftau_compute_lagrange_evaluations(
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_GROTH16_POWERSOFTAU_UTILS_TCC__
+#endif // __ZETH_MPC_GROTH16_POWERSOFTAU_UTILS_TCC__

@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__
-#define __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__
+#ifndef __ZETH_MPC_GROTH16_PHASE2_HPP__
+#define __ZETH_MPC_GROTH16_PHASE2_HPP__
 
+#include "libzeth/mpc/groth16/hash_utils.hpp"
 #include "libzeth/snarks/groth16/groth16_core.hpp"
-#include "libzeth/snarks/groth16/mpc/hash_utils.hpp"
 
 /// Structures and operations related to the "Phase 2" MPC described in
 /// [BoweGM17].  Parts of the implementation use techniques from the
@@ -296,6 +296,7 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
 } // namespace libzeth
-#include "libzeth/snarks/groth16/mpc/phase2.tcc"
 
-#endif // __ZETH_SNARKS_GROTH16_MPC_PHASE2_HPP__
+#include "libzeth/mpc/groth16/phase2.tcc"
+
+#endif // __ZETH_MPC_GROTH16_PHASE2_HPP__

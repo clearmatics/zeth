@@ -6,7 +6,7 @@
 /// Lagrange polynomials at tau.
 
 #include "libzeth/circuits/circuit_types.hpp"
-#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
+#include "libzeth/mpc/groth16/powersoftau_utils.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>

@@ -43,6 +43,7 @@ file(
   snarks/**.?pp
   serialization/**.?pp
   circuits/**.?pp
+  mpc/**.?pp
 )
 
 add_library(

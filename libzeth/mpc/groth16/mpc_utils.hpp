@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
-#define __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
+#ifndef __ZETH_MPC_GROTH16_MPC_UTILS_HPP__
+#define __ZETH_MPC_GROTH16_MPC_UTILS_HPP__
 
 #include "libzeth/snarks/groth16/groth16_core.hpp"
 
@@ -31,9 +31,9 @@ namespace libzeth
 template<typename ppT> class srs_powersoftau;
 template<typename ppT> class srs_lagrange_evaluations;
 
-/// Output from linear combination $L_1$ - the linear combination of elements
-/// in powersoftau, based on a specific circuit. Implements the interfaces of
-/// StructuredT and ReadableT templates.
+/// Output from linear combination $L_1$ - the linear combination of
+/// elements in powersoftau, based on a specific circuit. Implements the
+/// interfaces of StructuredT and ReadableT templates.
 template<typename ppT> class srs_mpc_layer_L1
 {
 public:
@@ -75,6 +75,7 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     const libsnark::qap_instance<libff::Fr<ppT>> &qap);
 
 } // namespace libzeth
-#include "libzeth/snarks/groth16/mpc/mpc_utils.tcc"
 
-#endif // __ZETH_SNARKS_GROTH16_MPC_UTILS_HPP__
+#include "libzeth/mpc/groth16/mpc_utils.tcc"
+
+#endif // __ZETH_MPC_GROTH16_MPC_UTILS_HPP__

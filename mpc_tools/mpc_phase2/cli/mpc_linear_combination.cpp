@@ -4,8 +4,8 @@
 
 #include "libzeth/circuits/blake2s/blake2s_comp.hpp"
 #include "libzeth/core/utils.hpp"
-#include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
-#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
+#include "libzeth/mpc/groth16/mpc_utils.hpp"
+#include "libzeth/mpc/groth16/powersoftau_utils.hpp"
 #include "mpc_common.hpp"
 
 #include <boost/program_options.hpp>

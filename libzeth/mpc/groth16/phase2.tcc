@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__
-#define __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__
+#ifndef __ZETH_MPC_GROTH16_PHASE2_TCC__
+#define __ZETH_MPC_GROTH16_PHASE2_TCC__
 
 #include "libzeth/core/chacha_rng.hpp"
 #include "libzeth/core/utils.hpp"
-#include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
-#include "libzeth/snarks/groth16/mpc/phase2.hpp"
-#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
+#include "libzeth/mpc/groth16/mpc_utils.hpp"
+#include "libzeth/mpc/groth16/phase2.hpp"
+#include "libzeth/mpc/groth16/powersoftau_utils.hpp"
 
 #include <libff/common/rng.hpp>
 
@@ -742,4 +742,4 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_GROTH16_MPC_PHASE2_TCC__
+#endif // __ZETH_MPC_GROTH16_PHASE2_TCC__
