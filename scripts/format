@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 
+CLANG_FORMAT=clang-format
+
+${CLANG_FORMAT} --version
 if [ "" == "$1" ] ; then
     files=`git ls-files '*.cpp' '*.cc' '*.hpp' '*.hh' '*.tcc'`
     for f in $files ; do
         echo "FORMATTING $f"
-        clang-format-8 -style=file -i $f
+        ${CLANG_FORMAT} -style=file -i $f
     done
 else
     for f in $@ ; do
         echo "FORMATTING $f"
-        clang-format-8 -style=file -i $f
+        ${CLANG_FORMAT} -style=file -i $f
     done
 fi

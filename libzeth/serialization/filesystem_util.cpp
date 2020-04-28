@@ -13,7 +13,8 @@ boost::filesystem::path get_path_to_setup_directory()
     if (nullptr == path) {
         // Fallback destination if the ZETH_TRUSTED_SETUP_DIR env var is not set
         // We assume below that `std::getenv("HOME")` does not return `nullptr`
-        boost::filesystem::path home_path = boost::filesystem::path(std::getenv("HOME"));
+        boost::filesystem::path home_path =
+            boost::filesystem::path(std::getenv("HOME"));
         boost::filesystem::path zeth_setup("zeth_setup");
         boost::filesystem::path default_path = home_path / zeth_setup;
 
@@ -29,7 +30,8 @@ boost::filesystem::path get_path_to_debug_directory()
     if (nullptr == path) {
         // Fallback destination if the ZETH_DEBUG_DIR env var is not set
         // We assume below that `std::getenv("HOME")` does not return `nullptr`
-        boost::filesystem::path home_path = boost::filesystem::path(std::getenv("HOME"));
+        boost::filesystem::path home_path =
+            boost::filesystem::path(std::getenv("HOME"));
         boost::filesystem::path zeth_debug("zeth_debug");
         boost::filesystem::path default_path = home_path / zeth_debug;
     }

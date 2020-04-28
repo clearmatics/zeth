@@ -8,7 +8,7 @@
 #include "types/bits.tcc"
 #include "util.hpp"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 using namespace libsnark;
