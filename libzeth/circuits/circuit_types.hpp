@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUIT_TYPES_HPP__
-#define __ZETH_CIRCUIT_TYPES_HPP__
+#ifndef __ZETH_CIRCUITS_CIRCUIT_TYPES_HPP__
+#define __ZETH_CIRCUITS_CIRCUIT_TYPES_HPP__
 
-#include "libzeth/circuit_wrapper.hpp"
 #include "libzeth/circuits/blake2s/blake2s.hpp"
+#include "libzeth/circuits/circuit_wrapper.hpp"
 #include "libzeth/include_libsnark.hpp"
 
 // Types that must be common across all executable, defined once here. Outside
@@ -30,4 +30,4 @@ using HashTreeT = MiMC_mp_gadget<FieldT>;
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUIT_TYPES_HPP__
+#endif // __ZETH_CIRCUITS_CIRCUIT_TYPES_HPP__

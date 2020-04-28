@@ -2,22 +2,21 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuit_types.hpp"
-#include "libzeth/circuit_wrapper.hpp"
 #include "libzeth/circuits/blake2s/blake2s.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
+#include "libzeth/circuits/circuit_wrapper.hpp"
 #include "libzeth/snarks/groth16/groth16_core.hpp"
 #include "libzeth/snarks/pghr13/pghr13_core.hpp"
 #include "libzeth/util.hpp"
 
 #include <chrono>
 #include <gtest/gtest.h>
-#include <libff/common/default_types/ec_pp.hpp>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
-// Use the default ppT and otherconfigurations from the circuit code, but
-// force the Merkle tree depth to 4. Parameterize the test code on the
-// snark, so that this code can test all available snark schemes, indepedent
-// of the build configuration.
+// Use the default ppT and other options from the circuit code, but force the
+// Merkle tree depth to 4. Parameterize the test code on the snark, so that
+// this code can test all available snark schemes, indepedent of the build
+// configuration.
 
 static const size_t TreeDepth = 4;
 

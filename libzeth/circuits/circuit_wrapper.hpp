@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUIT_WRAPPER_HPP__
-#define __ZETH_CIRCUIT_WRAPPER_HPP__
+#ifndef __ZETH_CIRCUITS_CIRCUIT_WRAPPER_HPP__
+#define __ZETH_CIRCUITS_CIRCUIT_WRAPPER_HPP__
 
 #include "libzeth/circuits/joinsplit.tcc"
 #include "libzeth/serialization/file_io.hpp"
@@ -63,6 +63,7 @@ private:
 };
 
 } // namespace libzeth
-#include "libzeth/circuit_wrapper.tcc"
 
-#endif // __ZETH_CIRCUIT_WRAPPER_HPP__
+#include "libzeth/circuits/circuit_wrapper.tcc"
+
+#endif // __ZETH_CIRCUITS_CIRCUIT_WRAPPER_HPP__

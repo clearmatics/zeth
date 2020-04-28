@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUIT_WRAPPER_TCC__
-#define __ZETH_CIRCUIT_WRAPPER_TCC__
+#ifndef __ZETH_CIRCUITS_CIRCUIT_WRAPPER_TCC__
+#define __ZETH_CIRCUITS_CIRCUIT_WRAPPER_TCC__
 
-#include "libzeth/circuit_wrapper.hpp"
+#include "libzeth/circuits/circuit_wrapper.hpp"
 
 namespace libzeth
 {
@@ -168,4 +168,4 @@ extended_proof<ppT, snarkT> circuit_wrapper<
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUIT_WRAPPER_TCC__
+#endif // __ZETH_CIRCUITS_CIRCUIT_WRAPPER_TCC__
