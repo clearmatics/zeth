@@ -30,8 +30,7 @@ namespace libzeth
 ///
 /// where all x_i's are bytes (uint8_t)
 template<typename FieldT>
-std::string libsnark_bigint_to_hexadecimal_str(
-    const libff::bigint<FieldT::num_limbs> &limbs);
+std::string bigint_to_hex(const libff::bigint<FieldT::num_limbs> &limbs);
 
 /// WARNING: The following function assumes that NAILS are NOT used
 /// See Section 8.2 (page 68): https://gmplib.org/gmp-man-6.2.0.pdf
@@ -53,16 +52,14 @@ std::string libsnark_bigint_to_hexadecimal_str(
 /// and we have `res_bigint = [Limb0, Limb1, Limb2, Limb3]`,
 /// where every Limb{i} is of type `mp_limb_t`,
 template<typename FieldT>
-libff::bigint<FieldT::num_limbs> bytes_to_libsnark_bigint(
+libff::bigint<FieldT::num_limbs> bigint_from_bytes(
     const uint8_t bytes[(FieldT::num_bits + 8 - 1) / 8]);
 
 /// Convert an hexadecimal string to a field element
-template<typename FieldT>
-FieldT hexadecimal_str_to_field_element(std::string field_str);
+template<typename FieldT> FieldT field_element_to_hex(std::string field_str);
 
 /// Convert a field element to an hexadecimal string
-template<typename FieldT>
-std::string field_element_to_hexadecimal_str(FieldT field_el);
+template<typename FieldT> std::string field_element_to_hex(FieldT field_el);
 
 } // namespace libzeth
 

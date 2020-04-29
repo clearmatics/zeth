@@ -20,7 +20,6 @@ protected:
 public:
     base_note() { value_.fill(false); }
     base_note(bits64 value) : value_(value){};
-    virtual ~base_note(){};
 
     inline bits64 value() const { return value_; };
 
@@ -36,19 +35,16 @@ public:
 class zeth_note : public base_note
 {
 public:
-    bits256 a_pk; // 256-bit vector
-    bits256 rho;  // 256-bit vector
-    bits256 r;    // 384-bit random vector
-    // bits256 cm; // 256-bit vector
+    bits256 a_pk;
+    bits256 rho;
+    bits256 r;
 
-    zeth_note(
-        bits256 a_pk, bits64 value, bits256 rho, bits256 r /*, bits256 cm*/)
-        : base_note(value), a_pk(a_pk), rho(rho), r(r) /*, cm(cm)*/
+    zeth_note(bits256 a_pk, bits64 value, bits256 rho, bits256 r)
+        : base_note(value), a_pk(a_pk), rho(rho), r(r)
     {
     }
 
-    zeth_note(){};
-    virtual ~zeth_note(){};
+    zeth_note() : base_note(){};
 };
 
 } // namespace libzeth

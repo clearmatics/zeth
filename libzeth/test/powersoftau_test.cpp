@@ -23,19 +23,9 @@ namespace
 
 fs::path g_testdata_dir = fs::path("..") / "testdata";
 
-static std::string hex_to_bin(const std::string &hex)
-{
-    return hexadecimal_str_to_binary_str(hex);
-}
-
-static std::string bin_to_hex(const std::string &hex)
-{
-    return binary_str_to_hexadecimal_str(hex);
-}
-
 G1 pot_hex_to_g1(const std::string &s)
 {
-    const std::string bin = hex_to_bin(s);
+    const std::string bin = hex_to_bytes(s);
     std::istringstream ss_bytes(bin);
     G1 out;
     read_powersoftau_g1(ss_bytes, out);
@@ -44,7 +34,7 @@ G1 pot_hex_to_g1(const std::string &s)
 
 G2 pot_hex_to_g2(const std::string hex)
 {
-    const std::string bin = hex_to_bin(hex);
+    const std::string bin = hex_to_bytes(hex);
     std::istringstream ss_bytes(bin);
     G2 out;
     read_powersoftau_g2(ss_bytes, out);
@@ -55,7 +45,7 @@ template<typename T> std::string to_hex(const T &v)
 {
     std::ostringstream bufstream;
     bufstream << v;
-    return bin_to_hex(bufstream.str());
+    return bytes_to_hex(bufstream.str());
 }
 
 template<typename T> using point_serializer_t = void(std::ostream &, const T &);
@@ -271,7 +261,7 @@ TEST(UtilTest, ReadWritePowersOfTauFr)
 
     Fr fr_7_inv_read;
     {
-        std::istringstream ss_bytes(hex_to_bin(s_f_7_inv));
+        std::istringstream ss_bytes(hex_to_bytes(s_f_7_inv));
         read_powersoftau_fr(ss_bytes, fr_7_inv_read);
     }
 
@@ -279,7 +269,7 @@ TEST(UtilTest, ReadWritePowersOfTauFr)
     {
         std::ostringstream out;
         write_powersoftau_fr(out, fr_7_inv);
-        fr_7_inv_write = bin_to_hex(out.str());
+        fr_7_inv_write = bytes_to_hex(out.str());
     }
 
     ASSERT_EQ(fr_7_inv, fr_7_inv_read);
@@ -309,7 +299,7 @@ TEST(UtilTest, ReadWritePowersOfTauG1)
     {
         std::ostringstream out;
         write_powersoftau_g1(out, expect_g1_7_inv);
-        g1_7_inv_write = bin_to_hex(out.str());
+        g1_7_inv_write = bytes_to_hex(out.str());
     }
 
     ASSERT_EQ(G1::zero(), pot_hex_to_g1(s_g1_0));
@@ -333,13 +323,13 @@ TEST(UtilTest, ReadWritePowersOfTauFq2)
 
     libff::alt_bn128_Fq2 fq2_in_x;
     {
-        std::istringstream ss(hex_to_bin(fq2_x_string));
+        std::istringstream ss(hex_to_bytes(fq2_x_string));
         read_powersoftau_fq2(ss, fq2_in_x);
     }
 
     libff::alt_bn128_Fq2 fq2_in_y;
     {
-        std::istringstream ss(hex_to_bin(fq2_y_string));
+        std::istringstream ss(hex_to_bytes(fq2_y_string));
         read_powersoftau_fq2(ss, fq2_in_y);
     }
 
@@ -347,7 +337,7 @@ TEST(UtilTest, ReadWritePowersOfTauFq2)
     {
         std::ostringstream out;
         write_powersoftau_fq2(out, g2_one_x);
-        g2_one_x_write = bin_to_hex(out.str());
+        g2_one_x_write = bytes_to_hex(out.str());
     }
 
     std::cout << "fq2_in_x hex (full): " << std::endl
@@ -398,7 +388,7 @@ TEST(PowersOfTauTests, ReadWritePowersOfTauG2)
     {
         std::ostringstream out;
         write_powersoftau_g2(out, g2_7_inv);
-        g2_7_inv_write = bin_to_hex(out.str());
+        g2_7_inv_write = bytes_to_hex(out.str());
     }
 
     ASSERT_EQ(G2::zero(), pot_hex_to_g2(s_g2_0));
@@ -501,7 +491,7 @@ TEST(PowersOfTauTests, SerializeG2)
     std::ostringstream out;
     out << g2_7;
     std::string g2_7_ser = out.str();
-    std::cout << "g2_7_ser: " << bin_to_hex(g2_7_ser) << std::endl;
+    std::cout << "g2_7_ser: " << bytes_to_hex(g2_7_ser) << std::endl;
 
     // Deserialize
     std::istringstream in(g2_7_ser);

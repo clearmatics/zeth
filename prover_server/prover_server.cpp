@@ -103,17 +103,16 @@ public:
         // Parse received message to feed to the prover
         try {
             libzeth::FieldT root =
-                libzeth::hexadecimal_str_to_field_element<libzeth::FieldT>(
+                libzeth::field_element_to_hex<libzeth::FieldT>(
                     proof_inputs->mk_root());
-            libzeth::bits64 vpub_in = libzeth::get_bits64_from_hexadecimal_str(
-                proof_inputs->pub_in_value());
-            libzeth::bits64 vpub_out = libzeth::get_bits64_from_hexadecimal_str(
-                proof_inputs->pub_out_value());
+            libzeth::bits64 vpub_in =
+                libzeth::bits64_from_hex(proof_inputs->pub_in_value());
+            libzeth::bits64 vpub_out =
+                libzeth::bits64_from_hex(proof_inputs->pub_out_value());
             libzeth::bits256 h_sig_in =
-                libzeth::get_bits256_from_hexadecimal_str(
-                    proof_inputs->h_sig());
+                libzeth::bits256_from_hex(proof_inputs->h_sig());
             libzeth::bits256 phi_in =
-                libzeth::get_bits256_from_hexadecimal_str(proof_inputs->phi());
+                libzeth::bits256_from_hex(proof_inputs->phi());
 
             if (libzeth::ZETH_NUM_JS_INPUTS != proof_inputs->js_inputs_size()) {
                 throw std::invalid_argument("Invalid number of JS inputs");

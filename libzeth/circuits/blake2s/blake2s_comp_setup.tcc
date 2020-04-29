@@ -77,19 +77,19 @@ void BLAKE2s_256_comp<FieldT>::setup_v(bool is_last_block)
     }
 
     // v_12 = t0 XOR IV_4
-    std::array<bool, 32> temp_xored = binary_xor(BLAKE2s_IV[4], t[0]);
+    std::array<bool, 32> temp_xored = bits_xor(BLAKE2s_IV[4], t[0]);
     std::vector<bool> temp_vector12(temp_xored.begin(), temp_xored.end());
     v[0][12].fill_with_bits(this->pb, temp_vector12);
 
     // v_13 = t1 XOR IV_5
-    temp_xored = binary_xor(BLAKE2s_IV[5], t[1]);
+    temp_xored = bits_xor(BLAKE2s_IV[5], t[1]);
     std::vector<bool> temp_vector13(temp_xored.begin(), temp_xored.end());
     v[0][13].fill_with_bits(this->pb, temp_vector13);
 
     // v_14 = f0 XOR IV_6
     temp_xored = BLAKE2s_IV[6];
     if (is_last_block) {
-        temp_xored = binary_xor(BLAKE2s_IV[6], flag_to_1);
+        temp_xored = bits_xor(BLAKE2s_IV[6], flag_to_1);
     }
     std::vector<bool> temp_vector14(temp_xored.begin(), temp_xored.end());
     v[0][14].fill_with_bits(this->pb, temp_vector14);

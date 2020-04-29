@@ -21,7 +21,7 @@ TEST(MPCHashTests, HashInterface)
         srs_mpc_hash_t hash;
         srs_mpc_compute_hash(hash, empty, 0);
         ASSERT_EQ(
-            binary_str_to_hexadecimal_str((const char *)(&hash), sizeof(hash)),
+            bytes_to_hex((const char *)(&hash), sizeof(hash)),
             "786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d2"
             "5e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce");
     }
@@ -36,8 +36,7 @@ TEST(MPCHashTests, HashInterface)
         srs_mpc_hash_t hash;
         srs_mpc_compute_hash(hash, s);
         ASSERT_EQ(
-            expect_hash_hex,
-            binary_str_to_hexadecimal_str((const char *)(&hash), sizeof(hash)));
+            expect_hash_hex, bytes_to_hex((const char *)(&hash), sizeof(hash)));
     }
     {
         srs_mpc_hash_t hash;
@@ -45,8 +44,7 @@ TEST(MPCHashTests, HashInterface)
         hs << s;
         hs.get_hash(hash);
         ASSERT_EQ(
-            expect_hash_hex,
-            binary_str_to_hexadecimal_str((const char *)(&hash), sizeof(hash)));
+            expect_hash_hex, bytes_to_hex((const char *)(&hash), sizeof(hash)));
     }
 }
 
@@ -98,8 +96,7 @@ TEST(MPCHashTests, HashOStreamWrapper)
 
     // Test
     ASSERT_EQ(s, stream_data);
-    ASSERT_EQ(
-        expect_hash_hex, binary_str_to_hexadecimal_str(hash, sizeof(hash)));
+    ASSERT_EQ(expect_hash_hex, bytes_to_hex(hash, sizeof(hash)));
 }
 
 TEST(MPCHashTests, HashIStreamWrapper)
@@ -124,8 +121,7 @@ TEST(MPCHashTests, HashIStreamWrapper)
 
     // Test
     ASSERT_EQ(s, stream_data);
-    ASSERT_EQ(
-        expect_hash_hex, binary_str_to_hexadecimal_str(hash, sizeof(hash)));
+    ASSERT_EQ(expect_hash_hex, bytes_to_hex(hash, sizeof(hash)));
 }
 
 } // namespace tests

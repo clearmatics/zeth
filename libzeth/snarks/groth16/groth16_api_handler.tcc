@@ -65,11 +65,10 @@ void groth16_api_handler<ppT>::format_verification_key(
 
     std::stringstream ss;
     unsigned abc_length = vk.ABC_g1.rest.indices.size() + 1;
-    ss << "[[" << point_g1_affine_to_hexadecimal_str<ppT>(vk.ABC_g1.first)
-       << "]";
+    ss << "[[" << point_g1_affine_to_hex<ppT>(vk.ABC_g1.first) << "]";
     for (size_t i = 1; i < abc_length; ++i) {
-        auto vk_abc_i = point_g1_affine_to_hexadecimal_str<ppT>(
-            vk.ABC_g1.rest.values[i - 1]);
+        auto vk_abc_i =
+            point_g1_affine_to_hex<ppT>(vk.ABC_g1.rest.values[i - 1]);
         ss << ",[" << vk_abc_i << "]";
     }
     ss << "]";
@@ -189,11 +188,10 @@ void groth16_api_handler<ppT>::prepare_verification_key_response(
 
     std::stringstream ss;
     unsigned abc_length = vk.ABC_g1.rest.indices.size() + 1;
-    ss << "[[" << point_g1_affine_to_hexadecimal_str<ppT>(vk.ABC_g1.first)
-       << "]";
+    ss << "[[" << point_g1_affine_to_hex<ppT>(vk.ABC_g1.first) << "]";
     for (size_t i = 1; i < abc_length; ++i) {
-        auto vk_abc_i = point_g1_affine_to_hexadecimal_str<ppT>(
-            vk.ABC_g1.rest.values[i - 1]);
+        auto vk_abc_i =
+            point_g1_affine_to_hex<ppT>(vk.ABC_g1.rest.values[i - 1]);
         ss << ",[" << vk_abc_i << "]";
     }
     ss << "]";

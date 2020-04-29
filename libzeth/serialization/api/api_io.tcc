@@ -12,7 +12,7 @@ namespace libzeth
 
 template<typename FieldT> FieldT parse_merkle_node(std::string mk_node)
 {
-    return hexadecimal_str_to_field_element<FieldT>(mk_node);
+    return field_element_to_hex<FieldT>(mk_node);
 }
 
 template<typename FieldT, size_t TreeDepth>
@@ -24,14 +24,11 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
     }
 
     zeth_note input_note = parse_zeth_note(input.note());
-    size_t inputAddress = input.address();
+    size_t input_address = input.address();
     bits_addr<TreeDepth> input_address_bits =
-        get_bits_addr_from_vector<TreeDepth>(
-            address_bits_from_address<TreeDepth>(inputAddress));
-    bits256 input_spending_ask =
-        get_bits256_from_hexadecimal_str(input.spending_ask());
-    bits256 input_nullifier =
-        get_bits256_from_hexadecimal_str(input.nullifier());
+        bits_addr_from_size_t<TreeDepth>(input_address);
+    bits256 input_spending_ask = bits256_from_hex(input.spending_ask());
+    bits256 input_nullifier = bits256_from_hex(input.nullifier());
 
     std::vector<FieldT> input_merkle_path;
     for (size_t i = 0; i < TreeDepth; i++) {
@@ -52,9 +49,9 @@ libff::G1<ppT> parse_hexPointBaseGroup1Affine(
     const zeth_proto::HexPointBaseGroup1Affine &point)
 {
     libff::Fq<ppT> x_coordinate =
-        hexadecimal_str_to_field_element<libff::Fq<ppT>>(point.x_coord());
+        field_element_to_hex<libff::Fq<ppT>>(point.x_coord());
     libff::Fq<ppT> y_coordinate =
-        hexadecimal_str_to_field_element<libff::Fq<ppT>>(point.y_coord());
+        field_element_to_hex<libff::Fq<ppT>>(point.y_coord());
 
     libff::G1<ppT> res = libff::G1<ppT>(x_coordinate, y_coordinate);
 
@@ -66,13 +63,13 @@ libff::G2<ppT> parse_hexPointBaseGroup2Affine(
     const zeth_proto::HexPointBaseGroup2Affine &point)
 {
     libff::Fq<ppT> x_c1 =
-        hexadecimal_str_to_field_element<libff::Fq<ppT>>(point.x_c1_coord());
+        field_element_to_hex<libff::Fq<ppT>>(point.x_c1_coord());
     libff::Fq<ppT> x_c0 =
-        hexadecimal_str_to_field_element<libff::Fq<ppT>>(point.x_c0_coord());
+        field_element_to_hex<libff::Fq<ppT>>(point.x_c0_coord());
     libff::Fq<ppT> y_c1 =
-        hexadecimal_str_to_field_element<libff::Fq<ppT>>(point.y_c1_coord());
+        field_element_to_hex<libff::Fq<ppT>>(point.y_c1_coord());
     libff::Fq<ppT> y_c0 =
-        hexadecimal_str_to_field_element<libff::Fq<ppT>>(point.y_c0_coord());
+        field_element_to_hex<libff::Fq<ppT>>(point.y_c0_coord());
 
     // See:
     // https://github.com/scipr-lab/libff/blob/master/libff/algebra/curves/public_params.hpp#L88
@@ -102,8 +99,7 @@ std::vector<libff::Fr<ppT>> parse_str_primary_inputs(std::string input_str)
     pos = strtok(cstr, "[, ]");
 
     while (pos != NULL) {
-        res.push_back(
-            hexadecimal_str_to_field_element<libff::Fr<ppT>>(std::string(pos)));
+        res.push_back(field_element_to_hex<libff::Fr<ppT>>(std::string(pos)));
         pos = strtok(NULL, "[, ]");
     }
 
@@ -147,10 +143,8 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
     }
 
     libsnark::accumulation_vector<libff::G1<ppT>> acc_res;
-    libff::Fq<ppT> x_coordinate =
-        hexadecimal_str_to_field_element<libff::Fq<ppT>>(res[0]);
-    libff::Fq<ppT> y_coordinate =
-        hexadecimal_str_to_field_element<libff::Fq<ppT>>(res[1]);
+    libff::Fq<ppT> x_coordinate = field_element_to_hex<libff::Fq<ppT>>(res[0]);
+    libff::Fq<ppT> y_coordinate = field_element_to_hex<libff::Fq<ppT>>(res[1]);
 
     libff::G1<ppT> first_point_g1 = libff::G1<ppT>(x_coordinate, y_coordinate);
     acc_res.first = first_point_g1;
@@ -161,15 +155,15 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
     for (size_t i = 2; i < res.size(); i += 2) {
         // TODO:
         // This is BAD => this code is a duplicate of the function
-        // `hexadecimal_str_to_field_element` Let's re-use the content of the
-        // function `hexadecimal_str_to_field_element` here. To do this properly
+        // `field_element_to_hex` Let's re-use the content of the
+        // function `field_element_to_hex` here. To do this properly
         // this means that we need to modify the type of `abc_g1` in the proto
         // file to be a repeated G1 element (and not a string) Likewise for the
         // inputs which should be changed to repeated field elements
         libff::Fq<ppT> x_coordinate =
-            hexadecimal_str_to_field_element<libff::Fq<ppT>>(res[i]);
+            field_element_to_hex<libff::Fq<ppT>>(res[i]);
         libff::Fq<ppT> y_coordinate =
-            hexadecimal_str_to_field_element<libff::Fq<ppT>>(res[i + 1]);
+            field_element_to_hex<libff::Fq<ppT>>(res[i + 1]);
 
         point_g1 = libff::G1<ppT>(x_coordinate, y_coordinate);
         rest[i / 2 - 1] = point_g1;
@@ -186,11 +180,9 @@ zeth_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
     libff::G1<ppT> aff = point;
     aff.to_affine_coordinates();
     std::string x_coord =
-        "0x" +
-        libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(aff.X.as_bigint());
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.as_bigint());
     std::string y_coord =
-        "0x" +
-        libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(aff.Y.as_bigint());
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.as_bigint());
 
     zeth_proto::HexPointBaseGroup1Affine res;
     res.set_x_coord(x_coord);
@@ -206,17 +198,13 @@ zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
     std::string x_c1_coord =
-        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
-                   aff.X.c1.as_bigint());
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.c1.as_bigint());
     std::string x_c0_coord =
-        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
-                   aff.X.c0.as_bigint());
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.c0.as_bigint());
     std::string y_c1_coord =
-        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
-                   aff.Y.c1.as_bigint());
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.c1.as_bigint());
     std::string y_c0_coord =
-        "0x" + libsnark_bigint_to_hexadecimal_str<libff::Fq<ppT>>(
-                   aff.Y.c0.as_bigint());
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.c0.as_bigint());
 
     zeth_proto::HexPointBaseGroup2Affine res;
     res.set_x_c0_coord(x_c0_coord);
@@ -234,7 +222,7 @@ std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs)
     ss << "[";
     for (size_t i = 0; i < public_inputs.size(); ++i) {
         ss << "\"0x"
-           << libzeth::libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
+           << libzeth::bigint_to_hex<libff::Fr<ppT>>(
                   public_inputs[i].as_bigint())
            << "\"";
         if (i < public_inputs.size() - 1) {

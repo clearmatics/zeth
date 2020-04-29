@@ -9,10 +9,10 @@ namespace libzeth
 
 zeth_note parse_zeth_note(const zeth_proto::ZethNote &note)
 {
-    bits256 note_apk = get_bits256_from_hexadecimal_str(note.apk());
-    bits64 note_value = get_bits64_from_hexadecimal_str(note.value());
-    bits256 note_rho = get_bits256_from_hexadecimal_str(note.rho());
-    bits256 note_trap_r = get_bits256_from_hexadecimal_str(note.trap_r());
+    bits256 note_apk = bits256_from_hex(note.apk());
+    bits64 note_value = bits64_from_hex(note.value());
+    bits256 note_rho = bits256_from_hex(note.rho());
+    bits256 note_trap_r = bits256_from_hex(note.trap_r());
 
     return zeth_note(note_apk, note_value, note_rho, note_trap_r);
 }

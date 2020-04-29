@@ -481,10 +481,10 @@ TEST(TestBlake2s, TestTrue2)
     blake2s_gadget.generate_r1cs_witness();
 
     // blake2s(b"zeth")
-    bits256 expected = get_bits256_from_hexadecimal_str(
+    bits256 expected = bits256_from_hex(
         "b5f199b422df36c99363725d886e64c07ffd8852063adbbfbb86f43716ffab0e");
 
-    ASSERT_EQ(get_vector_from_bits256(expected), output.bits.get_bits(pb));
+    ASSERT_EQ(bits256_to_vector(expected), output.bits.get_bits(pb));
 }
 
 } // namespace

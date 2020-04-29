@@ -10,15 +10,19 @@
 namespace libzeth
 {
 
-template<size_t TreeDepth>
-bits_addr<TreeDepth> get_bits_addr_from_vector(const std::vector<bool> &vect)
+namespace
 {
-    return dump_vector_in_array<TreeDepth>(vect);
+
+template<size_t Size>
+std::vector<bool> array_to_vector(const std::array<bool, Size> &arr)
+{
+    std::vector<bool> vect(Size);
+    std::copy(arr.begin(), arr.end(), vect.begin());
+    return vect;
 }
 
-/// dump_vector_in_array dumps a vector into an array
 template<size_t Size>
-std::array<bool, Size> dump_vector_in_array(std::vector<bool> vect)
+std::array<bool, Size> vector_to_array(const std::vector<bool> &vect)
 {
     std::array<bool, Size> array;
     if (vect.size() != Size) {
@@ -29,36 +33,66 @@ std::array<bool, Size> dump_vector_in_array(std::vector<bool> vect)
 
     std::copy(vect.begin(), vect.end(), array.begin());
     return array;
-};
+}
 
-/// dump_array_in_vector dumps an array into a vector
-template<size_t Size>
-std::vector<bool> dump_array_in_vector(std::array<bool, Size> arr)
+} // namespace
+
+template<size_t TreeDepth>
+bits_addr<TreeDepth> bits_addr_from_vector(const std::vector<bool> &vect)
 {
-    std::vector<bool> vect(Size);
-    std::copy(arr.begin(), arr.end(), vect.begin());
-    return vect;
+    return vector_to_array<TreeDepth>(vect);
 }
 
 template<size_t TreeDepth>
-std::vector<bool> get_vector_from_bits_addr(const bits_addr<TreeDepth> &arr)
+std::vector<bool> bits_addr_to_vector(const bits_addr<TreeDepth> &arr)
 {
-    return dump_array_in_vector<TreeDepth>(arr);
+    return array_to_vector<TreeDepth>(arr);
 }
 
-/// binary_addition sums 2 binary strings with or without carry depending on the
-/// boolean value of the `with_carry` variable
+template<size_t TreeDepth>
+bits_addr<TreeDepth> bits_addr_from_size_t(size_t address)
+{
+    if (address >= (1ull << TreeDepth)) {
+        throw std::invalid_argument("Address overflow");
+    }
+
+    // Fill with zeroes and fill one bit at a time. Early out if address turns
+    // to 0.
+    bits_addr<TreeDepth> result;
+    result.fill(0);
+    for (size_t i = 0; i < TreeDepth && address != 0; ++i, address >>= 1) {
+        result[i] = address & 0x1;
+    }
+    return result;
+}
+
 template<size_t BitLen>
-std::array<bool, BitLen> binary_addition(
-    std::array<bool, BitLen> A, std::array<bool, BitLen> B, bool with_carry)
+std::array<bool, BitLen> bits_xor(
+    const std::array<bool, BitLen> &a, const std::array<bool, BitLen> &b)
+{
+    std::array<bool, BitLen> xor_array;
+    xor_array.fill(0);
+
+    for (int i = BitLen - 1; i >= 0; i--) {
+        xor_array[i] = a[i] != b[i];
+    }
+
+    return xor_array;
+}
+
+template<size_t BitLen>
+std::array<bool, BitLen> bits_add(
+    const std::array<bool, BitLen> &a,
+    const std::array<bool, BitLen> &b,
+    bool with_carry)
 {
     std::array<bool, BitLen> sum;
     sum.fill(0);
 
     bool carry = 0;
     for (int i = BitLen - 1; i >= 0; i--) {
-        sum[i] = ((A[i] ^ B[i]) ^ carry);
-        carry = ((A[i] & B[i]) | (A[i] & carry)) | (B[i] & carry);
+        sum[i] = ((a[i] ^ b[i]) ^ carry);
+        carry = ((a[i] & b[i]) | (a[i] & carry)) | (b[i] & carry);
     }
 
     // If we ask for the last carry to be taken into account (with_carry=true)
@@ -69,21 +103,6 @@ std::array<bool, BitLen> binary_addition(
     }
 
     return sum;
-}
-
-/// binary_xor computes the XOR of 2 binary strings
-template<size_t BitLen>
-std::array<bool, BitLen> binary_xor(
-    std::array<bool, BitLen> A, std::array<bool, BitLen> B)
-{
-    std::array<bool, BitLen> xor_array;
-    xor_array.fill(0);
-
-    for (int i = BitLen - 1; i >= 0; i--) {
-        xor_array[i] = A[i] != B[i];
-    }
-
-    return xor_array;
 }
 
 } // namespace libzeth

@@ -41,8 +41,8 @@ template<typename FieldT> void note_gadget<FieldT>::generate_r1cs_constraints()
 template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_witness(const zeth_note &note)
 {
-    r.fill_with_bits(this->pb, get_vector_from_bits256(note.r));
-    value.fill_with_bits(this->pb, get_vector_from_bits64(note.value()));
+    r.fill_with_bits(this->pb, bits256_to_vector(note.r));
+    value.fill_with_bits(this->pb, bits64_to_vector(note.value()));
 }
 
 // Gadget that makes sure that all conditions are met in order to spend a note:
@@ -175,7 +175,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
     spend_authority->generate_r1cs_witness();
 
     // Witness rho for the input note
-    rho.fill_with_bits(this->pb, get_vector_from_bits256(note.rho));
+    rho.fill_with_bits(this->pb, bits256_to_vector(note.rho));
     // Witness the nullifier for the input note
     expose_nullifiers->generate_r1cs_witness();
 
@@ -301,7 +301,7 @@ void output_note_gadget<FieldT, HashT>::generate_r1cs_witness(
     note_gadget<FieldT>::generate_r1cs_witness(note);
 
     // Witness a_pk with note information
-    a_pk->bits.fill_with_bits(this->pb, get_vector_from_bits256(note.a_pk));
+    a_pk->bits.fill_with_bits(this->pb, bits256_to_vector(note.a_pk));
 
     commit_to_outputs_cm->generate_r1cs_witness();
 }

@@ -57,8 +57,7 @@ void srs_mpc_hash_write(const srs_mpc_hash_t hash, std::ostream &out)
 
     for (size_t i = 0; i < HASH_REPR_WORDS_PER_HASH; ++i) {
         char sep = ((i % 4) == 3) ? '\n' : ' ';
-        out << binary_str_to_hexadecimal_str(&words[i], sizeof(words[i]))
-            << sep;
+        out << bytes_to_hex(&words[i], sizeof(words[i])) << sep;
     }
 }
 
@@ -73,7 +72,7 @@ bool srs_mpc_hash_read(srs_mpc_hash_t out_hash, std::istream &in)
             return false;
         }
 
-        const std::string bin = hexadecimal_str_to_binary_str(word);
+        const std::string bin = hex_to_bytes(word);
         if (bin.size() != HASH_REPR_WORD_SIZE) {
             std::cerr << "Invalid word size" << std::endl;
             return false;

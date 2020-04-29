@@ -121,13 +121,12 @@ extended_proof<ppT, snarkT> circuit_wrapper<
 
     // Compute the sum on the left hand side of the joinsplit
     for (size_t i = 0; i < NumInputs; i++) {
-        lhs_value =
-            binary_addition<ZETH_V_SIZE>(lhs_value, inputs[i].note.value());
+        lhs_value = bits_add<ZETH_V_SIZE>(lhs_value, inputs[i].note.value());
     }
 
     // Compute the sum on the right hand side of the joinsplit
     for (size_t i = 0; i < NumOutputs; i++) {
-        rhs_value = binary_addition<ZETH_V_SIZE>(rhs_value, outputs[i].value());
+        rhs_value = bits_add<ZETH_V_SIZE>(rhs_value, outputs[i].value());
     }
 
     // [CHECK] Make sure that the balance between rhs and lfh is respected
