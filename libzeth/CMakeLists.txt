@@ -101,6 +101,7 @@ if ("${IS_ZETH_PARENT}")
   endfunction(zeth_test)
 
   zeth_test(test_addition SOURCE test/packed_addition_test.cpp FAST)
+  zeth_test(test_bits SOURCE test/bits_test.cpp FAST)
   zeth_test(test_hex_to_field SOURCE test/hex_to_field_test.cpp FAST)
   zeth_test(test_binary_operation SOURCE test/binary_operation_test.cpp FAST)
   zeth_test(test_blake2s SOURCE test/blake2s_test.cpp FAST)
