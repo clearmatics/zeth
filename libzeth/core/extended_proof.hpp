@@ -26,17 +26,13 @@ public:
         typename snarkT::ProofT &in_proof,
         libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_inputs);
     const typename snarkT::ProofT &get_proof() const;
+
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_inputs()
         const;
 
-    // Write on disk
-    void write_primary_inputs(boost::filesystem::path path = "") const;
-    void write_proof(boost::filesystem::path path = "") const;
-    void write_extended_proof(boost::filesystem::path path = "") const;
+    std::ostream &primary_inputs_write_json(std::ostream &) const;
 
-    // Display on stdout
-    void dump_proof() const;
-    void dump_primary_inputs() const;
+    std::ostream &write_json(std::ostream &) const;
 };
 
 } // namespace libzeth

@@ -5,7 +5,8 @@
 #ifndef __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_TCC__
 #define __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_TCC__
 
-#include "libzeth/sciprlab_libs_util.hpp"
+#include "libzeth/core/field_element_utils.hpp"
+#include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/serialization/api/api_io.hpp"
 #include "libzeth/snarks/pghr13/pghr13_api_handler.hpp"
 

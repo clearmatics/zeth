@@ -25,8 +25,7 @@ circuit_wrapper<
     snarkT,
     NumInputs,
     NumOutputs,
-    TreeDepth>::circuit_wrapper(const boost::filesystem::path setup_path)
-    : setup_path(setup_path)
+    TreeDepth>::circuit_wrapper()
 {
 }
 
@@ -48,20 +47,15 @@ typename snarkT::KeypairT circuit_wrapper<
     TreeDepth>::generate_trusted_setup() const
 {
     libsnark::protoboard<FieldT> pb;
-
     joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
         g(pb);
     g.generate_r1cs_constraints();
 
-    // Generate a verification and proving key (trusted setup)
-    // and write them in a file
-    typename snarkT::KeypairT keypair = snarkT::generate_setup(pb);
-    serialize_setup_to_file<snarkT>(keypair, this->setup_path);
-
-    return keypair;
+    // Generate a verification and proving key (trusted setup) and write them
+    // in a file
+    return snarkT::generate_setup(pb);
 }
 
-#ifdef DEBUG
 template<
     typename HashT,
     typename HashTreeT,
@@ -70,24 +64,21 @@ template<
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-void circuit_wrapper<
+libsnark::protoboard<libff::Fr<ppT>> circuit_wrapper<
     HashT,
     HashTreeT,
     ppT,
     snarkT,
     NumInputs,
     NumOutputs,
-    TreeDepth>::dump_constraint_system(boost::filesystem::path file_path) const
+    TreeDepth>::get_constraint_system() const
 {
     libsnark::protoboard<FieldT> pb;
     joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
         g(pb);
     g.generate_r1cs_constraints();
-
-    // Write the constraint system in the default location
-    r1cs_to_json<ppT>(pb, file_path);
+    return pb;
 }
-#endif
 
 template<
     typename HashT,
@@ -157,10 +148,6 @@ extended_proof<ppT, snarkT> circuit_wrapper<
     // primary_input
     extended_proof<ppT, snarkT> ext_proof =
         extended_proof<ppT, snarkT>(proof, primary_input);
-
-    // Write the extended proof in a file (Default path is taken if not
-    // specified)
-    ext_proof.write_extended_proof();
 
     return ext_proof;
 }

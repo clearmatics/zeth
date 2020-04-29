@@ -156,9 +156,7 @@ bool TestValidJS2In2Case1(
     libff::leave_block("Verify proof", true);
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-    ext_proof.dump_proof();
-    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
-    ext_proof.dump_primary_inputs();
+    ext_proof.write_json(std::cout);
 
     return res;
 }
@@ -292,9 +290,7 @@ bool TestValidJS2In2Case2(
     libff::leave_block("Verify proof", true);
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-    ext_proof.dump_proof();
-    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
-    ext_proof.dump_primary_inputs();
+    ext_proof.write_json(std::cout);
 
     return res;
 }
@@ -429,9 +425,7 @@ bool TestValidJS2In2Case3(
     libff::leave_block("Verify proof", true);
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-    ext_proof.dump_proof();
-    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
-    ext_proof.dump_primary_inputs();
+    ext_proof.write_json(std::cout);
 
     return res;
 }
@@ -562,14 +556,11 @@ bool TestValidJS2In2Deposit(
     bool res = snarkT::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
 
-    ext_proof.dump_primary_inputs();
+    std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+    ext_proof.write_json(std::cout);
+
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
-
-    std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-    ext_proof.dump_proof();
-    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
-    ext_proof.dump_primary_inputs();
 
     return res;
 }
@@ -708,9 +699,7 @@ bool TestInvalidJS2In2(
     libff::leave_block("Verify proof", true);
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-    ext_proof.dump_proof();
-    std::cout << "[DEBUG] Displaying the primary inputs" << std::endl;
-    ext_proof.dump_primary_inputs();
+    ext_proof.write_json(std::cout);
 
     return res;
 }

@@ -453,7 +453,7 @@ TEST(MPCTests, KeyPairReadWrite)
     std::string keypair_serialized;
     {
         std::ostringstream out;
-        groth16_snark<PP>::write_keypair(out, keypair);
+        groth16_snark<PP>::keypair_write_bytes(out, keypair);
         keypair_serialized = out.str();
     }
 
@@ -462,7 +462,7 @@ TEST(MPCTests, KeyPairReadWrite)
         in.exceptions(
             std::ios_base::eofbit | std::ios_base::badbit |
             std::ios_base::failbit);
-        return groth16_snark<PP>::read_keypair(in);
+        return groth16_snark<PP>::keypair_read_bytes(in);
     }();
 
     ASSERT_EQ(keypair.pk, keypair_deserialized.pk);
