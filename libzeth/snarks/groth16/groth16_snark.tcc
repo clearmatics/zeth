@@ -2,19 +2,19 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_GROTH16_CORE_TCC__
-#define __ZETH_SNARKS_GROTH16_GROTH16_CORE_TCC__
+#ifndef __ZETH_SNARKS_GROTH16_GROTH16_SNARK_TCC__
+#define __ZETH_SNARKS_GROTH16_GROTH16_SNARK_TCC__
 
 #include "libzeth/core/ff_utils.hpp"
 #include "libzeth/core/utils.hpp"
 #include "libzeth/serialization/filesystem_util.hpp" // TODO: remove this
-#include "libzeth/snarks/groth16/groth16_core.hpp"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
 
 namespace libzeth
 {
 
 template<typename ppT>
-typename groth16snark<ppT>::KeypairT groth16snark<ppT>::generate_setup(
+typename groth16_snark<ppT>::KeypairT groth16_snark<ppT>::generate_setup(
     const libsnark::protoboard<libff::Fr<ppT>> &pb)
 {
     // Generate verification and proving key from the R1CS
@@ -23,9 +23,9 @@ typename groth16snark<ppT>::KeypairT groth16snark<ppT>::generate_setup(
 }
 
 template<typename ppT>
-typename groth16snark<ppT>::ProofT groth16snark<ppT>::generate_proof(
+typename groth16_snark<ppT>::ProofT groth16_snark<ppT>::generate_proof(
     const libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const typename groth16snark<ppT>::ProvingKeyT &proving_key)
+    const typename groth16_snark<ppT>::ProvingKeyT &proving_key)
 {
     libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input =
         pb.primary_input();
@@ -42,18 +42,18 @@ typename groth16snark<ppT>::ProofT groth16snark<ppT>::generate_proof(
 }
 
 template<typename ppT>
-bool groth16snark<ppT>::verify(
+bool groth16_snark<ppT>::verify(
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_inputs,
-    const groth16snark<ppT>::ProofT &proof,
-    const groth16snark<ppT>::VerifKeyT &verification_key)
+    const groth16_snark<ppT>::ProofT &proof,
+    const groth16_snark<ppT>::VerifKeyT &verification_key)
 {
     return libsnark::r1cs_gg_ppzksnark_verifier_strong_IC<ppT>(
         verification_key, primary_inputs, proof);
 }
 
 template<typename ppT>
-void groth16snark<ppT>::export_verification_key(
-    const groth16snark<ppT>::KeypairT &keypair)
+void groth16_snark<ppT>::export_verification_key(
+    const groth16_snark<ppT>::KeypairT &keypair)
 {
     unsigned abc_length = keypair.vk.ABC_g1.rest.indices.size() + 1;
 
@@ -90,8 +90,8 @@ void groth16snark<ppT>::export_verification_key(
 }
 
 template<typename ppT>
-void groth16snark<ppT>::display_proof(
-    const typename groth16snark<ppT>::ProofT &proof)
+void groth16_snark<ppT>::display_proof(
+    const typename groth16_snark<ppT>::ProofT &proof)
 {
     std::cout << "Proof:"
               << "\n"
@@ -108,8 +108,8 @@ void groth16snark<ppT>::display_proof(
 }
 
 template<typename ppT>
-void groth16snark<ppT>::verification_key_to_json(
-    const typename groth16snark<ppT>::VerifKeyT &vk,
+void groth16_snark<ppT>::verification_key_to_json(
+    const typename groth16_snark<ppT>::VerifKeyT &vk,
     boost::filesystem::path path)
 {
     if (path.empty()) {
@@ -155,8 +155,8 @@ void groth16snark<ppT>::verification_key_to_json(
 }
 
 template<typename ppT>
-void groth16snark<ppT>::proof_and_inputs_to_json(
-    const typename groth16snark<ppT>::ProofT &proof,
+void groth16_snark<ppT>::proof_and_inputs_to_json(
+    const typename groth16_snark<ppT>::ProofT &proof,
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &input,
     boost::filesystem::path path)
 {
@@ -207,8 +207,8 @@ void groth16snark<ppT>::proof_and_inputs_to_json(
 }
 
 template<typename ppT>
-void groth16snark<ppT>::proof_to_json(
-    const typename groth16snark<ppT>::ProofT &proof,
+void groth16_snark<ppT>::proof_to_json(
+    const typename groth16_snark<ppT>::ProofT &proof,
     boost::filesystem::path path)
 {
     if (path.empty()) {
@@ -244,8 +244,8 @@ void groth16snark<ppT>::proof_to_json(
 }
 
 template<typename ppT>
-void groth16snark<ppT>::write_keypair(
-    std::ostream &out, const typename groth16snark<ppT>::KeypairT &keypair)
+void groth16_snark<ppT>::write_keypair(
+    std::ostream &out, const typename groth16_snark<ppT>::KeypairT &keypair)
 {
     if (!is_well_formed<ppT>(keypair.pk)) {
         throw std::invalid_argument("proving key (write) not well-formed");
@@ -258,7 +258,7 @@ void groth16snark<ppT>::write_keypair(
 }
 
 template<typename ppT>
-typename groth16snark<ppT>::KeypairT groth16snark<ppT>::read_keypair(
+typename groth16_snark<ppT>::KeypairT groth16_snark<ppT>::read_keypair(
     std::istream &in)
 {
     libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair;
@@ -274,7 +274,7 @@ typename groth16snark<ppT>::KeypairT groth16snark<ppT>::read_keypair(
 }
 
 template<typename ppT>
-bool is_well_formed(const typename groth16snark<ppT>::ProvingKeyT &pk)
+bool is_well_formed(const typename groth16_snark<ppT>::ProvingKeyT &pk)
 {
     if (!pk.alpha_g1.is_well_formed() || !pk.beta_g1.is_well_formed() ||
         !pk.beta_g2.is_well_formed() || !pk.delta_g1.is_well_formed() ||
@@ -296,7 +296,7 @@ bool is_well_formed(const typename groth16snark<ppT>::ProvingKeyT &pk)
 }
 
 template<typename ppT>
-bool is_well_formed(const typename groth16snark<ppT>::VerifKeyT &vk)
+bool is_well_formed(const typename groth16_snark<ppT>::VerifKeyT &vk)
 {
     if (!vk.alpha_g1.is_well_formed() || !vk.beta_g2.is_well_formed() ||
         !vk.delta_g2.is_well_formed() || !vk.ABC_g1.first.is_well_formed()) {
@@ -308,4 +308,4 @@ bool is_well_formed(const typename groth16snark<ppT>::VerifKeyT &vk)
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_GROTH16_GROTH16_CORE_TCC__
+#endif // __ZETH_SNARKS_GROTH16_GROTH16_SNARK_TCC__

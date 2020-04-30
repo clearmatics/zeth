@@ -5,7 +5,7 @@
 #ifndef __ZETH_MPC_GROTH16_POWERSOFTAU_UTILS_HPP__
 #define __ZETH_MPC_GROTH16_POWERSOFTAU_UTILS_HPP__
 
-#include "libzeth/snarks/groth16/groth16_core.hpp"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
 
 #include <istream>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>

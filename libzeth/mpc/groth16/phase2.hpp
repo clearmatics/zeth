@@ -6,7 +6,7 @@
 #define __ZETH_MPC_GROTH16_PHASE2_HPP__
 
 #include "libzeth/mpc/groth16/hash_utils.hpp"
-#include "libzeth/snarks/groth16/groth16_core.hpp"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
 
 /// Structures and operations related to the "Phase 2" MPC described in
 /// [BoweGM17].  Parts of the implementation use techniques from the

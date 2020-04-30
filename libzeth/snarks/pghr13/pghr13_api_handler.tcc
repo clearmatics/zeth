@@ -2,18 +2,18 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_PGHR13_PGHR13_API_TCC__
-#define __ZETH_SNARKS_PGHR13_PGHR13_API_TCC__
+#ifndef __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_TCC__
+#define __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_TCC__
 
 #include "libzeth/sciprlab_libs_util.hpp"
 #include "libzeth/serialization/api/api_io.hpp"
-#include "libzeth/snarks/pghr13/pghr13_api.hpp"
+#include "libzeth/snarks/pghr13/pghr13_api_handler.hpp"
 
 namespace libzeth
 {
 
 template<typename ppT>
-void pghr13api<ppT>::format_extended_proof(
+void pghr13_api_handler<ppT>::format_extended_proof(
     const extended_proof<ppT, snarkT> &ext_proof,
     zeth_proto::ExtendedProof *message)
 {
@@ -69,7 +69,7 @@ void pghr13api<ppT>::format_extended_proof(
 }
 
 template<typename ppT>
-void pghr13api<ppT>::format_verification_key(
+void pghr13_api_handler<ppT>::format_verification_key(
     const typename snarkT::VerifKeyT &vk, zeth_proto::VerificationKey *message)
 {
     zeth_proto::HexPointBaseGroup2Affine *a =
@@ -127,7 +127,7 @@ void pghr13api<ppT>::format_verification_key(
 }
 
 template<typename ppT>
-libzeth::extended_proof<ppT, pghr13snark<ppT>> pghr13api<
+libzeth::extended_proof<ppT, pghr13_snark<ppT>> pghr13_api_handler<
     ppT>::parse_extended_proof(const zeth_proto::ExtendedProof &ext_proof)
 {
     const zeth_proto::ExtendedProofPGHR13 &e_proof =
@@ -162,8 +162,8 @@ libzeth::extended_proof<ppT, pghr13snark<ppT>> pghr13api<
 }
 
 template<typename ppT>
-typename pghr13snark<ppT>::VerifKeyT pghr13api<ppT>::parse_verification_key(
-    const zeth_proto::VerificationKey &verification_key)
+typename pghr13_snark<ppT>::VerifKeyT pghr13_api_handler<ppT>::
+    parse_verification_key(const zeth_proto::VerificationKey &verification_key)
 {
     const zeth_proto::VerificationKeyPGHR13 &verif_key =
         verification_key.pghr13_verification_key();
@@ -195,7 +195,7 @@ typename pghr13snark<ppT>::VerifKeyT pghr13api<ppT>::parse_verification_key(
 }
 
 template<typename ppT>
-void pghr13api<ppT>::prepare_proof_response(
+void pghr13_api_handler<ppT>::prepare_proof_response(
     const extended_proof<ppT, snarkT> &ext_proof,
     zeth_proto::ExtendedProof *message)
 {
@@ -251,7 +251,7 @@ void pghr13api<ppT>::prepare_proof_response(
 }
 
 template<typename ppT>
-void pghr13api<ppT>::prepare_verification_key_response(
+void pghr13_api_handler<ppT>::prepare_verification_key_response(
     const typename snarkT::VerifKeyT &vk, zeth_proto::VerificationKey *message)
 {
     zeth_proto::HexPointBaseGroup2Affine *a =
@@ -310,4 +310,4 @@ void pghr13api<ppT>::prepare_verification_key_response(
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_PGHR13_PGHR13_API_TCC__
+#endif // __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_TCC__

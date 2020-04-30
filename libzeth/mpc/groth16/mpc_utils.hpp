@@ -5,7 +5,7 @@
 #ifndef __ZETH_MPC_GROTH16_MPC_UTILS_HPP__
 #define __ZETH_MPC_GROTH16_MPC_UTILS_HPP__
 
-#include "libzeth/snarks/groth16/groth16_core.hpp"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
 
 #include <vector>
 

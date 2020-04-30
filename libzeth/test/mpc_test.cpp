@@ -11,7 +11,7 @@
 #include "libzeth/mpc/groth16/mpc_utils.hpp"
 #include "libzeth/mpc/groth16/phase2.hpp"
 #include "libzeth/mpc/groth16/powersoftau_utils.hpp"
-#include "libzeth/snarks/groth16/groth16_core.hpp"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
 #include "libzeth/test/simple_test.hpp"
 
 #include <fstream>
@@ -453,16 +453,16 @@ TEST(MPCTests, KeyPairReadWrite)
     std::string keypair_serialized;
     {
         std::ostringstream out;
-        groth16snark<PP>::write_keypair(out, keypair);
+        groth16_snark<PP>::write_keypair(out, keypair);
         keypair_serialized = out.str();
     }
 
-    typename groth16snark<PP>::KeypairT keypair_deserialized = [&]() {
+    typename groth16_snark<PP>::KeypairT keypair_deserialized = [&]() {
         std::istringstream in(keypair_serialized);
         in.exceptions(
             std::ios_base::eofbit | std::ios_base::badbit |
             std::ios_base::failbit);
-        return groth16snark<PP>::read_keypair(in);
+        return groth16_snark<PP>::read_keypair(in);
     }();
 
     ASSERT_EQ(keypair.pk, keypair_deserialized.pk);

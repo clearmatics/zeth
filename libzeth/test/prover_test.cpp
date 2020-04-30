@@ -6,8 +6,8 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_wrapper.hpp"
 #include "libzeth/core/utils.hpp"
-#include "libzeth/snarks/groth16/groth16_core.hpp"
-#include "libzeth/snarks/pghr13/pghr13_core.hpp"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
+#include "libzeth/snarks/pghr13/pghr13_snark.hpp"
 
 #include <chrono>
 #include <gtest/gtest.h>
@@ -758,12 +758,12 @@ template<typename snarkT> static void run_prover_tests()
 
 TEST(MainTestsGroth16, ProofGenAndVerifJS2to2)
 {
-    run_prover_tests<groth16snark<ppT>>();
+    run_prover_tests<groth16_snark<ppT>>();
 }
 
 TEST(MainTestsPghr12, ProofGenAndVerifJS2to2)
 {
-    run_prover_tests<pghr13snark<ppT>>();
+    run_prover_tests<pghr13_snark<ppT>>();
 }
 
 } // namespace

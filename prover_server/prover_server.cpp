@@ -8,7 +8,7 @@
 #include "libzeth/core/utils.hpp"
 #include "libzeth/serialization/api/api_io.hpp"
 #include "libzeth/serialization/file_io.hpp"
-#include "libzeth/snarks/default/default_api.hpp"
+#include "libzeth/snarks/default/default_api_handler.hpp"
 #include "zeth_config.h"
 
 #include <api/prover.grpc.pb.h>
@@ -25,8 +25,8 @@
 #include <stdio.h>
 #include <string>
 
-using snark = libzeth::defaultSnark<libzeth::ppT>;
-using snarkApi = libzeth::defaultSnarkApi<libzeth::ppT>;
+using snark = libzeth::default_snark<libzeth::ppT>;
+using api_handler = libzeth::default_api_handler<libzeth::ppT>;
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
@@ -77,7 +77,7 @@ public:
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            snarkApi::format_verification_key(this->keypair.vk, response);
+            api_handler::format_verification_key(this->keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -179,7 +179,7 @@ public:
             ext_proof.dump_primary_inputs();
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
-            snarkApi::format_extended_proof(ext_proof, proof);
+            api_handler::format_extended_proof(ext_proof, proof);
 
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;

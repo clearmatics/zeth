@@ -172,7 +172,7 @@ private:
         {
             std::ofstream out(
                 keypair_out_file, std::ios_base::binary | std::ios_base::out);
-            groth16snark<ppT>::write_keypair(out, keypair);
+            groth16_snark<ppT>::write_keypair(out, keypair);
         }
         libff::leave_block("Writing keypair file");
 

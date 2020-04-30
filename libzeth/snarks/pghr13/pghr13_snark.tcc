@@ -2,33 +2,27 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_PGHR13_PGHR13_CORE_TCC__
-#define __ZETH_SNARKS_PGHR13_PGHR13_CORE_TCC__
+#ifndef __ZETH_SNARKS_PGHR13_PGHR13_SNARK_TCC__
+#define __ZETH_SNARKS_PGHR13_PGHR13_SNARK_TCC__
 
 #include "libzeth/core/ff_utils.hpp"
 #include "libzeth/serialization/filesystem_util.hpp" // TODO: remove this
-#include "libzeth/snarks/pghr13/pghr13_core.hpp"
+#include "libzeth/snarks/pghr13/pghr13_snark.hpp"
 
 namespace libzeth
 {
 
 template<typename ppT>
-typename pghr13snark<ppT>::KeypairT pghr13snark<ppT>::generate_setup(
+typename pghr13_snark<ppT>::KeypairT pghr13_snark<ppT>::generate_setup(
     const libsnark::protoboard<libff::Fr<ppT>> &pb)
 {
-    // Generate verification and proving key (Trusted setup) from the R1CS
-    // (defined in the ZoKrates/wraplibsnark.cpp file) This function, basically
-    // reduces the R1CS into a QAP, and then encodes the QAP, along with a
-    // secret s and its set of powers, plus the alpha, beta, gamma, and the rest
-    // of the entries, in order to form the CRS (crs_f, shortcrs_f, as denoted
-    // in [GGPR12])
     return libsnark::r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
 }
 
 template<typename ppT>
-typename pghr13snark<ppT>::ProofT pghr13snark<ppT>::generate_proof(
+typename pghr13_snark<ppT>::ProofT pghr13_snark<ppT>::generate_proof(
     const libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const pghr13snark<ppT>::ProvingKeyT &proving_key)
+    const pghr13_snark<ppT>::ProvingKeyT &proving_key)
 {
     // See:
     // https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp#L81
@@ -47,18 +41,18 @@ typename pghr13snark<ppT>::ProofT pghr13snark<ppT>::generate_proof(
 }
 
 template<typename ppT>
-bool pghr13snark<ppT>::verify(
+bool pghr13_snark<ppT>::verify(
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_inputs,
-    const pghr13snark<ppT>::ProofT &proof,
-    const pghr13snark<ppT>::VerifKeyT &verification_key)
+    const pghr13_snark<ppT>::ProofT &proof,
+    const pghr13_snark<ppT>::VerifKeyT &verification_key)
 {
     return libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(
         verification_key, primary_inputs, proof);
 }
 
 template<typename ppT>
-void pghr13snark<ppT>::export_verification_key(
-    const pghr13snark<ppT>::KeypairT &keypair)
+void pghr13_snark<ppT>::export_verification_key(
+    const pghr13_snark<ppT>::KeypairT &keypair)
 {
     unsigned ic_length = keypair.vk.encoded_IC_query.rest.indices.size() + 1;
 
@@ -103,7 +97,7 @@ void pghr13snark<ppT>::export_verification_key(
 }
 
 template<typename ppT>
-void pghr13snark<ppT>::display_proof(const pghr13snark<ppT>::ProofT &proof)
+void pghr13_snark<ppT>::display_proof(const pghr13_snark<ppT>::ProofT &proof)
 {
     std::cout << "Proof:"
               << "\n"
@@ -134,8 +128,8 @@ void pghr13snark<ppT>::display_proof(const pghr13snark<ppT>::ProofT &proof)
 }
 
 template<typename ppT>
-void pghr13snark<ppT>::verification_key_to_json(
-    const pghr13snark<ppT>::VerifKeyT &vk, boost::filesystem::path path)
+void pghr13_snark<ppT>::verification_key_to_json(
+    const pghr13_snark<ppT>::VerifKeyT &vk, boost::filesystem::path path)
 {
     if (path.empty()) {
         boost::filesystem::path tmp_path = get_path_to_setup_directory();
@@ -185,8 +179,8 @@ void pghr13snark<ppT>::verification_key_to_json(
 }
 
 template<typename ppT>
-void pghr13snark<ppT>::proof_and_inputs_to_json(
-    const pghr13snark<ppT>::ProofT &proof,
+void pghr13_snark<ppT>::proof_and_inputs_to_json(
+    const pghr13_snark<ppT>::ProofT &proof,
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &input,
     boost::filesystem::path path)
 {
@@ -242,8 +236,8 @@ void pghr13snark<ppT>::proof_and_inputs_to_json(
 }
 
 template<typename ppT>
-void pghr13snark<ppT>::proof_to_json(
-    const pghr13snark<ppT>::ProofT &proof, boost::filesystem::path path)
+void pghr13_snark<ppT>::proof_to_json(
+    const pghr13_snark<ppT>::ProofT &proof, boost::filesystem::path path)
 {
     if (path.empty()) {
         // Used for debugging purpose
@@ -284,24 +278,24 @@ void pghr13snark<ppT>::proof_to_json(
 }
 
 template<typename ppT>
-void pghr13snark<ppT>::write_keypair(
-    std::ostream &out, const pghr13snark<ppT>::KeypairT &keypair)
+void pghr13_snark<ppT>::write_keypair(
+    std::ostream &out, const pghr13_snark<ppT>::KeypairT &keypair)
 {
     out << keypair.pk;
     out << keypair.vk;
 }
 
 template<typename ppT>
-typename pghr13snark<ppT>::KeypairT pghr13snark<ppT>::read_keypair(
+typename pghr13_snark<ppT>::KeypairT pghr13_snark<ppT>::read_keypair(
     std::istream &in)
 {
-    pghr13snark<ppT>::ProvingKeyT pk;
-    pghr13snark<ppT>::VerifKeyT vk;
+    pghr13_snark<ppT>::ProvingKeyT pk;
+    pghr13_snark<ppT>::VerifKeyT vk;
     in >> pk;
     in >> vk;
-    return pghr13snark<ppT>::KeypairT(pk, vk);
+    return pghr13_snark<ppT>::KeypairT(pk, vk);
 }
 
 } // namespace libzeth
 
-#endif // __ZETH_SNARKS_PGHR13_PGHR13_CORE_TCC__
+#endif // __ZETH_SNARKS_PGHR13_PGHR13_SNARK_TCC__

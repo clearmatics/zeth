@@ -2,22 +2,21 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SNARKS_GROTH16_GROTH16_API_HPP__
-#define __ZETH_SNARKS_GROTH16_GROTH16_API_HPP__
+#ifndef __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_HPP__
+#define __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_HPP__
 
-#include "libzeth/core/extended_proof.hpp"
-#include "libzeth/snarks/groth16/groth16_core.hpp"
-
-#include <api/snark_messages.grpc.pb.h>
+#include "api/snark_messages.grpc.pb.h"
+#include "libzeth/snarks/pghr13/pghr13_snark.hpp"
+#include "libzeth/types/extended_proof.hpp"
 
 namespace libzeth
 {
 
-/// Implemetation of API-related functions for the Groth16 snark.
-template<typename ppT> class groth16api
+/// Implementation of API-related functions for the PGHR13 snark.
+template<typename ppT> class pghr13_api_handler
 {
 public:
-    using snarkT = groth16snark<ppT>;
+    using snarkT = pghr13_snark<ppT>;
 
     static void format_extended_proof(
         const extended_proof<ppT, snarkT> &ext_proof,
@@ -44,6 +43,6 @@ public:
 
 } // namespace libzeth
 
-#include "libzeth/snarks/groth16/groth16_api.tcc"
+#include "libzeth/snarks/pghr13/pghr13_api_handler.tcc"
 
-#endif // __ZETH_SNARKS_GROTH16_GROTH16_API_HPP__
+#endif // __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_HPP__
