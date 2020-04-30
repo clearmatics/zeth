@@ -66,11 +66,6 @@ void erase_substring(std::string &string, const std::string &substring);
 template<typename StructuredT>
 void check_well_formed(const StructuredT &v, const char *name);
 
-// /// Throw if input is not well-formed. The type being checked should conform
-// /// to the StructuredT interface above.
-// template<typename StructuredT>
-// void check_well_formed_(const StructuredT &v, const char *name);
-
 /// For some iterable container of objects comforming to StructuredT, throw if
 /// any entry is not well-formed.
 template<typename StructuredTs>
