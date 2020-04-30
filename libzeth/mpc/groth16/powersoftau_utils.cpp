@@ -132,15 +132,15 @@ void read_powersoftau_g1(std::istream &in, libff::alt_bn128_G1 &out)
     switch (marker) {
     case 0x00:
         // zero
-        out = libff::G1<srs_pot_pp>::zero();
+        out = libff::alt_bn128_G1::zero();
         break;
     case 0x04: {
         // Uncompressed
-        libff::Fq<srs_pot_pp> x;
-        libff::Fq<srs_pot_pp> y;
+        libff::alt_bn128_Fq x;
+        libff::alt_bn128_Fq y;
         read_powersoftau_fp(in, x);
         read_powersoftau_fp(in, y);
-        out = libff::G1<srs_pot_pp>(x, y, libff::Fq<srs_pot_pp>::one());
+        out = libff::alt_bn128_G1(x, y, libff::Fq<srs_pot_pp>::one());
         break;
     }
     default:
@@ -162,7 +162,7 @@ void read_powersoftau_g2(std::istream &in, libff::alt_bn128_G2 &out)
     switch (marker) {
     case 0x00:
         // zero
-        out = libff::G2<srs_pot_pp>::zero();
+        out = libff::alt_bn128_G2::zero();
         break;
 
     case 0x04:
