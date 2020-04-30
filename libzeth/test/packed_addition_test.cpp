@@ -6,7 +6,7 @@
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/notes/note.hpp"
 #include "libzeth/core/bits.hpp"
-#include "libzeth/core/joinsplit.hpp"
+#include "libzeth/core/joinsplit_input.hpp"
 #include "libzeth/core/note.hpp"
 #include "libzeth/core/utils.hpp"
 

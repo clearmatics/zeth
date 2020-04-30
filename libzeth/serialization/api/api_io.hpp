@@ -9,7 +9,7 @@
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/core/include_libff.hpp"
 #include "libzeth/core/include_libsnark.hpp"
-#include "libzeth/core/joinsplit.hpp"
+#include "libzeth/core/joinsplit_input.hpp"
 #include "libzeth/core/note.hpp"
 #include "libzeth/core/utils.hpp"
 

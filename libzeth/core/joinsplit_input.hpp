@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CORE_JOINSPLIT_HPP__
-#define __ZETH_CORE_JOINSPLIT_HPP__
+#ifndef __ZETH_CORE_JOINSPLIT_INPUT_HPP__
+#define __ZETH_CORE_JOINSPLIT_INPUT_HPP__
 
 #include "libzeth/core/bits.hpp"
 #include "libzeth/core/note.hpp"
@@ -48,4 +48,4 @@ public:
 
 } // namespace libzeth
 
-#endif // __ZETH_CORE_JOINSPLIT_HPP__
+#endif // __ZETH_CORE_JOINSPLIT_INPUT_HPP__
