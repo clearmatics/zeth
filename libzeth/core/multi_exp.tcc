@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CORE_GROTH16_MULTI_EXP_TCC__
-#define __ZETH_CORE_GROTH16_MULTI_EXP_TCC__
+#ifndef __ZETH_CORE_MULTI_EXP_TCC__
+#define __ZETH_CORE_MULTI_EXP_TCC__
 
 #include "libzeth/core/multi_exp.hpp"
 

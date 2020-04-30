@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_TYPES_EXTENDED_PROOF_HPP__
-#define __ZETH_TYPES_EXTENDED_PROOF_HPP__
+#ifndef __ZETH_CORE_EXTENDED_PROOF_HPP__
+#define __ZETH_CORE_EXTENDED_PROOF_HPP__
 
 #include "libzeth/core/include_libsnark.hpp"
 #include "libzeth/serialization/filesystem_util.hpp"
@@ -43,4 +43,4 @@ public:
 
 #include "libzeth/core/extended_proof.tcc"
 
-#endif // __ZETH_TYPES_EXTENDED_PROOF_HPP__
+#endif // __ZETH_CORE_EXTENDED_PROOF_HPP__
