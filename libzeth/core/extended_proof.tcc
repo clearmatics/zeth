@@ -6,7 +6,7 @@
 #define __ZETH_TYPES_EXTENDED_PROOF_TCC__
 
 #include "libzeth/core/extended_proof.hpp"
-#include "libzeth/core/ff_utils.hpp"
+#include "libzeth/core/field_element_utils.hpp"
 
 namespace libzeth
 {

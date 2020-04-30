@@ -5,7 +5,7 @@
 #ifndef __ZETH_SNARKS_GROTH16_GROTH16_SNARK_TCC__
 #define __ZETH_SNARKS_GROTH16_GROTH16_SNARK_TCC__
 
-#include "libzeth/core/ff_utils.hpp"
+#include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/core/utils.hpp"
 #include "libzeth/serialization/filesystem_util.hpp" // TODO: remove this
 #include "libzeth/snarks/groth16/groth16_snark.hpp"

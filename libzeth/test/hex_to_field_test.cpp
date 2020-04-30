@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/core/ff_utils.hpp"
+#include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/core/utils.hpp"
 
 #include <assert.h>

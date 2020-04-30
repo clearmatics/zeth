@@ -5,7 +5,7 @@
 #ifndef __ZETH_SNARKS_GROTH16_GROTH16_API_HANDLER_TCC__
 #define __ZETH_SNARKS_GROTH16_GROTH16_API_HANDLER_TCC__
 
-#include "libzeth/core/ff_utils.hpp"
+#include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/serialization/api/api_io.hpp"
 #include "libzeth/snarks/groth16/groth16_api_handler.hpp"
 

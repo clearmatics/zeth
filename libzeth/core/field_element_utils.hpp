@@ -2,16 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CORE_FF_UTILS_HPP__
-#define __ZETH_CORE_FF_UTILS_HPP__
+#ifndef __ZETH_CORE_FIELD_ELEMENT_UTILS_HPP__
+#define __ZETH_CORE_FIELD_ELEMENT_UTILS_HPP__
 
-#include "libzeth/core/include_libff.hpp"
-#include "libzeth/core/utils.hpp"
-
-#include <boost/filesystem.hpp>
-#include <cassert>
-#include <stdbool.h>
-#include <stdint.h>
+#include "include_libff.hpp"
 
 namespace libzeth
 {
@@ -70,22 +64,8 @@ FieldT hexadecimal_str_to_field_element(std::string field_str);
 template<typename FieldT>
 std::string field_element_to_hexadecimal_str(FieldT field_el);
 
-/// Convert a group element of G1 to an hexadecimal string.
-/// This function assumes that the group element is in affine
-/// form, and that both coordinates (X, Y) are elements of a
-/// prime field.
-template<typename ppT>
-std::string point_g1_affine_to_hexadecimal_str(const libff::G1<ppT> &point);
-
-/// Convert a group element of G2 to an hexadecimal string.
-/// This function assumes that the group element is in affine
-/// form, and that both coordinates (X, Y) are elements of a
-/// an extension field of degree 2.
-template<typename ppT>
-std::string point_g2_affine_to_hexadecimal_str(const libff::G2<ppT> &point);
-
 } // namespace libzeth
 
-#include "libzeth/core/ff_utils.tcc"
+#include "libzeth/core/field_element_utils.tcc"
 
-#endif // __ZETH_CORE_FF_UTILS_HPP__
+#endif // __ZETH_CORE_FIELD_ELEMENT_UTILS_HPP__

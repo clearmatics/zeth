@@ -5,7 +5,7 @@
 #ifndef __ZETH_SNARKS_PGHR13_PGHR13_SNARK_TCC__
 #define __ZETH_SNARKS_PGHR13_PGHR13_SNARK_TCC__
 
-#include "libzeth/core/ff_utils.hpp"
+#include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/serialization/filesystem_util.hpp" // TODO: remove this
 #include "libzeth/snarks/pghr13/pghr13_snark.hpp"
 
