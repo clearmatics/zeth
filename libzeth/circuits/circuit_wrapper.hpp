@@ -5,10 +5,10 @@
 #ifndef __ZETH_CIRCUITS_CIRCUIT_WRAPPER_HPP__
 #define __ZETH_CIRCUITS_CIRCUIT_WRAPPER_HPP__
 
-#include "libzeth/circuits/circuit_constants.hpp"
 #include "libzeth/circuits/joinsplit.tcc"
 #include "libzeth/core/note.hpp"
 #include "libzeth/serialization/file_io.hpp"
+#include "libzeth/zeth_constants.hpp"
 
 namespace libzeth
 {

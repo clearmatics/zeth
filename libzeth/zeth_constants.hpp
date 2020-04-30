@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUITS_CIRCUIT_CONSTANTS_HPP__
-#define __ZETH_CIRCUITS_CIRCUIT_CONSTANTS_HPP__
+#ifndef __ZETH_ZETH_CONSTANTS_HPP__
+#define __ZETH_ZETH_CONSTANTS_HPP__
 
 #include <stddef.h>
 
@@ -25,4 +25,4 @@ static const size_t ZETH_R_SIZE = 256;    // 256 bits for r
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUITS_CIRCUIT_CONSTANTS_HPP__
+#endif // __ZETH_ZETH_CONSTANTS_HPP__

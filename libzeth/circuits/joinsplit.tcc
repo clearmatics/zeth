@@ -5,11 +5,11 @@
 #ifndef __ZETH_CIRCUITS_JOINSPLIT_TCC__
 #define __ZETH_CIRCUITS_JOINSPLIT_TCC__
 
-#include "libzeth/circuits/circuit_constants.hpp"
 #include "libzeth/circuits/notes/note.hpp"
 #include "libzeth/circuits/safe_arithmetic.hpp"
 #include "libzeth/core/joinsplit_input.hpp"
 #include "libzeth/core/merkle_tree_field.hpp"
+#include "libzeth/zeth_constants.hpp"
 
 #include <boost/static_assert.hpp>
 

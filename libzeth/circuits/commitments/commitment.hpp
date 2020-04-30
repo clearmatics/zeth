@@ -5,7 +5,7 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/commitment.tcc
 
-#include "libzeth/circuits/circuit_constants.hpp"
+#include "libzeth/zeth_constants.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
