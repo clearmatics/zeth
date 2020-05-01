@@ -44,8 +44,8 @@ static srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
     libff::Fr<ppT> seed, size_t degree, size_t num_L_elements)
 {
     // Dummy cs_hash from the seed.
-    srs_mpc_hash_t cs_hash;
-    hash_ostream ss;
+    mpc_hash_t cs_hash;
+    mpc_hash_ostream ss;
     ss << seed;
     ss.get_hash(cs_hash);
 
@@ -100,11 +100,11 @@ TEST(MPCTests, ChaChaRng)
 
 TEST(MPCTests, HashToG2)
 {
-    srs_mpc_hash_t hash;
+    mpc_hash_t hash;
     const std::string seed = hex_to_bytes(
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
-    memcpy(hash, seed.data(), sizeof(srs_mpc_hash_t));
+    memcpy(hash, seed.data(), sizeof(mpc_hash_t));
 
     Fr expect_fr;
     {
@@ -471,9 +471,9 @@ TEST(MPCTests, KeyPairReadWrite)
 
 TEST(MPCTests, Phase2PublicKeyReadWrite)
 {
-    srs_mpc_hash_t empty_hash;
+    mpc_hash_t empty_hash;
     const uint8_t empty[0]{};
-    srs_mpc_compute_hash(empty_hash, empty, 0);
+    mpc_compute_hash(empty_hash, empty, 0);
 
     const size_t seed = 9;
     const libff::Fr<ppT> secret_1 = libff::Fr<ppT>(seed - 1);
@@ -571,7 +571,7 @@ TEST(MPCTests, Phase2ChallengeReadWrite)
         memcmp(
             challenge.transcript_digest,
             challenge_deserialized.transcript_digest,
-            sizeof(srs_mpc_hash_t)));
+            sizeof(mpc_hash_t)));
     ASSERT_EQ(challenge.accumulator, challenge_deserialized.accumulator);
     ASSERT_EQ(challenge, challenge_deserialized);
 }
@@ -656,10 +656,10 @@ TEST(MPCTests, Phase2HashToG2)
     // Check that independently created source values (at different locations
     // in memory) give the same result.
     const uint8_t empty[0]{};
-    srs_mpc_hash_t hash_0;
-    srs_mpc_compute_hash(hash_0, empty, 0);
-    srs_mpc_hash_t hash_1;
-    srs_mpc_compute_hash(hash_1, empty, 0);
+    mpc_hash_t hash_0;
+    mpc_compute_hash(hash_0, empty, 0);
+    mpc_hash_t hash_1;
+    mpc_compute_hash(hash_1, empty, 0);
 
     G2 g2_0 = srs_mpc_digest_to_g2<ppT>(hash_0);
     G2 g2_1 = srs_mpc_digest_to_g2<ppT>(hash_1);
@@ -672,8 +672,8 @@ TEST(MPCTests, Phase2PublicKeyGeneration)
     const libff::Fr<ppT> last_secret(seed - 1);
     const libff::Fr<ppT> secret(seed - 2);
     const uint8_t empty[0]{};
-    srs_mpc_hash_t hash;
-    srs_mpc_compute_hash(hash, empty, 0);
+    mpc_hash_t hash;
+    mpc_compute_hash(hash, empty, 0);
 
     const srs_mpc_phase2_publickey<ppT> publickey =
         srs_mpc_phase2_compute_public_key<ppT>(
@@ -681,8 +681,7 @@ TEST(MPCTests, Phase2PublicKeyGeneration)
 
     const libff::G2<ppT> r_g2 = srs_mpc_digest_to_g2<ppT>(hash);
 
-    ASSERT_EQ(
-        0, memcmp(hash, publickey.transcript_digest, sizeof(srs_mpc_hash_t)));
+    ASSERT_EQ(0, memcmp(hash, publickey.transcript_digest, sizeof(mpc_hash_t)));
     ASSERT_EQ(last_secret * secret * G1::one(), publickey.new_delta_g1);
     ASSERT_EQ(secret * publickey.s_g1, publickey.s_delta_j_g1);
     ASSERT_EQ(secret * r_g2, publickey.r_delta_j_g2);
@@ -720,7 +719,7 @@ TEST(MPCTests, Phase2UpdateVerification)
             memcmp(
                 challenge.transcript_digest,
                 response.publickey.transcript_digest,
-                sizeof(srs_mpc_hash_t)));
+                sizeof(mpc_hash_t)));
         ASSERT_TRUE(srs_mpc_phase2_verify_response(challenge, response));
     }
 
@@ -728,8 +727,7 @@ TEST(MPCTests, Phase2UpdateVerification)
     {
         srs_mpc_phase2_response<ppT> response =
             srs_mpc_phase2_compute_response(challenge, secret);
-        response.publickey.transcript_digest[SRS_MPC_HASH_ARRAY_LENGTH / 2] +=
-            1;
+        response.publickey.transcript_digest[MPC_HASH_ARRAY_LENGTH / 2] += 1;
         ASSERT_FALSE(srs_mpc_phase2_verify_response(challenge, response));
     }
 
@@ -815,7 +813,7 @@ TEST(MPCTests, Phase2TranscriptVerification)
     const libff::Fr<ppT> secret_1 = libff::Fr<ppT>(seed - 1);
     srs_mpc_phase2_response<ppT> response_1 =
         srs_mpc_phase2_compute_response<ppT>(challenge_0, secret_1);
-    srs_mpc_hash_t response_1_hash;
+    mpc_hash_t response_1_hash;
     response_1.publickey.compute_digest(response_1_hash);
     response_1.publickey.write(transcript_out);
     const srs_mpc_phase2_challenge<ppT> challenge_1 =
@@ -825,7 +823,7 @@ TEST(MPCTests, Phase2TranscriptVerification)
     const libff::Fr<ppT> secret_2 = libff::Fr<ppT>(seed - 2);
     srs_mpc_phase2_response<ppT> response_2 =
         srs_mpc_phase2_compute_response<ppT>(challenge_1, secret_2);
-    srs_mpc_hash_t response_2_hash;
+    mpc_hash_t response_2_hash;
     response_2.publickey.compute_digest(response_2_hash);
     response_2.publickey.write(transcript_out);
     const srs_mpc_phase2_challenge<ppT> challenge_2 =
@@ -835,10 +833,10 @@ TEST(MPCTests, Phase2TranscriptVerification)
     const libff::Fr<ppT> secret_3 = libff::Fr<ppT>(seed - 3);
     const srs_mpc_phase2_response<ppT> response_3 =
         srs_mpc_phase2_compute_response<ppT>(challenge_2, secret_3);
-    srs_mpc_hash_t response_3_hash;
+    mpc_hash_t response_3_hash;
     response_3.publickey.compute_digest(response_3_hash);
     response_3.publickey.write(transcript_out);
-    srs_mpc_hash_t final_digest;
+    mpc_hash_t final_digest;
     response_3.publickey.compute_digest(final_digest);
 
     // Create a transcript
@@ -848,7 +846,7 @@ TEST(MPCTests, Phase2TranscriptVerification)
     {
         std::istringstream transcript_stream(transcript);
         G1 final_delta_g1;
-        srs_mpc_hash_t final_transcript_digest;
+        mpc_hash_t final_transcript_digest;
         ASSERT_TRUE(srs_mpc_phase2_verify_transcript<ppT>(
             challenge_0.transcript_digest,
             G1::one(),
@@ -858,15 +856,14 @@ TEST(MPCTests, Phase2TranscriptVerification)
         ASSERT_EQ(secret_1 * secret_2 * secret_3 * G1::one(), final_delta_g1);
         ASSERT_EQ(
             0,
-            memcmp(
-                final_digest, final_transcript_digest, sizeof(srs_mpc_hash_t)));
+            memcmp(final_digest, final_transcript_digest, sizeof(mpc_hash_t)));
     }
 
     // Verify and check for contribution
     {
         std::istringstream transcript_stream(transcript);
         G1 final_delta_g1;
-        srs_mpc_hash_t final_transcript_digest;
+        mpc_hash_t final_transcript_digest;
         bool contribution_found;
         ASSERT_TRUE(srs_mpc_phase2_verify_transcript<ppT>(
             challenge_0.transcript_digest,
@@ -879,19 +876,18 @@ TEST(MPCTests, Phase2TranscriptVerification)
         ASSERT_EQ(secret_1 * secret_2 * secret_3 * G1::one(), final_delta_g1);
         ASSERT_EQ(
             0,
-            memcmp(
-                final_digest, final_transcript_digest, sizeof(srs_mpc_hash_t)));
+            memcmp(final_digest, final_transcript_digest, sizeof(mpc_hash_t)));
         ASSERT_TRUE(contribution_found);
     }
 
     // Verify and check for non-existant contribution
     {
-        srs_mpc_hash_t no_such_contribution;
-        memset(no_such_contribution, 0, sizeof(srs_mpc_hash_t));
+        mpc_hash_t no_such_contribution;
+        memset(no_such_contribution, 0, sizeof(mpc_hash_t));
 
         std::istringstream transcript_stream(transcript);
         G1 final_delta_g1;
-        srs_mpc_hash_t final_transcript_digest;
+        mpc_hash_t final_transcript_digest;
         bool contribution_found;
         ASSERT_TRUE(srs_mpc_phase2_verify_transcript<ppT>(
             challenge_0.transcript_digest,
@@ -904,8 +900,7 @@ TEST(MPCTests, Phase2TranscriptVerification)
         ASSERT_EQ(secret_1 * secret_2 * secret_3 * G1::one(), final_delta_g1);
         ASSERT_EQ(
             0,
-            memcmp(
-                final_digest, final_transcript_digest, sizeof(srs_mpc_hash_t)));
+            memcmp(final_digest, final_transcript_digest, sizeof(mpc_hash_t)));
         ASSERT_FALSE(contribution_found);
     }
 }

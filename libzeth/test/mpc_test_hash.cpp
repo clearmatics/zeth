@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/core/utils.hpp"
-#include "libzeth/mpc/groth16/hash_utils.hpp"
+#include "libzeth/mpc/groth16/mpc_hash.hpp"
 
 #include <gtest/gtest.h>
 
@@ -18,8 +18,8 @@ TEST(MPCHashTests, HashInterface)
     // out: 786a....be2ce
     {
         uint8_t empty[0];
-        srs_mpc_hash_t hash;
-        srs_mpc_compute_hash(hash, empty, 0);
+        mpc_hash_t hash;
+        mpc_compute_hash(hash, empty, 0);
         ASSERT_EQ(
             bytes_to_hex((const char *)(&hash), sizeof(hash)),
             "786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d2"
@@ -33,14 +33,14 @@ TEST(MPCHashTests, HashInterface)
         "a8add4bdddfd93e4877d2746e62817b116364a1fa7bc148d95090bc7333b3673f82401"
         "cf7aa2e4cb1ecd90296e3f14cb5413f8ed77be73045b13914cdcd6a918";
     {
-        srs_mpc_hash_t hash;
-        srs_mpc_compute_hash(hash, s);
+        mpc_hash_t hash;
+        mpc_compute_hash(hash, s);
         ASSERT_EQ(
             expect_hash_hex, bytes_to_hex((const char *)(&hash), sizeof(hash)));
     }
     {
-        srs_mpc_hash_t hash;
-        hash_ostream hs;
+        mpc_hash_t hash;
+        mpc_hash_ostream hs;
         hs << s;
         hs.get_hash(hash);
         ASSERT_EQ(
@@ -57,24 +57,24 @@ TEST(MPCHashTests, HashRepresentation)
         "d25e1031 afee5853 13896444 934eb04b\n"
         "903a685b 1448b755 d56f701a fe9be2ce\n";
 
-    srs_mpc_hash_t hash;
-    srs_mpc_compute_hash(hash, empty, 0);
+    mpc_hash_t hash;
+    mpc_compute_hash(hash, empty, 0);
 
     // Write to stream
     const std::string hash_string = [&]() {
         std::ostringstream ss;
-        srs_mpc_hash_write(hash, ss);
+        mpc_hash_write(hash, ss);
         return ss.str();
     }();
     ASSERT_EQ(expected_hash_string, hash_string);
 
     // Read from stream
-    srs_mpc_hash_t hash_from_string;
+    mpc_hash_t hash_from_string;
     {
         std::istringstream ss(hash_string);
-        ASSERT_TRUE(srs_mpc_hash_read(hash_from_string, ss));
+        ASSERT_TRUE(mpc_hash_read(hash_from_string, ss));
     }
-    ASSERT_EQ(0, memcmp(hash, hash_from_string, sizeof(srs_mpc_hash_t)));
+    ASSERT_EQ(0, memcmp(hash, hash_from_string, sizeof(mpc_hash_t)));
 }
 
 TEST(MPCHashTests, HashOStreamWrapper)
@@ -86,11 +86,11 @@ TEST(MPCHashTests, HashOStreamWrapper)
 
     // Create string stream and hash stream wrapper
     std::ostringstream ss;
-    hash_ostream_wrapper hsw(ss);
+    mpc_hash_ostream_wrapper hsw(ss);
     hsw << s;
 
     // Extract hash and data from wrapped stream
-    srs_mpc_hash_t hash;
+    mpc_hash_t hash;
     hsw.get_hash(hash);
     std::string stream_data(ss.str());
 
@@ -108,7 +108,7 @@ TEST(MPCHashTests, HashIStreamWrapper)
 
     // Create string stream and hash stream wrapper
     std::istringstream ss(s);
-    hash_istream_wrapper hsw(ss);
+    mpc_hash_istream_wrapper hsw(ss);
 
     // Stream data
     std::string stream_data;
@@ -116,7 +116,7 @@ TEST(MPCHashTests, HashIStreamWrapper)
     hsw.read(&stream_data[0], s.size());
 
     // Extract hash and data from wrapped stream
-    srs_mpc_hash_t hash;
+    mpc_hash_t hash;
     hsw.get_hash(hash);
 
     // Test

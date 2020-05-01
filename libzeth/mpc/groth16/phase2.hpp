@@ -5,7 +5,7 @@
 #ifndef __ZETH_MPC_GROTH16_PHASE2_HPP__
 #define __ZETH_MPC_GROTH16_PHASE2_HPP__
 
-#include "libzeth/mpc/groth16/hash_utils.hpp"
+#include "libzeth/mpc/groth16/mpc_hash.hpp"
 #include "libzeth/snarks/groth16/groth16_snark.hpp"
 
 /// Structures and operations related to the "Phase 2" MPC described in
@@ -43,7 +43,7 @@ public:
     // Hash of the initial state before any contributions are made. Kept
     // constant over the MPC, and used to check that challenges and responses
     // are part of the same MPC.
-    srs_mpc_hash_t cs_hash;
+    mpc_hash_t cs_hash;
 
     libff::G1<ppT> delta_g1;
 
@@ -56,7 +56,7 @@ public:
     libff::G1_vector<ppT> L_g1;
 
     srs_mpc_phase2_accumulator(
-        const srs_mpc_hash_t cs_hash,
+        const mpc_hash_t cs_hash,
         const libff::G1<ppT> &delta_g1,
         const libff::G2<ppT> &delta_g2,
         libff::G1_vector<ppT> &&H_g1,
@@ -84,14 +84,14 @@ public:
 template<typename ppT> class srs_mpc_phase2_publickey
 {
 public:
-    srs_mpc_hash_t transcript_digest;
+    mpc_hash_t transcript_digest;
     libff::G1<ppT> new_delta_g1;
     libff::G1<ppT> s_g1;
     libff::G1<ppT> s_delta_j_g1;
     libff::G2<ppT> r_delta_j_g2;
 
     srs_mpc_phase2_publickey(
-        const srs_mpc_hash_t transcript_digest,
+        const mpc_hash_t transcript_digest,
         const libff::G1<ppT> &new_delta_g1,
         const libff::G1<ppT> &s_g1,
         const libff::G1<ppT> &s_delta_j_g1,
@@ -101,7 +101,7 @@ public:
     bool is_well_formed() const;
     void write(std::ostream &out) const;
     static srs_mpc_phase2_publickey<ppT> read(std::istream &in);
-    void compute_digest(srs_mpc_hash_t out_digest) const;
+    void compute_digest(mpc_hash_t out_digest) const;
 };
 
 /// Challenge given to a participant in Phase2 of the SRS generation MPC.
@@ -109,11 +109,11 @@ public:
 template<typename ppT> class srs_mpc_phase2_challenge
 {
 public:
-    srs_mpc_hash_t transcript_digest;
+    mpc_hash_t transcript_digest;
     srs_mpc_phase2_accumulator<ppT> accumulator;
 
     srs_mpc_phase2_challenge(
-        const srs_mpc_hash_t transcript_digest,
+        const mpc_hash_t transcript_digest,
         srs_mpc_phase2_accumulator<ppT> &&accumulator);
 
     bool operator==(const srs_mpc_phase2_challenge<ppT> &other) const;
@@ -144,18 +144,17 @@ public:
 
 template<mp_size_t n, const libff::bigint<n> &modulus>
 void srs_mpc_digest_to_fp(
-    const srs_mpc_hash_t transcript_digest,
-    libff::Fp_model<n, modulus> &out_fr);
+    const mpc_hash_t transcript_digest, libff::Fp_model<n, modulus> &out_fr);
 
 template<typename ppT>
-libff::G2<ppT> srs_mpc_digest_to_g2(const srs_mpc_hash_t digest);
+libff::G2<ppT> srs_mpc_digest_to_g2(const mpc_hash_t digest);
 
 /// Given the output from the linear combination of the L1 layer of the SRS
 /// circuit, compute the starting parameters for Phase 2 (the MPC for C2
 /// layer). See "Initialization" in section 7.3 of [BoweGM17].
 template<typename ppT>
 srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
-    const srs_mpc_hash_t cs_hash,
+    const mpc_hash_t cs_hash,
     const srs_mpc_layer_L1<ppT> &layer_L1,
     size_t num_inputs);
 
@@ -163,7 +162,7 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
 /// to steps 1 and 2 in "Computation", section 7.3 of [BoweGM17]
 template<typename ppT>
 srs_mpc_phase2_publickey<ppT> srs_mpc_phase2_compute_public_key(
-    const srs_mpc_hash_t transcript_digest,
+    const mpc_hash_t transcript_digest,
     const libff::G1<ppT> &last_delta,
     const libff::Fr<ppT> &secret);
 
@@ -257,23 +256,23 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_compute_challenge(
 /// outputing the encoding of the final delta in G1.
 template<typename ppT, bool enable_contribution_check = true>
 bool srs_mpc_phase2_verify_transcript(
-    const srs_mpc_hash_t initial_transcript_digest,
+    const mpc_hash_t initial_transcript_digest,
     const libff::G1<ppT> &initial_delta,
-    const srs_mpc_hash_t check_for_contribution,
+    const mpc_hash_t check_for_contribution,
     std::istream &transcript_stream,
     libff::G1<ppT> &out_final_delta,
-    srs_mpc_hash_t out_final_transcript_digest,
+    mpc_hash_t out_final_transcript_digest,
     bool &out_contribution_found);
 
 /// Similar to other transcript verification above, but does not check for the
 /// presence of a specific contribution digest.
 template<typename ppT>
 bool srs_mpc_phase2_verify_transcript(
-    const srs_mpc_hash_t initial_transcript_digest,
+    const mpc_hash_t initial_transcript_digest,
     const libff::G1<ppT> &initial_delta,
     std::istream &transcript_stream,
     libff::G1<ppT> &out_final_delta,
-    srs_mpc_hash_t out_final_transcript_digest);
+    mpc_hash_t out_final_transcript_digest);
 
 /// Given the output from the first layer of the MPC, perform the 2nd
 /// layer computation using just local randomness for delta. This is not a

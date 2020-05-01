@@ -6,6 +6,7 @@
 #define __ZETH_MPC_GROTH16_PHASE2_TCC__
 
 #include "libzeth/core/chacha_rng.hpp"
+#include "libzeth/core/hash_stream.hpp"
 #include "libzeth/core/utils.hpp"
 #include "libzeth/mpc/groth16/mpc_utils.hpp"
 #include "libzeth/mpc/groth16/phase2.hpp"
@@ -18,21 +19,21 @@ namespace libzeth
 
 template<typename ppT>
 srs_mpc_phase2_accumulator<ppT>::srs_mpc_phase2_accumulator(
-    const srs_mpc_hash_t cs_hash,
+    const mpc_hash_t cs_hash,
     const libff::G1<ppT> &delta_g1,
     const libff::G2<ppT> &delta_g2,
     libff::G1_vector<ppT> &&H_g1,
     libff::G1_vector<ppT> &&L_g1)
     : delta_g1(delta_g1), delta_g2(delta_g2), H_g1(H_g1), L_g1(L_g1)
 {
-    memcpy(this->cs_hash, cs_hash, sizeof(srs_mpc_hash_t));
+    memcpy(this->cs_hash, cs_hash, sizeof(mpc_hash_t));
 }
 
 template<typename ppT>
 bool srs_mpc_phase2_accumulator<ppT>::operator==(
     const srs_mpc_phase2_accumulator<ppT> &other) const
 {
-    return !memcmp(cs_hash, other.cs_hash, sizeof(srs_mpc_hash_t)) &&
+    return !memcmp(cs_hash, other.cs_hash, sizeof(mpc_hash_t)) &&
            (delta_g1 == other.delta_g1) && (delta_g2 == other.delta_g2) &&
            (H_g1 == other.H_g1) && (L_g1 == other.L_g1);
 }
@@ -54,7 +55,7 @@ void srs_mpc_phase2_accumulator<ppT>::write(std::ostream &out) const
 
     const size_t H_size = H_g1.size();
     const size_t L_size = L_g1.size();
-    out.write((const char *)cs_hash, sizeof(srs_mpc_hash_t));
+    out.write((const char *)cs_hash, sizeof(mpc_hash_t));
     out.write((const char *)&H_size, sizeof(H_size));
     out.write((const char *)&L_size, sizeof(L_size));
 
@@ -74,11 +75,11 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_accumulator<ppT>::read(
 {
     using G1 = libff::G1<ppT>;
 
-    srs_mpc_hash_t cs_hash;
+    mpc_hash_t cs_hash;
     size_t H_size;
     size_t L_size;
 
-    in.read((char *)cs_hash, sizeof(srs_mpc_hash_t));
+    in.read((char *)cs_hash, sizeof(mpc_hash_t));
     in.read((char *)&H_size, sizeof(H_size));
     in.read((char *)&L_size, sizeof(L_size));
 
@@ -104,7 +105,7 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_accumulator<ppT>::read(
 
 template<typename ppT>
 srs_mpc_phase2_publickey<ppT>::srs_mpc_phase2_publickey(
-    const srs_mpc_hash_t transcript_digest,
+    const mpc_hash_t transcript_digest,
     const libff::G1<ppT> &new_delta_g1,
     const libff::G1<ppT> &s_g1,
     const libff::G1<ppT> &s_delta_j_g1,
@@ -114,15 +115,15 @@ srs_mpc_phase2_publickey<ppT>::srs_mpc_phase2_publickey(
     , s_delta_j_g1(s_delta_j_g1)
     , r_delta_j_g2(r_delta_j_g2)
 {
-    memcpy(this->transcript_digest, transcript_digest, sizeof(srs_mpc_hash_t));
+    memcpy(this->transcript_digest, transcript_digest, sizeof(mpc_hash_t));
 }
 
 template<typename ppT>
 bool srs_mpc_phase2_publickey<ppT>::operator==(
     const srs_mpc_phase2_publickey<ppT> &other) const
 {
-    const bool transcript_matches = !memcmp(
-        transcript_digest, other.transcript_digest, sizeof(srs_mpc_hash_t));
+    const bool transcript_matches =
+        !memcmp(transcript_digest, other.transcript_digest, sizeof(mpc_hash_t));
     return transcript_matches && (new_delta_g1 == other.new_delta_g1) &&
            (s_g1 == other.s_g1) && (s_delta_j_g1 == other.s_delta_j_g1) &&
            (r_delta_j_g2 == other.r_delta_j_g2);
@@ -139,7 +140,7 @@ template<typename ppT>
 void srs_mpc_phase2_publickey<ppT>::write(std::ostream &out) const
 {
     check_well_formed(*this, "srs_mpc_phase2_publickey");
-    out.write((const char *)transcript_digest, sizeof(srs_mpc_hash_t));
+    out.write((const char *)transcript_digest, sizeof(mpc_hash_t));
     out << new_delta_g1 << s_g1 << s_delta_j_g1 << r_delta_j_g2;
 }
 
@@ -147,12 +148,12 @@ template<typename ppT>
 srs_mpc_phase2_publickey<ppT> srs_mpc_phase2_publickey<ppT>::read(
     std::istream &in)
 {
-    srs_mpc_hash_t transcript_digest;
+    mpc_hash_t transcript_digest;
     libff::G1<ppT> new_delta_g1;
     libff::G1<ppT> s_g1;
     libff::G1<ppT> s_delta_j_g1;
     libff::G2<ppT> r_delta_j_g2;
-    in.read((char *)transcript_digest, sizeof(srs_mpc_hash_t));
+    in.read((char *)transcript_digest, sizeof(mpc_hash_t));
     in >> new_delta_g1 >> s_g1 >> s_delta_j_g1 >> r_delta_j_g2;
     srs_mpc_phase2_publickey pubkey(
         transcript_digest, new_delta_g1, s_g1, s_delta_j_g1, r_delta_j_g2);
@@ -161,29 +162,28 @@ srs_mpc_phase2_publickey<ppT> srs_mpc_phase2_publickey<ppT>::read(
 }
 
 template<typename ppT>
-void srs_mpc_phase2_publickey<ppT>::compute_digest(
-    srs_mpc_hash_t out_digest) const
+void srs_mpc_phase2_publickey<ppT>::compute_digest(mpc_hash_t out_digest) const
 {
-    hash_ostream hs;
+    mpc_hash_ostream hs;
     write(hs);
     hs.get_hash(out_digest);
 }
 
 template<typename ppT>
 srs_mpc_phase2_challenge<ppT>::srs_mpc_phase2_challenge(
-    const srs_mpc_hash_t transcript_digest,
+    const mpc_hash_t transcript_digest,
     srs_mpc_phase2_accumulator<ppT> &&accumulator)
     : transcript_digest(), accumulator(accumulator)
 {
-    memcpy(this->transcript_digest, transcript_digest, sizeof(srs_mpc_hash_t));
+    memcpy(this->transcript_digest, transcript_digest, sizeof(mpc_hash_t));
 }
 
 template<typename ppT>
 bool srs_mpc_phase2_challenge<ppT>::operator==(
     const srs_mpc_phase2_challenge<ppT> &other) const
 {
-    const bool digest_match = !memcmp(
-        transcript_digest, other.transcript_digest, sizeof(srs_mpc_hash_t));
+    const bool digest_match =
+        !memcmp(transcript_digest, other.transcript_digest, sizeof(mpc_hash_t));
     return digest_match && (accumulator == other.accumulator);
 }
 
@@ -197,7 +197,7 @@ template<typename ppT>
 void srs_mpc_phase2_challenge<ppT>::write(std::ostream &out) const
 {
     check_well_formed(*this, "srs_mpc_phase2_challenge::write");
-    out.write((const char *)transcript_digest, sizeof(srs_mpc_hash_t));
+    out.write((const char *)transcript_digest, sizeof(mpc_hash_t));
     accumulator.write(out);
 }
 
@@ -205,8 +205,8 @@ template<typename ppT>
 srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_challenge<ppT>::read(
     std::istream &in)
 {
-    srs_mpc_hash_t last_response_digest;
-    in.read((char *)last_response_digest, sizeof(srs_mpc_hash_t));
+    mpc_hash_t last_response_digest;
+    in.read((char *)last_response_digest, sizeof(mpc_hash_t));
     srs_mpc_phase2_accumulator<ppT> accum =
         srs_mpc_phase2_accumulator<ppT>::read(in);
     srs_mpc_phase2_challenge<ppT> challenge(
@@ -261,13 +261,13 @@ srs_mpc_phase2_response<ppT> srs_mpc_phase2_response<ppT>::read(
 
 template<mp_size_t n, const libff::bigint<n> &modulus>
 void srs_mpc_digest_to_fp(
-    const srs_mpc_hash_t transcript_digest, libff::Fp_model<n, modulus> &out_fr)
+    const mpc_hash_t transcript_digest, libff::Fp_model<n, modulus> &out_fr)
 {
     // Fill a U512 with random data and compute the representation mod m.
     libff::bigint<2 * n> random;
     libff::bigint<n + 1> _quotient;
 
-    chacha_rng rng(transcript_digest, sizeof(srs_mpc_hash_t));
+    chacha_rng rng(transcript_digest, sizeof(mpc_hash_t));
     rng.random(random.data, sizeof(random));
     mpn_tdiv_qr(
         _quotient.data,
@@ -282,7 +282,7 @@ void srs_mpc_digest_to_fp(
 /// Deterministically choose a value $r$ in G2, given some $s$ and $s_delta_j$
 /// in G1, and the current transcript digest.
 template<typename ppT>
-libff::G2<ppT> srs_mpc_digest_to_g2(const srs_mpc_hash_t transcript_digest)
+libff::G2<ppT> srs_mpc_digest_to_g2(const mpc_hash_t transcript_digest)
 {
     libff::Fr<ppT> fr;
     srs_mpc_digest_to_fp(transcript_digest, fr);
@@ -291,7 +291,7 @@ libff::G2<ppT> srs_mpc_digest_to_g2(const srs_mpc_hash_t transcript_digest)
 
 template<typename ppT>
 srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
-    const srs_mpc_hash_t cs_hash,
+    const mpc_hash_t cs_hash,
     const srs_mpc_layer_L1<ppT> &layer_L1,
     size_t num_inputs)
 {
@@ -335,7 +335,7 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
 
 template<typename ppT>
 srs_mpc_phase2_publickey<ppT> srs_mpc_phase2_compute_public_key(
-    const srs_mpc_hash_t transcript_digest,
+    const mpc_hash_t transcript_digest,
     const libff::G1<ppT> &last_delta,
     const libff::Fr<ppT> &delta_j)
 {
@@ -449,7 +449,7 @@ bool srs_mpc_phase2_update_is_consistent(
     libff::enter_block("call to srs_mpc_phase2_update_is_consistent");
 
     // Check basic compatibility between 'last' and 'updated'
-    if (memcmp(last.cs_hash, updated.cs_hash, sizeof(srs_mpc_hash_t)) ||
+    if (memcmp(last.cs_hash, updated.cs_hash, sizeof(mpc_hash_t)) ||
         last.H_g1.size() != updated.H_g1.size() ||
         last.L_g1.size() != updated.L_g1.size()) {
         return false;
@@ -508,9 +508,9 @@ template<typename ppT>
 srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_initial_challenge(
     srs_mpc_phase2_accumulator<ppT> &&accumulator)
 {
-    srs_mpc_hash_t initial_transcript_digest;
-    srs_mpc_compute_hash(
-        initial_transcript_digest, accumulator.cs_hash, sizeof(srs_mpc_hash_t));
+    mpc_hash_t initial_transcript_digest;
+    mpc_compute_hash(
+        initial_transcript_digest, accumulator.cs_hash, sizeof(mpc_hash_t));
     return srs_mpc_phase2_challenge<ppT>(
         initial_transcript_digest, std::move(accumulator));
 }
@@ -544,7 +544,7 @@ bool srs_mpc_phase2_verify_response(
     const bool digest_match = !memcmp(
         challenge.transcript_digest,
         response.publickey.transcript_digest,
-        sizeof(srs_mpc_hash_t));
+        sizeof(mpc_hash_t));
     if (!digest_match) {
         return false;
     }
@@ -557,7 +557,7 @@ template<typename ppT>
 srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_compute_challenge(
     srs_mpc_phase2_response<ppT> &&response)
 {
-    srs_mpc_hash_t new_transcript_digest;
+    mpc_hash_t new_transcript_digest;
     response.publickey.compute_digest(new_transcript_digest);
     return srs_mpc_phase2_challenge<ppT>(
         new_transcript_digest, std::move(response.new_accumulator));
@@ -565,16 +565,16 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_compute_challenge(
 
 template<typename ppT, bool enable_contribution_check>
 bool srs_mpc_phase2_verify_transcript(
-    const srs_mpc_hash_t initial_transcript_digest,
+    const mpc_hash_t initial_transcript_digest,
     const libff::G1<ppT> &initial_delta,
-    const srs_mpc_hash_t check_for_contribution,
+    const mpc_hash_t check_for_contribution,
     std::istream &transcript_stream,
     libff::G1<ppT> &out_final_delta,
-    srs_mpc_hash_t out_final_transcript_digest,
+    mpc_hash_t out_final_transcript_digest,
     bool &out_contribution_found)
 {
-    srs_mpc_hash_t digest;
-    memcpy(digest, initial_transcript_digest, sizeof(srs_mpc_hash_t));
+    mpc_hash_t digest;
+    memcpy(digest, initial_transcript_digest, sizeof(mpc_hash_t));
     libff::G1<ppT> delta = initial_delta;
 
     bool contribution_found = false;
@@ -582,16 +582,15 @@ bool srs_mpc_phase2_verify_transcript(
         const srs_mpc_phase2_publickey<ppT> publickey =
             srs_mpc_phase2_publickey<ppT>::read(transcript_stream);
 
-        const bool digests_match = !memcmp(
-            digest, publickey.transcript_digest, sizeof(srs_mpc_hash_t));
+        const bool digests_match =
+            !memcmp(digest, publickey.transcript_digest, sizeof(mpc_hash_t));
         if (!digests_match) {
             return false;
         }
 
         publickey.compute_digest(digest);
         if (enable_contribution_check && !contribution_found &&
-            0 == memcmp(
-                     digest, check_for_contribution, sizeof(srs_mpc_hash_t))) {
+            0 == memcmp(digest, check_for_contribution, sizeof(mpc_hash_t))) {
             contribution_found = true;
         }
 
@@ -604,7 +603,7 @@ bool srs_mpc_phase2_verify_transcript(
     }
 
     out_final_delta = delta;
-    memcpy(out_final_transcript_digest, digest, sizeof(srs_mpc_hash_t));
+    memcpy(out_final_transcript_digest, digest, sizeof(mpc_hash_t));
     if (enable_contribution_check) {
         out_contribution_found = contribution_found;
     }
@@ -614,13 +613,13 @@ bool srs_mpc_phase2_verify_transcript(
 
 template<typename ppT>
 bool srs_mpc_phase2_verify_transcript(
-    const srs_mpc_hash_t initial_transcript_digest,
+    const mpc_hash_t initial_transcript_digest,
     const libff::G1<ppT> &initial_delta,
     std::istream &transcript_stream,
     libff::G1<ppT> &out_final_delta,
-    srs_mpc_hash_t out_final_transcript_digest)
+    mpc_hash_t out_final_transcript_digest)
 {
-    const srs_mpc_hash_t dummy_check_for_contribution{};
+    const mpc_hash_t dummy_check_for_contribution{};
     bool dummy_out_contribution_found;
     return srs_mpc_phase2_verify_transcript<ppT, false>(
         initial_transcript_digest,
@@ -640,9 +639,9 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_dummy_phase2(
 {
     // Start with a blank challenge and simulate one contribution of the MPC
     // using delta.
-    srs_mpc_hash_t init_hash;
+    mpc_hash_t init_hash;
     uint8_t empty[0];
-    srs_mpc_compute_hash(init_hash, empty, 0);
+    mpc_compute_hash(init_hash, empty, 0);
     srs_mpc_phase2_challenge<ppT> challenge_0 =
         srs_mpc_phase2_initial_challenge(
             srs_mpc_phase2_begin(init_hash, layer1, num_inputs));
