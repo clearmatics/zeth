@@ -523,7 +523,7 @@ public:
             bits64 left_side_acc = vpub_in;
             for (size_t i = 0; i < NumInputs; i++) {
                 left_side_acc = bits_add<ZETH_V_SIZE>(
-                    left_side_acc, inputs[i].note.value(), true);
+                    left_side_acc, inputs[i].note.value, true);
             }
 
             zk_total_uint64.fill_with_bits(

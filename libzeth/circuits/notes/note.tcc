@@ -42,7 +42,7 @@ template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_witness(const zeth_note &note)
 {
     r.fill_with_bits(this->pb, bits256_to_vector(note.r));
-    value.fill_with_bits(this->pb, bits64_to_vector(note.value()));
+    value.fill_with_bits(this->pb, bits64_to_vector(note.value));
 }
 
 // Gadget that makes sure that all conditions are met in order to spend a note:
