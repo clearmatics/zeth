@@ -123,16 +123,16 @@ if ("${IS_ZETH_PARENT}")
     zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
     target_link_libraries(
       test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+    target_link_libraries(
+      test_powersoftau
+      ${Boost_FILESYSTEM_LIBRARY}
+    )
   endif()
 
   # Extra dependencies for specific tests
   target_link_libraries(
     test_prover
     ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-  )
-  target_link_libraries(
-    test_powersoftau
     ${Boost_FILESYSTEM_LIBRARY}
   )
 
