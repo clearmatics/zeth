@@ -2,28 +2,19 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "util.hpp"
-
-#include "gtest/gtest.h"
-#include <libff/common/default_types/ec_pp.hpp>
-#include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-
-// Access zeth configuration constants
-#include "libzeth/zeth.h"
-
-// Include the type we need
-#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/notes/note.hpp"
-#include "libzeth/types/bits.hpp"
-#include "libzeth/types/joinsplit.hpp"
-#include "libzeth/types/note.hpp"
+#include "libzeth/core/bits.hpp"
+#include "libzeth/core/joinsplit_input.hpp"
+#include "libzeth/core/note.hpp"
+#include "libzeth/core/utils.hpp"
+
+#include <gtest/gtest.h>
 
 using namespace libzeth;
 
-typedef libff::default_ec_pp ppT;
-
-// Should be alt_bn128 in the CMakeLists.txt
+typedef libzeth::ppT ppT;
 typedef libff::Fr<ppT> FieldT;
 
 namespace
@@ -61,13 +52,19 @@ TEST(TestPackedAddition, TestPackedAddition1)
 
     // === Witness
     value_left1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("000000000000000A")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("000000000000000A")));
     value_left2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("000000000000000A")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("000000000000000A")));
 
     // 0A + 0A = 14 in hexa
     value_right1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000014")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000014")));
 
     bool witness_bool = pb.is_satisfied();
     std::cout << "************* SAT result: " << witness_bool
@@ -114,17 +111,25 @@ TEST(TestPackedAddition, TestPackedAddition2)
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
     // 0x3782DACE9D900000 = 4ETH
     value_left1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("3782DACE9D900000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("3782DACE9D900000")));
     // 0x3782DACE9D900000 = 4ETH
     value_left2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("3782DACE9D900000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("3782DACE9D900000")));
 
     // 0x6124FEE993BC0000 = 7ETH
     value_right1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("6124FEE993BC0000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("6124FEE993BC0000")));
     // 0x0DE0B6B3A7640000 = 1ETH
     value_right2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0DE0B6B3A7640000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0DE0B6B3A7640000")));
 
     bool witness_bool = pb.is_satisfied();
     std::cout << "************* SAT result: " << witness_bool
@@ -177,18 +182,30 @@ TEST(TestPackedAddition, TestPackedAddition3)
     // === Witness
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
     v_pub_in.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000010")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000010")));
     in_val_note1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("2F0000000000000F")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("2F0000000000000F")));
     in_val_note2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
 
     v_pub_out.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("000000000000000B")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("000000000000000B")));
     out_val_note1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("1A00000000000012")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("1A00000000000012")));
     out_val_note2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("1500000000000002")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("1500000000000002")));
 
     bool witness_bool = pb.is_satisfied();
     std::cout << "************* SAT result: " << witness_bool
@@ -245,23 +262,35 @@ TEST(TestPackedAddition, TestPackedAddition4)
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
     // 0xFA80001400000000 = 18.050427392400293888 // ETH
     v_pub_in.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("FA80001400000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("FA80001400000000")));
 
     in_val_note1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
     in_val_note2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
 
     v_pub_out.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
 
     // 0x8530000A00000000 = 9.597170848876199936 ETH
     out_val_note1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("8530000A00000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("8530000A00000000")));
 
     // 0x7550000A00000000 = 8.453256543524093952 ETH
     out_val_note2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("7550000A00000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("7550000A00000000")));
 
     bool witness_bool = pb.is_satisfied();
     std::cout << "************* SAT result: " << witness_bool
@@ -314,23 +343,35 @@ TEST(TestPackedAddition, TestPackedAddition5)
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
     // 0x6124FEE993BC0000 = 7ETH
     v_pub_in.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("6124FEE993BC0000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("6124FEE993BC0000")));
     in_val_note1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
     in_val_note2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
 
     v_pub_out.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
 
     // 0x3782DACE9D900000 = 4ETH
 
     out_val_note1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("3782DACE9D900000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("3782DACE9D900000")));
 
     // 0x29A2241AF62C0000 = 3ETH
     out_val_note2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("29A2241AF62C0000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("29A2241AF62C0000")));
 
     bool witness_bool = pb.is_satisfied();
     std::cout << "************* SAT result: " << witness_bool
@@ -383,22 +424,34 @@ TEST(TestPackedAddition, TestPackedAddition6)
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
     // 0x6124FEE993BC0000 = 7ETH
     v_pub_in.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("6124FEE993BC0000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("6124FEE993BC0000")));
     in_val_note1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
     in_val_note2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
 
     v_pub_out.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("0000000000000000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("0000000000000000")));
 
     // 0x3782DACE9D900000 = 4.000000000000000001ETH
     out_val_note1.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("3782DACE9D900001")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("3782DACE9D900001")));
 
     // 0x29A2241AF62C0000 = 3ETH
     out_val_note2.fill_with_bits(
-        pb, libff::bit_vector(hex_to_binary_vector("29A2241AF62C0000")));
+        pb,
+        libff::bit_vector(
+            hexadecimal_str_to_binary_vector("29A2241AF62C0000")));
 
     bool witness_bool = pb.is_satisfied();
     std::cout << "************* SAT result: " << witness_bool

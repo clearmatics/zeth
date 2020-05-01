@@ -38,21 +38,14 @@ string(TOLOWER ${ZKSNARK} ZKSNARK_NAME)
 file(
   GLOB_RECURSE
   ZETH_SOURCE
-  types/**.?pp types/**.tcc
+
+  core/**.?pp core/**.tcc
+  snarks/**.?pp snarks/**.tcc
+  serialization/**.?pp serialization/**.tcc
   circuits/**.?pp circuits/**.tcc
-  circuit_wrapper.???
-  commitments/**.?pp commitments/**.tcc
-  libsnark_helpers/**.?pp libsnark_helpers/**.tcc
-  snarks/${ZKSNARK_NAME}/core/**.???
-  snarks/${ZKSNARK_NAME}/api/**.???
-  # We only implement the MPC for Groth16 for now
-  snarks/groth16/mpc/**.???
-  snarks_alias.hpp
-  include_libsnark.hpp
-  util.?pp util.tcc
-  util_api.?pp util_api.tcc
-  zeth.h
+  mpc/**.?pp mpc/**.tcc
 )
+
 add_library(
   zeth
 

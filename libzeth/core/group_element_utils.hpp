@@ -1,0 +1,31 @@
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
+#ifndef __ZETH_CORE_GROUP_ELEMENT_UTILS_HPP__
+#define __ZETH_CORE_GROUP_ELEMENT_UTILS_HPP__
+
+#include "include_libff.hpp"
+
+namespace libzeth
+{
+
+/// Convert a group element of G1 to an hexadecimal string.
+/// This function assumes that the group element is in affine
+/// form, and that both coordinates (X, Y) are elements of a
+/// prime field.
+template<typename ppT>
+std::string point_g1_affine_to_hexadecimal_str(const libff::G1<ppT> &point);
+
+/// Convert a group element of G2 to an hexadecimal string.
+/// This function assumes that the group element is in affine
+/// form, and that both coordinates (X, Y) are elements of a
+/// an extension field of degree 2.
+template<typename ppT>
+std::string point_g2_affine_to_hexadecimal_str(const libff::G2<ppT> &point);
+
+} // namespace libzeth
+
+#include "libzeth/core/group_element_utils.tcc"
+
+#endif // __ZETH_CORE_GROUP_ELEMENT_UTILS_HPP__

@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/mimc/mimc_mp.hpp"
 
 #include "gtest/gtest.h"
-#include <libff/common/default_types/ec_pp.hpp>
 
 using namespace libzeth;
 
-typedef libff::default_ec_pp ppT;
+typedef libzeth::ppT ppT;
 typedef libff::Fr<ppT> FieldT;
 
 namespace

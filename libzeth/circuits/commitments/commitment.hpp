@@ -5,7 +5,7 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/commitment.tcc
 
-#include "libzeth/zeth.h"
+#include "libzeth/zeth_constants.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
@@ -78,6 +78,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/commitments/commitment.tcc"
 
 #endif // __ZETH_CIRCUITS_COMMITMENT_HPP__

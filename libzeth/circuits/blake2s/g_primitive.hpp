@@ -6,8 +6,8 @@
 #define __ZETH_CIRCUITS_G_PRIMITIVE_HPP__
 
 #include "libzeth/circuits/binary_operation.hpp"
-#include "libzeth/circuits/circuits_utils.hpp"
-#include "libzeth/types/bits.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
+#include "libzeth/core/bits.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
@@ -69,6 +69,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/blake2s/g_primitive.tcc"
 
 #endif // __ZETH_CIRCUITS_G_PRIMITIVE_HPP__

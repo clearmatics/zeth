@@ -4,7 +4,7 @@
 
 #include "simple_test.hpp"
 
-#include "util.hpp"
+#include "core/utils.hpp"
 
 #include <gtest/gtest.h>
 

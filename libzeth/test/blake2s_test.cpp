@@ -4,19 +4,16 @@
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/blake2s/g_primitive.hpp"
-#include "libzeth/snarks_alias.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
+#include "libzeth/core/utils.hpp"
 
-#include "gtest/gtest.h"
-#include <libff/common/default_types/ec_pp.hpp>
-
-// Access the `from_bits` function and other utils
-#include "libzeth/circuits/circuits_utils.hpp"
-#include "libzeth/util.hpp"
+#include <gtest/gtest.h>
 
 using namespace libsnark;
 using namespace libzeth;
 
-typedef libff::default_ec_pp ppT;
+typedef libzeth::ppT ppT;
 typedef libff::Fr<ppT> FieldT;
 
 namespace
@@ -484,7 +481,7 @@ TEST(TestBlake2s, TestTrue2)
     blake2s_gadget.generate_r1cs_witness();
 
     // blake2s(b"zeth")
-    bits256 expected = hex_digest_to_bits256(
+    bits256 expected = get_bits256_from_hexadecimal_str(
         "b5f199b422df36c99363725d886e64c07ffd8852063adbbfbb86f43716ffab0e");
 
     ASSERT_EQ(get_vector_from_bits256(expected), output.bits.get_bits(pb));

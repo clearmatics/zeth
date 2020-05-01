@@ -6,6 +6,7 @@ pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
 import "./OTSchnorrVerifier.sol";
+import "./Pairing.sol";
 import "./BaseMixer.sol";
 
 contract Pghr13Mixer is BaseMixer {

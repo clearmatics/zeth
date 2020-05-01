@@ -3,14 +3,11 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/circuits/binary_operation.hpp"
-#include "libzeth/snarks_alias.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
+#include "libzeth/core/include_libff.hpp"
+#include "libzeth/core/utils.hpp"
 
-#include "gtest/gtest.h"
-#include <libff/common/default_types/ec_pp.hpp>
-
-// Access the `from_bits` function and other utils
-#include "libzeth/circuits/circuits_utils.hpp"
-#include "libzeth/util.hpp"
+#include <gtest/gtest.h>
 
 using namespace libzeth;
 

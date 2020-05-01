@@ -53,6 +53,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/mimc/mimc.tcc"
 
 #endif // __ZETH_CIRCUITS_MIMC_HPP__

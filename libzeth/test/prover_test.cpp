@@ -2,51 +2,42 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "gtest/gtest.h"
-#include <libff/common/default_types/ec_pp.hpp>
-#include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
-#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-
-// Header to use the merkle tree data structure to keep a local merkle tree
-#include <libsnark/common/data_structures/merkle_tree.hpp>
-
-// Have access to a chrono to measure the rough time of execution of a set of
-// instructions
-#include "libzeth/snarks_alias.hpp"
+#include "libzeth/circuits/blake2s/blake2s.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
+#include "libzeth/circuits/circuit_wrapper.hpp"
+#include "libzeth/core/utils.hpp"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
+#include "libzeth/snarks/pghr13/pghr13_snark.hpp"
 
 #include <chrono>
-// Import only the core components of the SNARK (not the API components)
-#include "libzeth/circuit_wrapper.hpp"
-#include "libzeth/circuits/blake2s/blake2s.hpp"
-#include "libzeth/libsnark_helpers/libsnark_helpers.hpp"
-#include "libzeth/snarks_core_imports.hpp"
-#include "libzeth/util.hpp"
+#include <gtest/gtest.h>
+#include <libsnark/common/data_structures/merkle_tree.hpp>
+
+// Use the default ppT and other options from the circuit code, but force the
+// Merkle tree depth to 4. Parameterize the test code on the snark, so that
+// this code can test all available snark schemes, indepedent of the build
+// configuration.
+
+static const size_t TreeDepth = 4;
 
 using namespace libzeth;
 
-// Instantiation of the templates for the tests
-typedef libff::default_ec_pp ppT;
-
-// Should be alt_bn128 in the CMakeLists.txt
-typedef libff::Fr<ppT> FieldT;
-typedef BLAKE2s_256<FieldT> HashT;
-typedef MiMC_mp_gadget<FieldT> HashTreeT;
-static const size_t TreeDepth = 4;
+template<typename snarkT>
+using prover = circuit_wrapper<HashT, HashTreeT, ppT, snarkT, 2, 2, TreeDepth>;
 
 namespace
 {
 
+template<typename snarkT>
 bool TestValidJS2In2Case1(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     // --- General setup for the tests --- //
     libff::print_header(
-        "test JS 2-2: IN => vpub_in = 0x0, note0 = 0x2F0000000000000F, note1 = "
-        "0x0 || OUT => vpub_out = 0x1700000000000007, note0 = "
-        "0x1800000000000008, note1 = 0x0");
+        "test JS 2-2:\n"
+        " IN => vpub_in=0x0, note0=0x2F0000000000000F, note1=0x0\n"
+        " OUT=> vpub_out=0x1700000000000007, note0=0x1800000000000008, "
+        "note1=0x0");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -62,16 +53,16 @@ bool TestValidJS2In2Case1(
     libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
-    bits256 trap_r_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_bits256 = get_bits256_from_hexadecimal_str(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
-    bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
-    bits256 a_sk_bits256 = hex_digest_to_bits256(
+    bits64 value_bits64 = get_bits64_from_hexadecimal_str("2F0000000000000F");
+    bits256 a_sk_bits256 = get_bits256_from_hexadecimal_str(
         "FF0000000000000000000000000000000000000000000000000000000000000F");
-    bits256 rho_bits256 = hex_digest_to_bits256(
+    bits256 rho_bits256 = get_bits256_from_hexadecimal_str(
         "FFFF000000000000000000000000000000000000000000000000000000009009");
-    bits256 a_pk_bits256 = hex_digest_to_bits256(
+    bits256 a_pk_bits256 = get_bits256_from_hexadecimal_str(
         "f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49");
-    bits256 nf_bits256 = hex_digest_to_bits256(
+    bits256 nf_bits256 = get_bits256_from_hexadecimal_str(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7");
     FieldT cm_field = FieldT("1042337073265819561558789652115525918926201435246"
                              "16864409706009242461667751082");
@@ -80,9 +71,9 @@ bool TestValidJS2In2Case1(
     for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
-    bits256 h_sig = hex_digest_to_bits256(
+    bits256 h_sig = get_bits256_from_hexadecimal_str(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7");
-    bits256 phi = hex_digest_to_bits256(
+    bits256 phi = get_bits256_from_hexadecimal_str(
         "403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b");
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -95,8 +86,8 @@ bool TestValidJS2In2Case1(
         a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);
     zeth_note note_dummy_input(
         a_pk_bits256,
-        hex_value_to_bits64("0000000000000000"),
-        hex_digest_to_bits256(
+        get_bits64_from_hexadecimal_str("0000000000000000"),
+        get_bits256_from_hexadecimal_str(
             "AAAA00000000000000000000000000000000000000000000000000000000EEE"
             "E"),
         trap_r_bits256);
@@ -121,11 +112,12 @@ bool TestValidJS2In2Case1(
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
-    bits64 value_out_bits64 = hex_value_to_bits64("1800000000000008");
-    bits256 a_pk_out_bits256 = hex_digest_to_bits256(
+    bits64 value_out_bits64 =
+        get_bits64_from_hexadecimal_str("1800000000000008");
+    bits256 a_pk_out_bits256 = get_bits256_from_hexadecimal_str(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
     bits256 rho_out_bits256;
-    bits256 trap_r_out_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_out_bits256 = get_bits256_from_hexadecimal_str(
         "11000000000000990000000000000099000000000000007700000000000000FF");
 
     zeth_note note_output(
@@ -135,21 +127,22 @@ bool TestValidJS2In2Case1(
         trap_r_out_bits256);
     zeth_note note_dummy_output(
         a_pk_out_bits256,
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         rho_out_bits256,
         trap_r_out_bits256);
-    bits64 value_pub_out_bits64 = hex_value_to_bits64("1700000000000007");
+    bits64 value_pub_out_bits64 =
+        get_bits64_from_hexadecimal_str("1700000000000007");
     std::array<zeth_note, 2> outputs;
     outputs[0] = note_output;
     outputs[1] = note_dummy_output;
     libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate proof", true);
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
-        hex_value_to_bits64("0000000000000000"), // vpub_in = 0
+        get_bits64_from_hexadecimal_str("0000000000000000"), // vpub_in = 0
         value_pub_out_bits64,
         h_sig,
         phi,
@@ -158,8 +151,9 @@ bool TestValidJS2In2Case1(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
@@ -171,14 +165,15 @@ bool TestValidJS2In2Case1(
     return res;
 }
 
+template<typename snarkT>
 bool TestValidJS2In2Case2(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     libff::print_header(
-        "Starting test: IN => v_pub = 0, note0 = 0x2F0000000000000F, note1 = "
-        "0x0 || OUT => v_pub = 0x000000000000000B, note0 = 0x1A00000000000002, "
-        "note1 = 0x1500000000000002");
+        "Starting test:\n"
+        " IN => v_pub=0, note0=0x2F0000000000000F, note1=0x0\n"
+        " OUT=> v_pub=0x000000000000000B, note0=0x1A00000000000002,"
+        " note1=0x1500000000000002");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -194,16 +189,16 @@ bool TestValidJS2In2Case2(
     libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
-    bits256 trap_r_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_bits256 = get_bits256_from_hexadecimal_str(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
-    bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
-    bits256 a_sk_bits256 = hex_digest_to_bits256(
+    bits64 value_bits64 = get_bits64_from_hexadecimal_str("2F0000000000000F");
+    bits256 a_sk_bits256 = get_bits256_from_hexadecimal_str(
         "FF0000000000000000000000000000000000000000000000000000000000000F");
-    bits256 rho_bits256 = hex_digest_to_bits256(
+    bits256 rho_bits256 = get_bits256_from_hexadecimal_str(
         "FFFF000000000000000000000000000000000000000000000000000000009009");
-    bits256 a_pk_bits256 = hex_digest_to_bits256(
+    bits256 a_pk_bits256 = get_bits256_from_hexadecimal_str(
         "f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49");
-    bits256 nf_bits256 = hex_digest_to_bits256(
+    bits256 nf_bits256 = get_bits256_from_hexadecimal_str(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7");
     FieldT cm_field = FieldT("1042337073265819561558789652115525918926201435246"
                              "16864409706009242461667751082");
@@ -212,9 +207,9 @@ bool TestValidJS2In2Case2(
     for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
-    bits256 h_sig = hex_digest_to_bits256(
+    bits256 h_sig = get_bits256_from_hexadecimal_str(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7");
-    bits256 phi = hex_digest_to_bits256(
+    bits256 phi = get_bits256_from_hexadecimal_str(
         "403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b");
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -230,7 +225,7 @@ bool TestValidJS2In2Case2(
         trap_r_bits256);
     zeth_note note_input1(
         a_pk_bits256,
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
     joinsplit_input<FieldT, TreeDepth> input0(
@@ -254,19 +249,19 @@ bool TestValidJS2In2Case2(
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
-    bits256 a_pk_out_bits256 = hex_digest_to_bits256(
+    bits256 a_pk_out_bits256 = get_bits256_from_hexadecimal_str(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
     bits256 rho_out_bits256;
-    bits256 trap_r_out_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_out_bits256 = get_bits256_from_hexadecimal_str(
         "11000000000000990000000000000099000000000000007700000000000000FF");
     zeth_note note_output0(
         a_pk_out_bits256,
-        hex_value_to_bits64("1A00000000000002"),
+        get_bits64_from_hexadecimal_str("1A00000000000002"),
         rho_out_bits256,
         trap_r_out_bits256);
     zeth_note note_output1(
         a_pk_out_bits256,
-        hex_value_to_bits64("1500000000000002"),
+        get_bits64_from_hexadecimal_str("1500000000000002"),
         rho_out_bits256,
         trap_r_out_bits256);
     std::array<zeth_note, 2> outputs;
@@ -277,14 +272,14 @@ bool TestValidJS2In2Case2(
     libff::enter_block("Generate proof", true);
     // RHS = 0x1A00000000000002 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F (LHS)
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
         // vpub_in = 0x0
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         // vpub_out = 0x000000000000000B
-        hex_value_to_bits64("000000000000000B"),
+        get_bits64_from_hexadecimal_str("000000000000000B"),
         h_sig,
         phi,
         keypair.pk);
@@ -292,8 +287,9 @@ bool TestValidJS2In2Case2(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
@@ -305,15 +301,16 @@ bool TestValidJS2In2Case2(
     return res;
 }
 
+template<typename snarkT>
 bool TestValidJS2In2Case3(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     // --- General setup for the tests --- //
     libff::print_header(
-        "Starting test: IN => v_pub = 0x0000000000000010, note0 = "
-        "0x2F0000000000000F, note1 = 0x0 || OUT => v_pub = 0x000000000000000B, "
-        "note0 = 0x1A00000000000012, note1 = 0x1500000000000002");
+        "Starting test:\n"
+        " IN => v_pub=0x0000000000000010, note0=0x2F0000000000000F, note1=0x0\n"
+        " OUT=> v_pub=0x000000000000000B, note0=0x1A00000000000012,"
+        " note1=0x1500000000000002");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -329,31 +326,28 @@ bool TestValidJS2In2Case3(
     libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
-    bits256 trap_r_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_bits256 = get_bits256_from_hexadecimal_str(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
-    bits64 value_bits64 = hex_value_to_bits64("2F0000000000000F");
-    bits256 a_sk_bits256 =
-        hex_digest_to_bits256("FF00000000000000000000000000000000"
-                              "00000000000000000000000000000F");
-    bits256 rho_bits256 =
-        hex_digest_to_bits256("FFFF000000000000000000000000000000"
-                              "000000000000000000000000009009");
-    bits256 a_pk_bits256 =
-        hex_digest_to_bits256("f172d7299ac8ac974ea59413e4a8769182"
-                              "6df038ba24a2b52d5c5d15c2cc8c49");
-    bits256 nf_bits256 =
-        hex_digest_to_bits256("ff2f41920346251f6e7c67062149f98bc9"
-                              "0c915d3d3020927ca01deab5da0fd7");
-    FieldT cm_field = FieldT("1042337073265819561558789652115525918926201435246"
-                             "16864409706009242461667751082");
+    bits64 value_bits64 = get_bits64_from_hexadecimal_str("2F0000000000000F");
+    bits256 a_sk_bits256 = get_bits256_from_hexadecimal_str(
+        "FF0000000000000000000000000000000000000000000000000000000000000F");
+    bits256 rho_bits256 = get_bits256_from_hexadecimal_str(
+        "FFFF000000000000000000000000000000000000000000000000000000009009");
+    bits256 a_pk_bits256 = get_bits256_from_hexadecimal_str(
+        "f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49");
+    bits256 nf_bits256 = get_bits256_from_hexadecimal_str(
+        "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7");
+    FieldT cm_field = FieldT(
+        "1042337073265819561558789652115525918926201435246168644097060092"
+        "42461667751082");
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
     for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
-    bits256 h_sig = hex_digest_to_bits256(
+    bits256 h_sig = get_bits256_from_hexadecimal_str(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7");
-    bits256 phi = hex_digest_to_bits256(
+    bits256 phi = get_bits256_from_hexadecimal_str(
         "403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b");
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -369,7 +363,7 @@ bool TestValidJS2In2Case3(
         trap_r_bits256);
     zeth_note note_input1(
         a_pk_bits256,
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
     joinsplit_input<FieldT, TreeDepth> input0(
@@ -393,20 +387,20 @@ bool TestValidJS2In2Case3(
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
-    bits256 a_pk_out_bits256 = hex_digest_to_bits256(
+    bits256 a_pk_out_bits256 = get_bits256_from_hexadecimal_str(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
     bits256 rho_out_bits256;
-    bits256 trap_r_out_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_out_bits256 = get_bits256_from_hexadecimal_str(
         "11000000000000990000000000000099000000000000007700000000000000FF");
 
     zeth_note note_output0(
         a_pk_out_bits256,
-        hex_value_to_bits64("1A00000000000012"),
+        get_bits64_from_hexadecimal_str("1A00000000000012"),
         rho_out_bits256,
         trap_r_out_bits256);
     zeth_note note_output1(
         a_pk_out_bits256,
-        hex_value_to_bits64("1500000000000002"),
+        get_bits64_from_hexadecimal_str("1500000000000002"),
         rho_out_bits256,
         trap_r_out_bits256);
     std::array<zeth_note, 2> outputs;
@@ -417,13 +411,13 @@ bool TestValidJS2In2Case3(
     libff::enter_block("Generate proof", true);
     // (RHS) 0x1A00000000000012 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F + 0x0000000000000010 + 0x0 (LHS)
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
-        hex_value_to_bits64(
+        get_bits64_from_hexadecimal_str(
             "0000000000000010"), // v_pub_in = 0x0000000000000010
-        hex_value_to_bits64(
+        get_bits64_from_hexadecimal_str(
             "000000000000000B"), // v_pub_out = 0x000000000000000B
         h_sig,
         phi,
@@ -432,8 +426,9 @@ bool TestValidJS2In2Case3(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verfy? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
@@ -445,14 +440,15 @@ bool TestValidJS2In2Case3(
     return res;
 }
 
+template<typename snarkT>
 bool TestValidJS2In2Deposit(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     // --- General setup for the tests --- //
-    libff::print_header("Starting test: IN => v_pub = 0x6124FEE993BC0000, "
-                        "note0 = 0x0, note1 = 0x0 || OUT => v_pub = 0x0, note0 "
-                        "= 0x3782DACE9D900000, note1 = 0x29A2241AF62C0000");
+    libff::print_header(
+        "Starting test:\n"
+        " IN => v_pub=0x6124FEE993BC0000, note0=0x0, note1=0x0\n"
+        " OUT=> v_pub=0x0, note0=0x3782DACE9D900000, note1=0x29A2241AF62C0000");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -468,20 +464,16 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
-    bits256 trap_r_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_bits256 = get_bits256_from_hexadecimal_str(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
-    bits256 a_sk_bits256 =
-        hex_digest_to_bits256("FF00000000000000000000000000000000"
-                              "00000000000000000000000000000F");
-    bits256 rho_bits256 =
-        hex_digest_to_bits256("FFFF000000000000000000000000000000"
-                              "000000000000000000000000009009");
-    bits256 a_pk_bits256 =
-        hex_digest_to_bits256("f172d7299ac8ac974ea59413e4a8769182"
-                              "6df038ba24a2b52d5c5d15c2cc8c49");
-    bits256 nf_bits256 =
-        hex_digest_to_bits256("ff2f41920346251f6e7c67062149f98bc9"
-                              "0c915d3d3020927ca01deab5da0fd7");
+    bits256 a_sk_bits256 = get_bits256_from_hexadecimal_str(
+        "FF0000000000000000000000000000000000000000000000000000000000000F");
+    bits256 rho_bits256 = get_bits256_from_hexadecimal_str(
+        "FFFF000000000000000000000000000000000000000000000000000000009009");
+    bits256 a_pk_bits256 = get_bits256_from_hexadecimal_str(
+        "f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49");
+    bits256 nf_bits256 = get_bits256_from_hexadecimal_str(
+        "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7");
     FieldT cm_field = FieldT("8049045390937310931330301778888084231593485252743"
                              "182393007013989361193264682");
 
@@ -490,9 +482,9 @@ bool TestValidJS2In2Deposit(
     for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
-    bits256 h_sig = hex_digest_to_bits256(
+    bits256 h_sig = get_bits256_from_hexadecimal_str(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7");
-    bits256 phi = hex_digest_to_bits256(
+    bits256 phi = get_bits256_from_hexadecimal_str(
         "403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b");
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -503,12 +495,12 @@ bool TestValidJS2In2Deposit(
     // JS Inputs
     zeth_note note_input0(
         a_pk_bits256,
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
     zeth_note note_input1(
         a_pk_bits256,
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
     joinsplit_input<FieldT, TreeDepth> input0(
@@ -532,19 +524,19 @@ bool TestValidJS2In2Deposit(
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
-    bits256 a_pk_out_bits256 = hex_digest_to_bits256(
+    bits256 a_pk_out_bits256 = get_bits256_from_hexadecimal_str(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
     bits256 rho_out_bits256;
-    bits256 trap_r_out_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_out_bits256 = get_bits256_from_hexadecimal_str(
         "11000000000000990000000000000099000000000000007700000000000000FF");
     zeth_note note_output0(
         a_pk_out_bits256,
-        hex_value_to_bits64("3782DACE9D900000"),
+        get_bits64_from_hexadecimal_str("3782DACE9D900000"),
         rho_out_bits256,
         trap_r_out_bits256);
     zeth_note note_output1(
         a_pk_out_bits256,
-        hex_value_to_bits64("29A2241AF62C0000"),
+        get_bits64_from_hexadecimal_str("29A2241AF62C0000"),
         rho_out_bits256,
         trap_r_out_bits256);
     std::array<zeth_note, 2> outputs;
@@ -555,14 +547,14 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("Generate proof", true);
     // RHS = 0x0 + 0x3782DACE9D900000 + 0x29A2241AF62C0000 = 0x6124FEE993BC0000
     // (LHS)
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
         // v_pub_in = 0x6124FEE993BC0000
-        hex_value_to_bits64("6124FEE993BC0000"),
+        get_bits64_from_hexadecimal_str("6124FEE993BC0000"),
         // v_pub_out = 0x000000000000000B
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         h_sig,
         phi,
         keypair.pk);
@@ -570,8 +562,9 @@ bool TestValidJS2In2Deposit(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
 
     ext_proof.dump_primary_inputs();
     std::cout << "Does the proof verify? " << res << std::endl;
@@ -585,14 +578,15 @@ bool TestValidJS2In2Deposit(
     return res;
 }
 
+template<typename snarkT>
 bool TestInvalidJS2In2(
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth> &prover,
-    libzeth::keyPairT<ppT> keypair)
+    const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
 {
     // --- General setup for the tests --- //
-    libff::print_header("Starting test: IN => v_pub = 0xFA80001400000000, "
-                        "note0 = 0x0, note1 = 0x0 || OUT => v_pub = 0x0, note0 "
-                        "= 0x8530000A00000001, note1 = 0x7550000A00000000");
+    libff::print_header(
+        "Starting test:\n"
+        " IN => v_pub=0xFA80001400000000, note0=0x0, note1=0x0\n"
+        " OUT=> v_pub=0x0, note0=0x8530000A00000001, note1=0x7550000A00000000");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
@@ -608,15 +602,15 @@ bool TestInvalidJS2In2(
     libff::enter_block("Create joinsplit_input", true);
     // Create the zeth note data for the commitment we will insert in the tree
     // (commitment to spend in this test)
-    bits256 trap_r_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_bits256 = get_bits256_from_hexadecimal_str(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
-    bits256 a_sk_bits256 = hex_digest_to_bits256(
+    bits256 a_sk_bits256 = get_bits256_from_hexadecimal_str(
         "FF0000000000000000000000000000000000000000000000000000000000000F");
-    bits256 rho_bits256 = hex_digest_to_bits256(
+    bits256 rho_bits256 = get_bits256_from_hexadecimal_str(
         "FFFF000000000000000000000000000000000000000000000000000000009009");
-    bits256 a_pk_bits256 = hex_digest_to_bits256(
+    bits256 a_pk_bits256 = get_bits256_from_hexadecimal_str(
         "f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49");
-    bits256 nf_bits256 = hex_digest_to_bits256(
+    bits256 nf_bits256 = get_bits256_from_hexadecimal_str(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7");
     FieldT cm_field = FieldT("8049045390937310931330301778888084231593485252743"
                              "182393007013989361193264682");
@@ -626,9 +620,9 @@ bool TestInvalidJS2In2(
     for (size_t i = 0; i < TreeDepth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
-    bits256 h_sig = hex_digest_to_bits256(
+    bits256 h_sig = get_bits256_from_hexadecimal_str(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7");
-    bits256 phi = hex_digest_to_bits256(
+    bits256 phi = get_bits256_from_hexadecimal_str(
         "403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b");
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -639,12 +633,12 @@ bool TestInvalidJS2In2(
     // JS Inputs
     zeth_note note_input0(
         a_pk_bits256,
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
     zeth_note note_input1(
         a_pk_bits256,
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
     joinsplit_input<FieldT, TreeDepth> input0(
@@ -668,22 +662,22 @@ bool TestInvalidJS2In2(
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
-    bits256 a_pk_out_bits256 = hex_digest_to_bits256(
+    bits256 a_pk_out_bits256 = get_bits256_from_hexadecimal_str(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
     bits256 rho_out_bits256;
-    bits256 trap_r_out_bits256 = hex_digest_to_bits256(
+    bits256 trap_r_out_bits256 = get_bits256_from_hexadecimal_str(
         "11000000000000990000000000000099000000000000007700000000000000FF");
 
     // 0x8530000A00000000 = 9.597170848876199937 ETH
     zeth_note note_output0(
         a_pk_out_bits256,
-        hex_value_to_bits64("8530000A00000001"),
+        get_bits64_from_hexadecimal_str("8530000A00000001"),
         rho_out_bits256,
         trap_r_out_bits256);
     // 0x7550000A00000000 = 8.453256543524093952 ETH
     zeth_note note_output1(
         a_pk_out_bits256,
-        hex_value_to_bits64("7550000A00000000"),
+        get_bits64_from_hexadecimal_str("7550000A00000000"),
         rho_out_bits256,
         trap_r_out_bits256);
     std::array<zeth_note, 2> outputs;
@@ -696,14 +690,14 @@ bool TestInvalidJS2In2(
     // 0x8530000A00000001 (9.597170848876199937 ETH) + 0x7550000A00000000
     // (8.453256543524093952 ETH) = RHS LHS = 18.050427392400293888 ETH RHS
     // = 18.050427392400293889 ETH (1 wei higher than LHS)
-    extended_proof<ppT> ext_proof = prover.prove(
+    extended_proof<ppT, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
         // vpub_in = 0xFA80001400000000 = 18.050427392400293888 ETH
-        hex_value_to_bits64("FA80001400000000"),
+        get_bits64_from_hexadecimal_str("FA80001400000000"),
         // vpub_out = 0x0
-        hex_value_to_bits64("0000000000000000"),
+        get_bits64_from_hexadecimal_str("0000000000000000"),
         h_sig,
         phi,
         keypair.pk);
@@ -711,8 +705,9 @@ bool TestInvalidJS2In2(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    libzeth::verificationKeyT<ppT> vk = keypair.vk;
-    bool res = libzeth::verify(ext_proof, vk);
+    typename snarkT::VerifKeyT vk = keypair.vk;
+    bool res = snarkT::verify(
+        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify ? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
@@ -724,14 +719,13 @@ bool TestInvalidJS2In2(
     return res;
 }
 
-TEST(MainTests, ProofGenAndVerifJS2to2)
+template<typename snarkT> static void run_prover_tests()
 {
     // Run the trusted setup once for all tests, and keep the keypair in memory
     // for the duration of the tests
-    circuit_wrapper<FieldT, HashT, HashTreeT, ppT, 2, 2, TreeDepth>
-        proverJS2to2;
+    prover<snarkT> proverJS2to2;
 
-    libzeth::keyPairT<ppT> keypair = proverJS2to2.generate_trusted_setup();
+    typename snarkT::KeypairT keypair = proverJS2to2.generate_trusted_setup();
     bool res = false;
 
     res = TestValidJS2In2Case1(proverJS2to2, keypair);
@@ -746,14 +740,30 @@ TEST(MainTests, ProofGenAndVerifJS2to2)
     res = TestValidJS2In2Deposit(proverJS2to2, keypair);
     ASSERT_TRUE(res);
 
-    // The following test is expected to throw an exception because the LHS =/=
-    // RHS
+    // The following is expected to throw an exception because LHS =/= RHS.
+    // Ensure that the exception is thrown.
+    ASSERT_THROW(
+        (res = TestInvalidJS2In2(proverJS2to2, keypair)),
+        std::invalid_argument);
+
     try {
+        res = false;
         res = TestInvalidJS2In2(proverJS2to2, keypair);
-        ASSERT_TRUE(res);
+        res = true;
     } catch (const std::invalid_argument &e) {
         std::cerr << "Invalid argument exception: " << e.what() << '\n';
     }
+    ASSERT_FALSE(res);
+}
+
+TEST(MainTestsGroth16, ProofGenAndVerifJS2to2)
+{
+    run_prover_tests<groth16_snark<ppT>>();
+}
+
+TEST(MainTestsPghr12, ProofGenAndVerifJS2to2)
+{
+    run_prover_tests<pghr13_snark<ppT>>();
 }
 
 } // namespace
