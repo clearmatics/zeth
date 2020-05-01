@@ -44,7 +44,7 @@ template<typename ppT>
 bool pghr13_snark<ppT>::verify(
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_inputs,
     const pghr13_snark<ppT>::ProofT &proof,
-    const pghr13_snark<ppT>::VerifKeyT &verification_key)
+    const pghr13_snark<ppT>::VerificationKeyT &verification_key)
 {
     return libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(
         verification_key, primary_inputs, proof);
@@ -52,7 +52,7 @@ bool pghr13_snark<ppT>::verify(
 
 template<typename ppT>
 std::ostream &pghr13_snark<ppT>::verification_key_write_json(
-    const pghr13_snark<ppT>::VerifKeyT &vk, std::ostream &os)
+    const pghr13_snark<ppT>::VerificationKeyT &vk, std::ostream &os)
 {
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
 
@@ -83,16 +83,16 @@ std::ostream &pghr13_snark<ppT>::verification_key_write_json(
 
 template<typename ppT>
 std::ostream &pghr13_snark<ppT>::verification_key_write_bytes(
-    const typename pghr13_snark<ppT>::VerifKeyT &vk, std::ostream &os)
+    const typename pghr13_snark<ppT>::VerificationKeyT &vk, std::ostream &os)
 {
     return os << vk;
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::VerifKeyT pghr13_snark<
+typename pghr13_snark<ppT>::VerificationKeyT pghr13_snark<
     ppT>::verification_key_read_bytes(std::istream &is)
 {
-    VerifKeyT vk;
+    VerificationKeyT vk;
     is >> vk;
     return vk;
 }

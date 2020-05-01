@@ -16,7 +16,7 @@ template<typename ppT> class groth16_snark
 {
 public:
     typedef libsnark::r1cs_gg_ppzksnark_proving_key<ppT> ProvingKeyT;
-    typedef libsnark::r1cs_gg_ppzksnark_verification_key<ppT> VerifKeyT;
+    typedef libsnark::r1cs_gg_ppzksnark_verification_key<ppT> VerificationKeyT;
     typedef libsnark::r1cs_gg_ppzksnark_keypair<ppT> KeypairT;
     typedef libsnark::r1cs_gg_ppzksnark_proof<ppT> ProofT;
 
@@ -33,18 +33,18 @@ public:
     static bool verify(
         const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_inputs,
         const ProofT &proof,
-        const VerifKeyT &verification_key);
+        const VerificationKeyT &verification_key);
 
     /// Write verification as json
     static std::ostream &verification_key_write_json(
-        const VerifKeyT &, std::ostream &);
+        const VerificationKeyT &, std::ostream &);
 
     /// Write verification key as bytes
     static std::ostream &verification_key_write_bytes(
-        const VerifKeyT &, std::ostream &);
+        const VerificationKeyT &, std::ostream &);
 
     /// Read a verification key as bytes
-    static VerifKeyT verification_key_read_bytes(std::istream &);
+    static VerificationKeyT verification_key_read_bytes(std::istream &);
 
     /// Write proving key as bytes
     static std::ostream &proving_key_write_bytes(
@@ -70,7 +70,8 @@ static bool is_well_formed(const typename groth16_snark<ppT>::ProvingKeyT &pk);
 
 /// Check well-formedness of a verification key
 template<typename ppT>
-static bool is_well_formed(const typename groth16_snark<ppT>::VerifKeyT &vk);
+static bool is_well_formed(
+    const typename groth16_snark<ppT>::VerificationKeyT &vk);
 
 } // namespace libzeth
 

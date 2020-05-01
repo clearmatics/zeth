@@ -44,7 +44,7 @@ template<typename ppT>
 bool groth16_snark<ppT>::verify(
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_inputs,
     const groth16_snark<ppT>::ProofT &proof,
-    const groth16_snark<ppT>::VerifKeyT &verification_key)
+    const groth16_snark<ppT>::VerificationKeyT &verification_key)
 {
     return libsnark::r1cs_gg_ppzksnark_verifier_strong_IC<ppT>(
         verification_key, primary_inputs, proof);
@@ -52,7 +52,7 @@ bool groth16_snark<ppT>::verify(
 
 template<typename ppT>
 std::ostream &groth16_snark<ppT>::verification_key_write_json(
-    const VerifKeyT &vk, std::ostream &os)
+    const VerificationKeyT &vk, std::ostream &os)
 {
     const size_t abc_length = vk.ABC_g1.rest.indices.size() + 1;
     os << "{"
@@ -78,7 +78,7 @@ std::ostream &groth16_snark<ppT>::verification_key_write_json(
 
 template<typename ppT>
 std::ostream &groth16_snark<ppT>::verification_key_write_bytes(
-    const VerifKeyT &vk, std::ostream &os)
+    const VerificationKeyT &vk, std::ostream &os)
 {
     if (!is_well_formed<ppT>(vk)) {
         throw std::invalid_argument("verification key (write) not well-formed");
@@ -97,10 +97,10 @@ std::ostream &groth16_snark<ppT>::proving_key_write_bytes(
 }
 
 template<typename ppT>
-typename groth16_snark<ppT>::VerifKeyT groth16_snark<
+typename groth16_snark<ppT>::VerificationKeyT groth16_snark<
     ppT>::verification_key_read_bytes(std::istream &is)
 {
-    VerifKeyT vk;
+    VerificationKeyT vk;
     is >> vk;
     if (!is_well_formed<ppT>(vk)) {
         throw std::invalid_argument("verification key (read) not well-formed");
@@ -134,7 +134,7 @@ typename groth16_snark<ppT>::KeypairT groth16_snark<ppT>::keypair_read_bytes(
     std::istream &is)
 {
     ProvingKeyT pk = proving_key_read_bytes(is);
-    VerifKeyT vk = verification_key_read_bytes(is);
+    VerificationKeyT vk = verification_key_read_bytes(is);
     return libsnark::r1cs_gg_ppzksnark_keypair<ppT>(
         std::move(pk), std::move(vk));
 }
@@ -174,7 +174,7 @@ bool is_well_formed(const typename groth16_snark<ppT>::ProvingKeyT &pk)
 }
 
 template<typename ppT>
-bool is_well_formed(const typename groth16_snark<ppT>::VerifKeyT &vk)
+bool is_well_formed(const typename groth16_snark<ppT>::VerificationKeyT &vk)
 {
     if (!vk.alpha_g1.is_well_formed() || !vk.beta_g2.is_well_formed() ||
         !vk.delta_g2.is_well_formed() || !vk.ABC_g1.first.is_well_formed()) {

@@ -43,7 +43,7 @@ static void serialize_setup_to_file(
     const boost::filesystem::path path_pk_raw = setup_path / "pk.raw";
 
     const typename snark::ProvingKeyT &proving_key = keypair.pk;
-    const typename snark::VerifKeyT &verification_key = keypair.vk;
+    const typename snark::VerificationKeyT &verification_key = keypair.vk;
 
     // Write the verification key in json format
     {

@@ -24,13 +24,13 @@ public:
         zeth_proto::ExtendedProof *message);
 
     static void format_verification_key(
-        const typename snarkT::VerifKeyT &vk,
+        const typename snarkT::VerificationKeyT &vk,
         zeth_proto::VerificationKey *message);
 
     static libzeth::extended_proof<ppT, snarkT> parse_extended_proof(
         const zeth_proto::ExtendedProof &ext_proof);
 
-    static typename snarkT::VerifKeyT parse_verification_key(
+    static typename snarkT::VerificationKeyT parse_verification_key(
         const zeth_proto::VerificationKey &verification_key);
 
     static void prepare_proof_response(
@@ -38,7 +38,7 @@ public:
         zeth_proto::ExtendedProof *message);
 
     static void prepare_verification_key_response(
-        const typename snarkT::VerifKeyT &vk,
+        const typename snarkT::VerificationKeyT &vk,
         zeth_proto::VerificationKey *message);
 };
 

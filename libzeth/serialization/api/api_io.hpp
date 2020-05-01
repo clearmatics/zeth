@@ -66,7 +66,7 @@ std::string format_accumulation_vector(std::vector<libff::Fr<ppT>> acc_vector);
 
 template<typename ppT, typename snarkApiT>
 void format_verificationKey(
-    const typename snarkApiT::snarkT::VerifKeyT &vk,
+    const typename snarkApiT::snarkT::VerificationKeyT &vk,
     zeth_proto::VerificationKey *message);
 
 } // namespace libzeth

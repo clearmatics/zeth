@@ -149,7 +149,7 @@ bool TestValidJS2In2Case1(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    typename snarkT::VerifKeyT vk = keypair.vk;
+    typename snarkT::VerificationKeyT vk = keypair.vk;
     bool res = snarkT::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
@@ -283,7 +283,7 @@ bool TestValidJS2In2Case2(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    typename snarkT::VerifKeyT vk = keypair.vk;
+    typename snarkT::VerificationKeyT vk = keypair.vk;
     bool res = snarkT::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
@@ -418,7 +418,7 @@ bool TestValidJS2In2Case3(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    typename snarkT::VerifKeyT vk = keypair.vk;
+    typename snarkT::VerificationKeyT vk = keypair.vk;
     bool res = snarkT::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verfy? " << res << std::endl;
@@ -552,7 +552,7 @@ bool TestValidJS2In2Deposit(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    typename snarkT::VerifKeyT vk = keypair.vk;
+    typename snarkT::VerificationKeyT vk = keypair.vk;
     bool res = snarkT::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
 
@@ -692,7 +692,7 @@ bool TestInvalidJS2In2(
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
-    typename snarkT::VerifKeyT vk = keypair.vk;
+    typename snarkT::VerificationKeyT vk = keypair.vk;
     bool res = snarkT::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify ? " << res << std::endl;

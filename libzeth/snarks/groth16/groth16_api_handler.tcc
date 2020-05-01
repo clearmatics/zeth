@@ -49,7 +49,7 @@ void groth16_api_handler<ppT>::format_extended_proof(
 
 template<typename ppT>
 void groth16_api_handler<ppT>::format_verification_key(
-    const typename groth16_api_handler<ppT>::snarkT::VerifKeyT &vk,
+    const typename groth16_api_handler<ppT>::snarkT::VerificationKeyT &vk,
     zeth_proto::VerificationKey *message)
 {
     zeth_proto::HexPointBaseGroup1Affine *a =
@@ -111,7 +111,7 @@ libzeth::extended_proof<ppT, groth16_snark<ppT>> groth16_api_handler<
 }
 
 template<typename ppT>
-typename groth16_snark<ppT>::VerifKeyT groth16_api_handler<ppT>::
+typename groth16_snark<ppT>::VerificationKeyT groth16_api_handler<ppT>::
     parse_verification_key(const zeth_proto::VerificationKey &verification_key)
 {
     const zeth_proto::VerificationKeyGROTH16 &verif_key =
@@ -173,7 +173,8 @@ void groth16_api_handler<ppT>::prepare_proof_response(
 
 template<typename ppT>
 void groth16_api_handler<ppT>::prepare_verification_key_response(
-    const typename snarkT::VerifKeyT &vk, zeth_proto::VerificationKey *message)
+    const typename snarkT::VerificationKeyT &vk,
+    zeth_proto::VerificationKey *message)
 {
     zeth_proto::HexPointBaseGroup1Affine *a =
         new zeth_proto::HexPointBaseGroup1Affine(); // in G1
