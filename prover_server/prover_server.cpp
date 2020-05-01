@@ -150,7 +150,7 @@ public:
         // Parse received message to feed to the prover
         try {
             libzeth::FieldT root =
-                libzeth::field_element_to_hex<libzeth::FieldT>(
+                libzeth::field_element_from_hex<libzeth::FieldT>(
                     proof_inputs->mk_root());
             libzeth::bits64 vpub_in =
                 libzeth::bits64_from_hex(proof_inputs->pub_in_value());

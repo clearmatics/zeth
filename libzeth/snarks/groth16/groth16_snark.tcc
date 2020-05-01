@@ -57,23 +57,16 @@ std::ostream &groth16_snark<ppT>::verification_key_write_json(
     const size_t abc_length = vk.ABC_g1.rest.indices.size() + 1;
     os << "{"
        << "\n"
-       << "\t\"alpha\""
-       << " :[" << point_g1_affine_to_hex<ppT>(vk.alpha_g1) << "],"
-       << "\n"
-       << "\t\"beta\""
-       << " :[" << point_g2_affine_to_hex<ppT>(vk.beta_g2) << "],"
-       << "\n"
-       << "\t\"delta\""
-       << " :[" << point_g2_affine_to_hex<ppT>(vk.delta_g2) << "],"
-       << "\n";
-    os << "\t\"ABC\""
-       << " :[[" << point_g1_affine_to_hex<ppT>(vk.ABC_g1.first) << "]";
+       << "  \"alpha\": "
+       << " :" << point_g1_affine_to_json<ppT>(vk.alpha_g1) << ",\n"
+       << "  \"beta\": " << point_g2_affine_to_json<ppT>(vk.beta_g2) << ",\n"
+       << "  \"delta\": " << point_g2_affine_to_json<ppT>(vk.delta_g2) << ",\n"
+       << "  \"ABC\": [\n    " << point_g1_affine_to_json<ppT>(vk.ABC_g1.first);
     for (size_t i = 1; i < abc_length; ++i) {
-        auto vk_abc_i =
-            point_g1_affine_to_hex<ppT>(vk.ABC_g1.rest.values[i - 1]);
-        os << ",[" << vk_abc_i << "]";
+        os << ",\n    "
+           << point_g1_affine_to_json<ppT>(vk.ABC_g1.rest.values[i - 1]);
     }
-    return os << "]\n}";
+    return os << "\n  ]\n}";
 }
 
 template<typename ppT>
@@ -144,9 +137,9 @@ std::ostream &groth16_snark<ppT>::proof_write_json(
     const typename groth16_snark<ppT>::ProofT &proof, std::ostream &os)
 {
     os << "{\n"
-       << "    \"a\" :[" << point_g1_affine_to_hex<ppT>(proof.g_A) << "],\n"
-       << "    \"b\" :[" << point_g2_affine_to_hex<ppT>(proof.g_B) << "],\n"
-       << "    \"c\" :[" << point_g1_affine_to_hex<ppT>(proof.g_C) << "]\n"
+       << "    \"a\" :[" << point_g1_affine_to_json<ppT>(proof.g_A) << "],\n"
+       << "    \"b\" :[" << point_g2_affine_to_json<ppT>(proof.g_B) << "],\n"
+       << "    \"c\" :[" << point_g1_affine_to_json<ppT>(proof.g_C) << "]\n"
        << "  }\n";
     return os;
 }

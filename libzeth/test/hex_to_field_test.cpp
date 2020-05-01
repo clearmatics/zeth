@@ -23,7 +23,7 @@ TEST(TestHexConvertion, TestHexToFieldTrue)
 
     // We read the string and convert it back to a field element
     field retrieved_field_element =
-        libzeth::field_element_to_hex<field>(field_el_str);
+        libzeth::field_element_from_hex<field>(field_el_str);
 
     bool res = false;
     res = (starting_field_element == retrieved_field_element);
@@ -39,7 +39,7 @@ TEST(TestHexConvertion, TestHexToFieldFalse)
 
     // We read the string and convert it back to a field element
     field retrieved_field_element =
-        libzeth::field_element_to_hex<field>(modified_field_el_str);
+        libzeth::field_element_from_hex<field>(modified_field_el_str);
 
     bool res = false;
     res = (starting_field_element == retrieved_field_element);
@@ -53,7 +53,7 @@ TEST(TestHexConvertion, TestHexToFieldBadString)
 
     try {
         field computed_field_element =
-            libzeth::field_element_to_hex<field>(sample);
+            libzeth::field_element_from_hex<field>(sample);
         libff::UNUSED(computed_field_element);
     } catch (const std::exception &exc) {
         res = false;

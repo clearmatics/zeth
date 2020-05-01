@@ -57,23 +57,23 @@ std::ostream &pghr13_snark<ppT>::verification_key_write_json(
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
 
     os << "{\n";
-    os << " \"a\" :[" << point_g2_affine_to_hex<ppT>(vk.alphaA_g2) << "],\n";
-    os << " \"b\"  :[" << point_g1_affine_to_hex<ppT>(vk.alphaB_g1) << "],\n";
-    os << " \"c\" :[" << point_g2_affine_to_hex<ppT>(vk.alphaC_g2) << "],\n";
-    os << " \"g\" :[" << point_g2_affine_to_hex<ppT>(vk.gamma_g2) << "],\n";
-    os << " \"gb1\" :[" << point_g1_affine_to_hex<ppT>(vk.gamma_beta_g1)
-       << "],\n";
-    os << " \"gb2\" :[" << point_g2_affine_to_hex<ppT>(vk.gamma_beta_g2)
-       << "],\n";
-    os << " \"z\" :[" << point_g2_affine_to_hex<ppT>(vk.rC_Z_g2) << "],\n";
+    os << " \"a\": " << point_g2_affine_to_json<ppT>(vk.alphaA_g2) << ",\n";
+    os << " \"b\": " << point_g1_affine_to_json<ppT>(vk.alphaB_g1) << ",\n";
+    os << " \"c\": " << point_g2_affine_to_json<ppT>(vk.alphaC_g2) << ",\n";
+    os << " \"g\": " << point_g2_affine_to_json<ppT>(vk.gamma_g2) << ",\n";
+    os << " \"gb1\": " << point_g1_affine_to_json<ppT>(vk.gamma_beta_g1)
+       << ",\n";
+    os << " \"gb2\": " << point_g2_affine_to_json<ppT>(vk.gamma_beta_g2)
+       << ",\n";
+    os << " \"z\": " << point_g2_affine_to_json<ppT>(vk.rC_Z_g2) << ",\n";
 
-    os << "\"IC\" :[[" << point_g1_affine_to_hex<ppT>(vk.encoded_IC_query.first)
-       << "]";
+    os << "\"IC\" :["
+       << point_g1_affine_to_json<ppT>(vk.encoded_IC_query.first);
 
     for (size_t i = 1; i < ic_length; ++i) {
-        auto vk_ic_i =
-            point_g1_affine_to_hex<ppT>(vk.encoded_IC_query.rest.values[i - 1]);
-        os << ",[" << vk_ic_i << "]";
+        os << ","
+           << point_g1_affine_to_json<ppT>(
+                  vk.encoded_IC_query.rest.values[i - 1]);
     }
 
     os << "]\n";

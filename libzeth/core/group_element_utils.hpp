@@ -10,19 +10,18 @@
 namespace libzeth
 {
 
-/// Convert a group element of G1 to an hexadecimal string.
-/// This function assumes that the group element is in affine
-/// form, and that both coordinates (X, Y) are elements of a
-/// prime field.
+/// Convert a group element of G1 to a json string (array of hexadecimal
+/// strings). This function assumes that the group element is in affine form,
+/// and that both coordinates (X, Y) are elements of a prime field.
 template<typename ppT>
-std::string point_g1_affine_to_hex(const libff::G1<ppT> &point);
+std::string point_g1_affine_to_json(const libff::G1<ppT> &point);
 
-/// Convert a group element of G2 to an hexadecimal string.
-/// This function assumes that the group element is in affine
-/// form, and that both coordinates (X, Y) are elements of a
-/// an extension field of degree 2.
+/// Convert a group element of G2 to a json string (list of hexadecimal
+/// strings). This function assumes that the group element is in affine form,
+/// and that both coordinates (X, Y) are elements of a an extension field of
+/// degree 2.
 template<typename ppT>
-std::string point_g2_affine_to_hex(const libff::G2<ppT> &point);
+std::string point_g2_affine_to_json(const libff::G2<ppT> &point);
 
 } // namespace libzeth
 

@@ -62,7 +62,7 @@ libff::bigint<FieldT::num_limbs> bigint_from_bytes(
     return res;
 }
 
-template<typename FieldT> FieldT field_element_to_hex(std::string field_str)
+template<typename FieldT> FieldT field_element_from_hex(std::string field_str)
 {
     // Remove prefix if any
     erase_substring(field_str, std::string("0x"));

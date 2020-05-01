@@ -56,7 +56,7 @@ libff::bigint<FieldT::num_limbs> bigint_from_bytes(
     const uint8_t bytes[(FieldT::num_bits + 8 - 1) / 8]);
 
 /// Convert an hexadecimal string to a field element
-template<typename FieldT> FieldT field_element_to_hex(std::string field_str);
+template<typename FieldT> FieldT field_element_from_hex(std::string field_str);
 
 /// Convert a field element to an hexadecimal string
 template<typename FieldT> std::string field_element_to_hex(FieldT field_el);
