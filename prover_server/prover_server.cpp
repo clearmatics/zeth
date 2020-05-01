@@ -124,7 +124,7 @@ public:
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            api_handler::format_verification_key(this->keypair.vk, response);
+            api_handler::verification_key_to_proto(this->keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -227,7 +227,7 @@ public:
             write_ext_proof_to_file(ext_proof);
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
-            api_handler::format_extended_proof(ext_proof, proof);
+            api_handler::extended_proof_to_proto(ext_proof, proof);
 
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
