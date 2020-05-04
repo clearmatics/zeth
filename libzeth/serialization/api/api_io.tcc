@@ -10,11 +10,6 @@
 namespace libzeth
 {
 
-template<typename FieldT> FieldT parse_merkle_node(std::string mk_node)
-{
-    return field_element_from_hex<FieldT>(mk_node);
-}
-
 template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
     const zeth_proto::JoinsplitInput &input)
@@ -32,7 +27,7 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
 
     std::vector<FieldT> input_merkle_path;
     for (size_t i = 0; i < TreeDepth; i++) {
-        FieldT mk_node = parse_merkle_node<FieldT>(input.merkle_path(i));
+        FieldT mk_node = field_element_from_hex<FieldT>(input.merkle_path(i));
         input_merkle_path.push_back(mk_node);
     }
 

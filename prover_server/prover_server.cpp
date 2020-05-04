@@ -203,7 +203,7 @@ public:
                 zeth_proto::ZethNote received_output =
                     proof_inputs->js_outputs(i);
                 libzeth::zeth_note parsed_output =
-                    libzeth::parse_zeth_note(received_output);
+                    libzeth::zeth_note_from_proto(received_output);
                 joinsplit_outputs[i] = parsed_output;
             }
 

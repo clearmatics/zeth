@@ -24,8 +24,6 @@ namespace libzeth
 
 zeth_note zeth_note_from_proto(const zeth_proto::ZethNote &note);
 
-template<typename FieldT> FieldT parse_merkle_node(std::string mk_node);
-
 template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
     const zeth_proto::JoinsplitInput &input);
@@ -63,11 +61,6 @@ void format_extendedProof(
 
 template<typename ppT>
 std::string format_accumulation_vector(std::vector<libff::Fr<ppT>> acc_vector);
-
-template<typename ppT, typename snarkApiT>
-void format_verificationKey(
-    const typename snarkApiT::snarkT::VerificationKeyT &vk,
-    zeth_proto::VerificationKey *message);
 
 } // namespace libzeth
 
