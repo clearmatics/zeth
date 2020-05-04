@@ -34,7 +34,7 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
         ext_proof.get_primary_inputs();
 
     std::string inputs_json_str =
-        format_primary_inputs<ppT>(std::vector<libff::Fr<ppT>>(public_inputs));
+        primary_inputs_to_string<ppT>(std::vector<libff::Fr<ppT>>(public_inputs));
 
     // Note on memory safety: set_allocated deleted the allocated objects.
     // See:
@@ -92,9 +92,9 @@ libzeth::extended_proof<ppT, groth16_snark<ppT>> groth16_api_handler<
 {
     const zeth_proto::ExtendedProofGROTH16 &e_proof =
         ext_proof.groth16_extended_proof();
-    libff::G1<ppT> a = parse_hexPointBaseGroup1Affine<ppT>(e_proof.a());
-    libff::G2<ppT> b = parse_hexPointBaseGroup2Affine<ppT>(e_proof.b());
-    libff::G1<ppT> c = parse_hexPointBaseGroup1Affine<ppT>(e_proof.c());
+    libff::G1<ppT> a = point_g1_affine_from_proto<ppT>(e_proof.a());
+    libff::G2<ppT> b = point_g2_affine_from_proto<ppT>(e_proof.b());
+    libff::G1<ppT> c = point_g1_affine_from_proto<ppT>(e_proof.c());
 
     std::vector<libff::Fr<ppT>> inputs =
         libsnark::r1cs_primary_input<libff::Fr<ppT>>(
@@ -115,12 +115,12 @@ typename groth16_snark<ppT>::VerificationKeyT groth16_api_handler<
     const zeth_proto::VerificationKeyGROTH16 &verif_key =
         verification_key.groth16_verification_key();
     libff::G1<ppT> alpha_g1 =
-        parse_hexPointBaseGroup1Affine<ppT>(verif_key.alpha_g1());
+        point_g1_affine_from_proto<ppT>(verif_key.alpha_g1());
     libff::G2<ppT> beta_g2 =
-        parse_hexPointBaseGroup2Affine<ppT>(verif_key.beta_g2());
+        point_g2_affine_from_proto<ppT>(verif_key.beta_g2());
 
     libff::G2<ppT> delta_g2 =
-        parse_hexPointBaseGroup2Affine<ppT>(verif_key.delta_g2());
+        point_g2_affine_from_proto<ppT>(verif_key.delta_g2());
 
     libsnark::accumulation_vector<libff::G1<ppT>> abc_g1 =
         parse_str_accumulation_vector<ppT>(verif_key.abc_g1());

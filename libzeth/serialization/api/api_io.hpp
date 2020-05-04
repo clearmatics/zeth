@@ -29,11 +29,11 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
     const zeth_proto::JoinsplitInput &input);
 
 template<typename ppT>
-libff::G1<ppT> parse_hexPointBaseGroup1Affine(
+libff::G1<ppT> point_g1_affine_from_proto(
     const zeth_proto::HexPointBaseGroup1Affine &point);
 
 template<typename ppT>
-libff::G2<ppT> parse_hexPointBaseGroup2Affine(
+libff::G2<ppT> point_g2_affine_from_proto(
     const zeth_proto::HexPointBaseGroup2Affine &point);
 
 template<typename ppT>
@@ -52,15 +52,15 @@ zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     const libff::G2<ppT> &point);
 
 template<typename ppT>
-std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs);
+std::string primary_inputs_to_string(std::vector<libff::Fr<ppT>> public_inputs);
 
 template<typename ppT, typename snarkApiT>
-void format_extendedProof(
+void extended_proof_to_proto(
     extended_proof<ppT, typename snarkApiT::snarkT> &ext_proof,
     zeth_proto::ExtendedProof *message);
 
 template<typename ppT>
-std::string format_accumulation_vector(std::vector<libff::Fr<ppT>> acc_vector);
+std::string accumulation_vector_to_string(std::vector<libff::Fr<ppT>> acc_vector);
 
 } // namespace libzeth
 

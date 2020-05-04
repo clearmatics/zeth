@@ -50,7 +50,7 @@ void pghr13_api_handler<ppT>::extended_proof_to_proto(
         ext_proof.get_primary_inputs();
 
     std::string inputs_json =
-        format_primary_inputs<ppT>(std::vector<libff::Fr<ppT>>(pub_inputs));
+        primary_inputs_to_string<ppT>(std::vector<libff::Fr<ppT>>(pub_inputs));
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -135,20 +135,20 @@ libzeth::extended_proof<ppT, pghr13_snark<ppT>> pghr13_api_handler<
     const zeth_proto::ExtendedProofPGHR13 &e_proof =
         ext_proof.pghr13_extended_proof();
 
-    libff::G1<ppT> a = parse_hexPointBaseGroup1Affine<ppT>(e_proof.a());
-    libff::G1<ppT> a_p = parse_hexPointBaseGroup1Affine<ppT>(e_proof.a_p());
+    libff::G1<ppT> a = point_g1_affine_from_proto<ppT>(e_proof.a());
+    libff::G1<ppT> a_p = point_g1_affine_from_proto<ppT>(e_proof.a_p());
     libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>> g_A(a, a_p);
 
-    libff::G2<ppT> b = parse_hexPointBaseGroup2Affine<ppT>(e_proof.b());
-    libff::G1<ppT> b_p = parse_hexPointBaseGroup1Affine<ppT>(e_proof.b_p());
+    libff::G2<ppT> b = point_g2_affine_from_proto<ppT>(e_proof.b());
+    libff::G1<ppT> b_p = point_g1_affine_from_proto<ppT>(e_proof.b_p());
     libsnark::knowledge_commitment<libff::G2<ppT>, libff::G1<ppT>> g_B(b, b_p);
 
-    libff::G1<ppT> c = parse_hexPointBaseGroup1Affine<ppT>(e_proof.c());
-    libff::G1<ppT> c_p = parse_hexPointBaseGroup1Affine<ppT>(e_proof.c_p());
+    libff::G1<ppT> c = point_g1_affine_from_proto<ppT>(e_proof.c());
+    libff::G1<ppT> c_p = point_g1_affine_from_proto<ppT>(e_proof.c_p());
     libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>> g_C(c, c_p);
 
-    libff::G1<ppT> h = parse_hexPointBaseGroup1Affine<ppT>(e_proof.h());
-    libff::G1<ppT> k = parse_hexPointBaseGroup1Affine<ppT>(e_proof.k());
+    libff::G1<ppT> h = point_g1_affine_from_proto<ppT>(e_proof.h());
+    libff::G1<ppT> k = point_g1_affine_from_proto<ppT>(e_proof.k());
 
     libsnark::r1cs_ppzksnark_proof<ppT> proof(
         std::move(g_A),
@@ -171,22 +171,22 @@ typename pghr13_snark<ppT>::VerificationKeyT pghr13_api_handler<
     const zeth_proto::VerificationKeyPGHR13 &verif_key =
         verification_key.pghr13_verification_key();
     // G2
-    libff::G2<ppT> a = parse_hexPointBaseGroup2Affine<ppT>(verif_key.a());
+    libff::G2<ppT> a = point_g2_affine_from_proto<ppT>(verif_key.a());
     // G1
-    libff::G1<ppT> b = parse_hexPointBaseGroup1Affine<ppT>(verif_key.b());
+    libff::G1<ppT> b = point_g1_affine_from_proto<ppT>(verif_key.b());
     // G2
-    libff::G2<ppT> c = parse_hexPointBaseGroup2Affine<ppT>(verif_key.c());
+    libff::G2<ppT> c = point_g2_affine_from_proto<ppT>(verif_key.c());
     // G2
     libff::G1<ppT> gamma =
-        parse_hexPointBaseGroup2Affine<ppT>(verif_key.gamma());
+        point_g2_affine_from_proto<ppT>(verif_key.gamma());
     // G1
     libff::G1<ppT> gamma_beta_g1 =
-        parse_hexPointBaseGroup1Affine<ppT>(verif_key.gamma_beta_g1());
+        point_g1_affine_from_proto<ppT>(verif_key.gamma_beta_g1());
     // G2
     libff::G2<ppT> gamma_beta_g2 =
-        parse_hexPointBaseGroup2Affine<ppT>(verif_key.gamma_beta_g2());
+        point_g2_affine_from_proto<ppT>(verif_key.gamma_beta_g2());
     // G2
-    libff::G2<ppT> z = parse_hexPointBaseGroup2Affine<ppT>(verif_key.z());
+    libff::G2<ppT> z = point_g2_affine_from_proto<ppT>(verif_key.z());
 
     libsnark::accumulation_vector<libff::G1<ppT>> ic =
         parse_str_accumulation_vector<ppT>(verif_key.ic());

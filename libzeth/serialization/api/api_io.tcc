@@ -40,7 +40,7 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
 }
 
 template<typename ppT>
-libff::G1<ppT> parse_hexPointBaseGroup1Affine(
+libff::G1<ppT> point_g1_affine_from_proto(
     const zeth_proto::HexPointBaseGroup1Affine &point)
 {
     libff::Fq<ppT> x_coordinate =
@@ -54,7 +54,7 @@ libff::G1<ppT> parse_hexPointBaseGroup1Affine(
 }
 
 template<typename ppT>
-libff::G2<ppT> parse_hexPointBaseGroup2Affine(
+libff::G2<ppT> point_g2_affine_from_proto(
     const zeth_proto::HexPointBaseGroup2Affine &point)
 {
     libff::Fq<ppT> x_c1 =
@@ -211,7 +211,7 @@ zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
 }
 
 template<typename ppT>
-std::string format_primary_inputs(std::vector<libff::Fr<ppT>> public_inputs)
+std::string primary_inputs_to_string(std::vector<libff::Fr<ppT>> public_inputs)
 {
     std::stringstream ss;
     ss << "[";
