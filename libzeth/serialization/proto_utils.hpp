@@ -46,14 +46,16 @@ joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
     const zeth_proto::JoinsplitInput &input);
 
 template<typename ppT>
-std::string primary_inputs_to_string(std::vector<libff::Fr<ppT>> public_inputs);
+std::string primary_inputs_to_string(
+    const std::vector<libff::Fr<ppT>> &public_inputs);
 
 template<typename ppT>
-std::vector<libff::Fr<ppT>> primary_inputs_from_string(std::string input_str);
+std::vector<libff::Fr<ppT>> primary_inputs_from_string(
+    const std::string &input_str);
 
 template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
-    std::string acc_vector_str);
+    const std::string &acc_vector_str);
 
 } // namespace libzeth
 

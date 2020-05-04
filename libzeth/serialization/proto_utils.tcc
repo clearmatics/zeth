@@ -125,7 +125,8 @@ joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
 }
 
 template<typename ppT>
-std::string primary_inputs_to_string(std::vector<libff::Fr<ppT>> public_inputs)
+std::string primary_inputs_to_string(
+    const std::vector<libff::Fr<ppT>> &public_inputs)
 {
     std::stringstream ss;
     ss << "[";
@@ -145,7 +146,8 @@ std::string primary_inputs_to_string(std::vector<libff::Fr<ppT>> public_inputs)
 }
 
 template<typename ppT>
-std::vector<libff::Fr<ppT>> primary_inputs_from_string(std::string input_str)
+std::vector<libff::Fr<ppT>> primary_inputs_from_string(
+    const std::string &input_str)
 {
     char *cstr = new char[input_str.length() + 1];
     std::strcpy(cstr, input_str.c_str());
@@ -168,7 +170,7 @@ std::vector<libff::Fr<ppT>> primary_inputs_from_string(std::string input_str)
 
 template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
-    std::string acc_vector_str)
+    const std::string &acc_vector_str)
 {
     char *cstr = new char[acc_vector_str.length() + 1];
     std::strcpy(cstr, acc_vector_str.c_str());
