@@ -142,7 +142,7 @@ cmake .. && make doc_doxygen
 ```
 2. Open `${ZETH}/build/doc_doxygen/index.html` in your web browser, e.g.
 ```bash
-firefox build/doc_doxygen/index.html
+firefox build/doc_doxygen/html/index.html
 ```
 
 ## References and useful links
