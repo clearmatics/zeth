@@ -2,6 +2,10 @@
 # For a tutorial of CMake
 cmake_minimum_required(VERSION 3.0)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 if(APPLE)
   # If custom llvm compilers are available, use them (for openmp
   # support), otherwise disable multicore.
@@ -118,6 +122,25 @@ option(
   OFF
 )
 
+# Run tooling on the code
+option(
+  DEV_TOOLS
+  "Run code quality and security tools"
+  ON
+)
+
+option(
+  GEN_DOC
+  "Generate project documentation"
+  ON
+)
+
+option(
+  CODE_COVERAGE
+  "Generate code coverage report"
+  ON
+)
+
 if(APPLE)
   # These must be disabled to make dependencies build on macos
   set(WITH_PROCPS OFF)
@@ -225,6 +248,20 @@ set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
 
 # By default, compile with all warning flags
 add_compile_options(-Wall -Wextra)
+
+# Add extra configuration files to run additional tooling
+if("${GEN_DOC}")
+    include(cmake/documentation.cmake)
+endif()
+
+#if("${CODE_COVERAGE}")
+#    include(cmake/code-coverage.cmake)
+#endif()
+#
+#if("${DEV_TOOLS}")
+#    include(cmake/clang-cxx-dev-tools.cmake)
+#    include(cmake/gcc-cxx-dev-tools.cmake)
+#endif()
 
 # Add all local subdirecetories
 add_subdirectory(libzeth)

@@ -26,7 +26,6 @@ Additionally, several tools from the GCC and LLVM tools suite are used to improv
 - [clang-tidy](https://clang.llvm.org/extra/clang-tidy/)
 - [cppcheck](http://cppcheck.sourceforge.net/)
 - [include-what-you-use](https://include-what-you-use.org/)
-- []
 
 To use the Zeth functionality, 3 components are required:
 - An Ethereum network (the commands below use a local testnet) to host the Zeth
@@ -132,6 +131,19 @@ The following libraries are also required to build:
 - gmp
 - boost
 - openssl
+
+## Generate the documentation
+
+To generate the documentation of Zeth:
+1. Run:
+```bash
+cd build
+cmake .. && make doc_doxygen
+```
+2. Open `${ZETH}/build/doc_doxygen/index.html` in your web browser, e.g.
+```bash
+firefox build/doc_doxygen/index.html
+```
 
 ## References and useful links
 
