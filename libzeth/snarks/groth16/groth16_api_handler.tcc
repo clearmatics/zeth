@@ -121,8 +121,7 @@ libzeth::extended_proof<ppT, groth16_snark<ppT>> groth16_api_handler<
     libff::G1<ppT> c = point_g1_affine_from_proto<ppT>(e_proof.c());
 
     std::vector<libff::Fr<ppT>> inputs =
-        libsnark::r1cs_primary_input<libff::Fr<ppT>>(
-            primary_inputs_from_string<ppT>(e_proof.inputs()));
+        primary_inputs_from_string<ppT>(e_proof.inputs());
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
         std::move(a), std::move(b), std::move(c));
