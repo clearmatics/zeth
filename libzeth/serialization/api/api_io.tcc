@@ -10,33 +10,22 @@
 namespace libzeth
 {
 
-template<typename FieldT, size_t TreeDepth>
-joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
-    const zeth_proto::JoinsplitInput &input)
+template<typename ppT>
+zeth_proto::HexPointBaseGroup1Affine point_g1_affine_to_proto(
+    const libff::G1<ppT> &point)
 {
-    if (TreeDepth != input.merkle_path_size()) {
-        throw std::invalid_argument("Invalid merkle path length");
-    }
+    libff::G1<ppT> aff = point;
+    aff.to_affine_coordinates();
+    std::string x_coord =
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.as_bigint());
+    std::string y_coord =
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.as_bigint());
 
-    zeth_note input_note = zeth_note_from_proto(input.note());
-    size_t input_address = input.address();
-    bits_addr<TreeDepth> input_address_bits =
-        bits_addr_from_size_t<TreeDepth>(input_address);
-    bits256 input_spending_ask = bits256_from_hex(input.spending_ask());
-    bits256 input_nullifier = bits256_from_hex(input.nullifier());
+    zeth_proto::HexPointBaseGroup1Affine res;
+    res.set_x_coord(x_coord);
+    res.set_y_coord(y_coord);
 
-    std::vector<FieldT> input_merkle_path;
-    for (size_t i = 0; i < TreeDepth; i++) {
-        FieldT mk_node = field_element_from_hex<FieldT>(input.merkle_path(i));
-        input_merkle_path.push_back(mk_node);
-    }
-
-    return joinsplit_input<FieldT, TreeDepth>(
-        input_merkle_path,
-        input_address_bits,
-        input_note,
-        input_spending_ask,
-        input_nullifier);
+    return res;
 }
 
 template<typename ppT>
@@ -49,6 +38,30 @@ libff::G1<ppT> point_g1_affine_from_proto(
         field_element_to_hex<libff::Fq<ppT>>(point.y_coord());
 
     libff::G1<ppT> res = libff::G1<ppT>(x_coordinate, y_coordinate);
+
+    return res;
+}
+
+template<typename ppT>
+zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
+    const libff::G2<ppT> &point)
+{
+    libff::G2<ppT> aff = point;
+    aff.to_affine_coordinates();
+    std::string x_c1_coord =
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.c1.as_bigint());
+    std::string x_c0_coord =
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.c0.as_bigint());
+    std::string y_c1_coord =
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.c1.as_bigint());
+    std::string y_c0_coord =
+        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.c0.as_bigint());
+
+    zeth_proto::HexPointBaseGroup2Affine res;
+    res.set_x_c0_coord(x_c0_coord);
+    res.set_x_c1_coord(x_c1_coord);
+    res.set_y_c0_coord(y_c0_coord);
+    res.set_y_c1_coord(y_c1_coord);
 
     return res;
 }
@@ -82,8 +95,57 @@ libff::G2<ppT> point_g2_affine_from_proto(
     return res;
 }
 
+template<typename FieldT, size_t TreeDepth>
+joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
+    const zeth_proto::JoinsplitInput &input)
+{
+    if (TreeDepth != input.merkle_path_size()) {
+        throw std::invalid_argument("Invalid merkle path length");
+    }
+
+    zeth_note input_note = zeth_note_from_proto(input.note());
+    size_t input_address = input.address();
+    bits_addr<TreeDepth> input_address_bits =
+        bits_addr_from_size_t<TreeDepth>(input_address);
+    bits256 input_spending_ask = bits256_from_hex(input.spending_ask());
+    bits256 input_nullifier = bits256_from_hex(input.nullifier());
+
+    std::vector<FieldT> input_merkle_path;
+    for (size_t i = 0; i < TreeDepth; i++) {
+        FieldT mk_node = field_element_from_hex<FieldT>(input.merkle_path(i));
+        input_merkle_path.push_back(mk_node);
+    }
+
+    return joinsplit_input<FieldT, TreeDepth>(
+        input_merkle_path,
+        input_address_bits,
+        input_note,
+        input_spending_ask,
+        input_nullifier);
+}
+
 template<typename ppT>
-std::vector<libff::Fr<ppT>> parse_str_primary_inputs(std::string input_str)
+std::string primary_inputs_to_string(std::vector<libff::Fr<ppT>> public_inputs)
+{
+    std::stringstream ss;
+    ss << "[";
+    for (size_t i = 0; i < public_inputs.size(); ++i) {
+        ss << "\"0x"
+           << libzeth::bigint_to_hex<libff::Fr<ppT>>(
+                  public_inputs[i].as_bigint())
+           << "\"";
+        if (i < public_inputs.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    std::string inputs_json_str = ss.str();
+
+    return inputs_json_str;
+}
+
+template<typename ppT>
+std::vector<libff::Fr<ppT>> primary_inputs_from_string(std::string input_str)
 {
     char *cstr = new char[input_str.length() + 1];
     std::strcpy(cstr, input_str.c_str());
@@ -105,7 +167,7 @@ std::vector<libff::Fr<ppT>> parse_str_primary_inputs(std::string input_str)
 }
 
 template<typename ppT>
-libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
+libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
     std::string acc_vector_str)
 {
     char *cstr = new char[acc_vector_str.length() + 1];
@@ -132,7 +194,7 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
     if (res.size() > 0 && res.size() % 2 != 0) {
         // TODO: Do exception throwing/catching properly
         std::cerr
-            << "parse_str_accumulation_vector: Wrong number of coordinates"
+            << "accumulation_vector_from_string: Wrong number of coordinates"
             << std::endl;
         exit(1);
     }
@@ -166,68 +228,6 @@ libsnark::accumulation_vector<libff::G1<ppT>> parse_str_accumulation_vector(
 
     acc_res.rest = rest;
     return acc_res;
-}
-
-template<typename ppT>
-zeth_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
-    const libff::G1<ppT> &point)
-{
-    libff::G1<ppT> aff = point;
-    aff.to_affine_coordinates();
-    std::string x_coord =
-        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.as_bigint());
-    std::string y_coord =
-        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.as_bigint());
-
-    zeth_proto::HexPointBaseGroup1Affine res;
-    res.set_x_coord(x_coord);
-    res.set_y_coord(y_coord);
-
-    return res;
-}
-
-template<typename ppT>
-zeth_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
-    const libff::G2<ppT> &point)
-{
-    libff::G2<ppT> aff = point;
-    aff.to_affine_coordinates();
-    std::string x_c1_coord =
-        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.c1.as_bigint());
-    std::string x_c0_coord =
-        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.c0.as_bigint());
-    std::string y_c1_coord =
-        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.c1.as_bigint());
-    std::string y_c0_coord =
-        "0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.c0.as_bigint());
-
-    zeth_proto::HexPointBaseGroup2Affine res;
-    res.set_x_c0_coord(x_c0_coord);
-    res.set_x_c1_coord(x_c1_coord);
-    res.set_y_c0_coord(y_c0_coord);
-    res.set_y_c1_coord(y_c1_coord);
-
-    return res;
-}
-
-template<typename ppT>
-std::string primary_inputs_to_string(std::vector<libff::Fr<ppT>> public_inputs)
-{
-    std::stringstream ss;
-    ss << "[";
-    for (size_t i = 0; i < public_inputs.size(); ++i) {
-        ss << "\"0x"
-           << libzeth::bigint_to_hex<libff::Fr<ppT>>(
-                  public_inputs[i].as_bigint())
-           << "\"";
-        if (i < public_inputs.size() - 1) {
-            ss << ", ";
-        }
-    }
-    ss << "]";
-    std::string inputs_json_str = ss.str();
-
-    return inputs_json_str;
 }
 
 } // namespace libzeth

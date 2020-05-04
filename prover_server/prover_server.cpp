@@ -185,7 +185,7 @@ public:
                 libzeth::joinsplit_input<
                     libzeth::FieldT,
                     libzeth::ZETH_MERKLE_TREE_DEPTH>
-                    parsed_input = libzeth::parse_joinsplit_input<
+                    parsed_input = libzeth::joinsplit_input_from_proto<
                         libzeth::FieldT,
                         libzeth::ZETH_MERKLE_TREE_DEPTH>(received_input);
                 joinsplit_inputs[i] = parsed_input;
