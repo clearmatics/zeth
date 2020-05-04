@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_SERIALIZATION_API_IO_HPP__
-#define __ZETH_SERIALIZATION_API_IO_HPP__
+#ifndef __ZETH_SERIALIZATION_PROTO_UTILS_HPP__
+#define __ZETH_SERIALIZATION_PROTO_UTILS_HPP__
 
 #include "libzeth/core/bits.hpp"
 #include "libzeth/core/extended_proof.hpp"
@@ -57,7 +57,6 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
 
 } // namespace libzeth
 
-// templatized implementations
-#include "libzeth/serialization/api/api_io.tcc"
+#include "libzeth/serialization/proto_utils.tcc"
 
-#endif // __ZETH_SERIALIZATION_API_IO_HPP__
+#endif // __ZETH_SERIALIZATION_PROTO_UTILS_HPP__

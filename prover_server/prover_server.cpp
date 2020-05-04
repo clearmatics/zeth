@@ -5,7 +5,7 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/core/utils.hpp"
-#include "libzeth/serialization/api/api_io.hpp"
+#include "libzeth/serialization/proto_utils.hpp"
 #include "libzeth/serialization/r1cs_serialization.hpp"
 #include "libzeth/snarks/default/default_api_handler.hpp"
 #include "libzeth/zeth_constants.hpp"

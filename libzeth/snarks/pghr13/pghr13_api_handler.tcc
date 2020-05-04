@@ -7,7 +7,7 @@
 
 #include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/core/group_element_utils.hpp"
-#include "libzeth/serialization/api/api_io.hpp"
+#include "libzeth/serialization/proto_utils.hpp"
 #include "libzeth/snarks/pghr13/pghr13_api_handler.hpp"
 
 namespace libzeth

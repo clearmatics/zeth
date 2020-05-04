@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/serialization/api/api_io.hpp"
+#include "libzeth/serialization/proto_utils.hpp"
 
 namespace libzeth
 {
