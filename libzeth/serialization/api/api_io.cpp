@@ -7,7 +7,7 @@
 namespace libzeth
 {
 
-zeth_note parse_zeth_note(const zeth_proto::ZethNote &note)
+zeth_note zeth_note_from_proto(const zeth_proto::ZethNote &note)
 {
     bits256 note_apk = bits256_from_hex(note.apk());
     bits64 note_value = bits64_from_hex(note.value());

@@ -22,7 +22,7 @@
 namespace libzeth
 {
 
-zeth_note parse_zeth_note(const zeth_proto::ZethNote &note);
+zeth_note zeth_note_from_proto(const zeth_proto::ZethNote &note);
 
 template<typename FieldT> FieldT parse_merkle_node(std::string mk_node);
 

@@ -23,7 +23,7 @@ joinsplit_input<FieldT, TreeDepth> parse_joinsplit_input(
         throw std::invalid_argument("Invalid merkle path length");
     }
 
-    zeth_note input_note = parse_zeth_note(input.note());
+    zeth_note input_note = zeth_note_from_proto(input.note());
     size_t input_address = input.address();
     bits_addr<TreeDepth> input_address_bits =
         bits_addr_from_size_t<TreeDepth>(input_address);
