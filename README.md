@@ -9,6 +9,8 @@ It follows and extends the design presented in [zerocash-ethereum](https://githu
 
 ## Building and running the project:
 
+:computer: *Warning* This project primarily targets x86_64 Linux and macOS platforms.
+
 ### Environment
 
 In order to follow the README below, you will need:
@@ -16,6 +18,15 @@ In order to follow the README below, you will need:
 - [Npm](https://www.npmjs.com/get-npm) (at least version `6.4.1`)
 - [Node](https://nodejs.org/en/) (at least version `v9.5.0`)
 - [Python3](https://www.python.org/downloads/) (at least version `3.7`)
+- [Pip](https://pip.pypa.io/en/stable/) (at least version `19.0.2`)
+
+Additionally, several tools from the GCC and LLVM tools suite are used to improve code quality and generate the documentation of the project. These are required in order to compile the project with all options enabled:
+- [Doxygen](http://www.doxygen.nl/)
+- [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
+- [clang-tidy](https://clang.llvm.org/extra/clang-tidy/)
+- [cppcheck](http://cppcheck.sourceforge.net/)
+- [include-what-you-use](https://include-what-you-use.org/)
+- []
 
 To use the Zeth functionality, 3 components are required:
 - An Ethereum network (the commands below use a local testnet) to host the Zeth
