@@ -52,14 +52,15 @@ std::string bigint_to_hex(const libff::bigint<FieldT::num_limbs> &limbs);
 /// and we have `res_bigint = [Limb0, Limb1, Limb2, Limb3]`,
 /// where every Limb{i} is of type `mp_limb_t`,
 template<typename FieldT>
-libff::bigint<FieldT::num_limbs> bigint_from_bytes(
-    const uint8_t bytes[(FieldT::num_bits + 8 - 1) / 8]);
-
-/// Convert an hexadecimal string to a field element
-template<typename FieldT> FieldT field_element_from_hex(std::string field_str);
+libff::bigint<FieldT::num_limbs> bigint_from_hex(const std::string &hex);
 
 /// Convert a field element to an hexadecimal string
-template<typename FieldT> std::string field_element_to_hex(FieldT field_el);
+template<typename FieldT>
+std::string field_element_to_hex(const FieldT &field_el);
+
+/// Convert an hexadecimal string to a field element
+template<typename FieldT>
+FieldT field_element_from_hex(const std::string &field_str);
 
 } // namespace libzeth
 

@@ -2,23 +2,22 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "circuits/circuit_types.hpp"
-#include "circuits/circuit_utils.hpp"
-#include "circuits/sha256/sha256_ethereum.hpp"
-#include "types/bits.tcc"
-#include "util.hpp"
+#include "core/bits.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
+#include "libzeth/circuits/sha256/sha256_ethereum.hpp"
 
 #include <gtest/gtest.h>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 using namespace libsnark;
-using namespace libzeth;
+// using namespace libzeth;
 
 typedef libzeth::ppT ppT;
 typedef libff::Fr<ppT> FieldT;
 
 // We use our hash function to do the tests
-typedef sha256_ethereum<FieldT> HashT;
+typedef libzeth::sha256_ethereum<FieldT> HashT;
 
 // Note on the instantiation of the FieldT template type
 //
@@ -63,7 +62,7 @@ TEST(TestSHA256, TestHash)
     pb.val(ZERO) = FieldT::zero();
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<FieldT> left = from_bits(
+    libsnark::pb_variable_array<FieldT> left = libzeth::from_bits(
         {0, 0, 0, 0, 1, 1, 1, 1, // 0, 0, 0, 0, 1, 1, 1, 1,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -79,7 +78,7 @@ TEST(TestSHA256, TestHash)
         ZERO);
 
     // hex: 0x43C000000000003FC00000000000003FC00000000000003FC00000000000003F
-    libsnark::pb_variable_array<FieldT> right = from_bits(
+    libsnark::pb_variable_array<FieldT> right = libzeth::from_bits(
         {0, 1, 0, 0, 0, 0, 1, 1, //  (0, 1 is the right prefix here)
          1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -102,9 +101,9 @@ TEST(TestSHA256, TestHash)
     input_block.reset(new libsnark::block_variable<FieldT>(
         pb, {left, right}, "Block_variable"));
 
-    std::shared_ptr<sha256_ethereum<FieldT>> hasher;
-    hasher.reset(new sha256_ethereum<FieldT>(
-        pb, *input_block, *result, "Sha256_ethereum"));
+    std::shared_ptr<libzeth::sha256_ethereum<FieldT>> hasher;
+    hasher.reset(
+        new libzeth::sha256_ethereum<FieldT>(pb, ZERO, *input_block, *result));
 
     // result should equal:
     // 0xa4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3 Since
@@ -119,8 +118,8 @@ TEST(TestSHA256, TestHash)
     // on-chain and off-chain) Solidity version v0.5.0
     std::string test_vector_res_str =
         "a4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3";
-    libsnark::pb_variable_array<FieldT> expected =
-        from_bits(bit_vector_from_hex(test_vector_res_str), ZERO);
+    libsnark::pb_variable_array<FieldT> expected = libzeth::from_bits(
+        libzeth::bit_vector_from_hex(test_vector_res_str), ZERO);
 
     hasher->generate_r1cs_constraints(true);
     hasher->generate_r1cs_witness();
@@ -157,11 +156,11 @@ TEST(TestSHA256, TestHashWithZeroLeg)
         "a631eca6f9fc96e9b0135804aceb5e97df404c3877d14e7f5ea67b4c120cec44";
 
     libff::bit_vector left_bits =
-        libff::bit_vector(bit_vector_from_hex(left_str));
+        libff::bit_vector(libzeth::bit_vector_from_hex(left_str));
     libff::bit_vector right_bits =
-        libff::bit_vector(bit_vector_from_hex(right_str));
+        libff::bit_vector(libzeth::bit_vector_from_hex(right_str));
     libff::bit_vector expected_bits =
-        libff::bit_vector(bit_vector_from_hex(expected_str));
+        libff::bit_vector(libzeth::bit_vector_from_hex(expected_str));
 
     left.fill_with_bits(pb, left_bits);
     right.fill_with_bits(pb, right_bits);
@@ -174,9 +173,9 @@ TEST(TestSHA256, TestHashWithZeroLeg)
     input_block.reset(new libsnark::block_variable<FieldT>(
         pb, {left, right}, "Block_variable"));
 
-    std::shared_ptr<sha256_ethereum<FieldT>> hasher;
-    hasher.reset(new sha256_ethereum<FieldT>(
-        pb, *input_block, *result, "Sha256_ethereum"));
+    std::shared_ptr<libzeth::sha256_ethereum<FieldT>> hasher;
+    hasher.reset(new libzeth::sha256_ethereum<FieldT>(
+        pb, ZERO, *input_block, *result, "Sha256_ethereum"));
 
     hasher->generate_r1cs_constraints(true);
     hasher->generate_r1cs_witness();

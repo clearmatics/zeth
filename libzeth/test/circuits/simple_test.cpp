@@ -16,16 +16,6 @@ using namespace libzeth;
 namespace
 {
 
-TEST(SimpleTests, BinaryHexConversion)
-{
-    const std::string string_bytes{
-        (char)0xff, (char)0xaa, (char)0xba, 0x70, 0x00};
-    const std::string hex = "ffaaba7000";
-
-    ASSERT_EQ(hex, bytes_to_hex(string_bytes));
-    ASSERT_EQ(string_bytes, hex_to_bytes(hex));
-}
-
 TEST(SimpleTests, SimpleCircuitProof)
 {
     // Simple circuit

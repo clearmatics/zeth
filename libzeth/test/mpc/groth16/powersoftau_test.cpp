@@ -5,6 +5,7 @@
 #include "libzeth/core/evaluator_from_lagrange.hpp"
 #include "libzeth/core/utils.hpp"
 #include "libzeth/mpc/groth16/powersoftau_utils.hpp"
+#include "libzeth/test/circuits/simple_test.hpp"
 
 #include <boost/filesystem.hpp>
 #include <fstream>
@@ -22,6 +23,11 @@ namespace
 {
 
 fs::path g_testdata_dir = fs::path("..") / "testdata";
+
+static std::string bytes_to_hex(const std::string &bin)
+{
+    return libzeth::bytes_to_hex(bin.c_str(), bin.size());
+}
 
 G1 pot_hex_to_g1(const std::string &s)
 {
