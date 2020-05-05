@@ -27,9 +27,13 @@ if(NOT LCOV)
   message(FATAL_ERROR "lcov not found. Aborting...")
 endif()
 
+# See: https://wiki.documentfoundation.org/Development/Lcov#patch_.27geninfo.27
 add_custom_target(
   raw_coverage
-  COMMAND ${LCOV} --initial --directory . --capture --output-file coverage.info
+  COMMAND ${LCOV} --initial --directory ${PROJECT_SOURCE_DIR} --capture --output-file base_coverage.info
+  COMMAND ${LCOV} --directory ${PROJECT_SOURCE_DIR} --capture --output-file test_coverage.info
+  COMMAND ${LCOV} --add-tracefile base_coverage.info --add-tracefile test_coverage.info --output-file coverage.info
+  COMMAND ${LCOV} --remove coverage.info /usr/\\*include/\\* ${PROJECT_SOURCE_DIR}/depends/\\* --output-file coverage.info
 )
 
 find_program(GENHTML genhtml)
@@ -44,7 +48,7 @@ endif()
 
 add_custom_target(
   coverage
-  COMMAND ${GENHTML} coverage.info --output-directory coverage_report
+  COMMAND ${GENHTML} coverage.info --legend --title "Zeth code coverage report" --output-directory coverage_report
   COMMAND ${XDG_OPEN} coverage_report/index.html
   DEPENDS raw_coverage
 )

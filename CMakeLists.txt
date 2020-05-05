@@ -131,7 +131,7 @@ option(
 option(
   USE_SANITIZERS
   "Compile the targets with the specified sanitizer"
-  ON
+  OFF
 )
 
 option(
