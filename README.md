@@ -158,7 +158,6 @@ Make sure that the `USE_DEV_TOOLS` option is set in the compilation configuratio
 
 ```bash
 make cppcheck
-make clang-tidy
 make clang-format
 ```
 
