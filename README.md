@@ -26,6 +26,7 @@ Additionally, several tools from the GCC and LLVM tools suite are used to improv
 - [clang-tidy](https://clang.llvm.org/extra/clang-tidy/)
 - [cppcheck](http://cppcheck.sourceforge.net/)
 - [include-what-you-use](https://include-what-you-use.org/)
+- [llvm-symbolizer](https://llvm.org/docs/CommandGuide/llvm-symbolizer.html)
 
 To use the Zeth functionality, 3 components are required:
 - An Ethereum network (the commands below use a local testnet) to host the Zeth
@@ -132,7 +133,7 @@ The following libraries are also required to build:
 - boost
 - openssl
 
-## Generate the documentation
+## Generate the Doxygen documentation
 
 To generate the documentation of Zeth:
 1. Run:
@@ -143,6 +144,27 @@ cmake .. && make doc_doxygen
 2. Open `${ZETH}/build/doc_doxygen/index.html` in your web browser, e.g.
 ```bash
 firefox build/doc_doxygen/html/index.html
+```
+
+## Compile the project using 'sanitizers'
+
+You can select the sanitizer of your choice (one of the sanitizers listed [here](./cmake/sanitizers.cmake)) by passing the flag `-DSANITIZER=<sanitizer>` to `cmake`.
+
+Example:
+```bash
+cd build
+cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address ..
+make check
+```
+
+## Run analysis tools on the code
+
+Make sure that the `USE_DEV_TOOLS` option is set in the compilation configuration.
+
+```bash
+make cppcheck
+make clang-tidy
+make clang-format
 ```
 
 ## References and useful links
