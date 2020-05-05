@@ -17,8 +17,13 @@ if ("${IS_ZETH_PARENT}")
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL ${test_src})
     target_link_libraries(
       ${TEST_NAME}
+
       zeth
-      gtest_main ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+      gtest_main
+      ${Boost_SYSTEM_LIBRARY}
+      ${Boost_FILESYSTEM_LIBRARY}
+      protobuf::libprotobuf
+    )
 
     # Add all tests to the 'build_tests' target
     add_dependencies(build_tests ${TEST_NAME})
