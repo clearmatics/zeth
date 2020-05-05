@@ -9,7 +9,7 @@ It follows and extends the design presented in [zerocash-ethereum](https://githu
 
 ## Building and running the project:
 
-:computer: *Warning* This project primarily targets x86_64 Linux and macOS platforms.
+:computer: **Warning** This project primarily targets x86_64 Linux and macOS platforms.
 
 ### Environment
 
@@ -166,6 +166,20 @@ make cppcheck
 make clang-tidy
 make clang-format
 ```
+
+## Generate code coverage report
+
+1. Make sure to enable the `CODE_COVERAGE` option in the CMake configuration.
+2. Compile the tests
+```bash
+cd build && cmake .. && make check
+```
+3. Generate the coverage report:
+```bash
+make coverage
+```
+
+**Note:** In order to generate the coverage reports, you will need `lcov`, along with `genhtml` and `xdg-open`.
 
 ## References and useful links
 
