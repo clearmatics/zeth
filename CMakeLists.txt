@@ -1,6 +1,6 @@
 # See: http://www.elpauer.org/stuff/learning_cmake.pdf
 # For a tutorial of CMake
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -143,7 +143,7 @@ option(
 option(
   CODE_COVERAGE
   "Generate code coverage report"
-  OFF
+  ON
 )
 
 if(APPLE)
@@ -172,6 +172,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clan
   if("${OPT_FLAGS}" STREQUAL "")
     set(OPT_FLAGS "-ggdb3 -O2 -march=native -mtune=native")
   endif()
+else()
+  message(WARNING "This project is assumed to be compiled with gcc or clang. No guarantees can be made if another compiler is used.")
 endif()
 
 add_definitions(-DCURVE_${CURVE})
@@ -260,8 +262,8 @@ if("${USE_DEV_TOOLS}")
     # Generate the compile database needed for some
     # of the tools we invoke below
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-    include(cmake/gcc-dev-tools.cmake)
-    include(cmake/clang-dev-tools.cmake)
+    include(cmake/gcc_dev_tools.cmake)
+    include(cmake/clang_dev_tools.cmake)
 endif()
 
 if("${USE_SANITIZERS}")
@@ -272,9 +274,9 @@ if("${GEN_DOC}")
     include(cmake/documentation.cmake)
 endif()
 
-#if("${CODE_COVERAGE}")
-#    include(cmake/code-coverage.cmake)
-#endif()
+if("${CODE_COVERAGE}")
+    include(cmake/code_coverage.cmake)
+endif()
 
 # Add all local subdirecetories
 add_subdirectory(libzeth)

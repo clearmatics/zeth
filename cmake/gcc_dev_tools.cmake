@@ -15,4 +15,6 @@ if(CPP_CHECK)
     --quiet
     -i${DEPENDS_DIR}
   )
+else()
+  message(FATAL_ERROR "cppcheck not found. Aborting...")
 endif()
