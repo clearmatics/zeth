@@ -1,6 +1,6 @@
 # See: http://www.elpauer.org/stuff/learning_cmake.pdf
 # For a tutorial of CMake
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.17)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -122,23 +122,28 @@ option(
   OFF
 )
 
-# Run tooling on the code
 option(
-  DEV_TOOLS
-  "Run code quality and security tools"
+  USE_DEV_TOOLS
+  "Run development tools on the code"
+  ON
+)
+
+option(
+  USE_SANITIZERS
+  "Compile the targets with the specified sanitizer"
   ON
 )
 
 option(
   GEN_DOC
   "Generate project documentation"
-  ON
+  OFF
 )
 
 option(
   CODE_COVERAGE
   "Generate code coverage report"
-  ON
+  OFF
 )
 
 if(APPLE)
@@ -249,18 +254,26 @@ set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
 # By default, compile with all warning flags
 add_compile_options(-Wall -Wextra)
 
-# Add extra configuration files to run additional tooling
+# Add extra configuration files to run additional
+# tooling on the code and to generate documentation
+if("${USE_DEV_TOOLS}")
+    # Generate the compile database needed for some
+    # of the tools we invoke below
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    include(cmake/gcc-dev-tools.cmake)
+    include(cmake/clang-dev-tools.cmake)
+endif()
+
+if("${USE_SANITIZERS}")
+    include(cmake/sanitizers.cmake)
+endif()
+
 if("${GEN_DOC}")
     include(cmake/documentation.cmake)
 endif()
 
 #if("${CODE_COVERAGE}")
 #    include(cmake/code-coverage.cmake)
-#endif()
-#
-#if("${DEV_TOOLS}")
-#    include(cmake/clang-cxx-dev-tools.cmake)
-#    include(cmake/gcc-cxx-dev-tools.cmake)
 #endif()
 
 # Add all local subdirecetories
