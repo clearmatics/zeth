@@ -20,8 +20,7 @@ namespace libzeth
 {
 
 template<typename FieldT>
-std::string libsnark_bigint_to_hexadecimal_str(
-    const libff::bigint<FieldT::num_limbs> &limbs)
+std::string bigint_to_hex(const libff::bigint<FieldT::num_limbs> &limbs)
 {
     const unsigned bytes_per_limb = (GMP_LIMB_BITS + 8 - 1) / 8;
 
@@ -47,7 +46,7 @@ std::string libsnark_bigint_to_hexadecimal_str(
 }
 
 template<typename FieldT>
-libff::bigint<FieldT::num_limbs> bytes_to_libsnark_bigint(
+libff::bigint<FieldT::num_limbs> bigint_from_bytes(
     const uint8_t bytes[((GMP_LIMB_BITS + 8 - 1) / 8) * FieldT::num_limbs])
 {
     const unsigned bytes_per_limb = (GMP_LIMB_BITS + 8 - 1) / 8;
@@ -63,8 +62,7 @@ libff::bigint<FieldT::num_limbs> bytes_to_libsnark_bigint(
     return res;
 }
 
-template<typename FieldT>
-FieldT hexadecimal_str_to_field_element(std::string field_str)
+template<typename FieldT> FieldT field_element_from_hex(std::string field_str)
 {
     // Remove prefix if any
     erase_substring(field_str, std::string("0x"));
@@ -75,19 +73,18 @@ FieldT hexadecimal_str_to_field_element(std::string field_str)
     char cstr[field_str.size() + 1];
     strcpy(cstr, field_str.c_str());
 
-    int res = hexadecimal_str_to_byte_array(cstr, val);
+    int res = hex_to_bytes(cstr, val);
     if (res == 0) {
         throw std::invalid_argument("Invalid hexadecimal string");
     }
 
-    libff::bigint<FieldT::num_limbs> el = bytes_to_libsnark_bigint<FieldT>(val);
+    libff::bigint<FieldT::num_limbs> el = bigint_from_bytes<FieldT>(val);
     return FieldT(el);
 }
 
-template<typename FieldT>
-std::string field_element_to_hexadecimal_str(FieldT field_el)
+template<typename FieldT> std::string field_element_to_hex(FieldT field_el)
 {
-    return libsnark_bigint_to_hexadecimal_str(field_el.as_bigint());
+    return bigint_to_hex(field_el.as_bigint());
 }
 
 } // namespace libzeth

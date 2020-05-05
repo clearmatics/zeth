@@ -36,80 +36,32 @@ const libsnark::r1cs_primary_input<libff::Fr<ppT>>
 }
 
 template<typename ppT, typename snarkT>
-void extended_proof<ppT, snarkT>::write_primary_inputs(
-    boost::filesystem::path path) const
+std::ostream &extended_proof<ppT, snarkT>::primary_inputs_write_json(
+    std::ostream &os) const
 {
-    if (path.empty()) {
-        // Used for debugging purpose
-        boost::filesystem::path tmp_path = get_path_to_debug_directory();
-        boost::filesystem::path primary_input_json_file("primary_input.json");
-        path = tmp_path / primary_input_json_file;
+    os << "[";
+    const size_t num_inputs = primary_inputs->size();
+    for (size_t i = 0; i < num_inputs; ++i) {
+        os << "\n    \"0x"
+           << bigint_to_hex<libff::Fr<ppT>>((*primary_inputs)[i].as_bigint())
+           << ((i < num_inputs - 1) ? "\"," : "\"");
     }
-    // Convert the boost path into char*
-    const char *str_path = path.string().c_str();
-
-    std::stringstream ss;
-    std::ofstream fh;
-    fh.open(str_path, std::ios::binary);
-
-    ss << "{\n";
-    ss << " \"inputs\" :"
-       << "["; // 1 should always be the first variable passed
-    for (size_t i = 0; i < *this->primary_inputs.size(); ++i) {
-        ss << "\"0x"
-           << libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
-                  *this->primary_inputs[i].as_bigint())
-           << "\"";
-        if (i < *this->primary_inputs.size() - 1) {
-            ss << ", ";
-        }
-    }
-    ss << "]\n";
-    ss << "}";
-
-    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
+    os << "\n  ]";
+    return os;
 }
 
 template<typename ppT, typename snarkT>
-void extended_proof<ppT, snarkT>::dump_primary_inputs() const
+std::ostream &extended_proof<ppT, snarkT>::write_json(std::ostream &os) const
 {
-    std::cout << "{\n";
-    std::cout << " \"inputs\" :"
-              << "["; // 1 should always be the first variable passed
-    for (size_t i = 0; i < (*this->primary_inputs).size(); ++i) {
-        std::cout << "\"0x"
-                  << libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
-                         (*this->primary_inputs)[i].as_bigint())
-                  << "\"";
-        if (i < (*this->primary_inputs).size() - 1) {
-            std::cout << ", ";
-        }
-    }
-    std::cout << "]\n";
-    std::cout << "}";
-}
-
-template<typename ppT, typename snarkT>
-void extended_proof<ppT, snarkT>::write_proof(
-    boost::filesystem::path path) const
-{
-    snarkT::proof_to_json(*this->proof, path);
-}
-
-template<typename ppT, typename snarkT>
-void extended_proof<ppT, snarkT>::write_extended_proof(
-    boost::filesystem::path path) const
-{
-    snarkT::proof_and_inputs_to_json(*proof, *primary_inputs, path);
-}
-
-template<typename ppT, typename snarkT>
-void extended_proof<ppT, snarkT>::dump_proof() const
-{
-    snarkT::display_proof(*this->proof);
+    os << "{\n"
+          "  \"proof\": ";
+    snarkT::proof_write_json(*proof, os);
+    os << ",\n"
+          "  \"inputs\": ";
+    primary_inputs_write_json(os);
+    os << "\n"
+          "}\n";
+    return os;
 }
 
 } // namespace libzeth

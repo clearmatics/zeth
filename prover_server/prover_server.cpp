@@ -5,8 +5,8 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/core/utils.hpp"
-#include "libzeth/serialization/api/api_io.hpp"
-#include "libzeth/serialization/file_io.hpp"
+#include "libzeth/serialization/proto_utils.hpp"
+#include "libzeth/serialization/r1cs_serialization.hpp"
 #include "libzeth/snarks/default/default_api_handler.hpp"
 #include "libzeth/zeth_constants.hpp"
 #include "zeth_config.h"
@@ -19,7 +19,6 @@
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
-#include <iostream>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 #include <memory>
 #include <stdio.h>
@@ -30,6 +29,54 @@ using api_handler = libzeth::default_api_handler<libzeth::ppT>;
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
+
+static void serialize_setup_to_file(
+    const typename snark::KeypairT &keypair,
+    boost::filesystem::path setup_path = "")
+{
+    if (setup_path.empty()) {
+        setup_path = libzeth::get_path_to_setup_directory();
+    }
+
+    const boost::filesystem::path path_vk_json = setup_path / "vk.json";
+    const boost::filesystem::path path_vk_raw = setup_path / "vk.raw";
+    const boost::filesystem::path path_pk_raw = setup_path / "pk.raw";
+
+    const typename snark::ProvingKeyT &proving_key = keypair.pk;
+    const typename snark::VerificationKeyT &verification_key = keypair.vk;
+
+    // Write the verification key in json format
+    {
+        std::ofstream vk_json_s(path_vk_json.c_str());
+        snark::verification_key_write_json(verification_key, vk_json_s);
+    }
+
+    // Write the verification and proving keys in raw format
+    {
+        std::ofstream vk_bytes_s(path_vk_raw.c_str());
+        snark::verification_key_write_bytes(verification_key, vk_bytes_s);
+    }
+    {
+        std::ofstream pk_bytes_s(path_pk_raw.c_str());
+        snark::proving_key_write_bytes(proving_key, pk_bytes_s);
+    }
+}
+
+static void write_ext_proof_to_file(
+    const libzeth::extended_proof<libzeth::ppT, snark> &ext_proof,
+    boost::filesystem::path proof_path = "")
+{
+    if (proof_path.empty()) {
+        // Used for debugging
+        const boost::filesystem::path tmp_path =
+            libzeth::get_path_to_debug_directory();
+        proof_path = tmp_path / "proof_and_inputs.json";
+    }
+
+    std::cout << "[DEBUG] Writing extended proof to" << proof_path << std::endl;
+    std::ofstream os(proof_path.c_str());
+    ext_proof.write_json(os);
+}
 
 /// The prover_server class inherits from the Prover service
 /// defined in the proto files, and provides an implementation
@@ -77,7 +124,7 @@ public:
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            api_handler::format_verification_key(this->keypair.vk, response);
+            api_handler::verification_key_to_proto(this->keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -103,17 +150,16 @@ public:
         // Parse received message to feed to the prover
         try {
             libzeth::FieldT root =
-                libzeth::hexadecimal_str_to_field_element<libzeth::FieldT>(
+                libzeth::field_element_from_hex<libzeth::FieldT>(
                     proof_inputs->mk_root());
-            libzeth::bits64 vpub_in = libzeth::get_bits64_from_hexadecimal_str(
-                proof_inputs->pub_in_value());
-            libzeth::bits64 vpub_out = libzeth::get_bits64_from_hexadecimal_str(
-                proof_inputs->pub_out_value());
+            libzeth::bits64 vpub_in =
+                libzeth::bits64_from_hex(proof_inputs->pub_in_value());
+            libzeth::bits64 vpub_out =
+                libzeth::bits64_from_hex(proof_inputs->pub_out_value());
             libzeth::bits256 h_sig_in =
-                libzeth::get_bits256_from_hexadecimal_str(
-                    proof_inputs->h_sig());
+                libzeth::bits256_from_hex(proof_inputs->h_sig());
             libzeth::bits256 phi_in =
-                libzeth::get_bits256_from_hexadecimal_str(proof_inputs->phi());
+                libzeth::bits256_from_hex(proof_inputs->phi());
 
             if (libzeth::ZETH_NUM_JS_INPUTS != proof_inputs->js_inputs_size()) {
                 throw std::invalid_argument("Invalid number of JS inputs");
@@ -139,7 +185,7 @@ public:
                 libzeth::joinsplit_input<
                     libzeth::FieldT,
                     libzeth::ZETH_MERKLE_TREE_DEPTH>
-                    parsed_input = libzeth::parse_joinsplit_input<
+                    parsed_input = libzeth::joinsplit_input_from_proto<
                         libzeth::FieldT,
                         libzeth::ZETH_MERKLE_TREE_DEPTH>(received_input);
                 joinsplit_inputs[i] = parsed_input;
@@ -157,7 +203,7 @@ public:
                 zeth_proto::ZethNote received_output =
                     proof_inputs->js_outputs(i);
                 libzeth::zeth_note parsed_output =
-                    libzeth::parse_zeth_note(received_output);
+                    libzeth::zeth_note_from_proto(received_output);
                 joinsplit_outputs[i] = parsed_output;
             }
 
@@ -175,11 +221,13 @@ public:
                     this->keypair.pk);
 
             std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-            ext_proof.dump_proof();
-            ext_proof.dump_primary_inputs();
+            ext_proof.write_json(std::cout);
+
+            // Write a copy of the proof for debugging.
+            write_ext_proof_to_file(ext_proof);
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
-            api_handler::format_extended_proof(ext_proof, proof);
+            api_handler::extended_proof_to_proto(ext_proof, proof);
 
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
@@ -270,7 +318,7 @@ static snark::KeypairT load_keypair(const std::string &keypair_file)
     std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return snark::read_keypair(in);
+    return snark::keypair_read_bytes(in);
 }
 #endif
 
@@ -349,14 +397,20 @@ int main(int argc, char **argv)
         }
 
         std::cout << "[INFO] Generate new keypair" << std::endl;
-        return prover.generate_trusted_setup();
+        snark::KeypairT keypair = prover.generate_trusted_setup();
+
+        // Write the keypair to a file
+        serialize_setup_to_file(keypair);
+        return keypair;
     }();
 
 #ifdef DEBUG
     // Run only if the flag is set
     if (jr1cs_file != "") {
         std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
-        prover.dump_constraint_system(jr1cs_file);
+        std::ofstream jr1cs_stream(jr1cs_file.c_str());
+        libzeth::r1cs_write_json<libzeth::ppT>(
+            prover.get_constraint_system(), jr1cs_stream);
     }
 #endif
 

@@ -496,24 +496,24 @@ public:
         // Witness public values
         //
         // Witness LHS public value
-        zk_vpub_in.fill_with_bits(this->pb, get_vector_from_bits64(vpub_in));
+        zk_vpub_in.fill_with_bits(this->pb, bits64_to_vector(vpub_in));
 
         // Witness RHS public value
-        zk_vpub_out.fill_with_bits(this->pb, get_vector_from_bits64(vpub_out));
+        zk_vpub_out.fill_with_bits(this->pb, bits64_to_vector(vpub_out));
 
         // Witness h_sig
         h_sig->generate_r1cs_witness(
-            libff::bit_vector(get_vector_from_bits256(h_sig_in)));
+            libff::bit_vector(bits256_to_vector(h_sig_in)));
 
         // Witness the h_iS, a_sk and rho_iS
         for (size_t i = 0; i < NumInputs; i++) {
             a_sks[i]->generate_r1cs_witness(libff::bit_vector(
-                get_vector_from_bits256(inputs[i].spending_key_a_sk)));
+                bits256_to_vector(inputs[i].spending_key_a_sk)));
         }
 
         // Witness phi
         phi->generate_r1cs_witness(
-            libff::bit_vector(get_vector_from_bits256(phi_in)));
+            libff::bit_vector(bits256_to_vector(phi_in)));
 
         {
             // Witness total_uint64 bits
@@ -522,19 +522,19 @@ public:
             // To check left_side_acc < 2^64, we set the function's bool to true
             bits64 left_side_acc = vpub_in;
             for (size_t i = 0; i < NumInputs; i++) {
-                left_side_acc = binary_addition<ZETH_V_SIZE>(
-                    left_side_acc, inputs[i].note.value(), true);
+                left_side_acc = bits_add<ZETH_V_SIZE>(
+                    left_side_acc, inputs[i].note.value, true);
             }
 
             zk_total_uint64.fill_with_bits(
-                this->pb, get_vector_from_bits64(left_side_acc));
+                this->pb, bits64_to_vector(left_side_acc));
         }
 
         // Witness the JoinSplit inputs and the h_is
         for (size_t i = 0; i < NumInputs; i++) {
             std::vector<FieldT> merkle_path = inputs[i].witness_merkle_path;
             libff::bit_vector address_bits =
-                get_vector_from_bits_addr(inputs[i].address_bits);
+                bits_addr_to_vector(inputs[i].address_bits);
             input_notes[i]->generate_r1cs_witness(
                 merkle_path, address_bits, inputs[i].note);
 

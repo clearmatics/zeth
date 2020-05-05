@@ -12,43 +12,30 @@
 namespace libzeth
 {
 
-class base_note
+class zeth_note
 {
-protected:
-    bits64 value_;
-
 public:
-    base_note() { value_.fill(false); }
-    base_note(bits64 value) : value_(value){};
-    virtual ~base_note(){};
+    bits256 a_pk;
+    bits64 value;
+    bits256 rho;
+    bits256 r;
 
-    inline bits64 value() const { return value_; };
+    zeth_note(bits256 a_pk, bits64 value, bits256 rho, bits256 r)
+        : a_pk(a_pk), value(value), rho(rho), r(r)
+    {
+    }
 
-    // Test if the note is a 0-valued note
+    zeth_note() { value.fill(false); }
+
     inline bool is_zero_valued() const
     {
-        bits64 zero;
-        zero.fill(false);
-        return value_ == zero;
+        for (const bool b : value) {
+            if (b) {
+                return false;
+            }
+        }
+        return true;
     }
-};
-
-class zeth_note : public base_note
-{
-public:
-    bits256 a_pk; // 256-bit vector
-    bits256 rho;  // 256-bit vector
-    bits256 r;    // 384-bit random vector
-    // bits256 cm; // 256-bit vector
-
-    zeth_note(
-        bits256 a_pk, bits64 value, bits256 rho, bits256 r /*, bits256 cm*/)
-        : base_note(value), a_pk(a_pk), rho(rho), r(r) /*, cm(cm)*/
-    {
-    }
-
-    zeth_note(){};
-    virtual ~zeth_note(){};
 };
 
 } // namespace libzeth

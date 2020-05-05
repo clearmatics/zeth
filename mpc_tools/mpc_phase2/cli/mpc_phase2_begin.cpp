@@ -75,7 +75,7 @@ private:
         }
 
         libff::enter_block("Load linear combination file");
-        srs_mpc_hash_t cs_hash;
+        mpc_hash_t cs_hash;
         srs_mpc_layer_L1<ppT> lin_comb =
             read_from_file_and_hash<srs_mpc_layer_L1<ppT>>(
                 lin_comb_file, cs_hash);

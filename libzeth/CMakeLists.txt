@@ -101,6 +101,7 @@ if ("${IS_ZETH_PARENT}")
   endfunction(zeth_test)
 
   zeth_test(test_addition SOURCE test/packed_addition_test.cpp FAST)
+  zeth_test(test_bits SOURCE test/bits_test.cpp FAST)
   zeth_test(test_hex_to_field SOURCE test/hex_to_field_test.cpp FAST)
   zeth_test(test_binary_operation SOURCE test/binary_operation_test.cpp FAST)
   zeth_test(test_blake2s SOURCE test/blake2s_test.cpp FAST)
@@ -122,16 +123,16 @@ if ("${IS_ZETH_PARENT}")
     zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
     target_link_libraries(
       test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+    target_link_libraries(
+      test_powersoftau
+      ${Boost_FILESYSTEM_LIBRARY}
+    )
   endif()
 
   # Extra dependencies for specific tests
   target_link_libraries(
     test_prover
     ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-  )
-  target_link_libraries(
-    test_powersoftau
     ${Boost_FILESYSTEM_LIBRARY}
   )
 

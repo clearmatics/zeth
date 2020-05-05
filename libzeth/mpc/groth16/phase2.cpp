@@ -21,7 +21,7 @@ void srs_mpc_phase2_accumulator<libff::alt_bn128_pp>::write_compressed(
 
     const size_t H_size = H_g1.size();
     const size_t L_size = L_g1.size();
-    out.write((const char *)cs_hash, sizeof(srs_mpc_hash_t));
+    out.write((const char *)cs_hash, sizeof(mpc_hash_t));
     out.write((const char *)&H_size, sizeof(H_size));
     out.write((const char *)&L_size, sizeof(L_size));
 
@@ -45,10 +45,10 @@ srs_mpc_phase2_accumulator<libff::alt_bn128_pp> srs_mpc_phase2_accumulator<
     using G1 = libff::alt_bn128_G1;
     using G2 = libff::alt_bn128_G2;
 
-    srs_mpc_hash_t cs_hash;
+    mpc_hash_t cs_hash;
     size_t H_size;
     size_t L_size;
-    in.read((char *)cs_hash, sizeof(srs_mpc_hash_t));
+    in.read((char *)cs_hash, sizeof(mpc_hash_t));
     in.read((char *)&H_size, sizeof(H_size));
     in.read((char *)&L_size, sizeof(L_size));
 

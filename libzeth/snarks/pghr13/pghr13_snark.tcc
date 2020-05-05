@@ -6,7 +6,7 @@
 #define __ZETH_SNARKS_PGHR13_PGHR13_SNARK_TCC__
 
 #include "libzeth/core/field_element_utils.hpp"
-#include "libzeth/serialization/filesystem_util.hpp" // TODO: remove this
+#include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/snarks/pghr13/pghr13_snark.hpp"
 
 namespace libzeth
@@ -44,256 +44,96 @@ template<typename ppT>
 bool pghr13_snark<ppT>::verify(
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_inputs,
     const pghr13_snark<ppT>::ProofT &proof,
-    const pghr13_snark<ppT>::VerifKeyT &verification_key)
+    const pghr13_snark<ppT>::VerificationKeyT &verification_key)
 {
     return libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(
         verification_key, primary_inputs, proof);
 }
 
 template<typename ppT>
-void pghr13_snark<ppT>::export_verification_key(
-    const pghr13_snark<ppT>::KeypairT &keypair)
+std::ostream &pghr13_snark<ppT>::verification_key_write_json(
+    const pghr13_snark<ppT>::VerificationKeyT &vk, std::ostream &os)
 {
-    unsigned ic_length = keypair.vk.encoded_IC_query.rest.indices.size() + 1;
-
-    std::cout
-        << "\tVerification key in Solidity compliant format:{"
-        << "\n"
-        << "\t\tvk.A = Pairing.G2Point("
-        << point_g2_affine_to_hexadecimal_str<ppT>(keypair.vk.alphaA_g2) << ");"
-        << "\n"
-        << "\t\tvk.B = Pairing.G1Point("
-        << point_g1_affine_to_hexadecimal_str<ppT>(keypair.vk.alphaB_g1) << ");"
-        << "\n"
-        << "\t\tvk.C = Pairing.G2Point("
-        << point_g2_affine_to_hexadecimal_str<ppT>(keypair.vk.alphaC_g2) << ");"
-        << "\n"
-        << "\t\tvk.gamma = Pairing.G2Point("
-        << point_g2_affine_to_hexadecimal_str<ppT>(keypair.vk.gamma_g2) << ");"
-        << "\n"
-        << "\t\tvk.gammaBeta1 = Pairing.G1Point("
-        << point_g1_affine_to_hexadecimal_str<ppT>(keypair.vk.gamma_beta_g1)
-        << ");"
-        << "\n"
-        << "\t\tvk.gammaBeta2 = Pairing.G2Point("
-        << point_g2_affine_to_hexadecimal_str<ppT>(keypair.vk.gamma_beta_g2)
-        << ");"
-        << "\n"
-        << "\t\tvk.Z = Pairing.G2Point("
-        << point_g2_affine_to_hexadecimal_str<ppT>(keypair.vk.rC_Z_g2) << ");"
-        << "\n"
-        << "\t\tvk.IC = new Pairing.G1Point[](" << ic_length << ");"
-        << "\t\tvk.IC[0] = Pairing.G1Point("
-        << point_g1_affine_to_hexadecimal_str<ppT>(
-               keypair.vk.encoded_IC_query.first)
-        << ");" << std::endl;
-    for (size_t i = 1; i < ic_length; ++i) {
-        auto vk_ic_i = point_g1_affine_to_hexadecimal_str<ppT>(
-            keypair.vk.encoded_IC_query.rest.values[i - 1]);
-        std::cout << "\t\tvk.IC[" << i << "] = Pairing.G1Point(" << vk_ic_i
-                  << ");" << std::endl;
-    }
-    std::cout << "\t\t}" << std::endl;
-}
-
-template<typename ppT>
-void pghr13_snark<ppT>::display_proof(const pghr13_snark<ppT>::ProofT &proof)
-{
-    std::cout << "Proof:"
-              << "\n"
-              << "proof.A = Pairing.G1Point("
-              << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_A.g) << ");"
-              << "\n"
-              << "proof.A_p = Pairing.G1Point("
-              << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_A.h) << ");"
-              << "\n"
-              << "proof.B = Pairing.G2Point("
-              << point_g2_affine_to_hexadecimal_str<ppT>(proof.g_B.g) << ");"
-              << "\n"
-              << "proof.B_p = Pairing.G1Point("
-              << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_B.h) << ");"
-              << "\n"
-              << "proof.C = Pairing.G1Point("
-              << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_C.g) << ");"
-              << "\n"
-              << "proof.C_p = Pairing.G1Point("
-              << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_C.h) << ");"
-              << "\n"
-              << "proof.H = Pairing.G1Point("
-              << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_H) << ");"
-              << "\n"
-              << "proof.K = Pairing.G1Point("
-              << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_K) << ");"
-              << std::endl;
-}
-
-template<typename ppT>
-void pghr13_snark<ppT>::verification_key_to_json(
-    const pghr13_snark<ppT>::VerifKeyT &vk, boost::filesystem::path path)
-{
-    if (path.empty()) {
-        boost::filesystem::path tmp_path = get_path_to_setup_directory();
-        boost::filesystem::path vk_json_file("vk.json");
-        path = tmp_path / vk_json_file;
-    }
-    // Convert boost path to char*
-    const char *str_path = path.string().c_str();
-
-    std::stringstream ss;
-    std::ofstream fh;
-    fh.open(str_path, std::ios::binary);
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
 
-    ss << "{\n";
-    ss << " \"a\" :[" << point_g2_affine_to_hexadecimal_str<ppT>(vk.alphaA_g2)
-       << "],\n";
-    ss << " \"b\"  :[" << point_g1_affine_to_hexadecimal_str<ppT>(vk.alphaB_g1)
-       << "],\n";
-    ss << " \"c\" :[" << point_g2_affine_to_hexadecimal_str<ppT>(vk.alphaC_g2)
-       << "],\n";
-    ss << " \"g\" :[" << point_g2_affine_to_hexadecimal_str<ppT>(vk.gamma_g2)
-       << "],\n";
-    ss << " \"gb1\" :["
-       << point_g1_affine_to_hexadecimal_str<ppT>(vk.gamma_beta_g1) << "],\n";
-    ss << " \"gb2\" :["
-       << point_g2_affine_to_hexadecimal_str<ppT>(vk.gamma_beta_g2) << "],\n";
-    ss << " \"z\" :[" << point_g2_affine_to_hexadecimal_str<ppT>(vk.rC_Z_g2)
-       << "],\n";
+    os << "{\n";
+    os << " \"a\": " << point_g2_affine_to_json<ppT>(vk.alphaA_g2) << ",\n";
+    os << " \"b\": " << point_g1_affine_to_json<ppT>(vk.alphaB_g1) << ",\n";
+    os << " \"c\": " << point_g2_affine_to_json<ppT>(vk.alphaC_g2) << ",\n";
+    os << " \"g\": " << point_g2_affine_to_json<ppT>(vk.gamma_g2) << ",\n";
+    os << " \"gb1\": " << point_g1_affine_to_json<ppT>(vk.gamma_beta_g1)
+       << ",\n";
+    os << " \"gb2\": " << point_g2_affine_to_json<ppT>(vk.gamma_beta_g2)
+       << ",\n";
+    os << " \"z\": " << point_g2_affine_to_json<ppT>(vk.rC_Z_g2) << ",\n";
 
-    ss << "\"IC\" :[["
-       << point_g1_affine_to_hexadecimal_str<ppT>(vk.encoded_IC_query.first)
-       << "]";
+    os << "\"IC\" :["
+       << point_g1_affine_to_json<ppT>(vk.encoded_IC_query.first);
 
     for (size_t i = 1; i < ic_length; ++i) {
-        auto vk_ic_i = point_g1_affine_to_hexadecimal_str<ppT>(
-            vk.encoded_IC_query.rest.values[i - 1]);
-        ss << ",[" << vk_ic_i << "]";
+        os << ","
+           << point_g1_affine_to_json<ppT>(
+                  vk.encoded_IC_query.rest.values[i - 1]);
     }
 
-    ss << "]";
-    ss << "}";
-    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
+    os << "]\n";
+    os << "}";
+    return os;
 }
 
 template<typename ppT>
-void pghr13_snark<ppT>::proof_and_inputs_to_json(
-    const pghr13_snark<ppT>::ProofT &proof,
-    const libsnark::r1cs_primary_input<libff::Fr<ppT>> &input,
-    boost::filesystem::path path)
+std::ostream &pghr13_snark<ppT>::verification_key_write_bytes(
+    const typename pghr13_snark<ppT>::VerificationKeyT &vk, std::ostream &os)
 {
-    if (path.empty()) {
-        // Used for debugging purpose
-        boost::filesystem::path tmp_path = get_path_to_debug_directory();
-        boost::filesystem::path proof_and_input_json_file(
-            "proof_and_input.json");
-        path = tmp_path / proof_and_input_json_file;
-    }
-    // Convert the boost path into char*
-    const char *str_path = path.string().c_str();
-
-    std::stringstream ss;
-    std::ofstream fh;
-    fh.open(str_path, std::ios::binary);
-
-    ss << "{\n";
-    ss << " \"a\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_A.g)
-       << "],\n";
-    ss << " \"a_p\"  :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_A.h)
-       << "],\n";
-    ss << " \"b\"  :[" << point_g2_affine_to_hexadecimal_str<ppT>(proof.g_B.g)
-       << "],\n";
-    ss << " \"b_p\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_B.h)
-       << "],\n";
-    ss << " \"c\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_C.g)
-       << "],\n";
-    ss << " \"c_p\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_C.h)
-       << "],\n";
-    ss << " \"h\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_H)
-       << "],\n";
-    ss << " \"k\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_K)
-       << "],\n";
-    ss << " \"input\" :"
-       << "["; // 1 should always be the first variable passed
-    for (size_t i = 0; i < input.size(); ++i) {
-        ss << "\"0x"
-           << libsnark_bigint_to_hexadecimal_str<libff::Fr<ppT>>(
-                  input[i].as_bigint())
-           << "\"";
-        if (i < input.size() - 1) {
-            ss << ", ";
-        }
-    }
-    ss << "]\n";
-    ss << "}";
-
-    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
+    return os << vk;
 }
 
 template<typename ppT>
-void pghr13_snark<ppT>::proof_to_json(
-    const pghr13_snark<ppT>::ProofT &proof, boost::filesystem::path path)
+typename pghr13_snark<ppT>::VerificationKeyT pghr13_snark<
+    ppT>::verification_key_read_bytes(std::istream &is)
 {
-    if (path.empty()) {
-        // Used for debugging purpose
-        boost::filesystem::path tmp_path = get_path_to_debug_directory();
-        boost::filesystem::path proof_json("proof.json");
-        path = tmp_path / proof_json;
-    }
-    // Convert the boost path into char*
-    const char *str_path = path.string().c_str();
-
-    std::stringstream ss;
-    std::ofstream fh;
-    fh.open(str_path, std::ios::binary);
-
-    ss << "{\n";
-    ss << " \"a\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_A.g)
-       << "],\n";
-    ss << " \"a_p\"  :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_A.h)
-       << "],\n";
-    ss << " \"b\"  :[" << point_g2_affine_to_hexadecimal_str<ppT>(proof.g_B.g)
-       << "],\n";
-    ss << " \"b_p\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_B.h)
-       << "],\n";
-    ss << " \"c\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_C.g)
-       << "],\n";
-    ss << " \"c_p\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_C.h)
-       << "],\n";
-    ss << " \"h\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_H)
-       << "],\n";
-    ss << " \"k\" :[" << point_g1_affine_to_hexadecimal_str<ppT>(proof.g_K)
-       << "]\n";
-    ss << "}";
-
-    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
+    VerificationKeyT vk;
+    is >> vk;
+    return vk;
 }
 
 template<typename ppT>
-void pghr13_snark<ppT>::write_keypair(
-    std::ostream &out, const pghr13_snark<ppT>::KeypairT &keypair)
+std::ostream &pghr13_snark<ppT>::proving_key_write_bytes(
+    const typename pghr13_snark<ppT>::ProvingKeyT &pk, std::ostream &os)
 {
-    out << keypair.pk;
-    out << keypair.vk;
+    return os << pk;
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::KeypairT pghr13_snark<ppT>::read_keypair(
-    std::istream &in)
+typename pghr13_snark<ppT>::ProvingKeyT pghr13_snark<
+    ppT>::proving_key_read_bytes(std::istream &is)
 {
-    pghr13_snark<ppT>::ProvingKeyT pk;
-    pghr13_snark<ppT>::VerifKeyT vk;
-    in >> pk;
-    in >> vk;
-    return pghr13_snark<ppT>::KeypairT(pk, vk);
+    ProvingKeyT pk;
+    is >> pk;
+    return pk;
+}
+
+template<typename ppT>
+std::ostream &pghr13_snark<ppT>::proof_write_json(
+    const typename pghr13_snark<ppT>::ProofT &proof, std::ostream &os)
+{
+    return os << proof;
+}
+
+template<typename ppT>
+std::ostream &pghr13_snark<ppT>::keypair_write_bytes(
+    const typename pghr13_snark<ppT>::KeypairT &keypair, std::ostream &os)
+{
+    proving_key_write_bytes(keypair.pk, os);
+    return verification_key_write_bytes(keypair.vk, os);
+}
+
+template<typename ppT>
+typename pghr13_snark<ppT>::KeypairT pghr13_snark<ppT>::keypair_read_bytes(
+    std::istream &is)
+{
+    return KeypairT(
+        proving_key_read_bytes(is), verification_key_read_bytes(is));
 }
 
 } // namespace libzeth

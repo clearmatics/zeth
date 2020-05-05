@@ -19,12 +19,11 @@ TEST(TestHexConvertion, TestHexToFieldTrue)
 {
     field starting_field_element = field::random_element();
     std::string field_el_str =
-        libzeth::libsnark_bigint_to_hexadecimal_str<field>(
-            starting_field_element.as_bigint());
+        libzeth::bigint_to_hex<field>(starting_field_element.as_bigint());
 
     // We read the string and convert it back to a field element
     field retrieved_field_element =
-        libzeth::hexadecimal_str_to_field_element<field>(field_el_str);
+        libzeth::field_element_from_hex<field>(field_el_str);
 
     bool res = false;
     res = (starting_field_element == retrieved_field_element);
@@ -36,12 +35,11 @@ TEST(TestHexConvertion, TestHexToFieldFalse)
     field starting_field_element = field::random_element();
     field modified_field_element = starting_field_element + field::one();
     std::string modified_field_el_str =
-        libzeth::libsnark_bigint_to_hexadecimal_str<field>(
-            modified_field_element.as_bigint());
+        libzeth::bigint_to_hex<field>(modified_field_element.as_bigint());
 
     // We read the string and convert it back to a field element
     field retrieved_field_element =
-        libzeth::hexadecimal_str_to_field_element<field>(modified_field_el_str);
+        libzeth::field_element_from_hex<field>(modified_field_el_str);
 
     bool res = false;
     res = (starting_field_element == retrieved_field_element);
@@ -55,7 +53,7 @@ TEST(TestHexConvertion, TestHexToFieldBadString)
 
     try {
         field computed_field_element =
-            libzeth::hexadecimal_str_to_field_element<field>(sample);
+            libzeth::field_element_from_hex<field>(sample);
         libff::UNUSED(computed_field_element);
     } catch (const std::exception &exc) {
         res = false;

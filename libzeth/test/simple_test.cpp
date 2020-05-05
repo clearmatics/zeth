@@ -22,8 +22,8 @@ TEST(SimpleTests, BinaryHexConversion)
         (char)0xff, (char)0xaa, (char)0xba, 0x70, 0x00};
     const std::string hex = "ffaaba7000";
 
-    ASSERT_EQ(hex, binary_str_to_hexadecimal_str(string_bytes));
-    ASSERT_EQ(string_bytes, hexadecimal_str_to_binary_str(hex));
+    ASSERT_EQ(hex, bytes_to_hex(string_bytes));
+    ASSERT_EQ(string_bytes, hex_to_bytes(hex));
 }
 
 TEST(SimpleTests, SimpleCircuitProof)
