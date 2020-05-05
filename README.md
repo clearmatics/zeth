@@ -136,14 +136,9 @@ The following libraries are also required to build:
 ## Generate the Doxygen documentation
 
 To generate the documentation of Zeth:
-1. Run:
 ```bash
 cd build
-cmake .. && make doc_doxygen
-```
-2. Open `${ZETH}/build/doc_doxygen/index.html` in your web browser, e.g.
-```bash
-firefox build/doc_doxygen/html/index.html
+cmake .. && make docs
 ```
 
 ## Compile the project using 'sanitizers'
