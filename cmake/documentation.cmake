@@ -7,24 +7,36 @@
 
 # Check if Doxygen is installed
 find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  # Set input and output files
-  set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
-  set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+if(NOT DOXYGEN_FOUND)
+  message(FATAL_ERROR "You need to install Doxygen to generate the documentation. Aborting...")
+endif()
 
-  # Request to configure the file
-  configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-  message("Doxygen build started")
+# Set input and output files
+set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
-  # The option ALL allows to build the docs together with the application
-  add_custom_target(
-    doc_doxygen
-    ALL
-    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating API documentation with Doxygen"
-    VERBATIM
-  )
-else(DOXYGEN_FOUND)
-    message("You need to install Doxygen to generate the documentation")
-endif(DOXYGEN_FOUND)
+# Request to configure the file
+configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+message("Doxygen build started")
+
+# The option ALL allows to build the docs together with the application
+add_custom_target(
+  doc_doxygen
+  ALL
+  COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMENT "Generating API documentation with Doxygen"
+  VERBATIM
+)
+
+find_program(XDG_OPEN xdg-open)
+
+if(NOT XDG_OPEN)
+  set(XDG_OPEN cmake -E echo Documentation generated. Open )
+endif()
+
+add_custom_target(
+  docs
+  COMMAND ${XDG_OPEN} ${CMAKE_CURRENT_BINARY_DIR}/doc_doxygen/html/index.html
+  DEPENDS doc_doxygen
+)
