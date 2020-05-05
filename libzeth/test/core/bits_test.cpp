@@ -54,18 +54,28 @@ TEST(BitsTest, BitVectorFromSizeT)
 {
     const std::vector<bool> expect_le_a7 = {1, 1, 1, 0, 0, 1, 0, 1};
     const std::vector<bool> expect_le_72 = {0, 1, 0, 0, 1, 1, 1};
+    const std::vector<bool> expect_be_100 = {1, 0, 0, 0, 0, 0, 0, 0, 0};
     const std::vector<bool> expect_be_a5 = {1, 0, 1, 0, 0, 1, 0, 1};
-    const std::vector<bool> expect_be_5a = {1, 0, 1, 1, 0, 1, 0};
+    const std::vector<bool> expect_be_40000005a = {
+        1, 0, 0,                // 4
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 0, 0, 0, 0, 0, 0, 0, // 00
+        0, 1, 0, 1, 1, 0, 1, 0, // 5a
+    };
 
     const std::vector<bool> le_a7 = bit_vector_from_size_t_le(0xa7);
     const std::vector<bool> le_72 = bit_vector_from_size_t_le(0x72);
     const std::vector<bool> be_a5 = bit_vector_from_size_t_be(0xa5);
-    const std::vector<bool> be_5a = bit_vector_from_size_t_be(0x5a);
+    const std::vector<bool> be_100 = bit_vector_from_size_t_be(0x100);
+    const std::vector<bool> be_40000005a =
+        bit_vector_from_size_t_be(0x40000005aull);
 
     ASSERT_EQ(expect_le_a7, le_a7);
     ASSERT_EQ(expect_le_72, le_72);
+    ASSERT_EQ(expect_be_100, be_100);
     ASSERT_EQ(expect_be_a5, be_a5);
-    ASSERT_EQ(expect_be_5a, be_5a);
+    ASSERT_EQ(expect_be_40000005a, be_40000005a);
 }
 
 TEST(BitsTest, BitVectorFromHex)

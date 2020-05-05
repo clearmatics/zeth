@@ -12,7 +12,7 @@ namespace libzeth
 
 // Converts a single character to a nibble. Throws std::invalid_argument if the
 // character is not hex.
-static uint8_t char_to_nibble(const char c)
+uint8_t char_to_nibble(const char c)
 {
     const char cc = std::tolower(c);
     if (cc < '0') {
@@ -77,6 +77,9 @@ void hex_to_bytes(const std::string &hex, void *dest, size_t bytes)
 
 void hex_to_bytes_reversed(const std::string &hex, void *dest, size_t bytes)
 {
+    if (bytes == 0) {
+        return;
+    }
     const char *cur = find_hex_start(hex, bytes);
     uint8_t *const dest_bytes_end = (uint8_t *)dest;
     uint8_t *dest_bytes = dest_bytes_end + bytes;
@@ -114,9 +117,12 @@ std::string bytes_to_hex(const void *bytes, size_t num_bytes)
 
 std::string bytes_to_hex_reversed(const void *bytes, size_t num_bytes)
 {
+    if (num_bytes == 0) {
+        return "";
+    }
+
     std::string out;
     out.reserve(num_bytes * 2);
-
     const uint8_t *const src_bytes_end = (const uint8_t *)bytes;
     const uint8_t *src_bytes = src_bytes_end + num_bytes;
     do {

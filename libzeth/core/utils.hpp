@@ -21,6 +21,10 @@ namespace libzeth
 /// "bits" within each "byte" is preserved.
 template<typename T> T swap_byte_endianness(T v);
 
+/// Convert a single character to a nibble (uint8_t < 0x10). Throws
+/// `std::invalid_argument` if the character is invalid.
+uint8_t char_to_nibble(const char c);
+
 /// Convert hex to bytes (first chars at lowest address)
 void hex_to_bytes(const std::string &hex, void *dest, size_t bytes);
 
