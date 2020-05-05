@@ -125,7 +125,7 @@ option(
 option(
   USE_DEV_TOOLS
   "Run development tools on the code"
-  ON
+  OFF
 )
 
 option(
@@ -143,7 +143,7 @@ option(
 option(
   CODE_COVERAGE
   "Generate code coverage report"
-  ON
+  OFF
 )
 
 if(APPLE)
