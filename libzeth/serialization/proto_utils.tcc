@@ -142,6 +142,10 @@ template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
     const std::string &acc_vector_str)
 {
+    // TODO: Copied from old code. Can be cleaned up significantly to not
+    // allocate and copy strings. May be worth introducing composible parsing
+    // functions, or switch to a real json library, to support more reuse.
+
     char *cstr = new char[acc_vector_str.length() + 1];
     std::strcpy(cstr, acc_vector_str.c_str());
     char *pos;
