@@ -1,5 +1,5 @@
-# Generate code documentation for the project.
-# We use Doxygen.
+# Generate the Doxygen code documentation for the project.
+#
 # TODO: Consider using: https://codedocs.xyz/
 #
 # The following is adapted from:
