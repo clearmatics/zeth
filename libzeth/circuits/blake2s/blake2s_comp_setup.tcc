@@ -27,7 +27,7 @@ void BLAKE2s_256_comp<FieldT>::setup_counter(size_t len_byte_total)
 {
     // len_byte_total represents the BYTE length all the input blocks
     // compressed so far, up to 2^64 - 1 bytes for blake2s
-    std::vector<bool> length_bits = convert_to_binary(len_byte_total);
+    std::vector<bool> length_bits = bit_vector_from_size_t_be(len_byte_total);
     size_t bit_size = length_bits.size();
     size_t padding = 64 - bit_size;
 

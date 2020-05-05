@@ -8,7 +8,7 @@
 
 using namespace libzeth;
 
-TEST(TestBits, Bits32)
+TEST(BitsTest, Bits32)
 {
     const bits32 a{
         1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
@@ -21,7 +21,7 @@ TEST(TestBits, Bits32)
     ASSERT_EQ(expect, bits32_to_vector(a));
 }
 
-TEST(TestBits, Bits64)
+TEST(BitsTest, Bits64)
 {
     const bits64 a{
         0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1,
@@ -50,7 +50,35 @@ TEST(TestBits, Bits64)
 
 // TODO: Tests for bits_addr
 
-// TODO: Tests for bit_vector
+TEST(BitsTest, BitVectorFromSizeT)
+{
+    const std::vector<bool> expect_le_a7 = {1, 1, 1, 0, 0, 1, 0, 1};
+    const std::vector<bool> expect_le_72 = {0, 1, 0, 0, 1, 1, 1};
+    const std::vector<bool> expect_be_a5 = {1, 0, 1, 0, 0, 1, 0, 1};
+    const std::vector<bool> expect_be_5a = {1, 0, 1, 1, 0, 1, 0};
+
+    const std::vector<bool> le_a7 = bit_vector_from_size_t_le(0xa7);
+    const std::vector<bool> le_72 = bit_vector_from_size_t_le(0x72);
+    const std::vector<bool> be_a5 = bit_vector_from_size_t_be(0xa5);
+    const std::vector<bool> be_5a = bit_vector_from_size_t_be(0x5a);
+
+    ASSERT_EQ(expect_le_a7, le_a7);
+    ASSERT_EQ(expect_le_72, le_72);
+    ASSERT_EQ(expect_be_a5, be_a5);
+    ASSERT_EQ(expect_be_5a, be_5a);
+}
+
+TEST(BitsTest, BitVectorFromHex)
+{
+    const std::vector<bool> expect_hex_72 = {0, 1, 1, 1, 0, 0, 1, 0};
+    const std::vector<bool> expect_hex_56ab = {
+        0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1};
+    const std::vector<bool> hex_72 = bit_vector_from_hex("72");
+    const std::vector<bool> hex_56ab = bit_vector_from_hex("56ab");
+
+    ASSERT_EQ(expect_hex_72, hex_72);
+    ASSERT_EQ(expect_hex_56ab, hex_56ab);
+}
 
 int main(int argc, char **argv)
 {

@@ -39,7 +39,7 @@ namespace libzeth
 // together
 template<typename FieldT>
 libsnark::linear_combination<FieldT> packed_addition(
-    libsnark::pb_variable_array<FieldT> inputs)
+    const libsnark::pb_variable_array<FieldT> &inputs)
 {
     // We use `inputs.rbegin(), inputs.rend()` otherwise the resulting linear
     // combination is built by interpreting our bit string as little endian.
@@ -51,12 +51,11 @@ libsnark::linear_combination<FieldT> packed_addition(
 // Takes a vector of boolean values, and convert this vector of boolean values
 // into a vector of FieldT::zero() and FieldT:one()
 template<typename FieldT>
-libsnark::pb_variable_array<FieldT> from_bits(
-    std::vector<bool> bits, const libsnark::pb_variable<FieldT> &ZERO)
+libsnark::pb_variable_array<FieldT> variable_array_from_bit_vector(
+    const std::vector<bool> &bits, const libsnark::pb_variable<FieldT> &ZERO)
 {
     libsnark::pb_variable_array<FieldT> acc;
-    for (size_t i = 0; i < bits.size(); i++) {
-        bool bit = bits[i];
+    for (bool bit : bits) {
         acc.emplace_back(bit ? ONE : ZERO);
     }
 

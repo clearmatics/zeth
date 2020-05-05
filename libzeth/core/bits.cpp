@@ -177,7 +177,7 @@ std::vector<bool> bit_vector_from_hex(const std::string &hex_str)
     return result;
 }
 
-std::vector<bool> bit_vector_from_size_t(size_t x)
+std::vector<bool> bit_vector_from_size_t_le(size_t x)
 {
     std::vector<bool> ret;
     while (x) {
@@ -188,7 +188,26 @@ std::vector<bool> bit_vector_from_size_t(size_t x)
         }
         x >>= 1;
     }
+
     return ret;
+}
+
+std::vector<bool> bit_vector_from_size_t_be(size_t n)
+{
+    std::vector<bool> res;
+
+    if (n / 2 != 0) {
+        std::vector<bool> temp = bit_vector_from_size_t_be(n / 2);
+        res.insert(res.end(), temp.begin(), temp.end());
+    }
+
+    if (n % 2 == 1) {
+        res.push_back(1);
+    } else {
+        res.push_back(0);
+    }
+
+    return res;
 }
 
 } // namespace libzeth
