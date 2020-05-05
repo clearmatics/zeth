@@ -6,8 +6,7 @@
 # - clang-tidy
 # - include-what-you-use
 
-# Additional targets to perform clang-format/clang-tidy
-# Get all c++ files
+# Get c++ files across all targets
 file(GLOB_RECURSE
   ALL_CXX_SOURCE_FILES
   libzeth/*.?pp
@@ -25,6 +24,8 @@ if(CLANG_FORMAT)
     -style=file
     ${ALL_CXX_SOURCE_FILES}
   )
+else()
+  message(FATAL_ERROR "clang-format not found. Aborting...")
 endif()
 
 # Adding clang-tidy target if executable is found
@@ -39,6 +40,8 @@ if(CLANG_TIDY)
     --
     -std=c++11
   )
+else()
+  message(FATAL_ERROR "clang-tidy not found. Aborting...")
 endif()
 
 # Adding "include-what-you-use" target if executable is found
@@ -46,4 +49,6 @@ find_program(IWYU include-what-you-use DOC "Path to the include-what-you-use too
 if(IWYU)
   message("Using include-what-you-use")
   set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE "${IWYU};-Xiwyu;")
+else()
+    message("include-what-you-use not found. Proceeding without it...")
 endif()
