@@ -13,6 +13,7 @@
 
 #include <api/prover.grpc.pb.h>
 #include <boost/program_options.hpp>
+#include <cstdio>
 #include <fstream>
 #include <grpc/grpc.h>
 #include <grpcpp/security/server_credentials.h>
@@ -21,7 +22,6 @@
 #include <grpcpp/server_context.h>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 #include <memory>
-#include <cstdio>
 #include <string>
 
 using snark = libzeth::default_snark<libzeth::ppT>;
@@ -180,7 +180,7 @@ public:
             for (size_t i = 0; i < libzeth::ZETH_NUM_JS_INPUTS; i++) {
                 printf(
                     "\r  input (%zu / %zu)\n", i, libzeth::ZETH_NUM_JS_INPUTS);
-                const zeth_proto::JoinsplitInput& received_input =
+                const zeth_proto::JoinsplitInput &received_input =
                     proof_inputs->js_inputs(i);
                 libzeth::joinsplit_input<
                     libzeth::FieldT,
@@ -200,7 +200,7 @@ public:
                     "\r  output (%zu / %zu)\n",
                     i,
                     libzeth::ZETH_NUM_JS_OUTPUTS);
-                const zeth_proto::ZethNote& received_output =
+                const zeth_proto::ZethNote &received_output =
                     proof_inputs->js_outputs(i);
                 libzeth::zeth_note parsed_output =
                     libzeth::zeth_note_from_proto(received_output);

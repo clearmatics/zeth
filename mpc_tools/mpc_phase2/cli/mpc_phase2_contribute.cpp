@@ -30,7 +30,7 @@ public:
         : subcommand(
               "phase2-contribute",
               "Create response (MPC contribution) from challenge")
-         
+
     {
     }
 

@@ -30,7 +30,7 @@ public:
         : subcommand(
               "mpc_phase2_verify_contribution",
               "Verify contribution and optionally output next challenge")
-         
+
     {
     }
 

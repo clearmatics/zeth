@@ -34,7 +34,7 @@ public:
         : subcommand(
               "phase2-verify-transcript",
               "Verify full transcript, check specific contribution")
-         
+
     {
     }
 

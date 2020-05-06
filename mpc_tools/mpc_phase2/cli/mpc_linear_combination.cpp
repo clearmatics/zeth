@@ -38,7 +38,7 @@ public:
     mpc_linear_combination()
         : subcommand(
               "linear-combination", "Create linear combination for our circuit")
-         
+
     {
     }
 
@@ -99,7 +99,8 @@ private:
                       << "lagrange_file: " << lagrange_file << "\n"
                       << "powersoftau_degree: " << powersoftau_degree << "\n"
                       << "out_file: " << out_file << "\n"
-                      << "verify: " << std::to_string(static_cast<int>(verify)) << std::endl;
+                      << "verify: " << std::to_string(static_cast<int>(verify))
+                      << std::endl;
         }
 
         // Load lagrange evaluations to determine n, then load powersoftau

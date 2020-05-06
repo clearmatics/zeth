@@ -6,12 +6,10 @@
 
 #include <iostream>
 #include <utility>
-#include <utility>
 
 namespace po = boost::program_options;
 
-subcommand::subcommand(
-    std::string subcommand_name, std::string description)
+subcommand::subcommand(std::string subcommand_name, std::string description)
     : subcommand_name(std::move(subcommand_name))
     , subcommand_description(std::move(description))
     , verbose(false)

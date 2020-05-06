@@ -25,7 +25,7 @@ class mpc_dummy_phase2 : public subcommand
 public:
     mpc_dummy_phase2()
         : subcommand("dummy-phase2", "Run a dummy MPC to generate test data")
-         
+
     {
     }
 

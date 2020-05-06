@@ -52,11 +52,8 @@ public:
 };
 
 cli_options::cli_options()
-    : desc("Options")
-    , all_desc("")
-    , 
-     command("pot-process")
-     
+    : desc("Options"), all_desc(""), command("pot-process")
+
 {
     desc.add_options()("help,h", "This help")("verbose,v", "Verbose output")(
         "check", "Check pot well-formedness and exit")(
@@ -130,11 +127,15 @@ static int powersoftau_main(const cli_options &options)
 
     if (options.verbose) {
         std::cout << " command: " << options.command << "\n";
-        std::cout << " help: " << std::to_string(static_cast<int>(options.help)) << "\n";
+        std::cout << " help: " << std::to_string(static_cast<int>(options.help))
+                  << "\n";
         std::cout << " powersoftau_file: " << options.powersoftau_file << "\n";
         std::cout << " degree: " << std::to_string(options.degree) << "\n";
-        std::cout << " verbose: " << std::to_string(static_cast<int>(options.verbose)) << "\n";
-        std::cout << " check: " << std::to_string(static_cast<int>(options.check)) << std::endl;
+        std::cout << " verbose: "
+                  << std::to_string(static_cast<int>(options.verbose)) << "\n";
+        std::cout << " check: "
+                  << std::to_string(static_cast<int>(options.check))
+                  << std::endl;
         std::cout << " out: " << options.out << "\n";
         std::cout << " lagrange_degree: "
                   << std::to_string(options.lagrange_degree) << std::endl;

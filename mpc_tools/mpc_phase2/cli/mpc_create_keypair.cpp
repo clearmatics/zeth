@@ -38,7 +38,7 @@ private:
 public:
     mpc_create_keypair()
         : subcommand("create-keypair", "Create a full keypair from MPC output")
-         
+
     {
     }
 
