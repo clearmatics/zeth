@@ -100,10 +100,10 @@ npm run testrpc
 # Configure your environment
 . ./setup_env.sh
 
-cd pyClient
+cd client
 ```
 
-Follow the steps described in the [pyClient README](pyClient/README.md) to run
+Follow the steps described in the [client README](client/README.md) to run
 tests or invoke the zeth tools.
 
 ## Secure Multi Party Computation for the Groth16 SRS generation
