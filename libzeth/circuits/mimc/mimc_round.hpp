@@ -44,9 +44,9 @@ public:
     MiMCe7_round_gadget(
         libsnark::protoboard<FieldT> &pb,
         // Message of the current round
-        const libsnark::pb_variable<FieldT> x,
+        const libsnark::pb_variable<FieldT> &x,
         // Key of the current round
-        const libsnark::pb_variable<FieldT> k,
+        const libsnark::pb_variable<FieldT> &k,
         // Round constant of the current round
         const FieldT &c,
         // Boolean variable to add the key after the round

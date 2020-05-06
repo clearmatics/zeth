@@ -11,8 +11,8 @@ namespace libzeth
 template<typename FieldT, typename HashT>
 COMM_gadget<FieldT, HashT>::COMM_gadget(
     libsnark::protoboard<FieldT> &pb,
-    libsnark::pb_variable_array<FieldT> x,
-    libsnark::pb_variable_array<FieldT> y,
+    const libsnark::pb_variable_array<FieldT> &x,
+    const libsnark::pb_variable_array<FieldT> &y,
     std::shared_ptr<libsnark::digest_variable<FieldT>> result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix), result(result)
@@ -44,10 +44,10 @@ void COMM_gadget<FieldT, HashT>::generate_r1cs_witness()
 template<typename FieldT, typename HashT>
 COMM_cm_gadget<FieldT, HashT>::COMM_cm_gadget(
     libsnark::protoboard<FieldT> &pb,
-    libsnark::pb_variable_array<FieldT> &a_pk,
-    libsnark::pb_variable_array<FieldT> &rho,
-    libsnark::pb_variable_array<FieldT> &trap_r,
-    libsnark::pb_variable_array<FieldT> &value_v,
+    const libsnark::pb_variable_array<FieldT> &a_pk,
+    const libsnark::pb_variable_array<FieldT> &rho,
+    const libsnark::pb_variable_array<FieldT> &trap_r,
+    const libsnark::pb_variable_array<FieldT> &value_v,
     libsnark::pb_variable<FieldT> result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)

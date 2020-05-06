@@ -11,8 +11,8 @@ namespace libzeth
 template<typename FieldT>
 MiMCe7_round_gadget<FieldT>::MiMCe7_round_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> x,
-    const libsnark::pb_variable<FieldT> k,
+    const libsnark::pb_variable<FieldT> &x,
+    const libsnark::pb_variable<FieldT> &k,
     const FieldT &c,
     const bool add_k_to_result,
     const std::string &annotation_prefix)

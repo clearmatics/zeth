@@ -100,10 +100,10 @@ extended_proof<ppT, snarkT> circuit_wrapper<
         const FieldT &root,
         const std::array<joinsplit_input<FieldT, TreeDepth>, NumInputs> &inputs,
         const std::array<zeth_note, NumOutputs> &outputs,
-        bits64 vpub_in,
-        bits64 vpub_out,
-        const bits256 h_sig_in,
-        const bits256 phi_in,
+        const bits64 &vpub_in,
+        const bits64 &vpub_out,
+        const bits256 &h_sig_in,
+        const bits256 &phi_in,
         const typename snarkT::ProvingKeyT &proving_key) const
 {
     // left hand side and right hand side of the joinsplit

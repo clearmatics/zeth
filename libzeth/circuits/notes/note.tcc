@@ -55,7 +55,7 @@ input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::input_note_gadget(
     const libsnark::pb_variable<FieldT> &ZERO,
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk,
     std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
-    libsnark::pb_variable<FieldT> rt, // merkle_root
+    const libsnark::pb_variable<FieldT> &rt,
     const std::string &annotation_prefix)
     : note_gadget<FieldT>(pb, annotation_prefix)
 {
@@ -164,8 +164,8 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
 template<typename FieldT, typename HashT, typename HashTreeT, size_t TreeDepth>
 void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
     generate_r1cs_witness(
-        std::vector<FieldT> merkle_path,
-        libff::bit_vector address_bits,
+        const std::vector<FieldT> &merkle_path,
+        const libff::bit_vector &address_bits,
         const zeth_note &note)
 {
     // Generate witness of parent gadget
@@ -271,7 +271,7 @@ template<typename FieldT, typename HashT>
 output_note_gadget<FieldT, HashT>::output_note_gadget(
     libsnark::protoboard<FieldT> &pb,
     std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
-    libsnark::pb_variable<FieldT> commitment,
+    const libsnark::pb_variable<FieldT> &commitment,
     const std::string &annotation_prefix)
     : note_gadget<FieldT>(pb, annotation_prefix)
 {

@@ -7,7 +7,7 @@
 namespace libzeth
 {
 
-std::size_t safe_subtraction(std::size_t a, std::size_t b)
+std::size_t subtract_with_clamp(std::size_t a, std::size_t b)
 {
     if (b > a) {
         return 0;
