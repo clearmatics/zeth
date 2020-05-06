@@ -7,7 +7,9 @@
 
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  message(WARNING "Compiling the code with sanitizers in non-debug mode is misleading and should be prohibited (CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})")
+  message(WARNING "Compiling the code with sanitizers in non-debug mode"
+    "is misleading and should be avoided"
+    "(CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})")
 endif()
 
 # The sanitizers modify the program at compile-time to catch issues at runtime

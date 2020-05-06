@@ -1,12 +1,13 @@
 # Runs code coverage tools
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  message(WARNING "Code coverage should not be used in non-debug mode (CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})")
+  message(WARNING "Code coverage should not be used in non-debug mode"
+    "(CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})")
 endif()
 
 find_program(GCOV gcov)
 if(NOT GCOV)
-    message(FATAL_ERROR "gcov not found. Aborting...")
+  message(FATAL_ERROR "gcov not found. Aborting...")
 endif()
 
 set(
@@ -36,7 +37,8 @@ add_custom_target(
 
 find_program(GENHTML genhtml)
 if(NOT GENHTML)
-    message(FATAL_ERROR "genhtml not found. Cannot export the tests coverages to HMTL. Please run 'raw_coverage' command instead.")
+  message(FATAL_ERROR "genhtml not found. Cannot export the tests"
+    "coverages to HMTL. Please run 'raw_coverage' command instead.")
 endif()
 
 find_program(XDG_OPEN xdg-open)

@@ -1,6 +1,6 @@
 # Generate the Doxygen code documentation for the project.
 #
-# TODO: Consider using: https://codedocs.xyz/
+# TODO: Consider using: https://codedocs.xyz/ at some point
 #
 # The following is adapted from:
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
@@ -8,7 +8,8 @@
 # Check if Doxygen is installed
 find_package(Doxygen)
 if(NOT DOXYGEN_FOUND)
-  message(FATAL_ERROR "You need to install Doxygen to generate the documentation. Aborting...")
+  message(FATAL_ERROR "You need to install Doxygen to generate"
+    "the documentation. Aborting...")
 endif()
 
 # Set input and output files
@@ -30,7 +31,6 @@ add_custom_target(
 )
 
 find_program(XDG_OPEN xdg-open)
-
 if(NOT XDG_OPEN)
   set(XDG_OPEN cmake -E echo Documentation generated. Open )
 endif()

@@ -1,6 +1,11 @@
-# See: http://www.elpauer.org/stuff/learning_cmake.pdf
-# For a tutorial of CMake
 cmake_minimum_required(VERSION 3.15)
+
+# Sets the env vars PROJECT_SOURCE_DIR, and PROJECT_BINARY_DIR
+project(zeth CXX)
+
+# Versionning of the project
+set(ZETH_VERSION_MAJOR 0)
+set(ZETH_VERSION_MINOR 3)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,14 +20,22 @@ if(APPLE)
   endif()
 endif()
 
-# Name of the project
-# https://cmake.org/cmake/help/v3.0/command/project.html#command:project
-# Sets the env vars PROJECT_SOURCE_DIR, and PROJECT_BINARY_DIR
-project(zeth)
-
-# Versionning of the project
-set(ZETH_VERSION_MAJOR 0)
-set(ZETH_VERSION_MINOR 3)
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # Support for the 2011 ISO C++ standard was claimed from gcc4.8+:
+  #     https://gcc.gnu.org/gcc-4.8/cxx0x_status.html
+  # And some sanitizers we use (e.g. UBSan) were added in gcc4.9+:
+  #     https://gcc.gnu.org/gcc-4.9/changes.html
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
+    message(FATAL_ERROR "We use c++11 and some sanitizers which require"
+      "GCC version at least 4.9")
+  endif ()
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # The sanitizers we use were supported from clang 3.9
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9)
+    message(FATAL_ERROR "We use c++11 and some sanitizers which require"
+      "Clang version at least 3.9")
+  endif ()
+endif ()
 
 # Configure a header file to pass some of the CMake settings
 # to the source code
@@ -33,7 +46,7 @@ configure_file(
 
 # Flags and compilation options to chose the type of zksnark
 set(
-  ZKSNARK # Variable name
+  ZKSNARK
   "GROTH16"
   CACHE
   STRING
@@ -130,7 +143,7 @@ option(
 
 option(
   USE_SANITIZERS
-  "Compile the targets with the specified sanitizer"
+  "Enable sanitizers when compiling the project"
   OFF
 )
 
@@ -159,10 +172,9 @@ if(APPLE)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clang$")
-
   # Common compilation flags and warning configuration
   # The CMAKE_CXX_FLAGS variable allows to change the compiler settings
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wfatal-errors -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wfatal-errors -pthread")
 
   if("${MULTICORE}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
@@ -173,7 +185,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clan
     set(OPT_FLAGS "-ggdb3 -O2 -march=native -mtune=native")
   endif()
 else()
-  message(WARNING "This project is assumed to be compiled with gcc or clang. No guarantees can be made if another compiler is used.")
+  message(WARNING "This project is assumed to be compiled with gcc or clang."
+  "No guarantees can be made if another compiler is used.")
 endif()
 
 add_definitions(-DCURVE_${CURVE})
@@ -213,13 +226,18 @@ endif()
 include_directories(.)
 
 if ("${IS_ZETH_PARENT}")
-  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+  add_custom_target(
+    check
+    COMMAND
+    ${CMAKE_CTEST_COMMAND}
+  )
 endif()
 
 # Add dependencies (before setting up the configuration for zeth)
 add_subdirectory(depends)
 
-# CMAKE_MODULE_PATH: Path used for searching by FIND_XXX(), with appropriate suffixes added.
+# CMAKE_MODULE_PATH: Path used for searching by FIND_XXX(), with appropriate
+# suffixes added.
 # See: https://cmake.org/cmake/help/v3.0/variable/CMAKE_PREFIX_PATH.html
 list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib" "/usr/lib")
 # Cmake find modules
@@ -265,15 +283,12 @@ if("${USE_DEV_TOOLS}")
     include(cmake/gcc_dev_tools.cmake)
     include(cmake/clang_dev_tools.cmake)
 endif()
-
 if("${USE_SANITIZERS}")
     include(cmake/sanitizers.cmake)
 endif()
-
 if("${GEN_DOC}")
     include(cmake/documentation.cmake)
 endif()
-
 if("${CODE_COVERAGE}")
     include(cmake/code_coverage.cmake)
 endif()
