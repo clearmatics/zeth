@@ -17,9 +17,9 @@ namespace libzeth
 template<typename FieldT>
 xor_gadget<FieldT>::xor_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable_array<FieldT> a,
-    const libsnark::pb_variable_array<FieldT> b,
-    libsnark::pb_variable_array<FieldT> res,
+    const libsnark::pb_variable_array<FieldT> &a,
+    const libsnark::pb_variable_array<FieldT> &b,
+    const libsnark::pb_variable_array<FieldT> &res,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix), a(a), b(b), res(res)
 {
@@ -54,10 +54,10 @@ template<typename FieldT> void xor_gadget<FieldT>::generate_r1cs_witness()
 template<typename FieldT>
 xor_constant_gadget<FieldT>::xor_constant_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable_array<FieldT> a,
-    const libsnark::pb_variable_array<FieldT> b,
-    std::vector<FieldT> c,
-    libsnark::pb_variable_array<FieldT> res,
+    const libsnark::pb_variable_array<FieldT> &a,
+    const libsnark::pb_variable_array<FieldT> &b,
+    const std::vector<FieldT> &c,
+    const libsnark::pb_variable_array<FieldT> &res,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , a(a)
@@ -121,10 +121,10 @@ void xor_constant_gadget<FieldT>::generate_r1cs_witness()
 template<typename FieldT>
 xor_rot_gadget<FieldT>::xor_rot_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable_array<FieldT> a,
-    const libsnark::pb_variable_array<FieldT> b,
-    const size_t &shift,
-    libsnark::pb_variable_array<FieldT> res,
+    const libsnark::pb_variable_array<FieldT> &a,
+    const libsnark::pb_variable_array<FieldT> &b,
+    const size_t shift,
+    const libsnark::pb_variable_array<FieldT> &res,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , a(a)
@@ -165,9 +165,9 @@ template<typename FieldT> void xor_rot_gadget<FieldT>::generate_r1cs_witness()
 template<typename FieldT>
 double_bit32_sum_eq_gadget<FieldT>::double_bit32_sum_eq_gadget(
     libsnark::protoboard<FieldT> &pb,
-    libsnark::pb_variable_array<FieldT> a,
-    libsnark::pb_variable_array<FieldT> b,
-    libsnark::pb_variable_array<FieldT> res,
+    const libsnark::pb_variable_array<FieldT> &a,
+    const libsnark::pb_variable_array<FieldT> &b,
+    const libsnark::pb_variable_array<FieldT> &res,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix), a(a), b(b), res(res)
 {

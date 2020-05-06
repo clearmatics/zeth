@@ -11,8 +11,8 @@ namespace libzeth
 template<typename FieldT>
 MiMCe7_permutation_gadget<FieldT>::MiMCe7_permutation_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> x,
-    const libsnark::pb_variable<FieldT> k,
+    const libsnark::pb_variable<FieldT> &x,
+    const libsnark::pb_variable<FieldT> &k,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix), k(k)
 {
@@ -52,8 +52,8 @@ const libsnark::pb_variable<FieldT> &MiMCe7_permutation_gadget<FieldT>::result()
 
 template<typename FieldT>
 void MiMCe7_permutation_gadget<FieldT>::setup_gadgets(
-    const libsnark::pb_variable<FieldT> x,
-    const libsnark::pb_variable<FieldT> k)
+    const libsnark::pb_variable<FieldT> &x,
+    const libsnark::pb_variable<FieldT> &k)
 {
     for (size_t i = 0; i < ROUNDS; i++) {
         // Set the input of the next round with the output variable of the

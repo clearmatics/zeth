@@ -79,7 +79,7 @@ public:
         // Input note Nullifier
         std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
         // Current Merkle root
-        libsnark::pb_variable<FieldT> rt,
+        const libsnark::pb_variable<FieldT> &rt,
         const std::string &annotation_prefix = "input_note_gadget");
 
     // Check the booleaness of the rho
@@ -88,8 +88,8 @@ public:
     void generate_r1cs_constraints();
 
     void generate_r1cs_witness(
-        const std::vector<FieldT> merkle_path,
-        libff::bit_vector address_bits,
+        const std::vector<FieldT> &merkle_path,
+        const libff::bit_vector &address_bits,
         const zeth_note &note);
 };
 
@@ -105,7 +105,7 @@ public:
     output_note_gadget(
         libsnark::protoboard<FieldT> &pb,
         std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
-        libsnark::pb_variable<FieldT> commitment,
+        const libsnark::pb_variable<FieldT> &commitment,
         const std::string &annotation_prefix = "output_note_gadget");
 
     // Check the booleaness of the a_pk

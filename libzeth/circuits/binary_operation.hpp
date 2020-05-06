@@ -30,9 +30,9 @@ public:
 
     xor_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable_array<FieldT> a,
-        const libsnark::pb_variable_array<FieldT> b,
-        libsnark::pb_variable_array<FieldT> res,
+        const libsnark::pb_variable_array<FieldT> &a,
+        const libsnark::pb_variable_array<FieldT> &b,
+        const libsnark::pb_variable_array<FieldT> &res,
         const std::string &annotation_prefix = "xor_gadget");
 
     void generate_r1cs_constraints();
@@ -55,10 +55,10 @@ public:
 
     xor_constant_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable_array<FieldT> a,
-        const libsnark::pb_variable_array<FieldT> b,
-        const std::vector<FieldT> c,
-        libsnark::pb_variable_array<FieldT> res,
+        const libsnark::pb_variable_array<FieldT> &a,
+        const libsnark::pb_variable_array<FieldT> &b,
+        const std::vector<FieldT> &c,
+        const libsnark::pb_variable_array<FieldT> &res,
         const std::string &annotation_prefix = "xor_constant_gadget");
 
     void generate_r1cs_constraints();
@@ -81,10 +81,10 @@ public:
 
     xor_rot_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable_array<FieldT> a,
-        const libsnark::pb_variable_array<FieldT> b,
-        const size_t &shift,
-        libsnark::pb_variable_array<FieldT> res,
+        const libsnark::pb_variable_array<FieldT> &a,
+        const libsnark::pb_variable_array<FieldT> &b,
+        const size_t shift,
+        const libsnark::pb_variable_array<FieldT> &res,
         const std::string &annotation_prefix = "xor_rot_gadget");
 
     void generate_r1cs_constraints();
@@ -108,9 +108,9 @@ public:
 
     double_bit32_sum_eq_gadget(
         libsnark::protoboard<FieldT> &pb,
-        libsnark::pb_variable_array<FieldT> a,
-        libsnark::pb_variable_array<FieldT> b,
-        libsnark::pb_variable_array<FieldT> res,
+        const libsnark::pb_variable_array<FieldT> &a,
+        const libsnark::pb_variable_array<FieldT> &b,
+        const libsnark::pb_variable_array<FieldT> &res,
         const std::string &annotation_prefix = "double_bit32_sum_eq_gadget");
 
     void generate_r1cs_constraints(bool enforce_boolean = true);
