@@ -27,7 +27,7 @@ class joinsplit_gadget : libsnark::gadget<FieldT>
 {
 private:
     const size_t digest_len_minus_field_cap =
-        safe_subtraction(HashT::get_digest_len(), FieldT::capacity());
+        subtract_with_clamp(HashT::get_digest_len(), FieldT::capacity());
 
     // Number of residual bits from packing of hash digests into smaller
     // field elements to which are added the public value of size 64 bits
@@ -635,9 +635,9 @@ public:
         // Residual bits and public values (in and out) aggregated in
         // `nb_field_residual` field elements
         nb_elements += libff::div_ceil(
-            2 * ZETH_V_SIZE +
-                safe_subtraction(HashT::get_digest_len(), FieldT::capacity()) *
-                    (1 + 2 * NumInputs),
+            2 * ZETH_V_SIZE + subtract_with_clamp(
+                                  HashT::get_digest_len(), FieldT::capacity()) *
+                                  (1 + 2 * NumInputs),
             FieldT::capacity());
 
         return nb_elements;
