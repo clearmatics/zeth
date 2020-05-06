@@ -84,10 +84,10 @@ std::vector<bool> bit_vector_from_hex(const std::string &hex_str)
     result.reserve(4 * hex_str.size());
     for (char c : hex_str) {
         const uint8_t nibble = char_to_nibble(c);
-        result.push_back(nibble & 8);
-        result.push_back(nibble & 4);
-        result.push_back(nibble & 2);
-        result.push_back(nibble & 1);
+        result.push_back((nibble & 8) != 0);
+        result.push_back((nibble & 4) != 0);
+        result.push_back((nibble & 2) != 0);
+        result.push_back((nibble & 1) != 0);
     }
 
     return result;
@@ -98,9 +98,9 @@ std::vector<bool> bit_vector_from_size_t_le(size_t x)
     std::vector<bool> ret;
     while (x) {
         if (x & 1) {
-            ret.push_back(1);
+            ret.push_back(true);
         } else {
-            ret.push_back(0);
+            ret.push_back(false);
         }
         x >>= 1;
     }

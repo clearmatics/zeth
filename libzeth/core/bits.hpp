@@ -25,7 +25,7 @@ using bits64 = std::array<bool, 64>;
 
 bits64 bits64_from_vector(const std::vector<bool> &vect);
 
-bits64 bits64_from_hex(const std::string &hex_str);
+bits64 bits64_from_hex(const std::string &str);
 
 std::vector<bool> bits64_to_vector(const bits64 &arr);
 
@@ -34,7 +34,7 @@ using bits256 = std::array<bool, 256>;
 
 bits256 bits256_from_vector(const std::vector<bool> &vect);
 
-bits256 bits256_from_hex(const std::string &hex_str);
+bits256 bits256_from_hex(const std::string &str);
 
 std::vector<bool> bits256_to_vector(const bits256 &arr);
 
@@ -45,7 +45,7 @@ using bits384 = std::array<bool, 384>;
 bits384 bits384_from_vector(const std::vector<bool> &vect);
 
 /// "Construct" `bits` types from hexadecimal strings
-bits384 bits384_from_hex(const std::string &hex_str);
+bits384 bits384_from_hex(const std::string &str);
 
 /// Retrieve boolean vectors from `bits` types
 std::vector<bool> bits384_to_vector(const bits384 &arr);
@@ -82,13 +82,13 @@ std::array<bool, BitLen> bits_add(
 
 /// Takes a hexadecimal string and converts it into a bit-vector. Throws an
 /// exception if called with an invalid hexadecimal string.
-std::vector<bool> bit_vector_from_hex(const std::string &str);
+std::vector<bool> bit_vector_from_hex(const std::string &hex_str);
 
 // Returns the little endian binary encoding of the integer x.
 std::vector<bool> bit_vector_from_size_t_le(size_t x);
 
 // Returns the big endian binary encoding of the integer x.
-std::vector<bool> bit_vector_from_size_t_be(size_t x);
+std::vector<bool> bit_vector_from_size_t_be(size_t n);
 
 } // namespace libzeth
 

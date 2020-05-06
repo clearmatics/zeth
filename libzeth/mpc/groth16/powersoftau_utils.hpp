@@ -94,8 +94,8 @@ using srs_pot_pp = libff::alt_bn128_pp;
 // Utility functions for reading and writing data as formatted by the
 // powersoftau process.
 
-void read_powersoftau_fr(std::istream &in, libff::alt_bn128_Fr &fr_out);
-void read_powersoftau_fq2(std::istream &in, libff::alt_bn128_Fq2 &fq2_out);
+void read_powersoftau_fr(std::istream &in, libff::alt_bn128_Fr &out);
+void read_powersoftau_fq2(std::istream &in, libff::alt_bn128_Fq2 &out);
 void read_powersoftau_g1(std::istream &in, libff::alt_bn128_G1 &out);
 void read_powersoftau_g2(std::istream &in, libff::alt_bn128_G2 &out);
 
@@ -114,7 +114,7 @@ srs_powersoftau<srs_pot_pp> powersoftau_load(std::istream &in, size_t n);
 /// Write powersoftau data, in the format compatible with
 /// powersoftau_load.
 void powersoftau_write(
-    std::ostream &in, const srs_powersoftau<srs_pot_pp> &pot);
+    std::ostream &out, const srs_powersoftau<srs_pot_pp> &pot);
 
 /// Implements the SameRatio described in "Scalable Multi-party Computation
 /// for zk-SNARK Parameters in the Random Beacon Model"

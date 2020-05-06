@@ -36,10 +36,10 @@ void hex_to_bytes_reversed(const std::string &hex, void *dest, size_t bytes);
 std::string hex_to_bytes(const std::string &s);
 
 /// Encode bytes as a hex string
-std::string bytes_to_hex(const void *s, const size_t size);
+std::string bytes_to_hex(const void *bytes, const size_t num_bytes);
 
 /// Encode bytes as a hex string
-std::string bytes_to_hex_reversed(const void *s, const size_t size);
+std::string bytes_to_hex_reversed(const void *bytes, const size_t num_bytes);
 
 /// Convenience function to throw if input is not well-formed. Here StructuredT
 /// is assumed to have the form:

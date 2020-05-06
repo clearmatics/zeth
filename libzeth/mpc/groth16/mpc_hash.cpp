@@ -12,9 +12,9 @@ namespace libzeth
 // In the text representation, use 16 x 4-byte words, (each representated as 8
 // digits + separator).
 using hash_repr_word = uint32_t;
-const size_t HASH_REPR_WORD_SIZE = sizeof(hash_repr_word);
-const size_t HASH_REPR_WORDS_PER_HASH =
-    MPC_HASH_SIZE_BYTES / HASH_REPR_WORD_SIZE;
+const size_t hash_repr_word_size = sizeof(hash_repr_word);
+const size_t hash_repr_words_per_hash =
+    MPC_HASH_SIZE_BYTES / hash_repr_word_size;
 
 static_assert(MPC_HASH_SIZE_BYTES % sizeof(size_t) == 0, "invalid hash size");
 static_assert(
@@ -54,7 +54,7 @@ void mpc_hash_write(const mpc_hash_t hash, std::ostream &out)
 {
     const hash_repr_word *words = (const hash_repr_word *)hash;
 
-    for (size_t i = 0; i < HASH_REPR_WORDS_PER_HASH; ++i) {
+    for (size_t i = 0; i < hash_repr_words_per_hash; ++i) {
         char sep = ((i % 4) == 3) ? '\n' : ' ';
         out << bytes_to_hex(&words[i], sizeof(words[i])) << sep;
     }
@@ -65,19 +65,19 @@ bool mpc_hash_read(mpc_hash_t out_hash, std::istream &in)
     hash_repr_word *out_data = (hash_repr_word *)out_hash;
 
     std::string word;
-    for (size_t i = 0; i < HASH_REPR_WORDS_PER_HASH; ++i) {
+    for (size_t i = 0; i < hash_repr_words_per_hash; ++i) {
         if (!(in >> word)) {
             std::cerr << "Read failed" << std::endl;
             return false;
         }
 
         const std::string bin = hex_to_bytes(word);
-        if (bin.size() != HASH_REPR_WORD_SIZE) {
+        if (bin.size() != hash_repr_word_size) {
             std::cerr << "Invalid word size" << std::endl;
             return false;
         }
 
-        memcpy(&out_data[i], bin.data(), HASH_REPR_WORD_SIZE);
+        std::memcpy(&out_data[i], bin.data(), hash_repr_word_size);
     }
 
     return true;

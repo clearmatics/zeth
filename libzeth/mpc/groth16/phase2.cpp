@@ -19,11 +19,11 @@ void srs_mpc_phase2_accumulator<libff::alt_bn128_pp>::write_compressed(
 
     // Write cs_hash and sizes first.
 
-    const size_t H_size = H_g1.size();
-    const size_t L_size = L_g1.size();
+    const size_t h_size = H_g1.size();
+    const size_t l_size = L_g1.size();
     out.write((const char *)cs_hash, sizeof(mpc_hash_t));
-    out.write((const char *)&H_size, sizeof(H_size));
-    out.write((const char *)&L_size, sizeof(L_size));
+    out.write((const char *)&h_size, sizeof(h_size));
+    out.write((const char *)&l_size, sizeof(l_size));
 
     libff::alt_bn128_G1_write_compressed(out, delta_g1);
     libff::alt_bn128_G2_write_compressed(out, delta_g2);
@@ -46,29 +46,29 @@ srs_mpc_phase2_accumulator<libff::alt_bn128_pp> srs_mpc_phase2_accumulator<
     using G2 = libff::alt_bn128_G2;
 
     mpc_hash_t cs_hash;
-    size_t H_size;
-    size_t L_size;
+    size_t h_size;
+    size_t l_size;
     in.read((char *)cs_hash, sizeof(mpc_hash_t));
-    in.read((char *)&H_size, sizeof(H_size));
-    in.read((char *)&L_size, sizeof(L_size));
+    in.read((char *)&h_size, sizeof(h_size));
+    in.read((char *)&l_size, sizeof(l_size));
 
     G1 delta_g1;
     libff::alt_bn128_G1_read_compressed(in, delta_g1);
     G2 delta_g2;
     libff::alt_bn128_G2_read_compressed(in, delta_g2);
 
-    libff::G1_vector<libff::alt_bn128_pp> H_g1(H_size);
-    for (G1 &h : H_g1) {
+    libff::G1_vector<libff::alt_bn128_pp> h_g1(h_size);
+    for (G1 &h : h_g1) {
         libff::alt_bn128_G1_read_compressed(in, h);
     }
 
-    libff::G1_vector<libff::alt_bn128_pp> L_g1(L_size);
-    for (G1 &l : L_g1) {
+    libff::G1_vector<libff::alt_bn128_pp> l_g1(l_size);
+    for (G1 &l : l_g1) {
         libff::alt_bn128_G1_read_compressed(in, l);
     }
 
     srs_mpc_phase2_accumulator<libff::alt_bn128_pp> l2(
-        cs_hash, delta_g1, delta_g2, std::move(H_g1), std::move(L_g1));
+        cs_hash, delta_g1, delta_g2, std::move(h_g1), std::move(l_g1));
     check_well_formed(l2, "mpc_layer2 (read)");
     return l2;
 }

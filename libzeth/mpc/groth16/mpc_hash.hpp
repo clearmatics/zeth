@@ -7,6 +7,7 @@
 
 #include "libzeth/core/hash_stream.hpp"
 
+#include <cstring>
 #include <sodium/crypto_generichash_blake2b.h>
 #include <string>
 
