@@ -5,8 +5,8 @@
 #ifndef __ZETH_CIRCUITS_BINARY_OPERATION_TCC__
 #define __ZETH_CIRCUITS_BINARY_OPERATION_TCC__
 
-#include "libzeth/circuits/circuits_utils.hpp"
-#include "libzeth/types/bits.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
+#include "libzeth/core/bits.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
@@ -17,15 +17,15 @@ namespace libzeth
 template<typename FieldT>
 xor_gadget<FieldT>::xor_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable_array<FieldT> a,
-    const libsnark::pb_variable_array<FieldT> b,
-    libsnark::pb_variable_array<FieldT> res,
+    const libsnark::pb_variable_array<FieldT> &a,
+    const libsnark::pb_variable_array<FieldT> &b,
+    const libsnark::pb_variable_array<FieldT> &res,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix), a(a), b(b), res(res)
 {
     assert(a.size() == b.size());
     assert(b.size() == res.size());
-};
+}
 
 template<typename FieldT> void xor_gadget<FieldT>::generate_r1cs_constraints()
 {
@@ -37,7 +37,7 @@ template<typename FieldT> void xor_gadget<FieldT>::generate_r1cs_constraints()
                 2 * a[i], b[i], a[i] + b[i] - res[i]),
             FMT(this->annotation_prefix, " xored_bits_%zu", i));
     }
-};
+}
 
 template<typename FieldT> void xor_gadget<FieldT>::generate_r1cs_witness()
 {
@@ -49,15 +49,15 @@ template<typename FieldT> void xor_gadget<FieldT>::generate_r1cs_witness()
             this->pb.val(res[i]) = this->pb.val(a[i]) + this->pb.val(b[i]);
         }
     }
-};
+}
 
 template<typename FieldT>
 xor_constant_gadget<FieldT>::xor_constant_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable_array<FieldT> a,
-    const libsnark::pb_variable_array<FieldT> b,
-    std::vector<FieldT> c,
-    libsnark::pb_variable_array<FieldT> res,
+    const libsnark::pb_variable_array<FieldT> &a,
+    const libsnark::pb_variable_array<FieldT> &b,
+    const std::vector<FieldT> &c,
+    const libsnark::pb_variable_array<FieldT> &res,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , a(a)
@@ -68,7 +68,7 @@ xor_constant_gadget<FieldT>::xor_constant_gadget(
     assert(a.size() == b.size());
     assert(b.size() == c.size());
     assert(c.size() == res.size());
-};
+}
 
 template<typename FieldT>
 void xor_constant_gadget<FieldT>::generate_r1cs_constraints()
@@ -97,7 +97,7 @@ void xor_constant_gadget<FieldT>::generate_r1cs_constraints()
                     b[i] * (FieldT("1") - FieldT("2") * c[i])),
             FMT(this->annotation_prefix, " rotated_xored_bits_%zu", i));
     }
-};
+}
 
 template<typename FieldT>
 void xor_constant_gadget<FieldT>::generate_r1cs_witness()
@@ -116,15 +116,15 @@ void xor_constant_gadget<FieldT>::generate_r1cs_witness()
             this->pb.val(res[i]) = FieldT("1");
         }
     }
-};
+}
 
 template<typename FieldT>
 xor_rot_gadget<FieldT>::xor_rot_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable_array<FieldT> a,
-    const libsnark::pb_variable_array<FieldT> b,
-    const size_t &shift,
-    libsnark::pb_variable_array<FieldT> res,
+    const libsnark::pb_variable_array<FieldT> &a,
+    const libsnark::pb_variable_array<FieldT> &b,
+    const size_t shift,
+    const libsnark::pb_variable_array<FieldT> &res,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , a(a)
@@ -134,7 +134,7 @@ xor_rot_gadget<FieldT>::xor_rot_gadget(
 {
     assert(a.size() == b.size());
     assert(b.size() == res.size());
-};
+}
 
 template<typename FieldT>
 void xor_rot_gadget<FieldT>::generate_r1cs_constraints()
@@ -146,7 +146,7 @@ void xor_rot_gadget<FieldT>::generate_r1cs_constraints()
                 2 * a[i], b[i], a[i] + b[i] - res[(i + shift) % a.size()]),
             FMT(this->annotation_prefix, " rotated_xored_bits_%zu", i));
     }
-};
+}
 
 template<typename FieldT> void xor_rot_gadget<FieldT>::generate_r1cs_witness()
 {
@@ -160,21 +160,21 @@ template<typename FieldT> void xor_rot_gadget<FieldT>::generate_r1cs_witness()
                 this->pb.val(a[i]) + this->pb.val(b[i]);
         }
     }
-};
+}
 
 template<typename FieldT>
 double_bit32_sum_eq_gadget<FieldT>::double_bit32_sum_eq_gadget(
     libsnark::protoboard<FieldT> &pb,
-    libsnark::pb_variable_array<FieldT> a,
-    libsnark::pb_variable_array<FieldT> b,
-    libsnark::pb_variable_array<FieldT> res,
+    const libsnark::pb_variable_array<FieldT> &a,
+    const libsnark::pb_variable_array<FieldT> &b,
+    const libsnark::pb_variable_array<FieldT> &res,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix), a(a), b(b), res(res)
 {
     assert(a.size() == 32);
     assert(a.size() == b.size());
     assert(a.size() == res.size());
-};
+}
 
 template<typename FieldT>
 void double_bit32_sum_eq_gadget<FieldT>::generate_r1cs_constraints(
@@ -246,7 +246,7 @@ void double_bit32_sum_eq_gadget<FieldT>::generate_r1cs_constraints(
             (left_side - packed_addition(res) - pow(2, 32)),
             0),
         FMT(this->annotation_prefix, " sum_equal_sum_constraint"));
-};
+}
 
 template<typename FieldT>
 void double_bit32_sum_eq_gadget<FieldT>::generate_r1cs_witness()
@@ -258,9 +258,9 @@ void double_bit32_sum_eq_gadget<FieldT>::generate_r1cs_witness()
         b_bits32[i] = b.get_bits(this->pb)[i];
     }
 
-    bits32 left_side_acc = binary_addition<32>(a_bits32, b_bits32, false);
-    res.fill_with_bits(this->pb, get_vector_from_bits32(left_side_acc));
-};
+    bits32 left_side_acc = bits_add<32>(a_bits32, b_bits32, false);
+    res.fill_with_bits(this->pb, bits32_to_vector(left_side_acc));
+}
 
 } // namespace libzeth
 

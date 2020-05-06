@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package prover_proto;
+package zeth_proto;
 
-import public "api/util.proto";
+import "api/ec_group_messages.proto";
 
 message VerificationKeyGROTH16 {
     HexPointBaseGroup1Affine alpha_g1 = 1;

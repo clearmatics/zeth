@@ -10,6 +10,8 @@
 namespace libzeth
 {
 
+static const size_t BYTE_LEN = 8;
+
 /// This gadget implements the interface of the HashT template
 template<typename FieldT>
 BLAKE2s_256<FieldT>::BLAKE2s_256(
@@ -100,7 +102,7 @@ template<typename FieldT> void BLAKE2s_256<FieldT>::generate_r1cs_witness()
         std::array<bool, BLAKE2s_word_size> pb_swapped =
             swap_byte_endianness(parameter_block[i]);
         std::vector<bool> h_part =
-            get_vector_from_bits32(binary_xor(pb_swapped, BLAKE2s_IV[i]));
+            bits32_to_vector(bits_xor(pb_swapped, BLAKE2s_IV[i]));
         h_bits.insert(h_bits.end(), h_part.begin(), h_part.end());
     }
     h[0].bits.fill_with_bits(this->pb, h_bits);

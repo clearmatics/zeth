@@ -10,8 +10,9 @@ zk-SNARK abstraction
 
 from zeth.utils import hex_to_int
 import zeth.constants as constants
-from api.prover_pb2 import VerificationKey, ExtendedProof
-from api.util_pb2 import HexPointBaseGroup1Affine, HexPointBaseGroup2Affine
+from api.snark_messages_pb2 import VerificationKey, ExtendedProof
+from api.ec_group_messages_pb2 import HexPointBaseGroup1Affine, \
+    HexPointBaseGroup2Affine
 
 import json
 from abc import (ABC, abstractmethod)

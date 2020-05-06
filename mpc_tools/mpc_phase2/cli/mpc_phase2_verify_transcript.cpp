@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/snarks/groth16/mpc/phase2.hpp"
+#include "libzeth/mpc/groth16/phase2.hpp"
 #include "mpc_common.hpp"
 
 #include <boost/program_options.hpp>
@@ -105,15 +105,15 @@ private:
         // Simple sanity check on challenge.0. The initial transcript digest
         // should be based on the cs_hash for this MPC.
         {
-            srs_mpc_hash_t init_transcript_digest;
-            srs_mpc_compute_hash(
+            mpc_hash_t init_transcript_digest;
+            mpc_compute_hash(
                 init_transcript_digest,
                 challenge_0.accumulator.cs_hash,
-                sizeof(srs_mpc_hash_t));
+                sizeof(mpc_hash_t));
             if (memcmp(
                     init_transcript_digest,
                     challenge_0.transcript_digest,
-                    sizeof(srs_mpc_hash_t))) {
+                    sizeof(mpc_hash_t))) {
                 throw std::invalid_argument(
                     "transcript digest does not match starting challenge");
             }
@@ -123,13 +123,13 @@ private:
 
         // If required, load a contribution hash and set the
         // `check_for_contribution` flag.
-        srs_mpc_hash_t check_contribution_digest;
+        mpc_hash_t check_contribution_digest;
         if (!digest.empty()) {
             std::ifstream in(digest, std::ios_base::in);
             in.exceptions(
                 std::ios_base::eofbit | std::ios_base::badbit |
                 std::ios_base::failbit);
-            if (!srs_mpc_hash_read(check_contribution_digest, in)) {
+            if (!mpc_hash_read(check_contribution_digest, in)) {
                 throw std::invalid_argument(
                     "could not parse contribution digest");
             }
@@ -140,7 +140,7 @@ private:
         // Verify transcript based on the initial challenge
         libff::enter_block("Verify transcript");
         libff::G1<ppT> final_delta;
-        srs_mpc_hash_t final_transcript_digest{};
+        mpc_hash_t final_transcript_digest{};
         {
             std::ifstream in(
                 transcript_file, std::ios_base::binary | std::ios_base::in);
@@ -189,7 +189,7 @@ private:
         if (0 != memcmp(
                      final_challenge.transcript_digest,
                      final_transcript_digest,
-                     sizeof(srs_mpc_hash_t))) {
+                     sizeof(mpc_hash_t))) {
             throw std::invalid_argument(
                 "invalid transcript digest in final accumlator");
         }

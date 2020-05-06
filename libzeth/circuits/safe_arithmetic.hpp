@@ -10,7 +10,9 @@
 namespace libzeth
 {
 
-size_t safe_subtraction(size_t a, size_t b);
+/// Subtract `b` from `a`, clamping the result to [0, a] (i.e. returns `0` if `b
+/// > a` instead of wrapping around to the top of the range of values).
+size_t subtract_with_clamp(size_t a, size_t b);
 
 } // namespace libzeth
 

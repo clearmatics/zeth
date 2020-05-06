@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package zeth_proto;
+
+message ZethNote {
+    string apk = 1;
+    // Hex string representing a int64 value
+    string value = 2;
+    string rho = 3;
+    string trap_r = 4;
+}
+
+message JoinsplitInput {
+    // Merkle authentication path to the commitment
+    // of the note in the Merkle tree. Each node of
+    // the merkle tree is treated as a string
+    repeated string merkle_path = 1;
+    int64 address = 2;
+    ZethNote note = 3;
+    string spending_ask = 4;
+    string nullifier = 5;
+}
+
+message ProofInputs {
+    string mk_root = 1;
+    // List of inputs to the Joinsplit
+    repeated JoinsplitInput js_inputs = 2;
+    // List of output to the Joinsplit
+    repeated ZethNote js_outputs = 3;
+    // Hexadecimal string representing a uint64 value
+    string pub_in_value = 4;
+    // Hexadecimal string representing a uint64 value
+    string pub_out_value = 5;
+    string h_sig = 6;
+    string phi = 7;
+}

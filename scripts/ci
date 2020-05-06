@@ -96,7 +96,7 @@ function build() {
         ..
 
     make -j 2 VERBOSE=1 all build_tests
-    make -j 2 check
+    CTEST_OUTPUT_ON_FAILURE=1 make -j 2 check
     cd ..
 
     command_tests

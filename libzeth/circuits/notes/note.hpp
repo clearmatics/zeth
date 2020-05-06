@@ -5,18 +5,12 @@
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/note.tcc
 
-#include "libzeth/circuits/merkle_tree/merkle_path_authenticator.hpp"
-
-// Get the prfs and commitments circuits
+#include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/commitments/commitment.hpp"
+#include "libzeth/circuits/merkle_tree/merkle_path_authenticator.hpp"
 #include "libzeth/circuits/prfs/prf.hpp"
-// Get the utils functions
-#include "libzeth/circuits/circuits_utils.hpp"
-
-// Get the bits typedefs and associated functions
-#include "libzeth/types/bits.hpp"
-// Get the zeth_note class
-#include "libzeth/types/note.hpp"
+#include "libzeth/core/bits.hpp"
+#include "libzeth/core/note.hpp"
 
 namespace libzeth
 {
@@ -85,7 +79,7 @@ public:
         // Input note Nullifier
         std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
         // Current Merkle root
-        libsnark::pb_variable<FieldT> rt,
+        const libsnark::pb_variable<FieldT> &rt,
         const std::string &annotation_prefix = "input_note_gadget");
 
     // Check the booleaness of the rho
@@ -94,8 +88,8 @@ public:
     void generate_r1cs_constraints();
 
     void generate_r1cs_witness(
-        const std::vector<FieldT> merkle_path,
-        libff::bit_vector address_bits,
+        const std::vector<FieldT> &merkle_path,
+        const libff::bit_vector &address_bits,
         const zeth_note &note);
 };
 
@@ -111,7 +105,7 @@ public:
     output_note_gadget(
         libsnark::protoboard<FieldT> &pb,
         std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
-        libsnark::pb_variable<FieldT> commitment,
+        const libsnark::pb_variable<FieldT> &commitment,
         const std::string &annotation_prefix = "output_note_gadget");
 
     // Check the booleaness of the a_pk
@@ -122,6 +116,7 @@ public:
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/notes/note.tcc"
 
 #endif // __ZETH_CIRCUITS_NOTE_HPP__

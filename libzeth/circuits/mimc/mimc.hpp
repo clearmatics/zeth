@@ -32,9 +32,9 @@ public:
     MiMCe7_permutation_gadget(
         libsnark::protoboard<FieldT> &pb,
         // Message to encrypt
-        const libsnark::pb_variable<FieldT> x,
+        const libsnark::pb_variable<FieldT> &x,
         // Encryption key (/permutation seed)
-        const libsnark::pb_variable<FieldT> k,
+        const libsnark::pb_variable<FieldT> &k,
         const std::string &annotation_prefix = "MiMCe7_permutation_gadget");
 
     void generate_r1cs_constraints();
@@ -46,13 +46,14 @@ public:
     //
     // MiMC round gadgets initialization
     void setup_gadgets(
-        const libsnark::pb_variable<FieldT> x,
-        const libsnark::pb_variable<FieldT> k);
+        const libsnark::pb_variable<FieldT> &x,
+        const libsnark::pb_variable<FieldT> &k);
     // Constants vector initialization
     void setup_sha3_constants();
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/mimc/mimc.tcc"
 
 #endif // __ZETH_CIRCUITS_MIMC_HPP__

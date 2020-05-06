@@ -13,11 +13,11 @@ template<typename FieldT, typename HashTreeT>
 merkle_path_authenticator<FieldT, HashTreeT>::merkle_path_authenticator(
     libsnark::protoboard<FieldT> &pb,
     const size_t depth,
-    const libsnark::pb_variable_array<FieldT> address_bits,
+    const libsnark::pb_variable_array<FieldT> &address_bits,
     const libsnark::pb_variable<FieldT> leaf,
     const libsnark::pb_variable<FieldT> expected_root,
-    const libsnark::pb_variable_array<FieldT> path,
-    const libsnark::pb_variable<FieldT> bool_enforce,
+    const libsnark::pb_variable_array<FieldT> &path,
+    const libsnark::pb_variable<FieldT> &bool_enforce,
     const std::string &annotation_prefix)
     : merkle_path_compute<FieldT, HashTreeT>(
           pb, depth, address_bits, leaf, path, annotation_prefix)

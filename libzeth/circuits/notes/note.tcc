@@ -41,8 +41,8 @@ template<typename FieldT> void note_gadget<FieldT>::generate_r1cs_constraints()
 template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_witness(const zeth_note &note)
 {
-    r.fill_with_bits(this->pb, get_vector_from_bits256(note.r));
-    value.fill_with_bits(this->pb, get_vector_from_bits64(note.value()));
+    r.fill_with_bits(this->pb, bits256_to_vector(note.r));
+    value.fill_with_bits(this->pb, bits64_to_vector(note.value));
 }
 
 // Gadget that makes sure that all conditions are met in order to spend a note:
@@ -55,7 +55,7 @@ input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::input_note_gadget(
     const libsnark::pb_variable<FieldT> &ZERO,
     std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk,
     std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier,
-    libsnark::pb_variable<FieldT> rt, // merkle_root
+    const libsnark::pb_variable<FieldT> &rt,
     const std::string &annotation_prefix)
     : note_gadget<FieldT>(pb, annotation_prefix)
 {
@@ -164,8 +164,8 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
 template<typename FieldT, typename HashT, typename HashTreeT, size_t TreeDepth>
 void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
     generate_r1cs_witness(
-        std::vector<FieldT> merkle_path,
-        libff::bit_vector address_bits,
+        const std::vector<FieldT> &merkle_path,
+        const libff::bit_vector &address_bits,
         const zeth_note &note)
 {
     // Generate witness of parent gadget
@@ -175,7 +175,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
     spend_authority->generate_r1cs_witness();
 
     // Witness rho for the input note
-    rho.fill_with_bits(this->pb, get_vector_from_bits256(note.rho));
+    rho.fill_with_bits(this->pb, bits256_to_vector(note.rho));
     // Witness the nullifier for the input note
     expose_nullifiers->generate_r1cs_witness();
 
@@ -271,7 +271,7 @@ template<typename FieldT, typename HashT>
 output_note_gadget<FieldT, HashT>::output_note_gadget(
     libsnark::protoboard<FieldT> &pb,
     std::shared_ptr<libsnark::digest_variable<FieldT>> rho,
-    libsnark::pb_variable<FieldT> commitment,
+    const libsnark::pb_variable<FieldT> &commitment,
     const std::string &annotation_prefix)
     : note_gadget<FieldT>(pb, annotation_prefix)
 {
@@ -301,7 +301,7 @@ void output_note_gadget<FieldT, HashT>::generate_r1cs_witness(
     note_gadget<FieldT>::generate_r1cs_witness(note);
 
     // Witness a_pk with note information
-    a_pk->bits.fill_with_bits(this->pb, get_vector_from_bits256(note.a_pk));
+    a_pk->bits.fill_with_bits(this->pb, bits256_to_vector(note.a_pk));
 
     commit_to_outputs_cm->generate_r1cs_witness();
 }

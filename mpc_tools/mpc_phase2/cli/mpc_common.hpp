@@ -5,7 +5,8 @@
 #ifndef __ZETH_MPC_CLI_COMMON_HPP__
 #define __ZETH_MPC_CLI_COMMON_HPP__
 
-#include "libzeth/circuit_types.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
+#include "libzeth/mpc/groth16/mpc_hash.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
@@ -71,10 +72,10 @@ inline ReadableT read_from_file(const std::string &file_name)
 // constraints above.
 template<typename ReadableT>
 inline ReadableT read_from_file_and_hash(
-    const std::string &file_name, libzeth::srs_mpc_hash_t out_hash)
+    const std::string &file_name, libzeth::mpc_hash_t out_hash)
 {
     std::ifstream inf(file_name, std::ios_base::binary | std::ios_base::in);
-    libzeth::hash_istream_wrapper in(inf);
+    libzeth::mpc_hash_istream_wrapper in(inf);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
     ReadableT v = ReadableT::read(in);

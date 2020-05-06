@@ -6,7 +6,7 @@
 // is, participants in the MPC that only contribute and potentially validate
 // the final transcript.
 
-#include "libzeth/circuit_wrapper.hpp"
+#include "libzeth/circuits/circuit_wrapper.hpp"
 #include "mpc_common.hpp"
 
 void zeth_protoboard(libsnark::protoboard<libzeth::FieldT> &pb)

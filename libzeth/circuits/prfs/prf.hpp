@@ -1,13 +1,18 @@
-#ifndef __ZETH_CIRCUITS_PRF_HPP__
-#define __ZETH_CIRCUITS_PRF_HPP__
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
+#ifndef __ZETH_CIRCUITS_PRFS_PRF_HPP__
+#define __ZETH_CIRCUITS_PRFS_PRF_HPP__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
 
-#include "libzeth/circuits/circuits_utils.hpp"
+#include "libzeth/circuits/circuit_utils.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
+#include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
 
 namespace libzeth
 {
@@ -23,8 +28,8 @@ private:
 public:
     PRF_gadget(
         libsnark::protoboard<FieldT> &pb,
-        libsnark::pb_variable_array<FieldT> x,
-        libsnark::pb_variable_array<FieldT> y,
+        const libsnark::pb_variable_array<FieldT> &x,
+        const libsnark::pb_variable_array<FieldT> &y,
         std::shared_ptr<libsnark::digest_variable<FieldT>>
             result, // blake2sCompress(x || y)
         const std::string &annotation_prefix = "PRF_gadget");
@@ -43,23 +48,23 @@ libsnark::pb_variable_array<FieldT> gen_256_zeroes(
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get_tag_addr(
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &x);
+    const libsnark::pb_variable_array<FieldT> &x);
 
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get_tag_nf(
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &a_sk);
+    const libsnark::pb_variable_array<FieldT> &a_sk);
 
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get_tag_pk(
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &a_sk,
+    const libsnark::pb_variable_array<FieldT> &a_sk,
     size_t index);
 
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get_tag_rho(
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &phi,
+    const libsnark::pb_variable_array<FieldT> &phi,
     size_t index);
 
 // PRF to generate the public addresses
@@ -72,7 +77,7 @@ public:
     PRF_addr_a_pk_gadget(
         libsnark::protoboard<FieldT> &pb,
         const libsnark::pb_variable<FieldT> &ZERO,
-        libsnark::pb_variable_array<FieldT> &a_sk,
+        const libsnark::pb_variable_array<FieldT> &a_sk,
         std::shared_ptr<libsnark::digest_variable<FieldT>> result,
         const std::string &annotation_prefix = " add_PRF_gadget");
 };
@@ -87,8 +92,8 @@ public:
     PRF_nf_gadget(
         libsnark::protoboard<FieldT> &pb,
         const libsnark::pb_variable<FieldT> &ZERO,
-        libsnark::pb_variable_array<FieldT> &a_sk,
-        libsnark::pb_variable_array<FieldT> &rho,
+        const libsnark::pb_variable_array<FieldT> &a_sk,
+        const libsnark::pb_variable_array<FieldT> &rho,
         std::shared_ptr<libsnark::digest_variable<FieldT>>
             result, // blake2sCompress(a_sk || 01 || [rho]_254)
         const std::string &annotation_prefix = "PRF_nf_gadget");
@@ -104,8 +109,8 @@ public:
     PRF_pk_gadget(
         libsnark::protoboard<FieldT> &pb,
         const libsnark::pb_variable<FieldT> &ZERO,
-        libsnark::pb_variable_array<FieldT> &a_sk,
-        libsnark::pb_variable_array<FieldT> &h_sig,
+        const libsnark::pb_variable_array<FieldT> &a_sk,
+        const libsnark::pb_variable_array<FieldT> &h_sig,
         size_t index,
         std::shared_ptr<libsnark::digest_variable<FieldT>> result,
         const std::string &annotation_prefix = " pk_PRF_gadget");
@@ -121,14 +126,15 @@ public:
     PRF_rho_gadget(
         libsnark::protoboard<FieldT> &pb,
         const libsnark::pb_variable<FieldT> &ZERO,
-        libsnark::pb_variable_array<FieldT> &phi,
-        libsnark::pb_variable_array<FieldT> &h_sig,
+        const libsnark::pb_variable_array<FieldT> &phi,
+        const libsnark::pb_variable_array<FieldT> &h_sig,
         size_t index,
         std::shared_ptr<libsnark::digest_variable<FieldT>> result,
         const std::string &annotation_prefix = " rho_PRF_gadget");
 };
 
 } // namespace libzeth
+
 #include "libzeth/circuits/prfs/prf.tcc"
 
-#endif // __ZETH_CIRCUITS_PRF_HPP__
+#endif // __ZETH_CIRCUITS_PRFS_PRF_HPP__

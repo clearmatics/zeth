@@ -2,11 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/snarks/groth16/mpc/phase2.hpp"
-// This comment preserves include order under clang-format.
-#include "libzeth/snarks/groth16/mpc/mpc_utils.hpp"
-#include "libzeth/snarks/groth16/mpc/powersoftau_utils.hpp"
-#include "libzeth/util.hpp"
+#include "libzeth/core/utils.hpp"
+#include "libzeth/mpc/groth16/mpc_utils.hpp"
+#include "libzeth/mpc/groth16/phase2.hpp"
+#include "libzeth/mpc/groth16/powersoftau_utils.hpp"
 #include "mpc_common.hpp"
 
 #include <vector>
@@ -173,7 +172,7 @@ private:
         {
             std::ofstream out(
                 keypair_out_file, std::ios_base::binary | std::ios_base::out);
-            mpc_write_keypair(out, keypair);
+            groth16_snark<ppT>::keypair_write_bytes(out, keypair);
         }
         libff::leave_block("Writing keypair file");
 

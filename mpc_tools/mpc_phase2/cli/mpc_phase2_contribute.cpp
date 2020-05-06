@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/snarks/groth16/mpc/phase2.hpp"
+#include "libzeth/mpc/groth16/phase2.hpp"
 #include "mpc_common.hpp"
 
 using namespace libzeth;
@@ -106,14 +106,14 @@ private:
         }
         libff::leave_block("Writing response");
 
-        srs_mpc_hash_t contrib_digest;
+        mpc_hash_t contrib_digest;
         response.publickey.compute_digest(contrib_digest);
         std::cout << "Digest of the contribution was:\n";
-        srs_mpc_hash_write(contrib_digest, std::cout);
+        mpc_hash_write(contrib_digest, std::cout);
 
         if (!digest.empty()) {
             std::ofstream out(digest);
-            srs_mpc_hash_write(contrib_digest, out);
+            mpc_hash_write(contrib_digest, out);
             std::cout << "Digest written to: " << digest << std::endl;
         }
 
@@ -125,7 +125,7 @@ private:
         using random_word = std::random_device::result_type;
 
         std::random_device rd;
-        hash_ostream hs;
+        mpc_hash_ostream hs;
         uint64_t buf[4];
         // The computation below looks (to some compilers) like an attempt to
         // compute the number of elements in the array 'buf', and generates a
@@ -152,7 +152,7 @@ private:
             hs << user_input;
         }
 
-        srs_mpc_hash_t digest;
+        mpc_hash_t digest;
         hs.get_hash(digest);
 
         libff::Fr<ppT> randomness;
