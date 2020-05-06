@@ -48,7 +48,8 @@ static char nibble_hex(const uint8_t nibble)
 
 // Return a pointer to the beginning of the actual hex characters (removing any
 // `0x` prefix), and ensure that the length is as expected.
-static const char *find_hex_start(const std::string &hex, const size_t bytes)
+static const char *find_hex_string_of_length(
+    const std::string &hex, const size_t bytes)
 {
     if ('0' == hex[0] && 'x' == hex[1]) {
         if (hex.size() != 2 + bytes * 2) {
@@ -60,12 +61,13 @@ static const char *find_hex_start(const std::string &hex, const size_t bytes)
     if (hex.size() != bytes * 2) {
         throw std::invalid_argument("invalid hex length");
     }
+
     return hex.c_str();
 }
 
 void hex_to_bytes(const std::string &hex, void *dest, size_t bytes)
 {
-    const char *cur = find_hex_start(hex, bytes);
+    const char *cur = find_hex_string_of_length(hex, bytes);
     uint8_t *dest_bytes = (uint8_t *)dest;
     const uint8_t *const dest_bytes_end = dest_bytes + bytes;
     while (dest_bytes < dest_bytes_end) {
@@ -80,7 +82,7 @@ void hex_to_bytes_reversed(const std::string &hex, void *dest, size_t bytes)
     if (bytes == 0) {
         return;
     }
-    const char *cur = find_hex_start(hex, bytes);
+    const char *cur = find_hex_string_of_length(hex, bytes);
     uint8_t *const dest_bytes_end = (uint8_t *)dest;
     uint8_t *dest_bytes = dest_bytes_end + bytes;
     do {
