@@ -11,7 +11,7 @@
 debug/*json
 
 # Ignore node_modules
-/zeth-contracts/node_modules/*
+/zeth_contracts/node_modules/*
 
 # Ignore pyClient env and build directories
 /pyClient/api/*_pb2.py

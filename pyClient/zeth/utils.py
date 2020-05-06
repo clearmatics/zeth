@@ -219,7 +219,7 @@ def get_trusted_setup_dir() -> str:
 def get_contracts_dir() -> str:
     return os.environ.get(
         'ZETH_CONTRACTS_DIR',
-        join(get_zeth_dir(), "zeth-contracts", "contracts"))
+        join(get_zeth_dir(), "zeth_contracts", "contracts"))
 
 
 def string_list_flatten(

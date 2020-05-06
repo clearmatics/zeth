@@ -41,10 +41,10 @@ def compile_token() -> Interface:
     zeth_dir = get_zeth_dir()
     allowed_path = join(
         zeth_dir,
-        "zeth-contracts/node_modules/openzeppelin-solidity/contracts")
+        "zeth_contracts/node_modules/openzeppelin-solidity/contracts")
     path_to_token = join(
         zeth_dir,
-        "zeth-contracts/node_modules/openzeppelin-solidity/contracts",
+        "zeth_contracts/node_modules/openzeppelin-solidity/contracts",
         "token/ERC20/ERC20Mintable.sol")
     # Compilation
     set_solc_version(SOL_COMPILER_VERSION)

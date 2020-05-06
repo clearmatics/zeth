@@ -22,7 +22,7 @@ function format_check() {
 }
 
 function contracts_check() {
-    pushd zeth-contracts
+    pushd zeth_contracts
     npm config set python python2.7
     npm install
     npm run check

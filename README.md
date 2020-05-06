@@ -82,7 +82,7 @@ https://eprint.iacr.org/2016/260).
 
 ```bash
 # Start the ethereum test net by running the following commands
-cd zeth-contracts
+cd zeth_contracts
 
 # If the install below fails with python errors, try running:
 npm config set python python2.7
