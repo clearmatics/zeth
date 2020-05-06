@@ -1,5 +1,17 @@
 cmake_minimum_required(VERSION 3.15)
 
+# WARNING: Attempt to change the compiler BEFORE the first `project()` command
+# in order to avoid infinite loop when trying to change the compiler.
+# See: https://public.kitware.com/pipermail/cmake/2009-November/033133.html
+if(APPLE)
+  # If custom llvm compilers are available, use them (for openmp
+  # support), otherwise disable multicore.
+  if(EXISTS "/usr/local/opt/llvm/bin/clang")
+    set(CMAKE_C_COMPILER "/usr/local/opt/llvm/bin/clang")
+    set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
+  endif()
+endif()
+
 # Sets the env vars PROJECT_SOURCE_DIR, and PROJECT_BINARY_DIR
 project(zeth CXX)
 
@@ -10,15 +22,6 @@ set(ZETH_VERSION_MINOR 3)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(APPLE)
-  # If custom llvm compilers are available, use them (for openmp
-  # support), otherwise disable multicore.
-  if(EXISTS "/usr/local/opt/llvm/bin/clang")
-    set(CMAKE_C_COMPILER "/usr/local/opt/llvm/bin/clang")
-    set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
-  endif()
-endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # Support for the 2011 ISO C++ standard was claimed from gcc4.8+:
