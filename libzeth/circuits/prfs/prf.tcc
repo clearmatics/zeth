@@ -1,5 +1,9 @@
-#ifndef __ZETH_CIRCUITS_PRF_TCC__
-#define __ZETH_CIRCUITS_PRF_TCC__
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
+#ifndef __ZETH_CIRCUITS_PRFS_PRF_TCC__
+#define __ZETH_CIRCUITS_PRFS_PRF_TCC__
 
 #include "libzeth/circuits/prfs/prf.hpp"
 
@@ -250,4 +254,4 @@ PRF_rho_gadget<FieldT, HashT>::PRF_rho_gadget(
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUITS_PRF_TCC__
+#endif // __ZETH_CIRCUITS_PRFS_PRF_TCC__

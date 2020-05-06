@@ -1,5 +1,9 @@
-#ifndef __ZETH_CIRCUITS_PRF_HPP__
-#define __ZETH_CIRCUITS_PRF_HPP__
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
+#ifndef __ZETH_CIRCUITS_PRFS_PRF_HPP__
+#define __ZETH_CIRCUITS_PRFS_PRF_HPP__
 
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
@@ -133,4 +137,4 @@ public:
 
 #include "libzeth/circuits/prfs/prf.tcc"
 
-#endif // __ZETH_CIRCUITS_PRF_HPP__
+#endif // __ZETH_CIRCUITS_PRFS_PRF_HPP__
