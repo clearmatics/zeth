@@ -4,78 +4,92 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import zeth.constants
-import zeth.contracts
 import zeth.merkle_tree
 import zeth.utils
-import zeth.zksnark
+import zeth.constants as constants
 from zeth.zeth_address import ZethAddressPriv
 from zeth.contracts import MixOutputEvents
 from zeth.mixer_client import MixerClient
 from zeth.wallet import Wallet, ZethNoteDescription
 import test_commands.mock as mock
 import test_commands.scenario as scenario
-
-import os
+from test_commands.deploy_test_token import deploy_token, mint_token
 from os.path import join, exists
 import shutil
+from web3 import Web3  # type: ignore
 from typing import Dict, List, Any
-# from web3 import Web3, HTTPProvider  # type: ignore
 
 
-def print_balances(
-        web3: Any, bob: str, alice: str, charlie: str, mixer: str) -> None:
+def print_token_balances(
+        token_instance: Any,
+        bob: str,
+        alice: str,
+        charlie: str,
+        mixer: str) -> None:
     print("BALANCES:")
-    print(f"  Alice   : {web3.eth.getBalance(alice)}")
-    print(f"  Bob     : {web3.eth.getBalance(bob)}")
-    print(f"  Charlie : {web3.eth.getBalance(charlie)}")
-    print(f"  Mixer   : {web3.eth.getBalance(mixer)}")
+    print(f"  Alice   : {token_instance.functions.balanceOf(alice).call()}")
+    print(f"  Bob     : {token_instance.functions.balanceOf(bob).call()}")
+    print(f"  Charlie : {token_instance.functions.balanceOf(charlie).call()}")
+    print(f"  Mixer   : {token_instance.functions.balanceOf(mixer).call()}")
+
+
+def approve(
+        token_instance: Any,
+        owner_address: str,
+        spender_address: str,
+        token_amount: int) -> str:
+    return token_instance.functions.approve(
+        spender_address,
+        Web3.toWei(token_amount, 'ether')).transact({'from': owner_address})
+
+
+def allowance(
+        token_instance: Any,
+        owner_address: str,
+        spender_address: str) -> str:
+    return token_instance.functions.allowance(owner_address, spender_address) \
+        .call()
 
 
 def main() -> None:
-    zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
 
+    zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
     web3, eth = mock.open_test_web3()
 
-    # Zeth addresses
-    keystore = mock.init_test_keystore()
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]
     bob_eth_address = eth.accounts[1]
     alice_eth_address = eth.accounts[2]
     charlie_eth_address = eth.accounts[3]
+    # Zeth addresses
+    keystore = mock.init_test_keystore()
 
-    notestore_dir = os.environ['ZETH_NOTESTORE']
+    # Deploy the token contract
+    token_instance = deploy_token(eth, deployer_eth_address, 4000000)
 
     # Deploy Zeth contracts
-    tree_depth = zeth.constants.ZETH_MERKLE_TREE_DEPTH
+    tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client, _contract_desc = MixerClient.deploy(
         web3,
         mock.TEST_PROVER_SERVER_ENDPOINT,
         deployer_eth_address,
-        None,
+        token_instance.address,
         None,
         zksnark)
-
-    # Set up Merkle tree and Wallets. Note that each wallet holds an internal
-    # Merkle Tree, unused in this test. Instead, we keep an in-memory version
-    # shared by all virtual users. This avoids having to pass all mix results
-    # to all wallets, and allows some of the methods in the scenario module,
-    # which must update the tree directly.
     mk_tree = zeth.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
     mixer_instance = zeth_client.mixer_instance
 
     # Keys and wallets
     def _mk_wallet(name: str, sk: ZethAddressPriv) -> Wallet:
-        wallet_dir = join(notestore_dir, name + "-eth")
+        wallet_dir = join(mock.TEST_NOTE_DIR, name + "-erc")
         if exists(wallet_dir):
             # Note: symlink-attack resistance
             #   https://docs.python.org/3/library/shutil.html#shutil.rmtree.avoids_symlink_attacks
             shutil.rmtree(wallet_dir)
         return Wallet(mixer_instance, name, wallet_dir, sk)
-    sk_alice = keystore['Alice'].addr_sk
-    sk_bob = keystore['Bob'].addr_sk
-    sk_charlie = keystore['Charlie'].addr_sk
+    sk_alice = keystore["Alice"].addr_sk
+    sk_bob = keystore["Bob"].addr_sk
+    sk_charlie = keystore["Charlie"].addr_sk
     alice_wallet = _mk_wallet('alice', sk_alice)
     bob_wallet = _mk_wallet('bob', sk_bob)
     charlie_wallet = _mk_wallet('charlie', sk_charlie)
@@ -97,25 +111,58 @@ def main() -> None:
         block_num = block_num + 1
         return notes
 
-    print("[INFO] 4. Running tests (asset mixed: Ether)...")
+    print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
+    # We assign ETHToken to Bob
+    mint_token(
+        token_instance,
+        bob_eth_address,
+        deployer_eth_address,
+        2*scenario.BOB_DEPOSIT_ETH)
     print("- Initial balances: ")
-    print_balances(
-        web3,
+    print_token_balances(
+        token_instance,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
         zeth_client.mixer_instance.address)
 
-    # Bob deposits ETH, split in 2 notes on the mixer
-    result_deposit_bob_to_bob = scenario.bob_deposit(
-        zeth_client,
-        mk_tree,
+    # Bob tries to deposit ETHToken, split in 2 notes on the mixer (without
+    # approving)
+    try:
+        result_deposit_bob_to_bob = scenario.bob_deposit(
+            zeth_client,
+            mk_tree,
+            bob_eth_address,
+            keystore,
+            zeth.utils.EtherValue(0))
+    except Exception as e:
+        allowance_mixer = allowance(
+            token_instance,
+            bob_eth_address,
+            zeth_client.mixer_instance.address)
+        print(f"[ERROR] Bob deposit failed! (msg: {e})")
+        print("The allowance for Mixer from Bob is: ", allowance_mixer)
+
+    # Bob approves the transfer
+    print("- Bob approves the transfer of ETHToken to the Mixer")
+    tx_hash = approve(
+        token_instance,
         bob_eth_address,
-        keystore)
+        zeth_client.mixer_instance.address,
+        scenario.BOB_DEPOSIT_ETH)
+    eth.waitForTransactionReceipt(tx_hash)
+    allowance_mixer = allowance(
+        token_instance,
+        bob_eth_address,
+        zeth_client.mixer_instance.address)
+    print("- The allowance for the Mixer from Bob is:", allowance_mixer)
+    # Bob deposits ETHToken, split in 2 notes on the mixer
+    result_deposit_bob_to_bob = scenario.bob_deposit(
+        zeth_client, mk_tree, bob_eth_address, keystore)
 
     print("- Balances after Bob's deposit: ")
-    print_balances(
-        web3,
+    print_token_balances(
+        token_instance,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
@@ -123,24 +170,27 @@ def main() -> None:
     )
 
     # Alice sees a deposit and tries to decrypt the ciphertexts to see if she
-    # was the recipient but she wasn't the recipient (Bob was), so she fails to
-    # decrypt
-    recovered_notes = _receive_notes(result_deposit_bob_to_bob.output_events)
-    assert(len(recovered_notes['alice']) == 0), \
+    # was the recipient, but Bob was the recipient so Alice fails to decrypt
+    received_notes = _receive_notes(
+        result_deposit_bob_to_bob.output_events)
+    recovered_notes_alice = received_notes['alice']
+    assert(len(recovered_notes_alice) == 0), \
         "Alice decrypted a ciphertext that was not encrypted with her key!"
 
-    # Bob does a transfer to Charlie on the mixer
+    # Bob does a transfer of ETHToken to Charlie on the mixer
 
     # Bob decrypts one of the note he previously received (useless here but
     # useful if the payment came from someone else)
-    assert(len(recovered_notes['bob']) == 2), \
-        f"Bob recovered {len(recovered_notes['bob'])} notes, expected 2"
+    recovered_notes_bob = received_notes['bob']
+    assert(len(recovered_notes_bob) == 2), \
+        f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
+    input_bob_to_charlie = recovered_notes_bob[0].as_input()
 
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         zeth_client,
         mk_tree,
-        recovered_notes['bob'][0].as_input(),
+        input_bob_to_charlie,
         bob_eth_address,
         keystore)
 
@@ -150,59 +200,55 @@ def main() -> None:
         result_double_spending = scenario.bob_to_charlie(
             zeth_client,
             mk_tree,
-            recovered_notes['bob'][0].as_input(),
+            input_bob_to_charlie,
             bob_eth_address,
             keystore)
     except Exception as e:
         print(f"Bob's double spending successfully rejected! (msg: {e})")
-    assert(result_double_spending is None), \
-        "Bob managed to spend the same note twice!"
+    assert(result_double_spending is None), "Bob spent the same note twice!"
 
     print("- Balances after Bob's transfer to Charlie: ")
-    print_balances(
-        web3,
+    print_token_balances(
+        token_instance,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
         zeth_client.mixer_instance.address
     )
 
-    # Charlie recovers his notes and attempts to withdraw them.
-    recovered_notes = _receive_notes(
+    # Charlie tries to decrypt the notes from Bob's previous transaction.
+    received_notes = _receive_notes(
         result_transfer_bob_to_charlie.output_events)
-    notes_charlie = recovered_notes['charlie']
-    assert(len(notes_charlie) == 1), \
-        f"Charlie decrypted {len(notes_charlie)}.  Expected 1!"
+    note_descs_charlie = received_notes['charlie']
+    assert(len(note_descs_charlie) == 1), \
+        f"Charlie decrypted {len(note_descs_charlie)}.  Expected 1!"
 
-    input_charlie_withdraw = notes_charlie[0]
-
-    charlie_balance_before_withdrawal = eth.getBalance(charlie_eth_address)
     _ = scenario.charlie_withdraw(
         zeth_client,
         mk_tree,
-        input_charlie_withdraw.as_input(),
+        note_descs_charlie[0].as_input(),
         charlie_eth_address,
         keystore)
-    charlie_balance_after_withdrawal = eth.getBalance(charlie_eth_address)
-    print("Balances after Charlie's withdrawal: ")
-    print_balances(
-        web3,
+
+    print("- Balances after Charlie's withdrawal: ")
+    print_token_balances(
+        token_instance,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
-        zeth_client.mixer_instance.address)
-    if charlie_balance_after_withdrawal <= charlie_balance_before_withdrawal:
-        raise Exception("Charlie's balance did not increase after withdrawal")
+        zeth_client.mixer_instance.address
+    )
 
-    # Charlie tries to double-spend by withdrawing twice the same note
+    # Charlie tries to carry out a double spend by withdrawing twice the same
+    # note
     result_double_spending = None
     try:
         # New commitments are added in the tree at each withdraw so we
-        # recompiute the path to have the updated nodes
+        # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
             zeth_client,
             mk_tree,
-            input_charlie_withdraw.as_input(),
+            note_descs_charlie[0].as_input(),
             charlie_eth_address,
             keystore)
     except Exception as e:
@@ -210,8 +256,8 @@ def main() -> None:
     print("Balances after Charlie's double withdrawal attempt: ")
     assert(result_double_spending is None), \
         "Charlie managed to withdraw the same note twice!"
-    print_balances(
-        web3,
+    print_token_balances(
+        token_instance,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,
@@ -219,6 +265,21 @@ def main() -> None:
 
     # Bob deposits once again ETH, split in 2 notes on the mixer
     # But Charlie attempts to corrupt the transaction (malleability attack)
+
+    # Bob approves the transfer
+    print("- Bob approves the transfer of ETHToken to the Mixer")
+    tx_hash = approve(
+        token_instance,
+        bob_eth_address,
+        zeth_client.mixer_instance.address,
+        scenario.BOB_DEPOSIT_ETH)
+    eth.waitForTransactionReceipt(tx_hash)
+    allowance_mixer = allowance(
+        token_instance,
+        bob_eth_address,
+        zeth_client.mixer_instance.address)
+    print("- The allowance for the Mixer from Bob is:", allowance_mixer)
+
     result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
         zeth_client,
         mk_tree,
@@ -228,14 +289,15 @@ def main() -> None:
 
     # Bob decrypts one of the note he previously received (should fail if
     # Charlie's attack succeeded)
-    recovered_notes = _receive_notes(
+    received_notes = _receive_notes(
         result_deposit_bob_to_bob.output_events)
-    assert(len(recovered_notes['bob']) == 2), \
-        f"Bob recovered {len(recovered_notes['bob'])} notes, expected 2"
+    recovered_notes_bob = received_notes['bob']
+    assert(len(recovered_notes_bob) == 2), \
+        f"Bob recovered {len(recovered_notes_bob)} notes from deposit, expected 2"
 
     print("- Balances after Bob's last deposit: ")
-    print_balances(
-        web3,
+    print_token_balances(
+        token_instance,
         bob_eth_address,
         alice_eth_address,
         charlie_eth_address,

@@ -8,7 +8,7 @@ Ensure that the following are installed:
 - [venv](https://docs.python.org/3/library/venv.html#module-venv) module.
 - gcc
 
-Execute the following inside the `pyClient` directory.
+Execute the following inside the `client` directory.
 ```console
 $ python -m venv env
 $ source env/bin/activate

@@ -219,7 +219,7 @@ def get_trusted_setup_dir() -> str:
 def get_contracts_dir() -> str:
     return os.environ.get(
         'ZETH_CONTRACTS_DIR',
-        join(get_zeth_dir(), "zeth-contracts", "contracts"))
+        join(get_zeth_dir(), "zeth_contracts", "contracts"))
 
 
 def string_list_flatten(
@@ -273,13 +273,3 @@ def short_commitment(cm: bytes) -> str:
     Summary of the commitment value, in some standard format.
     """
     return cm[0:4].hex()
-
-
-def bits_to_bytes_len(bit_length: int) -> int:
-    """
-    Convert bit length to byte length
-    """
-    assert \
-        bit_length >= 0 and bit_length % 8 == 0, \
-        "Not valid bit_length inserted"
-    return int(bit_length/8)

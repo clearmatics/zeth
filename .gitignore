@@ -11,12 +11,12 @@
 debug/*json
 
 # Ignore node_modules
-/zeth-contracts/node_modules/*
+/zeth_contracts/node_modules/*
 
-# Ignore pyClient env and build directories
-/pyClient/api/*_pb2.py
-/pyClient/api/*_pb2_grpc.py
-/pyClient/api/*_pb2.pyi
+# Ignore client env and build directories
+/client/api/*_pb2.py
+/client/api/*_pb2_grpc.py
+/client/api/*_pb2.pyi
 
 # Ignore test files
 /_test_contrib_*/

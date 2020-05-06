@@ -16,6 +16,7 @@ from typing import Dict, List, Tuple, Optional, Any
 # Web3 HTTP provider
 TEST_PROVER_SERVER_ENDPOINT: str = "localhost:50051"
 TEST_WEB3_PROVIDER_ENDPOINT: str = "http://localhost:8545"
+TEST_NOTE_DIR: str = "_test_notes"
 
 KeyStore = Dict[str, ZethAddress]
 
