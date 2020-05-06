@@ -23,17 +23,14 @@ private:
     std::string challenge_file;
     std::string out_file;
     std::string digest;
-    bool skip_user_input;
+    bool skip_user_input{false};
 
 public:
     mpc_phase2_contribute()
         : subcommand(
               "phase2-contribute",
               "Create response (MPC contribution) from challenge")
-        , challenge_file()
-        , out_file()
-        , digest()
-        , skip_user_input(false)
+         
     {
     }
 

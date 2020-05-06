@@ -30,8 +30,8 @@ private:
 
 public:
     subcommand(
-        const std::string &subcommand_name, const std::string &description);
-    void set_global_options(bool verbose, ProtoboardInitFn protoboard_init);
+        std::string subcommand_name, std::string description);
+    void set_global_options(bool verbose, ProtoboardInitFn pb_init);
     int execute(const std::vector<std::string> &args);
     const std::string &description() const;
 
@@ -39,7 +39,7 @@ protected:
     void init_protoboard(libsnark::protoboard<libzeth::FieldT> &pb) const;
 
 private:
-    void usage(const boost::program_options::options_description &all_options);
+    void usage(const boost::program_options::options_description &options);
 
     virtual void initialize_suboptions(
         boost::program_options::options_description &options,

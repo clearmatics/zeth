@@ -30,19 +30,15 @@ class mpc_linear_combination : public subcommand
 {
     std::string powersoftau_file;
     std::string lagrange_file;
-    size_t powersoftau_degree;
+    size_t powersoftau_degree{0};
     std::string out_file;
-    bool verify;
+    bool verify{false};
 
 public:
     mpc_linear_combination()
         : subcommand(
               "linear-combination", "Create linear combination for our circuit")
-        , powersoftau_file()
-        , lagrange_file()
-        , powersoftau_degree(0)
-        , out_file()
-        , verify(false)
+         
     {
     }
 
@@ -103,7 +99,7 @@ private:
                       << "lagrange_file: " << lagrange_file << "\n"
                       << "powersoftau_degree: " << powersoftau_degree << "\n"
                       << "out_file: " << out_file << "\n"
-                      << "verify: " << std::to_string(verify) << std::endl;
+                      << "verify: " << std::to_string(static_cast<int>(verify)) << std::endl;
         }
 
         // Load lagrange evaluations to determine n, then load powersoftau

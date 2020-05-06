@@ -27,8 +27,7 @@ private:
 public:
     mpc_phase2_begin()
         : subcommand("phase2-begin", "Create the initial MPC challenge")
-        , lin_comb_file()
-        , out_file()
+         
     {
     }
 

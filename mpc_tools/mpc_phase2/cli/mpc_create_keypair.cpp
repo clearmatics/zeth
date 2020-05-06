@@ -33,16 +33,12 @@ private:
     std::string lin_comb_file;
     std::string phase2_challenge_file;
     std::string keypair_out_file;
-    size_t powersoftau_degree;
+    size_t powersoftau_degree{0};
 
 public:
     mpc_create_keypair()
         : subcommand("create-keypair", "Create a full keypair from MPC output")
-        , powersoftau_file()
-        , lin_comb_file()
-        , phase2_challenge_file()
-        , keypair_out_file()
-        , powersoftau_degree(0)
+         
     {
     }
 

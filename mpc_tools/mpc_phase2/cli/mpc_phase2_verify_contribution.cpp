@@ -30,10 +30,7 @@ public:
         : subcommand(
               "mpc_phase2_verify_contribution",
               "Verify contribution and optionally output next challenge")
-        , challenge_file()
-        , response_file()
-        , transcript_file()
-        , new_challenge_file()
+         
     {
     }
 
@@ -58,10 +55,10 @@ private:
 
     void parse_suboptions(const po::variables_map &vm) override
     {
-        if (!vm.count("challenge_file")) {
+        if (vm.count("challenge_file") == 0u) {
             throw po::error("challenge_file not specified");
         }
-        if (!vm.count("response_file")) {
+        if (vm.count("response_file") == 0u) {
             throw po::error("response_file not specified");
         }
         challenge_file = vm["challenge_file"].as<std::string>();

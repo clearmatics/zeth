@@ -34,10 +34,7 @@ public:
         : subcommand(
               "phase2-verify-transcript",
               "Verify full transcript, check specific contribution")
-        , challenge_0_file()
-        , transcript_file()
-        , final_challenge_file()
-        , digest()
+         
     {
     }
 
@@ -113,7 +110,7 @@ private:
             if (memcmp(
                     init_transcript_digest,
                     challenge_0.transcript_digest,
-                    sizeof(mpc_hash_t))) {
+                    sizeof(mpc_hash_t)) != 0) {
                 throw std::invalid_argument(
                     "transcript digest does not match starting challenge");
             }

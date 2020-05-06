@@ -21,7 +21,7 @@
 #include <grpcpp/server_context.h>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 #include <memory>
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 
 using snark = libzeth::default_snark<libzeth::ppT>;
@@ -115,8 +115,8 @@ public:
     }
 
     grpc::Status GetVerificationKey(
-        grpc::ServerContext *,
-        const proto::Empty *,
+        grpc::ServerContext * /*context*/,
+        const proto::Empty * /*request*/,
         zeth_proto::VerificationKey *response) override
     {
         std::cout << "[ACK] Received the request to get the verification key"
@@ -138,7 +138,7 @@ public:
     }
 
     grpc::Status Prove(
-        grpc::ServerContext *,
+        grpc::ServerContext * /*context*/,
         const zeth_proto::ProofInputs *proof_inputs,
         zeth_proto::ExtendedProof *proof) override
     {
@@ -180,7 +180,7 @@ public:
             for (size_t i = 0; i < libzeth::ZETH_NUM_JS_INPUTS; i++) {
                 printf(
                     "\r  input (%zu / %zu)\n", i, libzeth::ZETH_NUM_JS_INPUTS);
-                zeth_proto::JoinsplitInput received_input =
+                const zeth_proto::JoinsplitInput& received_input =
                     proof_inputs->js_inputs(i);
                 libzeth::joinsplit_input<
                     libzeth::FieldT,
@@ -200,7 +200,7 @@ public:
                     "\r  output (%zu / %zu)\n",
                     i,
                     libzeth::ZETH_NUM_JS_OUTPUTS);
-                zeth_proto::ZethNote received_output =
+                const zeth_proto::ZethNote& received_output =
                     proof_inputs->js_outputs(i);
                 libzeth::zeth_note parsed_output =
                     libzeth::zeth_note_from_proto(received_output);
@@ -277,7 +277,7 @@ void display_server_start_message()
               << std::endl;
 }
 
-static void RunServer(
+static void run_server(
     libzeth::circuit_wrapper<
         libzeth::HashT,
         libzeth::HashTreeT,
@@ -352,15 +352,15 @@ int main(int argc, char **argv)
         po::variables_map vm;
         po::store(
             po::command_line_parser(argc, argv).options(options).run(), vm);
-        if (vm.count("help")) {
+        if (vm.count("help") != 0u) {
             usage();
             return 0;
         }
-        if (vm.count("keypair")) {
+        if (vm.count("keypair") != 0u) {
             keypair_file = vm["keypair"].as<std::string>();
         }
 #ifdef DEBUG
-        if (vm.count("jr1cs")) {
+        if (vm.count("jr1cs") != 0u) {
             jr1cs_file = vm["jr1cs"].as<boost::filesystem::path>();
         }
 #endif
@@ -406,7 +406,7 @@ int main(int argc, char **argv)
 
 #ifdef DEBUG
     // Run only if the flag is set
-    if (jr1cs_file != "") {
+    if (!jr1cs_file.empty()) {
         std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
         std::ofstream jr1cs_stream(jr1cs_file.c_str());
         libzeth::r1cs_write_json<libzeth::ppT>(
@@ -415,6 +415,6 @@ int main(int argc, char **argv)
 #endif
 
     std::cout << "[INFO] Setup successful, starting the server..." << std::endl;
-    RunServer(prover, keypair);
+    run_server(prover, keypair);
     return 0;
 }

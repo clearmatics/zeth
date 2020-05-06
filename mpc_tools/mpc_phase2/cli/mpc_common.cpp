@@ -5,13 +5,15 @@
 #include "mpc_common.hpp"
 
 #include <iostream>
+#include <utility>
+#include <utility>
 
 namespace po = boost::program_options;
 
 subcommand::subcommand(
-    const std::string &subcommand_name, const std::string &description)
-    : subcommand_name(subcommand_name)
-    , subcommand_description(description)
+    std::string subcommand_name, std::string description)
+    : subcommand_name(std::move(subcommand_name))
+    , subcommand_description(std::move(description))
     , verbose(false)
     , help(false)
 {
@@ -20,7 +22,7 @@ subcommand::subcommand(
 void subcommand::set_global_options(bool verbose, ProtoboardInitFn pb_init)
 {
     this->verbose = verbose;
-    this->protoboard_init = pb_init;
+    this->protoboard_init = std::move(pb_init);
 }
 
 int subcommand::execute(const std::vector<std::string> &args)
@@ -44,7 +46,7 @@ int subcommand::execute(const std::vector<std::string> &args)
         po::store(parsed, vm);
         parse_suboptions(vm);
 
-        if (vm.count("help")) {
+        if (vm.count("help") != 0u) {
             help = true;
             usage(options_desc);
             return 0;
@@ -141,7 +143,7 @@ int mpc_main(
                                         .run();
         po::store(parsed, vm);
 
-        if (vm.count("help")) {
+        if (vm.count("help") != 0u) {
             usage();
             return 0;
         }
@@ -168,7 +170,7 @@ int mpc_main(
             throw po::error("invalid command");
         }
 
-        sub->set_global_options(verbose, pb_init);
+        sub->set_global_options(verbose, std::move(pb_init));
         return sub->execute(subargs);
     } catch (po::error &error) {
         std::cerr << " ERROR: " << error.what() << std::endl;
