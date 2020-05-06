@@ -16,6 +16,17 @@
 #   C++ containers as much as possible, but we want to keep using
 #   C arrays when relevant.
 #
+# -modernize-use-bool-literals is removed because it is easier to
+#   read and implement functions processing boolean vectors/matrices
+#   (e.g. sha256) when using '0' and '1' instead of 'true' and 'false.
+#   In other contexts, we strongly encourage to use bool literals however.
+#
+# -modernize-use-auto is removed as a way to maximize type verbosity.
+#   This comes at the cost of duplications in type names (when initializing
+#   with a cast for instance), and makes the code a bit less maintainable and
+#   flexible. We consider this negligible compared to the benefits of
+#   manipulating variables that are explicitly typed.
+#
 Checks: >
     -*,
     bugprone-*,
@@ -25,12 +36,32 @@ Checks: >
     performance-*,
     portability-*,
     readability-*,
-    -modernize-avoid-c-arrays
+    -modernize-avoid-c-arrays,
+    -modernize-use-bool-literals,
+    -modernize-use-auto
 
 HeaderFilterRegex: 'libzeth/*.(h|hpp|cpp)'
 
 CheckOptions:
     - key: readability-identifier-naming.MacroDefinitionCase
       value: UPPER_CASE
+    - key: readability-identifier-naming.StaticConstantCase
+      value: UPPER_CASE
+    - key: readability-identifier-naming.ConstantParameterCase
+      value: lower_case
+    - key: readability-identifier-naming.FunctionCase
+      value: lower_case
+    - key: readability-identifier-naming.VariableCase
+      value: lower_case
+    - key: readability-identifier-naming.ClassCase
+      value: lower_case
+    - key: readability-identifier-naming.ClassMemberCase
+      value: lower_case
+    - key: readability-identifier-naming.NamespaceCase
+      value: lower_case
+    - key: readability-identifier-naming.TemplateParameterCase
+      value: CamelCase
+    - key: readability-identifier-naming.TemplateParameterSuffix
+      value: T
     - key: readability-implicit-bool-conversion.AllowIntegerConditions
       value: '1'

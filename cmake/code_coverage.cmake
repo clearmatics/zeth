@@ -1,6 +1,4 @@
 # Runs code coverage tools
-# - gcov (GCC)
-# - llvm-cov
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(WARNING "Code coverage should not be used in non-debug mode (CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})")
