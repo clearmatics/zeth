@@ -1,6 +1,8 @@
 #ifndef __ZETH_CIRCUITS_PRF_TCC__
 #define __ZETH_CIRCUITS_PRF_TCC__
 
+#include "libzeth/circuits/prfs/prf.hpp"
+
 // DISCLAIMER:
 // Content Taken and adapted from Zcash
 // https://github.com/zcash/zcash/blob/master/src/zcash/circuit/prfs.tcc
@@ -11,8 +13,8 @@ namespace libzeth
 template<typename FieldT, typename HashT>
 PRF_gadget<FieldT, HashT>::PRF_gadget(
     libsnark::protoboard<FieldT> &pb,
-    libsnark::pb_variable_array<FieldT> x,
-    libsnark::pb_variable_array<FieldT> y,
+    const libsnark::pb_variable_array<FieldT> &x,
+    const libsnark::pb_variable_array<FieldT> &y,
     std::shared_ptr<libsnark::digest_variable<FieldT>> result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix), result(result)
@@ -56,7 +58,7 @@ libsnark::pb_variable_array<FieldT> gen_256_zeroes(
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get_tag_addr(
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &a_sk)
+    const libsnark::pb_variable_array<FieldT> &a_sk)
 {
     libsnark::pb_variable_array<FieldT> tagged_a_sk;
     tagged_a_sk.emplace_back(ONE);  // 1
@@ -82,7 +84,7 @@ libsnark::pb_variable_array<FieldT> get_tag_addr(
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get_tag_nf(
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &a_sk)
+    const libsnark::pb_variable_array<FieldT> &a_sk)
 {
     libsnark::pb_variable_array<FieldT> tagged_a_sk;
     tagged_a_sk.emplace_back(ONE);  // 1
@@ -108,7 +110,7 @@ libsnark::pb_variable_array<FieldT> get_tag_nf(
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get_tag_pk(
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &a_sk,
+    const libsnark::pb_variable_array<FieldT> &a_sk,
     size_t index)
 {
     libsnark::pb_variable_array<FieldT> tagged_a_sk;
@@ -143,7 +145,7 @@ libsnark::pb_variable_array<FieldT> get_tag_pk(
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> get_tag_rho(
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &phi,
+    const libsnark::pb_variable_array<FieldT> &phi,
     size_t index)
 {
     libsnark::pb_variable_array<FieldT> tagged_phi;
@@ -180,7 +182,7 @@ template<typename FieldT, typename HashT>
 PRF_addr_a_pk_gadget<FieldT, HashT>::PRF_addr_a_pk_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &a_sk,
+    const libsnark::pb_variable_array<FieldT> &a_sk,
     std::shared_ptr<libsnark::digest_variable<FieldT>> result,
     const std::string &annotation_prefix)
     : PRF_gadget<FieldT, HashT>(
@@ -200,8 +202,8 @@ template<typename FieldT, typename HashT>
 PRF_nf_gadget<FieldT, HashT>::PRF_nf_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &a_sk,
-    libsnark::pb_variable_array<FieldT> &rho,
+    const libsnark::pb_variable_array<FieldT> &a_sk,
+    const libsnark::pb_variable_array<FieldT> &rho,
     std::shared_ptr<libsnark::digest_variable<FieldT>> result,
     const std::string &annotation_prefix)
     : PRF_gadget<FieldT, HashT>(
@@ -217,8 +219,8 @@ template<typename FieldT, typename HashT>
 PRF_pk_gadget<FieldT, HashT>::PRF_pk_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &a_sk,
-    libsnark::pb_variable_array<FieldT> &h_sig,
+    const libsnark::pb_variable_array<FieldT> &a_sk,
+    const libsnark::pb_variable_array<FieldT> &h_sig,
     size_t index,
     std::shared_ptr<libsnark::digest_variable<FieldT>> result,
     const std::string &annotation_prefix)
@@ -235,8 +237,8 @@ template<typename FieldT, typename HashT>
 PRF_rho_gadget<FieldT, HashT>::PRF_rho_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> &ZERO,
-    libsnark::pb_variable_array<FieldT> &phi,
-    libsnark::pb_variable_array<FieldT> &h_sig,
+    const libsnark::pb_variable_array<FieldT> &phi,
+    const libsnark::pb_variable_array<FieldT> &h_sig,
     size_t index,
     std::shared_ptr<libsnark::digest_variable<FieldT>> result,
     const std::string &annotation_prefix)
