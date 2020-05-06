@@ -72,4 +72,6 @@ target_link_libraries(
 add_dependencies(zeth libsodium)
 
 # Tests
-add_subdirectory(test)
+if ("${IS_ZETH_PARENT}")
+  add_subdirectory(test)
+endif()
