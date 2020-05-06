@@ -7,6 +7,8 @@
 
 #include "libzeth/serialization/proto_utils.hpp"
 
+#include <cassert>
+
 namespace libzeth
 {
 
@@ -14,13 +16,14 @@ template<typename ppT>
 zeth_proto::HexPointBaseGroup1Affine point_g1_affine_to_proto(
     const libff::G1<ppT> &point)
 {
+    assert(!point.is_zero());
+    using Fq = libff::Fq<ppT>;
     libff::G1<ppT> aff = point;
     aff.to_affine_coordinates();
 
     zeth_proto::HexPointBaseGroup1Affine res;
-    res.set_x_coord("0x" + bigint_to_hex<libff::Fq<ppT>>(aff.X.as_bigint()));
-    res.set_y_coord("0x" + bigint_to_hex<libff::Fq<ppT>>(aff.Y.as_bigint()));
-
+    res.set_x_coord("0x" + field_element_to_hex<Fq>(aff.X));
+    res.set_y_coord("0x" + field_element_to_hex<Fq>(aff.Y));
     return res;
 }
 
@@ -28,25 +31,27 @@ template<typename ppT>
 libff::G1<ppT> point_g1_affine_from_proto(
     const zeth_proto::HexPointBaseGroup1Affine &point)
 {
-    libff::Fq<ppT> x_coordinate = field_element_to_hex(point.x_coord());
-    libff::Fq<ppT> y_coordinate = field_element_to_hex(point.y_coord());
-    libff::G1<ppT> res = libff::G1<ppT>(x_coordinate, y_coordinate);
-    return res;
+    using Fq = libff::Fq<ppT>;
+
+    Fq x_coordinate = field_element_from_hex<Fq>(point.x_coord());
+    Fq y_coordinate = field_element_from_hex<Fq>(point.y_coord());
+    return libff::G1<ppT>(x_coordinate, y_coordinate, Fq::one());
 }
 
 template<typename ppT>
 zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     const libff::G2<ppT> &point)
 {
+    assert(!point.is_zero());
     using Fq = libff::Fq<ppT>;
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
 
     zeth_proto::HexPointBaseGroup2Affine res;
-    res.set_x_c0_coord("0x" + bigint_to_hex<Fq>(aff.X.c0.as_bigint()));
-    res.set_x_c1_coord("0x" + bigint_to_hex<Fq>(aff.X.c1.as_bigint()));
-    res.set_y_c0_coord("0x" + bigint_to_hex<Fq>(aff.Y.c0.as_bigint()));
-    res.set_y_c1_coord("0x" + bigint_to_hex<Fq>(aff.Y.c1.as_bigint()));
+    res.set_x_c0_coord("0x" + field_element_to_hex<Fq>(aff.X.c0));
+    res.set_x_c1_coord("0x" + field_element_to_hex<Fq>(aff.X.c1));
+    res.set_y_c0_coord("0x" + field_element_to_hex<Fq>(aff.Y.c0));
+    res.set_y_c1_coord("0x" + field_element_to_hex<Fq>(aff.Y.c1));
 
     return res;
 }
@@ -66,10 +71,10 @@ libff::G2<ppT> point_g2_affine_from_proto(
     // As such, each element of Fqe is assumed to be a vector of 2 coefficients
     // lying in the base field
 
-    Fq x_c0 = field_element_to_hex<Fq>(point.x_c0_coord());
-    Fq x_c1 = field_element_to_hex<Fq>(point.x_c1_coord());
-    Fq y_c0 = field_element_to_hex<Fq>(point.y_c0_coord());
-    Fq y_c1 = field_element_to_hex<Fq>(point.y_c1_coord());
+    Fq x_c0 = field_element_from_hex<Fq>(point.x_c0_coord());
+    Fq x_c1 = field_element_from_hex<Fq>(point.x_c1_coord());
+    Fq y_c0 = field_element_from_hex<Fq>(point.y_c0_coord());
+    Fq y_c1 = field_element_from_hex<Fq>(point.y_c1_coord());
     return libff::G2<ppT>(Fqe(x_c0, x_c1), Fqe(y_c0, y_c1), Fqe::one());
 }
 
@@ -120,22 +125,16 @@ template<typename ppT>
 std::vector<libff::Fr<ppT>> primary_inputs_from_string(
     const std::string &input_str)
 {
-    char *cstr = new char[input_str.length() + 1];
-    std::strcpy(cstr, input_str.c_str());
-    char *pos;
-    printf("Splitting string \"%s\" into tokens:\n", cstr);
-
     std::vector<libff::Fr<ppT>> res;
-    pos = strtok(cstr, "[, ]");
-
-    while (pos != NULL) {
-        res.push_back(field_element_to_hex<libff::Fr<ppT>>(std::string(pos)));
-        pos = strtok(NULL, "[, ]");
+    size_t next_hex_pos = input_str.find("0x");
+    while (next_hex_pos != std::string::npos) {
+        // TODO: avoid the string copy here
+        const size_t end_hex = input_str.find("\"", next_hex_pos);
+        const std::string next_hex =
+            input_str.substr(next_hex_pos, end_hex - next_hex_pos);
+        res.push_back(field_element_from_hex<libff::Fr<ppT>>(next_hex));
+        next_hex_pos = input_str.find("0x", end_hex);
     }
-
-    // Free heap memory allocated with the `new` above
-    delete[] cstr;
-
     return res;
 }
 
@@ -143,6 +142,10 @@ template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
     const std::string &acc_vector_str)
 {
+    // TODO: Copied from old code. Can be cleaned up significantly to not
+    // allocate and copy strings. May be worth introducing composible parsing
+    // functions, or switch to a real json library, to support more reuse.
+
     char *cstr = new char[acc_vector_str.length() + 1];
     std::strcpy(cstr, acc_vector_str.c_str());
     char *pos;

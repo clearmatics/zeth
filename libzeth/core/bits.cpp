@@ -4,6 +4,9 @@
 
 #include "libzeth/core/bits.hpp"
 
+#include "libzeth/core/include_libff.hpp"
+#include "libzeth/core/utils.hpp"
+
 namespace libzeth
 {
 
@@ -78,106 +81,19 @@ std::vector<bool> bits384_to_vector(const bits384 &arr)
 std::vector<bool> bit_vector_from_hex(const std::string &hex_str)
 {
     std::vector<bool> result;
-    std::vector<bool> tmp;
-    // Each hex character is encoded on 4 bits
-    std::vector<bool> zero_vector(hex_str.length() * 4, 0);
-
-    static const std::vector<bool> vect0 = {0, 0, 0, 0};
-    static const std::vector<bool> vect1 = {0, 0, 0, 1};
-    static const std::vector<bool> vect2 = {0, 0, 1, 0};
-    static const std::vector<bool> vect3 = {0, 0, 1, 1};
-    static const std::vector<bool> vect4 = {0, 1, 0, 0};
-    static const std::vector<bool> vect5 = {0, 1, 0, 1};
-    static const std::vector<bool> vect6 = {0, 1, 1, 0};
-    static const std::vector<bool> vect7 = {0, 1, 1, 1};
-    static const std::vector<bool> vect8 = {1, 0, 0, 0};
-    static const std::vector<bool> vect9 = {1, 0, 0, 1};
-    static const std::vector<bool> vectA = {1, 0, 1, 0};
-    static const std::vector<bool> vectB = {1, 0, 1, 1};
-    static const std::vector<bool> vectC = {1, 1, 0, 0};
-    static const std::vector<bool> vectD = {1, 1, 0, 1};
-    static const std::vector<bool> vectE = {1, 1, 1, 0};
-    static const std::vector<bool> vectF = {1, 1, 1, 1};
-
-    for (std::string::const_iterator it = hex_str.begin(); it != hex_str.end();
-         ++it) {
-        switch (*it) {
-        case '0':
-            tmp = vect0;
-            break;
-        case '1':
-            tmp = vect1;
-            break;
-        case '2':
-            tmp = vect2;
-            break;
-        case '3':
-            tmp = vect3;
-            break;
-        case '4':
-            tmp = vect4;
-            break;
-        case '5':
-            tmp = vect5;
-            break;
-        case '6':
-            tmp = vect6;
-            break;
-        case '7':
-            tmp = vect7;
-            break;
-        case '8':
-            tmp = vect8;
-            break;
-        case '9':
-            tmp = vect9;
-            break;
-        case 'A':
-            tmp = vectA;
-            break;
-        case 'a':
-            tmp = vectA;
-            break;
-        case 'B':
-            tmp = vectB;
-            break;
-        case 'b':
-            tmp = vectB;
-            break;
-        case 'C':
-            tmp = vectC;
-            break;
-        case 'c':
-            tmp = vectC;
-            break;
-        case 'D':
-            tmp = vectD;
-            break;
-        case 'd':
-            tmp = vectD;
-            break;
-        case 'E':
-            tmp = vectE;
-            break;
-        case 'e':
-            tmp = vectE;
-            break;
-        case 'F':
-            tmp = vectF;
-            break;
-        case 'f':
-            tmp = vectF;
-            break;
-        default:
-            throw std::invalid_argument("Invalid hexadecimnal character");
-        }
-        result.insert(std::end(result), std::begin(tmp), std::end(tmp));
+    result.reserve(4 * hex_str.size());
+    for (char c : hex_str) {
+        const uint8_t nibble = char_to_nibble(c);
+        result.push_back(nibble & 8);
+        result.push_back(nibble & 4);
+        result.push_back(nibble & 2);
+        result.push_back(nibble & 1);
     }
 
     return result;
 }
 
-std::vector<bool> bit_vector_from_size_t(size_t x)
+std::vector<bool> bit_vector_from_size_t_le(size_t x)
 {
     std::vector<bool> ret;
     while (x) {
@@ -188,7 +104,39 @@ std::vector<bool> bit_vector_from_size_t(size_t x)
         }
         x >>= 1;
     }
+
     return ret;
+}
+
+std::vector<bool> bit_vector_from_size_t_be(size_t n)
+{
+    std::vector<bool> res;
+    size_t num_bits = 8 * sizeof(size_t);
+    const size_t mask = 1ull << (num_bits - 1);
+
+    // Remove 0-bits at the front
+    while (num_bits > 0) {
+        if ((n & mask) != 0) {
+            break;
+        }
+        n = n << 1;
+        --num_bits;
+    }
+
+    // Pre-allocate and fill the vector with remaining bits
+    res.reserve(num_bits);
+    while (num_bits > 0) {
+        if ((n & mask) != 0) {
+            res.push_back(true);
+        } else {
+            res.push_back(false);
+        }
+
+        n = n << 1;
+        --num_bits;
+    }
+
+    return res;
 }
 
 } // namespace libzeth

@@ -4,24 +4,30 @@
 
 #include "libzeth/core/utils.hpp"
 
-#include <algorithm>
 #include <cassert>
-#include <iostream>
 #include <stdexcept>
-#include <vector>
 
 namespace libzeth
 {
 
-static uint8_t char_to_nibble(const char c)
+// Converts a single character to a nibble. Throws std::invalid_argument if the
+// character is not hex.
+uint8_t char_to_nibble(const char c)
 {
     const char cc = std::tolower(c);
-    assert((cc >= '0' && cc <= '9') || (cc >= 'a' && cc <= 'z'));
+    if (cc < '0') {
+        throw std::invalid_argument("invalid hex character");
+    }
     if (cc <= '9') {
         return cc - '0';
     }
-
-    return cc - 'a' + 10;
+    if (cc < 'a') {
+        throw std::invalid_argument("invalid hex character");
+    }
+    if (cc <= 'f') {
+        return cc - 'a' + 10;
+    }
+    throw std::invalid_argument("invalid hex character");
 }
 
 static uint8_t chars_to_byte(const char *cs)
@@ -40,26 +46,69 @@ static char nibble_hex(const uint8_t nibble)
     return '0' + nibble;
 }
 
+// Return a pointer to the beginning of the actual hex characters (removing any
+// `0x` prefix), and ensure that the length is as expected.
+static const char *find_hex_string_of_length(
+    const std::string &hex, const size_t bytes)
+{
+    if ('0' == hex[0] && 'x' == hex[1]) {
+        if (hex.size() != 2 + bytes * 2) {
+            throw std::invalid_argument("invalid hex length");
+        }
+        return hex.c_str() + 2;
+    }
+
+    if (hex.size() != bytes * 2) {
+        throw std::invalid_argument("invalid hex length");
+    }
+
+    return hex.c_str();
+}
+
+void hex_to_bytes(const std::string &hex, void *dest, size_t bytes)
+{
+    const char *cur = find_hex_string_of_length(hex, bytes);
+    uint8_t *dest_bytes = (uint8_t *)dest;
+    const uint8_t *const dest_bytes_end = dest_bytes + bytes;
+    while (dest_bytes < dest_bytes_end) {
+        *dest_bytes = chars_to_byte(cur);
+        cur += 2;
+        ++dest_bytes;
+    }
+}
+
+void hex_to_bytes_reversed(const std::string &hex, void *dest, size_t bytes)
+{
+    if (bytes == 0) {
+        return;
+    }
+    const char *cur = find_hex_string_of_length(hex, bytes);
+    uint8_t *const dest_bytes_end = (uint8_t *)dest;
+    uint8_t *dest_bytes = dest_bytes_end + bytes;
+    do {
+        --dest_bytes;
+        *dest_bytes = chars_to_byte(cur);
+        cur += 2;
+    } while (dest_bytes > dest_bytes_end);
+}
+
 std::string hex_to_bytes(const std::string &s)
 {
-    assert(s.size() % 2 == 0);
-    const char *cs = s.c_str();
+    const size_t num_bytes = s.size() / 2;
+    assert(s.size() == 2 * num_bytes);
     std::string out;
-    out.reserve(s.size() / 2);
-    for (size_t i = 0; i < s.size(); i += 2) {
-        out.push_back((char)chars_to_byte(&cs[i]));
-    }
-
+    out.resize(num_bytes);
+    hex_to_bytes(s, &out[0], num_bytes);
     return out;
 }
 
-std::string bytes_to_hex(const void *s, const size_t size)
+std::string bytes_to_hex(const void *bytes, size_t num_bytes)
 {
     std::string out;
-    out.reserve(size * 2);
+    out.reserve(num_bytes * 2);
 
-    const uint8_t *in = (const uint8_t *)s;
-    for (size_t i = 0; i < size; ++i) {
+    const uint8_t *in = (const uint8_t *)bytes;
+    for (size_t i = 0; i < num_bytes; ++i) {
         const uint8_t byte = in[i];
         out.push_back(nibble_hex(byte >> 4));
         out.push_back(nibble_hex(byte & 0x0f));
@@ -68,43 +117,24 @@ std::string bytes_to_hex(const void *s, const size_t size)
     return out;
 }
 
-std::string bytes_to_hex(const std::string &s)
+std::string bytes_to_hex_reversed(const void *bytes, size_t num_bytes)
 {
-    std::string out;
-    out.reserve(s.size() * 2);
+    if (num_bytes == 0) {
+        return "";
+    }
 
-    const uint8_t *in = (const uint8_t *)s.c_str();
-    for (size_t i = 0; i < s.size(); ++i) {
-        const uint8_t byte = in[i];
+    std::string out;
+    out.reserve(num_bytes * 2);
+    const uint8_t *const src_bytes_end = (const uint8_t *)bytes;
+    const uint8_t *src_bytes = src_bytes_end + num_bytes;
+    do {
+        --src_bytes;
+        const uint8_t byte = *src_bytes;
         out.push_back(nibble_hex(byte >> 4));
         out.push_back(nibble_hex(byte & 0x0f));
-    }
+    } while (src_bytes > src_bytes_end);
 
     return out;
-}
-
-int hex_to_bytes(char *source_str, uint8_t *dest_buffer)
-{
-    char *line = source_str;
-    char *data = line;
-    int offset;
-    int read_byte;
-    int data_len = 0;
-
-    while (sscanf(data, "%02x%n", &read_byte, &offset) == 1) {
-        dest_buffer[data_len++] = read_byte;
-        data += offset;
-    }
-    return data_len;
-}
-
-void erase_substring(std::string &string, const std::string &substring)
-{
-    size_t position = string.find(substring);
-
-    if (position != std::string::npos) {
-        string.erase(position, substring.length());
-    }
 }
 
 } // namespace libzeth

@@ -21,6 +21,17 @@ namespace libzeth
 /// "bits" within each "byte" is preserved.
 template<typename T> T swap_byte_endianness(T v);
 
+/// Convert a single character to a nibble (uint8_t < 0x10). Throws
+/// `std::invalid_argument` if the character is invalid.
+uint8_t char_to_nibble(const char c);
+
+/// Convert hex to bytes (first chars at lowest address)
+void hex_to_bytes(const std::string &hex, void *dest, size_t bytes);
+
+/// Convert hex to bytes (first chars at highest address, for little-endian
+/// numbers, etc)
+void hex_to_bytes_reversed(const std::string &hex, void *dest, size_t bytes);
+
 /// Decode hexidecimal string to an std::string of bytes.
 std::string hex_to_bytes(const std::string &s);
 
@@ -28,17 +39,7 @@ std::string hex_to_bytes(const std::string &s);
 std::string bytes_to_hex(const void *s, const size_t size);
 
 /// Encode bytes as a hex string
-std::string bytes_to_hex(const std::string &s);
-
-/// Decode the (null-terminated) hex string to bytes, written to `dest_buffer`.
-/// This function performs no bounds checking, so caller is responsible for
-/// ensuring sufficient memory at `dest_buffer`. Use with caution. Returns the
-/// number of bytes converted.
-int hex_to_bytes(char *source_str, uint8_t *dest_buffer);
-
-/// Function that erases the given `substring` from the string
-/// passed as first argument.
-void erase_substring(std::string &string, const std::string &substring);
+std::string bytes_to_hex_reversed(const void *s, const size_t size);
 
 /// Convenience function to throw if input is not well-formed. Here StructuredT
 /// is assumed to have the form:

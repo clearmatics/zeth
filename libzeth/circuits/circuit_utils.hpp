@@ -12,14 +12,12 @@
 namespace libzeth
 {
 
-std::vector<bool> convert_to_binary(size_t n);
-
 template<typename FieldT>
 libsnark::linear_combination<FieldT> packed_addition(
-    libsnark::pb_variable_array<FieldT> input);
+    const libsnark::pb_variable_array<FieldT> &input);
 template<typename FieldT>
-libsnark::pb_variable_array<FieldT> from_bits(
-    std::vector<bool> bits, const libsnark::pb_variable<FieldT> &ZERO);
+libsnark::pb_variable_array<FieldT> variable_array_from_bit_vector(
+    const std::vector<bool> &bits, const libsnark::pb_variable<FieldT> &ZERO);
 
 } // namespace libzeth
 
