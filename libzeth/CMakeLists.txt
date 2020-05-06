@@ -73,5 +73,5 @@ add_dependencies(zeth libsodium)
 
 # Tests
 if ("${IS_ZETH_PARENT}")
-  add_subdirectory(test)
+  add_subdirectory(tests)
 endif()

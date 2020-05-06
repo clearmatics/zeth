@@ -5,7 +5,7 @@
 #include "libzeth/core/evaluator_from_lagrange.hpp"
 #include "libzeth/core/utils.hpp"
 #include "libzeth/mpc/groth16/powersoftau_utils.hpp"
-#include "libzeth/test/circuits/simple_test.hpp"
+#include "libzeth/tests/circuits/simple_test.hpp"
 
 #include <boost/filesystem.hpp>
 #include <fstream>

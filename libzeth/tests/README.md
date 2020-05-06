@@ -24,7 +24,7 @@ $ make build_tests
 # Build a single test
 $ make utils_test
 # Execute a single test
-$ libzeth/test/utils_test
+$ libzeth/tests/utils_test
 # Invoke tests, with verbose output on failure
 $ CTEST_OUTPUT_ON_FAILURE=1 make check
 ```

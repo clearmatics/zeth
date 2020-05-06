@@ -12,7 +12,7 @@
 #include "libzeth/mpc/groth16/phase2.hpp"
 #include "libzeth/mpc/groth16/powersoftau_utils.hpp"
 #include "libzeth/snarks/groth16/groth16_snark.hpp"
-#include "libzeth/test/circuits/simple_test.hpp"
+#include "libzeth/tests/circuits/simple_test.hpp"
 
 #include <fstream>
 #include <gtest/gtest.h>

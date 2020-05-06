@@ -25,7 +25,7 @@ function(zeth_test TEST_NAME)
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     protobuf::libprotobuf
-    )
+  )
 
   # Add all tests to the 'build_tests' target
   add_dependencies(build_tests ${TEST_NAME})
@@ -67,7 +67,7 @@ file(
   mpc/**_test.cpp
   circuits/**_test.cpp
   serialization/**_test.cpp
-  )
+)
 zeth_tests(SOURCES ${TEST_SOURCE_FILES} ARGS "${CMAKE_CURRENT_LIST_DIR}/../.." FAST)
 
 # `prover` tests are considered SLOW
