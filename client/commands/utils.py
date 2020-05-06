@@ -73,7 +73,7 @@ class MixerDescription:
 def get_erc20_abi() -> Dict[str, Any]:
     zeth_dir = get_zeth_dir()
     openzeppelin_dir = join(
-        zeth_dir, "zeth-contracts", "node_modules", "openzeppelin-solidity")
+        zeth_dir, "zeth_contracts", "node_modules", "openzeppelin-solidity")
     ierc20_path = join(
         openzeppelin_dir, "contracts", "token", "ERC20", "IERC20.sol")
     compiled_sol = compile_files([ierc20_path])

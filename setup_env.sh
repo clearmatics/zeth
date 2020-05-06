@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export ZETH=`pwd`
-export ZETH_CONTRACTS_DIR=$ZETH/zeth-contracts/contracts
+export ZETH_CONTRACTS_DIR=$ZETH/zeth_contracts/contracts
 export ZETH_DEBUG_DIR=$ZETH/debug
 
 mkdir -p $ZETH/notestore

@@ -10,7 +10,7 @@ except ImportError:
     from Crypto.Hash import keccak
     keccak_256 = lambda *args: keccak.new(digest_bits=256)
 
-# Functions taken from zeth/pyClient/zethMimc.py
+# Functions taken from zeth/client/zethMimc.py
 def to_bytes(*args):
     for i, _ in enumerate(args):
         if isinstance(_, str):

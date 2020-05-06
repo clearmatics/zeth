@@ -22,7 +22,7 @@ function format_check() {
 }
 
 function contracts_check() {
-    pushd zeth-contracts
+    pushd zeth_contracts
     npm config set python python2.7
     npm install
     npm run check
@@ -30,7 +30,7 @@ function contracts_check() {
 }
 
 function pyclient_check() {
-    pushd pyClient
+    pushd client
     python3 -m venv env
     . env/bin/activate
     pip install --upgrade pip --progress-bar off

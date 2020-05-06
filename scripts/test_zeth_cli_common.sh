@@ -1,5 +1,5 @@
 
-TRUFFLE_DIR=`pwd`/zeth-contracts
+TRUFFLE_DIR=`pwd`/zeth_contracts
 
 function run_truffle() {
     pushd ${TRUFFLE_DIR}
