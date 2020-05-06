@@ -9,9 +9,9 @@
 namespace
 {
 
-static const size_t DUMMY_BUFFER_SIZE = 16;
+const size_t dummy_buffer_size = 16;
 
-static const uint8_t dummy_bytes[DUMMY_BUFFER_SIZE] = {
+const uint8_t dummy_bytes[dummy_buffer_size] = {
     0x00,
     0x11,
     0x22,
@@ -30,48 +30,46 @@ static const uint8_t dummy_bytes[DUMMY_BUFFER_SIZE] = {
     0xff, //
 };
 
-static const std::string dummy_hex = "00112233445566778899aabbccddeeff";
-static const std::string dummy_hex_prefixed =
-    "0x00112233445566778899aabbccddeeff";
-static const std::string dummy_hex_reversed =
-    "ffeeddccbbaa99887766554433221100";
-static const std::string dummy_hex_reversed_prefixed =
+const std::string dummy_hex = "00112233445566778899aabbccddeeff";
+const std::string dummy_hex_prefixed = "0x00112233445566778899aabbccddeeff";
+const std::string dummy_hex_reversed = "ffeeddccbbaa99887766554433221100";
+const std::string dummy_hex_reversed_prefixed =
     "0xffeeddccbbaa99887766554433221100";
 
 TEST(UtilsTest, HexToBytes)
 {
-    uint8_t buffer[DUMMY_BUFFER_SIZE];
+    uint8_t buffer[dummy_buffer_size];
 
-    memset(buffer, 0xff, DUMMY_BUFFER_SIZE);
-    libzeth::hex_to_bytes(dummy_hex, buffer, DUMMY_BUFFER_SIZE);
-    ASSERT_EQ(0, memcmp(buffer, dummy_bytes, DUMMY_BUFFER_SIZE));
+    memset(buffer, 0xff, dummy_buffer_size);
+    libzeth::hex_to_bytes(dummy_hex, buffer, dummy_buffer_size);
+    ASSERT_EQ(0, memcmp(buffer, dummy_bytes, dummy_buffer_size));
 
-    memset(buffer, 0xff, DUMMY_BUFFER_SIZE);
-    libzeth::hex_to_bytes(dummy_hex_prefixed, buffer, DUMMY_BUFFER_SIZE);
-    ASSERT_EQ(0, memcmp(buffer, dummy_bytes, DUMMY_BUFFER_SIZE));
+    memset(buffer, 0xff, dummy_buffer_size);
+    libzeth::hex_to_bytes(dummy_hex_prefixed, buffer, dummy_buffer_size);
+    ASSERT_EQ(0, memcmp(buffer, dummy_bytes, dummy_buffer_size));
 
-    memset(buffer, 0xff, DUMMY_BUFFER_SIZE);
+    memset(buffer, 0xff, dummy_buffer_size);
     libzeth::hex_to_bytes_reversed(
-        dummy_hex_reversed, buffer, DUMMY_BUFFER_SIZE);
-    ASSERT_EQ(0, memcmp(buffer, dummy_bytes, DUMMY_BUFFER_SIZE));
+        dummy_hex_reversed, buffer, dummy_buffer_size);
+    ASSERT_EQ(0, memcmp(buffer, dummy_bytes, dummy_buffer_size));
 
-    memset(buffer, 0xff, DUMMY_BUFFER_SIZE);
+    memset(buffer, 0xff, dummy_buffer_size);
     libzeth::hex_to_bytes_reversed(
-        dummy_hex_reversed_prefixed, buffer, DUMMY_BUFFER_SIZE);
-    ASSERT_EQ(0, memcmp(buffer, dummy_bytes, DUMMY_BUFFER_SIZE));
+        dummy_hex_reversed_prefixed, buffer, dummy_buffer_size);
+    ASSERT_EQ(0, memcmp(buffer, dummy_bytes, dummy_buffer_size));
 
     std::string bytes_str = libzeth::hex_to_bytes(dummy_hex);
-    ASSERT_EQ(DUMMY_BUFFER_SIZE, bytes_str.size());
-    ASSERT_EQ(0, memcmp(dummy_bytes, bytes_str.c_str(), DUMMY_BUFFER_SIZE));
+    ASSERT_EQ(dummy_buffer_size, bytes_str.size());
+    ASSERT_EQ(0, memcmp(dummy_bytes, bytes_str.c_str(), dummy_buffer_size));
 }
 
 TEST(UtilsTest, BytesToHex)
 {
-    ASSERT_EQ(dummy_hex, libzeth::bytes_to_hex(dummy_bytes, DUMMY_BUFFER_SIZE));
+    ASSERT_EQ(dummy_hex, libzeth::bytes_to_hex(dummy_bytes, dummy_buffer_size));
 
     ASSERT_EQ(
         dummy_hex_reversed,
-        libzeth::bytes_to_hex_reversed(dummy_bytes, DUMMY_BUFFER_SIZE));
+        libzeth::bytes_to_hex_reversed(dummy_bytes, dummy_buffer_size));
 }
 
 TEST(UtilsTest, HexToBytesInvalid)

@@ -12,9 +12,9 @@
 using namespace libzeth;
 
 // Instantiation of the templates for the tests
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
-typedef MiMC_mp_gadget<FieldT> HashTreeT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
+using HashTreeT = MiMC_mp_gadget<FieldT>;
 
 namespace
 {
@@ -23,40 +23,40 @@ bool test_merkle_path_selector(int is_right)
 {
     libsnark::protoboard<FieldT> pb;
 
-    FieldT value_A = FieldT("14967453892511805220505707596666005495248157115618"
+    FieldT value_a = FieldT("14967453892511805220505707596666005495248157115618"
                             "6698930522557832224430770");
-    FieldT value_B = FieldT("96707014654643119032492206924834019388884986418749"
+    FieldT value_b = FieldT("96707014654643119032492206924834019388884986418749"
                             "48577387207195814981706974");
 
     is_right = is_right ? 1 : 0;
 
-    libsnark::pb_variable<FieldT> var_A;
-    var_A.allocate(pb, "var_A");
+    libsnark::pb_variable<FieldT> var_a;
+    var_a.allocate(pb, "var_A");
 
-    pb.val(var_A) = value_A;
+    pb.val(var_a) = value_a;
 
-    libsnark::pb_variable<FieldT> var_B;
-    var_B.allocate(pb, "var_B");
-    pb.val(var_B) = value_B;
+    libsnark::pb_variable<FieldT> var_b;
+    var_b.allocate(pb, "var_B");
+    pb.val(var_b) = value_b;
 
     libsnark::pb_variable<FieldT> var_is_right;
     var_is_right.allocate(pb, "var_is_right");
     pb.val(var_is_right) = is_right;
 
     merkle_path_selector<FieldT> selector(
-        pb, var_A, var_B, var_is_right, "test_merkle_path_selector");
+        pb, var_a, var_b, var_is_right, "test_merkle_path_selector");
 
     selector.generate_r1cs_witness();
     selector.generate_r1cs_constraints();
 
     if (is_right) {
-        if ((pb.val(selector.get_left()) != value_B) &&
-            (pb.val(selector.get_right()) != value_A)) {
+        if ((pb.val(selector.get_left()) != value_b) &&
+            (pb.val(selector.get_right()) != value_a)) {
             return false;
         }
     } else {
-        if ((pb.val(selector.get_left()) != value_A) &&
-            (pb.val(selector.get_right()) != value_B)) {
+        if ((pb.val(selector.get_left()) != value_a) &&
+            (pb.val(selector.get_right()) != value_b)) {
             return false;
         }
     }

@@ -11,8 +11,8 @@
 
 using namespace libzeth;
 
-typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libff::default_ec_pp;
+using FieldT = libff::Fr<ppT>;
 
 namespace
 {
@@ -20,27 +20,27 @@ namespace
 TEST(TestXOR, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 1, 0, 1, 0, 1, 0, 1, // 55
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 1, 1, 1, 0, 0, 0, 0  // F0
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, true,  false, true,  false, true,  false, true,  // 55
+            true,  false, true,  false, true,  false, true,  false, // AA
+            true,  true,  true,  true,  false, false, false, false  // F0
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
         {
-            1, 1, 1, 1, 0, 0, 0, 0, // F0
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 1, 1, 1, 0, 0, 0, 0  // F0
+            true, true,  true, true,  false, false, false, false, // F0
+            true, false, true, false, true,  false, true,  false, // AA
+            true, false, true, false, true,  false, true,  false, // AA
+            true, true,  true, true,  false, false, false, false  // F0
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> xored;
     xored.allocate(pb, 32, "xored");
@@ -52,12 +52,12 @@ TEST(TestXOR, TestTrue)
     libsnark::pb_variable_array<FieldT> expected =
         variable_array_from_bit_vector(
             {
-                1, 1, 1, 1, 1, 1, 1, 1, // FF
-                1, 1, 1, 1, 1, 1, 1, 1, // FF
-                0, 0, 0, 0, 0, 0, 0, 0, // 00
-                0, 0, 0, 0, 0, 0, 0, 0  // 00
+                true,  true,  true,  true,  true,  true,  true,  true,  // FF
+                true,  true,  true,  true,  true,  true,  true,  true,  // FF
+                false, false, false, false, false, false, false, false, // 00
+                false, false, false, false, false, false, false, false  // 00
             },
-            ZERO);
+            zero);
 
     ASSERT_EQ(expected.get_bits(pb), xored.get_bits(pb));
 }
@@ -65,27 +65,27 @@ TEST(TestXOR, TestTrue)
 TEST(TestXORConstant, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 1, 0, 1, 0, 1, 0, 1, // 55
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 1, 1, 1, 0, 0, 0, 0  // F0
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, true,  false, true,  false, true,  false, true,  // 55
+            true,  false, true,  false, true,  false, true,  false, // AA
+            true,  true,  true,  true,  false, false, false, false  // F0
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
         {
-            1, 1, 1, 1, 0, 0, 0, 0, // F0
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 1, 1, 1, 0, 0, 0, 0  // F0
+            true, true,  true, true,  false, false, false, false, // F0
+            true, false, true, false, true,  false, true,  false, // AA
+            true, false, true, false, true,  false, true,  false, // AA
+            true, true,  true, true,  false, false, false, false  // F0
         },
-        ZERO);
+        zero);
 
     std::vector<FieldT> c = {
         0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -104,12 +104,12 @@ TEST(TestXORConstant, TestTrue)
     libsnark::pb_variable_array<FieldT> expected =
         variable_array_from_bit_vector(
             {
-                1, 1, 1, 1, 0, 0, 0, 0, // F0
-                0, 0, 0, 0, 1, 1, 1, 1, // 0F
-                0, 0, 0, 0, 0, 0, 0, 0, // 00
-                1, 0, 1, 0, 1, 0, 1, 0  // AA
+                true,  true,  true,  true,  false, false, false, false, // F0
+                false, false, false, false, true,  true,  true,  true,  // 0F
+                false, false, false, false, false, false, false, false, // 00
+                true,  false, true,  false, true,  false, true,  false  // AA
             },
-            ZERO);
+            zero);
 
     ASSERT_EQ(expected.get_bits(pb), xored.get_bits(pb));
 }
@@ -117,27 +117,27 @@ TEST(TestXORConstant, TestTrue)
 TEST(Testxor_rot, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 1, 0, 1, 0, 1, 0, 1, // 55
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 1, 1, 1, 0, 0, 0, 0  // F0
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, true,  false, true,  false, true,  false, true,  // 55
+            true,  false, true,  false, true,  false, true,  false, // AA
+            true,  true,  true,  true,  false, false, false, false  // F0
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
         {
-            1, 1, 1, 1, 0, 0, 0, 0, // F0
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 1, 1, 1, 0, 0, 0, 0  // F0
+            true, true,  true, true,  false, false, false, false, // F0
+            true, false, true, false, true,  false, true,  false, // AA
+            true, false, true, false, true,  false, true,  false, // AA
+            true, true,  true, true,  false, false, false, false  // F0
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> rot0;
     rot0.allocate(pb, 32, "rot0");
@@ -177,42 +177,42 @@ TEST(Testxor_rot, TestTrue)
     libsnark::pb_variable_array<FieldT> expected0 =
         variable_array_from_bit_vector(
             {
-                1, 1, 1, 1, 1, 1, 1, 1, // FF
-                1, 1, 1, 1, 1, 1, 1, 1, // FF
-                0, 0, 0, 0, 0, 0, 0, 0, // 00
-                0, 0, 0, 0, 0, 0, 0, 0  // 00
+                true,  true,  true,  true,  true,  true,  true,  true,  // FF
+                true,  true,  true,  true,  true,  true,  true,  true,  // FF
+                false, false, false, false, false, false, false, false, // 00
+                false, false, false, false, false, false, false, false  // 00
             },
-            ZERO);
+            zero);
 
     libsnark::pb_variable_array<FieldT> expected8 =
         variable_array_from_bit_vector(
             {
-                0, 0, 0, 0, 0, 0, 0, 0, // 00
-                1, 1, 1, 1, 1, 1, 1, 1, // FF
-                1, 1, 1, 1, 1, 1, 1, 1, // FF
-                0, 0, 0, 0, 0, 0, 0, 0  // 00
+                false, false, false, false, false, false, false, false, // 00
+                true,  true,  true,  true,  true,  true,  true,  true,  // FF
+                true,  true,  true,  true,  true,  true,  true,  true,  // FF
+                false, false, false, false, false, false, false, false  // 00
             },
-            ZERO);
+            zero);
 
     libsnark::pb_variable_array<FieldT> expected16 =
         variable_array_from_bit_vector(
             {
-                0, 0, 0, 0, 0, 0, 0, 0, // 00
-                0, 0, 0, 0, 0, 0, 0, 0, // 00
-                1, 1, 1, 1, 1, 1, 1, 1, // FF
-                1, 1, 1, 1, 1, 1, 1, 1  // FF
+                false, false, false, false, false, false, false, false, // 00
+                false, false, false, false, false, false, false, false, // 00
+                true,  true,  true,  true,  true,  true,  true,  true,  // FF
+                true,  true,  true,  true,  true,  true,  true,  true   // FF
             },
-            ZERO);
+            zero);
 
     libsnark::pb_variable_array<FieldT> expected24 =
         variable_array_from_bit_vector(
             {
-                1, 1, 1, 1, 1, 1, 1, 1, // FF
-                0, 0, 0, 0, 0, 0, 0, 0, // 00
-                0, 0, 0, 0, 0, 0, 0, 0, // 00
-                1, 1, 1, 1, 1, 1, 1, 1  // FF
+                true,  true,  true,  true,  true,  true,  true,  true,  // FF
+                false, false, false, false, false, false, false, false, // 00
+                false, false, false, false, false, false, false, false, // 00
+                true,  true,  true,  true,  true,  true,  true,  true   // FF
             },
-            ZERO);
+            zero);
 
     ASSERT_EQ(expected0.get_bits(pb), rot0.get_bits(pb));
     ASSERT_EQ(expected8.get_bits(pb), rot8.get_bits(pb));
@@ -224,27 +224,27 @@ TEST(Testxor_rot, TestTrue)
 TEST(Testdouble_packed, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
         {
-            1, 0, 0, 0, 1, 1, 1, 1, // 8F
-            0, 1, 0, 1, 0, 1, 0, 1, // 55
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 1, 1, 1, 0, 0, 0, 0  // F0
+            true,  false, false, false, true,  true,  true,  true,  // 8F
+            false, true,  false, true,  false, true,  false, true,  // 55
+            true,  false, true,  false, true,  false, true,  false, // AA
+            true,  true,  true,  true,  false, false, false, false  // F0
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
         {
-            1, 1, 1, 1, 0, 0, 0, 0, // F0
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 0, 1, 0, 1, 0, 1, 0, // AA
-            1, 1, 1, 1, 0, 0, 0, 0  // F0
+            true, true,  true, true,  false, false, false, false, // F0
+            true, false, true, false, true,  false, true,  false, // AA
+            true, false, true, false, true,  false, true,  false, // AA
+            true, true,  true, true,  false, false, false, false  // F0
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> add;
     add.allocate(pb, 32, "add");
@@ -256,12 +256,12 @@ TEST(Testdouble_packed, TestTrue)
     libsnark::pb_variable_array<FieldT> expected =
         variable_array_from_bit_vector(
             {
-                1, 0, 0, 0, 0, 0, 0, 0, // 80
-                0, 0, 0, 0, 0, 0, 0, 0, // 00
-                0, 1, 0, 1, 0, 1, 0, 1, // 55
-                1, 1, 1, 0, 0, 0, 0, 0  // E0
+                true,  false, false, false, false, false, false, false, // 80
+                false, false, false, false, false, false, false, false, // 00
+                false, true,  false, true,  false, true,  false, true,  // 55
+                true,  true,  true,  false, false, false, false, false  // E0
             },
-            ZERO);
+            zero);
 
     ASSERT_EQ(expected.get_bits(pb), add.get_bits(pb));
 }

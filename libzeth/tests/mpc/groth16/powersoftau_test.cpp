@@ -24,7 +24,7 @@ namespace
 
 fs::path g_testdata_dir = fs::path("..") / "testdata";
 
-static std::string bytes_to_hex(const std::string &bin)
+std::string bytes_to_hex(const std::string &bin)
 {
     return libzeth::bytes_to_hex(bin.c_str(), bin.size());
 }
@@ -38,7 +38,7 @@ G1 pot_hex_to_g1(const std::string &s)
     return out;
 }
 
-G2 pot_hex_to_g2(const std::string hex)
+G2 pot_hex_to_g2(const std::string &hex)
 {
     const std::string bin = hex_to_bytes(hex);
     std::istringstream ss_bytes(bin);
@@ -467,21 +467,21 @@ TEST(PowersOfTauTests, ComputeLagrangeEvaluation)
         std::map<size_t, Fr> l_factors;
         l_factors[j] = Fr::one();
 
-        G1 L_j_g1 = eval_g1.evaluate_from_lagrange_factors(l_factors);
-        ASSERT_EQ(L_j_g1, lagrange.lagrange_g1[j])
+        G1 l_j_g1 = eval_g1.evaluate_from_lagrange_factors(l_factors);
+        ASSERT_EQ(l_j_g1, lagrange.lagrange_g1[j])
             << "L_" << std::to_string(j) << " in G1";
 
-        G2 L_j_g2 = eval_g2.evaluate_from_lagrange_factors(l_factors);
-        ASSERT_EQ(L_j_g2, lagrange.lagrange_g2[j])
+        G2 l_j_g2 = eval_g2.evaluate_from_lagrange_factors(l_factors);
+        ASSERT_EQ(l_j_g2, lagrange.lagrange_g2[j])
             << "L_" << std::to_string(j) << " in G2";
 
-        G1 alpha_L_j_g1 =
+        G1 alpha_l_j_g1 =
             eval_alpha_g1.evaluate_from_lagrange_factors(l_factors);
-        ASSERT_EQ(alpha_L_j_g1, lagrange.alpha_lagrange_g1[j])
+        ASSERT_EQ(alpha_l_j_g1, lagrange.alpha_lagrange_g1[j])
             << "alpha L_" << std::to_string(j) << " in G1";
 
-        G1 beta_L_j_g1 = eval_beta_g1.evaluate_from_lagrange_factors(l_factors);
-        ASSERT_EQ(beta_L_j_g1, lagrange.beta_lagrange_g1[j])
+        G1 beta_l_j_g1 = eval_beta_g1.evaluate_from_lagrange_factors(l_factors);
+        ASSERT_EQ(beta_l_j_g1, lagrange.beta_lagrange_g1[j])
             << "beta L_" << std::to_string(j) << " in G1";
     }
 }
@@ -532,19 +532,19 @@ TEST(PowersOfTauTests, SerializeLagrangeEvaluation)
 TEST(PowersOfTauTests, G1PointCompression)
 {
     auto check_g1_compressed = [](const G1 &v) {
-        const size_t expectCompressedSize = 33;
+        const size_t expect_compressed_size = 33;
         check_point_serialization<
             G1,
-            expectCompressedSize,
+            expect_compressed_size,
             libff::alt_bn128_G1_write_compressed,
             libff::alt_bn128_G1_read_compressed>(v);
     };
 
     auto check_g1_uncompressed = [](const G1 &v) {
-        const size_t expectUncompressedSize = 65;
+        const size_t expect_uncompressed_size = 65;
         check_point_serialization<
             G1,
-            expectUncompressedSize,
+            expect_uncompressed_size,
             libff::alt_bn128_G1_write_uncompressed,
             libff::alt_bn128_G1_read_uncompressed>(v);
     };
@@ -563,19 +563,19 @@ TEST(PowersOfTauTests, G1PointCompression)
 TEST(PowersOfTauTests, G2PointCompression)
 {
     auto check_g2_compressed = [](const G2 &v) {
-        const size_t expectCompressedSize = 65;
+        const size_t expect_compressed_size = 65;
         check_point_serialization<
             G2,
-            expectCompressedSize,
+            expect_compressed_size,
             libff::alt_bn128_G2_write_compressed,
             libff::alt_bn128_G2_read_compressed>(v);
     };
 
     auto check_g2_uncompressed = [](const G2 &v) {
-        const size_t expectUncompressedSize = 129;
+        const size_t expect_uncompressed_size = 129;
         check_point_serialization<
             G2,
-            expectUncompressedSize,
+            expect_uncompressed_size,
             libff::alt_bn128_G2_write_uncompressed,
             libff::alt_bn128_G2_read_uncompressed>(v);
     };

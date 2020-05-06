@@ -11,12 +11,16 @@ using namespace libzeth;
 TEST(BitsTest, Bits32)
 {
     const bits32 a{
-        1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+        true,  false, true,  false, true,  true,  true,  false,
+        true,  false, true,  false, true,  false, true,  false,
+        false, true,  false, true,  false, false, false, true,
+        false, true,  false, true,  false, true,  false, true,
     };
     const std::vector<bool> expect{
-        1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+        true,  false, true,  false, true,  true,  true,  false,
+        true,  false, true,  false, true,  false, true,  false,
+        false, true,  false, true,  false, false, false, true,
+        false, true,  false, true,  false, true,  false, true,
     };
     ASSERT_EQ(expect, bits32_to_vector(a));
 }
@@ -24,14 +28,22 @@ TEST(BitsTest, Bits32)
 TEST(BitsTest, Bits64)
 {
     const bits64 a{
-        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1,
-        0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0,
-        1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1,
+        false, false, false, false, false, false, false, true,  false, false,
+        true,  false, false, false, true,  true,  false, true,  false, false,
+        false, true,  false, true,  false, true,  true,  false, false, true,
+        true,  true,  true,  false, false, false, true,  false, false, true,
+        true,  false, true,  false, true,  false, true,  true,  true,  true,
+        false, false, true,  true,  false, true,  true,  true,  true,  false,
+        true,  true,  true,  true,
     };
     const std::vector<bool> expect{
-        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1,
-        0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0,
-        1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1,
+        false, false, false, false, false, false, false, true,  false, false,
+        true,  false, false, false, true,  true,  false, true,  false, false,
+        false, true,  false, true,  false, true,  true,  false, false, true,
+        true,  true,  true,  false, false, false, true,  false, false, true,
+        true,  false, true,  false, true,  false, true,  true,  true,  true,
+        false, false, true,  true,  false, true,  true,  true,  true,  false,
+        true,  true,  true,  true,
     };
     const std::string expect_hex = "0123456789abcdef";
 
@@ -52,16 +64,20 @@ TEST(BitsTest, Bits64)
 
 TEST(BitsTest, BitVectorFromSizeT)
 {
-    const std::vector<bool> expect_le_a7 = {1, 1, 1, 0, 0, 1, 0, 1};
-    const std::vector<bool> expect_le_72 = {0, 1, 0, 0, 1, 1, 1};
-    const std::vector<bool> expect_be_100 = {1, 0, 0, 0, 0, 0, 0, 0, 0};
-    const std::vector<bool> expect_be_a5 = {1, 0, 1, 0, 0, 1, 0, 1};
+    const std::vector<bool> expect_le_a7 = {
+        true, true, true, false, false, true, false, true};
+    const std::vector<bool> expect_le_72 = {
+        false, true, false, false, true, true, true};
+    const std::vector<bool> expect_be_100 = {
+        true, false, false, false, false, false, false, false, false};
+    const std::vector<bool> expect_be_a5 = {
+        true, false, true, false, false, true, false, true};
     const std::vector<bool> expect_be_40000005a = {
-        1, 0, 0,                // 4
-        0, 0, 0, 0, 0, 0, 0, 0, // 00
-        0, 0, 0, 0, 0, 0, 0, 0, // 00
-        0, 0, 0, 0, 0, 0, 0, 0, // 00
-        0, 1, 0, 1, 1, 0, 1, 0, // 5a
+        true,  false, false,                                    // 4
+        false, false, false, false, false, false, false, false, // 00
+        false, false, false, false, false, false, false, false, // 00
+        false, false, false, false, false, false, false, false, // 00
+        false, true,  false, true,  true,  false, true,  false, // 5a
     };
 
     const std::vector<bool> le_a7 = bit_vector_from_size_t_le(0xa7);
@@ -80,9 +96,24 @@ TEST(BitsTest, BitVectorFromSizeT)
 
 TEST(BitsTest, BitVectorFromHex)
 {
-    const std::vector<bool> expect_hex_72 = {0, 1, 1, 1, 0, 0, 1, 0};
-    const std::vector<bool> expect_hex_56ab = {
-        0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1};
+    const std::vector<bool> expect_hex_72 = {
+        false, true, true, true, false, false, true, false};
+    const std::vector<bool> expect_hex_56ab = {false,
+                                               true,
+                                               false,
+                                               true,
+                                               false,
+                                               true,
+                                               true,
+                                               false,
+                                               true,
+                                               false,
+                                               true,
+                                               false,
+                                               true,
+                                               false,
+                                               true,
+                                               true};
     const std::vector<bool> hex_72 = bit_vector_from_hex("72");
     const std::vector<bool> hex_56ab = bit_vector_from_hex("56ab");
 

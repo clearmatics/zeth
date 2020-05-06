@@ -44,21 +44,21 @@ TEST(EvaluationFromLagrangeTest, ComputeLagrangeEvaluation)
         std::map<size_t, Fr> l_factors;
         l_factors[j] = Fr::one();
 
-        G1 L_j_g1 = eval_g1.evaluate_from_lagrange_factors(l_factors);
-        ASSERT_EQ(L_j_g1, lagrange.lagrange_g1[j])
+        G1 l_j_g1 = eval_g1.evaluate_from_lagrange_factors(l_factors);
+        ASSERT_EQ(l_j_g1, lagrange.lagrange_g1[j])
             << "L_" << std::to_string(j) << " in G1";
 
-        G2 L_j_g2 = eval_g2.evaluate_from_lagrange_factors(l_factors);
-        ASSERT_EQ(L_j_g2, lagrange.lagrange_g2[j])
+        G2 l_j_g2 = eval_g2.evaluate_from_lagrange_factors(l_factors);
+        ASSERT_EQ(l_j_g2, lagrange.lagrange_g2[j])
             << "L_" << std::to_string(j) << " in G2";
 
-        G1 alpha_L_j_g1 =
+        G1 alpha_l_j_g1 =
             eval_alpha_g1.evaluate_from_lagrange_factors(l_factors);
-        ASSERT_EQ(alpha_L_j_g1, lagrange.alpha_lagrange_g1[j])
+        ASSERT_EQ(alpha_l_j_g1, lagrange.alpha_lagrange_g1[j])
             << "alpha L_" << std::to_string(j) << " in G1";
 
-        G1 beta_L_j_g1 = eval_beta_g1.evaluate_from_lagrange_factors(l_factors);
-        ASSERT_EQ(beta_L_j_g1, lagrange.beta_lagrange_g1[j])
+        G1 beta_l_j_g1 = eval_beta_g1.evaluate_from_lagrange_factors(l_factors);
+        ASSERT_EQ(beta_l_j_g1, lagrange.beta_lagrange_g1[j])
             << "beta L_" << std::to_string(j) << " in G1";
     }
 }

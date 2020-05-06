@@ -14,8 +14,8 @@
 
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 namespace
 {
@@ -27,9 +27,9 @@ TEST(TestPackedAddition, TestPackedAddition1)
         "0x000000000000000A || RHS => value_right1 = 0x0000000000000014");
 
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> value_left1;
@@ -74,9 +74,9 @@ TEST(TestPackedAddition, TestPackedAddition2)
         "value_right2 = 0x0DE0B6B3A7640000");
 
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> value_left1;
@@ -126,9 +126,9 @@ TEST(TestPackedAddition, TestPackedAddition2)
 TEST(TestPackedAddition, TestPackedAddition3)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libff::print_header(
         "Starting test: IN => v_pub = 0x0000000000000010, note1 = "
@@ -194,9 +194,9 @@ TEST(TestPackedAddition, TestPackedAddition4)
                         "= 0x8530000A00000000, note2 = 0x7550000A00000000");
 
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libff::print_header("Starting Debug test");
 
@@ -267,9 +267,9 @@ TEST(TestPackedAddition, TestPackedAddition5)
                         "= 0x3782DACE9D900000, note2 = 0x29A2241AF62C0000");
 
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> v_pub_in;
@@ -336,9 +336,9 @@ TEST(TestPackedAddition, TestPackedAddition6)
                         "= 0x3782DACE9D900001, note2 = 0x29A2241AF62C0000");
 
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // === Set the constraints
     libsnark::pb_variable_array<FieldT> v_pub_in;

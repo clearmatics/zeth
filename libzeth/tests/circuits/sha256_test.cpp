@@ -12,11 +12,11 @@
 
 using namespace libsnark;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 // We use our hash function to do the tests
-typedef libzeth::sha256_ethereum<FieldT> HashT;
+using HashT = libzeth::sha256_ethereum<FieldT>;
 
 // Note on the instantiation of the FieldT template type
 //
@@ -56,55 +56,87 @@ void dump_bit_vector(std::ostream &out, const libff::bit_vector &v)
 TEST(TestSHA256, TestHash)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "ZERO");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "ZERO");
+    pb.val(zero) = FieldT::zero();
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> left =
         libzeth::variable_array_from_bit_vector(
             {
-                0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, //
+                false, false, false, false, true,  true,  true,  true,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                true,  true,  true,  true,  true,  true,  true,  true, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                true,  true,  true,  true,  true,  true,  true,  true, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                true,  true,  true,  true,  true,  true,  true,  true, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                true,  true,  true,  true,  true,  true,  true,  true, //
             },
-            ZERO);
+            zero);
 
     // hex: 0x43C000000000003FC00000000000003FC00000000000003FC00000000000003F
     libsnark::pb_variable_array<FieldT> right =
         libzeth::variable_array_from_bit_vector(
             {
-                0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, //
-                1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, //
-                1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, //
-                1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, //
+                false, true,  false, false, false, false, true,  true,
+                true,  true,  false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, true,  true,  true,  true,  true,  true, //
+                true,  true,  false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, true,  true,  true,  true,  true,  true, //
+                true,  true,  false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, true,  true,  true,  true,  true,  true, //
+                true,  true,  false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false,
+                false, false, true,  true,  true,  true,  true,  true, //
             },
-            ZERO);
+            zero);
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(
@@ -116,7 +148,7 @@ TEST(TestSHA256, TestHash)
 
     std::shared_ptr<libzeth::sha256_ethereum<FieldT>> hasher;
     hasher.reset(
-        new libzeth::sha256_ethereum<FieldT>(pb, ZERO, *input_block, *result));
+        new libzeth::sha256_ethereum<FieldT>(pb, zero, *input_block, *result));
 
     // result should equal:
     // 0xa4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3 Since
@@ -133,7 +165,7 @@ TEST(TestSHA256, TestHash)
         "a4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3";
     libsnark::pb_variable_array<FieldT> expected =
         libzeth::variable_array_from_bit_vector(
-            libzeth::bit_vector_from_hex(test_vector_res_str), ZERO);
+            libzeth::bit_vector_from_hex(test_vector_res_str), zero);
 
     hasher->generate_r1cs_constraints(true);
     hasher->generate_r1cs_witness();
@@ -153,9 +185,9 @@ TEST(TestSHA256, TestHash)
 TEST(TestSHA256, TestHashWithZeroLeg)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "ZERO");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "ZERO");
+    pb.val(zero) = FieldT::zero();
 
     libsnark::pb_variable_array<FieldT> left;
     libsnark::pb_variable_array<FieldT> right;
@@ -189,7 +221,7 @@ TEST(TestSHA256, TestHashWithZeroLeg)
 
     std::shared_ptr<libzeth::sha256_ethereum<FieldT>> hasher;
     hasher.reset(new libzeth::sha256_ethereum<FieldT>(
-        pb, ZERO, *input_block, *result, "Sha256_ethereum"));
+        pb, zero, *input_block, *result, "Sha256_ethereum"));
 
     hasher->generate_r1cs_constraints(true);
     hasher->generate_r1cs_witness();

@@ -9,8 +9,8 @@
 
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 namespace
 {
@@ -23,14 +23,14 @@ TEST(TestRound, TestTrueNoAddKToResult)
     libsnark::pb_variable<FieldT> in_x;
     libsnark::pb_variable<FieldT> in_k;
 
-    FieldT in_C = FieldT("216319");
+    FieldT in_c = FieldT("216319");
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
     pb.val(in_x) = FieldT("15212");
     pb.val(in_k) = FieldT("98645");
 
     MiMCe7_round_gadget<FieldT> round_gadget(
-        pb, in_x, in_k, in_C, false, "round_gadget");
+        pb, in_x, in_k, in_c, false, "round_gadget");
     round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
 
@@ -44,14 +44,14 @@ TEST(TestRound, TestFalseNoAddKToResult)
     libsnark::pb_variable<FieldT> in_x;
     libsnark::pb_variable<FieldT> in_k;
 
-    FieldT in_C = FieldT("12345");
+    FieldT in_c = FieldT("12345");
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
     pb.val(in_x) = FieldT("67890");
     pb.val(in_k) = FieldT("98645");
 
     MiMCe7_round_gadget<FieldT> round_gadget(
-        pb, in_x, in_k, in_C, false, "round_gadget");
+        pb, in_x, in_k, in_c, false, "round_gadget");
     round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
 
@@ -68,14 +68,14 @@ TEST(TestRound, TestTrueAddKToResult)
     libsnark::pb_variable<FieldT> in_x;
     libsnark::pb_variable<FieldT> in_k;
 
-    FieldT in_C = FieldT("216319");
+    FieldT in_c = FieldT("216319");
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
     pb.val(in_x) = FieldT("15212");
     pb.val(in_k) = FieldT("98645");
 
     MiMCe7_round_gadget<FieldT> round_gadget(
-        pb, in_x, in_k, in_C, true, "round_gadget");
+        pb, in_x, in_k, in_c, true, "round_gadget");
     round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
 
@@ -89,14 +89,14 @@ TEST(TestRound, TestFalseAddKToResult)
     libsnark::pb_variable<FieldT> in_x;
     libsnark::pb_variable<FieldT> in_k;
 
-    FieldT in_C = FieldT("12345");
+    FieldT in_c = FieldT("12345");
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
     pb.val(in_x) = FieldT("67890");
     pb.val(in_k) = FieldT("98645");
 
     MiMCe7_round_gadget<FieldT> round_gadget(
-        pb, in_x, in_k, in_C, true, "round_gadget");
+        pb, in_x, in_k, in_c, true, "round_gadget");
     round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
 

@@ -14,11 +14,11 @@
 using namespace libsnark;
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 // We use our hash function to do the tests
-typedef BLAKE2s_256<FieldT> HashT;
+using HashT = BLAKE2s_256<FieldT>;
 
 namespace
 {
@@ -26,98 +26,98 @@ namespace
 TEST(TestPRFs, TestGenZeroes)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libsnark::pb_variable_array<FieldT> zeroes256 =
         variable_array_from_bit_vector(
             {
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
+                false, false, false, false, false, false, false, false, //
             },
-            ZERO);
+            zero);
 
     libsnark::pb_variable_array<FieldT> result =
-        gen_256_zeroes<FieldT, HashT>(ZERO);
+        gen_256_zeroes<FieldT, HashT>(zero);
     ASSERT_EQ(result.get_bits(pb), zeroes256.get_bits(pb));
 };
 
 TEST(TestPRFs, TestPRFAddrApkGadget)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // a_sk corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_sk = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1  // FF
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true   // FF
         },
-        ZERO);
+        zero);
 
     // a_pk should equal:
     // 0x208f95ee37621c3c2d9c74be39bf687c47e84c679b88df270858067c08a16daf Since
@@ -134,7 +134,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
         variable_array_from_bit_vector(
             bit_vector_from_hex("2390c9e5370be7355f220b29caf3912ef970d828b73976"
                                 "ae9bfeb1402ce4c1f9"),
-            ZERO);
+            zero);
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(
@@ -142,7 +142,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
 
     std::shared_ptr<PRF_addr_a_pk_gadget<FieldT, HashT>> prf_apk_gadget;
     prf_apk_gadget.reset(
-        new PRF_addr_a_pk_gadget<FieldT, HashT>(pb, ZERO, a_sk, result));
+        new PRF_addr_a_pk_gadget<FieldT, HashT>(pb, zero, a_sk, result));
 
     prf_apk_gadget->generate_r1cs_constraints();
     prf_apk_gadget->generate_r1cs_witness();
@@ -155,86 +155,86 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
 TEST(TestPRFs, TestPRFNFGadget)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // a_sk corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_sk = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1  // FF
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true   // FF
         },
-        ZERO);
+        zero);
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> rho = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1  // FF
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true   // FF
         },
-        ZERO);
+        zero);
 
     // nf should equal:
     // 4a5f4f585dda39cc597366f9172bae924d22e832487e12e76742dbab9393b620
@@ -250,7 +250,7 @@ TEST(TestPRFs, TestPRFNFGadget)
         variable_array_from_bit_vector(
             bit_vector_from_hex("ea43866d185e1bdb84713b699a2966d929d1392488c010"
                                 "c603e46a4cb92986f8"),
-            ZERO);
+            zero);
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
     result.reset(
@@ -258,7 +258,7 @@ TEST(TestPRFs, TestPRFNFGadget)
 
     std::shared_ptr<PRF_nf_gadget<FieldT, HashT>> prf_nf_gadget;
     prf_nf_gadget.reset(
-        new PRF_nf_gadget<FieldT, HashT>(pb, ZERO, a_sk, rho, result));
+        new PRF_nf_gadget<FieldT, HashT>(pb, zero, a_sk, rho, result));
 
     prf_nf_gadget->generate_r1cs_constraints();
     prf_nf_gadget->generate_r1cs_witness();
@@ -271,86 +271,86 @@ TEST(TestPRFs, TestPRFNFGadget)
 TEST(TestPRFs, TestPRFPKGadget)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // a_sk corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_sk = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1  // FF
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true   // FF
         },
-        ZERO);
+        zero);
 
     // h_sig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> hsig = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1  // FF
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true   // FF
         },
-        ZERO);
+        zero);
 
     // h_i should equal:
     // 7ea1525fdbf9462c5144796937e1f80b9dad42369f7d4987c436b2f79257f9ac h_i =
@@ -366,7 +366,7 @@ TEST(TestPRFs, TestPRFPKGadget)
         variable_array_from_bit_vector(
             bit_vector_from_hex("8527fb92081cf832659a188163287f98b8c919401ba619"
                                 "d6ebd30dc0f1aedeff"),
-            ZERO);
+            zero);
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result0;
     result0.reset(
@@ -374,7 +374,7 @@ TEST(TestPRFs, TestPRFPKGadget)
 
     std::shared_ptr<PRF_pk_gadget<FieldT, HashT>> prf_pk_gadget0;
     prf_pk_gadget0.reset(new PRF_pk_gadget<FieldT, HashT>(
-        pb, ZERO, a_sk, hsig, size_t(0), result0));
+        pb, zero, a_sk, hsig, size_t(0), result0));
 
     prf_pk_gadget0->generate_r1cs_constraints();
     prf_pk_gadget0->generate_r1cs_witness();
@@ -383,7 +383,7 @@ TEST(TestPRFs, TestPRFPKGadget)
         variable_array_from_bit_vector(
             bit_vector_from_hex("aea510673ff50225bec4bd918c102ea0c9b117b9353464"
                                 "4ee70b74522b204b29"),
-            ZERO);
+            zero);
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result1;
     result1.reset(
@@ -391,7 +391,7 @@ TEST(TestPRFs, TestPRFPKGadget)
 
     std::shared_ptr<PRF_pk_gadget<FieldT, HashT>> prf_pk_gadget1;
     prf_pk_gadget1.reset(new PRF_pk_gadget<FieldT, HashT>(
-        pb, ZERO, a_sk, hsig, size_t(1), result1));
+        pb, zero, a_sk, hsig, size_t(1), result1));
 
     prf_pk_gadget1->generate_r1cs_constraints();
     prf_pk_gadget1->generate_r1cs_witness();
@@ -405,86 +405,86 @@ TEST(TestPRFs, TestPRFPKGadget)
 TEST(TestPRFs, TestPRFRhoGadget)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // phi corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> phi = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            0, 0, 0, 0, 0, 0, 0, 0, // 00
-            1, 1, 1, 1, 1, 1, 1, 1  // FF
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            false, false, false, false, false, false, false, false, // 00
+            true,  true,  true,  true,  true,  true,  true,  true   // FF
         },
-        ZERO);
+        zero);
 
     // hsig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> hsig = variable_array_from_bit_vector(
         {
-            0, 0, 0, 0, 1, 1, 1, 1, // 0F
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1, // FF
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            0, 0, 0, 0, 0, 0, 0, 0, //
-            1, 1, 1, 1, 1, 1, 1, 1  // FF
+            false, false, false, false, true,  true,  true,  true,  // 0F
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true,  // FF
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            false, false, false, false, false, false, false, false, //
+            true,  true,  true,  true,  true,  true,  true,  true   // FF
         },
-        ZERO);
+        zero);
 
     // rho should equal:
     // a87c47a6c721bdbbb4aa8875c2aa72d4db31b9526aa920656049e00786f7f8a4
@@ -498,7 +498,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
         variable_array_from_bit_vector(
             bit_vector_from_hex("d7b7c4536bbba1aaca684706ba0df170af95515d573ad9"
                                 "3e30015e1c40ebc539"),
-            ZERO);
+            zero);
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result0;
     result0.reset(
@@ -506,7 +506,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
 
     std::shared_ptr<PRF_rho_gadget<FieldT, HashT>> prf_rho_gadget0;
     prf_rho_gadget0.reset(new PRF_rho_gadget<FieldT, HashT>(
-        pb, ZERO, phi, hsig, size_t(0), result0));
+        pb, zero, phi, hsig, size_t(0), result0));
 
     prf_rho_gadget0->generate_r1cs_constraints();
     prf_rho_gadget0->generate_r1cs_witness();
@@ -515,7 +515,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
         variable_array_from_bit_vector(
             bit_vector_from_hex("bb17f6088e47a8b2ac8e3d57588d52fed63079dc2b7045"
                                 "561d6d5e7288384249"),
-            ZERO);
+            zero);
 
     std::shared_ptr<libsnark::digest_variable<FieldT>> result1;
     result1.reset(
@@ -523,7 +523,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
 
     std::shared_ptr<PRF_rho_gadget<FieldT, HashT>> prf_rho_gadget1;
     prf_rho_gadget1.reset(new PRF_rho_gadget<FieldT, HashT>(
-        pb, ZERO, phi, hsig, size_t(1), result1));
+        pb, zero, phi, hsig, size_t(1), result1));
 
     prf_rho_gadget1->generate_r1cs_constraints();
     prf_rho_gadget1->generate_r1cs_witness();

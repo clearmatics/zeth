@@ -12,28 +12,35 @@
 #include "libzeth/core/utils.hpp"
 
 #include <gtest/gtest.h>
+#include <memory>
 
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
+using ppT = libzeth::ppT;
 
 // Should be alt_bn128 in the CMakeLists.txt
-typedef libff::Fr<ppT> FieldT;
+using FieldT = libff::Fr<ppT>;
 
 // We use our hash functions to do the tests
-typedef BLAKE2s_256<FieldT> HashT;
-typedef MiMC_mp_gadget<FieldT> HashTreeT;
-static const size_t TreeDepth = 4;
+using HashT = BLAKE2s_256<FieldT>;
+using HashTreeT = MiMC_mp_gadget<FieldT>;
+static const size_t tree_depth = 4;
 
 namespace
 {
 
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args &&... args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 TEST(TestNoteCircuits, TestInputNoteGadget)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libff::enter_block(
         "Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
@@ -81,15 +88,14 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     libff::enter_block(
         "Setup a local merkle tree and append our commitment to it", true);
     std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
-        std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(TreeDepth));
+        make_unique<merkle_tree_field<FieldT, HashTreeT>>(tree_depth);
 
     // In practice the address is emitted by the mixer contract once the
     // commitment is appended to the tree
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
-    for (size_t i = 0; i < TreeDepth; ++i) {
-        address_bits.push_back((address_commitment >> i) & 0x1);
+    for (size_t i = 0; i < tree_depth; ++i) {
+        address_bits.push_back(((address_commitment >> i) & 0x1) != 0u);
     }
 
     test_merkle_tree->set_value(address_commitment, cm_field);
@@ -122,11 +128,11 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     (*merkle_root).allocate(pb, "root");
     pb.val(*merkle_root) = updated_root_value;
 
-    std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>>
-        input_note_g = std::shared_ptr<
-            input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>>(
-            new input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>(
-                pb, ZERO, a_sk_digest, nullifier_digest, *merkle_root));
+    std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT, tree_depth>>
+        input_note_g = std::make_shared<
+            input_note_gadget<FieldT, HashT, HashTreeT, tree_depth>>(
+
+            pb, zero, a_sk_digest, nullifier_digest, *merkle_root);
 
     // Get the merkle path to the commitment we appended
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
@@ -149,9 +155,9 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
 TEST(TestNoteCircuits, TestOutputNoteGadget)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libff::enter_block(
         "Initialize the output coins' data (a_pk, cm, rho)", true);
@@ -184,8 +190,8 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
     commitment.allocate(pb, " commitment");
 
     std::shared_ptr<output_note_gadget<FieldT, HashT>> output_note_g =
-        std::shared_ptr<output_note_gadget<FieldT, HashT>>(
-            new output_note_gadget<FieldT, HashT>(pb, rho_digest, commitment));
+        std::make_shared<output_note_gadget<FieldT, HashT>>(
+            pb, rho_digest, commitment);
 
     // Create a note from the coin's data
     zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);

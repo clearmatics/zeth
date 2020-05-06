@@ -13,8 +13,8 @@
 using namespace libsnark;
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 namespace
 {
@@ -30,65 +30,65 @@ TEST(TestG, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
 
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
         {
-            0, 1, 1, 0, 1, 0, 1, 1, // 6B
-            0, 0, 0, 0, 1, 0, 0, 0, // 08
-            1, 1, 1, 0, 0, 1, 1, 0, // E6
-            0, 1, 0, 0, 0, 1, 1, 1  // 47
+            false, true,  true,  false, true,  false, true,  true,  // 6B
+            false, false, false, false, true,  false, false, false, // 08
+            true,  true,  true,  false, false, true,  true,  false, // E6
+            false, true,  false, false, false, true,  true,  true   // 47
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
         {
-            0, 1, 0, 1, 0, 0, 0, 1, // 51
-            0, 0, 0, 0, 1, 1, 1, 0, // 0E
-            0, 1, 0, 1, 0, 0, 1, 0, // 52
-            0, 1, 1, 1, 1, 1, 1, 1  // 7F
+            false, true,  false, true,  false, false, false, true,  // 51
+            false, false, false, false, true,  true,  true,  false, // 0E
+            false, true,  false, true,  false, false, true,  false, // 52
+            false, true,  true,  true,  true,  true,  true,  true   // 7F
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> c = variable_array_from_bit_vector(
         {
-            0, 1, 1, 0, 1, 0, 1, 0, // 6A
-            0, 0, 0, 0, 1, 0, 0, 1, // 09
-            1, 1, 1, 0, 0, 1, 1, 0, // E6
-            0, 1, 1, 0, 0, 1, 1, 1  // 67
+            false, true,  true,  false, true,  false, true,  false, // 6A
+            false, false, false, false, true,  false, false, true,  // 09
+            true,  true,  true,  false, false, true,  true,  false, // E6
+            false, true,  true,  false, false, true,  true,  true   // 67
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> d = variable_array_from_bit_vector(
         {
-            0, 1, 0, 1, 0, 0, 0, 1, // 51
-            0, 0, 0, 0, 1, 1, 1, 0, // 0E
-            0, 1, 0, 1, 0, 0, 1, 0, // 52
-            0, 1, 1, 1, 0, 1, 0, 0  // 74
+            false, true,  false, true,  false, false, false, true,  // 51
+            false, false, false, false, true,  true,  true,  false, // 0E
+            false, true,  false, true,  false, false, true,  false, // 52
+            false, true,  true,  true,  false, true,  false, false  // 74
         },
-        ZERO);
+        zero);
 
     // First word in little endian "lleh"
     libsnark::pb_variable_array<FieldT> x = variable_array_from_bit_vector(
         {
-            0, 1, 1, 0, 1, 1, 0, 0, // 6C
-            0, 1, 1, 0, 1, 1, 0, 0, // 6C
-            0, 1, 1, 0, 0, 1, 0, 1, // 65
-            0, 1, 1, 0, 1, 0, 0, 0  // 68
+            false, true, true, false, true,  true,  false, false, // 6C
+            false, true, true, false, true,  true,  false, false, // 6C
+            false, true, true, false, false, true,  false, true,  // 65
+            false, true, true, false, true,  false, false, false  // 68
         },
-        ZERO);
+        zero);
 
     // Second word in little endian "ow o"
     libsnark::pb_variable_array<FieldT> y = variable_array_from_bit_vector(
         {
-            0, 1, 1, 0, 1, 1, 1, 1, // 6F
-            0, 1, 1, 1, 0, 1, 1, 1, // 77
-            0, 0, 1, 0, 0, 0, 0, 0, // 20
-            0, 1, 1, 0, 1, 1, 1, 1  // 6F
+            false, true,  true, false, true,  true,  true,  true,  // 6F
+            false, true,  true, true,  false, true,  true,  true,  // 77
+            false, false, true, false, false, false, false, false, // 20
+            false, true,  true, false, true,  true,  true,  true   // 6F
         },
-        ZERO);
+        zero);
 
     libsnark::pb_variable_array<FieldT> a2;
     a2.allocate(pb, BLAKE2s_word_size, "a2");
@@ -109,42 +109,42 @@ TEST(TestG, TestTrue)
     libsnark::pb_variable_array<FieldT> a2_expected =
         variable_array_from_bit_vector(
             {
-                0, 1, 1, 1, 0, 0, 0, 0, // 70
-                1, 0, 1, 1, 0, 0, 0, 1, // B1
-                0, 0, 1, 1, 0, 1, 0, 1, // 35
-                0, 0, 1, 1, 1, 1, 0, 1  // 3D
+                false, true,  true, true, false, false, false, false, // 70
+                true,  false, true, true, false, false, false, true,  // B1
+                false, false, true, true, false, true,  false, true,  // 35
+                false, false, true, true, true,  true,  false, true   // 3D
             },
-            ZERO);
+            zero);
 
     libsnark::pb_variable_array<FieldT> b2_expected =
         variable_array_from_bit_vector(
             {
-                1, 1, 0, 0, 0, 0, 0, 0, // C0
-                0, 1, 1, 1, 1, 1, 1, 1, // 7F
-                0, 0, 1, 0, 1, 1, 1, 0, // 2E
-                0, 1, 1, 1, 1, 0, 1, 1  // 7B
+                true,  true,  false, false, false, false, false, false, // C0
+                false, true,  true,  true,  true,  true,  true,  true,  // 7F
+                false, false, true,  false, true,  true,  true,  false, // 2E
+                false, true,  true,  true,  true,  false, true,  true   // 7B
             },
-            ZERO);
+            zero);
 
     libsnark::pb_variable_array<FieldT> c2_expected =
         variable_array_from_bit_vector(
             {
-                1, 1, 1, 0, 0, 1, 1, 1, // E7
-                0, 0, 1, 0, 0, 0, 0, 1, // 21
-                0, 1, 0, 0, 1, 0, 1, 1, // 4B
-                0, 1, 0, 0, 0, 0, 0, 0  // 40
+                true,  true,  true,  false, false, true,  true,  true, // E7
+                false, false, true,  false, false, false, false, true, // 21
+                false, true,  false, false, true,  false, true,  true, // 4B
+                false, true,  false, false, false, false, false, false // 40
             },
-            ZERO);
+            zero);
 
     libsnark::pb_variable_array<FieldT> d2_expected =
         variable_array_from_bit_vector(
             {
-                1, 0, 1, 1, 0, 0, 0, 0, // B0
-                1, 0, 1, 1, 1, 1, 0, 0, // BC
-                1, 1, 1, 0, 1, 0, 1, 1, // EB
-                0, 1, 0, 0, 1, 1, 0, 0  // 4C
+                true,  false, true,  true,  false, false, false, false, // B0
+                true,  false, true,  true,  true,  true,  false, false, // BC
+                true,  true,  true,  false, true,  false, true,  true,  // EB
+                false, true,  false, false, true,  true,  false, false  // 4C
             },
-            ZERO);
+            zero);
 
     ASSERT_EQ(a2_expected.get_bits(pb), a2.get_bits(pb));
     ASSERT_EQ(b2_expected.get_bits(pb), b2.get_bits(pb));
@@ -158,36 +158,64 @@ TEST(TestBlake2sComp, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
 
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // b"hello world" in big endian
-    libsnark::pb_variable_array<FieldT> pb_var_input =
-        variable_array_from_bit_vector(
-            {
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 0, 1, 1, 0, 0, // 6C
-                0, 1, 1, 0, 1, 1, 0, 0, // 6C
-                0, 1, 1, 0, 1, 1, 1, 1, // 6F
-                0, 0, 1, 0, 0, 0, 0, 0, // 20
-                0, 1, 1, 1, 0, 1, 1, 1, // 77
-                0, 1, 1, 0, 1, 1, 1, 1, // 6F
-                0, 1, 1, 1, 0, 0, 1, 0, // 72
-                0, 1, 1, 0, 1, 1, 0, 0, // 6C
-                0, 1, 1, 0, 0, 1, 0, 0, // 64
-                0, 0, 0, 0, 0, 0, 0, 0, // padding
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            },
-            ZERO);
+    libsnark::pb_variable_array<FieldT>
+        pb_var_input =
+            variable_array_from_bit_vector(
+                {
+                    false, true,  true,  false, true,  false, false,
+                    false, // 68
+                    false, true,  true,  false, false, true,  false,
+                    true, // 65
+                    false, true,  true,  false, true,  true,  false,
+                    false, // 6C
+                    false, true,  true,  false, true,  true,  false,
+                    false, // 6C
+                    false, true,  true,  false, true,  true,  true,
+                    true, // 6F
+                    false, false, true,  false, false, false, false,
+                    false, // 20
+                    false, true,  true,  true,  false, true,  true,
+                    true, // 77
+                    false, true,  true,  false, true,  true,  true,
+                    true, // 6F
+                    false, true,  true,  true,  false, false, true,
+                    false, // 72
+                    false, true,  true,  false, true,  true,  false,
+                    false, // 6C
+                    false, true,  true,  false, false, true,  false,
+                    false, // 64
+                    false, false, false, false, false, false, false,
+                    false, // padding
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false,
+                    false, false, false, false, false, false,
+                },
+                zero);
 
     libsnark::block_variable<FieldT> input(
         pb, {pb_var_input}, "blake2s_block_input");
@@ -195,66 +223,83 @@ TEST(TestBlake2sComp, TestTrue)
     // default chaining value
     libsnark::pb_variable_array<FieldT> pb_var_h =
         variable_array_from_bit_vector(
-            {0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1,
-             1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0,
-             0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0,
-             1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1,
-             0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1,
-             1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1,
-             0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1,
-             1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1,
-             0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1,
-             1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0,
-             1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1,
-             0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1},
-            ZERO);
+            {false, true,  true,  false, true,  false, true,  true,  false,
+             false, false, false, true,  false, false, false, true,  true,
+             true,  false, false, true,  true,  false, false, true,  false,
+             false, false, true,  true,  true,  true,  false, true,  true,
+             true,  false, true,  true,  false, true,  true,  false, false,
+             true,  true,  true,  true,  false, true,  false, true,  true,
+             true,  false, true,  false, false, false, false, true,  false,
+             true,  false, false, true,  true,  true,  true,  false, false,
+             false, true,  true,  false, true,  true,  true,  false, true,
+             true,  true,  true,  false, false, true,  true,  false, true,
+             true,  true,  false, false, true,  false, true,  false, true,
+             false, false, true,  false, true,  false, true,  false, false,
+             true,  true,  true,  true,  true,  true,  true,  true,  false,
+             true,  false, true,  false, false, true,  true,  true,  false,
+             true,  false, false, true,  false, true,  false, false, false,
+             true,  false, false, false, false, true,  true,  true,  false,
+             false, true,  false, true,  false, false, true,  false, false,
+             true,  true,  true,  true,  true,  true,  true,  true,  false,
+             false, true,  true,  false, true,  true,  false, false, false,
+             false, false, true,  false, true,  false, true,  true,  false,
+             true,  false, false, false, true,  false, false, false, true,
+             true,  false, false, false, false, false, true,  true,  true,
+             true,  true,  true,  false, false, false, false, false, true,
+             true,  true,  true,  false, true,  true,  false, false, true,
+             true,  false, true,  false, true,  false, true,  true,  false,
+             true,  false, true,  true,  false, true,  true,  true,  true,
+             true,  false, false, false, false, false, true,  true,  false,
+             false, true,  true,  false, true,  false, false, false, true,
+             true,  false, false, true},
+            zero);
     libsnark::digest_variable<FieldT> h(
-        pb, BLAKE2s_digest_size, pb_var_h, ZERO, "blake2s_h");
+        pb, BLAKE2s_digest_size, pb_var_h, zero, "blake2s_h");
 
     libsnark::digest_variable<FieldT> output(pb, BLAKE2s_digest_size, "output");
 
-    BLAKE2s_256_comp<FieldT> BLAKE2sC_gadget(pb, h, input, output);
-    BLAKE2sC_gadget.generate_r1cs_constraints();
-    BLAKE2sC_gadget.generate_r1cs_witness(11);
+    BLAKE2s_256_comp<FieldT> blak_e2s_c_gadget(pb, h, input, output);
+    blak_e2s_c_gadget.generate_r1cs_constraints();
+    blak_e2s_c_gadget.generate_r1cs_witness(11);
 
     // blake2s(b"hello world")
     libsnark::pb_variable_array<FieldT> expected =
         variable_array_from_bit_vector(
             {
-                1, 0, 0, 1, 1, 0, 1, 0, // 9A
-                1, 1, 1, 0, 1, 1, 0, 0, // EC
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 0, 0, 0, 0, 1, 1, 0, // 06
-                0, 1, 1, 1, 1, 0, 0, 1, // 79
-                0, 1, 0, 0, 0, 1, 0, 1, // 45
-                0, 1, 1, 0, 0, 0, 0, 1, // 61
-                0, 0, 0, 1, 0, 0, 0, 0, // 10
-                0, 1, 1, 1, 1, 1, 1, 0, // 7E
-                0, 1, 0, 1, 1, 0, 0, 1, // 59
-                0, 1, 0, 0, 1, 0, 1, 1, // 4B
-                0, 0, 0, 1, 1, 1, 1, 1, // 1F
-                0, 1, 1, 0, 1, 0, 1, 0, // 6A
-                1, 0, 0, 0, 1, 0, 1, 0, // 8A
-                0, 1, 1, 0, 1, 0, 1, 1, // 6B
-                0, 0, 0, 0, 1, 1, 0, 0, // 0C
-                1, 0, 0, 1, 0, 0, 1, 0, // 92
-                1, 0, 1, 0, 0, 0, 0, 0, // A0
-                1, 1, 0, 0, 1, 0, 1, 1, // CB
-                1, 0, 1, 0, 1, 0, 0, 1, // A9
-                1, 0, 1, 0, 1, 1, 0, 0, // AC
-                1, 1, 1, 1, 0, 1, 0, 1, // F5
-                1, 1, 1, 0, 0, 1, 0, 1, // E5
-                1, 1, 1, 0, 1, 0, 0, 1, // E9
-                0, 0, 1, 1, 1, 1, 0, 0, // 3C
-                1, 1, 0, 0, 1, 0, 1, 0, // CA
-                0, 0, 0, 0, 0, 1, 1, 0, // 06
-                1, 1, 1, 1, 0, 1, 1, 1, // F7
-                1, 0, 0, 0, 0, 0, 0, 1, // 81
-                1, 0, 0, 0, 0, 0, 0, 1, // 81
-                0, 0, 1, 1, 1, 0, 1, 1, // 3B
-                0, 0, 0, 0, 1, 0, 1, 1  // 0B
+                true,  false, false, true,  true,  false, true,  false, // 9A
+                true,  true,  true,  false, true,  true,  false, false, // EC
+                false, true,  true,  false, true,  false, false, false, // 68
+                false, false, false, false, false, true,  true,  false, // 06
+                false, true,  true,  true,  true,  false, false, true,  // 79
+                false, true,  false, false, false, true,  false, true,  // 45
+                false, true,  true,  false, false, false, false, true,  // 61
+                false, false, false, true,  false, false, false, false, // 10
+                false, true,  true,  true,  true,  true,  true,  false, // 7E
+                false, true,  false, true,  true,  false, false, true,  // 59
+                false, true,  false, false, true,  false, true,  true,  // 4B
+                false, false, false, true,  true,  true,  true,  true,  // 1F
+                false, true,  true,  false, true,  false, true,  false, // 6A
+                true,  false, false, false, true,  false, true,  false, // 8A
+                false, true,  true,  false, true,  false, true,  true,  // 6B
+                false, false, false, false, true,  true,  false, false, // 0C
+                true,  false, false, true,  false, false, true,  false, // 92
+                true,  false, true,  false, false, false, false, false, // A0
+                true,  true,  false, false, true,  false, true,  true,  // CB
+                true,  false, true,  false, true,  false, false, true,  // A9
+                true,  false, true,  false, true,  true,  false, false, // AC
+                true,  true,  true,  true,  false, true,  false, true,  // F5
+                true,  true,  true,  false, false, true,  false, true,  // E5
+                true,  true,  true,  false, true,  false, false, true,  // E9
+                false, false, true,  true,  true,  true,  false, false, // 3C
+                true,  true,  false, false, true,  false, true,  false, // CA
+                false, false, false, false, false, true,  true,  false, // 06
+                true,  true,  true,  true,  false, true,  true,  true,  // F7
+                true,  false, false, false, false, false, false, true,  // 81
+                true,  false, false, false, false, false, false, true,  // 81
+                false, false, true,  true,  true,  false, true,  true,  // 3B
+                false, false, false, false, true,  false, true,  true   // 0B
             },
-            ZERO);
+            zero);
 
     ASSERT_EQ(expected.get_bits(pb), output.bits.get_bits(pb));
 }
@@ -265,27 +310,27 @@ TEST(TestBlake2s, TestTrue)
 {
     libsnark::protoboard<FieldT> pb;
 
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // b"hello world" in big endian
     libsnark::pb_variable_array<FieldT> pb_var_input =
         variable_array_from_bit_vector(
             {
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 0, 1, 1, 0, 0, // 6C
-                0, 1, 1, 0, 1, 1, 0, 0, // 6C
-                0, 1, 1, 0, 1, 1, 1, 1, // 6F
-                0, 0, 1, 0, 0, 0, 0, 0, // 20
-                0, 1, 1, 1, 0, 1, 1, 1, // 77
-                0, 1, 1, 0, 1, 1, 1, 1, // 6F
-                0, 1, 1, 1, 0, 0, 1, 0, // 72
-                0, 1, 1, 0, 1, 1, 0, 0, // 6C
-                0, 1, 1, 0, 0, 1, 0, 0  // 64
+                false, true,  true, false, true,  false, false, false, // 68
+                false, true,  true, false, false, true,  false, true,  // 65
+                false, true,  true, false, true,  true,  false, false, // 6C
+                false, true,  true, false, true,  true,  false, false, // 6C
+                false, true,  true, false, true,  true,  true,  true,  // 6F
+                false, false, true, false, false, false, false, false, // 20
+                false, true,  true, true,  false, true,  true,  true,  // 77
+                false, true,  true, false, true,  true,  true,  true,  // 6F
+                false, true,  true, true,  false, false, true,  false, // 72
+                false, true,  true, false, true,  true,  false, false, // 6C
+                false, true,  true, false, false, true,  false, false  // 64
             },
-            ZERO);
+            zero);
 
     libsnark::block_variable<FieldT> input(
         pb, {pb_var_input}, "blake2s_block_input");
@@ -300,40 +345,40 @@ TEST(TestBlake2s, TestTrue)
     libsnark::pb_variable_array<FieldT> expected =
         variable_array_from_bit_vector(
             {
-                1, 0, 0, 1, 1, 0, 1, 0, // 9A
-                1, 1, 1, 0, 1, 1, 0, 0, // EC
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 0, 0, 0, 0, 1, 1, 0, // 06
-                0, 1, 1, 1, 1, 0, 0, 1, // 79
-                0, 1, 0, 0, 0, 1, 0, 1, // 45
-                0, 1, 1, 0, 0, 0, 0, 1, // 61
-                0, 0, 0, 1, 0, 0, 0, 0, // 10
-                0, 1, 1, 1, 1, 1, 1, 0, // 7E
-                0, 1, 0, 1, 1, 0, 0, 1, // 59
-                0, 1, 0, 0, 1, 0, 1, 1, // 4B
-                0, 0, 0, 1, 1, 1, 1, 1, // 1F
-                0, 1, 1, 0, 1, 0, 1, 0, // 6A
-                1, 0, 0, 0, 1, 0, 1, 0, // 8A
-                0, 1, 1, 0, 1, 0, 1, 1, // 6B
-                0, 0, 0, 0, 1, 1, 0, 0, // 0C
-                1, 0, 0, 1, 0, 0, 1, 0, // 92
-                1, 0, 1, 0, 0, 0, 0, 0, // A0
-                1, 1, 0, 0, 1, 0, 1, 1, // CB
-                1, 0, 1, 0, 1, 0, 0, 1, // A9
-                1, 0, 1, 0, 1, 1, 0, 0, // AC
-                1, 1, 1, 1, 0, 1, 0, 1, // F5
-                1, 1, 1, 0, 0, 1, 0, 1, // E5
-                1, 1, 1, 0, 1, 0, 0, 1, // E9
-                0, 0, 1, 1, 1, 1, 0, 0, // 3C
-                1, 1, 0, 0, 1, 0, 1, 0, // CA
-                0, 0, 0, 0, 0, 1, 1, 0, // 06
-                1, 1, 1, 1, 0, 1, 1, 1, // F7
-                1, 0, 0, 0, 0, 0, 0, 1, // 81
-                1, 0, 0, 0, 0, 0, 0, 1, // 81
-                0, 0, 1, 1, 1, 0, 1, 1, // 3B
-                0, 0, 0, 0, 1, 0, 1, 1  // 0B
+                true,  false, false, true,  true,  false, true,  false, // 9A
+                true,  true,  true,  false, true,  true,  false, false, // EC
+                false, true,  true,  false, true,  false, false, false, // 68
+                false, false, false, false, false, true,  true,  false, // 06
+                false, true,  true,  true,  true,  false, false, true,  // 79
+                false, true,  false, false, false, true,  false, true,  // 45
+                false, true,  true,  false, false, false, false, true,  // 61
+                false, false, false, true,  false, false, false, false, // 10
+                false, true,  true,  true,  true,  true,  true,  false, // 7E
+                false, true,  false, true,  true,  false, false, true,  // 59
+                false, true,  false, false, true,  false, true,  true,  // 4B
+                false, false, false, true,  true,  true,  true,  true,  // 1F
+                false, true,  true,  false, true,  false, true,  false, // 6A
+                true,  false, false, false, true,  false, true,  false, // 8A
+                false, true,  true,  false, true,  false, true,  true,  // 6B
+                false, false, false, false, true,  true,  false, false, // 0C
+                true,  false, false, true,  false, false, true,  false, // 92
+                true,  false, true,  false, false, false, false, false, // A0
+                true,  true,  false, false, true,  false, true,  true,  // CB
+                true,  false, true,  false, true,  false, false, true,  // A9
+                true,  false, true,  false, true,  true,  false, false, // AC
+                true,  true,  true,  true,  false, true,  false, true,  // F5
+                true,  true,  true,  false, false, true,  false, true,  // E5
+                true,  true,  true,  false, true,  false, false, true,  // E9
+                false, false, true,  true,  true,  true,  false, false, // 3C
+                true,  true,  false, false, true,  false, true,  false, // CA
+                false, false, false, false, false, true,  true,  false, // 06
+                true,  true,  true,  true,  false, true,  true,  true,  // F7
+                true,  false, false, false, false, false, false, true,  // 81
+                true,  false, false, false, false, false, false, true,  // 81
+                false, false, true,  true,  true,  false, true,  true,  // 3B
+                false, false, false, false, true,  false, true,  true   // 0B
             },
-            ZERO);
+            zero);
 
     ASSERT_EQ(expected.get_bits(pb), output.bits.get_bits(pb));
 }
@@ -344,144 +389,144 @@ TEST(TestBlake2s, TestTrue2)
 {
     libsnark::protoboard<FieldT> pb;
 
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     // b"zeth" in big endian
     libsnark::pb_variable_array<FieldT> pb_var_input =
         variable_array_from_bit_vector(
             {
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0, // 68
-                0, 1, 1, 1, 1, 0, 1, 0, // 7A
-                0, 1, 1, 0, 0, 1, 0, 1, // 65
-                0, 1, 1, 1, 0, 1, 0, 0, // 74
-                0, 1, 1, 0, 1, 0, 0, 0  // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false, // 68
+                false, true, true, true,  true,  false, true,  false, // 7A
+                false, true, true, false, false, true,  false, true,  // 65
+                false, true, true, true,  false, true,  false, false, // 74
+                false, true, true, false, true,  false, false, false  // 68
             },
-            ZERO);
+            zero);
 
     libsnark::block_variable<FieldT> input(
         pb, {pb_var_input}, "blake2s_block_input");

@@ -15,9 +15,9 @@
 using namespace libzeth;
 
 // Instantiation of the templates for the tests
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
-typedef BLAKE2s_256<FieldT> HashT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
+using HashT = BLAKE2s_256<FieldT>;
 
 namespace
 {
@@ -25,9 +25,9 @@ namespace
 TEST(TestCOMMs, TestCOMMGadget)
 {
     libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    libsnark::pb_variable<FieldT> zero;
+    zero.allocate(pb, "zero");
+    pb.val(zero) = FieldT::zero();
 
     bits256 trap_r_bits256 = bits256_from_hex(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");

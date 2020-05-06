@@ -29,7 +29,7 @@ using G2 = libff::G2<ppT>;
 namespace
 {
 
-static r1cs_constraint_system<Fr> get_simple_constraint_system()
+r1cs_constraint_system<Fr> get_simple_constraint_system()
 {
     protoboard<Fr> pb;
     libzeth::test::simple_circuit<Fr>(pb);
@@ -49,14 +49,14 @@ static srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
     ss << seed;
     ss.get_hash(cs_hash);
 
-    libff::G1_vector<ppT> H_g1(degree - 1);
-    for (libff::G1<ppT> &h : H_g1) {
+    libff::G1_vector<ppT> h_g1(degree - 1);
+    for (libff::G1<ppT> &h : h_g1) {
         h = seed * libff::G1<ppT>::one();
         seed = seed + libff::Fr<ppT>::one();
     };
 
-    libff::G1_vector<ppT> L_g1(num_L_elements);
-    for (libff::G1<ppT> &l : L_g1) {
+    libff::G1_vector<ppT> l_g1(num_L_elements);
+    for (libff::G1<ppT> &l : l_g1) {
         l = seed * libff::G1<ppT>::one();
         seed = seed + libff::Fr<ppT>::one();
     };
@@ -65,8 +65,8 @@ static srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
         cs_hash,
         libff::G1<ppT>::one(),
         libff::G2<ppT>::one(),
-        std::move(H_g1),
-        std::move(L_g1));
+        std::move(h_g1),
+        std::move(l_g1));
 }
 
 TEST(MPCTests, HashToG2)
@@ -171,10 +171,10 @@ TEST(MPCTests, LinearCombination)
             ASSERT_EQ(qap_evaluation.Bt[i] * G2::one(), layer1.B_g2[i]);
 
             // ABCt
-            const Fr ABC_i = beta * qap_evaluation.At[i] +
+            const Fr abc_i = beta * qap_evaluation.At[i] +
                              alpha * qap_evaluation.Bt[i] +
                              qap_evaluation.Ct[i];
-            ASSERT_EQ(ABC_i * G1::one(), layer1.ABC_g1[i]);
+            ASSERT_EQ(abc_i * G1::one(), layer1.ABC_g1[i]);
         }
     }
 }
@@ -294,11 +294,11 @@ TEST(MPCTests, Layer2)
             const size_t j = i + num_inputs + 1;
 
             // ABC / delta
-            const Fr ABC_j_over_delta =
+            const Fr abc_j_over_delta =
                 (beta * qap_evaluation.At[j] + alpha * qap_evaluation.Bt[j] +
                  qap_evaluation.Ct[j]) *
                 delta_inverse;
-            ASSERT_EQ(ABC_j_over_delta * G1::one(), pk.L_query[i])
+            ASSERT_EQ(abc_j_over_delta * G1::one(), pk.L_query[i])
                 << "i = " << std::to_string(i);
         }
 
@@ -309,14 +309,14 @@ TEST(MPCTests, Layer2)
         ASSERT_EQ(delta * G2::one(), vk.delta_g2);
         ASSERT_EQ(num_inputs, vk.ABC_g1.domain_size());
 
-        const Fr ABC_0 = beta * qap_evaluation.At[0] +
+        const Fr abc_0 = beta * qap_evaluation.At[0] +
                          alpha * qap_evaluation.Bt[0] + qap_evaluation.Ct[0];
-        ASSERT_EQ(ABC_0 * G1::one(), vk.ABC_g1.first);
+        ASSERT_EQ(abc_0 * G1::one(), vk.ABC_g1.first);
         for (size_t i = 1; i < vk.ABC_g1.size(); ++i) {
-            const Fr ABC_i = beta * qap_evaluation.At[i] +
+            const Fr abc_i = beta * qap_evaluation.At[i] +
                              alpha * qap_evaluation.Bt[i] +
                              qap_evaluation.Ct[i];
-            ASSERT_EQ(ABC_i * G1::one(), vk.ABC_g1.rest[i - 1]);
+            ASSERT_EQ(abc_i * G1::one(), vk.ABC_g1.rest[i - 1]);
         }
     }
 
@@ -473,10 +473,10 @@ TEST(MPCTests, Phase2AccumulatorReadWrite)
 {
     const size_t seed = 9;
     const size_t degree = 16;
-    const size_t num_L_elements = 7;
+    const size_t num_l_elements = 7;
     const srs_mpc_phase2_accumulator<ppT> accumulator =
         dummy_initial_accumulator<ppT>(
-            libff::Fr<ppT>(seed), degree, num_L_elements);
+            libff::Fr<ppT>(seed), degree, num_l_elements);
 
     std::string accumulator_serialized;
     {
@@ -517,10 +517,10 @@ TEST(MPCTests, Phase2ChallengeReadWrite)
 {
     const size_t seed = 9;
     const size_t degree = 16;
-    const size_t num_L_elements = 7;
+    const size_t num_l_elements = 7;
     const srs_mpc_phase2_challenge<ppT> challenge =
         srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
-            libff::Fr<ppT>(seed), degree, num_L_elements));
+            libff::Fr<ppT>(seed), degree, num_l_elements));
 
     std::string challenge_serialized;
     {
@@ -551,10 +551,10 @@ TEST(MPCTests, Phase2ResponseReadWrite)
 {
     const size_t seed = 9;
     const size_t degree = 16;
-    const size_t num_L_elements = 7;
+    const size_t num_l_elements = 7;
     const srs_mpc_phase2_challenge<ppT> challenge =
         srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
-            libff::Fr<ppT>(seed), degree, num_L_elements));
+            libff::Fr<ppT>(seed), degree, num_l_elements));
     const libff::Fr<ppT> secret = libff::Fr<ppT>(seed - 1);
     const srs_mpc_phase2_response<ppT> response =
         srs_mpc_phase2_compute_response<ppT>(challenge, secret);
@@ -581,13 +581,13 @@ TEST(MPCTests, Phase2Accumulation)
 {
     const size_t seed = 9;
     const size_t degree = 16;
-    const size_t num_L_elements = 7;
+    const size_t num_l_elements = 7;
 
     // Initial challenge
 
     const srs_mpc_phase2_challenge<ppT> challenge_0 =
         srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
-            libff::Fr<ppT>(seed), degree, num_L_elements));
+            libff::Fr<ppT>(seed), degree, num_l_elements));
 
     // Participant 1
     const libff::Fr<ppT> secret_1 = libff::Fr<ppT>(seed - 1);
@@ -671,12 +671,12 @@ TEST(MPCTests, Phase2UpdateVerification)
 {
     const size_t seed = 9;
     const size_t degree = 16;
-    const size_t num_L_elements = 7;
+    const size_t num_l_elements = 7;
 
     // Initial accumulator
     const srs_mpc_phase2_challenge<ppT> challenge(
         srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
-            libff::Fr<ppT>(seed), degree, num_L_elements)));
+            libff::Fr<ppT>(seed), degree, num_l_elements)));
     const libff::Fr<ppT> secret(seed - 1);
     const libff::Fr<ppT> invalid_secret(seed - 2);
     const libff::Fr<ppT> invalid_secret_inv = invalid_secret.inverse();
@@ -759,7 +759,7 @@ TEST(MPCTests, Phase2UpdateVerification)
 
     // Inconsistent delta_G2, L_i
     {
-        const size_t invalidate_idx = num_L_elements / 2;
+        const size_t invalidate_idx = num_l_elements / 2;
         srs_mpc_phase2_response<ppT> response =
             srs_mpc_phase2_compute_response(challenge, secret);
         response.new_accumulator.L_g1[invalidate_idx] =
@@ -772,12 +772,12 @@ TEST(MPCTests, Phase2TranscriptVerification)
 {
     const size_t seed = 9;
     const size_t degree = 16;
-    const size_t num_L_elements = 7;
+    const size_t num_l_elements = 7;
 
     // Simulate a transcript with 3 participants.
     const srs_mpc_phase2_challenge<ppT> challenge_0 =
         srs_mpc_phase2_initial_challenge(dummy_initial_accumulator<ppT>(
-            libff::Fr<ppT>(seed), degree, num_L_elements));
+            libff::Fr<ppT>(seed), degree, num_l_elements));
     std::ostringstream transcript_out;
 
     // Participant 1
