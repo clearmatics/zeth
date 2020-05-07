@@ -14,32 +14,7 @@ using namespace libsnark;
 
 using ppT = libzeth::ppT;
 using FieldT = libff::Fr<ppT>;
-
-// We use our hash function to do the tests
 using HashT = libzeth::sha256_ethereum<FieldT>;
-
-// Note on the instantiation of the FieldT template type
-//
-// We use the alt_bn128_pp public params, with a field instantiated with
-// libff::Fr<ppT> which corresponds (according to
-// libff/algebra/curves/public_params.hpp) to the typedef 'typedef alt_bn128_Fr
-// Fp_type;' (see: libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp)
-// 'alt_bn128_Fr' being itself defined in
-// 'libff/algebra/curves/alt_bn128/alt_bn128_init.hpp' as 'typedef
-// Fp_model<alt_bn128_r_limbs, alt_bn128_modulus_r> alt_bn128_Fr;'
-//
-// The Fp_model class is defined in 'libff/algebra/fields/fp.hpp' and implements
-// arithmetic in the finite field F[p], for prime p of fixed length. (p being
-// passed as a template) like:
-// ```
-// template<mp_size_t n, const bigint<n>& modulus>
-// class Fp_model {
-// ```
-//
-// In our case, the modulus is 'alt_bn128_modulus_r' is initialized to the
-// value: ` alt_bn128_modulus_r =
-// bigint_r("21888242871839275222246405745257275088548364400416034343698204186575808495617");`
-// in the 'libff/algebra/curves/alt_bn128/alt_bn128_init.hpp' file
 
 namespace
 {
@@ -64,38 +39,38 @@ TEST(TestSHA256, TestHash)
     libsnark::pb_variable_array<FieldT> left =
         libzeth::variable_array_from_bit_vector(
             {
-                false, false, false, false, true,  true,  true,  true,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                true,  true,  true,  true,  true,  true,  true,  true, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                true,  true,  true,  true,  true,  true,  true,  true, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                true,  true,  true,  true,  true,  true,  true,  true, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                true,  true,  true,  true,  true,  true,  true,  true, //
+                0, 0, 0, 0, 1, 1, 1, 1, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1  // NOLINT
             },
             zero);
 
@@ -103,38 +78,38 @@ TEST(TestSHA256, TestHash)
     libsnark::pb_variable_array<FieldT> right =
         libzeth::variable_array_from_bit_vector(
             {
-                false, true,  false, false, false, false, true,  true,
-                true,  true,  false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, true,  true,  true,  true,  true,  true, //
-                true,  true,  false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, true,  true,  true,  true,  true,  true, //
-                true,  true,  false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, true,  true,  true,  true,  true,  true, //
-                true,  true,  false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false,
-                false, false, true,  true,  true,  true,  true,  true, //
+                0, 1, 0, 0, 0, 0, 1, 1, // NOLINT
+                1, 1, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 1, 1, 1, 1, 1, 1, // NOLINT
+                1, 1, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 1, 1, 1, 1, 1, 1, // NOLINT
+                1, 1, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 1, 1, 1, 1, 1, 1, // NOLINT
+                1, 1, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 1, 1, 1, 1, 1, 1  // NOLINT
             },
             zero);
 

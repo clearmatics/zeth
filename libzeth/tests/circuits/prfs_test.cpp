@@ -33,38 +33,38 @@ TEST(TestPRFs, TestGenZeroes)
     libsnark::pb_variable_array<FieldT> zeroes256 =
         variable_array_from_bit_vector(
             {
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
-                false, false, false, false, false, false, false, false, //
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // NOLINT
             },
             zero);
 
@@ -84,38 +84,38 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_sk = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true   // FF
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1  // FF // NOLINT
         },
         zero);
 
@@ -163,76 +163,76 @@ TEST(TestPRFs, TestPRFNFGadget)
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_sk = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true   // FF
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1  // FF // NOLINT
         },
         zero);
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> rho = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true   // FF
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1  // FF // NOLINT
         },
         zero);
 
@@ -279,76 +279,76 @@ TEST(TestPRFs, TestPRFPKGadget)
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_sk = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true   // FF
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1  // FF // NOLINT
         },
         zero);
 
     // h_sig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> hsig = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true   // FF
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1  // FF // NOLINT
         },
         zero);
 
@@ -413,76 +413,76 @@ TEST(TestPRFs, TestPRFRhoGadget)
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> phi = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            false, false, false, false, false, false, false, false, // 00
-            true,  true,  true,  true,  true,  true,  true,  true   // FF
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1  // FF // NOLINT
         },
         zero);
 
     // hsig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> hsig = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true,  // FF
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            false, false, false, false, false, false, false, false, //
-            true,  true,  true,  true,  true,  true,  true,  true   // FF
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+            1, 1, 1, 1, 1, 1, 1, 1  // FF // NOLINT
         },
         zero);
 

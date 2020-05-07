@@ -26,19 +26,19 @@ TEST(TestXOR, TestTrue)
 
     libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, true,  false, true,  false, true,  false, true,  // 55
-            true,  false, true,  false, true,  false, true,  false, // AA
-            true,  true,  true,  true,  false, false, false, false  // F0
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 1, 0, 1, 0, 1, 0, 1, // 55 // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 1, 1, 1, 0, 0, 0, 0  // F0 // NOLINT
         },
         zero);
 
     libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
         {
-            true, true,  true, true,  false, false, false, false, // F0
-            true, false, true, false, true,  false, true,  false, // AA
-            true, false, true, false, true,  false, true,  false, // AA
-            true, true,  true, true,  false, false, false, false  // F0
+            1, 1, 1, 1, 0, 0, 0, 0, // F0 // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 1, 1, 1, 0, 0, 0, 0  // F0 // NOLINT
         },
         zero);
 
@@ -52,10 +52,10 @@ TEST(TestXOR, TestTrue)
     libsnark::pb_variable_array<FieldT> expected =
         variable_array_from_bit_vector(
             {
-                true,  true,  true,  true,  true,  true,  true,  true,  // FF
-                true,  true,  true,  true,  true,  true,  true,  true,  // FF
-                false, false, false, false, false, false, false, false, // 00
-                false, false, false, false, false, false, false, false  // 00
+                1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0  // 00 // NOLINT
             },
             zero);
 
@@ -71,27 +71,27 @@ TEST(TestXORConstant, TestTrue)
 
     libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, true,  false, true,  false, true,  false, true,  // 55
-            true,  false, true,  false, true,  false, true,  false, // AA
-            true,  true,  true,  true,  false, false, false, false  // F0
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 1, 0, 1, 0, 1, 0, 1, // 55 // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 1, 1, 1, 0, 0, 0, 0  // F0 // NOLINT
         },
         zero);
 
     libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
         {
-            true, true,  true, true,  false, false, false, false, // F0
-            true, false, true, false, true,  false, true,  false, // AA
-            true, false, true, false, true,  false, true,  false, // AA
-            true, true,  true, true,  false, false, false, false  // F0
+            1, 1, 1, 1, 0, 0, 0, 0, // F0 // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 1, 1, 1, 0, 0, 0, 0  // F0 // NOLINT
         },
         zero);
 
     std::vector<FieldT> c = {
-        0, 0, 0, 0, 1, 1, 1, 1, // 0F
-        1, 1, 1, 1, 0, 0, 0, 0, // F0
-        0, 0, 0, 0, 0, 0, 0, 0, // 00
-        1, 0, 1, 0, 1, 0, 1, 0  // AA
+        0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+        1, 1, 1, 1, 0, 0, 0, 0, // F0 // NOLINT
+        0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+        1, 0, 1, 0, 1, 0, 1, 0  // AA // NOLINT
     };
 
     libsnark::pb_variable_array<FieldT> xored;
@@ -104,10 +104,10 @@ TEST(TestXORConstant, TestTrue)
     libsnark::pb_variable_array<FieldT> expected =
         variable_array_from_bit_vector(
             {
-                true,  true,  true,  true,  false, false, false, false, // F0
-                false, false, false, false, true,  true,  true,  true,  // 0F
-                false, false, false, false, false, false, false, false, // 00
-                true,  false, true,  false, true,  false, true,  false  // AA
+                1, 1, 1, 1, 0, 0, 0, 0, // F0 // NOLINT
+                0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+                1, 0, 1, 0, 1, 0, 1, 0  // AA // NOLINT
             },
             zero);
 
@@ -123,19 +123,19 @@ TEST(Testxor_rot, TestTrue)
 
     libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
         {
-            false, false, false, false, true,  true,  true,  true,  // 0F
-            false, true,  false, true,  false, true,  false, true,  // 55
-            true,  false, true,  false, true,  false, true,  false, // AA
-            true,  true,  true,  true,  false, false, false, false  // F0
+            0, 0, 0, 0, 1, 1, 1, 1, // 0F // NOLINT
+            0, 1, 0, 1, 0, 1, 0, 1, // 55 // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 1, 1, 1, 0, 0, 0, 0  // F0 // NOLINT
         },
         zero);
 
     libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
         {
-            true, true,  true, true,  false, false, false, false, // F0
-            true, false, true, false, true,  false, true,  false, // AA
-            true, false, true, false, true,  false, true,  false, // AA
-            true, true,  true, true,  false, false, false, false  // F0
+            1, 1, 1, 1, 0, 0, 0, 0, // F0 // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 1, 1, 1, 0, 0, 0, 0  // F0 // NOLINT
         },
         zero);
 
@@ -177,40 +177,40 @@ TEST(Testxor_rot, TestTrue)
     libsnark::pb_variable_array<FieldT> expected0 =
         variable_array_from_bit_vector(
             {
-                true,  true,  true,  true,  true,  true,  true,  true,  // FF
-                true,  true,  true,  true,  true,  true,  true,  true,  // FF
-                false, false, false, false, false, false, false, false, // 00
-                false, false, false, false, false, false, false, false  // 00
+                1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0  // 00 // NOLINT
             },
             zero);
 
     libsnark::pb_variable_array<FieldT> expected8 =
         variable_array_from_bit_vector(
             {
-                false, false, false, false, false, false, false, false, // 00
-                true,  true,  true,  true,  true,  true,  true,  true,  // FF
-                true,  true,  true,  true,  true,  true,  true,  true,  // FF
-                false, false, false, false, false, false, false, false  // 00
+                0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0  // 00 // NOLINT
             },
             zero);
 
     libsnark::pb_variable_array<FieldT> expected16 =
         variable_array_from_bit_vector(
             {
-                false, false, false, false, false, false, false, false, // 00
-                false, false, false, false, false, false, false, false, // 00
-                true,  true,  true,  true,  true,  true,  true,  true,  // FF
-                true,  true,  true,  true,  true,  true,  true,  true   // FF
+                0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1  // FF // NOLINT
             },
             zero);
 
     libsnark::pb_variable_array<FieldT> expected24 =
         variable_array_from_bit_vector(
             {
-                true,  true,  true,  true,  true,  true,  true,  true,  // FF
-                false, false, false, false, false, false, false, false, // 00
-                false, false, false, false, false, false, false, false, // 00
-                true,  true,  true,  true,  true,  true,  true,  true   // FF
+                1, 1, 1, 1, 1, 1, 1, 1, // FF // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+                1, 1, 1, 1, 1, 1, 1, 1  // FF // NOLINT
             },
             zero);
 
@@ -230,19 +230,19 @@ TEST(Testdouble_packed, TestTrue)
 
     libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
         {
-            true,  false, false, false, true,  true,  true,  true,  // 8F
-            false, true,  false, true,  false, true,  false, true,  // 55
-            true,  false, true,  false, true,  false, true,  false, // AA
-            true,  true,  true,  true,  false, false, false, false  // F0
+            1, 0, 0, 0, 1, 1, 1, 1, // 8F // NOLINT
+            0, 1, 0, 1, 0, 1, 0, 1, // 55 // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 1, 1, 1, 0, 0, 0, 0  // F0 // NOLINT
         },
         zero);
 
     libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
         {
-            true, true,  true, true,  false, false, false, false, // F0
-            true, false, true, false, true,  false, true,  false, // AA
-            true, false, true, false, true,  false, true,  false, // AA
-            true, true,  true, true,  false, false, false, false  // F0
+            1, 1, 1, 1, 0, 0, 0, 0, // F0 // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 0, 1, 0, 1, 0, 1, 0, // AA // NOLINT
+            1, 1, 1, 1, 0, 0, 0, 0  // F0 // NOLINT
         },
         zero);
 
@@ -256,10 +256,10 @@ TEST(Testdouble_packed, TestTrue)
     libsnark::pb_variable_array<FieldT> expected =
         variable_array_from_bit_vector(
             {
-                true,  false, false, false, false, false, false, false, // 80
-                false, false, false, false, false, false, false, false, // 00
-                false, true,  false, true,  false, true,  false, true,  // 55
-                true,  true,  true,  false, false, false, false, false  // E0
+                1, 0, 0, 0, 0, 0, 0, 0, // 80 // NOLINT
+                0, 0, 0, 0, 0, 0, 0, 0, // 00 // NOLINT
+                0, 1, 0, 1, 0, 1, 0, 1, // 55 // NOLINT
+                1, 1, 1, 0, 0, 0, 0, 0  // E0 // NOLINT
             },
             zero);
 
