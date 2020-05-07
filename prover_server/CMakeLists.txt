@@ -1,5 +1,5 @@
 find_package(Protobuf REQUIRED)
-find_package(GRPC REQUIRED)
+find_package(gRPC REQUIRED)
 
 # Note:
 # The target directory `PROTO_SRC_DIR` is created in the parent CMakeLists.txt.

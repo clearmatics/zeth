@@ -1,7 +1,7 @@
 include_directories(.)
 
 find_package(Protobuf REQUIRED)
-find_package(GRPC REQUIRED)
+find_package(gRPC REQUIRED)
 
 # NOTE: dependency include directories use SYSTEM, to prevent the compiler from
 # issuing warnings from their headers. See:

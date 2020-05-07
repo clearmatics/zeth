@@ -9,6 +9,8 @@ It follows and extends the design presented in [zerocash-ethereum](https://githu
 
 ## Building and running the project:
 
+:computer: **Warning** This project primarily targets x86_64 Linux and macOS platforms.
+
 ### Environment
 
 In order to follow the README below, you will need:
@@ -16,6 +18,15 @@ In order to follow the README below, you will need:
 - [Npm](https://www.npmjs.com/get-npm) (at least version `6.4.1`)
 - [Node](https://nodejs.org/en/) (at least version `v9.5.0`)
 - [Python3](https://www.python.org/downloads/) (at least version `3.7`)
+- [Pip](https://pip.pypa.io/en/stable/) (at least version `19.0.2`)
+
+Additionally, several tools from the GCC and LLVM tools suite are used to improve code quality and generate the documentation of the project. These are required in order to compile the project with all options enabled:
+- [Doxygen](http://www.doxygen.nl/)
+- [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
+- [clang-tidy](https://clang.llvm.org/extra/clang-tidy/)
+- [cppcheck](http://cppcheck.sourceforge.net/)
+- [include-what-you-use](https://include-what-you-use.org/)
+- [llvm-symbolizer](https://llvm.org/docs/CommandGuide/llvm-symbolizer.html)
 
 To use the Zeth functionality, 3 components are required:
 - An Ethereum network (the commands below use a local testnet) to host the Zeth
@@ -121,6 +132,53 @@ The following libraries are also required to build:
 - gmp
 - boost
 - openssl
+
+## Generate the Doxygen documentation
+
+To generate the documentation of Zeth:
+```bash
+cd build
+cmake .. && make docs
+```
+
+## Compile the project using 'sanitizers'
+
+You can select the sanitizer of your choice (one of the sanitizers listed [here](./cmake/sanitizers.cmake)) by passing the flag `-DSANITIZER=<sanitizer>` to `cmake`.
+
+Example:
+```bash
+cd build
+cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address ..
+make check
+```
+
+## Run analysis tools on the code
+
+Several tools can be ran on the code. These can be enabled via a set of compilation options.
+
+Note: The `clang-tidy` target runs a clang-tidy python script that should be fetched from [here](https://github.com/llvm/llvm-project/blob/master/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py). To do so, run: `cd build && wget https://raw.githubusercontent.com/llvm/llvm-project/master/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py`
+
+Example:
+```bash
+cmake -DUSE_CLANG_FORMAT=ON -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
+make cppcheck
+make clang-format
+make clang-tidy
+```
+
+## Generate code coverage report
+
+1. Make sure to enable the `CODE_COVERAGE` option in the CMake configuration.
+2. Compile the tests
+```bash
+cd build && cmake .. && make check
+```
+3. Generate the coverage report:
+```bash
+make coverage
+```
+
+**Note:** In order to generate the coverage reports, you will need `lcov`, along with `genhtml` and `xdg-open`.
 
 ## References and useful links
 
