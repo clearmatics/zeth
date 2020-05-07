@@ -154,11 +154,16 @@ make check
 
 ## Run analysis tools on the code
 
-Make sure that the `USE_DEV_TOOLS` option is set in the compilation configuration.
+Several tools can be ran on the code. These can be enabled via a set of compilation options.
 
+Note: The `clang-tidy` target runs a clang-tidy python script that should be fetched from [here](https://github.com/llvm/llvm-project/blob/master/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py). To do so, run: `cd build && wget https://raw.githubusercontent.com/llvm/llvm-project/master/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py`
+
+Example:
 ```bash
+cmake -DUSE_CLANG_FORMAT=ON -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
 make cppcheck
 make clang-format
+make clang-tidy
 ```
 
 ## Generate code coverage report
