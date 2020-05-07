@@ -20,15 +20,15 @@ bits64 bits64_from_vector(const std::vector<bool> &vect)
     return vector_to_array<64>(vect);
 }
 
-bits64 bits64_from_hex(const std::string &str)
+bits64 bits64_from_hex(const std::string &hex_str)
 {
-    if (str.length() != 16) {
+    if (hex_str.length() != 16) {
         throw std::length_error(
             "Invalid string length for the given hex digest (should be "
             "16)");
     }
 
-    return bits64_from_vector(bit_vector_from_hex(str));
+    return bits64_from_vector(bit_vector_from_hex(hex_str));
 }
 
 std::vector<bool> bits64_to_vector(const bits64 &arr)
@@ -41,15 +41,15 @@ bits256 bits256_from_vector(const std::vector<bool> &vect)
     return vector_to_array<256>(vect);
 }
 
-bits256 bits256_from_hex(const std::string &str)
+bits256 bits256_from_hex(const std::string &hex_str)
 {
-    if (str.length() != 64) {
+    if (hex_str.length() != 64) {
         throw std::length_error(
             "Invalid string length for the given hex digest (should be "
             "64)");
     }
 
-    return bits256_from_vector(bit_vector_from_hex(str));
+    return bits256_from_vector(bit_vector_from_hex(hex_str));
 }
 
 std::vector<bool> bits256_to_vector(const bits256 &arr)
@@ -62,15 +62,15 @@ bits384 bits384_from_vector(const std::vector<bool> &vect)
     return vector_to_array<384>(vect);
 }
 
-bits384 bits384_from_hex(const std::string &str)
+bits384 bits384_from_hex(const std::string &hex_str)
 {
-    if (str.length() != 96) {
+    if (hex_str.length() != 96) {
         throw std::length_error(
             "Invalid string length for the given hex digest (should be "
             "96)");
     }
 
-    return bits384_from_vector(bit_vector_from_hex(str));
+    return bits384_from_vector(bit_vector_from_hex(hex_str));
 }
 
 std::vector<bool> bits384_to_vector(const bits384 &arr)
@@ -93,16 +93,16 @@ std::vector<bool> bit_vector_from_hex(const std::string &hex_str)
     return result;
 }
 
-std::vector<bool> bit_vector_from_size_t_le(size_t x)
+std::vector<bool> bit_vector_from_size_t_le(size_t n)
 {
     std::vector<bool> ret;
-    while (x) {
-        if (x & 1) {
+    while (n) {
+        if (n & 1) {
             ret.push_back(true);
         } else {
             ret.push_back(false);
         }
-        x >>= 1;
+        n >>= 1;
     }
 
     return ret;
