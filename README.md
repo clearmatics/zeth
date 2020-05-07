@@ -148,7 +148,7 @@ You can select the sanitizer of your choice (one of the sanitizers listed [here]
 Example:
 ```bash
 cd build
-cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DUSE_SANITIZERS=ON -DSANITIZER=Address ..
+cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address ..
 make check
 ```
 

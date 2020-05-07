@@ -138,18 +138,6 @@ option(
 )
 
 option(
-  USE_DEV_TOOLS
-  "Run development tools on the code"
-  OFF
-)
-
-option(
-  USE_SANITIZERS
-  "Enable sanitizers when compiling the project"
-  OFF
-)
-
-option(
   GEN_DOC
   "Generate project documentation"
   OFF
@@ -277,19 +265,23 @@ set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
 add_compile_options(-Wall -Wextra)
 
 # Add extra configuration files to run additional tooling on the code and to
-# generate documentation
-if("${USE_DEV_TOOLS}")
-    # Generate the compile database needed for some of the tools we invoke below
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-    include(cmake/gcc_dev_tools.cmake)
-    include(cmake/clang_dev_tools.cmake)
-endif()
-if("${USE_SANITIZERS}")
-    include(cmake/sanitizers.cmake)
-endif()
+# generate documentation and code coverage reports
+#
+# Import configuration to run dev tools on the code
+# Generate the compile database needed for some of the tools we invoke below
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+include(cmake/gcc_dev_tools.cmake)
+include(cmake/clang_dev_tools.cmake)
+
+# Import configuration to compile targets with sanitizers
+include(cmake/sanitizers.cmake)
+
+# Import configuration to generate the code documentation if option is set
 if("${GEN_DOC}")
     include(cmake/documentation.cmake)
 endif()
+
+# Import configuration to generate the coverage report if option is set
 if("${CODE_COVERAGE}")
     include(cmake/code_coverage.cmake)
 endif()
