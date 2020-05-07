@@ -9,7 +9,7 @@
 find_package(Doxygen)
 if(NOT DOXYGEN_FOUND)
   message(FATAL_ERROR "You need to install Doxygen to generate"
-    "the documentation. Aborting...")
+    " the documentation. Aborting...")
 endif()
 
 # Set input and output files

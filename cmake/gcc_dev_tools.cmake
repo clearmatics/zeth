@@ -7,6 +7,7 @@
 # Adding clang-format target if executable is found
 find_program(CPP_CHECK "cppcheck")
 if(CPP_CHECK)
+  message("cppcheck found. Creating target...")
   add_custom_target(
     cppcheck
     COMMAND cppcheck

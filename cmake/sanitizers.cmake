@@ -8,8 +8,8 @@
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(WARNING "Compiling the code with sanitizers in non-debug mode"
-    "is misleading and should be avoided"
-    "(CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})")
+    " is misleading and should be avoided"
+    " (CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})")
 endif()
 
 # The sanitizers modify the program at compile-time to catch issues at runtime
@@ -18,7 +18,7 @@ set(
   ""
   CACHE
   STRING
-  "Use sanitizers: one of Address, Leak, Thread, Leak, Memory, Undefined"
+  "Use sanitizers: one of Address, Leak, Thread, Memory, Undefined"
 )
 
 if(SANITIZER STREQUAL "Address")

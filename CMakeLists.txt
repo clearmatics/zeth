@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-# WARNING: Attempt to change the compiler BEFORE the first `project()` command
-# in order to avoid infinite loop when trying to change the compiler.
+# Change the compiler BEFORE the first `project()` command to avoid an infinite loop.
 # See: https://public.kitware.com/pipermail/cmake/2009-November/033133.html
 if(APPLE)
   # If custom llvm compilers are available, use them (for openmp
@@ -30,13 +29,13 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   #     https://gcc.gnu.org/gcc-4.9/changes.html
   if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
     message(FATAL_ERROR "We use c++11 and some sanitizers which require"
-      "GCC version at least 4.9")
+      " GCC version at least 4.9")
   endif ()
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # The sanitizers we use were supported from clang 3.9
   if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9)
     message(FATAL_ERROR "We use c++11 and some sanitizers which require"
-      "Clang version at least 3.9")
+      " Clang version at least 3.9")
   endif ()
 endif ()
 
@@ -189,7 +188,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clan
   endif()
 else()
   message(WARNING "This project is assumed to be compiled with gcc or clang."
-  "No guarantees can be made if another compiler is used.")
+  " No guarantees can be made if another compiler is used.")
 endif()
 
 add_definitions(-DCURVE_${CURVE})
@@ -277,11 +276,10 @@ set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
 # By default, compile with all warning flags
 add_compile_options(-Wall -Wextra)
 
-# Add extra configuration files to run additional
-# tooling on the code and to generate documentation
+# Add extra configuration files to run additional tooling on the code and to
+# generate documentation
 if("${USE_DEV_TOOLS}")
-    # Generate the compile database needed for some
-    # of the tools we invoke below
+    # Generate the compile database needed for some of the tools we invoke below
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     include(cmake/gcc_dev_tools.cmake)
     include(cmake/clang_dev_tools.cmake)
