@@ -41,11 +41,7 @@ bool TestValidJS2In2Case1(
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
-    // Note: `make_unique` should be C++14 compliant, but here we use c++11, so
-    // we instantiate our unique_ptr manually
-    std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
-        std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(TreeDepth));
+    merkle_tree_field<FieldT, HashTreeT> test_merkle_tree(TreeDepth);
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -77,9 +73,9 @@ bool TestValidJS2In2Case1(
         "403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b");
 
     // We insert the commitment to the zeth note in the merkle tree
-    test_merkle_tree->set_value(address_commitment, cm_field);
-    FieldT updated_root_value = test_merkle_tree->get_root();
-    std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
+    test_merkle_tree.set_value(address_commitment, cm_field);
+    FieldT updated_root_value = test_merkle_tree.get_root();
+    std::vector<FieldT> path = test_merkle_tree.get_path(address_commitment);
 
     // JS Inputs: 1 note of value > 0 to spend, and a dummy note
     zeth_note note_input(
@@ -173,11 +169,7 @@ bool TestValidJS2In2Case2(
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
-    // Note: `make_unique` should be C++14 compliant, but here we use c++11, so
-    // we instantiate our unique_ptr manually
-    std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>> test_merkle_tree =
-        std::unique_ptr<merkle_tree_field<FieldT, HashTreeT>>(
-            new merkle_tree_field<FieldT, HashTreeT>(TreeDepth));
+    merkle_tree_field<FieldT, HashTreeT> test_merkle_tree(TreeDepth);
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -209,9 +201,9 @@ bool TestValidJS2In2Case2(
         "403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b");
 
     // We insert the commitment to the zeth note in the merkle tree
-    test_merkle_tree->set_value(address_commitment, cm_field);
-    FieldT updated_root_value = test_merkle_tree->get_root();
-    std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
+    test_merkle_tree.set_value(address_commitment, cm_field);
+    FieldT updated_root_value = test_merkle_tree.get_root();
+    std::vector<FieldT> path = test_merkle_tree.get_path(address_commitment);
 
     // JS Inputs
     zeth_note note_input0(
