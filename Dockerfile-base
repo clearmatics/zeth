@@ -1,31 +1,33 @@
-FROM ubuntu:19.04
+FROM alpine:3.11.5
 
 ####
-# This Dockerfile builds the base image (installs all the dependencies) for Zeth
+# This Dockerfile builds the base image
+# (installs all the dependencies) for Zeth
 ####
 
 # Install necessary packages
-RUN apt-get update && apt-get install -y \
+RUN apk --update --no-cache add \
+        build-base \
         git \
-        libboost-all-dev \
-        libgmp3-dev \
-        libprocps-dev \
+        boost-dev \
+        gmp-dev \
+        procps-dev \
         g++ \
         gcc \
         libxslt-dev \
         vim \
         cmake \
-        libssl-dev \
-        pkg-config \
+        libressl-dev \
+        pkgconfig \
         curl \
         sudo
 
-# Configue the environment for gRPC
-RUN apt-get install -y \
-        build-essential \
+# Configure the environment for gRPC
+RUN apk --update --no-cache add \
+        automake \
         autoconf \
         libtool
-RUN git clone -b v1.24.x https://github.com/grpc/grpc /var/local/git/grpc
+RUN git clone -b v1.28.x https://github.com/grpc/grpc /var/local/git/grpc
 RUN cd /var/local/git/grpc && git submodule update --init --recursive
 RUN cd /var/local/git/grpc/third_party/protobuf && ./autogen.sh && ./configure --prefix=/usr && make -j12 && make check && make install && make clean
 RUN cd /var/local/git/grpc && make install

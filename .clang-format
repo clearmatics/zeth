@@ -137,7 +137,9 @@
     #
     #  - Use `auto` only when it is strictly necessary, avoid otherwise.
     #
-    #  - Always use braces with control flow statements (if, for, while...)
+    # - Always use braces with control flow statements (if, for, while...),
+    #   event though clang-format does not enforce this for single-line
+    #   statements:
     #    GOOD:
     #      if (condition) {
     #          x = 0;

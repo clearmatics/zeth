@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+set -e
+set -x
+
+. scripts/test_zeth_cli_common.sh
+
+BASE_DIR=_test_zeth_cli
+DEPLOYER_DIR=${BASE_DIR}/deployer
+ALICE_DIR=${BASE_DIR}/alice
+BOB_DIR=${BASE_DIR}/bob
+CHARLIE_DIR=${BASE_DIR}/charlie
+
+# Setup addresses
+
+mkdir -p ${BASE_DIR}
+pushd ${BASE_DIR}
+
+get_accounts
+
+setup_user deployer
+setup_user alice
+setup_user bob
+setup_user charlie
+
+# Deploy
+! [ -e deployer/zeth-instance.json ] && \
+    run_as deployer zeth deploy
+
+copy_deployment_info deployer alice
+copy_deployment_info deployer bob
+copy_deployment_info deployer charlie
+
+# Alice deposits 200 and sends 100 to Bob
+pushd alice
+alice_pk=`cat zeth-address.json.pub`
+if ! [ -e notes/state_zeth ] ; then
+    zeth mix --wait --vin 200 --out ${alice_pk},200
+fi
+note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+! [ "" == ${note_id} ]
+
+bob_pk=`cat ../bob/zeth-address.json.pub`
+zeth mix \
+     --wait \
+     --in ${note_id} \
+     --out ${alice_pk},100 \
+     --out ${bob_pk},100
+
+# Sync and check that our note has been spent
+zeth sync
+if (zeth ls-notes | grep ${note_id}) ; then
+    echo Expected note ${note_id} to be marked spent
+    exit 1
+fi
+
+popd # alice
+
+# Bob scans the chain, finds his note, and sends 50 to Charlie
+pushd bob
+zeth sync
+note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+! [ "" == ${note_id} ]
+charlie_pk=`cat ../charlie/zeth-address.json.pub`
+zeth mix \
+     --wait \
+     --in ${note_id} \
+     --out ${bob_pk},50 \
+     --out ${charlie_pk},50
+popd # bob
+
+echo BALANCES FOR WITHDRAW
+show_balances_named
+
+# Charlie scans the chain and withdraws his 50 ETH
+pushd charlie
+zeth sync
+note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+! [ "" == ${note_id} ]
+zeth mix \
+     --wait \
+     --in ${note_id} \
+     --vout 50
+popd # charlie
+
+echo BALANCES AFTER WITHDRAW
+show_balances_named
+
+popd # BASE_DIR
+
+set +x
+set +e
+
+echo "============================================================"
+echo "==                        PASSED                          =="
+echo "============================================================"

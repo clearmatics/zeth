@@ -1,0 +1,19 @@
+[MESSAGES CONTROL]
+disable=
+    bad-continuation,
+    too-many-arguments,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-many-locals,
+    too-many-statements,
+    too-few-public-methods,
+    wrong-import-order,
+    missing-module-docstring,
+    broad-except,
+    too-many-function-args,
+    duplicate-code,
+
+good-names=i,e,x,y,m,k,h,c,cm,rc,ek,ct,vk,sk,pk,X,Y,r,el,nf
+
+[REPORTS]
+output-format=text
