@@ -120,7 +120,7 @@ private:
         return 0;
     }
 
-    libff::Fr<ppT> get_randomness()
+    libff::Fr<ppT> get_randomness() const
     {
         using random_word = std::random_device::result_type;
 

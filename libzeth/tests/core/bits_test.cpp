@@ -69,7 +69,7 @@ TEST(BitsTest, BitVectorFromSizeT)
     const std::vector<bool> be_a5 = bit_vector_from_size_t_be(0xa5);
     const std::vector<bool> be_100 = bit_vector_from_size_t_be(0x100);
     const std::vector<bool> be_40000005a =
-        bit_vector_from_size_t_be(0x40000005aull);
+        bit_vector_from_size_t_be(0x40000005aULL);
 
     ASSERT_EQ(expect_le_a7, le_a7);
     ASSERT_EQ(expect_le_72, le_72);

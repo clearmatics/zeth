@@ -112,7 +112,7 @@ std::vector<bool> bit_vector_from_size_t_be(size_t n)
 {
     std::vector<bool> res;
     size_t num_bits = 8 * sizeof(size_t);
-    const size_t mask = 1ull << (num_bits - 1);
+    const size_t mask = 1ULL << (num_bits - 1);
 
     // Remove 0-bits at the front
     while (num_bits > 0) {

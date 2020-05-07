@@ -12,11 +12,11 @@
 
 using namespace libsnark;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 // We use our hash function to do the tests
-typedef libzeth::sha256_ethereum<FieldT> HashT;
+using HashT = libzeth::sha256_ethereum<FieldT>;
 
 // Note on the instantiation of the FieldT template type
 //

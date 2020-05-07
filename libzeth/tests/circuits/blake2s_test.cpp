@@ -13,8 +13,8 @@
 using namespace libsnark;
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 namespace
 {

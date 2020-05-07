@@ -11,8 +11,8 @@
 
 using namespace libzeth;
 
-typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libff::default_ec_pp;
+using FieldT = libff::Fr<ppT>;
 
 namespace
 {

@@ -29,7 +29,7 @@ using G2 = libff::G2<ppT>;
 namespace
 {
 
-static r1cs_constraint_system<Fr> get_simple_constraint_system()
+r1cs_constraint_system<Fr> get_simple_constraint_system()
 {
     protoboard<Fr> pb;
     libzeth::test::simple_circuit<Fr>(pb);
@@ -40,7 +40,7 @@ static r1cs_constraint_system<Fr> get_simple_constraint_system()
 
 // (Deterministic) creation of accumulator
 template<typename ppT>
-static srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
+srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
     libff::Fr<ppT> seed, size_t degree, size_t num_L_elements)
 {
     // Dummy cs_hash from the seed.

@@ -14,11 +14,11 @@
 using namespace libsnark;
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 // We use our hash function to do the tests
-typedef BLAKE2s_256<FieldT> HashT;
+using HashT = BLAKE2s_256<FieldT>;
 
 namespace
 {

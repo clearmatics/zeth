@@ -12,9 +12,9 @@
 using namespace libzeth;
 
 // Instantiation of the templates for the tests
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
-typedef MiMC_mp_gadget<FieldT> HashTreeT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
+using HashTreeT = MiMC_mp_gadget<FieldT>;
 
 namespace
 {

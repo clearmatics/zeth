@@ -180,7 +180,7 @@ public:
             for (size_t i = 0; i < libzeth::ZETH_NUM_JS_INPUTS; i++) {
                 printf(
                     "\r  input (%zu / %zu)\n", i, libzeth::ZETH_NUM_JS_INPUTS);
-                zeth_proto::JoinsplitInput received_input =
+                const zeth_proto::JoinsplitInput &received_input =
                     proof_inputs->js_inputs(i);
                 libzeth::joinsplit_input<
                     libzeth::FieldT,
@@ -200,7 +200,7 @@ public:
                     "\r  output (%zu / %zu)\n",
                     i,
                     libzeth::ZETH_NUM_JS_OUTPUTS);
-                zeth_proto::ZethNote received_output =
+                const zeth_proto::ZethNote &received_output =
                     proof_inputs->js_outputs(i);
                 libzeth::zeth_note parsed_output =
                     libzeth::zeth_note_from_proto(received_output);
@@ -406,7 +406,7 @@ int main(int argc, char **argv)
 
 #ifdef DEBUG
     // Run only if the flag is set
-    if (jr1cs_file != "") {
+    if (jr1cs_file.empty()) {
         std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
         std::ofstream jr1cs_stream(jr1cs_file.c_str());
         libzeth::r1cs_write_json<libzeth::ppT>(

@@ -15,9 +15,9 @@
 using namespace libzeth;
 
 // Instantiation of the templates for the tests
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
-typedef BLAKE2s_256<FieldT> HashT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
+using HashT = BLAKE2s_256<FieldT>;
 
 namespace
 {

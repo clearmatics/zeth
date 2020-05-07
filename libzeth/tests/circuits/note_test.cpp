@@ -15,14 +15,14 @@
 
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
+using ppT = libzeth::ppT;
 
 // Should be alt_bn128 in the CMakeLists.txt
-typedef libff::Fr<ppT> FieldT;
+using FieldT = libff::Fr<ppT>;
 
 // We use our hash functions to do the tests
-typedef BLAKE2s_256<FieldT> HashT;
-typedef MiMC_mp_gadget<FieldT> HashTreeT;
+using HashT = BLAKE2s_256<FieldT>;
+using HashTreeT = MiMC_mp_gadget<FieldT>;
 static const size_t TreeDepth = 4;
 
 namespace

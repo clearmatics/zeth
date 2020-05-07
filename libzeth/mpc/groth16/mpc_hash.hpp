@@ -14,8 +14,9 @@ namespace libzeth
 {
 
 // Hashing for MPC. Streaming and whole-buffer interfaces.
-const size_t MPC_HASH_SIZE_BYTES = 64;
-const size_t MPC_HASH_ARRAY_LENGTH = MPC_HASH_SIZE_BYTES / sizeof(size_t);
+static const size_t MPC_HASH_SIZE_BYTES = 64;
+static const size_t MPC_HASH_ARRAY_LENGTH =
+    MPC_HASH_SIZE_BYTES / sizeof(size_t);
 
 using mpc_hash_t = size_t[MPC_HASH_ARRAY_LENGTH];
 using mpc_hash_state_t = crypto_generichash_blake2b_state;
