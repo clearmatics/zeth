@@ -103,30 +103,26 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     libff::enter_block(
         "Data conversion to generate a witness of the note gadget", true);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk_digest;
-    a_sk_digest.reset(new libsnark::digest_variable<FieldT>(
-        pb, HashT::get_digest_len(), "a_sk_digest"));
+    std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk_digest(
+        new libsnark::digest_variable<FieldT>(
+            pb, HashT::get_digest_len(), "a_sk_digest"));
     a_sk_digest->generate_r1cs_constraints();
     a_sk_digest->generate_r1cs_witness(
         libff::bit_vector(bits256_to_vector(a_sk_bits256)));
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier_digest;
-    nullifier_digest.reset(new libsnark::digest_variable<FieldT>(
-        pb, HashT::get_digest_len(), "nullifier_digest"));
+    std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier_digest(
+        new libsnark::digest_variable<FieldT>(
+            pb, HashT::get_digest_len(), "nullifier_digest"));
     nullifier_digest->generate_r1cs_constraints();
     nullifier_digest->generate_r1cs_witness(
         libff::bit_vector(bits256_to_vector(nf_bits256)));
 
-    std::shared_ptr<libsnark::pb_variable<FieldT>> merkle_root;
-    merkle_root.reset(new libsnark::pb_variable<FieldT>);
-    (*merkle_root).allocate(pb, "root");
-    pb.val(*merkle_root) = updated_root_value;
+    libsnark::pb_variable<FieldT> merkle_root;
+    merkle_root.allocate(pb, "root");
+    pb.val(merkle_root) = updated_root_value;
 
-    std::shared_ptr<input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>>
-        input_note_g = std::shared_ptr<
-            input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>>(
-            new input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>(
-                pb, ZERO, a_sk_digest, nullifier_digest, *merkle_root));
+    input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth> input_note_g(
+        pb, ZERO, a_sk_digest, nullifier_digest, merkle_root);
 
     // Get the merkle path to the commitment we appended
     std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
@@ -134,8 +130,8 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // Create a note from the coin's data
     zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);
 
-    input_note_g->generate_r1cs_constraints();
-    input_note_g->generate_r1cs_witness(path, address_bits, note);
+    input_note_g.generate_r1cs_constraints();
+    input_note_g.generate_r1cs_witness(path, address_bits, note);
     libff::leave_block(
         "Data conversion to generate a witness of the note gadget", true);
 
@@ -173,9 +169,9 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
 
     libff::enter_block(
         "Data conversion to generate a witness of the note gadget", true);
-    std::shared_ptr<libsnark::digest_variable<FieldT>> rho_digest;
-    rho_digest.reset(new libsnark::digest_variable<FieldT>(
-        pb, HashT::get_digest_len(), "rho_digest"));
+    std::shared_ptr<libsnark::digest_variable<FieldT>> rho_digest(
+        new libsnark::digest_variable<FieldT>(
+            pb, HashT::get_digest_len(), "rho_digest"));
     rho_digest->generate_r1cs_constraints();
     rho_digest->generate_r1cs_witness(
         libff::bit_vector(bits256_to_vector(rho_bits256)));

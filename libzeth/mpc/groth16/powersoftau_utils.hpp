@@ -114,7 +114,7 @@ srs_powersoftau<srs_pot_pp> powersoftau_load(std::istream &in, size_t n);
 /// Write powersoftau data, in the format compatible with
 /// powersoftau_load.
 void powersoftau_write(
-    std::ostream &in, const srs_powersoftau<srs_pot_pp> &pot);
+    std::ostream &out, const srs_powersoftau<srs_pot_pp> &pot);
 
 /// Implements the SameRatio described in "Scalable Multi-party Computation
 /// for zk-SNARK Parameters in the Random Beacon Model"

@@ -60,13 +60,9 @@ TEST(TestCOMMs, TestCOMMGadget)
     libsnark::pb_variable<FieldT> result;
     result.allocate(pb, "result");
 
-    std::shared_ptr<COMM_cm_gadget<FieldT, HashT>> comm_cm_gadget;
-    comm_cm_gadget.reset(
-        new COMM_cm_gadget<FieldT, HashT>(pb, a_pk, rho, r, v, result));
-
-    comm_cm_gadget->generate_r1cs_constraints();
-
-    comm_cm_gadget->generate_r1cs_witness();
+    COMM_cm_gadget<FieldT, HashT> comm_cm_gadget(pb, a_pk, rho, r, v, result);
+    comm_cm_gadget.generate_r1cs_constraints();
+    comm_cm_gadget.generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);

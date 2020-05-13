@@ -51,6 +51,9 @@ if(USE_CLANG_TIDY)
       COMMAND python run-clang-tidy.py
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     )
+
+
+
   else()
     message(FATAL_ERROR "clang-tidy not found. Aborting...")
   endif()

@@ -97,18 +97,14 @@ std::vector<bool> bit_vector_from_size_t_le(size_t x)
 {
     std::vector<bool> ret;
     while (x) {
-        if (x & 1) {
-            ret.push_back(1);
-        } else {
-            ret.push_back(0);
-        }
+        ret.push_back((x & 1) != 0);
         x >>= 1;
     }
 
     return ret;
 }
 
-std::vector<bool> bit_vector_from_size_t_be(size_t n)
+std::vector<bool> bit_vector_from_size_t_be(size_t x)
 {
     std::vector<bool> res;
     size_t num_bits = 8 * sizeof(size_t);
@@ -116,23 +112,18 @@ std::vector<bool> bit_vector_from_size_t_be(size_t n)
 
     // Remove 0-bits at the front
     while (num_bits > 0) {
-        if ((n & mask) != 0) {
+        if ((x & mask) != 0) {
             break;
         }
-        n = n << 1;
+        x = x << 1;
         --num_bits;
     }
 
     // Pre-allocate and fill the vector with remaining bits
     res.reserve(num_bits);
     while (num_bits > 0) {
-        if ((n & mask) != 0) {
-            res.push_back(true);
-        } else {
-            res.push_back(false);
-        }
-
-        n = n << 1;
+        res.push_back((x & mask) != 0);
+        x = x << 1;
         --num_bits;
     }
 

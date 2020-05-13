@@ -21,25 +21,23 @@ PRF_gadget<FieldT, HashT>::PRF_gadget(
     const libsnark::pb_variable_array<FieldT> &y,
     std::shared_ptr<libsnark::digest_variable<FieldT>> result,
     const std::string &annotation_prefix)
-    : libsnark::gadget<FieldT>(pb, annotation_prefix), result(result)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , result(result)
+    , block(pb, {x, y}, FMT(this->annotation_prefix, " block"))
+    , hasher(pb, block, *result, FMT(this->annotation_prefix, " hasher_gadget"))
 {
-    block.reset(new libsnark::block_variable<FieldT>(
-        pb, {x, y}, FMT(this->annotation_prefix, " block")));
-
-    hasher.reset(new HashT(
-        pb, *block, *result, FMT(this->annotation_prefix, " hasher_gadget")));
 }
 
 template<typename FieldT, typename HashT>
 void PRF_gadget<FieldT, HashT>::generate_r1cs_constraints()
 {
-    hasher->generate_r1cs_constraints(true);
+    hasher.generate_r1cs_constraints(true);
 }
 
 template<typename FieldT, typename HashT>
 void PRF_gadget<FieldT, HashT>::generate_r1cs_witness()
 {
-    hasher->generate_r1cs_witness();
+    hasher.generate_r1cs_witness();
 }
 
 template<typename FieldT, typename HashT>

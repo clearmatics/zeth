@@ -106,17 +106,11 @@ TEST(TestSHA256, TestHash)
             },
             ZERO);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result;
-    result.reset(
-        new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
-
-    std::shared_ptr<libsnark::block_variable<FieldT>> input_block;
-    input_block.reset(new libsnark::block_variable<FieldT>(
-        pb, {left, right}, "Block_variable"));
-
-    std::shared_ptr<libzeth::sha256_ethereum<FieldT>> hasher;
-    hasher.reset(
-        new libzeth::sha256_ethereum<FieldT>(pb, ZERO, *input_block, *result));
+    libsnark::digest_variable<FieldT> result(
+        pb, HashT::get_digest_len(), "result");
+    libsnark::block_variable<FieldT> input_block(
+        pb, {left, right}, "Block_variable");
+    libzeth::sha256_ethereum<FieldT> hasher(pb, ZERO, input_block, result);
 
     // result should equal:
     // 0xa4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3 Since
@@ -135,19 +129,19 @@ TEST(TestSHA256, TestHash)
         libzeth::variable_array_from_bit_vector(
             libzeth::bit_vector_from_hex(test_vector_res_str), ZERO);
 
-    hasher->generate_r1cs_constraints(true);
-    hasher->generate_r1cs_witness();
+    hasher.generate_r1cs_constraints(true);
+    hasher.generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
 
     std::ostream &stream = std::cout;
     std::cout << " -- Result digest -- " << std::endl;
-    dump_bit_vector(stream, result->get_digest());
+    dump_bit_vector(stream, result.get_digest());
     std::cout << " -- Expected digest -- " << std::endl;
     dump_bit_vector(stream, expected.get_bits(pb));
 
-    ASSERT_EQ(result->get_digest(), expected.get_bits(pb));
+    ASSERT_EQ(result.get_digest(), expected.get_bits(pb));
 };
 
 TEST(TestSHA256, TestHashWithZeroLeg)
@@ -179,20 +173,17 @@ TEST(TestSHA256, TestHashWithZeroLeg)
     left.fill_with_bits(pb, left_bits);
     right.fill_with_bits(pb, right_bits);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result;
-    result.reset(
-        new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+    libsnark::digest_variable<FieldT> result(
+        pb, HashT::get_digest_len(), "result");
 
-    std::shared_ptr<libsnark::block_variable<FieldT>> input_block;
-    input_block.reset(new libsnark::block_variable<FieldT>(
-        pb, {left, right}, "Block_variable"));
+    libsnark::block_variable<FieldT> input_block(
+        pb, {left, right}, "Block_variable");
 
-    std::shared_ptr<libzeth::sha256_ethereum<FieldT>> hasher;
-    hasher.reset(new libzeth::sha256_ethereum<FieldT>(
-        pb, ZERO, *input_block, *result, "Sha256_ethereum"));
+    libzeth::sha256_ethereum<FieldT> hasher(
+        pb, ZERO, input_block, result, "Sha256_ethereum");
 
-    hasher->generate_r1cs_constraints(true);
-    hasher->generate_r1cs_witness();
+    hasher.generate_r1cs_constraints(true);
+    hasher.generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
@@ -203,11 +194,11 @@ TEST(TestSHA256, TestHashWithZeroLeg)
     std::cout << " -- right -- " << std::endl;
     dump_bit_vector(stream, right.get_bits(pb));
     std::cout << " -- Result digest -- " << std::endl;
-    dump_bit_vector(stream, result->get_digest());
+    dump_bit_vector(stream, result.get_digest());
     std::cout << " -- Expected digest -- " << std::endl;
     dump_bit_vector(stream, expected_bits);
 
-    ASSERT_EQ(result->get_digest(), expected_bits);
+    ASSERT_EQ(result.get_digest(), expected_bits);
 };
 
 } // namespace

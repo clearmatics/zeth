@@ -31,8 +31,7 @@ private:
 public:
     subcommand(
         const std::string &subcommand_name, const std::string &description);
-    void set_global_options(
-        bool verbose, const ProtoboardInitFn &protoboard_init);
+    void set_global_options(bool verbose, const ProtoboardInitFn &pb_init);
     int execute(const std::vector<std::string> &args);
     const std::string &description() const;
 

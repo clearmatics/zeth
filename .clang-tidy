@@ -40,22 +40,22 @@ Checks:
     -modernize-use-trailing-return-type,
     -readability-magic-numbers,
     -readability-implicit-bool-conversion,
-    -readability-inconsistent-declaration-parameter-name,
-    -readability-identifier-naming,
     -modernize-return-braced-init-list,
-    -modernize-make-shared,
-    -modernize-deprecated-headers,
-    -misc-unused-parameters,
     -readability-named-parameter,
-    -misc-non-private-member-variables-in-classes,
-    -bugprone-exception-escape,
     -modernize-pass-by-value,
     -modernize-use-default-member-init,
+    -bugprone-exception-escape,
+    -misc-non-private-member-variables-in-classes,
+    -misc-unused-parameters,
     -readability-redundant-member-init,
-    -readability-convert-member-functions-to-static,
-    # -readability-,
+    -modernize-deprecated-headers,
+    -readability-identifier-naming,
+
+WarningsAsErrors:
+    '*'
 
 HeaderFilterRegex: 'libzeth/*.(h|hpp|cpp)'
+
 
 # CheckOptions:
 #     - key: readability-identifier-naming.MacroDefinitionCase
