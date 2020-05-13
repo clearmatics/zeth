@@ -15,9 +15,7 @@ message HexPointBaseGroup1Affine {
 // The points in G2 are represented in affine form.
 message HexPointBaseGroup2Affine {
     // First coordinate of the point
-    string x_c1_coord = 1;
-    string x_c0_coord = 2;
+    repeated string x_coord = 1;
     // Second coordinate of the point
-    string y_c1_coord = 3;
-    string y_c0_coord = 4;
+    repeated string y_coord = 2;
 }
