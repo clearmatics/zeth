@@ -21,6 +21,8 @@ if(USE_CPP_CHECK)
       COMMAND cppcheck
       --project=compile_commands.json
       --enable=all
+      --suppress='*:${DEPENDS_DIR}/*'
+      --suppress='*:${CMAKE_CURRENT_BINARY_DIR}/api/*'
       --quiet
       -i${DEPENDS_DIR}
     )
