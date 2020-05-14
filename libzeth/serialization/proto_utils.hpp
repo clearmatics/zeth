@@ -13,6 +13,8 @@
 #include "libzeth/core/note.hpp"
 #include "libzeth/core/utils.hpp"
 
+#include "libzeth/core/group_element_utils.hpp"
+
 #include <api/snark_messages.pb.h>
 #include <api/zeth_messages.pb.h>
 
@@ -53,6 +55,17 @@ template<typename ppT>
 std::vector<libff::Fr<ppT>> primary_inputs_from_string(
     const std::string &input_str);
 
+template<typename ppT>
+std::string accumulation_vector_to_string(
+    const libsnark::accumulation_vector<libff::G1<ppT>> &acc_vector);
+
+/// A valid string is on the form:
+/// "[[\"0x...\", ..., \"0x...\"], ..., [\"0x...\", ... \"0x...\"]]"
+/// As such, we verify the prefix and suffix of the input string to verify
+/// that it starts with "[[" and finishes by "]]".
+///
+/// CAREFUL: This implementation is fragile.
+/// TODO: Have proper and more robust implementation.
 template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
     const std::string &acc_vector_str);
