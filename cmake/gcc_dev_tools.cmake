@@ -19,12 +19,15 @@ if(USE_CPP_CHECK)
     add_custom_target(
       cppcheck
       COMMAND cppcheck
-      --project=compile_commands.json
+      --project=${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
       --enable=all
       --suppress='*:${DEPENDS_DIR}/*'
       --suppress='*:${CMAKE_CURRENT_BINARY_DIR}/api/*'
+      --suppressions-list=${PROJECT_SOURCE_DIR}/.cppcheck.suppressions
+      --inline-suppr
       --quiet
       -i${DEPENDS_DIR}
+      --error-exitcode=1
     )
   else()
       message(FATAL_ERROR "cppcheck not found. Aborting...")
