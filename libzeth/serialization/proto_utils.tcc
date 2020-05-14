@@ -146,8 +146,7 @@ std::string accumulation_vector_to_string(
     unsigned vect_length = acc_vector.rest.indices.size() + 1;
     ss << "[" << point_g1_affine_to_json<ppT>(acc_vector.first);
     for (size_t i = 0; i < vect_length - 1; ++i) {
-        ss << ", "
-           << point_g1_affine_to_json<ppT>(acc_vector.rest.values[i]);
+        ss << ", " << point_g1_affine_to_json<ppT>(acc_vector.rest.values[i]);
     }
     ss << "]";
     std::string vect_json_str = ss.str();
@@ -165,15 +164,17 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
         throw std::invalid_argument("invalid accumulation vector string");
     }
 
-    if ((acc_vector_str.find(prefix) != 0) || 
-        (acc_vector_str.compare(acc_vector_str.length() - suffix.length(),
-            suffix.length(), suffix) != 0))
-    {
+    if ((acc_vector_str.find(prefix) != 0) ||
+        (acc_vector_str.compare(
+             acc_vector_str.length() - suffix.length(),
+             suffix.length(),
+             suffix) != 0)) {
         throw std::invalid_argument("invalid accumulation vector string");
     }
 
     // Erase the outer '[' and ']'
-    std::string acc_vector_str_bis = acc_vector_str.substr(1, acc_vector_str.size() - 2);
+    std::string acc_vector_str_bis =
+        acc_vector_str.substr(1, acc_vector_str.size() - 2);
 
     // Retrieve all 1 dimensional arrays of strings. They represent G1 elements
     // since we assume that el_g1 = [x, y], where (x,y) \in (\F_p)^2, p prime

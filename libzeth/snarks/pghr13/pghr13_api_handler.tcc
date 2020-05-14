@@ -41,7 +41,8 @@ void pghr13_api_handler<ppT>::verification_key_to_proto(
     gb2->CopyFrom(point_g2_affine_to_proto<ppT>(vk.gamma_beta_g2));
     z->CopyFrom(point_g2_affine_to_proto<ppT>(vk.rC_Z_g2));
 
-    std::string ic_json = accumulation_vector_to_string<ppT>(vk.encoded_IC_query);
+    std::string ic_json =
+        accumulation_vector_to_string<ppT>(vk.encoded_IC_query);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:

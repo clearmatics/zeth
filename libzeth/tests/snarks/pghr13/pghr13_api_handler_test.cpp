@@ -18,15 +18,18 @@ namespace
 
 TEST(PGHR13ApiHandlerTest, VerificationKeyEncodeDecode)
 {
-    libsnark::r1cs_ppzksnark_verification_key<ppT> initial_vk = 
-        libsnark::r1cs_ppzksnark_verification_key<ppT>::dummy_verification_key(42);
-    
+    libsnark::r1cs_ppzksnark_verification_key<ppT> initial_vk =
+        libsnark::r1cs_ppzksnark_verification_key<ppT>::dummy_verification_key(
+            42);
+
     zeth_proto::VerificationKey *proto_vk = new zeth_proto::VerificationKey();
-    libzeth::pghr13_api_handler<ppT>::verification_key_to_proto(initial_vk, proto_vk);
+    libzeth::pghr13_api_handler<ppT>::verification_key_to_proto(
+        initial_vk, proto_vk);
 
     libsnark::r1cs_ppzksnark_verification_key<ppT> recovered_vk =
-        libzeth::pghr13_api_handler<ppT>::verification_key_from_proto(*proto_vk);
-    
+        libzeth::pghr13_api_handler<ppT>::verification_key_from_proto(
+            *proto_vk);
+
     ASSERT_EQ(initial_vk, recovered_vk);
 
     // The destructor of `zeth_proto::VerificationKey` should be

@@ -38,7 +38,8 @@ libff::G1<ppT> point_g1_affine_from_json(const std::string &grp_str)
         throw std::invalid_argument("invalid number of coordinates");
     }
 
-    return libff::G1<ppT>(coordinates[0], coordinates[1], libff::Fq<ppT>::one());
+    return libff::G1<ppT>(
+        coordinates[0], coordinates[1], libff::Fq<ppT>::one());
 }
 
 template<typename ppT>

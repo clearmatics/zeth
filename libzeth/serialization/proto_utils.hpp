@@ -7,13 +7,12 @@
 
 #include "libzeth/core/bits.hpp"
 #include "libzeth/core/extended_proof.hpp"
+#include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/core/include_libff.hpp"
 #include "libzeth/core/include_libsnark.hpp"
 #include "libzeth/core/joinsplit_input.hpp"
 #include "libzeth/core/note.hpp"
 #include "libzeth/core/utils.hpp"
-
-#include "libzeth/core/group_element_utils.hpp"
 
 #include <api/snark_messages.pb.h>
 #include <api/zeth_messages.pb.h>
