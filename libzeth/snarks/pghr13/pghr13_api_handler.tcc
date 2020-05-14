@@ -41,16 +41,8 @@ void pghr13_api_handler<ppT>::verification_key_to_proto(
     gb2->CopyFrom(point_g2_affine_to_proto<ppT>(vk.gamma_beta_g2));
     z->CopyFrom(point_g2_affine_to_proto<ppT>(vk.rC_Z_g2));
 
-    std::stringstream ss;
-    unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
-    ss << "[" << point_g1_affine_to_hex<ppT>(vk.encoded_IC_query.first);
-    for (size_t i = 1; i < ic_length; ++i) {
-        auto vk_ic_i =
-            point_g1_affine_to_hex<ppT>(vk.encoded_IC_query.rest.values[i - 1]);
-        ss << "," << vk_ic_i;
-    }
-    ss << "]";
-    std::string ic_json = ss.str();
+    std::string ic_json =
+        accumulation_vector_to_string<ppT>(vk.encoded_IC_query);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -78,7 +70,7 @@ typename pghr13_snark<ppT>::VerificationKeyT pghr13_api_handler<
     libff::G2<ppT> a = point_g2_affine_from_proto<ppT>(verif_key.a());
     libff::G1<ppT> b = point_g1_affine_from_proto<ppT>(verif_key.b());
     libff::G2<ppT> c = point_g2_affine_from_proto<ppT>(verif_key.c());
-    libff::G1<ppT> gamma = point_g2_affine_from_proto<ppT>(verif_key.gamma());
+    libff::G2<ppT> gamma = point_g2_affine_from_proto<ppT>(verif_key.gamma());
     libff::G1<ppT> gamma_beta_g1 =
         point_g1_affine_from_proto<ppT>(verif_key.gamma_beta_g1());
     libff::G2<ppT> gamma_beta_g2 =
