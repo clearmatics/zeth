@@ -62,15 +62,15 @@ bits384 bits384_from_vector(const std::vector<bool> &vect)
     return vector_to_array<384>(vect);
 }
 
-bits384 bits384_from_hex(const std::string &str)
+bits384 bits384_from_hex(const std::string &hex_str)
 {
-    if (str.length() != 96) {
+    if (hex_str.length() != 96) {
         throw std::length_error(
             "Invalid string length for the given hex digest (should be "
             "96)");
     }
 
-    return bits384_from_vector(bit_vector_from_hex(str));
+    return bits384_from_vector(bit_vector_from_hex(hex_str));
 }
 
 std::vector<bool> bits384_to_vector(const bits384 &arr)

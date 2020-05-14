@@ -29,12 +29,8 @@ public:
 
     inline bool is_zero_valued() const
     {
-        for (const bool b : value) {
-            if (b) {
-                return false;
-            }
-        }
-        return true;
+        return !std::any_of(
+            value.begin(), value.end(), [](const bool b) { return b; });
     }
 };
 

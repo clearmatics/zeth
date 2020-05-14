@@ -26,7 +26,7 @@ public:
     // Trapdoor r of the note (256 bits)
     libsnark::pb_variable_array<FieldT> r;
 
-    note_gadget(
+    explicit note_gadget(
         libsnark::protoboard<FieldT> &pb,
         const std::string &annotation_prefix = "note_gadget");
     void generate_r1cs_constraints();

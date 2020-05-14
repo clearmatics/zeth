@@ -93,7 +93,7 @@ joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
     }
 
     return joinsplit_input<FieldT, TreeDepth>(
-        input_merkle_path,
+        std::move(input_merkle_path),
         bits_addr_from_size_t<TreeDepth>(input.address()),
         zeth_note_from_proto(input.note()),
         bits256_from_hex(input.spending_ask()),
@@ -193,12 +193,11 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
         // this means that we need to modify the type of `abc_g1` in the proto
         // file to be a repeated G1 element (and not a string) Likewise for the
         // inputs which should be changed to repeated field elements
-        libff::Fq<ppT> x_coordinate =
-            field_element_to_hex<libff::Fq<ppT>>(res[i]);
-        libff::Fq<ppT> y_coordinate =
+        libff::Fq<ppT> x_coord = field_element_to_hex<libff::Fq<ppT>>(res[i]);
+        libff::Fq<ppT> y_coord =
             field_element_to_hex<libff::Fq<ppT>>(res[i + 1]);
 
-        point_g1 = libff::G1<ppT>(x_coordinate, y_coordinate);
+        point_g1 = libff::G1<ppT>(x_coord, y_coord);
         rest[i / 2 - 1] = point_g1;
     }
 

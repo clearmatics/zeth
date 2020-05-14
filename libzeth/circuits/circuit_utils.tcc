@@ -55,6 +55,7 @@ libsnark::pb_variable_array<FieldT> variable_array_from_bit_vector(
     const std::vector<bool> &bits, const libsnark::pb_variable<FieldT> &ZERO)
 {
     libsnark::pb_variable_array<FieldT> acc;
+    acc.reserve(bits.size());
     for (bool bit : bits) {
         acc.emplace_back(bit ? ONE : ZERO);
     }

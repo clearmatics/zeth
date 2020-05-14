@@ -1,2 +1,5 @@
 // Errors and Warnings to Suppress
 useStlAlgorithm:*
+
+// This raises some false positives, and inline suppressions seem not to work
+unusedFunction:*

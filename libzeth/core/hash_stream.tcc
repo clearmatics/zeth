@@ -23,13 +23,13 @@ std::streamsize hash_streambuf<HashT>::xsputn(const char *s, std::streamsize n)
 
 template<typename HashT>
 hash_streambuf_wrapper<HashT>::hash_streambuf_wrapper(std::ostream *inner)
-    : hash_state(), inner_out(inner)
+    : hash_state(), inner_out(inner), inner_in(nullptr)
 {
 }
 
 template<typename HashT>
 hash_streambuf_wrapper<HashT>::hash_streambuf_wrapper(std::istream *inner)
-    : hash_state(), inner_in(inner)
+    : hash_state(), inner_out(nullptr), inner_in(inner)
 {
 }
 

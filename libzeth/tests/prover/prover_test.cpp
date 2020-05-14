@@ -78,8 +78,16 @@ bool TestValidJS2In2Case1(
     std::vector<FieldT> path = test_merkle_tree.get_path(address_commitment);
 
     // JS Inputs: 1 note of value > 0 to spend, and a dummy note
-    zeth_note note_input(
-        a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
+    inputs[0] = joinsplit_input<FieldT, TreeDepth>(
+        std::vector<FieldT>(path),
+        bits_addr_from_vector<TreeDepth>(address_bits),
+        zeth_note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256),
+        bits256(a_sk_bits256),
+        bits256(nf_bits256));
+    // We keep the same path and address as the previous commitment
+    // We don't care since this coin is zero-valued and the merkle auth path
+    // check Doesn't count in such case
     zeth_note note_dummy_input(
         a_pk_bits256,
         bits64_from_hex("0000000000000000"),
@@ -87,24 +95,12 @@ bool TestValidJS2In2Case1(
             "AAAA00000000000000000000000000000000000000000000000000000000EEE"
             "E"),
         trap_r_bits256);
-    joinsplit_input<FieldT, TreeDepth> input(
-        path,
-        bits_addr_from_vector<TreeDepth>(address_bits),
-        note_input,
-        a_sk_bits256,
-        nf_bits256);
-    // We keep the same path and address as the previous commitment
-    // We don't care since this coin is zero-valued and the merkle auth path
-    // check Doesn't count in such case
-    joinsplit_input<FieldT, TreeDepth> input_dummy(
-        path,
+    inputs[1] = joinsplit_input<FieldT, TreeDepth>(
+        std::move(path),
         bits_addr_from_vector<TreeDepth>(address_bits),
         note_dummy_input,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
-    inputs[0] = input;
-    inputs[1] = input_dummy;
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
@@ -206,31 +202,27 @@ bool TestValidJS2In2Case2(
     std::vector<FieldT> path = test_merkle_tree.get_path(address_commitment);
 
     // JS Inputs
-    zeth_note note_input0(
-        a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
+    inputs[0] = joinsplit_input<FieldT, TreeDepth>(
+        std::vector<FieldT>(path),
+        bits_addr_from_vector<TreeDepth>(address_bits),
+        zeth_note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256),
+        bits256(a_sk_bits256),
+        bits256(nf_bits256));
+    // We keep the same path and address as the previous commitment
+    // We don't care since this coin is zero-valued and the merkle auth path
+    // check Doesn't count in such case
     zeth_note note_input1(
         a_pk_bits256,
         bits64_from_hex("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
-    joinsplit_input<FieldT, TreeDepth> input0(
-        path,
-        bits_addr_from_vector<TreeDepth>(address_bits),
-        note_input0,
-        a_sk_bits256,
-        nf_bits256);
-    // We keep the same path and address as the previous commitment
-    // We don't care since this coin is zero-valued and the merkle auth path
-    // check Doesn't count in such case
-    joinsplit_input<FieldT, TreeDepth> input1(
-        path,
+    inputs[1] = joinsplit_input<FieldT, TreeDepth>(
+        std::move(path),
         bits_addr_from_vector<TreeDepth>(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
-    inputs[0] = input0;
-    inputs[1] = input1;
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
@@ -334,34 +326,27 @@ bool TestValidJS2In2Case3(
     std::vector<FieldT> path = test_merkle_tree.get_path(address_commitment);
 
     // JS Inputs
-    zeth_note note_input0(
-        a_pk_bits256,
-        value_bits64, // value associated with the commitment cm_field
-        rho_bits256,
-        trap_r_bits256);
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
+    inputs[0] = joinsplit_input<FieldT, TreeDepth>(
+        std::vector<FieldT>(path),
+        bits_addr_from_vector<TreeDepth>(address_bits),
+        zeth_note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256),
+        bits256(a_sk_bits256),
+        bits256(nf_bits256));
+    // We keep the same path and address as the previous commitment
+    // We don't care since this coin is zero-valued and the merkle auth path
+    // check Doesn't count in such case
     zeth_note note_input1(
         a_pk_bits256,
         bits64_from_hex("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
-    joinsplit_input<FieldT, TreeDepth> input0(
-        path,
-        bits_addr_from_vector<TreeDepth>(address_bits),
-        note_input0,
-        a_sk_bits256,
-        nf_bits256);
-    // We keep the same path and address as the previous commitment
-    // We don't care since this coin is zero-valued and the merkle auth path
-    // check Doesn't count in such case
-    joinsplit_input<FieldT, TreeDepth> input1(
-        path,
+    inputs[1] = joinsplit_input<FieldT, TreeDepth>(
+        std::move(path),
         bits_addr_from_vector<TreeDepth>(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
-    inputs[0] = input0;
-    inputs[1] = input1;
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
@@ -462,18 +447,14 @@ bool TestValidJS2In2Deposit(
     std::vector<FieldT> path = test_merkle_tree.get_path(address_commitment);
 
     // JS Inputs
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
     zeth_note note_input0(
         a_pk_bits256,
         bits64_from_hex("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
-    zeth_note note_input1(
-        a_pk_bits256,
-        bits64_from_hex("0000000000000000"),
-        rho_bits256,
-        trap_r_bits256);
-    joinsplit_input<FieldT, TreeDepth> input0(
-        path,
+    inputs[0] = joinsplit_input<FieldT, TreeDepth>(
+        std::vector<FieldT>(path),
         bits_addr_from_vector<TreeDepth>(address_bits),
         note_input0,
         a_sk_bits256,
@@ -481,15 +462,17 @@ bool TestValidJS2In2Deposit(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    joinsplit_input<FieldT, TreeDepth> input1(
-        path,
+    zeth_note note_input1(
+        a_pk_bits256,
+        bits64_from_hex("0000000000000000"),
+        rho_bits256,
+        trap_r_bits256);
+    inputs[1] = joinsplit_input<FieldT, TreeDepth>(
+        std::move(path),
         bits_addr_from_vector<TreeDepth>(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
-    inputs[0] = input0;
-    inputs[1] = input1;
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
@@ -597,13 +580,9 @@ bool TestInvalidJS2In2(
         bits64_from_hex("0000000000000000"),
         rho_bits256,
         trap_r_bits256);
-    zeth_note note_input1(
-        a_pk_bits256,
-        bits64_from_hex("0000000000000000"),
-        rho_bits256,
-        trap_r_bits256);
-    joinsplit_input<FieldT, TreeDepth> input0(
-        path,
+    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
+    inputs[0] = joinsplit_input<FieldT, TreeDepth>(
+        std::vector<FieldT>(path),
         bits_addr_from_vector<TreeDepth>(address_bits),
         note_input0,
         a_sk_bits256,
@@ -611,15 +590,17 @@ bool TestInvalidJS2In2(
     // We keep the same path and address as the previous commitment
     // We don't care since this coin is zero-valued and the merkle auth path
     // check Doesn't count in such case
-    joinsplit_input<FieldT, TreeDepth> input1(
-        path,
+    zeth_note note_input1(
+        a_pk_bits256,
+        bits64_from_hex("0000000000000000"),
+        rho_bits256,
+        trap_r_bits256);
+    inputs[1] = joinsplit_input<FieldT, TreeDepth>(
+        std::move(path),
         bits_addr_from_vector<TreeDepth>(address_bits),
         note_input1,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
-    inputs[0] = input0;
-    inputs[1] = input1;
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);

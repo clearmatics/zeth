@@ -32,12 +32,12 @@ public:
 
     joinsplit_input(){};
     joinsplit_input(
-        std::vector<FieldT> witness_merkle_path,
-        std::array<bool, TreeDepth> address_bits,
-        zeth_note note,
-        bits256 key,
-        bits256 nullifier)
-        : witness_merkle_path(witness_merkle_path)
+        std::vector<FieldT> &&witness_merkle_path,
+        const std::array<bool, TreeDepth> &address_bits,
+        const zeth_note &note,
+        const bits256 &key,
+        const bits256 &nullifier)
+        : witness_merkle_path(std::move(witness_merkle_path))
         , address_bits(address_bits)
         , note(note)
         , spending_key_a_sk(key)

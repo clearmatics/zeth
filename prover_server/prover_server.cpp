@@ -96,7 +96,7 @@ private:
         libzeth::ZETH_MERKLE_TREE_DEPTH>
         prover;
 
-    // The keypair is the result of the setup
+    // The keypair is the result of the setup. Store a copy internally.
     snark::KeypairT keypair;
 
 public:
@@ -109,7 +109,7 @@ public:
             libzeth::ZETH_NUM_JS_INPUTS,
             libzeth::ZETH_NUM_JS_OUTPUTS,
             libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
-        snark::KeypairT &keypair)
+        const snark::KeypairT &keypair)
         : prover(prover), keypair(keypair)
     {
     }
@@ -182,13 +182,9 @@ public:
                     "\r  input (%zu / %zu)\n", i, libzeth::ZETH_NUM_JS_INPUTS);
                 const zeth_proto::JoinsplitInput &received_input =
                     proof_inputs->js_inputs(i);
-                libzeth::joinsplit_input<
+                joinsplit_inputs[i] = libzeth::joinsplit_input_from_proto<
                     libzeth::FieldT,
-                    libzeth::ZETH_MERKLE_TREE_DEPTH>
-                    parsed_input = libzeth::joinsplit_input_from_proto<
-                        libzeth::FieldT,
-                        libzeth::ZETH_MERKLE_TREE_DEPTH>(received_input);
-                joinsplit_inputs[i] = parsed_input;
+                    libzeth::ZETH_MERKLE_TREE_DEPTH>(received_input);
             }
 
             std::cout << "[DEBUG] Process all outputs of the JoinSplit"
@@ -286,7 +282,7 @@ static void RunServer(
         libzeth::ZETH_NUM_JS_INPUTS,
         libzeth::ZETH_NUM_JS_OUTPUTS,
         libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
-    typename snark::KeypairT &keypair)
+    const typename snark::KeypairT &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50051
     std::string server_address("0.0.0.0:50051");
