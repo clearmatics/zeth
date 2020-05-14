@@ -28,15 +28,7 @@ void groth16_api_handler<ppT>::verification_key_to_proto(
     b->CopyFrom(point_g2_affine_to_proto<ppT>(vk.beta_g2));
     d->CopyFrom(point_g2_affine_to_proto<ppT>(vk.delta_g2));
 
-    std::stringstream ss;
-    unsigned abc_length = vk.ABC_g1.rest.indices.size() + 1;
-    ss << "[\n  " << point_g1_affine_to_json<ppT>(vk.ABC_g1.first);
-    for (size_t i = 1; i < abc_length; ++i) {
-        ss << ",\n  "
-           << point_g1_affine_to_json<ppT>(vk.ABC_g1.rest.values[i - 1]);
-    }
-    ss << "\n]";
-    std::string abc_json_str = ss.str();
+    std::string abc_json_str = accumulation_vector_to_string<ppT>(vk.ABC_g1);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
