@@ -20,7 +20,13 @@ public:
     bits256 rho;
     bits256 r;
 
-    zeth_note(bits256 a_pk, bits64 value, bits256 rho, bits256 r)
+    // Note, r-value refs are not used because the bits* objects are all
+    // trivially-copyable.
+    zeth_note(
+        const bits256 &a_pk,
+        const bits64 &value,
+        const bits256 &rho,
+        const bits256 &r)
         : a_pk(a_pk), value(value), rho(rho), r(r)
     {
     }

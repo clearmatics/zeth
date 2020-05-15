@@ -140,7 +140,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
               << " ******************" << std::endl;
 
     ASSERT_TRUE(is_valid_witness);
-};
+}
 
 TEST(TestNoteCircuits, TestOutputNoteGadget)
 {
@@ -198,7 +198,7 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
 
     // Last check to make sure the commitment computed is the expected one
     ASSERT_EQ(pb.val(commitment), cm);
-};
+}
 
 } // namespace
 

@@ -79,6 +79,7 @@ bool TestValidJS2In2Case1(
 
     // JS Inputs: 1 note of value > 0 to spend, and a dummy note
     std::array<joinsplit_input<FieldT, TreeDepth>, 2> inputs;
+
     inputs[0] = joinsplit_input<FieldT, TreeDepth>(
         std::vector<FieldT>(path),
         bits_addr_from_vector<TreeDepth>(address_bits),
@@ -92,8 +93,7 @@ bool TestValidJS2In2Case1(
         a_pk_bits256,
         bits64_from_hex("0000000000000000"),
         bits256_from_hex(
-            "AAAA00000000000000000000000000000000000000000000000000000000EEE"
-            "E"),
+            "AAAA00000000000000000000000000000000000000000000000000000000EEEE"),
         trap_r_bits256);
     inputs[1] = joinsplit_input<FieldT, TreeDepth>(
         std::move(path),
