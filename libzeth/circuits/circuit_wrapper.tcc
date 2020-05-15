@@ -140,16 +140,10 @@ extended_proof<ppT, snarkT> circuit_wrapper<
     std::cout << "******* [DEBUG] Satisfiability result: " << is_valid_witness
               << " *******" << std::endl;
 
-    typename snarkT::ProofT proof = snarkT::generate_proof(pb, proving_key);
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input =
-        pb.primary_input();
-
     // Instantiate an extended_proof from the proof we generated and the given
     // primary_input
-    extended_proof<ppT, snarkT> ext_proof =
-        extended_proof<ppT, snarkT>(proof, primary_input);
-
-    return ext_proof;
+    return extended_proof<ppT, snarkT>(
+        snarkT::generate_proof(pb, proving_key), pb.primary_input());
 }
 
 } // namespace libzeth

@@ -17,14 +17,13 @@ namespace libzeth
 template<typename ppT, typename snarkT> class extended_proof
 {
 private:
-    std::shared_ptr<typename snarkT::ProofT> proof;
-    std::shared_ptr<libsnark::r1cs_primary_input<libff::Fr<ppT>>>
-        primary_inputs;
+    typename snarkT::ProofT proof;
+    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs;
 
 public:
     extended_proof(
-        typename snarkT::ProofT &in_proof,
-        libsnark::r1cs_primary_input<libff::Fr<ppT>> &in_primary_inputs);
+        typename snarkT::ProofT &&in_proof,
+        libsnark::r1cs_primary_input<libff::Fr<ppT>> &&in_primary_inputs);
     const typename snarkT::ProofT &get_proof() const;
 
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_inputs()
