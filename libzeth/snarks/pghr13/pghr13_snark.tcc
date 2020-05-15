@@ -117,7 +117,17 @@ template<typename ppT>
 std::ostream &pghr13_snark<ppT>::proof_write_json(
     const typename pghr13_snark<ppT>::ProofT &proof, std::ostream &os)
 {
-    return os << proof;
+    os << "{\n";
+    os << " \"a\": " << point_g1_affine_to_json<ppT>(proof.g_A.g) << ",\n";
+    os << " \"a_p\": " << point_g1_affine_to_json<ppT>(proof.g_A.h) << ",\n";
+    os << " \"b\": " << point_g2_affine_to_json<ppT>(proof.g_B.g) << ",\n";
+    os << " \"b_p\": " << point_g1_affine_to_json<ppT>(proof.g_B.h) << ",\n";
+    os << " \"c\": " << point_g1_affine_to_json<ppT>(proof.g_C.g) << ",\n";
+    os << " \"c_p\": " << point_g1_affine_to_json<ppT>(proof.g_C.h) << ",\n";
+    os << " \"h\": " << point_g1_affine_to_json<ppT>(proof.g_H) << ",\n";
+    os << " \"k\": " << point_g1_affine_to_json<ppT>(proof.g_K) << "\n";
+    os << "}";
+    return os;
 }
 
 template<typename ppT>
