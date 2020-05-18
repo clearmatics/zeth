@@ -28,6 +28,9 @@ using prover = circuit_wrapper<HashT, HashTreeT, ppT, snarkT, 2, 2, TreeDepth>;
 namespace
 {
 
+const bits256 zero_bits256 = bits256_from_hex(
+    "0000000000000000000000000000000000000000000000000000000000000000");
+
 template<typename snarkT>
 bool TestValidJS2In2Case1(
     const prover<snarkT> &prover, const typename snarkT::KeypairT &keypair)
@@ -107,10 +110,9 @@ bool TestValidJS2In2Case1(
     bits64 value_out_bits64 = bits64_from_hex("1800000000000008");
     bits256 a_pk_out_bits256 = bits256_from_hex(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
-    bits256 rho_out_bits256;
+    const bits256 &rho_out_bits256 = zero_bits256;
     bits256 trap_r_out_bits256 = bits256_from_hex(
         "11000000000000990000000000000099000000000000007700000000000000FF");
-
     zeth_note note_output(
         a_pk_out_bits256,
         value_out_bits64,
@@ -228,7 +230,7 @@ bool TestValidJS2In2Case2(
     libff::enter_block("Create JSOutput/zeth_note", true);
     bits256 a_pk_out_bits256 = bits256_from_hex(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
-    bits256 rho_out_bits256;
+    const bits256 &rho_out_bits256 = zero_bits256;
     bits256 trap_r_out_bits256 = bits256_from_hex(
         "11000000000000990000000000000099000000000000007700000000000000FF");
     zeth_note note_output0(
@@ -352,7 +354,7 @@ bool TestValidJS2In2Case3(
     libff::enter_block("Create JSOutput/zeth_note", true);
     bits256 a_pk_out_bits256 = bits256_from_hex(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
-    bits256 rho_out_bits256;
+    const bits256 &rho_out_bits256 = zero_bits256;
     bits256 trap_r_out_bits256 = bits256_from_hex(
         "11000000000000990000000000000099000000000000007700000000000000FF");
 
@@ -478,7 +480,7 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("Create JSOutput/zeth_note", true);
     bits256 a_pk_out_bits256 = bits256_from_hex(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
-    bits256 rho_out_bits256;
+    const bits256 &rho_out_bits256 = zero_bits256;
     bits256 trap_r_out_bits256 = bits256_from_hex(
         "11000000000000990000000000000099000000000000007700000000000000FF");
     zeth_note note_output0(
@@ -606,7 +608,7 @@ bool TestInvalidJS2In2(
     libff::enter_block("Create JSOutput/zeth_note", true);
     bits256 a_pk_out_bits256 = bits256_from_hex(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
-    bits256 rho_out_bits256;
+    const bits256 &rho_out_bits256 = zero_bits256;
     bits256 trap_r_out_bits256 = bits256_from_hex(
         "11000000000000990000000000000099000000000000007700000000000000FF");
 
