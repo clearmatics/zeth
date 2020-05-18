@@ -41,6 +41,20 @@ function pyclient_check() {
     popd
 }
 
+function check_cpp() {
+    apk add cppcheck
+    cppcheck --version
+
+    # Configure and run clang-tidy cppcheck
+    mkdir -p build
+    pushd build
+    # cmake -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
+    # make VERBOSE=1 clang-tidy -j 5
+    cmake -DUSE_CPP_CHECK=ON ..
+    make VERBOSE=1 cppcheck -j 5
+    popd
+}
+
 function command_tests() {
 
     # These commands are only for the GROTH16 config
