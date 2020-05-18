@@ -16,18 +16,25 @@ if(USE_CPP_CHECK)
   if(CPP_CHECK)
     message("cppcheck found!")
     message("Using cppcheck. Creating target... To run, use: make cppcheck")
+    # TODO: gtest includes are not found by cppcheck, because they are marked
+    # as "SYSTEM" (to prevent compile warnings). We exclude all tests for now,
+    # to avoid many "syntaxError" reports, but the analysis should be run on
+    # tests.
     add_custom_target(
       cppcheck
       COMMAND cppcheck
       --project=${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
       --enable=all
-      --suppress='*:${DEPENDS_DIR}/*'
-      --suppress='*:${CMAKE_CURRENT_BINARY_DIR}/api/*'
       --suppressions-list=${PROJECT_SOURCE_DIR}/.cppcheck.suppressions
       --inline-suppr
       --quiet
       -i${DEPENDS_DIR}
+      --suppress='*:${DEPENDS_DIR}/*'
+      -i${PROJECT_BINARY_DIR}/api
+      --suppress='*:${PROJECT_BINARY_DIR}/api/*'
+      --suppress='unmatchedSuppression:*'
       --error-exitcode=1
+      --suppress='*:${PROJECT_SOURCE_DIR}/libzeth/tests/*'
     )
   else()
       message(FATAL_ERROR "cppcheck not found. Aborting...")
