@@ -26,7 +26,6 @@ option(
 if(USE_CLANG_FORMAT)
   find_program(CLANG_FORMAT "clang-format")
   if(USE_CLANG_FORMAT)
-    message("clang-format found!")
     message("Using clang-format. Creating target... To run, use: make clang-format")
     add_custom_target(
       clang-format
@@ -42,18 +41,26 @@ endif()
 # The configuration below requires cmake 3.6.3+
 # (https://cmake.org/cmake/help/v3.6/variable/CMAKE_LANG_CLANG_TIDY.html)
 if(USE_CLANG_TIDY)
-  find_program(CLANG_TIDY clang-tidy DOC "Path to the clang-tidy tool")
+  find_program(CLANG_TIDY clang-tidy DOC "Path to clang-tidy tool")
   if(CLANG_TIDY)
-    message("clang-tidy found!")
-    message("Using clang-tidy. Creating target... To run, use: make clang-tidy (assumes run-clang-tidy.py has been fetched)")
-    add_custom_target(
-      clang-tidy
-      COMMAND python run-clang-tidy.py
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-    )
-
-
-
+    find_program(RUN_CLANG_TIDY run-clang-tidy.py DOC "Path to run-clang-tidy")
+    if(RUN_CLANG_TIDY)
+      message("Using clang-tidy. Creating target... To run, use: make clang-tidy")
+      add_custom_target(
+        clang-tidy
+        COMMAND run-clang-tidy.py
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        )
+      file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/api)
+      file(WRITE ${PROJECT_BINARY_DIR}/api/.clang-tidy
+        "Checks: '-*,misc-definitions-in-headers'
+CheckOptions:
+  - { key: HeaderFileExtensions,          value: \"x\" }")
+    else()
+      message(
+        FATAL_ERROR
+        "run-clang-tidy.py not found. (Download and place in PATH). Aborting...")
+    endif()
   else()
     message(FATAL_ERROR "clang-tidy not found. Aborting...")
   endif()
@@ -65,7 +72,6 @@ endif()
 if(USE_IWYU)
   find_program(IWYU include-what-you-use DOC "Path to the include-what-you-use tool")
   if(USE_IWYU)
-    message("IWYU found!")
     message("Using include-what-you-use...")
     set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE "${IWYU};-Xiwyu;")
   else()
