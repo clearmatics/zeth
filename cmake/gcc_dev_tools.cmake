@@ -13,7 +13,7 @@ option(
 # Adding clang-format target if executable is found
 if(USE_CPP_CHECK)
   find_program(CPP_CHECK "cppcheck")
-  if(USE_CPP_CHECK)
+  if(CPP_CHECK)
     message("cppcheck found!")
     message("Using cppcheck. Creating target... To run, use: make cppcheck")
     add_custom_target(
