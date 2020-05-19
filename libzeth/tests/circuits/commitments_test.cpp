@@ -29,12 +29,12 @@ TEST(TestCOMMs, TestCOMMGadget)
     ZERO.allocate(pb, "zero");
     pb.val(ZERO) = FieldT::zero();
 
-    bits256 trap_r_bits256 = bits256_from_hex(
+    bits256 trap_r_bits256 = bits256::from_hex(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
-    bits64 value_bits64 = bits64_from_hex("2F0000000000000F");
-    bits256 rho_bits256 = bits256_from_hex(
+    bits64 value_bits64 = bits64::from_hex("2F0000000000000F");
+    bits256 rho_bits256 = bits256::from_hex(
         "FFFF000000000000000000000000000000000000000000000000000000009009");
-    bits256 a_pk_bits256 = bits256_from_hex(
+    bits256 a_pk_bits256 = bits256::from_hex(
         "5c36fea42b82800d74304aa4f875142b421b4f2847e7c41c1077fbbcfd63f886");
     FieldT cm = FieldT(
         "5198426621382268363215668966254183876371659610992196341185343716"
@@ -43,19 +43,19 @@ TEST(TestCOMMs, TestCOMMGadget)
     // hex: 0xAF000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<FieldT> a_pk;
     a_pk.allocate(pb, ZETH_A_PK_SIZE, "a_pk");
-    a_pk.fill_with_bits(pb, bits256_to_vector(a_pk_bits256));
+    a_pk.fill_with_bits(pb, a_pk_bits256.to_vector());
 
     libsnark::pb_variable_array<FieldT> rho;
     rho.allocate(pb, ZETH_RHO_SIZE, "rho");
-    rho.fill_with_bits(pb, bits256_to_vector(rho_bits256));
+    rho.fill_with_bits(pb, rho_bits256.to_vector());
 
     libsnark::pb_variable_array<FieldT> r;
     r.allocate(pb, ZETH_R_SIZE, "r");
-    r.fill_with_bits(pb, bits256_to_vector(trap_r_bits256));
+    r.fill_with_bits(pb, trap_r_bits256.to_vector());
 
     libsnark::pb_variable_array<FieldT> v;
     v.allocate(pb, ZETH_V_SIZE, "v");
-    v.fill_with_bits(pb, bits64_to_vector(value_bits64));
+    v.fill_with_bits(pb, value_bits64.to_vector());
 
     libsnark::pb_variable<FieldT> result;
     result.allocate(pb, "result");

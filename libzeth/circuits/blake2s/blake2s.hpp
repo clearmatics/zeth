@@ -25,66 +25,67 @@ template<typename FieldT> class BLAKE2s_256 : public libsnark::gadget<FieldT>
 {
 private:
     // Parameter block, size set to 32 bytes, fanout and depth set to serial
-    // mode. See: Section 2.8 https://blake2.net/blake2.pdf Table 2
-    std::array<std::array<bool, BLAKE2s_word_size>, 8> parameter_block = {
+    // mode. See: Section 2.8 https://blake2.net/blake2.pdf Table 2. Note, byte
+    // endianness has been swapped to avoid doing this repeatedly at runtime.
+    const std::array<const bits<BLAKE2s_word_size>, 8> parameter_block = {
         {{
              // Digest byte length, Key byte length, Fanout, Depth
-             0, 0, 1, 0, 0, 0, 0, 0, // 0x20 (32 bytes)
-             0, 0, 0, 0, 0, 0, 0, 0, // 0x00 (key length)
+             0, 0, 0, 0, 0, 0, 0, 1, // 0x01 (depth 1)
              0, 0, 0, 0, 0, 0, 0, 1, // 0x01 (fanout 1)
-             0, 0, 0, 0, 0, 0, 0, 1  // 0x01 (depth 1)
+             0, 0, 0, 0, 0, 0, 0, 0, // 0x00 (key length)
+             0, 0, 1, 0, 0, 0, 0, 0, // 0x20 (32 bytes)
          },
          {
              // Leaf length
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
-             0, 0, 0, 0, 0, 0, 0, 0  // 00
+             0, 0, 0, 0, 0, 0, 0, 0, // 00
          },
          {
              // Node offset
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
-             0, 0, 0, 0, 0, 0, 0, 0  // 00
+             0, 0, 0, 0, 0, 0, 0, 0, // 00
          },
          {
              // Node offset (cont.), Node depth, Inner length
-             0, 0, 0, 0, 0, 0, 0, 0, // 00
-             0, 0, 0, 0, 0, 0, 0, 0, // 00
+             0, 0, 0, 0, 0, 0, 0, 0, // 00 (inner length)
              0, 0, 0, 0, 0, 0, 0, 0, // 00 (node depth)
-             0, 0, 0, 0, 0, 0, 0, 0  // 00 (inner length)
+             0, 0, 0, 0, 0, 0, 0, 0, // 00
+             0, 0, 0, 0, 0, 0, 0, 0, // 00
          },
          {
              // Salt
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
-             0, 0, 0, 0, 0, 0, 0, 0  // 00
+             0, 0, 0, 0, 0, 0, 0, 0, // 00
          },
          {
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
-             0, 0, 0, 0, 0, 0, 0, 0  // 00
+             0, 0, 0, 0, 0, 0, 0, 0, // 00
          },
          {
              // Personalization
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
-             0, 0, 0, 0, 0, 0, 0, 0  // 00
+             0, 0, 0, 0, 0, 0, 0, 0, // 00
          },
          {
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
              0, 0, 0, 0, 0, 0, 0, 0, // 00
-             0, 0, 0, 0, 0, 0, 0, 0  // 00
+             0, 0, 0, 0, 0, 0, 0, 0, // 00
          }}};
 
     // See: Appendix A.2 of https://blake2.net/blake2.pdf for the specification
     // of the IV used in BLAKE2s
-    std::array<std::array<bool, BLAKE2s_word_size>, 8> BLAKE2s_IV = {
+    std::array<bits<BLAKE2s_word_size>, 8> BLAKE2s_IV = {
         {{
              0, 1, 1, 0, 1, 0, 1, 0, // 6A
              0, 0, 0, 0, 1, 0, 0, 1, // 09

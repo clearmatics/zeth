@@ -89,7 +89,7 @@ public:
 
     void generate_r1cs_witness(
         const std::vector<FieldT> &merkle_path,
-        const libff::bit_vector &address_bits,
+        const bits_addr<TreeDepth> &address_bits,
         const zeth_note &note);
 };
 

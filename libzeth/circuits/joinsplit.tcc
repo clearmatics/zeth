@@ -496,24 +496,22 @@ public:
         // Witness public values
         //
         // Witness LHS public value
-        zk_vpub_in.fill_with_bits(this->pb, bits64_to_vector(vpub_in));
+        vpub_in.fill_variable_array(this->pb, zk_vpub_in);
 
         // Witness RHS public value
-        zk_vpub_out.fill_with_bits(this->pb, bits64_to_vector(vpub_out));
+        vpub_out.fill_variable_array(this->pb, zk_vpub_out);
 
         // Witness h_sig
-        h_sig->generate_r1cs_witness(
-            libff::bit_vector(bits256_to_vector(h_sig_in)));
+        h_sig->generate_r1cs_witness(h_sig_in.to_vector());
 
         // Witness the h_iS, a_sk and rho_iS
         for (size_t i = 0; i < NumInputs; i++) {
-            a_sks[i]->generate_r1cs_witness(libff::bit_vector(
-                bits256_to_vector(inputs[i].spending_key_a_sk)));
+            a_sks[i]->generate_r1cs_witness(
+                inputs[i].spending_key_a_sk.to_vector());
         }
 
         // Witness phi
-        phi->generate_r1cs_witness(
-            libff::bit_vector(bits256_to_vector(phi_in)));
+        phi->generate_r1cs_witness(phi_in.to_vector());
 
         {
             // Witness total_uint64 bits
@@ -526,17 +524,15 @@ public:
                     left_side_acc, inputs[i].note.value, true);
             }
 
-            zk_total_uint64.fill_with_bits(
-                this->pb, bits64_to_vector(left_side_acc));
+            left_side_acc.fill_variable_array(this->pb, zk_total_uint64);
         }
 
         // Witness the JoinSplit inputs and the h_is
         for (size_t i = 0; i < NumInputs; i++) {
-            std::vector<FieldT> merkle_path = inputs[i].witness_merkle_path;
-            libff::bit_vector address_bits =
-                bits_addr_to_vector(inputs[i].address_bits);
             input_notes[i]->generate_r1cs_witness(
-                merkle_path, address_bits, inputs[i].note);
+                inputs[i].witness_merkle_path,
+                inputs[i].address_bits,
+                inputs[i].note);
 
             h_i_gadgets[i]->generate_r1cs_witness();
         }

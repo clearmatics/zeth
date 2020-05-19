@@ -96,8 +96,8 @@ joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
         std::move(input_merkle_path),
         bits_addr_from_size_t<TreeDepth>(input.address()),
         zeth_note_from_proto(input.note()),
-        bits256_from_hex(input.spending_ask()),
-        bits256_from_hex(input.nullifier()));
+        bits256::from_hex(input.spending_ask()),
+        bits256::from_hex(input.nullifier()));
 }
 
 template<typename ppT>

@@ -33,7 +33,7 @@ public:
     joinsplit_input(){};
     joinsplit_input(
         std::vector<FieldT> &&witness_merkle_path,
-        const std::array<bool, TreeDepth> &address_bits,
+        const bits_addr<TreeDepth> &address_bits,
         const zeth_note &note,
         const bits256 &key,
         const bits256 &nullifier)

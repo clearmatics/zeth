@@ -31,13 +31,9 @@ public:
     {
     }
 
-    zeth_note() { value.fill(false); }
+    zeth_note() {}
 
-    inline bool is_zero_valued() const
-    {
-        return !std::any_of(
-            value.begin(), value.end(), [](const bool b) { return b; });
-    }
+    inline bool is_zero_valued() const { return value.is_zero(); }
 };
 
 } // namespace libzeth
