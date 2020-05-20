@@ -304,9 +304,12 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_mixing_gadgets()
     }
 
     for (size_t i = 0; i < 8; i++) {
+        // Some versions of cppcheck raise a false-positive here
         xor_vector.emplace_back(xor_gadget<FieldT>(
             this->pb,
+            // cppcheck-suppress arrayIndexOutOfBounds
             v[rounds][i],
+            // cppcheck-suppress arrayIndexOutOfBounds
             v[rounds][8 + i],
             out_temp[i],
             FMT(this->annotation_prefix, " xor_output_temp_%zu", i)));
