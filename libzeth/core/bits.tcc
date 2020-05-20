@@ -75,6 +75,29 @@ bits<numBits> bits<numBits>::from_hex(const std::string &hex)
     return result;
 }
 
+template<size_t numBits>
+bits<numBits> bits<numBits>::from_size_t(size_t address)
+{
+    // cppcheck-suppress shiftTooManyBits
+    // cppcheck-suppress knownConditionTrueFalse
+    if ((numBits < 64) && (address >= (1ull << numBits))) {
+        throw std::invalid_argument("Address overflow");
+    }
+
+    // Initialize one bit at a time, earlying out if address turns to 0. Set
+    // all remaining bits to 0.
+    bool result[numBits];
+    size_t i;
+    for (i = 0; i < numBits && address != 0; ++i, address >>= 1) {
+        result[i] = address & 0x1;
+    }
+    for (; i < numBits; ++i) {
+        result[i] = 0;
+    }
+
+    return bits_addr<numBits>(result);
+}
+
 template<size_t numBits> bool bits<numBits>::is_zero() const
 {
     return !std::any_of(
@@ -152,27 +175,6 @@ bits<numBits> bits_add(
     }
 
     return result;
-}
-
-template<size_t TreeDepth>
-bits_addr<TreeDepth> bits_addr_from_size_t(size_t address)
-{
-    if (address >= (1ull << TreeDepth)) {
-        throw std::invalid_argument("Address overflow");
-    }
-
-    // Initialize one bit at a time, earlying out if address turns to 0. Set
-    // all remaining bits to 0.
-    bool result[TreeDepth];
-    size_t i;
-    for (i = 0; i < TreeDepth && address != 0; ++i, address >>= 1) {
-        result[i] = address & 0x1;
-    }
-    for (; i < TreeDepth; ++i) {
-        result[i] = 0;
-    }
-
-    return bits_addr<TreeDepth>(result);
 }
 
 } // namespace libzeth

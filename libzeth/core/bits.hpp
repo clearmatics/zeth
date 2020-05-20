@@ -24,9 +24,6 @@ template<size_t numBits> class bits;
 template<size_t numBits>
 bits<numBits> bits_xor(const bits<numBits> &a, const bits<numBits> &b);
 
-/// Create a bits object from a size_t, specifically for bits_addr type.
-template<size_t TreeDepth> bits<TreeDepth> bits_addr_from_size_t(size_t addr);
-
 /// Sum 2 binary strings with or without carry
 template<size_t numBits>
 bits<numBits> bits_add(
@@ -39,11 +36,19 @@ public:
     bits();
 
     /// Construct from initializer-list.
+    // cppcheck-suppress noExplicitConstructor
     template<typename... boolList> bits(const boolList &... bits);
 
     std::vector<bool> to_vector() const;
+
     static bits from_vector(const std::vector<bool> &bin);
+
     static bits from_hex(const std::string &hex);
+
+    /// Create a bits object from a size_t, specifically for bits_addr type.
+    /// Only available for TreeDepth small enough that TreeDepth bits can be
+    /// expressed in size_t.
+    static bits from_size_t(size_t addr);
 
     bool is_zero() const;
 
@@ -53,12 +58,11 @@ public:
         libsnark::pb_variable_array<FieldT> &var_array) const;
 
 protected:
-    template<typename boolIt> bits(boolIt it);
+    template<typename boolIt> explicit bits(boolIt it);
     template<typename boolIt> void fill_from_iterator(boolIt it);
 
     friend bits bits_xor<numBits>(const bits &, const bits &);
     friend bits bits_add<numBits>(const bits &, const bits &, bool);
-    friend bits bits_addr_from_size_t<numBits>(size_t addr);
 };
 
 /// 32-bit array

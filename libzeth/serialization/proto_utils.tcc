@@ -94,7 +94,7 @@ joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
 
     return joinsplit_input<FieldT, TreeDepth>(
         std::move(input_merkle_path),
-        bits_addr_from_size_t<TreeDepth>(input.address()),
+        bits_addr<TreeDepth>::from_size_t(input.address()),
         zeth_note_from_proto(input.note()),
         bits256::from_hex(input.spending_ask()),
         bits256::from_hex(input.nullifier()));

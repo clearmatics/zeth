@@ -88,7 +88,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // commitment is appended to the tree
     const size_t address_commitment = 1;
     bits_addr<TreeDepth> address_bits =
-        bits_addr_from_size_t<TreeDepth>(address_commitment);
+        bits_addr<TreeDepth>::from_size_t(address_commitment);
 
     test_merkle_tree->set_value(address_commitment, cm_field);
 
