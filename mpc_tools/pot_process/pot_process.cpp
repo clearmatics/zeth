@@ -173,7 +173,7 @@ static int powersoftau_main(const cli_options &options)
     std::ifstream in(
         options.powersoftau_file, std::ios_base::binary | std::ios_base::in);
     const srs_powersoftau<ppT> powersoftau =
-        powersoftau_load(in, options.degree);
+        powersoftau_load<ppT>(in, options.degree);
     in.close();
 
     // If --check was given, run the well-formedness check and stop.

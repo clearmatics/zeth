@@ -15,12 +15,13 @@
 
 #include <fstream>
 #include <gtest/gtest.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <thread>
 
 using namespace libzeth;
 using namespace libsnark;
 
-using ppT = srs_pot_pp;
+using PP = libzeth::ppT;
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
@@ -70,33 +71,36 @@ srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
 
 TEST(MPCTests, HashToG2)
 {
+    // Data here is specialised for alt_bn128
+    using pp = libff::alt_bn128_pp;
+
     mpc_hash_t hash;
     const std::string seed = hex_to_bytes(
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
     memcpy(hash, seed.data(), sizeof(mpc_hash_t));
 
-    Fr expect_fr;
+    libff::Fr<pp> expect_fr;
     {
         std::istringstream ss(
             hex_to_bytes("20e70f3b594e4a9bd78e7d23f796f3bce4de"
                          "92af13adf10beffe2cf84b59e2ad"));
-        read_powersoftau_fr(ss, expect_fr);
+        read_powersoftau_fr<pp>(ss, expect_fr);
     }
 
-    G2 expect_g2;
+    libff::G2<pp> expect_g2;
     {
         std::istringstream ss(hex_to_bytes(
             "04048fb80ba85a814f6ca7db7194da6c71fa7d8b7aa05b49ce315c96c20b916ab"
             "36544a6656acae3f5a7da00ca96dfe5b9c4bcec736f75cf85a27fab44f426df28"
             "0532af644ab533ca189739ae2d908b95d643051f6692286eca126ad4c65275def"
             "8e0f6b24ebb57b415e59b465dc7f3f823c615434955b96f7f3f5ba4f7505e43"));
-        read_powersoftau_g2(ss, expect_g2);
+        read_powersoftau_g2<pp>(ss, expect_g2);
     }
 
-    Fr fr;
+    libff::Fr<pp> fr;
     srs_mpc_digest_to_fp(hash, fr);
-    G2 g2 = srs_mpc_digest_to_g2<ppT>(hash);
+    libff::G2<pp> g2 = srs_mpc_digest_to_g2<pp>(hash);
 
     ASSERT_EQ(expect_fr, fr);
     ASSERT_EQ(expect_g2, g2);
@@ -631,8 +635,10 @@ TEST(MPCTests, Phase2HashToG2)
     mpc_hash_t hash_1;
     mpc_compute_hash(hash_1, empty, 0);
 
-    G2 g2_0 = srs_mpc_digest_to_g2<ppT>(hash_0);
-    G2 g2_1 = srs_mpc_digest_to_g2<ppT>(hash_1);
+    libff::G2<libff::alt_bn128_pp> g2_0 =
+        srs_mpc_digest_to_g2<libff::alt_bn128_pp>(hash_0);
+    libff::G2<libff::alt_bn128_pp> g2_1 =
+        srs_mpc_digest_to_g2<libff::alt_bn128_pp>(hash_1);
     ASSERT_EQ(g2_0, g2_1);
 }
 
