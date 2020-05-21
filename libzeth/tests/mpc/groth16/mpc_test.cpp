@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/sha256/sha256_ethereum.hpp"
 #include "libzeth/core/chacha_rng.hpp"
 #include "libzeth/core/evaluator_from_lagrange.hpp"
@@ -21,7 +20,7 @@
 using namespace libzeth;
 using namespace libsnark;
 
-using PP = srs_pot_pp;
+using ppT = srs_pot_pp;
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
@@ -424,16 +423,16 @@ TEST(MPCTests, KeyPairReadWrite)
     std::string keypair_serialized;
     {
         std::ostringstream out;
-        groth16_snark<PP>::keypair_write_bytes(out, keypair);
+        groth16_snark<ppT>::keypair_write_bytes(out, keypair);
         keypair_serialized = out.str();
     }
 
-    typename groth16_snark<PP>::KeypairT keypair_deserialized = [&]() {
+    typename groth16_snark<ppT>::KeypairT keypair_deserialized = [&]() {
         std::istringstream in(keypair_serialized);
         in.exceptions(
             std::ios_base::eofbit | std::ios_base::badbit |
             std::ios_base::failbit);
-        return groth16_snark<PP>::keypair_read_bytes(in);
+        return groth16_snark<ppT>::keypair_read_bytes(in);
     }();
 
     ASSERT_EQ(keypair.pk, keypair_deserialized.pk);
