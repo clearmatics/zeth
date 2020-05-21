@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/sha256/sha256_ethereum.hpp"
 #include "libzeth/core/chacha_rng.hpp"
 #include "libzeth/core/evaluator_from_lagrange.hpp"
@@ -21,7 +22,10 @@
 using namespace libzeth;
 using namespace libsnark;
 
-using PP = libzeth::ppT;
+// TODO: Parameterize all tests by ppT, so unit tests can run over all
+// supported pairings. For now, use the default ppT from the build except where
+// the test is specialized to a specific curve.
+
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
@@ -71,7 +75,8 @@ srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
 
 TEST(MPCTests, HashToG2)
 {
-    // Data here is specialised for alt_bn128
+    // Data here is specialised for alt_bn128 (and ppT is not guaranteed to be
+    // alt_bn128_pp).
     using pp = libff::alt_bn128_pp;
 
     mpc_hash_t hash;
@@ -885,8 +890,11 @@ TEST(MPCTests, Phase2TranscriptVerification)
 
 int main(int argc, char **argv)
 {
-    // !!! WARNING: Do not forget to do this once for all tests !!!
     ppT::init_public_params();
+    // In general ppT is not guaranteed to be a particular curve, so we must
+    // ensure alt_bn128_pp is initialized for those tests which are specialized
+    // for that pairing.
+    libff::alt_bn128_pp::init_public_params();
 
     // Remove stdout noise from libff
     libff::inhibit_profiling_counters = true;

@@ -9,8 +9,8 @@
 #include "libzeth/circuits/circuit_wrapper.hpp"
 #include "libzeth/circuits/mimc/mimc_mp.hpp"
 #include "libzeth/core/include_libsnark.hpp"
-// #include <libff/common/default_types/ec_pp.hpp>
-#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
+
+#include <libff/common/default_types/ec_pp.hpp>
 
 // Types that must be common across all executable, defined once here. Outside
 // of tests, these should not be set anywhere else in the code. Do not include
@@ -20,7 +20,7 @@ namespace libzeth
 {
 
 // Use the pairing from build configuration
-using ppT = libff::mnt4_pp;
+using ppT = libff::default_ec_pp;
 
 // Field type for the pairing.
 using FieldT = libff::Fr<ppT>;

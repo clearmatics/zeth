@@ -8,8 +8,8 @@
 #include "libzeth/core/utils.hpp"
 #include "libzeth/mpc/groth16/powersoftau_utils.hpp"
 
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/fields/fp.hpp>
-#include <libff/algebra/fields/fp2.hpp>
 #include <thread>
 
 namespace libzeth
@@ -505,29 +505,17 @@ void read_powersoftau_g1(std::istream &in, libff::G1<ppT> &out)
     }
 }
 
+/// Structure of G2 varies between pairings, so difficult to implement
+/// generically. A specialized version for alt_bn128_pp is provided for
+/// compatibility with https://github.com/clearmatics/powersoftau.
+template<>
+void read_powersoftau_g2<libff::alt_bn128_pp>(
+    std::istream &, libff::alt_bn128_G2 &);
+
 template<typename ppT>
 void read_powersoftau_g2(std::istream &in, libff::G2<ppT> &out)
 {
-    uint8_t marker;
-    in.read((char *)&marker, 1);
-
-    switch (marker) {
-    case 0x00:
-        // zero
-        out = libff::G2<ppT>::zero();
-        break;
-
-    case 0x04:
-        // Uncompressed
-        read_powersoftau_fp2(in, out.X);
-        read_powersoftau_fp2(in, out.Y);
-        out.Z = ppT::Fqe_type::one();
-        break;
-
-    default:
-        assert(false);
-        break;
-    }
+    in >> out;
 }
 
 template<typename ppT>
@@ -535,13 +523,6 @@ void write_powersoftau_fr(std::ostream &out, const libff::Fr<ppT> &fr)
 {
     write_powersoftau_fp(out, fr);
 }
-
-// template
-// void write_powersoftau_fq2(std::ostream &out, const libff::alt_bn128_Fq2
-// &fq2)
-// {
-//     write_powersoftau_fp2(out, fq2);
-// }
 
 template<typename ppT>
 void write_powersoftau_g1(std::ostream &out, const libff::G1<ppT> &g1)
@@ -561,22 +542,17 @@ void write_powersoftau_g1(std::ostream &out, const libff::G1<ppT> &g1)
     write_powersoftau_fp(out, copy.Y);
 }
 
+/// Structure of G2 varies between pairings, so difficult to implement
+/// generically. A specialized version for alt_bn128_pp is provided for
+/// compatibility with https://github.com/clearmatics/powersoftau.
+template<>
+void write_powersoftau_g2<libff::alt_bn128_pp>(
+    std::ostream &, const libff::alt_bn128_G2 &);
+
 template<typename ppT>
 void write_powersoftau_g2(std::ostream &out, const libff::G2<ppT> &g2)
 {
-    if (g2.is_zero()) {
-        const uint8_t zero = 0;
-        out.write((const char *)&zero, 1);
-        return;
-    }
-
-    libff::G2<ppT> copy(g2);
-    copy.to_affine_coordinates();
-
-    const uint8_t marker = 0x04;
-    out.write((const char *)&marker, 1);
-    write_powersoftau_fp2(out, copy.X);
-    write_powersoftau_fp2(out, copy.Y);
+    out << g2;
 }
 
 template<typename ppT>

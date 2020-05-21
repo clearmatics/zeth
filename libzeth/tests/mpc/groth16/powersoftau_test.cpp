@@ -317,7 +317,7 @@ TEST(UtilTest, ReadWritePowersOfTauG1)
     ASSERT_EQ(s_g1_7_inv, g1_7_inv_write);
 }
 
-TEST(UtilTest, ReadWritePowersOfTauFq2)
+TEST(UtilTest, ReadWritePowersOfTauFp2)
 {
     const std::string fq2_x_string =
         "04d4bf3239f77cee7b47c7245e9281b3e9c1182d6381a87bbf81f9f2a6254b73"

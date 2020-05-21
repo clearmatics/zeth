@@ -69,9 +69,6 @@ void srs_mpc_phase2_accumulator<ppT>::write(std::ostream &out) const
     }
 }
 
-// Specialization of write_compressed, for the case where ppT == alt_bn128_pp.
-// Cannot be a generic template as it relies on calls that are specific to the
-// alt_bn128_pp types.
 template<typename ppT>
 void srs_mpc_phase2_accumulator<ppT>::write_compressed(std::ostream &out) const
 {
@@ -130,9 +127,6 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_accumulator<ppT>::read(
     return accum;
 }
 
-// Specialization of read_compressed, for the case where ppT == alt_bn128_pp.
-// Cannot be a generic template as it relies on calls that are specific to the
-// alt_bn128_pp types.
 template<typename ppT>
 srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_accumulator<
     ppT>::read_compressed(std::istream &in)
