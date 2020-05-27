@@ -5,6 +5,7 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/serialization/proto_utils.hpp"
 #include "libzeth/snarks/groth16/groth16_api_handler.hpp"
+#include "libzeth/tests/snarks/common_api_tests.tcc"
 
 #include <gtest/gtest.h>
 
@@ -12,30 +13,24 @@ using ppT = libzeth::ppT;
 using Fr = libff::Fr<libzeth::ppT>;
 using G1 = libff::G1<libzeth::ppT>;
 using G2 = libff::G2<libzeth::ppT>;
+using snark = libzeth::groth16_snark<ppT>;
 
 namespace
 {
 
 TEST(Groth16ApiHandlerTest, VerificationKeyEncodeDecode)
 {
-    libsnark::r1cs_gg_ppzksnark_verification_key<ppT> initial_vk =
-        libsnark::r1cs_gg_ppzksnark_verification_key<
-            ppT>::dummy_verification_key(42);
+    verification_key_encode_decode_test<libzeth::groth16_api_handler<ppT>>();
+}
 
-    zeth_proto::VerificationKey *proto_vk = new zeth_proto::VerificationKey();
-    libzeth::groth16_api_handler<ppT>::verification_key_to_proto(
-        initial_vk, proto_vk);
-
-    libsnark::r1cs_gg_ppzksnark_verification_key<ppT> recovered_vk =
-        libzeth::groth16_api_handler<ppT>::verification_key_from_proto(
-            *proto_vk);
-
-    ASSERT_EQ(initial_vk, recovered_vk);
-
-    // The destructor of `zeth_proto::VerificationKey` should be
-    // invoked which whould free the memory allocated for the fields of this
-    // message
-    delete proto_vk;
+TEST(Groth16ApiHandlerTest, ProofEncodeDecode)
+{
+    snark::ProofT dummy_proof{
+        G1::random_element(), G2::random_element(), G1::random_element()};
+    libsnark::r1cs_primary_input<Fr> dummy_inputs{
+        Fr::random_element(), Fr::random_element(), Fr::random_element()};
+    extended_proof_encode_decode_test<ppT, libzeth::groth16_api_handler<ppT>>(
+        {std::move(dummy_proof), std::move(dummy_inputs)});
 }
 
 } // namespace
