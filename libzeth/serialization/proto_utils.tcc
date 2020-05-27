@@ -176,8 +176,10 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
     }
 
     libsnark::accumulation_vector<libff::G1<ppT>> acc_res;
-    libff::Fq<ppT> x_coordinate = field_element_to_hex<libff::Fq<ppT>>(res[0]);
-    libff::Fq<ppT> y_coordinate = field_element_to_hex<libff::Fq<ppT>>(res[1]);
+    libff::Fq<ppT> x_coordinate =
+        field_element_from_hex<libff::Fq<ppT>>(res[0]);
+    libff::Fq<ppT> y_coordinate =
+        field_element_from_hex<libff::Fq<ppT>>(res[1]);
 
     libff::G1<ppT> first_point_g1 = libff::G1<ppT>(x_coordinate, y_coordinate);
     acc_res.first = first_point_g1;
@@ -193,9 +195,9 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
         // this means that we need to modify the type of `abc_g1` in the proto
         // file to be a repeated G1 element (and not a string) Likewise for the
         // inputs which should be changed to repeated field elements
-        libff::Fq<ppT> x_coord = field_element_to_hex<libff::Fq<ppT>>(res[i]);
+        libff::Fq<ppT> x_coord = field_element_from_hex<libff::Fq<ppT>>(res[i]);
         libff::Fq<ppT> y_coord =
-            field_element_to_hex<libff::Fq<ppT>>(res[i + 1]);
+            field_element_from_hex<libff::Fq<ppT>>(res[i + 1]);
 
         point_g1 = libff::G1<ppT>(x_coord, y_coord);
         rest[i / 2 - 1] = point_g1;

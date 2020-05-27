@@ -52,6 +52,8 @@ public:
 
     bool is_zero() const;
 
+    /// Fill a libsnark::pb_variable_array with bits from this container,
+    /// representing each as 1 or 0 in FieldT.
     template<typename FieldT>
     void fill_variable_array(
         libsnark::protoboard<FieldT> &pb,

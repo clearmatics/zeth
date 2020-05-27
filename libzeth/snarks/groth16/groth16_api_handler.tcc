@@ -125,7 +125,8 @@ libzeth::extended_proof<ppT, groth16_snark<ppT>> groth16_api_handler<
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
         std::move(a), std::move(b), std::move(c));
-    libzeth::extended_proof<ppT, groth16_snark<ppT>> res(proof, inputs);
+    libzeth::extended_proof<ppT, groth16_snark<ppT>> res(
+        std::move(proof), std::move(inputs));
 
     return res;
 }
