@@ -25,6 +25,42 @@
 #   flexible. We consider this negligible compared to the benefits of
 #   manipulating variables that are explicitly typed.
 #
+# -modernize-use-trailing-return-type,
+# -modernize-return-braced-init-list,
+#   These are removed since they conflict with the current code style.
+#
+# -modernize-pass-by-value
+# -modernize-deprecated-headers
+# -modernize-use-default-member-init
+# -readability-redundant-member-init
+# -bugprone-exception-escape
+#   These conflict with the current code style, or would require larger
+#   changes. May wish to review in the future.
+#
+# -readability-magic-numbers
+#   Disabled for now as it picks up some constants which don't necessarily need
+#   their own variables (for some trivial multiplication and masking) and some
+#   test data. May wish to review in the future.
+#
+# -readability-implicit-bool-conversion
+#   We use implicit bool conversion for specifying many constants in terms of
+#   `0` and `1`. (TODO: it may be a good idea to enable this to fix implicit
+#   conversion in conditions).
+#
+# -readability-named-parameter,
+#   We occasionally omit the name of a parameter in a function definition if the
+#   parameter is unused, and avoid a compiler warning. This check complains
+#   in these cases.
+#
+# -readability-identifier-naming
+#   TODO: Retry this (attempts to customize this to our standards failed under
+#   clang-tidy-10 - see CheckOptions below).
+#
+# -misc-non-private-member-variables-in-classes,
+#   TODO: Public member variables are often used in our code, and in
+#   dependencies. There is a good argument for not exposing these. Decide on a
+#   policy and update this comment.
+
 Checks:
     -*,
     bugprone-*,
@@ -46,7 +82,6 @@ Checks:
     -modernize-use-default-member-init,
     -bugprone-exception-escape,
     -misc-non-private-member-variables-in-classes,
-    -misc-unused-parameters,
     -readability-redundant-member-init,
     -modernize-deprecated-headers,
     -readability-identifier-naming,
@@ -55,7 +90,6 @@ WarningsAsErrors:
     '*'
 
 HeaderFilterRegex: 'libzeth/*.(h|hpp|cpp)'
-
 
 # CheckOptions:
 #     - key: readability-identifier-naming.MacroDefinitionCase
