@@ -158,43 +158,52 @@ template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
     const std::string &acc_vector_str)
 {
-    std::string prefix = std::string("[[\"");
-    std::string suffix = std::string("\"]]");
-    if (acc_vector_str.length() < prefix.length()) {
+    static const char prefix[] = "[\"";
+    static const char suffix[] = "\"]";
+
+    if (acc_vector_str.length() < (sizeof(prefix) + sizeof(suffix))) {
         throw std::invalid_argument("invalid accumulation vector string");
     }
 
-    if ((acc_vector_str.find(prefix) != 0) ||
-        (acc_vector_str.compare(
-             acc_vector_str.length() - suffix.length(),
-             suffix.length(),
-             suffix) != 0)) {
+    size_t start_idx = acc_vector_str.find(prefix);
+    if (start_idx == std::string::npos) {
         throw std::invalid_argument("invalid accumulation vector string");
     }
 
-    // Erase the outer '[' and ']'
-    std::string acc_vector_str_bis =
-        acc_vector_str.substr(1, acc_vector_str.size() - 2);
+    // TODO: Remove the temporary string.
 
-    // Retrieve all 1 dimensional arrays of strings. They represent G1 elements
-    // since we assume that el_g1 = [x, y], where (x,y) \in (\F_p)^2, p prime
-    std::vector<libff::G1<ppT>> res;
-    size_t next_el_pos = acc_vector_str_bis.find("[");
-    while (next_el_pos != std::string::npos) {
-        const size_t end_el = acc_vector_str_bis.find("]", next_el_pos);
-        const std::string element_str =
-            acc_vector_str_bis.substr(next_el_pos, end_el - next_el_pos);
-        std::cout << "element_str: " << element_str << std::endl;
-        res.push_back(point_g1_affine_from_json<ppT>(element_str));
-        next_el_pos = acc_vector_str_bis.find("[", end_el);
+    // Allocate once and reuse.
+    std::string element_str;
+
+    // Extract first element
+    size_t end_idx = acc_vector_str.find(suffix, start_idx);
+    if (end_idx == std::string::npos) {
+        throw std::invalid_argument("invalid accumulation vector string");
     }
 
-    libsnark::accumulation_vector<libff::G1<ppT>> acc_res;
-    acc_res.first = res.front();
-    res.erase(res.begin());
-    acc_res.rest = libsnark::sparse_vector<libff::G1<ppT>>(std::move(res));
+    // Extract the string '["....", "...."]'
+    //                     ^             ^
+    //                start_idx       end_idx
 
-    return acc_res;
+    element_str = acc_vector_str.substr(start_idx, end_idx + 2 - start_idx);
+    libff::G1<ppT> front = point_g1_affine_from_json<ppT>(element_str);
+    start_idx = acc_vector_str.find(prefix, end_idx);
+
+    // Extract remaining elements
+    std::vector<libff::G1<ppT>> rest;
+    do {
+        end_idx = acc_vector_str.find(suffix, start_idx);
+        if (end_idx == std::string::npos) {
+            throw std::invalid_argument("invalid accumulation vector string");
+        }
+
+        element_str = acc_vector_str.substr(start_idx, end_idx + 2 - start_idx);
+        rest.push_back(point_g1_affine_from_json<ppT>(element_str));
+        start_idx = acc_vector_str.find(prefix, end_idx);
+    } while (start_idx != std::string::npos);
+
+    return libsnark::accumulation_vector<libff::G1<ppT>>(
+        std::move(front), std::move(rest));
 }
 
 } // namespace libzeth
