@@ -28,7 +28,7 @@ public:
         libfqfft::evaluation_domain<libff::Fr<ppT>> &domain);
 
     GroupT evaluate_from_lagrange_factors(
-        const std::map<size_t, libff::Fr<ppT>> lagrange_factors);
+        const std::map<size_t, libff::Fr<ppT>> &lagrange_factors);
 };
 
 } // namespace libzeth

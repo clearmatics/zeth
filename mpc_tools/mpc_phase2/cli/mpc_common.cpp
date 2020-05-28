@@ -17,7 +17,8 @@ subcommand::subcommand(
 {
 }
 
-void subcommand::set_global_options(bool verbose, ProtoboardInitFn pb_init)
+void subcommand::set_global_options(
+    bool verbose, const ProtoboardInitFn &pb_init)
 {
     this->verbose = verbose;
     this->protoboard_init = pb_init;
@@ -105,7 +106,7 @@ int mpc_main(
     int argc,
     char **argv,
     const std::map<std::string, subcommand *> &commands,
-    ProtoboardInitFn pb_init)
+    const ProtoboardInitFn &pb_init)
 {
     libzeth::ppT::init_public_params();
     po::options_description global("Global options");

@@ -14,7 +14,7 @@ namespace libzeth
 // character is not hex.
 uint8_t char_to_nibble(const char c)
 {
-    const char cc = std::tolower(c);
+    const char cc = (char)std::tolower(c);
     if (cc < '0') {
         throw std::invalid_argument("invalid hex character");
     }
@@ -40,10 +40,10 @@ static char nibble_hex(const uint8_t nibble)
 {
     assert((nibble & 0xf0) == 0);
     if (nibble > 9) {
-        return 'a' + nibble - 10;
+        return (char)('a' + nibble - 10);
     }
 
-    return '0' + nibble;
+    return (char)('0' + nibble);
 }
 
 // Return a pointer to the beginning of the actual hex characters (removing any

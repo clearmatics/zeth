@@ -110,10 +110,10 @@ private:
                 init_transcript_digest,
                 challenge_0.accumulator.cs_hash,
                 sizeof(mpc_hash_t));
-            if (memcmp(
-                    init_transcript_digest,
-                    challenge_0.transcript_digest,
-                    sizeof(mpc_hash_t))) {
+            if (0 != memcmp(
+                         init_transcript_digest,
+                         challenge_0.transcript_digest,
+                         sizeof(mpc_hash_t))) {
                 throw std::invalid_argument(
                     "transcript digest does not match starting challenge");
             }

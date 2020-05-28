@@ -14,11 +14,11 @@
 using namespace libsnark;
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 // We use our hash function to do the tests
-typedef BLAKE2s_256<FieldT> HashT;
+using HashT = BLAKE2s_256<FieldT>;
 
 namespace
 {
@@ -136,16 +136,12 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
                                 "ae9bfeb1402ce4c1f9"),
             ZERO);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result;
-    result.reset(
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result(
         new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+    PRF_addr_a_pk_gadget<FieldT, HashT> prf_apk_gadget(pb, ZERO, a_sk, result);
 
-    std::shared_ptr<PRF_addr_a_pk_gadget<FieldT, HashT>> prf_apk_gadget;
-    prf_apk_gadget.reset(
-        new PRF_addr_a_pk_gadget<FieldT, HashT>(pb, ZERO, a_sk, result));
-
-    prf_apk_gadget->generate_r1cs_constraints();
-    prf_apk_gadget->generate_r1cs_witness();
+    prf_apk_gadget.generate_r1cs_constraints();
+    prf_apk_gadget.generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
@@ -252,16 +248,13 @@ TEST(TestPRFs, TestPRFNFGadget)
                                 "c603e46a4cb92986f8"),
             ZERO);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result;
-    result.reset(
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result(
         new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<PRF_nf_gadget<FieldT, HashT>> prf_nf_gadget;
-    prf_nf_gadget.reset(
-        new PRF_nf_gadget<FieldT, HashT>(pb, ZERO, a_sk, rho, result));
+    PRF_nf_gadget<FieldT, HashT> prf_nf_gadget(pb, ZERO, a_sk, rho, result);
 
-    prf_nf_gadget->generate_r1cs_constraints();
-    prf_nf_gadget->generate_r1cs_witness();
+    prf_nf_gadget.generate_r1cs_constraints();
+    prf_nf_gadget.generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
@@ -368,16 +361,14 @@ TEST(TestPRFs, TestPRFPKGadget)
                                 "d6ebd30dc0f1aedeff"),
             ZERO);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result0;
-    result0.reset(
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result0(
         new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<PRF_pk_gadget<FieldT, HashT>> prf_pk_gadget0;
-    prf_pk_gadget0.reset(new PRF_pk_gadget<FieldT, HashT>(
-        pb, ZERO, a_sk, hsig, size_t(0), result0));
+    PRF_pk_gadget<FieldT, HashT> prf_pk_gadget0(
+        pb, ZERO, a_sk, hsig, size_t(0), result0);
 
-    prf_pk_gadget0->generate_r1cs_constraints();
-    prf_pk_gadget0->generate_r1cs_witness();
+    prf_pk_gadget0.generate_r1cs_constraints();
+    prf_pk_gadget0.generate_r1cs_witness();
 
     libsnark::pb_variable_array<FieldT> h_expected1 =
         variable_array_from_bit_vector(
@@ -385,16 +376,14 @@ TEST(TestPRFs, TestPRFPKGadget)
                                 "4ee70b74522b204b29"),
             ZERO);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result1;
-    result1.reset(
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result1(
         new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<PRF_pk_gadget<FieldT, HashT>> prf_pk_gadget1;
-    prf_pk_gadget1.reset(new PRF_pk_gadget<FieldT, HashT>(
-        pb, ZERO, a_sk, hsig, size_t(1), result1));
+    PRF_pk_gadget<FieldT, HashT> prf_pk_gadget1(
+        pb, ZERO, a_sk, hsig, size_t(1), result1);
 
-    prf_pk_gadget1->generate_r1cs_constraints();
-    prf_pk_gadget1->generate_r1cs_witness();
+    prf_pk_gadget1.generate_r1cs_constraints();
+    prf_pk_gadget1.generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
@@ -500,16 +489,14 @@ TEST(TestPRFs, TestPRFRhoGadget)
                                 "3e30015e1c40ebc539"),
             ZERO);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result0;
-    result0.reset(
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result0(
         new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<PRF_rho_gadget<FieldT, HashT>> prf_rho_gadget0;
-    prf_rho_gadget0.reset(new PRF_rho_gadget<FieldT, HashT>(
-        pb, ZERO, phi, hsig, size_t(0), result0));
+    PRF_rho_gadget<FieldT, HashT> prf_rho_gadget0(
+        pb, ZERO, phi, hsig, size_t(0), result0);
 
-    prf_rho_gadget0->generate_r1cs_constraints();
-    prf_rho_gadget0->generate_r1cs_witness();
+    prf_rho_gadget0.generate_r1cs_constraints();
+    prf_rho_gadget0.generate_r1cs_witness();
 
     libsnark::pb_variable_array<FieldT> rho_expected1 =
         variable_array_from_bit_vector(
@@ -517,16 +504,14 @@ TEST(TestPRFs, TestPRFRhoGadget)
                                 "561d6d5e7288384249"),
             ZERO);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result1;
-    result1.reset(
+    std::shared_ptr<libsnark::digest_variable<FieldT>> result1(
         new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
 
-    std::shared_ptr<PRF_rho_gadget<FieldT, HashT>> prf_rho_gadget1;
-    prf_rho_gadget1.reset(new PRF_rho_gadget<FieldT, HashT>(
-        pb, ZERO, phi, hsig, size_t(1), result1));
+    PRF_rho_gadget<FieldT, HashT> prf_rho_gadget1(
+        pb, ZERO, phi, hsig, size_t(1), result1);
 
-    prf_rho_gadget1->generate_r1cs_constraints();
-    prf_rho_gadget1->generate_r1cs_witness();
+    prf_rho_gadget1.generate_r1cs_constraints();
+    prf_rho_gadget1.generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);

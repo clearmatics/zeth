@@ -31,7 +31,7 @@ private:
 public:
     subcommand(
         const std::string &subcommand_name, const std::string &description);
-    void set_global_options(bool verbose, ProtoboardInitFn protoboard_init);
+    void set_global_options(bool verbose, const ProtoboardInitFn &pb_init);
     int execute(const std::vector<std::string> &args);
     const std::string &description() const;
 
@@ -96,6 +96,6 @@ int mpc_main(
     int argc,
     char **argv,
     const std::map<std::string, subcommand *> &commands,
-    ProtoboardInitFn pb_init);
+    const ProtoboardInitFn &pb_init);
 
 #endif // __ZETH_MPC_CLI_COMMON_HPP__

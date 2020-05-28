@@ -61,6 +61,7 @@ cli_options::cli_options()
     , degree(0)
     , verbose(false)
     , check(false)
+    , dummy(false)
     , out()
     , lagrange_degree(0)
 {

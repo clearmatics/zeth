@@ -14,6 +14,9 @@
 namespace libzeth
 {
 
+// Note that the block element is not initialized here, because the other
+// members are set to force initialization when the rng is first invoked.
+// cppcheck-suppress uninitMemberVar symbolName=chacha_rng::block
 chacha_rng::chacha_rng(const void *seed, size_t seed_size)
     : data_used(sizeof(block))
 {

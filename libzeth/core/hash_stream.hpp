@@ -47,8 +47,8 @@ protected:
 template<typename HashT> class hash_streambuf_wrapper : std::streambuf
 {
 protected:
-    hash_streambuf_wrapper(std::ostream *inner);
-    hash_streambuf_wrapper(std::istream *inner);
+    explicit hash_streambuf_wrapper(std::ostream *inner);
+    explicit hash_streambuf_wrapper(std::istream *inner);
     virtual std::streamsize xsputn(const char *s, std::streamsize n) override;
     virtual std::streamsize xsgetn(char *s, std::streamsize n) override;
 
@@ -75,7 +75,7 @@ private:
 template<typename HashT> class hash_ostream_wrapper : public std::ostream
 {
 public:
-    hash_ostream_wrapper(std::ostream &inner_stream);
+    explicit hash_ostream_wrapper(std::ostream &inner_stream);
     void get_hash(typename HashT::OutBuffer out_hash);
 
 private:
@@ -86,7 +86,7 @@ private:
 template<typename HashT> class hash_istream_wrapper : public std::istream
 {
 public:
-    hash_istream_wrapper(std::istream &inner_stream);
+    explicit hash_istream_wrapper(std::istream &inner_stream);
     void get_hash(typename HashT::OutBuffer out_hash);
 
 private:

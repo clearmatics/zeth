@@ -295,17 +295,6 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
     const srs_mpc_layer_L1<ppT> &layer_L1,
     size_t num_inputs)
 {
-    // { H_i } = { [ t(x) . x^i / delta ]_1 } i = 0 .. n-2 (n-1 entries)
-    libff::enter_block("computing initial { H_i } i=0..n-2");
-    const size_t H_size = layer_L1.T_tau_powers_g1.size();
-    if (!libff::inhibit_profiling_info) {
-        libff::print_indent();
-        printf("%zu entries\n", H_size);
-    }
-    libff::G1_vector<ppT> H_g1(H_size);
-
-    libff::leave_block("computing H_g1");
-
     // In layer_L1 output, there should be num_variables+1 entries in
     // ABC_g1. Of these:
     //
@@ -314,15 +303,6 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
     //
     //  - The remaining num_variables-num_inputs entries will be
     //    divided by delta to create layer2.
-    const size_t num_variables = layer_L1.ABC_g1.size() - 1;
-    const size_t num_L_elements = num_variables - num_inputs;
-    // { L_i } = { [ ABC_i / delta ]_1 }, i = l+1 .. num_variables
-    libff::enter_block("computing L_g1");
-    if (!libff::inhibit_profiling_info) {
-        libff::print_indent();
-        printf("%zu entries\n", num_L_elements);
-    }
-    libff::G1_vector<ppT> L_g1(num_L_elements);
 
     return srs_mpc_phase2_accumulator<ppT>(
         cs_hash,

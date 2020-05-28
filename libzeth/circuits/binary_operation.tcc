@@ -251,15 +251,10 @@ void double_bit32_sum_eq_gadget<FieldT>::generate_r1cs_constraints(
 template<typename FieldT>
 void double_bit32_sum_eq_gadget<FieldT>::generate_r1cs_witness()
 {
-    bits32 a_bits32;
-    bits32 b_bits32;
-    for (size_t i = 0; i < 32; i++) {
-        a_bits32[i] = a.get_bits(this->pb)[i];
-        b_bits32[i] = b.get_bits(this->pb)[i];
-    }
-
+    bits32 a_bits32 = bits32::from_vector(a.get_bits(this->pb));
+    bits32 b_bits32 = bits32::from_vector(b.get_bits(this->pb));
     bits32 left_side_acc = bits_add<32>(a_bits32, b_bits32, false);
-    res.fill_with_bits(this->pb, bits32_to_vector(left_side_acc));
+    left_side_acc.fill_variable_array(this->pb, res);
 }
 
 } // namespace libzeth

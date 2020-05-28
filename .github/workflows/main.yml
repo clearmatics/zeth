@@ -60,3 +60,12 @@ jobs:
         submodules: recursive
     - name: Execute
       run: CI_USE_DOCKER=1 CI_CONFIG=Release CI_ZKSNARK=PGHR13 scripts/ci build
+
+  check-cpp-linux:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: Execute
+      run: CI_CHECK_FORMAT=1 CI_USE_DOCKER=1 scripts/ci check_cpp

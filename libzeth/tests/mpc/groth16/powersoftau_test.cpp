@@ -24,7 +24,7 @@ namespace
 
 fs::path g_testdata_dir = fs::path("..") / "testdata";
 
-static std::string bytes_to_hex(const std::string &bin)
+std::string bytes_to_hex(const std::string &bin)
 {
     return libzeth::bytes_to_hex(bin.c_str(), bin.size());
 }
@@ -38,7 +38,7 @@ G1 pot_hex_to_g1(const std::string &s)
     return out;
 }
 
-G2 pot_hex_to_g2(const std::string hex)
+G2 pot_hex_to_g2(const std::string &hex)
 {
     const std::string bin = hex_to_bytes(hex);
     std::istringstream ss_bytes(bin);

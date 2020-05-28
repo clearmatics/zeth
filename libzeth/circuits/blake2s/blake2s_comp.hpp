@@ -35,14 +35,14 @@ class BLAKE2s_256_comp : public libsnark::gadget<FieldT>
 private:
     // See: Appendix A.2 of https://blake2.net/blake2.pdf for the specification
     // of the IV used in BLAKE2s
-    static const std::array<std::array<bool, BLAKE2s_word_size>, 8> BLAKE2s_IV;
+    static const std::array<bits<BLAKE2s_word_size>, 8> BLAKE2s_IV;
 
     // Section 2.1 of https://blake2.net/blake2.pdf specifies that BLAKE2s has
     // 10 rounds
     static const int rounds = 10;
 
     // Low and High words of the offset
-    std::array<std::array<bool, BLAKE2s_word_size>, 2> t;
+    std::array<bits<BLAKE2s_word_size>, 2> t;
 
     // Chaining values
     libsnark::digest_variable<FieldT> h;

@@ -13,8 +13,8 @@
 using namespace libsnark;
 using namespace libzeth;
 
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using ppT = libzeth::ppT;
+using FieldT = libff::Fr<ppT>;
 
 namespace
 {
@@ -493,10 +493,10 @@ TEST(TestBlake2s, TestTrue2)
     blake2s_gadget.generate_r1cs_witness();
 
     // blake2s(b"zeth")
-    bits256 expected = bits256_from_hex(
+    bits256 expected = bits256::from_hex(
         "b5f199b422df36c99363725d886e64c07ffd8852063adbbfbb86f43716ffab0e");
 
-    ASSERT_EQ(bits256_to_vector(expected), output.bits.get_bits(pb));
+    ASSERT_EQ(expected.to_vector(), output.bits.get_bits(pb));
 }
 
 } // namespace

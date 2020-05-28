@@ -21,9 +21,9 @@ template<typename FieldT, typename HashT>
 class PRF_gadget : public libsnark::gadget<FieldT>
 {
 private:
-    std::shared_ptr<libsnark::block_variable<FieldT>> block;
-    std::shared_ptr<HashT> hasher; // Hash gadget used as a prf
     std::shared_ptr<libsnark::digest_variable<FieldT>> result;
+    libsnark::block_variable<FieldT> block;
+    HashT hasher;
 
 public:
     PRF_gadget(
