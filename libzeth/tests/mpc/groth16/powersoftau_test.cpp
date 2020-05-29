@@ -10,8 +10,10 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-using ppT = libff::default_ec_pp;
+// The test data here is specifically for the alt_bn128 pairing.
+using ppT = libff::alt_bn128_pp;
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
@@ -34,7 +36,7 @@ G1 pot_hex_to_g1(const std::string &s)
     const std::string bin = hex_to_bytes(s);
     std::istringstream ss_bytes(bin);
     G1 out;
-    read_powersoftau_g1(ss_bytes, out);
+    read_powersoftau_g1<ppT>(ss_bytes, out);
     return out;
 }
 
@@ -43,7 +45,7 @@ G2 pot_hex_to_g2(const std::string &hex)
     const std::string bin = hex_to_bytes(hex);
     std::istringstream ss_bytes(bin);
     G2 out;
-    read_powersoftau_g2(ss_bytes, out);
+    read_powersoftau_g2<ppT>(ss_bytes, out);
     return out;
 }
 
@@ -54,31 +56,32 @@ template<typename T> std::string to_hex(const T &v)
     return bytes_to_hex(bufstream.str());
 }
 
-template<typename T> using point_serializer_t = void(std::ostream &, const T &);
+// template<typename T> using point_serializer_t = void(std::ostream &, const T
+// &);
 
-template<typename T> using point_deserializer_t = void(std::istream &, T &);
+// template<typename T> using point_deserializer_t = void(std::istream &, T &);
 
-template<
-    typename T,
-    size_t expect_size,
-    point_serializer_t<T> serialize,
-    point_deserializer_t<T> deserialize>
+template<typename T, size_t expect_size>
 void check_point_serialization(const T &v)
 {
     const std::string serialized = [&v]() {
         std::ostringstream ss;
-        serialize(ss, v);
+        v.write_uncompressed(ss);
+        v.write_compressed(ss);
         return ss.str();
     }();
 
-    T deserialized;
+    T deserialized_uncompressed;
+    T deserialized_compressed;
     {
         std::istringstream ss(serialized);
-        deserialize(ss, deserialized);
+        T::read_uncompressed(ss, deserialized_uncompressed);
+        T::read_compressed(ss, deserialized_compressed);
     };
 
     ASSERT_EQ(expect_size, serialized.size());
-    ASSERT_EQ(v, deserialized);
+    ASSERT_EQ(v, deserialized_uncompressed);
+    ASSERT_EQ(v, deserialized_compressed);
 }
 
 TEST(PowersOfTauTests, SameRatioTest)
@@ -268,13 +271,13 @@ TEST(UtilTest, ReadWritePowersOfTauFr)
     Fr fr_7_inv_read;
     {
         std::istringstream ss_bytes(hex_to_bytes(s_f_7_inv));
-        read_powersoftau_fr(ss_bytes, fr_7_inv_read);
+        read_powersoftau_fr<ppT>(ss_bytes, fr_7_inv_read);
     }
 
     std::string fr_7_inv_write;
     {
         std::ostringstream out;
-        write_powersoftau_fr(out, fr_7_inv);
+        write_powersoftau_fr<ppT>(out, fr_7_inv);
         fr_7_inv_write = bytes_to_hex(out.str());
     }
 
@@ -304,7 +307,7 @@ TEST(UtilTest, ReadWritePowersOfTauG1)
     std::string g1_7_inv_write;
     {
         std::ostringstream out;
-        write_powersoftau_g1(out, expect_g1_7_inv);
+        write_powersoftau_g1<ppT>(out, expect_g1_7_inv);
         g1_7_inv_write = bytes_to_hex(out.str());
     }
 
@@ -314,7 +317,7 @@ TEST(UtilTest, ReadWritePowersOfTauG1)
     ASSERT_EQ(s_g1_7_inv, g1_7_inv_write);
 }
 
-TEST(UtilTest, ReadWritePowersOfTauFq2)
+TEST(UtilTest, ReadWritePowersOfTauFp2)
 {
     const std::string fq2_x_string =
         "04d4bf3239f77cee7b47c7245e9281b3e9c1182d6381a87bbf81f9f2a6254b73"
@@ -330,19 +333,19 @@ TEST(UtilTest, ReadWritePowersOfTauFq2)
     libff::alt_bn128_Fq2 fq2_in_x;
     {
         std::istringstream ss(hex_to_bytes(fq2_x_string));
-        read_powersoftau_fq2(ss, fq2_in_x);
+        read_powersoftau_fp2(ss, fq2_in_x);
     }
 
     libff::alt_bn128_Fq2 fq2_in_y;
     {
         std::istringstream ss(hex_to_bytes(fq2_y_string));
-        read_powersoftau_fq2(ss, fq2_in_y);
+        read_powersoftau_fp2(ss, fq2_in_y);
     }
 
     std::string g2_one_x_write;
     {
         std::ostringstream out;
-        write_powersoftau_fq2(out, g2_one_x);
+        write_powersoftau_fp2(out, g2_one_x);
         g2_one_x_write = bytes_to_hex(out.str());
     }
 
@@ -393,7 +396,7 @@ TEST(PowersOfTauTests, ReadWritePowersOfTauG2)
     std::string g2_7_inv_write;
     {
         std::ostringstream out;
-        write_powersoftau_g2(out, g2_7_inv);
+        write_powersoftau_g2<ppT>(out, g2_7_inv);
         g2_7_inv_write = bytes_to_hex(out.str());
     }
 
@@ -413,7 +416,7 @@ TEST(PowersOfTauTests, ReadWritePowersOfTauOutput)
 
     std::ifstream in(
         filename.c_str(), std::ios_base::binary | std::ios_base::in);
-    srs_powersoftau<ppT> pot = powersoftau_load(in, n);
+    srs_powersoftau<ppT> pot = powersoftau_load<ppT>(in, n);
 
     std::string expect_pot_write;
     {
@@ -529,66 +532,32 @@ TEST(PowersOfTauTests, SerializeLagrangeEvaluation)
     ASSERT_EQ(lagrange.beta_lagrange_g1, lagrange_deser.beta_lagrange_g1);
 }
 
-TEST(PowersOfTauTests, G1PointCompression)
+TEST(PowersOfTauTests, G1PointSerialization)
 {
-    auto check_g1_compressed = [](const G1 &v) {
-        const size_t expectCompressedSize = 33;
-        check_point_serialization<
-            G1,
-            expectCompressedSize,
-            libff::alt_bn128_G1_write_compressed,
-            libff::alt_bn128_G1_read_compressed>(v);
-    };
+    const size_t expect_uncompressed_size = 65;
+    const size_t expect_compressed_size = 33;
+    const size_t expect_size =
+        expect_uncompressed_size + expect_compressed_size;
 
-    auto check_g1_uncompressed = [](const G1 &v) {
-        const size_t expectUncompressedSize = 65;
-        check_point_serialization<
-            G1,
-            expectUncompressedSize,
-            libff::alt_bn128_G1_write_uncompressed,
-            libff::alt_bn128_G1_read_uncompressed>(v);
-    };
-
-    auto check_g1 = [&](const G1 &v) {
-        check_g1_compressed(v);
-        check_g1_uncompressed(v);
-    };
-
-    check_g1(G1::zero());
-    check_g1(G1::one());
-    check_g1(Fr(7).inverse() * G1::one());
-    check_g1(Fr(-1) * Fr(7).inverse() * G1::one());
+    check_point_serialization<G1, expect_size>(G1::zero());
+    check_point_serialization<G1, expect_size>(G1::one());
+    check_point_serialization<G1, expect_size>(Fr(7).inverse() * G1::one());
+    check_point_serialization<G1, expect_size>(
+        Fr(-1) * Fr(7).inverse() * G1::one());
 }
 
 TEST(PowersOfTauTests, G2PointCompression)
 {
-    auto check_g2_compressed = [](const G2 &v) {
-        const size_t expectCompressedSize = 65;
-        check_point_serialization<
-            G2,
-            expectCompressedSize,
-            libff::alt_bn128_G2_write_compressed,
-            libff::alt_bn128_G2_read_compressed>(v);
-    };
+    const size_t expect_uncompressed_size = 129;
+    const size_t expect_compressed_size = 65;
+    const size_t expect_size =
+        expect_uncompressed_size + expect_compressed_size;
 
-    auto check_g2_uncompressed = [](const G2 &v) {
-        const size_t expectUncompressedSize = 129;
-        check_point_serialization<
-            G2,
-            expectUncompressedSize,
-            libff::alt_bn128_G2_write_uncompressed,
-            libff::alt_bn128_G2_read_uncompressed>(v);
-    };
-
-    auto check_g2 = [&](const G2 &v) {
-        check_g2_compressed(v);
-        check_g2_uncompressed(v);
-    };
-
-    check_g2(G2::zero());
-    check_g2(G2::one());
-    check_g2(Fr(7).inverse() * G2::one());
-    check_g2(Fr(-1) * Fr(7).inverse() * G2::one());
+    check_point_serialization<G2, expect_size>(G2::zero());
+    check_point_serialization<G2, expect_size>(G2::one());
+    check_point_serialization<G2, expect_size>(Fr(7).inverse() * G2::one());
+    check_point_serialization<G2, expect_size>(
+        Fr(-1) * Fr(7).inverse() * G2::one());
 }
 
 } // namespace

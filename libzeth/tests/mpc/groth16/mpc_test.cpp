@@ -16,12 +16,16 @@
 
 #include <fstream>
 #include <gtest/gtest.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <thread>
 
 using namespace libzeth;
 using namespace libsnark;
 
-using PP = srs_pot_pp;
+// TODO: Parameterize all tests by ppT, so unit tests can run over all
+// supported pairings. For now, use the default ppT from the build except where
+// the test is specialized to a specific curve.
+
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;
@@ -71,33 +75,37 @@ srs_mpc_phase2_accumulator<ppT> dummy_initial_accumulator(
 
 TEST(MPCTests, HashToG2)
 {
+    // Data here is specialised for alt_bn128 (and ppT is not guaranteed to be
+    // alt_bn128_pp).
+    using pp = libff::alt_bn128_pp;
+
     mpc_hash_t hash;
     const std::string seed = hex_to_bytes(
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
     memcpy(hash, seed.data(), sizeof(mpc_hash_t));
 
-    Fr expect_fr;
+    libff::Fr<pp> expect_fr;
     {
         std::istringstream ss(
             hex_to_bytes("20e70f3b594e4a9bd78e7d23f796f3bce4de"
                          "92af13adf10beffe2cf84b59e2ad"));
-        read_powersoftau_fr(ss, expect_fr);
+        read_powersoftau_fr<pp>(ss, expect_fr);
     }
 
-    G2 expect_g2;
+    libff::G2<pp> expect_g2;
     {
         std::istringstream ss(hex_to_bytes(
             "04048fb80ba85a814f6ca7db7194da6c71fa7d8b7aa05b49ce315c96c20b916ab"
             "36544a6656acae3f5a7da00ca96dfe5b9c4bcec736f75cf85a27fab44f426df28"
             "0532af644ab533ca189739ae2d908b95d643051f6692286eca126ad4c65275def"
             "8e0f6b24ebb57b415e59b465dc7f3f823c615434955b96f7f3f5ba4f7505e43"));
-        read_powersoftau_g2(ss, expect_g2);
+        read_powersoftau_g2<pp>(ss, expect_g2);
     }
 
-    Fr fr;
+    libff::Fr<pp> fr;
     srs_mpc_digest_to_fp(hash, fr);
-    G2 g2 = srs_mpc_digest_to_g2<ppT>(hash);
+    libff::G2<pp> g2 = srs_mpc_digest_to_g2<pp>(hash);
 
     ASSERT_EQ(expect_fr, fr);
     ASSERT_EQ(expect_g2, g2);
@@ -424,16 +432,16 @@ TEST(MPCTests, KeyPairReadWrite)
     std::string keypair_serialized;
     {
         std::ostringstream out;
-        groth16_snark<PP>::keypair_write_bytes(out, keypair);
+        groth16_snark<ppT>::keypair_write_bytes(out, keypair);
         keypair_serialized = out.str();
     }
 
-    typename groth16_snark<PP>::KeypairT keypair_deserialized = [&]() {
+    typename groth16_snark<ppT>::KeypairT keypair_deserialized = [&]() {
         std::istringstream in(keypair_serialized);
         in.exceptions(
             std::ios_base::eofbit | std::ios_base::badbit |
             std::ios_base::failbit);
-        return groth16_snark<PP>::keypair_read_bytes(in);
+        return groth16_snark<ppT>::keypair_read_bytes(in);
     }();
 
     ASSERT_EQ(keypair.pk, keypair_deserialized.pk);
@@ -632,8 +640,10 @@ TEST(MPCTests, Phase2HashToG2)
     mpc_hash_t hash_1;
     mpc_compute_hash(hash_1, empty, 0);
 
-    G2 g2_0 = srs_mpc_digest_to_g2<ppT>(hash_0);
-    G2 g2_1 = srs_mpc_digest_to_g2<ppT>(hash_1);
+    libff::G2<libff::alt_bn128_pp> g2_0 =
+        srs_mpc_digest_to_g2<libff::alt_bn128_pp>(hash_0);
+    libff::G2<libff::alt_bn128_pp> g2_1 =
+        srs_mpc_digest_to_g2<libff::alt_bn128_pp>(hash_1);
     ASSERT_EQ(g2_0, g2_1);
 }
 
@@ -880,8 +890,11 @@ TEST(MPCTests, Phase2TranscriptVerification)
 
 int main(int argc, char **argv)
 {
-    // !!! WARNING: Do not forget to do this once for all tests !!!
     ppT::init_public_params();
+    // In general ppT is not guaranteed to be a particular curve, so we must
+    // ensure alt_bn128_pp is initialized for those tests which are specialized
+    // for that pairing.
+    libff::alt_bn128_pp::init_public_params();
 
     // Remove stdout noise from libff
     libff::inhibit_profiling_counters = true;

@@ -2,12 +2,13 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/core/group_element_utils.hpp"
 
 #include <gtest/gtest.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-using ppT = libzeth::ppT;
+// Test data is specifically for alt_bn128
+using ppT = libff::alt_bn128_pp;
 using Fr = libff::Fr<ppT>;
 using G1 = libff::G1<ppT>;
 using G2 = libff::G2<ppT>;

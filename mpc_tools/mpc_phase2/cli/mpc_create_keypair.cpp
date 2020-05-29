@@ -133,7 +133,7 @@ private:
                 powersoftau_file, std::ios_base::binary | std::ios_base::in);
             const size_t pot_degree =
                 powersoftau_degree ? powersoftau_degree : lin_comb.degree();
-            return powersoftau_load(in, pot_degree);
+            return powersoftau_load<ppT>(in, pot_degree);
         }();
         libff::leave_block("Load powers of tau");
 

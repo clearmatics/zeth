@@ -10,6 +10,8 @@
 #include "libzeth/circuits/mimc/mimc_mp.hpp"
 #include "libzeth/core/include_libsnark.hpp"
 
+#include <libff/common/default_types/ec_pp.hpp>
+
 // Types that must be common across all executable, defined once here. Outside
 // of tests, these should not be set anywhere else in the code. Do not include
 // this file in code that is generic (parameterized on ppT or FieldT).

@@ -2,14 +2,15 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/mimc/mimc_mp.hpp"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 using namespace libzeth;
 
-using ppT = libzeth::ppT;
+// Test data here specialized for alt_bn128
+using ppT = libff::alt_bn128_pp;
 using FieldT = libff::Fr<ppT>;
 
 namespace
