@@ -139,72 +139,71 @@ std::vector<libff::Fr<ppT>> primary_inputs_from_string(
 }
 
 template<typename ppT>
+std::string accumulation_vector_to_string(
+    const libsnark::accumulation_vector<libff::G1<ppT>> &acc_vector)
+{
+    std::stringstream ss;
+    unsigned vect_length = acc_vector.rest.indices.size() + 1;
+    ss << "[" << point_g1_affine_to_json<ppT>(acc_vector.first);
+    for (size_t i = 0; i < vect_length - 1; ++i) {
+        ss << ", " << point_g1_affine_to_json<ppT>(acc_vector.rest.values[i]);
+    }
+    ss << "]";
+    std::string vect_json_str = ss.str();
+
+    return vect_json_str;
+}
+
+template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
     const std::string &acc_vector_str)
 {
-    // TODO: Copied from old code. Can be cleaned up significantly to not
-    // allocate and copy strings. May be worth introducing composible parsing
-    // functions, or switch to a real json library, to support more reuse.
+    static const char prefix[] = "[\"";
+    static const char suffix[] = "\"]";
 
-    char *cstr = new char[acc_vector_str.length() + 1];
-    std::strcpy(cstr, acc_vector_str.c_str());
-    char *pos;
-    printf("Splitting string \"%s\" into tokens:\n", cstr);
-
-    std::vector<std::string> res;
-    pos = strtok(cstr, "[, ]");
-
-    while (pos != NULL) {
-        res.push_back(std::string(pos));
-        pos = strtok(NULL, "[, ]");
+    if (acc_vector_str.length() < (sizeof(prefix) + sizeof(suffix))) {
+        throw std::invalid_argument("invalid accumulation vector string");
     }
 
-    // Free heap memory allocated with the `new` above
-    delete[] cstr;
-
-    // Each element of G1 has 2 coordinates (the points are in the affine form)
-    //
-    // Messy check that the size of the vector resulting from the string parsing
-    // is of the form 2*n meaning that it contains the x and y coordinates of n
-    // points
-    if (res.size() > 0 && res.size() % 2 != 0) {
-        // TODO: Do exception throwing/catching properly
-        std::cerr
-            << "accumulation_vector_from_string: Wrong number of coordinates"
-            << std::endl;
-        exit(1);
+    size_t start_idx = acc_vector_str.find(prefix);
+    if (start_idx == std::string::npos) {
+        throw std::invalid_argument("invalid accumulation vector string");
     }
 
-    libsnark::accumulation_vector<libff::G1<ppT>> acc_res;
-    libff::Fq<ppT> x_coordinate =
-        field_element_from_hex<libff::Fq<ppT>>(res[0]);
-    libff::Fq<ppT> y_coordinate =
-        field_element_from_hex<libff::Fq<ppT>>(res[1]);
+    // TODO: Remove the temporary string.
 
-    libff::G1<ppT> first_point_g1 = libff::G1<ppT>(x_coordinate, y_coordinate);
-    acc_res.first = first_point_g1;
+    // Allocate once and reuse.
+    std::string element_str;
 
-    // Set the `rest` of the accumulation vector
-    libsnark::sparse_vector<libff::G1<ppT>> rest;
-    libff::G1<ppT> point_g1;
-    for (size_t i = 2; i < res.size(); i += 2) {
-        // TODO:
-        // This is BAD => this code is a duplicate of the function
-        // `field_element_to_hex` Let's re-use the content of the
-        // function `field_element_to_hex` here. To do this properly
-        // this means that we need to modify the type of `abc_g1` in the proto
-        // file to be a repeated G1 element (and not a string) Likewise for the
-        // inputs which should be changed to repeated field elements
-        libff::Fq<ppT> x_coord = field_element_from_hex<libff::Fq<ppT>>(res[i]);
-        libff::Fq<ppT> y_coord =
-            field_element_from_hex<libff::Fq<ppT>>(res[i + 1]);
-
-        point_g1 = libff::G1<ppT>(x_coord, y_coord);
-        rest[i / 2 - 1] = point_g1;
+    // Extract first element
+    size_t end_idx = acc_vector_str.find(suffix, start_idx);
+    if (end_idx == std::string::npos) {
+        throw std::invalid_argument("invalid accumulation vector string");
     }
 
-    acc_res.rest = rest;
-    return acc_res;
+    // Extract the string '["....", "...."]'
+    //                     ^             ^
+    //                start_idx       end_idx
+
+    element_str = acc_vector_str.substr(start_idx, end_idx + 2 - start_idx);
+    libff::G1<ppT> front = point_g1_affine_from_json<ppT>(element_str);
+    start_idx = acc_vector_str.find(prefix, end_idx);
+
+    // Extract remaining elements
+    std::vector<libff::G1<ppT>> rest;
+    do {
+        end_idx = acc_vector_str.find(suffix, start_idx);
+        if (end_idx == std::string::npos) {
+            throw std::invalid_argument("invalid accumulation vector string");
+        }
+
+        element_str = acc_vector_str.substr(start_idx, end_idx + 2 - start_idx);
+        rest.push_back(point_g1_affine_from_json<ppT>(element_str));
+        start_idx = acc_vector_str.find(prefix, end_idx);
+    } while (start_idx != std::string::npos);
+
+    return libsnark::accumulation_vector<libff::G1<ppT>>(
+        std::move(front), std::move(rest));
 }
 
 } // namespace libzeth

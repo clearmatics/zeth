@@ -16,6 +16,10 @@ namespace libzeth
 template<typename ppT>
 std::string point_g1_affine_to_json(const libff::G1<ppT> &point);
 
+/// Convert a JSON string into a group element
+template<typename ppT>
+libff::G1<ppT> point_g1_affine_from_json(const std::string &grp_str);
+
 /// Convert a group element of G2 to a json string (list of hexadecimal
 /// strings). This function assumes that the group element is in affine form,
 /// and that both coordinates (X, Y) are elements of a an extension field of

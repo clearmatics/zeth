@@ -49,7 +49,20 @@ TEST(ProtoUtilsTest, PrimaryInputsEncodeDecode)
     ASSERT_EQ(inputs, inputs_decoded);
 }
 
-// TODO: Add test for accumulation_vector_from_string
+TEST(ProtoUtilsTest, AccumulationVectorEncodeDecode)
+{
+    const libsnark::accumulation_vector<G1> acc_vect(
+        G1::random_element(), {G1::random_element(), G1::random_element()});
+    const std::string acc_vect_string =
+        libzeth::accumulation_vector_to_string<ppT>(acc_vect);
+    const libsnark::accumulation_vector<G1> acc_vect_decoded =
+        libzeth::accumulation_vector_from_string<ppT>(acc_vect_string);
+    const std::string acc_vect_decoded_string =
+        libzeth::accumulation_vector_to_string<ppT>(acc_vect_decoded);
+
+    ASSERT_EQ(acc_vect, acc_vect_decoded);
+    ASSERT_EQ(acc_vect_string, acc_vect_decoded_string);
+}
 
 } // namespace
 

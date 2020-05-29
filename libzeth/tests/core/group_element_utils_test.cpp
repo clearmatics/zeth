@@ -16,7 +16,7 @@ using G2 = libff::G2<ppT>;
 namespace
 {
 
-TEST(GroupElementUtilsTest, G1EncodeJson)
+TEST(GroupElementUtilsTest, G1EncodeDecodeJson)
 {
     static const std::string g1_json_expected =
         "["
@@ -27,7 +27,10 @@ TEST(GroupElementUtilsTest, G1EncodeJson)
     G1 g1 = Fr(13) * G1::one();
     g1.to_affine_coordinates();
     std::string g1_json = libzeth::point_g1_affine_to_json<ppT>(g1);
+    G1 g1_decoded = libzeth::point_g1_affine_from_json<ppT>(g1_json);
+
     ASSERT_EQ(g1_json_expected, g1_json);
+    ASSERT_EQ(g1, g1_decoded);
 }
 
 TEST(GroupElementUtilsTest, G2EncodeJson)
