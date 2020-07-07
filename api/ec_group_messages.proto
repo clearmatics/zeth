@@ -2,9 +2,15 @@ syntax = "proto3";
 
 package zeth_proto;
 
-// Every point coordinate (ie: base field element)
-// is treated as an hexadecimal string.
-// The points in G1 are represented in affine form.
+// Every point coordinate (ie: base field element) is treated as an hexadecimal
+// string. The points in G1 are represented in affine form.
+//
+// e.g. Let A be a `HexPointBaseGroup1Affine` message. Then `A` is of the form:
+// ```
+// A = {
+//    x_coord = "0xa34...ef",
+//    y_coord = "0xae7...dc"
+// }
 message HexPointBaseGroup1Affine {
     // First coordinate of the point
     string x_coord = 1;
@@ -13,6 +19,17 @@ message HexPointBaseGroup1Affine {
 }
 
 // The points in G2 are represented in affine form.
+// We use a "repeated" string field for each coordinates to have flexibility
+// over the degree of the field extension used to define elements of G2.
+// This makes the API generic enough to support pairing groups with various
+// embedding degrees and twist degrees.
+//
+// e.g. Let A be a `HexPointBaseGroup2Affine` message. Then `A` is of the form:
+// ```
+// A = {
+//    x_coord = ["0xa34...ef", ... "0xaef...ab"],
+//    y_coord = ["0xae7...dc", ... "0xbfe...54"]
+// }
 message HexPointBaseGroup2Affine {
     // First coordinate of the point
     repeated string x_coord = 1;
