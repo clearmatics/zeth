@@ -1,3 +1,58 @@
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
+#ifndef __ZETH_CONFIG_H__
+#define __ZETH_CONFIG_H__
+
 // The configured options and settings for Tutorial
 #define ZETH_VERSION_MAJOR @ZETH_VERSION_MAJOR@
 #define ZETH_VERSION_MINOR @ZETH_VERSION_MINOR@
+
+#define ZETH_CURVE_@ZETH_CURVE@ 1
+
+#if defined(ZETH_CURVE_ALT_BN128)
+#define CURVE_ALT_BN128
+#include <libff/common/default_types/ec_pp.hpp>
+#undef CURVE_ALT_BN128
+
+#elif defined(ZETH_CURVE_BN128)
+#define CURVE_BN128
+#define BN_SUPPORT_SNARK 1
+#include <libff/common/default_types/ec_pp.hpp>
+#undef BN_SUPPORT_SNARK
+#undef CURVE_BN128
+
+#elif defined(ZETH_CURVE_EDWARDS)
+#define CURVE_EDWARDS
+#include <libff/common/default_types/ec_pp.hpp>
+#undef CURVE_EDWARDS
+
+#elif defined(ZETH_CURVE_MNT4)
+#define CURVE_MNT4
+#include <libff/common/default_types/ec_pp.hpp>
+#undef CURVE_MNT4
+
+#elif defined(ZETH_CURVE_MNT6)
+#define CURVE_MNT6
+#include <libff/common/default_types/ec_pp.hpp>
+#undef CURVE_MNT6
+
+#elif defined(ZETH_CURVE_BLS12_377)
+#define CURVE_BLS12_377
+#include <libff/common/default_types/ec_pp.hpp>
+#undef CURVE_BLS12_377
+
+#elif defined(ZETH_CURVE_BW6_761)
+#define CURVE_BW6_761
+#include <libff/common/default_types/ec_pp.hpp>
+#undef CURVE_BW6_761
+
+#else
+#error "ZETH_CURVE_* variable not defined"
+#endif
+
+using ppT = libff::default_ec_pp;
+using FieldT = libff::Fr<ppT>;
+
+#endif // __ZETH_CONFIG_H__

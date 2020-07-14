@@ -8,6 +8,7 @@
 #include "libzeth/circuits/commitments/commitment.hpp"
 #include "libzeth/core/utils.hpp"
 #include "libzeth/zeth_constants.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
@@ -15,9 +16,7 @@
 using namespace libzeth;
 
 // Instantiation of the templates for the tests
-using ppT = libzeth::ppT;
-using FieldT = libff::Fr<ppT>;
-using HashT = BLAKE2s_256<FieldT>;
+using Hash = BLAKE2s_256<FieldT>;
 
 namespace
 {
@@ -60,7 +59,7 @@ TEST(TestCOMMs, TestCOMMGadget)
     libsnark::pb_variable<FieldT> result;
     result.allocate(pb, "result");
 
-    COMM_cm_gadget<FieldT, HashT> comm_cm_gadget(pb, a_pk, rho, r, v, result);
+    COMM_cm_gadget<FieldT, Hash> comm_cm_gadget(pb, a_pk, rho, r, v, result);
     comm_cm_gadget.generate_r1cs_constraints();
     comm_cm_gadget.generate_r1cs_witness();
 

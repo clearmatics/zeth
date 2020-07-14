@@ -18,6 +18,19 @@ project(zeth CXX)
 set(ZETH_VERSION_MAJOR 0)
 set(ZETH_VERSION_MINOR 4)
 
+# Default curve to use with zeth. Only useful for applications since all
+# library functions should be parameterized by type. Note, this is
+# intentionally independent of the libff variable `CURVE` to help ensure that
+# library code remains fully parameterized (and to avoid unnecessary rebuilds
+# of libff caused by changing compiler command line).
+set(
+  ZETH_CURVE
+  "ALT_BN128"
+  CACHE
+  STRING
+  "Default curve: one of BLS12_377, BW6_761, ALT_BN128, BN128, EDWARDS, MNT4, MNT6"
+)
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -60,15 +73,6 @@ option(
   FAST_TESTS_ONLY
   "Include only fast-running tests"
   OFF
-)
-
-# Flags and compilation options for use with libsnark
-set(
-  CURVE
-  "ALT_BN128"
-  CACHE
-  STRING
-  "Default curve: one of ALT_BN128, BN128, EDWARDS, MNT4, MNT6"
 )
 
 set(
@@ -179,14 +183,9 @@ else()
   " No guarantees can be made if another compiler is used.")
 endif()
 
-add_definitions(-DCURVE_${CURVE})
 add_definitions(-DZKSNARK_${ZKSNARK})
 
 enable_testing()
-
-if(${CURVE} STREQUAL "BN128")
-  add_definitions(-DBN_SUPPORT_SNARK=1)
-endif()
 
 if("${VERBOSE}")
   add_definitions(-DVERBOSE=1)

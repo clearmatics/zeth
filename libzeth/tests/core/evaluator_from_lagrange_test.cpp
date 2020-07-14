@@ -5,6 +5,7 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/core/evaluator_from_lagrange.hpp"
 #include "libzeth/mpc/groth16/powersoftau_utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 

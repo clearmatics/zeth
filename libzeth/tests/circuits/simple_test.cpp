@@ -4,13 +4,11 @@
 
 #include "simple_test.hpp"
 
-#include "circuits/circuit_types.hpp"
 #include "core/utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 
-using ppT = libzeth::ppT;
-using FieldT = libff::Fr<ppT>;
 using namespace libsnark;
 using namespace libzeth;
 

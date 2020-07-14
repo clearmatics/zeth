@@ -8,6 +8,7 @@
 #include "libzeth/core/utils.hpp"
 #include "libzeth/snarks/groth16/groth16_snark.hpp"
 #include "libzeth/snarks/pghr13/pghr13_snark.hpp"
+#include "zeth_config.h"
 
 #include <chrono>
 #include <gtest/gtest.h>
@@ -23,7 +24,14 @@ static const size_t TreeDepth = 4;
 using namespace libzeth;
 
 template<typename snarkT>
-using prover = circuit_wrapper<HashT, HashTreeT, ppT, snarkT, 2, 2, TreeDepth>;
+using prover = circuit_wrapper<
+    HashT<FieldT>,
+    HashTreeT<FieldT>,
+    ppT,
+    snarkT,
+    2,
+    2,
+    TreeDepth>;
 
 namespace
 {
@@ -44,7 +52,7 @@ bool TestValidJS2In2Case1(
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
-    merkle_tree_field<FieldT, HashTreeT> test_merkle_tree(TreeDepth);
+    merkle_tree_field<FieldT, HashTreeT<FieldT>> test_merkle_tree(TreeDepth);
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -167,7 +175,7 @@ bool TestValidJS2In2Case2(
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
     // Create a merkle tree to run our tests
-    merkle_tree_field<FieldT, HashTreeT> test_merkle_tree(TreeDepth);
+    merkle_tree_field<FieldT, HashTreeT<FieldT>> test_merkle_tree(TreeDepth);
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -290,7 +298,7 @@ bool TestValidJS2In2Case3(
         " note1=0x1500000000000002");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
-    merkle_tree_field<FieldT, HashTreeT> test_merkle_tree(TreeDepth);
+    merkle_tree_field<FieldT, HashTreeT<FieldT>> test_merkle_tree(TreeDepth);
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -412,7 +420,7 @@ bool TestValidJS2In2Deposit(
         " OUT=> v_pub=0x0, note0=0x3782DACE9D900000, note1=0x29A2241AF62C0000");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
-    merkle_tree_field<FieldT, HashTreeT> test_merkle_tree(TreeDepth);
+    merkle_tree_field<FieldT, HashTreeT<FieldT>> test_merkle_tree(TreeDepth);
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1
@@ -540,7 +548,7 @@ bool TestInvalidJS2In2(
         " OUT=> v_pub=0x0, note0=0x8530000A00000001, note1=0x7550000A00000000");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
-    merkle_tree_field<FieldT, HashTreeT> test_merkle_tree(TreeDepth);
+    merkle_tree_field<FieldT, HashTreeT<FieldT>> test_merkle_tree(TreeDepth);
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // --- Test 1: Generate a valid proof for commitment inserted at address 1

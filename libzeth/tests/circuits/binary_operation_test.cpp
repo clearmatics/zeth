@@ -3,17 +3,14 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzeth/circuits/binary_operation.hpp"
-#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/core/include_libff.hpp"
 #include "libzeth/core/utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 
 using namespace libzeth;
-
-using ppT = libzeth::ppT;
-using FieldT = libff::Fr<ppT>;
 
 namespace
 {

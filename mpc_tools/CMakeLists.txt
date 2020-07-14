@@ -3,6 +3,10 @@
 find_package(Boost REQUIRED COMPONENTS program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
+# Add the binary tree to the search path for include files
+# so that we will find zethConfig.h
+include_directories(${PROJECT_BINARY_DIR})
+
 # Compile the pot-process utility (GROTH16 only)
 if(${ZKSNARK} STREQUAL "GROTH16")
   add_executable(

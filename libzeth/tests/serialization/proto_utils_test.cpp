@@ -4,13 +4,13 @@
 
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/serialization/proto_utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 
-using ppT = libzeth::ppT;
-using Fr = libff::Fr<libzeth::ppT>;
-using G1 = libff::G1<libzeth::ppT>;
-using G2 = libff::G2<libzeth::ppT>;
+using Fr = libff::Fr<ppT>;
+using G1 = libff::G1<ppT>;
+using G2 = libff::G2<ppT>;
 
 namespace
 {

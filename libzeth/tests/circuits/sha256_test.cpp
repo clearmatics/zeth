@@ -6,14 +6,12 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/sha256/sha256_ethereum.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 using namespace libsnark;
-
-using ppT = libzeth::ppT;
-using FieldT = libff::Fr<ppT>;
 
 // We use our hash function to do the tests
 using HashT = libzeth::sha256_ethereum<FieldT>;

@@ -13,6 +13,7 @@
 #include "libzeth/mpc/groth16/powersoftau_utils.hpp"
 #include "libzeth/snarks/groth16/groth16_snark.hpp"
 #include "libzeth/tests/circuits/simple_test.hpp"
+#include "zeth_config.h"
 
 #include <fstream>
 #include <gtest/gtest.h>

@@ -7,14 +7,12 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/core/utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 
 using namespace libsnark;
 using namespace libzeth;
-
-using ppT = libzeth::ppT;
-using FieldT = libff::Fr<ppT>;
 
 namespace
 {

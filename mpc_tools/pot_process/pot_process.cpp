@@ -5,8 +5,8 @@
 /// Small utility to check powersoftau output and to compute the evaluation of
 /// Lagrange polynomials at tau.
 
-#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/mpc/groth16/powersoftau_utils.hpp"
+#include "zeth_config.h"
 
 #include <boost/program_options.hpp>
 #include <fstream>

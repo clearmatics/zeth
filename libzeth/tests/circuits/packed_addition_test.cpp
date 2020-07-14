@@ -9,13 +9,11 @@
 #include "libzeth/core/joinsplit_input.hpp"
 #include "libzeth/core/note.hpp"
 #include "libzeth/core/utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 
 using namespace libzeth;
-
-using ppT = libzeth::ppT;
-using FieldT = libff::Fr<ppT>;
 
 namespace
 {

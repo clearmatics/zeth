@@ -24,8 +24,18 @@
 #include <stdio.h>
 #include <string>
 
-using snark = libzeth::default_snark<libzeth::ppT>;
-using api_handler = libzeth::default_api_handler<libzeth::ppT>;
+using snark = libzeth::default_snark<ppT>;
+using api_handler = libzeth::default_api_handler<ppT>;
+using hash = libzeth::HashT<FieldT>;
+using hash_tree = libzeth::HashTreeT<FieldT>;
+using circuit_wrapper = libzeth::circuit_wrapper<
+    hash,
+    hash_tree,
+    ppT,
+    snark,
+    libzeth::ZETH_NUM_JS_INPUTS,
+    libzeth::ZETH_NUM_JS_OUTPUTS,
+    libzeth::ZETH_MERKLE_TREE_DEPTH>;
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
@@ -63,7 +73,7 @@ static void serialize_setup_to_file(
 }
 
 static void write_ext_proof_to_file(
-    const libzeth::extended_proof<libzeth::ppT, snark> &ext_proof,
+    const libzeth::extended_proof<ppT, snark> &ext_proof,
     boost::filesystem::path proof_path = "")
 {
     if (proof_path.empty()) {
@@ -84,32 +94,14 @@ static void write_ext_proof_to_file(
 class prover_server final : public zeth_proto::Prover::Service
 {
 private:
-    using FieldT = libff::Fr<libzeth::ppT>;
-
-    libzeth::circuit_wrapper<
-        libzeth::HashT,
-        libzeth::HashTreeT,
-        libzeth::ppT,
-        snark,
-        libzeth::ZETH_NUM_JS_INPUTS,
-        libzeth::ZETH_NUM_JS_OUTPUTS,
-        libzeth::ZETH_MERKLE_TREE_DEPTH>
-        prover;
+    circuit_wrapper prover;
 
     // The keypair is the result of the setup. Store a copy internally.
     snark::KeypairT keypair;
 
 public:
     explicit prover_server(
-        libzeth::circuit_wrapper<
-            libzeth::HashT,
-            libzeth::HashTreeT,
-            libzeth::ppT,
-            snark,
-            libzeth::ZETH_NUM_JS_INPUTS,
-            libzeth::ZETH_NUM_JS_OUTPUTS,
-            libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
-        const snark::KeypairT &keypair)
+        circuit_wrapper &prover, const snark::KeypairT &keypair)
         : prover(prover), keypair(keypair)
     {
     }
@@ -149,9 +141,8 @@ public:
 
         // Parse received message to feed to the prover
         try {
-            libzeth::FieldT root =
-                libzeth::field_element_from_hex<libzeth::FieldT>(
-                    proof_inputs->mk_root());
+            FieldT root = libzeth::field_element_from_hex<FieldT>(
+                proof_inputs->mk_root());
             libzeth::bits64 vpub_in =
                 libzeth::bits64::from_hex(proof_inputs->pub_in_value());
             libzeth::bits64 vpub_out =
@@ -172,9 +163,8 @@ public:
             std::cout << "[DEBUG] Process all inputs of the JoinSplit"
                       << std::endl;
             std::array<
-                libzeth::joinsplit_input<
-                    libzeth::FieldT,
-                    libzeth::ZETH_MERKLE_TREE_DEPTH>,
+                libzeth::
+                    joinsplit_input<FieldT, libzeth::ZETH_MERKLE_TREE_DEPTH>,
                 libzeth::ZETH_NUM_JS_INPUTS>
                 joinsplit_inputs;
             for (size_t i = 0; i < libzeth::ZETH_NUM_JS_INPUTS; i++) {
@@ -183,7 +173,7 @@ public:
                 const zeth_proto::JoinsplitInput &received_input =
                     proof_inputs->js_inputs(i);
                 joinsplit_inputs[i] = libzeth::joinsplit_input_from_proto<
-                    libzeth::FieldT,
+                    FieldT,
                     libzeth::ZETH_MERKLE_TREE_DEPTH>(received_input);
             }
 
@@ -205,16 +195,15 @@ public:
 
             std::cout << "[DEBUG] Data parsed successfully" << std::endl;
             std::cout << "[DEBUG] Generating the proof..." << std::endl;
-            libzeth::extended_proof<libzeth::ppT, snark> ext_proof =
-                this->prover.prove(
-                    root,
-                    joinsplit_inputs,
-                    joinsplit_outputs,
-                    vpub_in,
-                    vpub_out,
-                    h_sig_in,
-                    phi_in,
-                    this->keypair.pk);
+            libzeth::extended_proof<ppT, snark> ext_proof = this->prover.prove(
+                root,
+                joinsplit_inputs,
+                joinsplit_outputs,
+                vpub_in,
+                vpub_out,
+                h_sig_in,
+                phi_in,
+                this->keypair.pk);
 
             std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
             ext_proof.write_json(std::cout);
@@ -274,15 +263,7 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    libzeth::circuit_wrapper<
-        libzeth::HashT,
-        libzeth::HashTreeT,
-        libzeth::ppT,
-        snark,
-        libzeth::ZETH_NUM_JS_INPUTS,
-        libzeth::ZETH_NUM_JS_OUTPUTS,
-        libzeth::ZETH_MERKLE_TREE_DEPTH> &prover,
-    const typename snark::KeypairT &keypair)
+    circuit_wrapper &prover, const typename snark::KeypairT &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50051
     std::string server_address("0.0.0.0:50051");
@@ -368,17 +349,9 @@ int main(int argc, char **argv)
 
     // We inititalize the curve parameters here
     std::cout << "[INFO] Init params" << std::endl;
-    libzeth::ppT::init_public_params();
+    ppT::init_public_params();
 
-    libzeth::circuit_wrapper<
-        libzeth::HashT,
-        libzeth::HashTreeT,
-        libzeth::ppT,
-        snark,
-        libzeth::ZETH_NUM_JS_INPUTS,
-        libzeth::ZETH_NUM_JS_OUTPUTS,
-        libzeth::ZETH_MERKLE_TREE_DEPTH>
-        prover;
+    circuit_wrapper prover;
     snark::KeypairT keypair = [&keypair_file, &prover]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
@@ -405,7 +378,7 @@ int main(int argc, char **argv)
     if (jr1cs_file.empty()) {
         std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
         std::ofstream jr1cs_stream(jr1cs_file.c_str());
-        libzeth::r1cs_write_json<libzeth::ppT>(
+        libzeth::r1cs_write_json<ppT>(
             prover.get_constraint_system(), jr1cs_stream);
     }
 #endif

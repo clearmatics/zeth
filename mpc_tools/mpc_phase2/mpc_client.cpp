@@ -6,15 +6,17 @@
 // is, participants in the MPC that only contribute and potentially validate
 // the final transcript.
 
+#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_wrapper.hpp"
 #include "mpc_common.hpp"
+#include "zeth_config.h"
 
-void zeth_protoboard(libsnark::protoboard<libzeth::FieldT> &pb)
+void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
 {
     libzeth::joinsplit_gadget<
-        libzeth::FieldT,
-        libzeth::HashT,
-        libzeth::HashTreeT,
+        FieldT,
+        libzeth::HashT<FieldT>,
+        libzeth::HashTreeT<FieldT>,
         libzeth::ZETH_NUM_JS_INPUTS,
         libzeth::ZETH_NUM_JS_OUTPUTS,
         libzeth::ZETH_MERKLE_TREE_DEPTH>
