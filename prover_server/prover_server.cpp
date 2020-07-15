@@ -7,7 +7,6 @@
 #include "libzeth/core/utils.hpp"
 #include "libzeth/serialization/proto_utils.hpp"
 #include "libzeth/serialization/r1cs_serialization.hpp"
-#include "libzeth/snarks/default/default_api_handler.hpp"
 #include "libzeth/zeth_constants.hpp"
 #include "zeth_config.h"
 
@@ -24,14 +23,16 @@
 #include <stdio.h>
 #include <string>
 
-using snark = libzeth::default_snark<ppT>;
-using api_handler = libzeth::default_api_handler<ppT>;
+using pp = libzeth::defaults::pp;
+using FieldT = libzeth::defaults::FieldT;
+using snark = libzeth::defaults::snark;
+using api_handler = libzeth::defaults::api_handler;
 using hash = libzeth::HashT<FieldT>;
 using hash_tree = libzeth::HashTreeT<FieldT>;
 using circuit_wrapper = libzeth::circuit_wrapper<
     hash,
     hash_tree,
-    ppT,
+    pp,
     snark,
     libzeth::ZETH_NUM_JS_INPUTS,
     libzeth::ZETH_NUM_JS_OUTPUTS,
@@ -73,7 +74,7 @@ static void serialize_setup_to_file(
 }
 
 static void write_ext_proof_to_file(
-    const libzeth::extended_proof<ppT, snark> &ext_proof,
+    const libzeth::extended_proof<pp, snark> &ext_proof,
     boost::filesystem::path proof_path = "")
 {
     if (proof_path.empty()) {
@@ -195,7 +196,7 @@ public:
 
             std::cout << "[DEBUG] Data parsed successfully" << std::endl;
             std::cout << "[DEBUG] Generating the proof..." << std::endl;
-            libzeth::extended_proof<ppT, snark> ext_proof = this->prover.prove(
+            libzeth::extended_proof<pp, snark> ext_proof = this->prover.prove(
                 root,
                 joinsplit_inputs,
                 joinsplit_outputs,
@@ -289,7 +290,7 @@ static void RunServer(
     server->Wait();
 }
 
-#ifdef ZKSNARK_GROTH16
+#ifdef ZETH_SNARK_GROTH16
 static snark::KeypairT load_keypair(const std::string &keypair_file)
 {
     std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
@@ -349,12 +350,12 @@ int main(int argc, char **argv)
 
     // We inititalize the curve parameters here
     std::cout << "[INFO] Init params" << std::endl;
-    ppT::init_public_params();
+    pp::init_public_params();
 
     circuit_wrapper prover;
     snark::KeypairT keypair = [&keypair_file, &prover]() {
         if (!keypair_file.empty()) {
-#ifdef ZKSNARK_GROTH16
+#ifdef ZETH_SNARK_GROTH16
             std::cout << "[INFO] Loading keypair: " << keypair_file
                       << std::endl;
             return load_keypair(keypair_file);
@@ -378,7 +379,7 @@ int main(int argc, char **argv)
     if (jr1cs_file.empty()) {
         std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
         std::ofstream jr1cs_stream(jr1cs_file.c_str());
-        libzeth::r1cs_write_json<ppT>(
+        libzeth::r1cs_write_json<pp>(
             prover.get_constraint_system(), jr1cs_stream);
     }
 #endif

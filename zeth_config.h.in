@@ -10,6 +10,9 @@
 #define ZETH_VERSION_MINOR @ZETH_VERSION_MINOR@
 
 #define ZETH_CURVE_@ZETH_CURVE@ 1
+#define ZETH_SNARK_@ZETH_SNARK@ 1
+
+// Select the curve based on the ZETH_CURVE_* variable
 
 #if defined(ZETH_CURVE_ALT_BN128)
 #define CURVE_ALT_BN128
@@ -52,7 +55,47 @@
 #error "ZETH_CURVE_* variable not defined"
 #endif
 
-using ppT = libff::default_ec_pp;
-using FieldT = libff::Fr<ppT>;
+namespace libzeth
+{
+namespace defaults
+{
+
+using pp = libff::default_ec_pp;
+using FieldT = libff::Fr<pp>;
+
+} // namespace defaults
+} // namespace libzeth
+
+// Select a snark based on the ZETH_SNARK_* variable
+
+#if defined(ZETH_SNARK_PGHR13)
+#include "libzeth/snarks/pghr13/pghr13_api_handler.hpp"
+namespace libzeth
+{
+namespace defaults
+{
+
+using snark = pghr13_snark<pp>;
+using api_handler = pghr13_api_handler<pp>;
+
+} // namespace defaults
+} // namespace libzeth
+
+#elif defined(ZETH_SNARK_GROTH16)
+#include "libzeth/snarks/groth16/groth16_api_handler.hpp"
+namespace libzeth
+{
+namespace defaults
+{
+
+using snark = groth16_snark<pp>;
+using api_handler = groth16_api_handler<pp>;
+
+} // namespace defaults
+} // namespace libzeth
+
+#else
+#error "ZETH_SNARK_* variable not defined"
+#endif
 
 #endif // __ZETH_CONFIG_H__

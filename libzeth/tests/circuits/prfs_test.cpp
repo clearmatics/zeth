@@ -15,7 +15,9 @@
 using namespace libsnark;
 using namespace libzeth;
 
-// We use our hash function to do the tests
+using pp = defaults::pp;
+using FieldT = defaults::FieldT;
+
 using Hash = BLAKE2s_256<FieldT>;
 
 namespace
@@ -521,9 +523,8 @@ TEST(TestPRFs, TestPRFRhoGadget)
 
 int main(int argc, char **argv)
 {
-    // /!\ WARNING: Do once for all tests. Do not
-    // forget to do this !!!!
-    ppT::init_public_params();
+    // /!\ WARNING: Do once for all tests. Do not forget to do this !!!!
+    pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

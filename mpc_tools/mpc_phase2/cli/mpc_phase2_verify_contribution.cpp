@@ -6,6 +6,7 @@
 #include "mpc_common.hpp"
 
 using namespace libzeth;
+using pp = defaults::pp;
 namespace po = boost::program_options;
 
 namespace
@@ -89,13 +90,13 @@ private:
         }
 
         libff::enter_block("Load challenge file");
-        srs_mpc_phase2_challenge<ppT> challenge =
-            read_from_file<srs_mpc_phase2_challenge<ppT>>(challenge_file);
+        srs_mpc_phase2_challenge<pp> challenge =
+            read_from_file<srs_mpc_phase2_challenge<pp>>(challenge_file);
         libff::leave_block("Load challenge file");
 
         libff::enter_block("Load response file");
-        srs_mpc_phase2_response<ppT> response =
-            read_from_file<srs_mpc_phase2_response<ppT>>(response_file);
+        srs_mpc_phase2_response<pp> response =
+            read_from_file<srs_mpc_phase2_response<pp>>(response_file);
         libff::leave_block("Load response file");
 
         libff::enter_block("Verifying response");
@@ -124,7 +125,7 @@ private:
         // challenge.
         if (!new_challenge_file.empty()) {
             libff::enter_block("computing and writing new challenge");
-            srs_mpc_phase2_challenge<ppT> new_challenge =
+            srs_mpc_phase2_challenge<pp> new_challenge =
                 srs_mpc_phase2_compute_challenge(std::move(response));
             std::ofstream out(
                 new_challenge_file, std::ios_base::binary | std::ios_base::out);

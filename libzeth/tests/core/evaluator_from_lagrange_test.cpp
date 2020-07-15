@@ -10,9 +10,10 @@
 #include <gtest/gtest.h>
 
 using namespace libzeth;
-using Fr = FieldT;
-using G1 = libff::G1<ppT>;
-using G2 = libff::G2<ppT>;
+using pp = defaults::pp;
+using Fr = defaults::FieldT;
+using G1 = libff::G1<pp>;
+using G2 = libff::G2<pp>;
 
 namespace
 {
@@ -25,19 +26,19 @@ TEST(EvaluationFromLagrangeTest, ComputeLagrangeEvaluation)
     Fr tau = Fr::random_element();
     Fr alpha = Fr::random_element();
     Fr beta = Fr::random_element();
-    const srs_powersoftau<ppT> pot =
-        dummy_powersoftau_from_secrets<ppT>(tau, alpha, beta, n);
-    const srs_lagrange_evaluations<ppT> lagrange =
+    const srs_powersoftau<pp> pot =
+        dummy_powersoftau_from_secrets<pp>(tau, alpha, beta, n);
+    const srs_lagrange_evaluations<pp> lagrange =
         powersoftau_compute_lagrange_evaluations(pot, n);
 
     // Compare to the naive evaluations obtained using iFFT in Fr, and
     // evaluating the polynomial.
     libfqfft::basic_radix2_domain<Fr> domain(n);
-    evaluator_from_lagrange<ppT, G1> eval_g1(pot.tau_powers_g1, domain);
-    evaluator_from_lagrange<ppT, G2> eval_g2(pot.tau_powers_g2, domain);
-    evaluator_from_lagrange<ppT, G1> eval_alpha_g1(
+    evaluator_from_lagrange<pp, G1> eval_g1(pot.tau_powers_g1, domain);
+    evaluator_from_lagrange<pp, G2> eval_g2(pot.tau_powers_g2, domain);
+    evaluator_from_lagrange<pp, G1> eval_alpha_g1(
         pot.alpha_tau_powers_g1, domain);
-    evaluator_from_lagrange<ppT, G1> eval_beta_g1(
+    evaluator_from_lagrange<pp, G1> eval_beta_g1(
         pot.beta_tau_powers_g1, domain);
 
     for (size_t j = 0; j < n; ++j) {
@@ -68,7 +69,7 @@ TEST(EvaluationFromLagrangeTest, ComputeLagrangeEvaluation)
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params();
+    pp::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

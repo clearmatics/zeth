@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+using pp = libzeth::defaults::pp;
+using FieldT = libzeth::defaults::FieldT;
 using bigint_t = libff::bigint<FieldT::num_limbs>;
 
 namespace
@@ -53,7 +55,7 @@ TEST(FieldElementUtilsTest, FieldElementDecodeBadString)
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params();
+    pp::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

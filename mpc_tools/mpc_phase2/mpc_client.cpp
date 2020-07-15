@@ -11,6 +11,8 @@
 #include "mpc_common.hpp"
 #include "zeth_config.h"
 
+using FieldT = libzeth::defaults::FieldT;
+
 void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
 {
     libzeth::joinsplit_gadget<

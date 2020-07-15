@@ -9,17 +9,18 @@
 
 #include <gtest/gtest.h>
 
-using Fr = libff::Fr<ppT>;
-using G1 = libff::G1<ppT>;
-using G2 = libff::G2<ppT>;
-using snark = libzeth::pghr13_snark<ppT>;
+using pp = libzeth::defaults::pp;
+using Fr = libff::Fr<pp>;
+using G1 = libff::G1<pp>;
+using G2 = libff::G2<pp>;
+using snark = libzeth::pghr13_snark<pp>;
 
 namespace
 {
 
 TEST(PGHR13ApiHandlerTest, VerificationKeyEncodeDecode)
 {
-    verification_key_encode_decode_test<libzeth::pghr13_api_handler<ppT>>();
+    verification_key_encode_decode_test<libzeth::pghr13_api_handler<pp>>();
 }
 
 TEST(PGHR13ApiHandlerTest, ProofEncodeDecode)
@@ -32,7 +33,7 @@ TEST(PGHR13ApiHandlerTest, ProofEncodeDecode)
         G1::random_element());
     libsnark::r1cs_primary_input<Fr> dummy_inputs{
         Fr::random_element(), Fr::random_element(), Fr::random_element()};
-    extended_proof_encode_decode_test<ppT, libzeth::pghr13_api_handler<ppT>>(
+    extended_proof_encode_decode_test<pp, libzeth::pghr13_api_handler<pp>>(
         {std::move(dummy_proof), std::move(dummy_inputs)});
 }
 
@@ -40,7 +41,7 @@ TEST(PGHR13ApiHandlerTest, ProofEncodeDecode)
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params();
+    pp::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

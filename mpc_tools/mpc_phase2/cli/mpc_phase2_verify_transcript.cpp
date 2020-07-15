@@ -9,6 +9,7 @@
 #include <fstream>
 
 using namespace libzeth;
+using pp = defaults::pp;
 namespace po = boost::program_options;
 
 namespace
@@ -97,8 +98,8 @@ private:
 
         // Load the initial challenge
         libff::enter_block("Load challenge_0 file");
-        const srs_mpc_phase2_challenge<ppT> challenge_0 =
-            read_from_file<const srs_mpc_phase2_challenge<ppT>>(
+        const srs_mpc_phase2_challenge<pp> challenge_0 =
+            read_from_file<const srs_mpc_phase2_challenge<pp>>(
                 challenge_0_file);
         libff::leave_block("Load challenge_0 file");
 
@@ -139,7 +140,7 @@ private:
 
         // Verify transcript based on the initial challenge
         libff::enter_block("Verify transcript");
-        libff::G1<ppT> final_delta;
+        libff::G1<pp> final_delta;
         mpc_hash_t final_transcript_digest{};
         {
             std::ifstream in(
@@ -147,7 +148,7 @@ private:
             bool transcript_valid = false;
             bool contribution_found = false;
             if (check_for_contribution) {
-                transcript_valid = srs_mpc_phase2_verify_transcript<ppT>(
+                transcript_valid = srs_mpc_phase2_verify_transcript<pp>(
                     challenge_0.transcript_digest,
                     challenge_0.accumulator.delta_g1,
                     check_contribution_digest,
@@ -157,7 +158,7 @@ private:
                     contribution_found);
             } else {
                 contribution_found = true;
-                transcript_valid = srs_mpc_phase2_verify_transcript<ppT>(
+                transcript_valid = srs_mpc_phase2_verify_transcript<pp>(
                     challenge_0.transcript_digest,
                     challenge_0.accumulator.delta_g1,
                     in,
@@ -180,8 +181,8 @@ private:
 
         // Load and check the final challenge
         libff::enter_block("Load phase2 output");
-        const srs_mpc_phase2_challenge<ppT> final_challenge =
-            read_from_file<const srs_mpc_phase2_challenge<ppT>>(
+        const srs_mpc_phase2_challenge<pp> final_challenge =
+            read_from_file<const srs_mpc_phase2_challenge<pp>>(
                 final_challenge_file);
         libff::leave_block("Load phase2 output");
 

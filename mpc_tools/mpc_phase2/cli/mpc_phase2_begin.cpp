@@ -10,6 +10,7 @@
 #include <fstream>
 
 using namespace libzeth;
+using pp = defaults::pp;
 namespace po = boost::program_options;
 
 namespace
@@ -76,8 +77,8 @@ private:
 
         libff::enter_block("Load linear combination file");
         mpc_hash_t cs_hash;
-        srs_mpc_layer_L1<ppT> lin_comb =
-            read_from_file_and_hash<srs_mpc_layer_L1<ppT>>(
+        srs_mpc_layer_L1<pp> lin_comb =
+            read_from_file_and_hash<srs_mpc_layer_L1<pp>>(
                 lin_comb_file, cs_hash);
         libff::leave_block("Load linear combination file");
 
@@ -94,9 +95,9 @@ private:
 
         // Initial challenge
         libff::enter_block("Computing initial challenge");
-        const srs_mpc_phase2_challenge<ppT> initial_challenge =
-            srs_mpc_phase2_initial_challenge<ppT>(
-                srs_mpc_phase2_begin<ppT>(cs_hash, lin_comb, num_inputs));
+        const srs_mpc_phase2_challenge<pp> initial_challenge =
+            srs_mpc_phase2_initial_challenge<pp>(
+                srs_mpc_phase2_begin<pp>(cs_hash, lin_comb, num_inputs));
         libff::leave_block("Computing initial challenge");
 
         libff::enter_block("Writing initial challenge");

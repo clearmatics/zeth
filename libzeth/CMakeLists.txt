@@ -28,8 +28,6 @@ ExternalProject_Get_Property(libsodium INSTALL_DIR)
 set(libsodium_INCLUDE_DIR "${INSTALL_DIR}/include")
 set(libsodium_LIBRARY "${INSTALL_DIR}/lib/libsodium.a")
 
-string(TOLOWER ${ZKSNARK} ZKSNARK_NAME)
-
 # zeth library
 file(
   GLOB_RECURSE

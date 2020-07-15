@@ -12,6 +12,8 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 using namespace libsnark;
+using pp = libzeth::defaults::pp;
+using FieldT = libzeth::defaults::FieldT;
 
 // We use our hash function to do the tests
 using HashT = libzeth::sha256_ethereum<FieldT>;
@@ -19,7 +21,7 @@ using HashT = libzeth::sha256_ethereum<FieldT>;
 // Note on the instantiation of the FieldT template type
 //
 // We use the alt_bn128_pp public params, with a field instantiated with
-// libff::Fr<ppT> which corresponds (according to
+// libff::Fr<pp> which corresponds (according to
 // libff/algebra/curves/public_params.hpp) to the typedef 'typedef alt_bn128_Fr
 // Fp_type;' (see: libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp)
 // 'alt_bn128_Fr' being itself defined in
@@ -205,7 +207,7 @@ int main(int argc, char **argv)
 {
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
-    ppT::init_public_params();
+    pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

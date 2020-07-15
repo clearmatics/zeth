@@ -17,6 +17,8 @@
 using namespace libzeth;
 
 // We use our hash functions to do the tests
+using pp = defaults::pp;
+using FieldT = defaults::FieldT;
 using Hash = BLAKE2s_256<FieldT>;
 using HashTree = MiMC_mp_gadget<FieldT>;
 static const size_t TreeDepth = 4;
@@ -199,7 +201,7 @@ int main(int argc, char **argv)
 {
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
-    ppT::init_public_params();
+    pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

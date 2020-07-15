@@ -8,6 +8,7 @@
 #include "mpc_common.hpp"
 
 using namespace libzeth;
+using pp = defaults::pp;
 namespace po = boost::program_options;
 
 namespace
@@ -78,8 +79,8 @@ private:
 
         // Load the linear_combination output
         libff::enter_block("reading linear combination data");
-        srs_mpc_layer_L1<ppT> lin_comb =
-            read_from_file<srs_mpc_layer_L1<ppT>>(linear_combination_file);
+        srs_mpc_layer_L1<pp> lin_comb =
+            read_from_file<srs_mpc_layer_L1<pp>>(linear_combination_file);
         libff::leave_block("reading linear combination data");
 
         // Generate the zeth circuit (to determine the number of inputs)
@@ -97,8 +98,8 @@ private:
         const FieldT delta = FieldT::random_element();
 
         // Generate and save the dummy phase2 challenge
-        const srs_mpc_phase2_challenge<ppT> phase2 =
-            srs_mpc_dummy_phase2<ppT>(lin_comb, delta, num_inputs);
+        const srs_mpc_phase2_challenge<pp> phase2 =
+            srs_mpc_dummy_phase2<pp>(lin_comb, delta, num_inputs);
         libff::enter_block("writing phase2 data");
         {
             std::ofstream out(out_file);

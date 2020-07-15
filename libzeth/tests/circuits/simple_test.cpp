@@ -12,6 +12,9 @@
 using namespace libsnark;
 using namespace libzeth;
 
+using pp = defaults::pp;
+using FieldT = defaults::FieldT;
+
 namespace
 {
 
@@ -42,10 +45,10 @@ TEST(SimpleTests, SimpleCircuitProof)
         }
     }
 
-    const r1cs_gg_ppzksnark_keypair<ppT> keypair =
-        r1cs_gg_ppzksnark_generator<ppT>(constraint_system);
+    const r1cs_gg_ppzksnark_keypair<pp> keypair =
+        r1cs_gg_ppzksnark_generator<pp>(constraint_system);
 
-    const r1cs_gg_ppzksnark_proof<ppT> proof =
+    const r1cs_gg_ppzksnark_proof<pp> proof =
         r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary);
 
     ASSERT_TRUE(
@@ -60,12 +63,12 @@ TEST(SimpleTests, SimpleCircuitProofPow2Domain)
 
     const r1cs_constraint_system<FieldT> constraint_system =
         pb.get_constraint_system();
-    const r1cs_gg_ppzksnark_keypair<ppT> keypair =
-        r1cs_gg_ppzksnark_generator<ppT>(constraint_system, true);
+    const r1cs_gg_ppzksnark_keypair<pp> keypair =
+        r1cs_gg_ppzksnark_generator<pp>(constraint_system, true);
 
     const r1cs_primary_input<FieldT> primary{12};
     const r1cs_auxiliary_input<FieldT> auxiliary{1, 1, 1};
-    const r1cs_gg_ppzksnark_proof<ppT> proof =
+    const r1cs_gg_ppzksnark_proof<pp> proof =
         r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary, true);
     ASSERT_TRUE(
         r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
@@ -77,7 +80,7 @@ int main(int argc, char **argv)
 {
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
-    ppT::init_public_params();
+    pp::init_public_params();
 
     // Remove stdout noise from libff
     libff::inhibit_profiling_counters = true;

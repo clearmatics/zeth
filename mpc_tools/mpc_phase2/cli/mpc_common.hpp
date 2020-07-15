@@ -15,7 +15,8 @@
 #include <string>
 #include <vector>
 
-using ProtoboardInitFn = std::function<void(libsnark::protoboard<FieldT> &)>;
+using ProtoboardInitFn =
+    std::function<void(libsnark::protoboard<libzeth::defaults::FieldT> &)>;
 
 class subcommand
 {
@@ -29,6 +30,8 @@ private:
     bool help;
 
 public:
+    using FieldT = libzeth::defaults::FieldT;
+
     subcommand(
         const std::string &subcommand_name, const std::string &description);
     void set_global_options(bool verbose, const ProtoboardInitFn &pb_init);

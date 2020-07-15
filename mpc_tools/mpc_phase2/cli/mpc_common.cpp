@@ -107,7 +107,7 @@ int mpc_main(
     const std::map<std::string, subcommand *> &commands,
     const ProtoboardInitFn &pb_init)
 {
-    ppT::init_public_params();
+    libzeth::defaults::pp::init_public_params();
     po::options_description global("Global options");
     global.add_options()("help,h", "This help")("verbose,v", "Verbose output");
 

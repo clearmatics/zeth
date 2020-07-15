@@ -8,7 +8,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 
 # Compile the pot-process utility (GROTH16 only)
-if(${ZKSNARK} STREQUAL "GROTH16")
+if(${ZETH_SNARK} STREQUAL "GROTH16")
   add_executable(
     pot-process
     pot_process/pot_process.cpp

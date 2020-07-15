@@ -22,12 +22,14 @@
 static const size_t TreeDepth = 4;
 
 using namespace libzeth;
+using pp = defaults::pp;
+using FieldT = defaults::FieldT;
 
 template<typename snarkT>
 using prover = circuit_wrapper<
     HashT<FieldT>,
     HashTreeT<FieldT>,
-    ppT,
+    pp,
     snarkT,
     2,
     2,
@@ -138,7 +140,7 @@ bool TestValidJS2In2Case1(
     libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate proof", true);
-    extended_proof<ppT, snarkT> ext_proof = prover.prove(
+    extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -259,7 +261,7 @@ bool TestValidJS2In2Case2(
     libff::enter_block("Generate proof", true);
     // RHS = 0x1A00000000000002 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F (LHS)
-    extended_proof<ppT, snarkT> ext_proof = prover.prove(
+    extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -384,7 +386,7 @@ bool TestValidJS2In2Case3(
     libff::enter_block("Generate proof", true);
     // (RHS) 0x1A00000000000012 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F + 0x0000000000000010 + 0x0 (LHS)
-    extended_proof<ppT, snarkT> ext_proof = prover.prove(
+    extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -509,7 +511,7 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("Generate proof", true);
     // RHS = 0x0 + 0x3782DACE9D900000 + 0x29A2241AF62C0000 = 0x6124FEE993BC0000
     // (LHS)
-    extended_proof<ppT, snarkT> ext_proof = prover.prove(
+    extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -642,7 +644,7 @@ bool TestInvalidJS2In2(
     // 0x8530000A00000001 (9.597170848876199937 ETH) + 0x7550000A00000000
     // (8.453256543524093952 ETH) = RHS LHS = 18.050427392400293888 ETH RHS
     // = 18.050427392400293889 ETH (1 wei higher than LHS)
-    extended_proof<ppT, snarkT> ext_proof = prover.prove(
+    extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
         outputs,
@@ -708,12 +710,12 @@ template<typename snarkT> static void run_prover_tests()
 
 TEST(MainTestsGroth16, ProofGenAndVerifJS2to2)
 {
-    run_prover_tests<groth16_snark<ppT>>();
+    run_prover_tests<groth16_snark<pp>>();
 }
 
 TEST(MainTestsPghr12, ProofGenAndVerifJS2to2)
 {
-    run_prover_tests<pghr13_snark<ppT>>();
+    run_prover_tests<pghr13_snark<pp>>();
 }
 
 } // namespace
@@ -722,7 +724,7 @@ int main(int argc, char **argv)
 {
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
-    ppT::init_public_params();
+    pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
