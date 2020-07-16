@@ -285,8 +285,12 @@ endif()
 
 # Add all local subdirecetories
 add_subdirectory(libzeth)
-add_subdirectory(prover_server)
-# For now the MPC for Groth16 only is tailored to the alt_bn128 pairing group
-if(${ZETH_SNARK} STREQUAL "GROTH16")
-  add_subdirectory(mpc_tools)
+
+# If zeth is being used as a dependency, skip the tools build
+if ("${IS_ZETH_PARENT}")
+  add_subdirectory(prover_server)
+  # For now the MPC for Groth16 only is tailored to the alt_bn128 pairing group
+  if(${ZETH_SNARK} STREQUAL "GROTH16")
+    add_subdirectory(mpc_tools)
+  endif()
 endif()
