@@ -5,9 +5,10 @@
 #ifndef __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_HPP__
 #define __ZETH_SNARKS_PGHR13_PGHR13_API_HANDLER_HPP__
 
-#include "api/snark_messages.grpc.pb.h"
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/snarks/pghr13/pghr13_snark.hpp"
+
+#include <api/snark_messages.pb.h>
 
 namespace libzeth
 {

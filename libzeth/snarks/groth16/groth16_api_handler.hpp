@@ -8,7 +8,7 @@
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/snarks/groth16/groth16_snark.hpp"
 
-#include <api/snark_messages.grpc.pb.h>
+#include <api/snark_messages.pb.h>
 
 namespace libzeth
 {
