@@ -9,7 +9,6 @@
 #include "libzeth/core/utils.hpp"
 
 #include <boost/assert.hpp>
-
 #include <iomanip>
 
 /// This file uses types and preprocessor variables defined in the `gmp.h`
@@ -43,7 +42,8 @@ std::string base_field_element_to_hex(const FieldT &field_el)
     return bigint_to_hex<FieldT>(field_el.as_bigint());
 }
 
-template<typename FieldT> FieldT base_field_element_from_hex(const std::string &hex)
+template<typename FieldT>
+FieldT base_field_element_from_hex(const std::string &hex)
 {
     return FieldT(bigint_from_hex<FieldT>(hex));
 }
@@ -61,7 +61,8 @@ std::vector<std::string> ext_field_element_to_hex(const EFieldT &field_el)
 
     std::vector<std::string> res;
     for (size_t i = 0; i < extension_degree; i++) {
-        res.push_back(bigint_to_hex<typename EFieldT::my_Fp>(field_el.coeffs[i].as_bigint()));
+        res.push_back(bigint_to_hex<typename EFieldT::my_Fp>(
+            field_el.coeffs[i].as_bigint()));
     }
 
     return res;
@@ -82,7 +83,8 @@ EFieldT ext_field_element_from_hex(const std::vector<std::string> &hex_vec)
 
     typename EFieldT::my_Fp tmp[extension_degree];
     for (size_t i = 0; i < extension_degree; i++) {
-        tmp[i] = base_field_element_from_hex<typename EFieldT::my_Fp>(hex_vec[i]);
+        tmp[i] =
+            base_field_element_from_hex<typename EFieldT::my_Fp>(hex_vec[i]);
     }
 
     // TODO: Add constructor from array in libff to avoid to extra copy step
