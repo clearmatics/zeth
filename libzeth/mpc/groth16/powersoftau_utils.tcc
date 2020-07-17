@@ -70,7 +70,7 @@ std::istream &read_powersoftau_fp2(
     libff::bigint<n + 1> c1;
 
     mpn_tdiv_qr(
-        c1.data,              // quotient
+        c1.data,                     // quotient
         el.coeffs[0].mont_repr.data, // remainder
         0,
         packed.data,

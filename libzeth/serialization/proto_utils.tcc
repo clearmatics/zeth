@@ -43,7 +43,7 @@ zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     const libff::G2<ppT> &point)
 {
     using Fqe = libff::Fqe<ppT>;
-    
+
     assert(!point.is_zero());
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
@@ -86,7 +86,8 @@ joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
 
     std::vector<FieldT> input_merkle_path;
     for (size_t i = 0; i < TreeDepth; i++) {
-        FieldT mk_node = base_field_element_from_hex<FieldT>(input.merkle_path(i));
+        FieldT mk_node =
+            base_field_element_from_hex<FieldT>(input.merkle_path(i));
         input_merkle_path.push_back(mk_node);
     }
 

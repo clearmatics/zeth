@@ -49,10 +49,12 @@ TEST(FieldElementUtilsTest, BaseFieldElementEncodeDecode)
 TEST(FieldElementUtilsTest, ExtFieldElementEncodeDecode)
 {
     Fqe fe = Fqe::random_element();
-    std::vector<std::string> fe_hex = libzeth::ext_field_element_to_hex<Fqe>(fe);
+    std::vector<std::string> fe_hex =
+        libzeth::ext_field_element_to_hex<Fqe>(fe);
 
     std::string str;
-    for (const auto &entry : fe_hex) str += ("," + entry);
+    for (const auto &entry : fe_hex)
+        str += ("," + entry);
     std::cout << "fe_hex: " << str << std::endl;
 
     Fqe fe_decoded = libzeth::ext_field_element_from_hex<Fqe>(fe_hex);
