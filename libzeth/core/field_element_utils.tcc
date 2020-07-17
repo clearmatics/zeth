@@ -77,7 +77,7 @@ EFieldT ext_field_element_from_hex(const std::vector<std::string> &hex_vec)
     BOOST_ASSERT(extension_degree > 1);
     // Make sure we process a "non-towered" extension field element
     BOOST_ASSERT(extension_degree == tower_extension_degree);
-    // Make sure we process the right input
+    // Make sure we process an input in the right form
     BOOST_ASSERT(extension_degree == hex_vec.size());
 
     typename EFieldT::my_Fp tmp[extension_degree];
@@ -85,6 +85,8 @@ EFieldT ext_field_element_from_hex(const std::vector<std::string> &hex_vec)
         tmp[i] = base_field_element_from_hex<typename EFieldT::my_Fp>(hex_vec[i]);
     }
 
+    // TODO: Add constructor from array in libff to avoid to extra copy step
+    // that would be cleaner.
     EFieldT el = EFieldT();
     std::copy(std::begin(tmp), std::end(tmp), std::begin(el.coeffs));
     return el;
