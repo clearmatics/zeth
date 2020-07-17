@@ -38,16 +38,27 @@ std::string bigint_to_hex(const libff::bigint<FieldT::num_limbs> &limbs);
 template<typename FieldT>
 libff::bigint<FieldT::num_limbs> bigint_from_hex(const std::string &hex);
 
-/// Convert a field element to an hexadecimal string
-/// The element is assumed to be from an arbitrary field (which can be
-/// an extension). As such the function first checks the degree of the
-/// extension field in order to serialize the element correctly.
+/// Convert a base/ground field element to an hexadecimal string
 template<typename FieldT>
-std::string field_element_to_hex(const FieldT &field_el);
+std::string base_field_element_to_hex(const FieldT &field_el);
 
-/// Convert an hexadecimal string to a field element
+/// Convert an hexadecimal string to a base/ground field element
 template<typename FieldT>
-FieldT field_element_from_hex(const std::string &field_str);
+FieldT base_field_element_from_hex(const std::string &field_str);
+
+/// Convert an extension field element to a vector of hexadecimal strings.
+/// All coefficients necessary to represent the extension field element
+/// are written contiguously in the vector, i.e. this function does not
+/// support extension fields built as "towers".
+template<typename EFieldT>
+std::vector<std::string> ext_field_element_to_hex(const EFieldT &field_el);
+
+/// Convert a vector of hexadecimal strings to an extension field element.
+/// All coefficients necessary to represent the extension field element
+/// are written contiguously in the vector, i.e. this function does not
+/// support extension fields built as "towers".
+template<typename EFieldT>
+EFieldT ext_field_element_from_hex(const std::vector<std::string> &field_str);
 
 } // namespace libzeth
 

@@ -15,8 +15,8 @@ std::string point_g1_affine_to_json(const libff::G1<ppT> &point)
 {
     libff::G1<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
-    return "[\"0x" + field_element_to_hex<libff::Fq<ppT>>(affine_p.X) +
-           "\", \"0x" + field_element_to_hex<libff::Fq<ppT>>(affine_p.Y) +
+    return "[\"0x" + base_field_element_to_hex<libff::Fq<ppT>>(affine_p.X) +
+           "\", \"0x" + base_field_element_to_hex<libff::Fq<ppT>>(affine_p.Y) +
            "\"]";
 }
 
@@ -29,7 +29,7 @@ libff::G1<ppT> point_g1_affine_from_json(const std::string &grp_str)
         const size_t end_hex = grp_str.find("\"", next_hex_pos);
         const std::string next_hex =
             grp_str.substr(next_hex_pos, end_hex - next_hex_pos);
-        coordinates.push_back(field_element_from_hex<libff::Fq<ppT>>(next_hex));
+        coordinates.push_back(base_field_element_from_hex<libff::Fq<ppT>>(next_hex));
         next_hex_pos = grp_str.find("0x", end_hex);
     }
 
@@ -47,8 +47,8 @@ std::string point_g2_affine_to_json(const libff::G2<ppT> &point)
 {
     libff::G2<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
-    return "[\"0x" + field_element_to_hex<libff::Fq<ppT>>(affine_p.X) +
-           "\", \"0x" + field_element_to_hex<libff::Fq<ppT>>(affine_p.Y) +
+    return "[\"0x" + ext_field_element_to_hex<libff::Fqe<ppT>>(affine_p.X) +
+           "\", \"0x" + ext_field_element_to_hex<libff::Fqe<ppT>>(affine_p.Y) +
            "\"]";
 }
 

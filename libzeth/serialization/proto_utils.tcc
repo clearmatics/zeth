@@ -22,8 +22,8 @@ zeth_proto::HexPointBaseGroup1Affine point_g1_affine_to_proto(
     aff.to_affine_coordinates();
 
     zeth_proto::HexPointBaseGroup1Affine res;
-    res.set_x_coord("0x" + field_element_to_hex<Fq>(aff.X));
-    res.set_y_coord("0x" + field_element_to_hex<Fq>(aff.Y));
+    res.set_x_coord("0x" + base_field_element_to_hex<Fq>(aff.X));
+    res.set_y_coord("0x" + base_field_element_to_hex<Fq>(aff.Y));
     return res;
 }
 
@@ -33,8 +33,8 @@ libff::G1<ppT> point_g1_affine_from_proto(
 {
     using Fq = libff::Fq<ppT>;
 
-    Fq x_coordinate = field_element_from_hex<Fq>(point.x_coord());
-    Fq y_coordinate = field_element_from_hex<Fq>(point.y_coord());
+    Fq x_coordinate = base_field_element_from_hex<Fq>(point.x_coord());
+    Fq y_coordinate = base_field_element_from_hex<Fq>(point.y_coord());
     return libff::G1<ppT>(x_coordinate, y_coordinate, Fq::one());
 }
 
@@ -42,14 +42,15 @@ template<typename ppT>
 zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     const libff::G2<ppT> &point)
 {
+    using Fqe = libff::Fqe<ppT>;
+    
     assert(!point.is_zero());
-    using Fq = libff::Fq<ppT>;
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
 
     zeth_proto::HexPointBaseGroup2Affine res;
-    res.set_x_coord(field_element_to_hex<Fq>(aff.X));
-    res.set_y_coord(field_element_to_hex<Fq>(aff.Y));
+    res.set_x_coord(ext_field_element_to_hex<Fqe>(aff.X));
+    res.set_y_coord(ext_field_element_to_hex<Fqe>(aff.Y));
 
     return res;
 }
@@ -70,11 +71,9 @@ libff::G2<ppT> point_g2_affine_from_proto(
     // lying in the base field
 
     // TODO
-    Fq x_c0 = field_element_from_hex<Fq>(point.x_coord());
-    Fq x_c1 = field_element_from_hex<Fq>(point.x_coord());
-    Fq y_c0 = field_element_from_hex<Fq>(point.y_coord());
-    Fq y_c1 = field_element_from_hex<Fq>(point.y_coord());
-    return libff::G2<ppT>(Fqe(x_c0, x_c1), Fqe(y_c0, y_c1), Fqe::one());
+    Fqe x = ext_field_element_from_hex<Fqe>(point.x_coord());
+    Fqe y = ext_field_element_from_hex<Fqe>(point.y_coord());
+    return libff::G2<ppT>(x, y, Fqe::one());
 }
 
 template<typename FieldT, size_t TreeDepth>
@@ -87,7 +86,7 @@ joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
 
     std::vector<FieldT> input_merkle_path;
     for (size_t i = 0; i < TreeDepth; i++) {
-        FieldT mk_node = field_element_from_hex<FieldT>(input.merkle_path(i));
+        FieldT mk_node = base_field_element_from_hex<FieldT>(input.merkle_path(i));
         input_merkle_path.push_back(mk_node);
     }
 
@@ -131,7 +130,7 @@ std::vector<libff::Fr<ppT>> primary_inputs_from_string(
         const size_t end_hex = input_str.find("\"", next_hex_pos);
         const std::string next_hex =
             input_str.substr(next_hex_pos, end_hex - next_hex_pos);
-        res.push_back(field_element_from_hex<libff::Fr<ppT>>(next_hex));
+        res.push_back(base_field_element_from_hex<libff::Fr<ppT>>(next_hex));
         next_hex_pos = input_str.find("0x", end_hex);
     }
     return res;
