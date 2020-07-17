@@ -39,35 +39,55 @@ template<typename FieldT>
 std::string base_field_element_to_hex(const FieldT &field_el)
 {
     // Serialize a "ground/base" field element
-    //BOOST_ASSERT(FieldT::extension_degree() == 1);
+    BOOST_ASSERT(FieldT::extension_degree() == 1);
     return bigint_to_hex<FieldT>(field_el.as_bigint());
 }
 
+template<typename FieldT> FieldT base_field_element_from_hex(const std::string &hex)
+{
+    return FieldT(bigint_from_hex<FieldT>(hex));
+}
+
 template<typename EFieldT>
-std::string ext_field_element_to_hex(const EFieldT &field_el)
+std::vector<std::string> ext_field_element_to_hex(const EFieldT &field_el)
 {
     const size_t extension_degree = EFieldT::extension_degree();
     const size_t tower_extension_degree = EFieldT::tower_extension_degree;
 
     // Make sure we process an extension field element
-    //BOOST_ASSERT(extension_degree > 1);
+    BOOST_ASSERT(extension_degree > 1);
     // Make sure we process a "non-towered" extension field element
     BOOST_ASSERT(extension_degree == tower_extension_degree);
 
-    std::stringstream ss;
+    std::vector<std::string> res;
     for (size_t i = 0; i < extension_degree; i++) {
-        if (i != 0){
-            ss << ", ";
-        }
-        ss << "\"0x" + bigint_to_hex<typename EFieldT::my_Fp>(field_el.coeffs[i].as_bigint()) + "\"";
+        res.push_back(bigint_to_hex<typename EFieldT::my_Fp>(field_el.coeffs[i].as_bigint()));
     }
 
-    return "[" + ss.str() + "]";
+    return res;
 }
 
-template<typename FieldT> FieldT field_element_from_hex(const std::string &hex)
+template<typename EFieldT>
+EFieldT ext_field_element_from_hex(const std::vector<std::string> &hex_vec)
 {
-    return FieldT(bigint_from_hex<FieldT>(hex));
+    const size_t extension_degree = EFieldT::extension_degree();
+    const size_t tower_extension_degree = EFieldT::tower_extension_degree;
+
+    // Make sure we process an extension field element
+    BOOST_ASSERT(extension_degree > 1);
+    // Make sure we process a "non-towered" extension field element
+    BOOST_ASSERT(extension_degree == tower_extension_degree);
+    // Make sure we process the right input
+    BOOST_ASSERT(extension_degree == hex_vec.size());
+
+    typename EFieldT::my_Fp tmp[extension_degree];
+    for (size_t i = 0; i < extension_degree; i++) {
+        tmp[i] = base_field_element_from_hex<typename EFieldT::my_Fp>(hex_vec[i]);
+    }
+
+    EFieldT el = EFieldT();
+    std::copy(std::begin(tmp), std::end(tmp), std::begin(el.coeffs));
+    return el;
 }
 
 } // namespace libzeth
