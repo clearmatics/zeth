@@ -48,10 +48,8 @@ zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     aff.to_affine_coordinates();
 
     zeth_proto::HexPointBaseGroup2Affine res;
-    res.set_x_c0_coord("0x" + field_element_to_hex<Fq>(aff.X.c0));
-    res.set_x_c1_coord("0x" + field_element_to_hex<Fq>(aff.X.c1));
-    res.set_y_c0_coord("0x" + field_element_to_hex<Fq>(aff.Y.c0));
-    res.set_y_c1_coord("0x" + field_element_to_hex<Fq>(aff.Y.c1));
+    res.set_x_coord(field_element_to_hex<Fq>(aff.X));
+    res.set_y_coord(field_element_to_hex<Fq>(aff.Y));
 
     return res;
 }
@@ -71,10 +69,11 @@ libff::G2<ppT> point_g2_affine_from_proto(
     // As such, each element of Fqe is assumed to be a vector of 2 coefficients
     // lying in the base field
 
-    Fq x_c0 = field_element_from_hex<Fq>(point.x_c0_coord());
-    Fq x_c1 = field_element_from_hex<Fq>(point.x_c1_coord());
-    Fq y_c0 = field_element_from_hex<Fq>(point.y_c0_coord());
-    Fq y_c1 = field_element_from_hex<Fq>(point.y_c1_coord());
+    // TODO
+    Fq x_c0 = field_element_from_hex<Fq>(point.x_coord());
+    Fq x_c1 = field_element_from_hex<Fq>(point.x_coord());
+    Fq y_c0 = field_element_from_hex<Fq>(point.y_coord());
+    Fq y_c1 = field_element_from_hex<Fq>(point.y_coord());
     return libff::G2<ppT>(Fqe(x_c0, x_c1), Fqe(y_c0, y_c1), Fqe::one());
 }
 

@@ -7,9 +7,12 @@
 
 #include <gtest/gtest.h>
 
-using pp = libzeth::defaults::pp;
-using Field = libzeth::defaults::Field;
-using bigint_t = libff::bigint<Field::num_limbs>;
+using ppT = libzeth::ppT;
+using Fr = libzeth::FieldT;
+using Fqe = libff::Fqe<ppT>;
+using Fqk = libff::Fqk<ppT>;
+
+using bigint_t = libff::bigint<libzeth::FieldT::num_limbs>;
 
 namespace
 {
@@ -37,11 +40,22 @@ TEST(FieldElementUtilsTest, BigIntEncodeDecode)
 
 TEST(FieldElementUtilsTest, FieldElementEncodeDecode)
 {
-    Field fe = dummy_field_element();
-    std::string fe_hex = libzeth::field_element_to_hex<Field>(fe);
+    Fr fe = dummy_field_element();
+    std::string fe_hex = libzeth::base_field_element_to_hex<Fr>(fe);
     std::cout << "fe_hex: " << fe_hex << std::endl;
     Field fe_decoded = libzeth::field_element_from_hex<Field>(fe_hex);
     ASSERT_EQ(fe, fe_decoded);
+}
+
+TEST(FieldElementUtilsTest, FieldElementEncode)
+{
+    Fr fe = dummy_field_element();
+    std::string fe_hex = libzeth::base_field_element_to_hex<Fr>(fe);
+    std::cout << "fe_hex: " << fe_hex << std::endl;
+
+    Fqe el = Fqe::random_element();
+    std::string el_hex = libzeth::ext_field_element_to_hex<Fqe>(el);
+    std::cout << "el_hex: " << el_hex << std::endl;
 }
 
 TEST(FieldElementUtilsTest, FieldElementDecodeBadString)

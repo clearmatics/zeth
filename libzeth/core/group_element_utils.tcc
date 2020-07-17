@@ -15,8 +15,8 @@ std::string point_g1_affine_to_json(const libff::G1<ppT> &point)
 {
     libff::G1<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
-    return "[\"0x" + bigint_to_hex<libff::Fq<ppT>>(affine_p.X.as_bigint()) +
-           "\", \"0x" + bigint_to_hex<libff::Fq<ppT>>(affine_p.Y.as_bigint()) +
+    return "[\"0x" + field_element_to_hex<libff::Fq<ppT>>(affine_p.X) +
+           "\", \"0x" + field_element_to_hex<libff::Fq<ppT>>(affine_p.Y) +
            "\"]";
 }
 
@@ -47,18 +47,9 @@ std::string point_g2_affine_to_json(const libff::G2<ppT> &point)
 {
     libff::G2<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
-    return "[\n"
-           "[\"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.X.c1.as_bigint()) +
-           "\", \"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.X.c0.as_bigint()) +
-           "\"],\n"
-           "[\"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.Y.c1.as_bigint()) +
-           "\", \"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.Y.c0.as_bigint()) +
-           "\"]\n"
-           "]";
+    return "[\"0x" + field_element_to_hex<libff::Fq<ppT>>(affine_p.X) +
+           "\", \"0x" + field_element_to_hex<libff::Fq<ppT>>(affine_p.Y) +
+           "\"]";
 }
 
 } // namespace libzeth
