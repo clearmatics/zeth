@@ -39,6 +39,9 @@ template<typename FieldT>
 libff::bigint<FieldT::num_limbs> bigint_from_hex(const std::string &hex);
 
 /// Convert a field element to an hexadecimal string
+/// The element is assumed to be from an arbitrary field (which can be
+/// an extension). As such the function first checks the degree of the
+/// extension field in order to serialize the element correctly.
 template<typename FieldT>
 std::string field_element_to_hex(const FieldT &field_el);
 

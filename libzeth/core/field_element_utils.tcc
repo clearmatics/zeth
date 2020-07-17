@@ -8,6 +8,8 @@
 #include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/core/utils.hpp"
 
+#include <boost/assert.hpp>
+
 #include <iomanip>
 
 /// This file uses types and preprocessor variables defined in the `gmp.h`
@@ -34,9 +36,33 @@ libff::bigint<FieldT::num_limbs> bigint_from_hex(const std::string &hex)
 }
 
 template<typename FieldT>
-std::string field_element_to_hex(const FieldT &field_el)
+std::string base_field_element_to_hex(const FieldT &field_el)
 {
+    // Serialize a "ground/base" field element
+    //BOOST_ASSERT(FieldT::extension_degree() == 1);
     return bigint_to_hex<FieldT>(field_el.as_bigint());
+}
+
+template<typename EFieldT>
+std::string ext_field_element_to_hex(const EFieldT &field_el)
+{
+    const size_t extension_degree = EFieldT::extension_degree();
+    const size_t tower_extension_degree = EFieldT::tower_extension_degree;
+
+    // Make sure we process an extension field element
+    //BOOST_ASSERT(extension_degree > 1);
+    // Make sure we process a "non-towered" extension field element
+    BOOST_ASSERT(extension_degree == tower_extension_degree);
+
+    std::stringstream ss;
+    for (size_t i = 0; i < extension_degree; i++) {
+        if (i != 0){
+            ss << ", ";
+        }
+        ss << "\"0x" + bigint_to_hex<typename EFieldT::my_Fp>(field_el.coeffs[i].as_bigint()) + "\"";
+    }
+
+    return "[" + ss.str() + "]";
 }
 
 template<typename FieldT> FieldT field_element_from_hex(const std::string &hex)
