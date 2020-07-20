@@ -266,7 +266,7 @@ def mix(
     tx_hash = mixer_call.transact({
         'from': sender_address,
         'value': wei_pub_value,
-        'gas': 4000000000
+        'gas': call_gas
     })
     return tx_hash.hex()
 

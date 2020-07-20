@@ -480,7 +480,6 @@ class MixerClient:
             signing_keypair.vk,
             signature,
             ciphertexts)
-
         return mix_params, signing_keypair
 
     def create_mix_parameters(
