@@ -11,14 +11,14 @@ env:
 jobs:
 
   check-contracts:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - name: Check Contracts
       run: CI_USE_DOCKER=1 scripts/ci contracts_check
 
   check-pyclient:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
       with:
@@ -41,7 +41,7 @@ jobs:
       run: CI_CONFIG=${{ matrix.config }} scripts/ci build
 
   build-linux:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         config: [ Debug, Release ]
@@ -53,7 +53,7 @@ jobs:
       run: CI_CHECK_FORMAT=1 CI_USE_DOCKER=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
 
   build-linux-pghr13:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
       with:
@@ -62,7 +62,7 @@ jobs:
       run: CI_USE_DOCKER=1 CI_CONFIG=Release CI_ZKSNARK=PGHR13 scripts/ci build
 
   check-cpp-linux:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
       with:
