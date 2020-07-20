@@ -54,12 +54,12 @@ zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     BOOST_ASSERT(extension_degree >= 2);
 
     zeth_proto::HexPointBaseGroup2Affine res;
-    res.add_x_coord("0x" +  x_coord[extension_degree - 1]);
-    res.add_y_coord("0x" +  y_coord[extension_degree - 1]);
+    res.add_x_coord("0x" + x_coord[extension_degree - 1]);
+    res.add_y_coord("0x" + y_coord[extension_degree - 1]);
 
     for (size_t i = extension_degree - 1; i >= 1; --i) {
-        res.add_x_coord("0x" +  x_coord[i - 1]);
-        res.add_y_coord("0x" +  y_coord[i - 1]);
+        res.add_x_coord("0x" + x_coord[i - 1]);
+        res.add_y_coord("0x" + y_coord[i - 1]);
     }
 
     return res;
@@ -77,13 +77,15 @@ libff::G2<ppT> point_g2_affine_from_proto(
     // As such, each element of Fqe is assumed to be a vector of 2 coefficients
     // lying in the base field
 
+    // We invert the list of coefficients representing the extension field
+    /// elements as they are inverted in the `point_g2_affine_to_proto` function
     auto protobuf_x_coord = point.x_coord();
     std::vector<std::string> x_coord(
-        protobuf_x_coord.begin(), protobuf_x_coord.end());
+        protobuf_x_coord.rbegin(), protobuf_x_coord.rend());
 
     auto protobuf_y_coord = point.y_coord();
     std::vector<std::string> y_coord(
-        protobuf_y_coord.begin(), protobuf_y_coord.end());
+        protobuf_y_coord.rbegin(), protobuf_y_coord.rend());
 
     libff::Fqe<ppT> x = ext_field_element_from_hex<libff::Fqe<ppT>>(x_coord);
     libff::Fqe<ppT> y = ext_field_element_from_hex<libff::Fqe<ppT>>(y_coord);
