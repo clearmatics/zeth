@@ -69,6 +69,7 @@ def main() -> None:
             #   https://docs.python.org/3/library/shutil.html#shutil.rmtree.avoids_symlink_attacks
             shutil.rmtree(wallet_dir)
         return Wallet(mixer_instance, name, wallet_dir, sk)
+
     sk_alice = keystore['Alice'].addr_sk
     sk_bob = keystore['Bob'].addr_sk
     sk_charlie = keystore['Charlie'].addr_sk

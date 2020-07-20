@@ -16,7 +16,7 @@ from api.ec_group_messages_pb2 import HexPointBaseGroup1Affine, \
 
 import json
 from abc import (ABC, abstractmethod)
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, cast
 # pylint: disable=unnecessary-pass
 
 # Dictionary representing a VerificationKey from any supported snark
@@ -90,6 +90,7 @@ class Groth16SnarkProvider(IZKSnarkProvider):
     def parse_verification_key(
             vk_obj: VerificationKey) -> GenericVerificationKey:
         vk = vk_obj.groth16_verification_key
+
         return {
             "alpha_g1": _parse_hex_point_base_group1_affine(vk.alpha_g1),
             "beta_g2": _parse_hex_point_base_group2_affine(vk.beta_g2),
@@ -198,5 +199,5 @@ def _parse_hex_point_base_group1_affine(
 
 def _parse_hex_point_base_group2_affine(
         point: HexPointBaseGroup2Affine
-) -> Tuple[List[str], List[str]]:
-    return (point.x_coord, point.y_coord)
+) -> Tuple[Tuple[str], Tuple[str]]:
+    return (tuple(point.x_coord), tuple(point.y_coord))
