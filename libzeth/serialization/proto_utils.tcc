@@ -50,12 +50,16 @@ zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     const std::vector<std::string> y_coord =
         ext_field_element_to_hex<libff::Fqe<ppT>>(aff.Y);
 
-    BOOST_ASSERT(x_coord.size() == y_coord.size());
+    const size_t extension_degree = libff::Fqe<ppT>::extension_degree();
+    BOOST_ASSERT(extension_degree >= 2);
 
     zeth_proto::HexPointBaseGroup2Affine res;
-    for (size_t i = 0; i < x_coord.size(); i++) {
-        res.add_x_coord(x_coord[i]);
-        res.add_y_coord(y_coord[i]);
+    res.add_x_coord("0x" +  x_coord[extension_degree - 1]);
+    res.add_y_coord("0x" +  y_coord[extension_degree - 1]);
+
+    for (size_t i = extension_degree - 1; i >= 1; --i) {
+        res.add_x_coord("0x" +  x_coord[i - 1]);
+        res.add_y_coord("0x" +  y_coord[i - 1]);
     }
 
     return res;
