@@ -48,9 +48,25 @@ std::string point_g2_affine_to_json(const libff::G2<ppT> &point)
 {
     libff::G2<ppT> affine_p = point;
     affine_p.to_affine_coordinates();
-    return "[\"0x" + ext_field_element_to_hex<libff::Fqe<ppT>>(affine_p.X) +
-           "\", \"0x" + ext_field_element_to_hex<libff::Fqe<ppT>>(affine_p.Y) +
-           "\"]";
+    const std::vector<std::string> x_coord = ext_field_element_to_hex<libff::Fqe<ppT>>(affine_p.X);
+    const std::vector<std::string> y_coord = ext_field_element_to_hex<libff::Fqe<ppT>>(affine_p.Y);
+
+    const size_t extension_degree = libff::Fqe<ppT>::extension_degree();
+    BOOST_ASSERT(extension_degree >= 2);
+
+    std::stringstream ss;
+    // Write the coordinates in reverse order to match the previous implementation
+    ss << "[\n[\"0x" <<  x_coord[extension_degree - 1];
+    for (size_t i = extension_degree - 1; i >= 1; --i) {
+        ss << "\", \"0x" << x_coord[i-1];
+    }
+    ss << "\"],\n[\"0x" << y_coord[extension_degree - 1];
+    for (size_t i = extension_degree - 1; i >= 1; --i) {
+        ss << "\", \"0x" << y_coord[i-1];
+    }
+    ss << "\"]\n]";
+
+    return ss.str();
 }
 
 } // namespace libzeth

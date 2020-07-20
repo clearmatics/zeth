@@ -198,7 +198,5 @@ def _parse_hex_point_base_group1_affine(
 
 def _parse_hex_point_base_group2_affine(
         point: HexPointBaseGroup2Affine
-) -> Tuple[Tuple[str, str], Tuple[str, str]]:
-    return (
-        (point.x_c1_coord, point.x_c0_coord),
-        (point.y_c1_coord, point.y_c0_coord))
+) -> Tuple[List[str], List[str]]:
+    return (point.x_coord, point.y_coord)
