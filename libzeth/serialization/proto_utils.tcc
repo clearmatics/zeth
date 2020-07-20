@@ -47,10 +47,16 @@ zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     assert(!point.is_zero());
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
+    const std::vector<std::string> x_coord = ext_field_element_to_hex<libff::Fqe<ppT>>(aff.X);
+    const std::vector<std::string> y_coord = ext_field_element_to_hex<libff::Fqe<ppT>>(aff.Y);
+
+    BOOST_ASSERT(x_coord.size() == y_coord.size());
 
     zeth_proto::HexPointBaseGroup2Affine res;
-    res.set_x_coord(ext_field_element_to_hex<Fqe>(aff.X));
-    res.set_y_coord(ext_field_element_to_hex<Fqe>(aff.Y));
+    for (size_t i = 0; i < x_coord.size(); i++) {
+        res.add_x_coord(x_coord[i]);
+        res.add_y_coord(y_coord[i]);
+    }
 
     return res;
 }
@@ -59,7 +65,6 @@ template<typename ppT>
 libff::G2<ppT> point_g2_affine_from_proto(
     const zeth_proto::HexPointBaseGroup2Affine &point)
 {
-    using Fq = libff::Fq<ppT>;
     using Fqe = libff::Fqe<ppT>;
 
     // See:
@@ -70,9 +75,14 @@ libff::G2<ppT> point_g2_affine_from_proto(
     // As such, each element of Fqe is assumed to be a vector of 2 coefficients
     // lying in the base field
 
-    // TODO
-    Fqe x = ext_field_element_from_hex<Fqe>(point.x_coord());
-    Fqe y = ext_field_element_from_hex<Fqe>(point.y_coord());
+    auto protobuf_x_coord = point.x_coord();
+    std::vector<std::string> x_coord(protobuf_x_coord.begin(), protobuf_x_coord.end());
+
+    auto protobuf_y_coord = point.y_coord();
+    std::vector<std::string> y_coord(protobuf_y_coord.begin(), protobuf_y_coord.end());
+
+    Fqe x = ext_field_element_from_hex<Fqe>(x_coord);
+    Fqe y = ext_field_element_from_hex<Fqe>(y_coord);
     return libff::G2<ppT>(x, y, Fqe::one());
 }
 
