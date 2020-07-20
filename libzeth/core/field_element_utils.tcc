@@ -52,12 +52,11 @@ template<typename EFieldT>
 std::vector<std::string> ext_field_element_to_hex(const EFieldT &field_el)
 {
     const size_t extension_degree = EFieldT::extension_degree();
-    const size_t tower_extension_degree = EFieldT::tower_extension_degree;
 
     // Make sure we process an extension field element
     BOOST_ASSERT(extension_degree > 1);
     // Make sure we process a "non-towered" extension field element
-    BOOST_ASSERT(extension_degree == tower_extension_degree);
+    BOOST_ASSERT(extension_degree == EFieldT::tower_extension_degree);
 
     std::vector<std::string> res;
     for (size_t i = 0; i < extension_degree; i++) {
@@ -72,12 +71,11 @@ template<typename EFieldT>
 EFieldT ext_field_element_from_hex(const std::vector<std::string> &hex_vec)
 {
     const size_t extension_degree = EFieldT::extension_degree();
-    const size_t tower_extension_degree = EFieldT::tower_extension_degree;
 
     // Make sure we process an extension field element
     BOOST_ASSERT(extension_degree > 1);
     // Make sure we process a "non-towered" extension field element
-    BOOST_ASSERT(extension_degree == tower_extension_degree);
+    BOOST_ASSERT(extension_degree == EFieldT::tower_extension_degree);
     // Make sure we process an input in the right form
     BOOST_ASSERT(extension_degree == hex_vec.size());
 

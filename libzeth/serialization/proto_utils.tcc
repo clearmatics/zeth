@@ -42,13 +42,13 @@ template<typename ppT>
 zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     const libff::G2<ppT> &point)
 {
-    using Fqe = libff::Fqe<ppT>;
-
     assert(!point.is_zero());
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
-    const std::vector<std::string> x_coord = ext_field_element_to_hex<libff::Fqe<ppT>>(aff.X);
-    const std::vector<std::string> y_coord = ext_field_element_to_hex<libff::Fqe<ppT>>(aff.Y);
+    const std::vector<std::string> x_coord =
+        ext_field_element_to_hex<libff::Fqe<ppT>>(aff.X);
+    const std::vector<std::string> y_coord =
+        ext_field_element_to_hex<libff::Fqe<ppT>>(aff.Y);
 
     BOOST_ASSERT(x_coord.size() == y_coord.size());
 
@@ -65,8 +65,6 @@ template<typename ppT>
 libff::G2<ppT> point_g2_affine_from_proto(
     const zeth_proto::HexPointBaseGroup2Affine &point)
 {
-    using Fqe = libff::Fqe<ppT>;
-
     // See:
     // https://github.com/scipr-lab/libff/blob/master/libff/algebra/curves/public_params.hpp#L88
     // and:
@@ -76,14 +74,16 @@ libff::G2<ppT> point_g2_affine_from_proto(
     // lying in the base field
 
     auto protobuf_x_coord = point.x_coord();
-    std::vector<std::string> x_coord(protobuf_x_coord.begin(), protobuf_x_coord.end());
+    std::vector<std::string> x_coord(
+        protobuf_x_coord.begin(), protobuf_x_coord.end());
 
     auto protobuf_y_coord = point.y_coord();
-    std::vector<std::string> y_coord(protobuf_y_coord.begin(), protobuf_y_coord.end());
+    std::vector<std::string> y_coord(
+        protobuf_y_coord.begin(), protobuf_y_coord.end());
 
-    Fqe x = ext_field_element_from_hex<Fqe>(x_coord);
-    Fqe y = ext_field_element_from_hex<Fqe>(y_coord);
-    return libff::G2<ppT>(x, y, Fqe::one());
+    libff::Fqe<ppT> x = ext_field_element_from_hex<libff::Fqe<ppT>>(x_coord);
+    libff::Fqe<ppT> y = ext_field_element_from_hex<libff::Fqe<ppT>>(y_coord);
+    return libff::G2<ppT>(x, y, libff::Fqe<ppT>::one());
 }
 
 template<typename FieldT, size_t TreeDepth>
