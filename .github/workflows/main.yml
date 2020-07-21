@@ -26,14 +26,14 @@ jobs:
     - name: Execute
       run: CI_USE_DOCKER=1 scripts/ci check_pyclient
 
-  test-pyclient:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: Execute
-      run: CI_USE_DOCKER=1 scripts/ci test_pyclient
+      #  test-pyclient:
+      #    runs-on: ubuntu-18.04
+      #    steps:
+      #    - uses: actions/checkout@v1
+      #      with:
+      #        submodules: recursive
+      #    - name: Execute
+      #      run: CI_USE_DOCKER=1 scripts/ci test_pyclient
 
   build-macos-debug:
     runs-on: macos-10.15
