@@ -85,11 +85,7 @@ EFieldT ext_field_element_from_hex(const std::vector<std::string> &hex_vec)
             base_field_element_from_hex<typename EFieldT::my_Fp>(hex_vec[i]);
     }
 
-    // TODO: Add constructor from array in libff to avoid to extra copy step
-    // that would be cleaner.
-    EFieldT el = EFieldT();
-    std::copy(std::begin(tmp), std::end(tmp), std::begin(el.coeffs));
-    return el;
+    return EFieldT(tmp);
 }
 
 } // namespace libzeth
