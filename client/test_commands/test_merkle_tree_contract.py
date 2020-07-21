@@ -4,12 +4,14 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.merkle_tree import MerkleTree
 from zeth.utils import extend_32bytes
 from typing import List, Any
 import test_commands.mock as mock
 
+# We use a small tree depth for this test. WARNING:
+# The same constant is set manually in the BaseMerkleTree_test.sol contract
+ZETH_MERKLE_TREE_DEPTH_TEST: int = 8
 
 TEST_VALUES = [
     extend_32bytes(bytes.fromhex("f0")),
@@ -36,7 +38,7 @@ def assert_root(expect_root: bytes, nodes: List[bytes], msg: str) -> None:
         print(f"FAILED: {msg}")
         print(f"Expected: {expect_root.hex()}")
         print("Actual  :")
-        for layer_idx in range(0, ZETH_MERKLE_TREE_DEPTH + 1):
+        for layer_idx in range(0, ZETH_MERKLE_TREE_DEPTH_TEST + 1):
             layer_size = pow(2, layer_idx)
             layer_start = layer_size - 1
             layer = nodes[layer_start:layer_start + layer_size]
@@ -46,7 +48,7 @@ def assert_root(expect_root: bytes, nodes: List[bytes], msg: str) -> None:
 
 
 def test_tree_empty(contract: Any) -> None:
-    mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH)
+    mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH_TEST)
     expect_root = mktree.recompute_root()
     nodes = contract.functions.testAddLeaves([], []).call()
     assert_root(expect_root, nodes, "test_tree_empty")
@@ -67,7 +69,7 @@ def test_tree_partial(contract: Any) -> None:
         """
         leaves = TEST_VALUES[:num_entries]
 
-        mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH)
+        mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH_TEST)
         for leaf in leaves:
             mktree.insert(leaf)
         expect_root = mktree.recompute_root()
@@ -98,7 +100,7 @@ def main() -> None:
         eth,
         deployer_eth_address,
         "MerkleTreeMiMC7_test",
-        {'treeDepth': ZETH_MERKLE_TREE_DEPTH})
+        {'treeDepth': ZETH_MERKLE_TREE_DEPTH_TEST})
 
     test_tree_empty(mktree_instance)
     test_tree_partial(mktree_instance)
