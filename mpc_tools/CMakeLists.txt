@@ -1,6 +1,6 @@
 # Build for mpc utilities
 
-find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(Boost REQUIRED COMPONENTS system program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Add the binary tree to the search path for include files
