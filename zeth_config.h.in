@@ -61,7 +61,7 @@ namespace defaults
 {
 
 using pp = libff::default_ec_pp;
-using FieldT = libff::Fr<pp>;
+using Field = libff::Fr<pp>;
 
 } // namespace defaults
 } // namespace libzeth

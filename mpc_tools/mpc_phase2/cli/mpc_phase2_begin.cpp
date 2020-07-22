@@ -85,7 +85,7 @@ private:
         // Compute circuit
         libff::enter_block("Computing num inputs");
         const size_t num_inputs = [this]() {
-            libsnark::protoboard<FieldT> pb;
+            libsnark::protoboard<Field> pb;
             init_protoboard(pb);
             return pb.num_inputs();
         }();

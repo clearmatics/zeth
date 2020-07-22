@@ -11,7 +11,7 @@
 
 using namespace libzeth;
 using pp = defaults::pp;
-using Fr = defaults::FieldT;
+using Fr = defaults::Field;
 using G1 = libff::G1<pp>;
 using G2 = libff::G2<pp>;
 

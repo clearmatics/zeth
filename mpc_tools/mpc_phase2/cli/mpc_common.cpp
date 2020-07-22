@@ -70,7 +70,7 @@ const std::string &subcommand::description() const
     return subcommand_description;
 }
 
-void subcommand::init_protoboard(libsnark::protoboard<FieldT> &pb) const
+void subcommand::init_protoboard(libsnark::protoboard<Field> &pb) const
 {
     protoboard_init(pb);
 }

@@ -16,7 +16,7 @@
 #include <vector>
 
 using ProtoboardInitFn =
-    std::function<void(libsnark::protoboard<libzeth::defaults::FieldT> &)>;
+    std::function<void(libsnark::protoboard<libzeth::defaults::Field> &)>;
 
 class subcommand
 {
@@ -30,7 +30,7 @@ private:
     bool help;
 
 public:
-    using FieldT = libzeth::defaults::FieldT;
+    using Field = libzeth::defaults::Field;
 
     subcommand(
         const std::string &subcommand_name, const std::string &description);
@@ -39,7 +39,7 @@ public:
     const std::string &description() const;
 
 protected:
-    void init_protoboard(libsnark::protoboard<FieldT> &pb) const;
+    void init_protoboard(libsnark::protoboard<Field> &pb) const;
 
 private:
     void usage(const boost::program_options::options_description &all_options);

@@ -11,14 +11,14 @@
 #include "mpc_common.hpp"
 #include "zeth_config.h"
 
-using FieldT = libzeth::defaults::FieldT;
+using Field = libzeth::defaults::Field;
 
-void zeth_protoboard(libsnark::protoboard<FieldT> &pb)
+void zeth_protoboard(libsnark::protoboard<Field> &pb)
 {
     libzeth::joinsplit_gadget<
-        FieldT,
-        libzeth::HashT<FieldT>,
-        libzeth::HashTreeT<FieldT>,
+        Field,
+        libzeth::HashT<Field>,
+        libzeth::HashTreeT<Field>,
         libzeth::ZETH_NUM_JS_INPUTS,
         libzeth::ZETH_NUM_JS_OUTPUTS,
         libzeth::ZETH_MERKLE_TREE_DEPTH>

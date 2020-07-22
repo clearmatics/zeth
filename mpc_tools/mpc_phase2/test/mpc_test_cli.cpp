@@ -5,9 +5,9 @@
 #include "libzeth/tests/circuits/simple_test.hpp"
 #include "mpc_common.hpp"
 
-void simple_protoboard(libsnark::protoboard<libzeth::defaults::FieldT> &pb)
+void simple_protoboard(libsnark::protoboard<libzeth::defaults::Field> &pb)
 {
-    libzeth::test::simple_circuit<libzeth::defaults::FieldT>(pb);
+    libzeth::test::simple_circuit<libzeth::defaults::Field>(pb);
 }
 
 int main(int argc, char **argv)

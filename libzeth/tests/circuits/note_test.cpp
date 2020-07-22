@@ -18,9 +18,9 @@ using namespace libzeth;
 
 // We use our hash functions to do the tests
 using pp = defaults::pp;
-using FieldT = defaults::FieldT;
-using Hash = BLAKE2s_256<FieldT>;
-using HashTree = MiMC_mp_gadget<FieldT>;
+using Field = defaults::Field;
+using Hash = BLAKE2s_256<Field>;
+using HashTree = MiMC_mp_gadget<Field>;
 static const size_t TreeDepth = 4;
 
 namespace
@@ -28,10 +28,10 @@ namespace
 
 TEST(TestNoteCircuits, TestInputNoteGadget)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     libff::enter_block(
         "Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
@@ -70,17 +70,17 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     // Converted from old hex string
     // "e672300b3f422966e7cf8ea77e38ef0da595f3933eaf2d698a9859eb3bf674aa"
     // (big-endian)
-    FieldT cm_field = FieldT("1042337073265819561558789652115525918926201435246"
-                             "16864409706009242461667751082");
+    Field cm_field = Field("1042337073265819561558789652115525918926201435246"
+                           "16864409706009242461667751082");
 
     libff::leave_block(
         "Initialize the coins' data (nullifier, a_sk and a_pk, cm, rho)", true);
 
     libff::enter_block(
         "Setup a local merkle tree and append our commitment to it", true);
-    std::unique_ptr<merkle_tree_field<FieldT, HashTree>> test_merkle_tree =
-        std::unique_ptr<merkle_tree_field<FieldT, HashTree>>(
-            new merkle_tree_field<FieldT, HashTree>(TreeDepth));
+    std::unique_ptr<merkle_tree_field<Field, HashTree>> test_merkle_tree =
+        std::unique_ptr<merkle_tree_field<Field, HashTree>>(
+            new merkle_tree_field<Field, HashTree>(TreeDepth));
 
     // In practice the address is emitted by the mixer contract once the
     // commitment is appended to the tree
@@ -91,7 +91,7 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     test_merkle_tree->set_value(address_commitment, cm_field);
 
     // Get the root of the new/non-empty tree (after insertion)
-    FieldT updated_root_value = test_merkle_tree->get_root();
+    Field updated_root_value = test_merkle_tree->get_root();
 
     libff::leave_block(
         "Setup a local merkle tree and append our commitment to it", true);
@@ -99,29 +99,29 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
     libff::enter_block(
         "Data conversion to generate a witness of the note gadget", true);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> a_sk_digest(
-        new libsnark::digest_variable<FieldT>(
+    std::shared_ptr<libsnark::digest_variable<Field>> a_sk_digest(
+        new libsnark::digest_variable<Field>(
             pb, Hash::get_digest_len(), "a_sk_digest"));
     a_sk_digest->generate_r1cs_constraints();
     a_sk_digest->generate_r1cs_witness(
         libff::bit_vector(a_sk_bits256.to_vector()));
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> nullifier_digest(
-        new libsnark::digest_variable<FieldT>(
+    std::shared_ptr<libsnark::digest_variable<Field>> nullifier_digest(
+        new libsnark::digest_variable<Field>(
             pb, Hash::get_digest_len(), "nullifier_digest"));
     nullifier_digest->generate_r1cs_constraints();
     nullifier_digest->generate_r1cs_witness(
         libff::bit_vector(nf_bits256.to_vector()));
 
-    libsnark::pb_variable<FieldT> merkle_root;
+    libsnark::pb_variable<Field> merkle_root;
     merkle_root.allocate(pb, "root");
     pb.val(merkle_root) = updated_root_value;
 
-    input_note_gadget<FieldT, Hash, HashTree, TreeDepth> input_note_g(
+    input_note_gadget<Field, Hash, HashTree, TreeDepth> input_note_g(
         pb, ZERO, a_sk_digest, nullifier_digest, merkle_root);
 
     // Get the merkle path to the commitment we appended
-    std::vector<FieldT> path = test_merkle_tree->get_path(address_commitment);
+    std::vector<Field> path = test_merkle_tree->get_path(address_commitment);
 
     // Create a note from the coin's data
     zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);
@@ -140,10 +140,10 @@ TEST(TestNoteCircuits, TestInputNoteGadget)
 
 TEST(TestNoteCircuits, TestOutputNoteGadget)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     libff::enter_block(
         "Initialize the output coins' data (a_pk, cm, rho)", true);
@@ -158,25 +158,25 @@ TEST(TestNoteCircuits, TestOutputNoteGadget)
     // Get the coin's commitment (COMM)
     //
     // cm = blake2s(r || a_pk || rho || value_v)
-    FieldT cm = FieldT("9406909043221549055272426494996854870843153378267758164"
-                       "1552564308222111558638");
+    Field cm = Field("9406909043221549055272426494996854870843153378267758164"
+                     "1552564308222111558638");
     libff::leave_block(
         "Initialize the output coins' data (a_pk, cm, rho)", true);
 
     libff::enter_block(
         "Data conversion to generate a witness of the note gadget", true);
-    std::shared_ptr<libsnark::digest_variable<FieldT>> rho_digest(
-        new libsnark::digest_variable<FieldT>(
+    std::shared_ptr<libsnark::digest_variable<Field>> rho_digest(
+        new libsnark::digest_variable<Field>(
             pb, Hash::get_digest_len(), "rho_digest"));
     rho_digest->generate_r1cs_constraints();
     rho_digest->generate_r1cs_witness(rho_bits256.to_vector());
 
-    libsnark::pb_variable<FieldT> commitment;
+    libsnark::pb_variable<Field> commitment;
     commitment.allocate(pb, " commitment");
 
-    std::shared_ptr<output_note_gadget<FieldT, Hash>> output_note_g =
-        std::shared_ptr<output_note_gadget<FieldT, Hash>>(
-            new output_note_gadget<FieldT, Hash>(pb, rho_digest, commitment));
+    std::shared_ptr<output_note_gadget<Field, Hash>> output_note_g =
+        std::shared_ptr<output_note_gadget<Field, Hash>>(
+            new output_note_gadget<Field, Hash>(pb, rho_digest, commitment));
 
     // Create a note from the coin's data
     zeth_note note(a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);

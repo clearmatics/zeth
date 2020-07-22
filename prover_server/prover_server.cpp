@@ -24,11 +24,11 @@
 #include <string>
 
 using pp = libzeth::defaults::pp;
-using FieldT = libzeth::defaults::FieldT;
+using Field = libzeth::defaults::Field;
 using snark = libzeth::defaults::snark;
 using api_handler = libzeth::defaults::api_handler;
-using hash = libzeth::HashT<FieldT>;
-using hash_tree = libzeth::HashTreeT<FieldT>;
+using hash = libzeth::HashT<Field>;
+using hash_tree = libzeth::HashTreeT<Field>;
 using circuit_wrapper = libzeth::circuit_wrapper<
     hash,
     hash_tree,
@@ -142,8 +142,8 @@ public:
 
         // Parse received message to feed to the prover
         try {
-            FieldT root = libzeth::field_element_from_hex<FieldT>(
-                proof_inputs->mk_root());
+            Field root =
+                libzeth::field_element_from_hex<Field>(proof_inputs->mk_root());
             libzeth::bits64 vpub_in =
                 libzeth::bits64::from_hex(proof_inputs->pub_in_value());
             libzeth::bits64 vpub_out =
@@ -165,7 +165,7 @@ public:
                       << std::endl;
             std::array<
                 libzeth::
-                    joinsplit_input<FieldT, libzeth::ZETH_MERKLE_TREE_DEPTH>,
+                    joinsplit_input<Field, libzeth::ZETH_MERKLE_TREE_DEPTH>,
                 libzeth::ZETH_NUM_JS_INPUTS>
                 joinsplit_inputs;
             for (size_t i = 0; i < libzeth::ZETH_NUM_JS_INPUTS; i++) {
@@ -174,7 +174,7 @@ public:
                 const zeth_proto::JoinsplitInput &received_input =
                     proof_inputs->js_inputs(i);
                 joinsplit_inputs[i] = libzeth::joinsplit_input_from_proto<
-                    FieldT,
+                    Field,
                     libzeth::ZETH_MERKLE_TREE_DEPTH>(received_input);
             }
 

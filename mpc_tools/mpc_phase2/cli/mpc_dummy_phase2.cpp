@@ -86,7 +86,7 @@ private:
         // Generate the zeth circuit (to determine the number of inputs)
         libff::enter_block("computing num_inputs");
         const size_t num_inputs = [this]() {
-            libsnark::protoboard<FieldT> pb;
+            libsnark::protoboard<Field> pb;
             init_protoboard(pb);
             return pb.num_inputs();
         }();
@@ -95,7 +95,7 @@ private:
         libff::leave_block("computing num_inputs");
 
         // Generate a single delta for dummy phase2
-        const FieldT delta = FieldT::random_element();
+        const Field delta = Field::random_element();
 
         // Generate and save the dummy phase2 challenge
         const srs_mpc_phase2_challenge<pp> phase2 =
