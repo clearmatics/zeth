@@ -46,8 +46,8 @@ typename snarkT::KeypairT circuit_wrapper<
     NumOutputs,
     TreeDepth>::generate_trusted_setup() const
 {
-    libsnark::protoboard<FieldT> pb;
-    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
+    libsnark::protoboard<Field> pb;
+    joinsplit_gadget<Field, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
         g(pb);
     g.generate_r1cs_constraints();
 
@@ -73,8 +73,8 @@ libsnark::protoboard<libff::Fr<ppT>> circuit_wrapper<
     NumOutputs,
     TreeDepth>::get_constraint_system() const
 {
-    libsnark::protoboard<FieldT> pb;
-    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
+    libsnark::protoboard<Field> pb;
+    joinsplit_gadget<Field, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
         g(pb);
     g.generate_r1cs_constraints();
     return pb;
@@ -97,8 +97,8 @@ extended_proof<ppT, snarkT> circuit_wrapper<
     NumOutputs,
     TreeDepth>::
     prove(
-        const FieldT &root,
-        const std::array<joinsplit_input<FieldT, TreeDepth>, NumInputs> &inputs,
+        const Field &root,
+        const std::array<joinsplit_input<Field, TreeDepth>, NumInputs> &inputs,
         const std::array<zeth_note, NumOutputs> &outputs,
         const bits64 &vpub_in,
         const bits64 &vpub_out,
@@ -128,9 +128,9 @@ extended_proof<ppT, snarkT> circuit_wrapper<
         throw std::invalid_argument("invalid joinsplit balance");
     }
 
-    libsnark::protoboard<FieldT> pb;
+    libsnark::protoboard<Field> pb;
 
-    joinsplit_gadget<FieldT, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
+    joinsplit_gadget<Field, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
         g(pb);
     g.generate_r1cs_constraints();
     g.generate_r1cs_witness(
