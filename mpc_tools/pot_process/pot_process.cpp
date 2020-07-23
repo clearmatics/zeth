@@ -5,13 +5,14 @@
 /// Small utility to check powersoftau output and to compute the evaluation of
 /// Lagrange polynomials at tau.
 
-#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/mpc/groth16/powersoftau_utils.hpp"
+#include "zeth_config.h"
 
 #include <boost/program_options.hpp>
 #include <fstream>
 
 using namespace libzeth;
+using pp = defaults::pp;
 namespace po = boost::program_options;
 
 // -----------------------------------------------------------------------------
@@ -147,7 +148,7 @@ static int powersoftau_main(const cli_options &options)
                   << std::to_string(options.lagrange_degree) << std::endl;
     }
 
-    ppT::init_public_params();
+    pp::init_public_params();
     if (!options.verbose) {
         libff::inhibit_profiling_counters = true;
         libff::inhibit_profiling_info = true;
@@ -156,8 +157,7 @@ static int powersoftau_main(const cli_options &options)
     // If --dummy options was given, create a powersoftau struct from
     // local randomness, write it out and return.
     if (options.dummy) {
-        const srs_powersoftau<ppT> dummy =
-            dummy_powersoftau<ppT>(options.degree);
+        const srs_powersoftau<pp> dummy = dummy_powersoftau<pp>(options.degree);
         std::cout << "Writing locally constructed powersoftau to "
                   << options.powersoftau_file << " ... ";
         std::ofstream out(
@@ -172,8 +172,8 @@ static int powersoftau_main(const cli_options &options)
     // Read in powersoftau
     std::ifstream in(
         options.powersoftau_file, std::ios_base::binary | std::ios_base::in);
-    const srs_powersoftau<ppT> powersoftau =
-        powersoftau_load<ppT>(in, options.degree);
+    const srs_powersoftau<pp> powersoftau =
+        powersoftau_load<pp>(in, options.degree);
     in.close();
 
     // If --check was given, run the well-formedness check and stop.
@@ -187,7 +187,7 @@ static int powersoftau_main(const cli_options &options)
         return 0;
     }
 
-    srs_lagrange_evaluations<ppT> lagrange =
+    srs_lagrange_evaluations<pp> lagrange =
         powersoftau_compute_lagrange_evaluations(
             powersoftau, options.lagrange_degree);
 

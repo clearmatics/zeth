@@ -84,8 +84,8 @@ Some flags to the `cmake` command can control the build configuration.
 a release or debug build.
 
 By default, zeth makes use of the GROTH16 zk-snark. To chose a different
-zksnark run the following: ``` cmake -DZKSNARK=$ZKSNARK .. ``` where `$ZKSNARK`
-is `PGHR13` (see https://eprint.iacr.org/2013/279,
+zksnark run the following: ``` cmake -DZETH_SNARK=$ZKSNARK .. ``` where
+`$ZETH_SNARK` is `PGHR13` (see https://eprint.iacr.org/2013/279,
 http://eprint.iacr.org/2013/879) or `GROTH16`(see
 https://eprint.iacr.org/2016/260).
 

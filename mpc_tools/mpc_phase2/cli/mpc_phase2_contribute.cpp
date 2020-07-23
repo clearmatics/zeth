@@ -6,6 +6,7 @@
 #include "mpc_common.hpp"
 
 using namespace libzeth;
+using pp = defaults::pp;
 namespace po = boost::program_options;
 
 namespace
@@ -84,17 +85,17 @@ private:
         }
 
         libff::enter_block("Load challenge file");
-        srs_mpc_phase2_challenge<ppT> challenge =
-            read_from_file<srs_mpc_phase2_challenge<ppT>>(challenge_file);
+        srs_mpc_phase2_challenge<pp> challenge =
+            read_from_file<srs_mpc_phase2_challenge<pp>>(challenge_file);
         libff::leave_block("Load challenge file");
 
         libff::enter_block("Computing randomness");
-        libff::Fr<ppT> contribution = get_randomness();
+        libff::Fr<pp> contribution = get_randomness();
         libff::leave_block("Computing randomness");
 
         libff::enter_block("Computing response");
-        const srs_mpc_phase2_response<ppT> response =
-            srs_mpc_phase2_compute_response<ppT>(challenge, contribution);
+        const srs_mpc_phase2_response<pp> response =
+            srs_mpc_phase2_compute_response<pp>(challenge, contribution);
         libff::leave_block("Computing response");
 
         libff::enter_block("Writing response");
@@ -120,7 +121,7 @@ private:
         return 0;
     }
 
-    libff::Fr<ppT> get_randomness() const
+    libff::Fr<pp> get_randomness() const
     {
         using random_word = std::random_device::result_type;
 
@@ -155,7 +156,7 @@ private:
         mpc_hash_t randomness_digest;
         hs.get_hash(randomness_digest);
 
-        libff::Fr<ppT> random_fp;
+        libff::Fr<pp> random_fp;
         srs_mpc_digest_to_fp(randomness_digest, random_fp);
         return random_fp;
     }

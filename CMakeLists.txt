@@ -39,20 +39,33 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   endif ()
 endif ()
 
-# Configure a header file to pass some of the CMake settings
-# to the source code
-configure_file(
-  "${PROJECT_SOURCE_DIR}/zeth_config.h.in"
-  "${PROJECT_BINARY_DIR}/zeth_config.h"
+# Default curve to use with zeth. Only useful for applications since all
+# library functions should be parameterized by type. Note, this is
+# intentionally independent of the libff variable `CURVE` to help ensure that
+# library code remains fully parameterized (and to avoid unnecessary rebuilds
+# of libff caused by changing compiler command line).
+set(
+  ZETH_CURVE
+  "ALT_BN128"
+  CACHE
+  STRING
+  "Default curve: one of BLS12_377, BW6_761, ALT_BN128, BN128, EDWARDS, MNT4, MNT6"
 )
 
-# Flags and compilation options to chose the type of zksnark
+# Configure a header file to pass some of the CMake settings
+# Option selecting the zk-SNARK scheme.
 set(
-  ZKSNARK
+  ZETH_SNARK
   "GROTH16"
   CACHE
   STRING
   "Default snark: one of PGHR13, GROTH16"
+)
+
+# Write configuration variables to the config header.
+configure_file(
+  "${PROJECT_SOURCE_DIR}/zeth_config.h.in"
+  "${PROJECT_BINARY_DIR}/zeth_config.h"
 )
 
 # Run only fast test (e.g. on CI machine)
@@ -60,15 +73,6 @@ option(
   FAST_TESTS_ONLY
   "Include only fast-running tests"
   OFF
-)
-
-# Flags and compilation options for use with libsnark
-set(
-  CURVE
-  "ALT_BN128"
-  CACHE
-  STRING
-  "Default curve: one of ALT_BN128, BN128, EDWARDS, MNT4, MNT6"
 )
 
 set(
@@ -179,14 +183,7 @@ else()
   " No guarantees can be made if another compiler is used.")
 endif()
 
-add_definitions(-DCURVE_${CURVE})
-add_definitions(-DZKSNARK_${ZKSNARK})
-
 enable_testing()
-
-if(${CURVE} STREQUAL "BN128")
-  add_definitions(-DBN_SUPPORT_SNARK=1)
-endif()
 
 if("${VERBOSE}")
   add_definitions(-DVERBOSE=1)
@@ -288,8 +285,12 @@ endif()
 
 # Add all local subdirecetories
 add_subdirectory(libzeth)
-add_subdirectory(prover_server)
-# For now the MPC for Groth16 only is tailored to the alt_bn128 pairing group
-if(${ZKSNARK} STREQUAL "GROTH16")
-  add_subdirectory(mpc_tools)
+
+# If zeth is being used as a dependency, skip the tools build
+if ("${IS_ZETH_PARENT}")
+  add_subdirectory(prover_server)
+  # For now the MPC for Groth16 only is tailored to the alt_bn128 pairing group
+  if(${ZETH_SNARK} STREQUAL "GROTH16")
+    add_subdirectory(mpc_tools)
+  endif()
 endif()

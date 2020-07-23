@@ -95,7 +95,7 @@ function build() {
         cxx_flags="${cxx_flags} -Wno-deprecated-declarations"
     fi
 
-    cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG}"
+    cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG} -DZETH_SNARK=${CI_ZKSNARK}"
     if ! [ "${full_build}" == "1" ] ; then
         cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
     fi

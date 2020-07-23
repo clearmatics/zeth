@@ -2,33 +2,33 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/core/field_element_utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 
-using ppT = libzeth::ppT;
-using Fr = libzeth::FieldT;
-using bigint_t = libff::bigint<libzeth::FieldT::num_limbs>;
+using pp = libzeth::defaults::pp;
+using Field = libzeth::defaults::Field;
+using bigint_t = libff::bigint<Field::num_limbs>;
 
 namespace
 {
 
 bigint_t dummy_bigint()
 {
-    Fr v = Fr::random_element();
+    Field v = Field::random_element();
     return v.as_bigint();
 }
 
-Fr dummy_field_element() { return Fr::random_element(); }
+Field dummy_field_element() { return Field::random_element(); }
 
 TEST(FieldElementUtilsTest, BigIntEncodeDecode)
 {
     bigint_t bi = dummy_bigint();
-    std::string bi_hex = libzeth::bigint_to_hex<Fr>(bi);
-    bigint_t bi_decoded = libzeth::bigint_from_hex<Fr>(bi_hex);
+    std::string bi_hex = libzeth::bigint_to_hex<Field>(bi);
+    bigint_t bi_decoded = libzeth::bigint_from_hex<Field>(bi_hex);
     std::cout << "bi_hex: " << bi_hex << std::endl;
-    std::cout << "bi_decoded_hex: " << libzeth::bigint_to_hex<Fr>(bi_decoded)
+    std::cout << "bi_decoded_hex: " << libzeth::bigint_to_hex<Field>(bi_decoded)
               << std::endl;
 
     ASSERT_EQ(2 * sizeof(bi.data), bi_hex.size());
@@ -37,10 +37,10 @@ TEST(FieldElementUtilsTest, BigIntEncodeDecode)
 
 TEST(FieldElementUtilsTest, FieldElementEncodeDecode)
 {
-    Fr fe = dummy_field_element();
-    std::string fe_hex = libzeth::field_element_to_hex<Fr>(fe);
+    Field fe = dummy_field_element();
+    std::string fe_hex = libzeth::field_element_to_hex<Field>(fe);
     std::cout << "fe_hex: " << fe_hex << std::endl;
-    Fr fe_decoded = libzeth::field_element_from_hex<Fr>(fe_hex);
+    Field fe_decoded = libzeth::field_element_from_hex<Field>(fe_hex);
     ASSERT_EQ(fe, fe_decoded);
 }
 
@@ -48,14 +48,14 @@ TEST(FieldElementUtilsTest, FieldElementDecodeBadString)
 {
     std::string invalid_hex = "xxx";
     ASSERT_THROW(
-        libzeth::field_element_from_hex<Fr>(invalid_hex), std::exception);
+        libzeth::field_element_from_hex<Field>(invalid_hex), std::exception);
 };
 
 } // namespace
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params();
+    pp::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

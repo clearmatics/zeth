@@ -7,14 +7,14 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/core/utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 
 using namespace libsnark;
 using namespace libzeth;
-
-using ppT = libzeth::ppT;
-using FieldT = libff::Fr<ppT>;
+using pp = defaults::pp;
+using Field = defaults::Field;
 
 namespace
 {
@@ -28,13 +28,13 @@ namespace
 // https://github.com/buggywhip/blake2_py
 TEST(TestG, TestTrue)
 {
-    libsnark::protoboard<FieldT> pb;
+    libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
-    libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
         {
             0, 1, 1, 0, 1, 0, 1, 1, // 6B
             0, 0, 0, 0, 1, 0, 0, 0, // 08
@@ -43,7 +43,7 @@ TEST(TestG, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
         {
             0, 1, 0, 1, 0, 0, 0, 1, // 51
             0, 0, 0, 0, 1, 1, 1, 0, // 0E
@@ -52,7 +52,7 @@ TEST(TestG, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> c = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> c = variable_array_from_bit_vector(
         {
             0, 1, 1, 0, 1, 0, 1, 0, // 6A
             0, 0, 0, 0, 1, 0, 0, 1, // 09
@@ -61,7 +61,7 @@ TEST(TestG, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> d = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> d = variable_array_from_bit_vector(
         {
             0, 1, 0, 1, 0, 0, 0, 1, // 51
             0, 0, 0, 0, 1, 1, 1, 0, // 0E
@@ -71,7 +71,7 @@ TEST(TestG, TestTrue)
         ZERO);
 
     // First word in little endian "lleh"
-    libsnark::pb_variable_array<FieldT> x = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> x = variable_array_from_bit_vector(
         {
             0, 1, 1, 0, 1, 1, 0, 0, // 6C
             0, 1, 1, 0, 1, 1, 0, 0, // 6C
@@ -81,7 +81,7 @@ TEST(TestG, TestTrue)
         ZERO);
 
     // Second word in little endian "ow o"
-    libsnark::pb_variable_array<FieldT> y = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> y = variable_array_from_bit_vector(
         {
             0, 1, 1, 0, 1, 1, 1, 1, // 6F
             0, 1, 1, 1, 0, 1, 1, 1, // 77
@@ -90,23 +90,23 @@ TEST(TestG, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> a2;
+    libsnark::pb_variable_array<Field> a2;
     a2.allocate(pb, BLAKE2s_word_size, "a2");
 
-    libsnark::pb_variable_array<FieldT> b2;
+    libsnark::pb_variable_array<Field> b2;
     b2.allocate(pb, BLAKE2s_word_size, "b2");
 
-    libsnark::pb_variable_array<FieldT> c2;
+    libsnark::pb_variable_array<Field> c2;
     c2.allocate(pb, BLAKE2s_word_size, "c2");
 
-    libsnark::pb_variable_array<FieldT> d2;
+    libsnark::pb_variable_array<Field> d2;
     d2.allocate(pb, BLAKE2s_word_size, "d2");
 
-    g_primitive<FieldT> g_gadget(pb, a, b, c, d, x, y, a2, b2, c2, d2);
+    g_primitive<Field> g_gadget(pb, a, b, c, d, x, y, a2, b2, c2, d2);
     g_gadget.generate_r1cs_constraints();
     g_gadget.generate_r1cs_witness();
 
-    libsnark::pb_variable_array<FieldT> a2_expected =
+    libsnark::pb_variable_array<Field> a2_expected =
         variable_array_from_bit_vector(
             {
                 0, 1, 1, 1, 0, 0, 0, 0, // 70
@@ -116,7 +116,7 @@ TEST(TestG, TestTrue)
             },
             ZERO);
 
-    libsnark::pb_variable_array<FieldT> b2_expected =
+    libsnark::pb_variable_array<Field> b2_expected =
         variable_array_from_bit_vector(
             {
                 1, 1, 0, 0, 0, 0, 0, 0, // C0
@@ -126,7 +126,7 @@ TEST(TestG, TestTrue)
             },
             ZERO);
 
-    libsnark::pb_variable_array<FieldT> c2_expected =
+    libsnark::pb_variable_array<Field> c2_expected =
         variable_array_from_bit_vector(
             {
                 1, 1, 1, 0, 0, 1, 1, 1, // E7
@@ -136,7 +136,7 @@ TEST(TestG, TestTrue)
             },
             ZERO);
 
-    libsnark::pb_variable_array<FieldT> d2_expected =
+    libsnark::pb_variable_array<Field> d2_expected =
         variable_array_from_bit_vector(
             {
                 1, 0, 1, 1, 0, 0, 0, 0, // B0
@@ -156,14 +156,14 @@ TEST(TestG, TestTrue)
 // The test vectors were computed with hashlib's blake2s function
 TEST(TestBlake2sComp, TestTrue)
 {
-    libsnark::protoboard<FieldT> pb;
+    libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     // b"hello world" in big endian
-    libsnark::pb_variable_array<FieldT> pb_var_input =
+    libsnark::pb_variable_array<Field> pb_var_input =
         variable_array_from_bit_vector(
             {
                 0, 1, 1, 0, 1, 0, 0, 0, // 68
@@ -189,11 +189,11 @@ TEST(TestBlake2sComp, TestTrue)
             },
             ZERO);
 
-    libsnark::block_variable<FieldT> input(
+    libsnark::block_variable<Field> input(
         pb, {pb_var_input}, "blake2s_block_input");
 
     // default chaining value
-    libsnark::pb_variable_array<FieldT> pb_var_h =
+    libsnark::pb_variable_array<Field> pb_var_h =
         variable_array_from_bit_vector(
             {0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1,
              1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0,
@@ -208,17 +208,17 @@ TEST(TestBlake2sComp, TestTrue)
              1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1,
              0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1},
             ZERO);
-    libsnark::digest_variable<FieldT> h(
+    libsnark::digest_variable<Field> h(
         pb, BLAKE2s_digest_size, pb_var_h, ZERO, "blake2s_h");
 
-    libsnark::digest_variable<FieldT> output(pb, BLAKE2s_digest_size, "output");
+    libsnark::digest_variable<Field> output(pb, BLAKE2s_digest_size, "output");
 
-    BLAKE2s_256_comp<FieldT> BLAKE2sC_gadget(pb, h, input, output);
+    BLAKE2s_256_comp<Field> BLAKE2sC_gadget(pb, h, input, output);
     BLAKE2sC_gadget.generate_r1cs_constraints();
     BLAKE2sC_gadget.generate_r1cs_witness(11);
 
     // blake2s(b"hello world")
-    libsnark::pb_variable_array<FieldT> expected =
+    libsnark::pb_variable_array<Field> expected =
         variable_array_from_bit_vector(
             {
                 1, 0, 0, 1, 1, 0, 1, 0, // 9A
@@ -263,14 +263,14 @@ TEST(TestBlake2sComp, TestTrue)
 // The test vectors were computed with hashlib's blake2s function
 TEST(TestBlake2s, TestTrue)
 {
-    libsnark::protoboard<FieldT> pb;
+    libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     // b"hello world" in big endian
-    libsnark::pb_variable_array<FieldT> pb_var_input =
+    libsnark::pb_variable_array<Field> pb_var_input =
         variable_array_from_bit_vector(
             {
                 0, 1, 1, 0, 1, 0, 0, 0, // 68
@@ -287,17 +287,17 @@ TEST(TestBlake2s, TestTrue)
             },
             ZERO);
 
-    libsnark::block_variable<FieldT> input(
+    libsnark::block_variable<Field> input(
         pb, {pb_var_input}, "blake2s_block_input");
 
-    libsnark::digest_variable<FieldT> output(pb, BLAKE2s_digest_size, "output");
+    libsnark::digest_variable<Field> output(pb, BLAKE2s_digest_size, "output");
 
-    BLAKE2s_256<FieldT> blake2s_gadget(pb, input, output);
+    BLAKE2s_256<Field> blake2s_gadget(pb, input, output);
     blake2s_gadget.generate_r1cs_constraints();
     blake2s_gadget.generate_r1cs_witness();
 
     // blake2s(b"hello world")
-    libsnark::pb_variable_array<FieldT> expected =
+    libsnark::pb_variable_array<Field> expected =
         variable_array_from_bit_vector(
             {
                 1, 0, 0, 1, 1, 0, 1, 0, // 9A
@@ -342,14 +342,14 @@ TEST(TestBlake2s, TestTrue)
 // The test vectors were computed with hashlib's blake2s function
 TEST(TestBlake2s, TestTrue2)
 {
-    libsnark::protoboard<FieldT> pb;
+    libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     // b"zeth" in big endian
-    libsnark::pb_variable_array<FieldT> pb_var_input =
+    libsnark::pb_variable_array<Field> pb_var_input =
         variable_array_from_bit_vector(
             {
                 0, 1, 1, 1, 1, 0, 1, 0, // 7A
@@ -483,12 +483,12 @@ TEST(TestBlake2s, TestTrue2)
             },
             ZERO);
 
-    libsnark::block_variable<FieldT> input(
+    libsnark::block_variable<Field> input(
         pb, {pb_var_input}, "blake2s_block_input");
 
-    libsnark::digest_variable<FieldT> output(pb, BLAKE2s_digest_size, "output");
+    libsnark::digest_variable<Field> output(pb, BLAKE2s_digest_size, "output");
 
-    BLAKE2s_256<FieldT> blake2s_gadget(pb, input, output);
+    BLAKE2s_256<Field> blake2s_gadget(pb, input, output);
     blake2s_gadget.generate_r1cs_constraints();
     blake2s_gadget.generate_r1cs_witness();
 
@@ -505,7 +505,7 @@ int main(int argc, char **argv)
 {
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
-    ppT::init_public_params();
+    pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

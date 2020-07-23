@@ -13,6 +13,7 @@
 #include <vector>
 
 using namespace libzeth;
+using pp = defaults::pp;
 namespace po = boost::program_options;
 
 namespace
@@ -112,29 +113,29 @@ private:
         libff::enter_block("Load Lagrange data");
         libff::print_indent();
         std::cout << lagrange_file << std::endl;
-        const srs_lagrange_evaluations<ppT> lagrange =
-            read_from_file<srs_lagrange_evaluations<ppT>>(lagrange_file);
+        const srs_lagrange_evaluations<pp> lagrange =
+            read_from_file<srs_lagrange_evaluations<pp>>(lagrange_file);
         libff::leave_block("Load Lagrange data");
 
         libff::enter_block("Load powers of tau");
         libff::print_indent();
         std::cout << powersoftau_file << std::endl;
-        const srs_powersoftau<ppT> pot = [this, &lagrange]() {
+        const srs_powersoftau<pp> pot = [this, &lagrange]() {
             std::ifstream in(
                 powersoftau_file, std::ios_base::binary | std::ios_base::in);
             const size_t pot_degree =
                 powersoftau_degree ? powersoftau_degree : lagrange.degree;
-            return powersoftau_load<ppT>(in, pot_degree);
+            return powersoftau_load<pp>(in, pot_degree);
         }();
         libff::leave_block("Load powers of tau");
 
         // Compute circuit
         libff::enter_block("Generate QAP");
-        libsnark::protoboard<FieldT> pb;
+        libsnark::protoboard<Field> pb;
         init_protoboard(pb);
-        const libsnark::r1cs_constraint_system<FieldT> cs =
+        const libsnark::r1cs_constraint_system<Field> cs =
             pb.get_constraint_system();
-        const libsnark::qap_instance<FieldT> qap =
+        const libsnark::qap_instance<Field> qap =
             libsnark::r1cs_to_qap_instance_map(cs, true);
         libff::leave_block("Generate QAP");
 
@@ -155,8 +156,8 @@ private:
         }
 
         // Compute layer1 and write to a file
-        const srs_mpc_layer_L1<ppT> lin_comb =
-            mpc_compute_linearcombination<ppT>(pot, lagrange, qap);
+        const srs_mpc_layer_L1<pp> lin_comb =
+            mpc_compute_linearcombination<pp>(pot, lagrange, qap);
 
         libff::enter_block("Writing linear combination file");
         libff::print_indent();
