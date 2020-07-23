@@ -32,7 +32,7 @@ message HexPointBaseGroup1Affine {
 // }
 message HexPointBaseGroup2Affine {
     // First coordinate of the point
-    repeated string x_coord = 1;
+    string x_coord = 1;
     // Second coordinate of the point
-    repeated string y_coord = 2;
+    string y_coord = 2;
 }

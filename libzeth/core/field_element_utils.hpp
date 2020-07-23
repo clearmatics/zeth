@@ -21,9 +21,10 @@ namespace libzeth
 /// Under these assumptions, bigints are layed out in memory with low-order
 /// bytes first, occupying `FieldT::num_limbs * GMP_LIMB_BITS / 8` bytes. For
 /// readability, this function returns the big-endian hex representation
-/// (high-order byte first) .
+/// (high-order byte first). If `prefix` is true, add the "0x" prefix.
 template<typename FieldT>
-std::string bigint_to_hex(const libff::bigint<FieldT::num_limbs> &limbs);
+std::string bigint_to_hex(
+    const libff::bigint<FieldT::num_limbs> &limbs, bool prefix = false);
 
 /// WARNING: The following function assumes that the platform is little-endian
 /// and that NAILS are NOT used. See Section 8.2 (page 68):
@@ -38,7 +39,7 @@ std::string bigint_to_hex(const libff::bigint<FieldT::num_limbs> &limbs);
 template<typename FieldT>
 libff::bigint<FieldT::num_limbs> bigint_from_hex(const std::string &hex);
 
-/// Convert a base/ground field element to an hexadecimal string
+/// Convert a base/ground field element to a hexadecimal string.
 template<typename FieldT>
 std::string base_field_element_to_hex(const FieldT &field_el);
 
@@ -46,20 +47,16 @@ std::string base_field_element_to_hex(const FieldT &field_el);
 template<typename FieldT>
 FieldT base_field_element_from_hex(const std::string &field_str);
 
-/// Convert an extension field element to a vector of hexadecimal strings.
-/// All coefficients necessary to represent the extension field element
-/// are written contiguously in the vector, i.e. this function does not
-/// support extension fields built as "towers".
-template<typename EFieldT>
-std::vector<std::string> ext_field_element_to_hex(const EFieldT &field_el);
+template<typename FieldT>
+void field_element_write_json(std::ostream &out, const FieldT &el);
 
-/// Convert a vector of hexadecimal strings to an extension field element.
-/// All coefficients necessary to represent the extension field element
-/// are written contiguously in the vector, i.e. this function does not
-/// support extension fields built as "towers".
-template<typename EFieldT>
-EFieldT ext_field_element_from_hex(const std::vector<std::string> &field_str);
+template<typename FieldT>
+void field_element_read_json(std::istream &in, FieldT &el);
 
+template<typename FieldT> std::string field_element_to_json(const FieldT &el);
+
+template<typename FieldT>
+FieldT field_element_from_json(const std::string &json);
 } // namespace libzeth
 
 #include "libzeth/core/field_element_utils.tcc"

@@ -45,51 +45,67 @@ zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     assert(!point.is_zero());
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
-    const std::vector<std::string> x_coord =
-        ext_field_element_to_hex<libff::Fqe<ppT>>(aff.X);
-    const std::vector<std::string> y_coord =
-        ext_field_element_to_hex<libff::Fqe<ppT>>(aff.Y);
-
-    const size_t extension_degree = libff::Fqe<ppT>::extension_degree();
-    BOOST_ASSERT(extension_degree >= 2);
 
     zeth_proto::HexPointBaseGroup2Affine res;
-    res.add_x_coord("0x" + x_coord[extension_degree - 1]);
-    res.add_y_coord("0x" + y_coord[extension_degree - 1]);
-
-    for (size_t i = extension_degree - 1; i >= 1; --i) {
-        res.add_x_coord("0x" + x_coord[i - 1]);
-        res.add_y_coord("0x" + y_coord[i - 1]);
-    }
-
+    res.set_x_coord(
+        field_element_to_json<typename libff::G2<ppT>::twist_field>(aff.X));
+    res.set_y_coord(
+        field_element_to_json<typename libff::G2<ppT>::twist_field>(aff.Y));
     return res;
+
+    // const std::vector<std::string> x_coord =
+    //     ext_field_element_to_hex<libff::Fqe<ppT>>(aff.X);
+    // const std::vector<std::string> y_coord =
+    //     ext_field_element_to_hex<libff::Fqe<ppT>>(aff.Y);
+
+    // const size_t extension_degree = libff::Fqe<ppT>::extension_degree();
+    // BOOST_ASSERT(extension_degree >= 2);
+
+    // zeth_proto::HexPointBaseGroup2Affine res;
+    // res.add_x_coord("0x" + x_coord[extension_degree - 1]);
+    // res.add_y_coord("0x" + y_coord[extension_degree - 1]);
+
+    // for (size_t i = extension_degree - 1; i >= 1; --i) {
+    //     res.add_x_coord("0x" + x_coord[i - 1]);
+    //     res.add_y_coord("0x" + y_coord[i - 1]);
+    // }
+
+    // return res;
 }
 
 template<typename ppT>
 libff::G2<ppT> point_g2_affine_from_proto(
     const zeth_proto::HexPointBaseGroup2Affine &point)
 {
-    // See:
+    using BaseField = typename libff::G2<ppT>::twist_field;
+    const BaseField X = field_element_from_json<BaseField>(point.x_coord());
+    const BaseField Y = field_element_from_json<BaseField>(point.y_coord());
+    return libff::G2<ppT>(X, Y, BaseField::one());
+
+    // // See:
+    // //
     // https://github.com/scipr-lab/libff/blob/master/libff/algebra/curves/public_params.hpp#L88
-    // and:
+    // // and:
+    // //
     // https://github.com/scipr-lab/libff/blob/master/libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp#L33
-    //
-    // As such, each element of Fqe is assumed to be a vector of 2 coefficients
-    // lying in the base field
+    // //
+    // // As such, each element of Fqe is assumed to be a vector of 2
+    // coefficients
+    // // lying in the base field
 
-    // We invert the list of coefficients representing the extension field
-    /// elements as they are inverted in the `point_g2_affine_to_proto` function
-    auto protobuf_x_coord = point.x_coord();
-    std::vector<std::string> x_coord(
-        protobuf_x_coord.rbegin(), protobuf_x_coord.rend());
+    // // We invert the list of coefficients representing the extension field
+    // /// elements as they are inverted in the `point_g2_affine_to_proto`
+    // function auto protobuf_x_coord = point.x_coord();
+    // std::vector<std::string> x_coord(
+    //     protobuf_x_coord.rbegin(), protobuf_x_coord.rend());
 
-    auto protobuf_y_coord = point.y_coord();
-    std::vector<std::string> y_coord(
-        protobuf_y_coord.rbegin(), protobuf_y_coord.rend());
+    // auto protobuf_y_coord = point.y_coord();
+    // std::vector<std::string> y_coord(
+    //     protobuf_y_coord.rbegin(), protobuf_y_coord.rend());
 
-    libff::Fqe<ppT> x = ext_field_element_from_hex<libff::Fqe<ppT>>(x_coord);
-    libff::Fqe<ppT> y = ext_field_element_from_hex<libff::Fqe<ppT>>(y_coord);
-    return libff::G2<ppT>(x, y, libff::Fqe<ppT>::one());
+    // libff::Fqe<ppT> x = ext_field_element_from_hex<libff::Fqe<ppT>>(x_coord);
+    // libff::Fqe<ppT> y = ext_field_element_from_hex<libff::Fqe<ppT>>(y_coord);
+    // return libff::G2<ppT>(x, y, libff::Fqe<ppT>::one());
 }
 
 template<typename FieldT, size_t TreeDepth>
