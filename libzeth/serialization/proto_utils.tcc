@@ -17,13 +17,12 @@ zeth_proto::HexPointBaseGroup1Affine point_g1_affine_to_proto(
     const libff::G1<ppT> &point)
 {
     assert(!point.is_zero());
-    using Fq = libff::Fq<ppT>;
     libff::G1<ppT> aff = point;
     aff.to_affine_coordinates();
 
     zeth_proto::HexPointBaseGroup1Affine res;
-    res.set_x_coord("0x" + base_field_element_to_hex<Fq>(aff.X));
-    res.set_y_coord("0x" + base_field_element_to_hex<Fq>(aff.Y));
+    res.set_x_coord(field_element_to_json(aff.X));
+    res.set_y_coord(field_element_to_json(aff.Y));
     return res;
 }
 
@@ -32,9 +31,8 @@ libff::G1<ppT> point_g1_affine_from_proto(
     const zeth_proto::HexPointBaseGroup1Affine &point)
 {
     using Fq = libff::Fq<ppT>;
-
-    Fq x_coordinate = base_field_element_from_hex<Fq>(point.x_coord());
-    Fq y_coordinate = base_field_element_from_hex<Fq>(point.y_coord());
+    Fq x_coordinate = field_element_from_json<Fq>(point.x_coord());
+    Fq y_coordinate = field_element_from_json<Fq>(point.y_coord());
     return libff::G1<ppT>(x_coordinate, y_coordinate, Fq::one());
 }
 
@@ -47,65 +45,19 @@ zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     aff.to_affine_coordinates();
 
     zeth_proto::HexPointBaseGroup2Affine res;
-    res.set_x_coord(
-        field_element_to_json<typename libff::G2<ppT>::twist_field>(aff.X));
-    res.set_y_coord(
-        field_element_to_json<typename libff::G2<ppT>::twist_field>(aff.Y));
+    res.set_x_coord(field_element_to_json(aff.X));
+    res.set_y_coord(field_element_to_json(aff.Y));
     return res;
-
-    // const std::vector<std::string> x_coord =
-    //     ext_field_element_to_hex<libff::Fqe<ppT>>(aff.X);
-    // const std::vector<std::string> y_coord =
-    //     ext_field_element_to_hex<libff::Fqe<ppT>>(aff.Y);
-
-    // const size_t extension_degree = libff::Fqe<ppT>::extension_degree();
-    // BOOST_ASSERT(extension_degree >= 2);
-
-    // zeth_proto::HexPointBaseGroup2Affine res;
-    // res.add_x_coord("0x" + x_coord[extension_degree - 1]);
-    // res.add_y_coord("0x" + y_coord[extension_degree - 1]);
-
-    // for (size_t i = extension_degree - 1; i >= 1; --i) {
-    //     res.add_x_coord("0x" + x_coord[i - 1]);
-    //     res.add_y_coord("0x" + y_coord[i - 1]);
-    // }
-
-    // return res;
 }
 
 template<typename ppT>
 libff::G2<ppT> point_g2_affine_from_proto(
     const zeth_proto::HexPointBaseGroup2Affine &point)
 {
-    using BaseField = typename libff::G2<ppT>::twist_field;
-    const BaseField X = field_element_from_json<BaseField>(point.x_coord());
-    const BaseField Y = field_element_from_json<BaseField>(point.y_coord());
-    return libff::G2<ppT>(X, Y, BaseField::one());
-
-    // // See:
-    // //
-    // https://github.com/scipr-lab/libff/blob/master/libff/algebra/curves/public_params.hpp#L88
-    // // and:
-    // //
-    // https://github.com/scipr-lab/libff/blob/master/libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp#L33
-    // //
-    // // As such, each element of Fqe is assumed to be a vector of 2
-    // coefficients
-    // // lying in the base field
-
-    // // We invert the list of coefficients representing the extension field
-    // /// elements as they are inverted in the `point_g2_affine_to_proto`
-    // function auto protobuf_x_coord = point.x_coord();
-    // std::vector<std::string> x_coord(
-    //     protobuf_x_coord.rbegin(), protobuf_x_coord.rend());
-
-    // auto protobuf_y_coord = point.y_coord();
-    // std::vector<std::string> y_coord(
-    //     protobuf_y_coord.rbegin(), protobuf_y_coord.rend());
-
-    // libff::Fqe<ppT> x = ext_field_element_from_hex<libff::Fqe<ppT>>(x_coord);
-    // libff::Fqe<ppT> y = ext_field_element_from_hex<libff::Fqe<ppT>>(y_coord);
-    // return libff::G2<ppT>(x, y, libff::Fqe<ppT>::one());
+    using TwistField = typename libff::G2<ppT>::twist_field;
+    const TwistField X = field_element_from_json<TwistField>(point.x_coord());
+    const TwistField Y = field_element_from_json<TwistField>(point.y_coord());
+    return libff::G2<ppT>(X, Y, TwistField::one());
 }
 
 template<typename FieldT, size_t TreeDepth>
