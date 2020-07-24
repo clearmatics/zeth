@@ -35,11 +35,15 @@ void hex_to_bytes_reversed(const std::string &hex, void *dest, size_t bytes);
 /// Decode hexidecimal string to an std::string of bytes.
 std::string hex_to_bytes(const std::string &s);
 
-/// Encode bytes as a hex string
-std::string bytes_to_hex(const void *bytes, size_t num_bytes);
+/// Encode bytes as a hex string. If `prefix` is true, the string is prepended
+/// with "0x".
+std::string bytes_to_hex(
+    const void *bytes, size_t num_bytes, bool prefix = false);
 
-/// Encode bytes as a hex string
-std::string bytes_to_hex_reversed(const void *bytes, size_t num_bytes);
+/// Encode bytes as a hex string. If `prefix` is true, the string is prepended
+/// with "0x".
+std::string bytes_to_hex_reversed(
+    const void *bytes, size_t num_bytes, bool prefix = false);
 
 /// Convenience function to throw if input is not well-formed. Here StructuredT
 /// is assumed to have the form:
