@@ -6,6 +6,8 @@
 
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
+#include <libff/algebra/curves/bw6_761/bw6_761_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
 
@@ -69,6 +71,8 @@ TEST(GroupElementUtilsTest, G1EncodeDecode)
     group_element_encode_decode_test<libff::G1<libff::alt_bn128_pp>>();
     group_element_encode_decode_test<libff::G1<libff::mnt4_pp>>();
     group_element_encode_decode_test<libff::G1<libff::mnt6_pp>>();
+    group_element_encode_decode_test<libff::G1<libff::bls12_377_pp>>();
+    group_element_encode_decode_test<libff::G1<libff::bw6_761_pp>>();
 }
 
 TEST(GroupElementUtilsTest, G2EncodeDecode)
@@ -76,6 +80,8 @@ TEST(GroupElementUtilsTest, G2EncodeDecode)
     group_element_encode_decode_test<libff::G2<libff::alt_bn128_pp>>();
     group_element_encode_decode_test<libff::G2<libff::mnt4_pp>>();
     group_element_encode_decode_test<libff::G2<libff::mnt6_pp>>();
+    group_element_encode_decode_test<libff::G2<libff::bls12_377_pp>>();
+    group_element_encode_decode_test<libff::G2<libff::bw6_761_pp>>();
 }
 
 } // namespace
@@ -85,6 +91,8 @@ int main(int argc, char **argv)
     libff::alt_bn128_pp::init_public_params();
     libff::mnt4_pp::init_public_params();
     libff::mnt6_pp::init_public_params();
+    libff::bls12_377_pp::init_public_params();
+    libff::bw6_761_pp::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
