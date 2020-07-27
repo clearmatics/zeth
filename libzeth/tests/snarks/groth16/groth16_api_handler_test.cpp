@@ -25,7 +25,7 @@ TEST(Groth16ApiHandlerTest, VerificationKeyEncodeDecode)
 
 TEST(Groth16ApiHandlerTest, ProofEncodeDecode)
 {
-    snark::ProofT dummy_proof{
+    snark::proof dummy_proof{
         G1::random_element(), G2::random_element(), G1::random_element()};
     libsnark::r1cs_primary_input<Fr> dummy_inputs{
         Fr::random_element(), Fr::random_element(), Fr::random_element()};

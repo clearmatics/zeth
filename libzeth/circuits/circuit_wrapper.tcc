@@ -37,7 +37,7 @@ template<
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-typename snarkT::KeypairT circuit_wrapper<
+typename snarkT::keypair circuit_wrapper<
     HashT,
     HashTreeT,
     ppT,
@@ -104,7 +104,7 @@ extended_proof<ppT, snarkT> circuit_wrapper<
         const bits64 &vpub_out,
         const bits256 &h_sig_in,
         const bits256 &phi_in,
-        const typename snarkT::ProvingKeyT &proving_key) const
+        const typename snarkT::proving_key &proving_key) const
 {
     // left hand side and right hand side of the joinsplit
     bits64 lhs_value = vpub_in;

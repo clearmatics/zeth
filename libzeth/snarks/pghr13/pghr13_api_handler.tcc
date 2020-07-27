@@ -15,7 +15,7 @@ namespace libzeth
 
 template<typename ppT>
 void pghr13_api_handler<ppT>::verification_key_to_proto(
-    const typename snarkT::VerificationKeyT &vk,
+    const typename snark::verification_key &vk,
     zeth_proto::VerificationKey *message)
 {
     zeth_proto::HexPointBaseGroup2Affine *a =
@@ -61,7 +61,7 @@ void pghr13_api_handler<ppT>::verification_key_to_proto(
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::VerificationKeyT pghr13_api_handler<
+typename pghr13_snark<ppT>::verification_key pghr13_api_handler<
     ppT>::verification_key_from_proto(const zeth_proto::VerificationKey
                                           &verification_key)
 {
@@ -88,7 +88,7 @@ typename pghr13_snark<ppT>::VerificationKeyT pghr13_api_handler<
 
 template<typename ppT>
 void pghr13_api_handler<ppT>::extended_proof_to_proto(
-    const extended_proof<ppT, snarkT> &ext_proof,
+    const extended_proof<ppT, snark> &ext_proof,
     zeth_proto::ExtendedProof *message)
 {
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
@@ -173,7 +173,7 @@ libzeth::extended_proof<ppT, pghr13_snark<ppT>> pghr13_api_handler<
     libsnark::r1cs_primary_input<libff::Fr<ppT>> inputs =
         libsnark::r1cs_primary_input<libff::Fr<ppT>>(
             primary_inputs_from_string<ppT>(e_proof.inputs()));
-    libzeth::extended_proof<ppT, snarkT> res(
+    libzeth::extended_proof<ppT, snark> res(
         std::move(proof), std::move(inputs));
     return res;
 }

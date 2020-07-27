@@ -25,7 +25,7 @@ TEST(PGHR13ApiHandlerTest, VerificationKeyEncodeDecode)
 
 TEST(PGHR13ApiHandlerTest, ProofEncodeDecode)
 {
-    snark::ProofT dummy_proof(
+    snark::proof dummy_proof(
         {G1::random_element(), G1::random_element()},
         {G2::random_element(), G1::random_element()},
         {G1::random_element(), G1::random_element()},

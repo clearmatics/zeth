@@ -13,7 +13,7 @@ namespace libzeth
 
 template<typename ppT, typename snarkT>
 extended_proof<ppT, snarkT>::extended_proof(
-    typename snarkT::ProofT &&in_proof,
+    typename snarkT::proof &&in_proof,
     libsnark::r1cs_primary_input<libff::Fr<ppT>> &&in_primary_inputs)
 {
     proof = in_proof;
@@ -21,7 +21,7 @@ extended_proof<ppT, snarkT>::extended_proof(
 }
 
 template<typename ppT, typename snarkT>
-const typename snarkT::ProofT &extended_proof<ppT, snarkT>::get_proof() const
+const typename snarkT::proof &extended_proof<ppT, snarkT>::get_proof() const
 {
     return proof;
 }
