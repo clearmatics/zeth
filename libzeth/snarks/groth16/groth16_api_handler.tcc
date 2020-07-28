@@ -14,7 +14,7 @@ namespace libzeth
 
 template<typename ppT>
 void groth16_api_handler<ppT>::verification_key_to_proto(
-    const typename groth16_api_handler<ppT>::snarkT::VerificationKeyT &vk,
+    const typename groth16_api_handler<ppT>::snark::verification_key &vk,
     zeth_proto::VerificationKey *message)
 {
     zeth_proto::HexPointBaseGroup1Affine *a =
@@ -43,7 +43,7 @@ void groth16_api_handler<ppT>::verification_key_to_proto(
 }
 
 template<typename ppT>
-typename groth16_snark<ppT>::VerificationKeyT groth16_api_handler<
+typename groth16_snark<ppT>::verification_key groth16_api_handler<
     ppT>::verification_key_from_proto(const zeth_proto::VerificationKey
                                           &verification_key)
 {
@@ -68,7 +68,7 @@ typename groth16_snark<ppT>::VerificationKeyT groth16_api_handler<
 
 template<typename ppT>
 void groth16_api_handler<ppT>::extended_proof_to_proto(
-    const extended_proof<ppT, groth16_api_handler<ppT>::snarkT> &ext_proof,
+    const extended_proof<ppT, groth16_api_handler<ppT>::snark> &ext_proof,
     zeth_proto::ExtendedProof *message)
 {
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof_obj = ext_proof.get_proof();

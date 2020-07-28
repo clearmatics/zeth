@@ -13,16 +13,16 @@ namespace libzeth
 {
 
 template<typename ppT>
-typename pghr13_snark<ppT>::KeypairT pghr13_snark<ppT>::generate_setup(
+typename pghr13_snark<ppT>::keypair pghr13_snark<ppT>::generate_setup(
     const libsnark::protoboard<libff::Fr<ppT>> &pb)
 {
     return libsnark::r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::ProofT pghr13_snark<ppT>::generate_proof(
+typename pghr13_snark<ppT>::proof pghr13_snark<ppT>::generate_proof(
     const libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const pghr13_snark<ppT>::ProvingKeyT &proving_key)
+    const pghr13_snark<ppT>::proving_key &proving_key)
 {
     // See:
     // https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp#L81
@@ -34,17 +34,15 @@ typename pghr13_snark<ppT>::ProofT pghr13_snark<ppT>::generate_proof(
 
     // Generate proof from public input, auxiliary input (private/secret data),
     // and proving key
-    ProofT proof = libsnark::r1cs_ppzksnark_prover(
+    return libsnark::r1cs_ppzksnark_prover(
         proving_key, primary_input, auxiliary_input);
-
-    return proof;
 }
 
 template<typename ppT>
 bool pghr13_snark<ppT>::verify(
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_inputs,
-    const pghr13_snark<ppT>::ProofT &proof,
-    const pghr13_snark<ppT>::VerificationKeyT &verification_key)
+    const pghr13_snark<ppT>::proof &proof,
+    const pghr13_snark<ppT>::verification_key &verification_key)
 {
     return libsnark::r1cs_ppzksnark_verifier_strong_IC<ppT>(
         verification_key, primary_inputs, proof);
@@ -52,7 +50,7 @@ bool pghr13_snark<ppT>::verify(
 
 template<typename ppT>
 std::ostream &pghr13_snark<ppT>::verification_key_write_json(
-    const pghr13_snark<ppT>::VerificationKeyT &vk, std::ostream &os)
+    const pghr13_snark<ppT>::verification_key &vk, std::ostream &os)
 {
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
 
@@ -83,39 +81,39 @@ std::ostream &pghr13_snark<ppT>::verification_key_write_json(
 
 template<typename ppT>
 std::ostream &pghr13_snark<ppT>::verification_key_write_bytes(
-    const typename pghr13_snark<ppT>::VerificationKeyT &vk, std::ostream &os)
+    const typename pghr13_snark<ppT>::verification_key &vk, std::ostream &os)
 {
     return os << vk;
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::VerificationKeyT pghr13_snark<
+typename pghr13_snark<ppT>::verification_key pghr13_snark<
     ppT>::verification_key_read_bytes(std::istream &is)
 {
-    VerificationKeyT vk;
+    verification_key vk;
     is >> vk;
     return vk;
 }
 
 template<typename ppT>
 std::ostream &pghr13_snark<ppT>::proving_key_write_bytes(
-    const typename pghr13_snark<ppT>::ProvingKeyT &pk, std::ostream &os)
+    const typename pghr13_snark<ppT>::proving_key &pk, std::ostream &os)
 {
     return os << pk;
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::ProvingKeyT pghr13_snark<
+typename pghr13_snark<ppT>::proving_key pghr13_snark<
     ppT>::proving_key_read_bytes(std::istream &is)
 {
-    ProvingKeyT pk;
+    proving_key pk;
     is >> pk;
     return pk;
 }
 
 template<typename ppT>
 std::ostream &pghr13_snark<ppT>::proof_write_json(
-    const typename pghr13_snark<ppT>::ProofT &proof, std::ostream &os)
+    const typename pghr13_snark<ppT>::proof &proof, std::ostream &os)
 {
     os << "{\n";
     os << " \"a\": " << point_g1_affine_to_json<ppT>(proof.g_A.g) << ",\n";
@@ -132,18 +130,17 @@ std::ostream &pghr13_snark<ppT>::proof_write_json(
 
 template<typename ppT>
 std::ostream &pghr13_snark<ppT>::keypair_write_bytes(
-    const typename pghr13_snark<ppT>::KeypairT &keypair, std::ostream &os)
+    const typename pghr13_snark<ppT>::keypair &keypair, std::ostream &os)
 {
     proving_key_write_bytes(keypair.pk, os);
     return verification_key_write_bytes(keypair.vk, os);
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::KeypairT pghr13_snark<ppT>::keypair_read_bytes(
+typename pghr13_snark<ppT>::keypair pghr13_snark<ppT>::keypair_read_bytes(
     std::istream &is)
 {
-    return KeypairT(
-        proving_key_read_bytes(is), verification_key_read_bytes(is));
+    return keypair(proving_key_read_bytes(is), verification_key_read_bytes(is));
 }
 
 } // namespace libzeth

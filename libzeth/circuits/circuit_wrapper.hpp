@@ -41,7 +41,7 @@ public:
     circuit_wrapper();
 
     // Generate the trusted setup
-    typename snarkT::KeypairT generate_trusted_setup() const;
+    typename snarkT::keypair generate_trusted_setup() const;
 
     // Retrieve the constraint system (intended for debugging purposes).
     libsnark::protoboard<Field> get_constraint_system() const;
@@ -55,7 +55,7 @@ public:
         const bits64 &vpub_out,
         const bits256 &h_sig_in,
         const bits256 &phi_in,
-        const typename snarkT::ProvingKeyT &proving_key) const;
+        const typename snarkT::proving_key &proving_key) const;
 };
 
 } // namespace libzeth

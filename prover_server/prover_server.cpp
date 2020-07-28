@@ -42,7 +42,7 @@ namespace proto = google::protobuf;
 namespace po = boost::program_options;
 
 static void serialize_setup_to_file(
-    const typename snark::KeypairT &keypair,
+    const typename snark::keypair &keypair,
     boost::filesystem::path setup_path = "")
 {
     if (setup_path.empty()) {
@@ -53,8 +53,8 @@ static void serialize_setup_to_file(
     const boost::filesystem::path path_vk_raw = setup_path / "vk.raw";
     const boost::filesystem::path path_pk_raw = setup_path / "pk.raw";
 
-    const typename snark::ProvingKeyT &proving_key = keypair.pk;
-    const typename snark::VerificationKeyT &verification_key = keypair.vk;
+    const typename snark::proving_key &proving_key = keypair.pk;
+    const typename snark::verification_key &verification_key = keypair.vk;
 
     // Write the verification key in json format
     {
@@ -98,11 +98,11 @@ private:
     circuit_wrapper prover;
 
     // The keypair is the result of the setup. Store a copy internally.
-    snark::KeypairT keypair;
+    snark::keypair keypair;
 
 public:
     explicit prover_server(
-        circuit_wrapper &prover, const snark::KeypairT &keypair)
+        circuit_wrapper &prover, const snark::keypair &keypair)
         : prover(prover), keypair(keypair)
     {
     }
@@ -264,7 +264,7 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    circuit_wrapper &prover, const typename snark::KeypairT &keypair)
+    circuit_wrapper &prover, const typename snark::keypair &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50051
     std::string server_address("0.0.0.0:50051");
@@ -291,7 +291,7 @@ static void RunServer(
 }
 
 #ifdef ZETH_SNARK_GROTH16
-static snark::KeypairT load_keypair(const std::string &keypair_file)
+static snark::keypair load_keypair(const std::string &keypair_file)
 {
     std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
     in.exceptions(
@@ -353,7 +353,7 @@ int main(int argc, char **argv)
     pp::init_public_params();
 
     circuit_wrapper prover;
-    snark::KeypairT keypair = [&keypair_file, &prover]() {
+    snark::keypair keypair = [&keypair_file, &prover]() {
         if (!keypair_file.empty()) {
 #ifdef ZETH_SNARK_GROTH16
             std::cout << "[INFO] Loading keypair: " << keypair_file
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
         }
 
         std::cout << "[INFO] Generate new keypair" << std::endl;
-        snark::KeypairT keypair = prover.generate_trusted_setup();
+        snark::keypair keypair = prover.generate_trusted_setup();
 
         // Write the keypair to a file
         serialize_setup_to_file(keypair);

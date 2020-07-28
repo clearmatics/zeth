@@ -438,7 +438,7 @@ TEST(MPCTests, KeyPairReadWrite)
         keypair_serialized = out.str();
     }
 
-    typename groth16_snark<pp>::KeypairT keypair_deserialized = [&]() {
+    typename groth16_snark<pp>::keypair keypair_deserialized = [&]() {
         std::istringstream in(keypair_serialized);
         in.exceptions(
             std::ios_base::eofbit | std::ios_base::badbit |
