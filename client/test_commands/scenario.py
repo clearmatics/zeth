@@ -299,7 +299,7 @@ def charlie_corrupt_bob_deposit(
     print(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and split into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH" +
-        f"but Charlie attempts to corrupt the transaction ===")
+        "but Charlie attempts to corrupt the transaction ===")
     bob_apk = keystore["Bob"].addr_pk.a_pk
     bob_ask = keystore["Bob"].addr_sk.a_sk
     tree_depth = mk_tree.depth
@@ -369,7 +369,7 @@ def charlie_corrupt_bob_deposit(
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
     except Exception as e:
         print(
-            f"Charlie's first corruption attempt" +
+            "Charlie's first corruption attempt" +
             f" successfully rejected! (msg: {e})"
         )
     assert(result_corrupt1 is None), \
@@ -406,7 +406,7 @@ def charlie_corrupt_bob_deposit(
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
     except Exception as e:
         print(
-            f"Charlie's second corruption attempt" +
+            "Charlie's second corruption attempt" +
             f" successfully rejected! (msg: {e})"
         )
     assert(result_corrupt2 is None), \
@@ -435,7 +435,7 @@ def charlie_corrupt_bob_deposit(
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
     except Exception as e:
         print(
-            f"Charlie's third corruption attempt" +
+            "Charlie's third corruption attempt" +
             f" successfully rejected! (msg: {e})"
         )
     assert(result_corrupt3 is None), \

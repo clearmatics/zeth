@@ -44,7 +44,7 @@ def assert_root(expect_root: bytes, nodes: List[bytes], msg: str) -> None:
             layer = nodes[layer_start:layer_start + layer_size]
             layer_hex = [node.hex() for node in layer]
             print(f" {layer_hex}")
-        raise Exception(f"failed")
+        raise Exception("failed")
 
 
 def test_tree_empty(contract: Any) -> None:
