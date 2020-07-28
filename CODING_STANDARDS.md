@@ -64,7 +64,7 @@ As well as the above formatting, the following conventions are also used in the 
 
 ### Naming and ordering conventions
 
-- Variables, functions and classes use `snake_case_names`.
+- Variables, functions and concrete types (including classes and type aliases) use `snake_case_names`.
 - Macros are `ALL_CAPS`.
 - Functions operating on some type `my_type` should be named `my_type_operation`, where the `my_type` argument appears first.
 - Type parameters are Pascal or Camel-case with a trailing `T` (e.g. `typeT` or `MyTypeT`)
