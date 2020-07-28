@@ -20,7 +20,7 @@
 namespace libzeth
 {
 
-namespace impl
+namespace internal
 {
 
 template<typename FieldT> class field_element_json
@@ -100,7 +100,7 @@ public:
     }
 };
 
-} // namespace impl
+} // namespace internal
 
 template<typename FieldT>
 std::string bigint_to_hex(
@@ -134,13 +134,13 @@ FieldT base_field_element_from_hex(const std::string &hex)
 template<typename FieldT>
 void field_element_write_json(std::ostream &out, const FieldT &el)
 {
-    impl::field_element_json<FieldT>::write(out, el);
+    internal::field_element_json<FieldT>::write(out, el);
 }
 
 template<typename FieldT>
 void field_element_read_json(std::istream &in, FieldT &el)
 {
-    impl::field_element_json<FieldT>::read(in, el);
+    internal::field_element_json<FieldT>::read(in, el);
 }
 
 template<typename FieldT> std::string field_element_to_json(const FieldT &el)
