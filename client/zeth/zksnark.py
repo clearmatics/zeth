@@ -16,7 +16,7 @@ from api.ec_group_messages_pb2 import HexPointBaseGroup1Affine, \
 
 import json
 from abc import (ABC, abstractmethod)
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Union
 # pylint: disable=unnecessary-pass
 
 # Dictionary representing a VerificationKey from any supported snark
@@ -193,12 +193,23 @@ def get_zksnark_provider(zksnark_name: str) -> IZKSnarkProvider:
 
 def _parse_hex_point_base_group1_affine(
         point: HexPointBaseGroup1Affine) -> Tuple[str, str]:
-    return (point.x_coord, point.y_coord)
+    x_coord = json.loads(point.x_coord)
+    y_coord = json.loads(point.y_coord)
+    assert isinstance(x_coord, str)
+    assert isinstance(y_coord, str)
+    return (x_coord, y_coord)
 
 
 def _parse_hex_point_base_group2_affine(
         point: HexPointBaseGroup2Affine
-) -> Tuple[Tuple[str, str], Tuple[str, str]]:
-    return (
-        (point.x_c1_coord, point.x_c0_coord),
-        (point.y_c1_coord, point.y_c0_coord))
+) -> Tuple[Union[str, Tuple[str, ...]], Union[str, Tuple[str, ...]]]:
+    x_coord = json.loads(point.x_coord)
+    y_coord = json.loads(point.y_coord)
+    # Depending on the curve, coordinates may be in a base (non-extension)
+    # field (i.e. simple json strings)
+    if isinstance(x_coord, str):
+        assert isinstance(y_coord, str)
+        return (x_coord, y_coord)
+    assert isinstance(x_coord, list)
+    assert isinstance(y_coord, list)
+    return (tuple(x_coord), tuple(y_coord))

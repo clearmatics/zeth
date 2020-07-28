@@ -17,13 +17,12 @@ zeth_proto::HexPointBaseGroup1Affine point_g1_affine_to_proto(
     const libff::G1<ppT> &point)
 {
     assert(!point.is_zero());
-    using Fq = libff::Fq<ppT>;
     libff::G1<ppT> aff = point;
     aff.to_affine_coordinates();
 
     zeth_proto::HexPointBaseGroup1Affine res;
-    res.set_x_coord("0x" + field_element_to_hex<Fq>(aff.X));
-    res.set_y_coord("0x" + field_element_to_hex<Fq>(aff.Y));
+    res.set_x_coord(field_element_to_json(aff.X));
+    res.set_y_coord(field_element_to_json(aff.Y));
     return res;
 }
 
@@ -32,9 +31,8 @@ libff::G1<ppT> point_g1_affine_from_proto(
     const zeth_proto::HexPointBaseGroup1Affine &point)
 {
     using Fq = libff::Fq<ppT>;
-
-    Fq x_coordinate = field_element_from_hex<Fq>(point.x_coord());
-    Fq y_coordinate = field_element_from_hex<Fq>(point.y_coord());
+    Fq x_coordinate = field_element_from_json<Fq>(point.x_coord());
+    Fq y_coordinate = field_element_from_json<Fq>(point.y_coord());
     return libff::G1<ppT>(x_coordinate, y_coordinate, Fq::one());
 }
 
@@ -43,16 +41,12 @@ zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
     const libff::G2<ppT> &point)
 {
     assert(!point.is_zero());
-    using Fq = libff::Fq<ppT>;
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
 
     zeth_proto::HexPointBaseGroup2Affine res;
-    res.set_x_c0_coord("0x" + field_element_to_hex<Fq>(aff.X.c0));
-    res.set_x_c1_coord("0x" + field_element_to_hex<Fq>(aff.X.c1));
-    res.set_y_c0_coord("0x" + field_element_to_hex<Fq>(aff.Y.c0));
-    res.set_y_c1_coord("0x" + field_element_to_hex<Fq>(aff.Y.c1));
-
+    res.set_x_coord(field_element_to_json(aff.X));
+    res.set_y_coord(field_element_to_json(aff.Y));
     return res;
 }
 
@@ -60,22 +54,10 @@ template<typename ppT>
 libff::G2<ppT> point_g2_affine_from_proto(
     const zeth_proto::HexPointBaseGroup2Affine &point)
 {
-    using Fq = libff::Fq<ppT>;
-    using Fqe = libff::Fqe<ppT>;
-
-    // See:
-    // https://github.com/scipr-lab/libff/blob/master/libff/algebra/curves/public_params.hpp#L88
-    // and:
-    // https://github.com/scipr-lab/libff/blob/master/libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp#L33
-    //
-    // As such, each element of Fqe is assumed to be a vector of 2 coefficients
-    // lying in the base field
-
-    Fq x_c0 = field_element_from_hex<Fq>(point.x_c0_coord());
-    Fq x_c1 = field_element_from_hex<Fq>(point.x_c1_coord());
-    Fq y_c0 = field_element_from_hex<Fq>(point.y_c0_coord());
-    Fq y_c1 = field_element_from_hex<Fq>(point.y_c1_coord());
-    return libff::G2<ppT>(Fqe(x_c0, x_c1), Fqe(y_c0, y_c1), Fqe::one());
+    using TwistField = typename libff::G2<ppT>::twist_field;
+    const TwistField X = field_element_from_json<TwistField>(point.x_coord());
+    const TwistField Y = field_element_from_json<TwistField>(point.y_coord());
+    return libff::G2<ppT>(X, Y, TwistField::one());
 }
 
 template<typename FieldT, size_t TreeDepth>
@@ -88,7 +70,8 @@ joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
 
     std::vector<FieldT> input_merkle_path;
     for (size_t i = 0; i < TreeDepth; i++) {
-        FieldT mk_node = field_element_from_hex<FieldT>(input.merkle_path(i));
+        FieldT mk_node =
+            base_field_element_from_hex<FieldT>(input.merkle_path(i));
         input_merkle_path.push_back(mk_node);
     }
 
@@ -132,7 +115,7 @@ std::vector<libff::Fr<ppT>> primary_inputs_from_string(
         const size_t end_hex = input_str.find("\"", next_hex_pos);
         const std::string next_hex =
             input_str.substr(next_hex_pos, end_hex - next_hex_pos);
-        res.push_back(field_element_from_hex<libff::Fr<ppT>>(next_hex));
+        res.push_back(base_field_element_from_hex<libff::Fr<ppT>>(next_hex));
         next_hex_pos = input_str.find("0x", end_hex);
     }
     return res;
@@ -144,9 +127,9 @@ std::string accumulation_vector_to_string(
 {
     std::stringstream ss;
     unsigned vect_length = acc_vector.rest.indices.size() + 1;
-    ss << "[" << point_g1_affine_to_json<ppT>(acc_vector.first);
+    ss << "[" << point_affine_to_json(acc_vector.first);
     for (size_t i = 0; i < vect_length - 1; ++i) {
-        ss << ", " << point_g1_affine_to_json<ppT>(acc_vector.rest.values[i]);
+        ss << ", " << point_affine_to_json(acc_vector.rest.values[i]);
     }
     ss << "]";
     std::string vect_json_str = ss.str();
@@ -186,7 +169,7 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
     //                start_idx       end_idx
 
     element_str = acc_vector_str.substr(start_idx, end_idx + 2 - start_idx);
-    libff::G1<ppT> front = point_g1_affine_from_json<ppT>(element_str);
+    libff::G1<ppT> front = point_affine_from_json<libff::G1<ppT>>(element_str);
     start_idx = acc_vector_str.find(prefix, end_idx);
 
     // Extract remaining elements
@@ -198,7 +181,7 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
         }
 
         element_str = acc_vector_str.substr(start_idx, end_idx + 2 - start_idx);
-        rest.push_back(point_g1_affine_from_json<ppT>(element_str));
+        rest.push_back(point_affine_from_json<libff::G1<ppT>>(element_str));
         start_idx = acc_vector_str.find(prefix, end_idx);
     } while (start_idx != std::string::npos);
 

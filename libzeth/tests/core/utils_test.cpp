@@ -66,10 +66,16 @@ TEST(UtilsTest, HexToBytes)
 TEST(UtilsTest, BytesToHex)
 {
     ASSERT_EQ(dummy_hex, libzeth::bytes_to_hex(dummy_bytes, DUMMY_BUFFER_SIZE));
+    ASSERT_EQ(
+        dummy_hex_prefixed,
+        libzeth::bytes_to_hex(dummy_bytes, DUMMY_BUFFER_SIZE, true));
 
     ASSERT_EQ(
         dummy_hex_reversed,
         libzeth::bytes_to_hex_reversed(dummy_bytes, DUMMY_BUFFER_SIZE));
+    ASSERT_EQ(
+        dummy_hex_reversed_prefixed,
+        libzeth::bytes_to_hex_reversed(dummy_bytes, DUMMY_BUFFER_SIZE, true));
 }
 
 TEST(UtilsTest, HexToBytesInvalid)

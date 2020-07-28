@@ -70,8 +70,8 @@ std::istream &read_powersoftau_fp2(
     libff::bigint<n + 1> c1;
 
     mpn_tdiv_qr(
-        c1.data,              // quotient
-        el.c0.mont_repr.data, // remainder
+        c1.data,                     // quotient
+        el.coeffs[0].mont_repr.data, // remainder
         0,
         packed.data,
         n * 2,
@@ -79,11 +79,11 @@ std::istream &read_powersoftau_fp2(
         n);
 
     for (size_t i = 0; i < n; ++i) {
-        el.c1.mont_repr.data[i] = c1.data[i];
+        el.coeffs[1].mont_repr.data[i] = c1.data[i];
     }
 
-    to_montgomery_repr(el.c0);
-    to_montgomery_repr(el.c1);
+    to_montgomery_repr(el.coeffs[0]);
+    to_montgomery_repr(el.coeffs[1]);
 
     return in;
 }
@@ -95,8 +95,8 @@ void write_powersoftau_fp2(
     // Fq2 data is packed into a single 512 bit integer as:
     //
     //   c1 * modulus + c0
-    libff::Fp_model<n, modulus> c0 = from_montgomery_repr(fp2.c0);
-    libff::Fp_model<n, modulus> c1 = from_montgomery_repr(fp2.c1);
+    libff::Fp_model<n, modulus> c0 = from_montgomery_repr(fp2.coeffs[0]);
+    libff::Fp_model<n, modulus> c1 = from_montgomery_repr(fp2.coeffs[1]);
 
     libff::bigint<2 * n> packed;
     packed.clear();

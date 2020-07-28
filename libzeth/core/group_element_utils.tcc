@@ -10,55 +10,48 @@
 namespace libzeth
 {
 
-template<typename ppT>
-std::string point_g1_affine_to_json(const libff::G1<ppT> &point)
+template<typename GroupT> std::string point_affine_to_json(const GroupT &point)
 {
-    libff::G1<ppT> affine_p = point;
+    GroupT affine_p = point;
     affine_p.to_affine_coordinates();
-    return "[\"0x" + bigint_to_hex<libff::Fq<ppT>>(affine_p.X.as_bigint()) +
-           "\", \"0x" + bigint_to_hex<libff::Fq<ppT>>(affine_p.Y.as_bigint()) +
-           "\"]";
+
+    std::stringstream ss;
+    ss << "[";
+    field_element_write_json(ss, affine_p.X);
+    ss << ",";
+    field_element_write_json(ss, affine_p.Y);
+    ss << "]";
+
+    return ss.str();
 }
 
-template<typename ppT>
-libff::G1<ppT> point_g1_affine_from_json(const std::string &grp_str)
+template<typename GroupT> GroupT point_affine_from_json(const std::string &json)
 {
-    std::vector<libff::Fq<ppT>> coordinates;
-    size_t next_hex_pos = grp_str.find("0x");
-    while (next_hex_pos != std::string::npos) {
-        const size_t end_hex = grp_str.find("\"", next_hex_pos);
-        const std::string next_hex =
-            grp_str.substr(next_hex_pos, end_hex - next_hex_pos);
-        coordinates.push_back(field_element_from_hex<libff::Fq<ppT>>(next_hex));
-        next_hex_pos = grp_str.find("0x", end_hex);
+    GroupT result;
+    char sep;
+
+    std::stringstream ss(json);
+    ss >> sep;
+    if (sep != '[') {
+        throw std::runtime_error(
+            "expected opening bracket reading group element");
+    }
+    field_element_read_json(ss, result.X);
+
+    ss >> sep;
+    if (sep != ',') {
+        throw std::runtime_error("expected comma reading group element");
     }
 
-    // Points in affine form are expected
-    if (coordinates.size() > 2) {
-        throw std::invalid_argument("invalid number of coordinates");
+    field_element_read_json(ss, result.Y);
+    ss >> sep;
+    if (sep != ']') {
+        throw std::runtime_error(
+            "expected closing bracket reading group element");
     }
 
-    return libff::G1<ppT>(
-        coordinates[0], coordinates[1], libff::Fq<ppT>::one());
-}
-
-template<typename ppT>
-std::string point_g2_affine_to_json(const libff::G2<ppT> &point)
-{
-    libff::G2<ppT> affine_p = point;
-    affine_p.to_affine_coordinates();
-    return "[\n"
-           "[\"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.X.c1.as_bigint()) +
-           "\", \"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.X.c0.as_bigint()) +
-           "\"],\n"
-           "[\"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.Y.c1.as_bigint()) +
-           "\", \"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.Y.c0.as_bigint()) +
-           "\"]\n"
-           "]";
+    result.Z = result.Z.one();
+    return result;
 }
 
 } // namespace libzeth

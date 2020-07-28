@@ -55,13 +55,12 @@ std::ostream &groth16_snark<ppT>::verification_key_write_json(
     os << "{"
        << "\n"
        << "  \"alpha\": "
-       << " :" << point_g1_affine_to_json<ppT>(vk.alpha_g1) << ",\n"
-       << "  \"beta\": " << point_g2_affine_to_json<ppT>(vk.beta_g2) << ",\n"
-       << "  \"delta\": " << point_g2_affine_to_json<ppT>(vk.delta_g2) << ",\n"
-       << "  \"ABC\": [\n    " << point_g1_affine_to_json<ppT>(vk.ABC_g1.first);
+       << " :" << point_affine_to_json(vk.alpha_g1) << ",\n"
+       << "  \"beta\": " << point_affine_to_json(vk.beta_g2) << ",\n"
+       << "  \"delta\": " << point_affine_to_json(vk.delta_g2) << ",\n"
+       << "  \"ABC\": [\n    " << point_affine_to_json(vk.ABC_g1.first);
     for (size_t i = 1; i < abc_length; ++i) {
-        os << ",\n    "
-           << point_g1_affine_to_json<ppT>(vk.ABC_g1.rest.values[i - 1]);
+        os << ",\n    " << point_affine_to_json(vk.ABC_g1.rest.values[i - 1]);
     }
     return os << "\n  ]\n}";
 }
@@ -134,9 +133,9 @@ std::ostream &groth16_snark<ppT>::proof_write_json(
     const typename groth16_snark<ppT>::proof &proof, std::ostream &os)
 {
     os << "{\n"
-       << "    \"a\": " << point_g1_affine_to_json<ppT>(proof.g_A) << ",\n"
-       << "    \"b\": " << point_g2_affine_to_json<ppT>(proof.g_B) << ",\n"
-       << "    \"c\": " << point_g1_affine_to_json<ppT>(proof.g_C) << "\n"
+       << "    \"a\": " << point_affine_to_json(proof.g_A) << ",\n"
+       << "    \"b\": " << point_affine_to_json(proof.g_B) << ",\n"
+       << "    \"c\": " << point_affine_to_json(proof.g_C) << "\n"
        << "  }\n";
     return os;
 }

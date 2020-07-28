@@ -102,10 +102,16 @@ std::string hex_to_bytes(const std::string &s)
     return out;
 }
 
-std::string bytes_to_hex(const void *bytes, size_t num_bytes)
+std::string bytes_to_hex(const void *bytes, size_t num_bytes, bool prefix)
 {
     std::string out;
-    out.reserve(num_bytes * 2);
+    if (prefix) {
+        out.reserve(num_bytes * 2 + 2);
+        out.push_back('0');
+        out.push_back('x');
+    } else {
+        out.reserve(num_bytes * 2);
+    }
 
     const uint8_t *in = (const uint8_t *)bytes;
     for (size_t i = 0; i < num_bytes; ++i) {
@@ -117,14 +123,22 @@ std::string bytes_to_hex(const void *bytes, size_t num_bytes)
     return out;
 }
 
-std::string bytes_to_hex_reversed(const void *bytes, size_t num_bytes)
+std::string bytes_to_hex_reversed(
+    const void *bytes, size_t num_bytes, bool prefix)
 {
     if (num_bytes == 0) {
         return "";
     }
 
     std::string out;
-    out.reserve(num_bytes * 2);
+    if (prefix) {
+        out.reserve(num_bytes * 2 + 2);
+        out.push_back('0');
+        out.push_back('x');
+    } else {
+        out.reserve(num_bytes * 2);
+    }
+
     const uint8_t *const src_bytes_end = (const uint8_t *)bytes;
     const uint8_t *src_bytes = src_bytes_end + num_bytes;
     do {
