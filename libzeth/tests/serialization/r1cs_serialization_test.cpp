@@ -21,14 +21,14 @@ template<typename ppT> void primary_inputs_json_encode_decode()
 
     const std::string inputs_string = [&inputs]() {
         std::stringstream ss;
-        libzeth::primary_inputs_write_json(ss, inputs);
+        libzeth::primary_inputs_write_json(inputs, ss);
         return ss.str();
     }();
 
     const std::vector<Fr> inputs_decoded = [&inputs_string]() {
         std::stringstream ss(inputs_string);
         std::vector<Fr> inputs;
-        libzeth::primary_inputs_read_json(ss, inputs);
+        libzeth::primary_inputs_read_json(inputs, ss);
         return inputs;
     }();
 

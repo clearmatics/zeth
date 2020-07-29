@@ -110,7 +110,7 @@ typename groth16_snark<ppT>::proving_key groth16_snark<
 
 template<typename ppT>
 std::ostream &groth16_snark<ppT>::keypair_write_bytes(
-    std::ostream &os, const typename groth16_snark<ppT>::keypair &keypair)
+    const typename groth16_snark<ppT>::keypair &keypair, std::ostream &os)
 {
     proving_key_write_bytes(keypair.pk, os);
     verification_key_write_bytes(keypair.vk, os);

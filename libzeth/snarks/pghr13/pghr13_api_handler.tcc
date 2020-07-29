@@ -123,7 +123,7 @@ void pghr13_api_handler<ppT>::extended_proof_to_proto(
         ext_proof.get_primary_inputs();
 
     std::stringstream ss;
-    primary_inputs_write_json(ss, pub_inputs);
+    primary_inputs_write_json(pub_inputs, ss);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -172,7 +172,7 @@ libzeth::extended_proof<ppT, pghr13_snark<ppT>> pghr13_api_handler<
         std::move(k));
     libsnark::r1cs_primary_input<libff::Fr<ppT>> inputs;
     std::stringstream ss(e_proof.inputs());
-    primary_inputs_read_json(ss, inputs);
+    primary_inputs_read_json(inputs, ss);
 
     return libzeth::extended_proof<ppT, pghr13_snark<ppT>>(
         std::move(proof), std::move(inputs));

@@ -42,7 +42,7 @@ void constraints_write_json(
 
 template<typename FieldT>
 std::ostream &primary_inputs_write_json(
-    std::ostream &os, const std::vector<FieldT> &public_inputs)
+    const std::vector<FieldT> &public_inputs, std::ostream &os)
 {
     os << "[";
     for (size_t i = 0; i < public_inputs.size(); ++i) {
@@ -57,7 +57,7 @@ std::ostream &primary_inputs_write_json(
 
 template<typename FieldT>
 std::istream &primary_inputs_read_json(
-    std::istream &is, std::vector<FieldT> &public_inputs)
+    std::vector<FieldT> &public_inputs, std::istream &is)
 {
     while (true) {
         char separator = 0;
@@ -67,7 +67,7 @@ std::istream &primary_inputs_read_json(
         }
 
         FieldT element;
-        field_element_read_json(is, element);
+        field_element_read_json(element, is);
         public_inputs.push_back(element);
     };
     return is;

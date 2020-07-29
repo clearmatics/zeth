@@ -57,7 +57,8 @@ public:
     static std::ostream &proof_write_json(const proof &proof, std::ostream &os);
 
     /// Write a keypair as bytes
-    static std::ostream &keypair_write_bytes(std::ostream &, const keypair &);
+    static std::ostream &keypair_write_bytes(
+        const keypair &keypair, std::ostream &os);
 
     /// Read a keypair from a stream.
     static keypair keypair_read_bytes(std::istream &);

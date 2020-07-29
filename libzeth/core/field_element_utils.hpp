@@ -48,15 +48,16 @@ template<typename FieldT>
 FieldT base_field_element_from_hex(const std::string &field_str);
 
 template<typename FieldT>
-void field_element_write_json(std::ostream &out, const FieldT &el);
+void field_element_write_json(const FieldT &el, std::ostream &out);
 
 template<typename FieldT>
-void field_element_read_json(std::istream &in, FieldT &el);
+void field_element_read_json(FieldT &el, std::istream &in);
 
 template<typename FieldT> std::string field_element_to_json(const FieldT &el);
 
 template<typename FieldT>
 FieldT field_element_from_json(const std::string &json);
+
 } // namespace libzeth
 
 #include "libzeth/core/field_element_utils.tcc"

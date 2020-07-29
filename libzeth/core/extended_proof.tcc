@@ -42,7 +42,7 @@ std::ostream &extended_proof<ppT, snarkT>::write_json(std::ostream &os) const
     snarkT::proof_write_json(proof, os);
     os << ",\n"
           "  \"inputs\": ";
-    primary_inputs_write_json(os, primary_inputs);
+    primary_inputs_write_json(primary_inputs, os);
     os << "\n"
           "}\n";
     return os;
