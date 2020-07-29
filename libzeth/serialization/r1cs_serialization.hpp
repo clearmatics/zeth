@@ -13,13 +13,13 @@
 namespace libzeth
 {
 
-template<typename ppT>
-std::string primary_inputs_to_json(
-    const std::vector<libff::Fr<ppT>> &public_inputs);
+template<typename FieldT>
+std::ostream &primary_inputs_write_json(
+    std::ostream &os, const std::vector<FieldT> &public_inputs);
 
-template<typename ppT>
-std::vector<libff::Fr<ppT>> primary_inputs_from_json(
-    const std::string &input_str);
+template<typename FieldT>
+std::istream &primary_inputs_read_json(
+    std::istream &is, std::vector<FieldT> &public_inputs);
 
 template<typename ppT>
 std::string accumulation_vector_to_json(

@@ -17,12 +17,21 @@ namespace
 template<typename ppT> void primary_inputs_json_encode_decode()
 {
     using Fr = libff::Fr<ppT>;
-
     const std::vector<Fr> inputs{Fr(1), Fr(21), Fr(321), Fr(4321)};
-    std::string inputs_string = libzeth::primary_inputs_to_json<ppT>(inputs);
-    std::cout << "inputs_string: " << inputs_string << std::endl;
-    const std::vector<Fr> inputs_decoded =
-        libzeth::primary_inputs_from_json<ppT>(inputs_string);
+
+    const std::string inputs_string = [&inputs]() {
+        std::stringstream ss;
+        libzeth::primary_inputs_write_json(ss, inputs);
+        return ss.str();
+    }();
+
+    const std::vector<Fr> inputs_decoded = [&inputs_string]() {
+        std::stringstream ss(inputs_string);
+        std::vector<Fr> inputs;
+        libzeth::primary_inputs_read_json(ss, inputs);
+        return inputs;
+    }();
+
     ASSERT_EQ(inputs, inputs_decoded);
 }
 

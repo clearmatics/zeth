@@ -85,10 +85,8 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
     b->CopyFrom(point_g2_affine_to_proto<ppT>(proof_obj.g_B));
     c->CopyFrom(point_g1_affine_to_proto<ppT>(proof_obj.g_C));
 
-    libsnark::r1cs_gg_ppzksnark_primary_input<ppT> public_inputs =
-        ext_proof.get_primary_inputs();
-
-    std::string inputs_json_str = primary_inputs_to_json<ppT>(public_inputs);
+    std::stringstream ss;
+    primary_inputs_write_json(ss, ext_proof.get_primary_inputs());
 
     // Note on memory safety: set_allocated deleted the allocated objects.
     // See:
@@ -99,7 +97,7 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
     grpc_extended_groth16_proof_obj->set_allocated_a(a);
     grpc_extended_groth16_proof_obj->set_allocated_b(b);
     grpc_extended_groth16_proof_obj->set_allocated_c(c);
-    grpc_extended_groth16_proof_obj->set_inputs(inputs_json_str);
+    grpc_extended_groth16_proof_obj->set_inputs(ss.str());
 }
 
 template<typename ppT>
@@ -112,8 +110,9 @@ libzeth::extended_proof<ppT, groth16_snark<ppT>> groth16_api_handler<
     libff::G2<ppT> b = point_g2_affine_from_proto<ppT>(e_proof.b());
     libff::G1<ppT> c = point_g1_affine_from_proto<ppT>(e_proof.c());
 
-    std::vector<libff::Fr<ppT>> inputs =
-        primary_inputs_from_json<ppT>(e_proof.inputs());
+    std::vector<libff::Fr<ppT>> inputs;
+    std::stringstream ss(e_proof.inputs());
+    primary_inputs_read_json(ss, inputs);
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
         std::move(a), std::move(b), std::move(c));

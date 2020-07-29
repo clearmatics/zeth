@@ -40,42 +40,37 @@ void constraints_write_json(
 
 } // namespace internal
 
-template<typename ppT>
-std::string primary_inputs_to_json(
-    const std::vector<libff::Fr<ppT>> &public_inputs)
+template<typename FieldT>
+std::ostream &primary_inputs_write_json(
+    std::ostream &os, const std::vector<FieldT> &public_inputs)
 {
-    std::stringstream ss;
-    ss << "[";
+    os << "[";
     for (size_t i = 0; i < public_inputs.size(); ++i) {
-        ss << "\"0x"
-           << libzeth::bigint_to_hex<libff::Fr<ppT>>(
-                  public_inputs[i].as_bigint())
-           << "\"";
+        os << field_element_to_json(public_inputs[i]);
         if (i < public_inputs.size() - 1) {
-            ss << ", ";
+            os << ",";
         }
     }
-    ss << "]";
-    std::string inputs_json_str = ss.str();
-
-    return inputs_json_str;
+    os << "]";
+    return os;
 }
 
-template<typename ppT>
-std::vector<libff::Fr<ppT>> primary_inputs_from_json(
-    const std::string &input_str)
+template<typename FieldT>
+std::istream &primary_inputs_read_json(
+    std::istream &is, std::vector<FieldT> &public_inputs)
 {
-    std::vector<libff::Fr<ppT>> res;
-    size_t next_hex_pos = input_str.find("0x");
-    while (next_hex_pos != std::string::npos) {
-        // TODO: avoid the string copy here
-        const size_t end_hex = input_str.find("\"", next_hex_pos);
-        const std::string next_hex =
-            input_str.substr(next_hex_pos, end_hex - next_hex_pos);
-        res.push_back(base_field_element_from_hex<libff::Fr<ppT>>(next_hex));
-        next_hex_pos = input_str.find("0x", end_hex);
-    }
-    return res;
+    while (true) {
+        char separator = 0;
+        is >> separator;
+        if ('[' != separator && ',' != separator) {
+            break;
+        }
+
+        FieldT element;
+        field_element_read_json(is, element);
+        public_inputs.push_back(element);
+    };
+    return is;
 }
 
 template<typename ppT>
@@ -200,7 +195,7 @@ std::ostream &r1cs_write_json(
         }
     }
     os << "]\n";
-    os << "}\n";
+    os << "}";
     return os;
 }
 

@@ -7,6 +7,7 @@
 
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/core/field_element_utils.hpp"
+#include "libzeth/serialization/r1cs_serialization.hpp"
 
 namespace libzeth
 {
@@ -34,21 +35,6 @@ const libsnark::r1cs_primary_input<libff::Fr<ppT>>
 }
 
 template<typename ppT, typename snarkT>
-std::ostream &extended_proof<ppT, snarkT>::primary_inputs_write_json(
-    std::ostream &os) const
-{
-    os << "[";
-    const size_t num_inputs = primary_inputs.size();
-    for (size_t i = 0; i < num_inputs; ++i) {
-        os << "\n    \"0x"
-           << bigint_to_hex<libff::Fr<ppT>>(primary_inputs[i].as_bigint())
-           << ((i < num_inputs - 1) ? "\"," : "\"");
-    }
-    os << "\n  ]";
-    return os;
-}
-
-template<typename ppT, typename snarkT>
 std::ostream &extended_proof<ppT, snarkT>::write_json(std::ostream &os) const
 {
     os << "{\n"
@@ -56,7 +42,7 @@ std::ostream &extended_proof<ppT, snarkT>::write_json(std::ostream &os) const
     snarkT::proof_write_json(proof, os);
     os << ",\n"
           "  \"inputs\": ";
-    primary_inputs_write_json(os);
+    primary_inputs_write_json(os, primary_inputs);
     os << "\n"
           "}\n";
     return os;

@@ -122,8 +122,8 @@ void pghr13_api_handler<ppT>::extended_proof_to_proto(
     libsnark::r1cs_ppzksnark_primary_input<ppT> pub_inputs =
         ext_proof.get_primary_inputs();
 
-    std::string inputs_json =
-        primary_inputs_to_json<ppT>(std::vector<libff::Fr<ppT>>(pub_inputs));
+    std::stringstream ss;
+    primary_inputs_write_json(ss, pub_inputs);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -139,7 +139,7 @@ void pghr13_api_handler<ppT>::extended_proof_to_proto(
     grpc_extended_pghr13_proof_obj->set_allocated_c_p(c_p);
     grpc_extended_pghr13_proof_obj->set_allocated_h(h);
     grpc_extended_pghr13_proof_obj->set_allocated_k(k);
-    grpc_extended_pghr13_proof_obj->set_inputs(inputs_json);
+    grpc_extended_pghr13_proof_obj->set_inputs(ss.str());
 }
 
 template<typename ppT>
@@ -170,12 +170,12 @@ libzeth::extended_proof<ppT, pghr13_snark<ppT>> pghr13_api_handler<
         std::move(g_C),
         std::move(h),
         std::move(k));
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> inputs =
-        libsnark::r1cs_primary_input<libff::Fr<ppT>>(
-            primary_inputs_from_json<ppT>(e_proof.inputs()));
-    libzeth::extended_proof<ppT, snark> res(
+    libsnark::r1cs_primary_input<libff::Fr<ppT>> inputs;
+    std::stringstream ss(e_proof.inputs());
+    primary_inputs_read_json(ss, inputs);
+
+    return libzeth::extended_proof<ppT, pghr13_snark<ppT>>(
         std::move(proof), std::move(inputs));
-    return res;
 }
 
 } // namespace libzeth
