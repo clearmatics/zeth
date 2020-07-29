@@ -7,6 +7,7 @@
 
 #include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/serialization/proto_utils.hpp"
+#include "libzeth/serialization/r1cs_serialization.hpp"
 #include "libzeth/snarks/groth16/groth16_api_handler.hpp"
 
 namespace libzeth
@@ -28,7 +29,7 @@ void groth16_api_handler<ppT>::verification_key_to_proto(
     b->CopyFrom(point_g2_affine_to_proto<ppT>(vk.beta_g2));
     d->CopyFrom(point_g2_affine_to_proto<ppT>(vk.delta_g2));
 
-    std::string abc_json_str = accumulation_vector_to_string<ppT>(vk.ABC_g1);
+    std::string abc_json_str = accumulation_vector_to_json<ppT>(vk.ABC_g1);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -58,7 +59,7 @@ typename groth16_snark<ppT>::verification_key groth16_api_handler<
         point_g2_affine_from_proto<ppT>(verif_key.delta_g2());
 
     libsnark::accumulation_vector<libff::G1<ppT>> abc_g1 =
-        accumulation_vector_from_string<ppT>(verif_key.abc_g1());
+        accumulation_vector_from_json<ppT>(verif_key.abc_g1());
 
     libsnark::r1cs_gg_ppzksnark_verification_key<ppT> vk(
         alpha_g1, beta_g2, delta_g2, abc_g1);
@@ -87,8 +88,7 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
     libsnark::r1cs_gg_ppzksnark_primary_input<ppT> public_inputs =
         ext_proof.get_primary_inputs();
 
-    std::string inputs_json_str = primary_inputs_to_string<ppT>(
-        std::vector<libff::Fr<ppT>>(public_inputs));
+    std::string inputs_json_str = primary_inputs_to_json<ppT>(public_inputs);
 
     // Note on memory safety: set_allocated deleted the allocated objects.
     // See:
@@ -113,7 +113,7 @@ libzeth::extended_proof<ppT, groth16_snark<ppT>> groth16_api_handler<
     libff::G1<ppT> c = point_g1_affine_from_proto<ppT>(e_proof.c());
 
     std::vector<libff::Fr<ppT>> inputs =
-        primary_inputs_from_string<ppT>(e_proof.inputs());
+        primary_inputs_from_json<ppT>(e_proof.inputs());
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
         std::move(a), std::move(b), std::move(c));

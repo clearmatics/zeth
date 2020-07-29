@@ -8,6 +8,7 @@
 #include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/serialization/proto_utils.hpp"
+#include "libzeth/serialization/r1cs_serialization.hpp"
 #include "libzeth/snarks/pghr13/pghr13_api_handler.hpp"
 
 namespace libzeth
@@ -41,8 +42,7 @@ void pghr13_api_handler<ppT>::verification_key_to_proto(
     gb2->CopyFrom(point_g2_affine_to_proto<ppT>(vk.gamma_beta_g2));
     z->CopyFrom(point_g2_affine_to_proto<ppT>(vk.rC_Z_g2));
 
-    std::string ic_json =
-        accumulation_vector_to_string<ppT>(vk.encoded_IC_query);
+    std::string ic_json = accumulation_vector_to_json<ppT>(vk.encoded_IC_query);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -78,7 +78,7 @@ typename pghr13_snark<ppT>::verification_key pghr13_api_handler<
     libff::G2<ppT> z = point_g2_affine_from_proto<ppT>(verif_key.z());
 
     libsnark::accumulation_vector<libff::G1<ppT>> ic =
-        accumulation_vector_from_string<ppT>(verif_key.ic());
+        accumulation_vector_from_json<ppT>(verif_key.ic());
 
     libsnark::r1cs_ppzksnark_verification_key<ppT> vk(
         a, b, c, gamma, gamma_beta_g1, gamma_beta_g2, z, ic);
@@ -123,7 +123,7 @@ void pghr13_api_handler<ppT>::extended_proof_to_proto(
         ext_proof.get_primary_inputs();
 
     std::string inputs_json =
-        primary_inputs_to_string<ppT>(std::vector<libff::Fr<ppT>>(pub_inputs));
+        primary_inputs_to_json<ppT>(std::vector<libff::Fr<ppT>>(pub_inputs));
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -172,7 +172,7 @@ libzeth::extended_proof<ppT, pghr13_snark<ppT>> pghr13_api_handler<
         std::move(k));
     libsnark::r1cs_primary_input<libff::Fr<ppT>> inputs =
         libsnark::r1cs_primary_input<libff::Fr<ppT>>(
-            primary_inputs_from_string<ppT>(e_proof.inputs()));
+            primary_inputs_from_json<ppT>(e_proof.inputs()));
     libzeth::extended_proof<ppT, snark> res(
         std::move(proof), std::move(inputs));
     return res;
