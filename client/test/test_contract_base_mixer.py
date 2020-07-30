@@ -87,21 +87,6 @@ def test_assemble_nullifiers(mixer_instance: Any) -> int:
     return 0
 
 
-def test_assemble_commitments(mixer_instance: Any) -> int:
-    # Test retrieving commitments
-    print("--- testing ", "test_assemble_commitments")
-    for i in range(JS_OUTPUTS):
-        res = mixer_instance.functions.\
-            assemble_commitment(i, PACKED_PRIMARY_INPUTS).call()
-        val = int.from_bytes(res, byteorder="big")
-        if val != UNPACKED_PRIMARY_INPUTS[1 + JS_INPUTS + i]:
-            print("ERROR: extracted wrong commitment")
-            print("expected:", UNPACKED_PRIMARY_INPUTS[1 + JS_INPUTS + i], i)
-            print("got:", val, i)
-            return 1
-    return 0
-
-
 def test_assemble_hsig(mixer_instance: Any) -> Any:
     # Test retrieving commitments
     print("--- testing ", "test_assemble_hsig")
@@ -150,7 +135,6 @@ def main() -> None:
     # We can now call the instance and test its functions.
     print("[INFO] 4. Running tests")
     result = 0
-    result += test_assemble_commitments(mixer_instance)
     result += test_assemble_nullifiers(mixer_instance)
     result += test_assemble_vpub(mixer_instance)
     result += test_assemble_hsig(mixer_instance)

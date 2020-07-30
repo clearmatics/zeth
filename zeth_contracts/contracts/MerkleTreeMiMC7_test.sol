@@ -6,12 +6,17 @@ pragma solidity ^0.5.0;
 
 import "./MerkleTreeMiMC7.sol";
 
-
-// Simple contract used for testing MerkleTreeMiMC7.
+// The Merkle tree implementation must trade-off complexity, storage,
+// initialization cost, and update & root computation cost.
+//
+// This implementation stores all leaves and nodes, skipping those that have
+// not been populated yet. The final entry in each layer stores that layer's
+// default value.
 contract MerkleTreeMiMC7_test is MerkleTreeMiMC7
 {
     constructor(uint treeDepth) MerkleTreeMiMC7(treeDepth) public
     {
+        // Nothing
     }
 
     // Add some leaves, computing the root, then adding more leaves and
@@ -21,7 +26,7 @@ contract MerkleTreeMiMC7_test is MerkleTreeMiMC7
     function testAddLeaves(
         bytes32[] memory first,
         bytes32[] memory second)
-        public returns (bytes32[MAX_NUM_NODES] memory)
+        public returns (bytes32)
     {
         for (uint i = 0 ; i < first.length ; ++i) {
             insert(first[i]);
@@ -32,8 +37,6 @@ contract MerkleTreeMiMC7_test is MerkleTreeMiMC7
             insert(second[i]);
         }
         root = recomputeRoot(second.length);
-        log1(bytes32(0), root);
-
-        return nodes;
+        return root;
     }
 }
