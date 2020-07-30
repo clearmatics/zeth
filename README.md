@@ -138,7 +138,7 @@ The following libraries are also required to build:
 To generate the documentation of Zeth:
 ```bash
 cd build
-cmake .. && make docs
+cmake .. -DGEN_DOC=ON && make docs
 ```
 
 ## Compile the project using 'sanitizers'
