@@ -326,20 +326,20 @@ class MixerClient:
         print("[INFO] 1. Fetching verification key from the proving server")
         zksnark = zksnark or get_zksnark_provider(constants.ZKSNARK_DEFAULT)
         prover_client = ProverClient(prover_server_endpoint)
-        vk_obj = prover_client.get_verification_key()
-        vk_json = zksnark.parse_verification_key(vk_obj)
+        vk_proto = prover_client.get_verification_key()
+        vk = zksnark.verification_key_from_proto(vk_proto)
         deploy_gas = deploy_gas or \
             EtherValue(constants.DEPLOYMENT_GAS_WEI, 'wei')
 
         print("[INFO] 2. Received VK, writing verification key...")
-        write_verification_key(vk_json)
+        write_verification_key(vk)
 
         print("[INFO] 3. VK written, deploying smart contracts...")
         contracts_dir = get_contracts_dir()
         mixer_name = zksnark.get_contract_name()
         mixer_src = os.path.join(contracts_dir, mixer_name + ".sol")
 
-        verification_key_params = zksnark.verification_key_parameters(vk_json)
+        verification_key_params = zksnark.verification_key_parameters(vk)
         mixer_description = contracts.InstanceDescription.deploy(
             web3,
             mixer_src,
@@ -564,11 +564,11 @@ class MixerClient:
             public_out_value_zeth_units,
             signing_keypair.vk,
             compute_h_sig_cb)
-        proof_obj = self._prover_client.get_proof(proof_input)
-        proof_json = self._zksnark.parse_proof(proof_obj)
+        proof_proto = self._prover_client.get_proof(proof_input)
+        proof = self._zksnark.proof_from_proto(proof_proto)
 
         # Sanity check our unpacking code against the prover server output.
-        pub_inputs = proof_json["inputs"]
+        pub_inputs = proof["inputs"]
         print(f"pub_inputs: {pub_inputs}")
         # pub_inputs_bytes = [bytes.fromhex(x) for x in pub_inputs]
         (v_in, v_out) = public_inputs_extract_public_values(pub_inputs)
@@ -580,7 +580,7 @@ class MixerClient:
         return (
             proof_input.js_outputs[0],  # pylint: disable=no-member
             proof_input.js_outputs[1],  # pylint: disable=no-member
-            proof_json,
+            proof,
             signing_keypair)
 
 
@@ -623,16 +623,15 @@ def receive_note(
         return None
 
 
-def _encode_proof_and_inputs(proof_json: GenericProof) -> Tuple[bytes, bytes]:
+def _proof_and_inputs_to_bytes(proof_json: GenericProof) -> Tuple[bytes, bytes]:
     """
     Given a proof object, compute the hash of the properties excluding "inputs",
     and the hash of the "inputs".
     """
-
     proof_elements: List[int] = []
-    for key in proof_json.keys():
-        if key != "inputs":
-            proof_elements.extend(proof_json[key])
+    proof = proof_json["proof"]
+    for key in proof.keys():
+        proof_elements.extend(proof[key])
     return (
         message_to_bytes(proof_elements),
         message_to_bytes(proof_json["inputs"]))
@@ -642,8 +641,7 @@ def joinsplit_sign(
         signing_keypair: JoinsplitSigKeyPair,
         sender_eth_address: str,
         ciphertexts: List[bytes],
-        proof_json: GenericProof,
-) -> int:
+        extproof: GenericProof) -> int:
     """
     Generate a signature on the hash of the ciphertexts, proofs and
     primary inputs. This is used to solve transaction malleability.  We chose
@@ -663,7 +661,7 @@ def joinsplit_sign(
     for ciphertext in ciphertexts:
         h.update(ciphertext)
 
-    proof_bytes, pub_inputs_bytes = _encode_proof_and_inputs(proof_json)
+    proof_bytes, pub_inputs_bytes = _proof_and_inputs_to_bytes(extproof)
     h.update(proof_bytes)
     h.update(pub_inputs_bytes)
     message_digest = h.digest()
