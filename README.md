@@ -148,7 +148,7 @@ You can select the sanitizer of your choice (one of the sanitizers listed [here]
 Example:
 ```bash
 cd build
-cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address ..
+cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address -DCMAKE_BUILD_TYPE=Debug ..
 make check
 ```
 
@@ -171,7 +171,7 @@ make clang-tidy
 1. Make sure to enable the `CODE_COVERAGE` option in the CMake configuration.
 2. Compile the tests
 ```bash
-cd build && cmake .. && make check
+cd build && cmake -DCODE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug .. && make check
 ```
 3. Generate the coverage report:
 ```bash
