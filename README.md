@@ -160,6 +160,10 @@ Note: The `clang-tidy` target runs a clang-tidy python script that should be fet
 
 Example:
 ```bash
+# run-clang-tidy.py needs to be in the PATH to be found
+PATH=$PATH:${PWD}
+chmod +x run-clang-tidy.py
+
 cmake -DUSE_CLANG_FORMAT=ON -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
 make cppcheck
 make clang-format
