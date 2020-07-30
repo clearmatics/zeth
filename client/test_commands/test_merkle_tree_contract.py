@@ -7,7 +7,7 @@
 from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.merkle_tree import MerkleTree
 from zeth.utils import extend_32bytes
-from typing import List, Any
+from typing import Any
 import test_commands.mock as mock
 
 TEST_VALUES = [
