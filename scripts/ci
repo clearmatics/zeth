@@ -7,7 +7,7 @@ echo "running against commit: "`git log --oneline --no-decorate -n 1`
 set -x
 set -e
 
-function format_check() {
+function check_format() {
     scripts/format
     git diff --no-ext-diff | head -n 20 > format_errors
     num_lines=`cat format_errors | wc -l`
@@ -29,7 +29,7 @@ function check_contracts() {
     popd
 }
 
-function check_pyclient() {
+function check_client() {
     pushd client
     python3 -m venv env
     . env/bin/activate
@@ -56,7 +56,7 @@ function check_cpp() {
     popd
 }
 
-function test_pyclient() {
+function test_client() {
     pushd client
     python3 -m venv env
     . env/bin/activate
@@ -186,7 +186,7 @@ echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
 echo CI_EVENT_NAME=${CI_EVENT_NAME}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
-    format_check
+    check_format
 fi
 
 if [ "${CI_ZKSNARK}" == "" ] ; then
