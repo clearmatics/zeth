@@ -4,14 +4,11 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
+from zeth.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.merkle_tree import MerkleTree
 from zeth.utils import extend_32bytes
 from typing import List, Any
 import test_commands.mock as mock
-
-# We use a small tree depth for this test. WARNING:
-# The same constant is set manually in the BaseMerkleTree_test.sol contract
-ZETH_MERKLE_TREE_DEPTH_TEST: int = 8
 
 TEST_VALUES = [
     extend_32bytes(bytes.fromhex("f0")),
@@ -33,55 +30,49 @@ TEST_VALUES = [
 ]
 
 
-def assert_root(expect_root: bytes, nodes: List[bytes], msg: str) -> None:
-    if nodes[0] != expect_root:
+def assert_root(expected_root: bytes, actual_root: bytes, msg: str) -> None:
+    if actual_root != expected_root:
         print(f"FAILED: {msg}")
-        print(f"Expected: {expect_root.hex()}")
-        print("Actual  :")
-        for layer_idx in range(0, ZETH_MERKLE_TREE_DEPTH_TEST + 1):
-            layer_size = pow(2, layer_idx)
-            layer_start = layer_size - 1
-            layer = nodes[layer_start:layer_start + layer_size]
-            layer_hex = [node.hex() for node in layer]
-            print(f" {layer_hex}")
+        print(f"Expected: {expected_root.hex()}")
+        print(f"Actual: {actual_root.hex()}")
         raise Exception("failed")
 
 
 def test_tree_empty(contract: Any) -> None:
-    mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH_TEST)
-    expect_root = mktree.recompute_root()
-    nodes = contract.functions.testAddLeaves([], []).call()
-    assert_root(expect_root, nodes, "test_tree_empty")
+    mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH)
+    expected_root = mktree.recompute_root()
+    root = contract.functions.testAddLeaves([], []).call()
+    assert_root(expected_root, root, "test_tree_empty")
 
 
 def test_tree_partial(contract: Any) -> None:
     """
     Send a series of different arrays of leaves to the contract and check that
-    the root is as expected.  Send as 2 batches, to test updating the tree, from
+    the root is as expected. Send as 2 batches, to test updating the tree, from
     various states.
     """
 
     def _test_partial(num_entries: int, step: int = 1) -> None:
         """
-        Take the first 'num_entries' from TEST_VALUES.  Cut them at each possible
+        Take the first 'num_entries' from TEST_VALUES. Cut them at each possible
         place and submit them as two halves to the contract, receiving back the
-        set of nodes.
+        root for the updated tree.
         """
         leaves = TEST_VALUES[:num_entries]
 
-        mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH_TEST)
+        mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH)
         for leaf in leaves:
             mktree.insert(leaf)
-        expect_root = mktree.recompute_root()
+        expected_root = mktree.recompute_root()
 
         for cut in range(0, num_entries + 1, step):
             print(f"_test_partial: num_entries={num_entries}, cut={cut}")
             first = leaves[:cut]
             second = leaves[cut:]
-            nodes = contract.functions.testAddLeaves(first, second).call()
+            root = contract.functions.testAddLeaves(first, second).call()
             assert_root(
-                expect_root,
-                nodes,
+                expected_root,
+                root,
                 f"num_entries: {num_entries}, cut: {cut}: ")
 
     # Perform the filling tests using arrays of these sizes
@@ -100,7 +91,7 @@ def main() -> None:
         eth,
         deployer_eth_address,
         "MerkleTreeMiMC7_test",
-        {'treeDepth': ZETH_MERKLE_TREE_DEPTH_TEST})
+        {'treeDepth': ZETH_MERKLE_TREE_DEPTH})
 
     test_tree_empty(mktree_instance)
     test_tree_partial(mktree_instance)
