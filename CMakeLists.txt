@@ -266,21 +266,23 @@ add_compile_options(-Wall -Wextra)
 #
 # Import configuration to run dev tools on the code
 # Generate the compile database needed for some of the tools we invoke below
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-include(cmake/gcc_dev_tools.cmake)
-include(cmake/clang_dev_tools.cmake)
+if ("${IS_ZETH_PARENT}")
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+  include(cmake/gcc_dev_tools.cmake)
+  include(cmake/clang_dev_tools.cmake)
 
-# Import configuration to compile targets with sanitizers
-include(cmake/sanitizers.cmake)
+  # Import configuration to compile targets with sanitizers
+  include(cmake/sanitizers.cmake)
 
-# Import configuration to generate the code documentation if option is set
-if("${GEN_DOC}")
-    include(cmake/documentation.cmake)
-endif()
+  # Import configuration to generate the code documentation if option is set
+  if("${GEN_DOC}")
+      include(cmake/documentation.cmake)
+  endif()
 
-# Import configuration to generate the coverage report if option is set
-if("${CODE_COVERAGE}")
-    include(cmake/code_coverage.cmake)
+  # Import configuration to generate the coverage report if option is set
+  if("${CODE_COVERAGE}")
+      include(cmake/code_coverage.cmake)
+  endif()
 endif()
 
 # Add all local subdirecetories

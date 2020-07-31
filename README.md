@@ -138,7 +138,7 @@ The following libraries are also required to build:
 To generate the documentation of Zeth:
 ```bash
 cd build
-cmake .. && make docs
+cmake .. -DGEN_DOC=ON && make docs
 ```
 
 ## Compile the project using 'sanitizers'
@@ -148,7 +148,7 @@ You can select the sanitizer of your choice (one of the sanitizers listed [here]
 Example:
 ```bash
 cd build
-cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address ..
+cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address -DCMAKE_BUILD_TYPE=Debug ..
 make check
 ```
 
@@ -160,6 +160,10 @@ Note: The `clang-tidy` target runs a clang-tidy python script that should be fet
 
 Example:
 ```bash
+# run-clang-tidy.py needs to be in the PATH to be found
+PATH=$PATH:${PWD}
+chmod +x run-clang-tidy.py
+
 cmake -DUSE_CLANG_FORMAT=ON -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
 make cppcheck
 make clang-format
@@ -171,7 +175,7 @@ make clang-tidy
 1. Make sure to enable the `CODE_COVERAGE` option in the CMake configuration.
 2. Compile the tests
 ```bash
-cd build && cmake .. && make check
+cd build && cmake -DCODE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug .. && make check
 ```
 3. Generate the coverage report:
 ```bash
