@@ -96,7 +96,7 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_json(
     static const char prefix[] = "[\"";
     static const char suffix[] = "\"]";
 
-    if (acc_vector_str.length() < (sizeof(prefix) + sizeof(suffix))) {
+    if (acc_vector_str.length() < (sizeof(prefix) - 1 + sizeof(suffix) - 1)) {
         throw std::invalid_argument("invalid accumulation vector string");
     }
 
