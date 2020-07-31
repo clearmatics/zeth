@@ -18,6 +18,12 @@ from abc import (ABC, abstractmethod)
 from typing import Dict, List, Tuple, Any, Union
 # pylint: disable=unnecessary-pass
 
+# JSON-based objects. These live python dictionaries must match the form of the
+# JSON output from libzeth C++ library.
+#
+# TODO: consider implementing classes with json (de)serialization functions,
+# similar to other objects.
+
 # Dictionary representing a VerificationKey from any supported snark
 GenericVerificationKey = Dict[str, Any]
 
@@ -67,6 +73,12 @@ class IZKSnarkProvider(ABC):
     @abstractmethod
     def proof_from_proto(
             proof_obj: snark_messages_pb2.ExtendedProof) -> GenericProof:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def proof_to_proto(
+            extproof: GenericProof) -> snark_messages_pb2.ExtendedProof:
         pass
 
     @staticmethod
@@ -131,6 +143,19 @@ class Groth16SnarkProvider(IZKSnarkProvider):
             },
             "inputs": json.loads(proof.inputs),
         }
+
+    @staticmethod
+    def proof_to_proto(
+            extproof: GenericProof) -> snark_messages_pb2.ExtendedProof:
+        proof = extproof["proof"]
+        extproof_proto = snark_messages_pb2.ExtendedProof()
+        proof_proto = extproof_proto.groth16_extended_proof \
+            # pylint: disable=no-member
+        group_point_g1_to_proto(proof["a"], proof_proto.a)
+        group_point_g2_to_proto(proof["b"], proof_proto.b)
+        group_point_g1_to_proto(proof["c"], proof_proto.c)
+        proof_proto.inputs = json.dumps(extproof["inputs"])
+        return extproof_proto
 
     @staticmethod
     def mixer_proof_parameters(extproof: GenericProof) -> List[List[Any]]:
@@ -209,6 +234,24 @@ class PGHR13SnarkProvider(IZKSnarkProvider):
             },
             "inputs": json.loads(proof.inputs),
         }
+
+    @staticmethod
+    def proof_to_proto(
+            extproof: GenericProof) -> snark_messages_pb2.ExtendedProof:
+        proof = extproof["proof"]
+        extproof_proto = snark_messages_pb2.ExtendedProof()
+        proof_proto = extproof_proto.pghr13_extended_proof \
+            # pylint: disable=no-member
+        group_point_g1_to_proto(proof["a"], proof_proto.a)
+        group_point_g1_to_proto(proof["a_p"], proof_proto.a_p)
+        group_point_g2_to_proto(proof["b"], proof_proto.b)
+        group_point_g1_to_proto(proof["b_p"], proof_proto.b_p)
+        group_point_g1_to_proto(proof["c"], proof_proto.c)
+        group_point_g1_to_proto(proof["c_p"], proof_proto.c_p)
+        group_point_g1_to_proto(proof["h"], proof_proto.h)
+        group_point_g1_to_proto(proof["k"], proof_proto.k)
+        proof_proto.inputs = json.dumps(extproof["inputs"])
+        return extproof_proto
 
     @staticmethod
     def mixer_proof_parameters(extproof: GenericProof) -> List[List[Any]]:

@@ -64,6 +64,37 @@ class TestZKSnark(TestCase):
         self._do_test_verification_key_proto_encode_decode(
             vk_1, zksnark.Groth16SnarkProvider())
 
+    def test_groth16_proof_proto_encode_decode(self) -> None:
+        # pylint: disable=line-too-long
+        extproof_1 = {
+            "proof": {
+                "a": [
+                    "0x010bd3c06ed5aeb1a7b0653ba63f413b27ba7fd1b77cb4a403fb15f9fb8735abda93a3c78ad05afd111ea68d016cf99e",  # noqa
+                    "0x00255a73b1247dcfd62171b29ddbd271cdb7e98b78912ddf6bfe4723cd229f414f9a47cecd0fec7fb74bf13b22a7395b"  # noqa
+                ],
+                "b": [
+                    [
+                        "0x01ada9239a53b094ae15473baaa3649afb46d5330f36f8590df668167dd02aaf0a18602ce42654c3d857c4e5e454ca28",  # noqa
+                        "0x00938ce5525864aa135674b048bb68adadfabca2a4cea43ea13b19cacec1ae171986009e916f729a085c04cbe22c4127"  # noqa
+                    ],
+                    [
+                        "0x01015a4ea0daaaf8ef20b37c4bda03c2d381be797ae59b621b841d3e61495cf2aaf7e008565884f1d7245ea003ebbf79",  # noqa
+                        "0x0128d64383293780f481278fbb22ce1078d79180193361869d9e8639f028ac4c3a7c12f8bc7f7c138821bccd71abcca5"  # noqa
+                    ]
+                ],
+                "c": [
+                    "0x00001c5d91872102ab1ca71b321f5e3b6aca698be9d8b432b8f1fc60c37bda88d6f9fdcc91225dd2d17bc58f08826e68",  # noqa
+                    "0x000b34a2d07bba78abf1c3e909b1f691bb02f62991a6c6bab53c016e191ecf7929f866eef5231e7f0d29944166a49bf1"  # noqa
+                ]
+            },
+            "inputs": [
+                "0x0000000000000000000000000000000000000000000000000000000000000007"  # noqa
+            ]
+        }
+        # pylint: enable=line-too-long
+        self._do_test_proof_proto_encode_decode(
+            extproof_1, zksnark.Groth16SnarkProvider())
+
     def _do_test_g1_proto_encode_decode(self, g1: zksnark.GenericG1Point) -> None:
         g1_proto = ec_group_messages_pb2.HexPointBaseGroup1Affine()
         zksnark.group_point_g1_to_proto(g1, g1_proto)
@@ -84,3 +115,11 @@ class TestZKSnark(TestCase):
         vk_decoded = snark.verification_key_from_proto(vk_proto)
         # For now, compare as json to brush over tuple-list differences.
         self.assertEqual(json.dumps(vk), json.dumps(vk_decoded))
+
+    def _do_test_proof_proto_encode_decode(
+            self,
+            proof: zksnark.GenericProof,
+            snark: zksnark.IZKSnarkProvider) -> None:
+        proof_proto = snark.proof_to_proto(proof)
+        proof_decoded = snark.proof_from_proto(proof_proto)
+        self.assertEqual(json.dumps(proof), json.dumps(proof_decoded))
