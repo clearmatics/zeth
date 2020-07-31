@@ -113,10 +113,10 @@ class Groth16SnarkProvider(IZKSnarkProvider):
             vk: GenericVerificationKey) -> snark_messages_pb2.VerificationKey:
         vk_obj = snark_messages_pb2.VerificationKey()
         groth16_key = vk_obj.groth16_verification_key  # pylint: disable=no-member
-        group_point_g1_to_proto(vk["alpha_g1"], groth16_key.alpha_g1)
+        group_point_g1_to_proto(vk["alpha"], groth16_key.alpha_g1)
         group_point_g2_to_proto(vk["beta"], groth16_key.beta_g2)
         group_point_g2_to_proto(vk["delta"], groth16_key.delta_g2)
-        groth16_key.abc_g1 = json.dumps("ABC")
+        groth16_key.abc_g1 = json.dumps(vk["ABC"])
         return vk_obj
 
     @staticmethod
@@ -244,7 +244,7 @@ def group_point_g1_from_proto(
 def group_point_g1_to_proto(
         g1: GenericG1Point,
         g1_proto: ec_group_messages_pb2.HexPointBaseGroup1Affine) -> None:
-    assert isinstance(g1, tuple)
+    assert len(g1) == 2
     assert isinstance(g1[0], str)
     assert isinstance(g1[1], str)
     g1_proto.x_coord = json.dumps(g1[0])
@@ -268,5 +268,6 @@ def group_point_g2_from_proto(
 def group_point_g2_to_proto(
         g2: GenericG2Point,
         g2_proto: ec_group_messages_pb2.HexPointBaseGroup2Affine) -> None:
+    assert len(g2) == 2
     g2_proto.x_coord = json.dumps(g2[0])
     g2_proto.y_coord = json.dumps(g2[1])
