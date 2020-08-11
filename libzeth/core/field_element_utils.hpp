@@ -48,10 +48,10 @@ template<typename FieldT>
 FieldT base_field_element_from_hex(const std::string &field_str);
 
 template<typename FieldT>
-void field_element_write_json(const FieldT &el, std::ostream &out);
+void field_element_write_json(const FieldT &el, std::ostream &out_s);
 
 template<typename FieldT>
-void field_element_read_json(FieldT &el, std::istream &in);
+void field_element_read_json(FieldT &el, std::istream &in_s);
 
 template<typename FieldT> std::string field_element_to_json(const FieldT &el);
 

@@ -18,59 +18,59 @@ namespace internal
 template<typename ppT>
 void constraints_write_json(
     const libsnark::linear_combination<libff::Fr<ppT>> &constraints,
-    std::ostream &ss)
+    std::ostream &out_s)
 {
-    ss << "[";
+    out_s << "[";
     size_t count = 0;
     for (const libsnark::linear_term<libff::Fr<ppT>> &lt : constraints.terms) {
         if (count != 0) {
-            ss << ",";
+            out_s << ",";
         }
 
-        ss << "{";
-        ss << "\"index\":" << lt.index << ",";
-        ss << "\"value\":"
-           << "\"0x" + bigint_to_hex<libff::Fr<ppT>>(lt.coeff.as_bigint())
-           << "\"";
-        ss << "}";
+        out_s << "{";
+        out_s << "\"index\":" << lt.index << ",";
+        out_s << "\"value\":"
+              << "\"0x" + bigint_to_hex<libff::Fr<ppT>>(lt.coeff.as_bigint())
+              << "\"";
+        out_s << "}";
         count++;
     }
-    ss << "]";
+    out_s << "]";
 }
 
 } // namespace internal
 
 template<typename FieldT>
 std::ostream &primary_inputs_write_json(
-    const std::vector<FieldT> &public_inputs, std::ostream &os)
+    const std::vector<FieldT> &public_inputs, std::ostream &out_s)
 {
-    os << "[";
+    out_s << "[";
     for (size_t i = 0; i < public_inputs.size(); ++i) {
-        os << field_element_to_json(public_inputs[i]);
+        out_s << field_element_to_json(public_inputs[i]);
         if (i < public_inputs.size() - 1) {
-            os << ",";
+            out_s << ",";
         }
     }
-    os << "]";
-    return os;
+    out_s << "]";
+    return out_s;
 }
 
 template<typename FieldT>
 std::istream &primary_inputs_read_json(
-    std::vector<FieldT> &public_inputs, std::istream &is)
+    std::vector<FieldT> &public_inputs, std::istream &in_s)
 {
     while (true) {
         char separator = 0;
-        is >> separator;
+        in_s >> separator;
         if ('[' != separator && ',' != separator) {
             break;
         }
 
         FieldT element;
-        field_element_read_json(element, is);
+        field_element_read_json(element, in_s);
         public_inputs.push_back(element);
     };
-    return is;
+    return in_s;
 }
 
 template<typename ppT>
@@ -143,7 +143,7 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_json(
 
 template<typename ppT>
 std::ostream &r1cs_write_json(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb, std::ostream &os)
+    const libsnark::protoboard<libff::Fr<ppT>> &pb, std::ostream &out_s)
 {
     // output inputs, right now need to compile with debug flag so that the
     // `variable_annotations` exists. Having trouble setting that up so will
@@ -151,52 +151,55 @@ std::ostream &r1cs_write_json(
     libsnark::r1cs_constraint_system<libff::Fr<ppT>> constraints =
         pb.get_constraint_system();
 
-    os << "{\n";
-    os << "\"scalar_field_characteristic\":"
-       << "\"Not yet supported. Should be bigint in hexadecimal\""
-       << ",\n";
-    os << "\"num_variables\":" << pb.num_variables() << ",\n";
-    os << "\"num_constraints\":" << pb.num_constraints() << ",\n";
-    os << "\"num_inputs\": " << pb.num_inputs() << ",\n";
-    os << "\"variables_annotations\":[";
+    out_s << "{\n";
+    out_s << "\"scalar_field_characteristic\":"
+          << "\"Not yet supported. Should be bigint in hexadecimal\""
+          << ",\n";
+    out_s << "\"num_variables\":" << pb.num_variables() << ",\n";
+    out_s << "\"num_constraints\":" << pb.num_constraints() << ",\n";
+    out_s << "\"num_inputs\": " << pb.num_inputs() << ",\n";
+    out_s << "\"variables_annotations\":[";
     for (size_t i = 0; i < constraints.num_variables(); ++i) {
-        os << "{";
-        os << "\"index\":" << i << ",";
-        os << "\"annotation\":"
-           << "\"" << constraints.variable_annotations[i].c_str() << "\"";
+        out_s << "{";
+        out_s << "\"index\":" << i << ",";
+        out_s << "\"annotation\":"
+              << "\"" << constraints.variable_annotations[i].c_str() << "\"";
         if (i == constraints.num_variables() - 1) {
-            os << "}";
+            out_s << "}";
         } else {
-            os << "},";
+            out_s << "},";
         }
     }
-    os << "],\n";
-    os << "\"constraints\":[";
+    out_s << "],\n";
+    out_s << "\"constraints\":[";
     for (size_t c = 0; c < constraints.num_constraints(); ++c) {
-        os << "{";
-        os << "\"constraint_id\": " << c << ",";
-        os << "\"constraint_annotation\": "
-           << "\"" << constraints.constraint_annotations[c].c_str() << "\",";
-        os << "\"linear_combination\":";
-        os << "{";
-        os << "\"A\":";
-        internal::constraints_write_json<ppT>(constraints.constraints[c].a, os);
-        os << ",";
-        os << "\"B\":";
-        internal::constraints_write_json<ppT>(constraints.constraints[c].b, os);
-        os << ",";
-        os << "\"C\":";
-        internal::constraints_write_json<ppT>(constraints.constraints[c].c, os);
-        os << "}";
+        out_s << "{";
+        out_s << "\"constraint_id\": " << c << ",";
+        out_s << "\"constraint_annotation\": "
+              << "\"" << constraints.constraint_annotations[c].c_str() << "\",";
+        out_s << "\"linear_combination\":";
+        out_s << "{";
+        out_s << "\"A\":";
+        internal::constraints_write_json<ppT>(
+            constraints.constraints[c].a, out_s);
+        out_s << ",";
+        out_s << "\"B\":";
+        internal::constraints_write_json<ppT>(
+            constraints.constraints[c].b, out_s);
+        out_s << ",";
+        out_s << "\"C\":";
+        internal::constraints_write_json<ppT>(
+            constraints.constraints[c].c, out_s);
+        out_s << "}";
         if (c == constraints.num_constraints() - 1) {
-            os << "}";
+            out_s << "}";
         } else {
-            os << "},";
+            out_s << "},";
         }
     }
-    os << "]\n";
-    os << "}";
-    return os;
+    out_s << "]\n";
+    out_s << "}";
+    return out_s;
 }
 
 } // namespace libzeth

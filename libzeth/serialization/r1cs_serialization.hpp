@@ -15,11 +15,11 @@ namespace libzeth
 
 template<typename FieldT>
 std::ostream &primary_inputs_write_json(
-    const std::vector<FieldT> &public_inputs, std::ostream &os);
+    const std::vector<FieldT> &public_inputs, std::ostream &out_s);
 
 template<typename FieldT>
 std::istream &primary_inputs_read_json(
-    std::vector<FieldT> &public_inputs, std::istream &is);
+    std::vector<FieldT> &public_inputs, std::istream &in_s);
 
 template<typename ppT>
 std::string accumulation_vector_to_json(
@@ -37,7 +37,7 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_json(
 
 template<typename ppT>
 std::ostream &r1cs_write_json(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb, std::ostream &s);
+    const libsnark::protoboard<libff::Fr<ppT>> &pb, std::ostream &out_s);
 
 } // namespace libzeth
 
