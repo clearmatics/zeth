@@ -14,14 +14,11 @@ class TestZKSnark(TestCase):
         self._do_test_g1_proto_encode_decode(("0xaabbccdd", "0x11223344"))
 
     def test_g2_proto_encode_decode(self) -> None:
-        self._do_test_g2_proto_encode_decode(
-            ("0xaabbccdd", "0x11223344"))
+        self._do_test_g2_proto_encode_decode(("0xaabbccdd", "0x11223344"))
         self._do_test_g2_proto_encode_decode(
             (("0xcdeeff00", "0x11223344"), ("0x55667788", "0x99aabbcc")))
 
     def test_groth16_verification_key_proto_encode_decode(self) -> None:
-        # Groth16 verification key (for bls12-377 curve) from a dummy
-        # application.
         # pylint: disable=line-too-long
         vk_1 = {
             "alpha": [
