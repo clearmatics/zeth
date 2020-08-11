@@ -444,7 +444,7 @@ class MixerClient:
         # Timer used to time proof-generation round trip time.
         timer = Timer.started()
 
-        (output_note1, output_note2, proof_json, signing_keypair) = \
+        (output_note1, output_note2, extproof, signing_keypair) = \
             self.get_proof_joinsplit_2_by_2(
                 mk_root,
                 inputs[0],
@@ -473,10 +473,10 @@ class MixerClient:
             signing_keypair,
             sender_eth_address,
             ciphertexts,
-            proof_json)
+            extproof)
 
         mix_params = contracts.MixParameters(
-            proof_json,
+            extproof,
             signing_keypair.vk,
             signature,
             ciphertexts)
@@ -565,10 +565,10 @@ class MixerClient:
             signing_keypair.vk,
             compute_h_sig_cb)
         proof_proto = self._prover_client.get_proof(proof_input)
-        proof = self._zksnark.proof_from_proto(proof_proto)
+        extproof = self._zksnark.proof_from_proto(proof_proto)
 
         # Sanity check our unpacking code against the prover server output.
-        pub_inputs = proof["inputs"]
+        pub_inputs = extproof["inputs"]
         print(f"pub_inputs: {pub_inputs}")
         # pub_inputs_bytes = [bytes.fromhex(x) for x in pub_inputs]
         (v_in, v_out) = public_inputs_extract_public_values(pub_inputs)
@@ -580,7 +580,7 @@ class MixerClient:
         return (
             proof_input.js_outputs[0],  # pylint: disable=no-member
             proof_input.js_outputs[1],  # pylint: disable=no-member
-            proof,
+            extproof,
             signing_keypair)
 
 
@@ -623,18 +623,18 @@ def receive_note(
         return None
 
 
-def _proof_and_inputs_to_bytes(proof_json: GenericProof) -> Tuple[bytes, bytes]:
+def _proof_and_inputs_to_bytes(extproof: GenericProof) -> Tuple[bytes, bytes]:
     """
     Given a proof object, compute the hash of the properties excluding "inputs",
     and the hash of the "inputs".
     """
     proof_elements: List[int] = []
-    proof = proof_json["proof"]
+    proof = extproof["proof"]
     for key in proof.keys():
         proof_elements.extend(proof[key])
     return (
         message_to_bytes(proof_elements),
-        message_to_bytes(proof_json["inputs"]))
+        message_to_bytes(extproof["inputs"]))
 
 
 def joinsplit_sign(
