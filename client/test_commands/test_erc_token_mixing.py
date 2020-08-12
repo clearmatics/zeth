@@ -73,6 +73,7 @@ def main() -> None:
         web3,
         mock.TEST_PROVER_SERVER_ENDPOINT,
         deployer_eth_address,
+        None,
         token_instance.address,
         None,
         zksnark)

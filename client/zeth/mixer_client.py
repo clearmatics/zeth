@@ -521,6 +521,20 @@ class MixerClient:
             compute_h_sig_cb)
         return mix_params
 
+    def mix(
+            self,
+            mix_params: contracts.MixParameters,
+            sender_eth_address: str,
+            wei_pub_value: int,
+            call_gas: int) -> str:
+        return contracts.mix(
+            self._zksnark,
+            self.mixer_instance,
+            mix_params,
+            sender_eth_address,
+            wei_pub_value,
+            call_gas)
+
     def mix_call(
             self,
             mix_params: contracts.MixParameters,

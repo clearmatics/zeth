@@ -73,6 +73,7 @@ def bob_deposit(
         mk_tree,
         bob_js_keypair,
         bob_eth_address,
+        None,
         EtherValue(BOB_DEPOSIT_ETH),
         outputs,
         tx_value)
@@ -103,6 +104,7 @@ def bob_to_charlie(
         mk_tree,
         OwnershipKeyPair(bob_ask, bob_addr.a_pk),
         bob_eth_address,
+        None,
         [input1],
         [output0, output1],
         EtherValue(0),
@@ -131,6 +133,7 @@ def charlie_withdraw(
         mk_tree,
         charlie_ownership_key,
         charlie_eth_address,
+        None,
         [input1],
         [(charlie_pk, EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH))],
         EtherValue(0),

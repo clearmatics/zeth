@@ -51,6 +51,7 @@ def main() -> None:
         deployer_eth_address,
         None,
         None,
+        None,
         zksnark)
 
     # Set up Merkle tree and Wallets. Note that each wallet holds an internal
