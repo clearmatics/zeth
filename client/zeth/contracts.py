@@ -124,7 +124,8 @@ class InstanceDescription:
             web3: Any,
             source_file: str,
             contract_name: str,
-            deployer_address: str,
+            deployer_eth_address: str,
+            deployer_eth_private_key: Optional[bytes],
             deployment_gas: EtherValue,
             compiler_flags: Dict[str, Any] = None,
             **kwargs: Any) -> InstanceDescription:
@@ -137,7 +138,12 @@ class InstanceDescription:
             source_file, contract_name, compiler_flags)
         assert compiled
         instance_desc = InstanceDescription.deploy_from_compiled(
-            web3, deployer_address, deployment_gas, compiled, **kwargs)
+            web3,
+            deployer_eth_address,
+            deployer_eth_private_key,
+            deployment_gas,
+            compiled,
+            **kwargs)
         print(
             f"deploy: contract: {contract_name} "
             f"to address: {instance_desc.address}")
@@ -146,16 +152,32 @@ class InstanceDescription:
     @staticmethod
     def deploy_from_compiled(
             web3: Any,
-            deployer_address: str,
+            deployer_eth_address: str,
+            deployer_eth_private_key: Optional[bytes],
             deployment_gas: EtherValue,
             compiled: Any,
             **kwargs: Any) -> InstanceDescription:
         contract = web3.eth.contract(
             abi=compiled['abi'], bytecode=compiled['bin'])
-        tx_hash = contract.constructor(**kwargs).transact({
-            'from': deployer_address,
-            'gas': deployment_gas.wei
-        })
+        if deployer_eth_private_key:
+            nonce = web3.eth.getTransactionCount(deployer_eth_address)
+            gas_price = web3.eth.gasPrice
+            deploy_tx = contract.constructor(**kwargs).buildTransaction({
+                "gasPrice": gas_price,
+                "nonce": nonce,
+                "from": deployer_eth_address,
+                "gas": deployment_gas.wei
+            })
+            signed_deploy_tx = web3.eth.account.signTransaction(
+                deploy_tx, deployer_eth_private_key)
+            tx_hash = web3.eth.sendRawTransaction(
+                signed_deploy_tx.rawTransaction)
+        else:
+            tx_hash = contract.constructor(**kwargs).transact({
+                'from': deployer_eth_address,
+                'gas': deployment_gas.wei
+            })
+
         tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
         contract_address = tx_receipt['contractAddress']
         print(
@@ -271,11 +293,8 @@ def mix_with_private_key(
         "value": wei_pub_value,
         'gas': call_gas
     })
-    print(f"mix_with_private_key: mix_tx={mix_tx}")
     signed_mix_tx = web3.eth.account.signTransaction(mix_tx, sender_private_key)
-    print(f"mix_with_private_key: signed_mix_tx={signed_mix_tx}")
     tx_hash = web3.eth.sendRawTransaction(signed_mix_tx.rawTransaction)
-    print(f"mix_with_private_key: tx_hash={tx_hash.hex()}")
     return tx_hash.hex()
 
 

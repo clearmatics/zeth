@@ -5,7 +5,7 @@
 from commands.constants import INSTANCE_FILE_DEFAULT
 from commands.utils import \
     open_web3_from_ctx, get_erc20_instance_description, load_eth_address, \
-    write_mixer_description, MixerDescription
+    load_eth_private_key, write_mixer_description, MixerDescription
 from zeth.mixer_client import MixerClient
 from zeth.utils import EtherValue
 from click import Context, command, option, pass_context
@@ -14,6 +14,7 @@ from typing import Optional
 
 @command()
 @option("--eth-addr", help="Sender eth address or address filename")
+@option("--eth-private-key", help="Sender's eth private key file")
 @option(
     "--instance-out",
     default=INSTANCE_FILE_DEFAULT,
@@ -24,6 +25,7 @@ from typing import Optional
 def deploy(
         ctx: Context,
         eth_addr: Optional[str],
+        eth_private_key: Optional[str],
         instance_out: str,
         token_address: str,
         deploy_gas: str) -> None:
@@ -31,6 +33,7 @@ def deploy(
     Deploy the zeth contracts and record the instantiation details.
     """
     eth_address = load_eth_address(eth_addr)
+    eth_private_key_data = load_eth_private_key(eth_private_key)
     client_ctx = ctx.obj
     web3 = open_web3_from_ctx(client_ctx)
     deploy_gas_value = EtherValue(deploy_gas, 'wei') if deploy_gas else None
@@ -46,6 +49,7 @@ def deploy(
         web3,
         client_ctx.prover_server_endpoint,
         eth_address,
+        eth_private_key_data,
         token_address,
         deploy_gas_value)
 

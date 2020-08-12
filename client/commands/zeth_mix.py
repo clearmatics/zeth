@@ -71,27 +71,16 @@ def mix(
     if mixer_desc.token:
         tx_value = EtherValue(0)
 
-    if eth_private_key_data:
-        tx_hash = zeth_client.joinsplit_local_sign(
-            wallet.merkle_tree,
-            zeth_address.ownership_keypair(),
-            eth_address,
-            eth_private_key_data,
-            inputs,
-            outputs,
-            vin_pub,
-            vout_pub,
-            tx_value)
-    else:
-        tx_hash = zeth_client.joinsplit(
-            wallet.merkle_tree,
-            zeth_address.ownership_keypair(),
-            eth_address,
-            inputs,
-            outputs,
-            vin_pub,
-            vout_pub,
-            tx_value)
+    tx_hash = zeth_client.joinsplit(
+        wallet.merkle_tree,
+        zeth_address.ownership_keypair(),
+        eth_address,
+        eth_private_key_data,
+        inputs,
+        outputs,
+        vin_pub,
+        vout_pub,
+        tx_value)
 
     if wait:
         do_sync(zeth_client.web3, wallet, tx_hash)
