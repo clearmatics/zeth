@@ -18,7 +18,7 @@ pushd ${BASE_DIR}
 
 get_accounts
 
-setup_user_hosted_key deployer
+setup_user_local_key deployer
 setup_user_local_key alice
 setup_user_local_key bob
 setup_user_local_key charlie
