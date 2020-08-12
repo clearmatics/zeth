@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from test_commands.mock import open_test_web3
+from commands.utils import load_eth_address
 from zeth.utils import EtherValue
 from click import command, argument, option
 from typing import List
@@ -22,7 +23,8 @@ def get_balance(addresses: List[str], wei: bool) -> None:
     """
     _, eth = open_test_web3()
     for address in addresses:
-        value = EtherValue(eth.getBalance(address), "wei")
+        addr = load_eth_address(address)
+        value = EtherValue(eth.getBalance(addr), "wei")
         print((wei and value.wei) or value.ether())
 
 
