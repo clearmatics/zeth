@@ -22,6 +22,17 @@ function show_balances_named() {
     run_truffle exec ../scripts/test_zeth_cli_show_balances_named.js
 }
 
+# Show the balance for the users in the test, based on their locally managed
+# accounts.
+function show_local_balances() {
+    for name in deployer alice bob charlie ; do
+        pushd ${name}
+        echo -n "${name}: "
+        show_balance `cat eth-address`
+        popd
+    done
+}
+
 function new_account() {
     run_truffle exec ../scripts/test_zeth_cli_new_account.js | grep -e '^0x.*'
 }

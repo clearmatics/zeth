@@ -16,8 +16,6 @@ CHARLIE_DIR=${BASE_DIR}/charlie
 mkdir -p ${BASE_DIR}
 pushd ${BASE_DIR}
 
-get_accounts
-
 setup_user_local_key deployer
 setup_user_local_key alice
 setup_user_local_key bob
@@ -70,7 +68,7 @@ zeth mix \
 popd # bob
 
 echo BALANCES FOR WITHDRAW
-show_balances_named
+show_local_balances
 
 # Charlie scans the chain and withdraws his 50 ETH
 pushd charlie
@@ -84,7 +82,7 @@ zeth mix \
 popd # charlie
 
 echo BALANCES AFTER WITHDRAW
-show_balances_named
+show_local_balances
 
 popd # BASE_DIR
 
