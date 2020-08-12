@@ -400,8 +400,44 @@ class MixerClient:
         # specify.
         tx_value = tx_value or v_in
         return self.mix(
+
             mix_params,
             sender_eth_address,
+            tx_value.wei,
+            constants.DEFAULT_MIX_GAS_WEI)
+
+    def joinsplit_local_sign(
+            self,
+            mk_tree: MerkleTree,
+            sender_ownership_keypair: OwnershipKeyPair,
+            sender_eth_address: str,
+            sender_eth_private_key: bytes,
+            inputs: List[Tuple[int, ZethNote]],
+            outputs: List[Tuple[ZethAddressPub, EtherValue]],
+            v_in: EtherValue,
+            v_out: EtherValue,
+            tx_value: Optional[EtherValue] = None,
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None) -> str:
+        mix_params = self.create_mix_parameters(
+            mk_tree,
+            sender_ownership_keypair,
+            sender_eth_address,
+            inputs,
+            outputs,
+            v_in,
+            v_out,
+            compute_h_sig_cb)
+
+        # By default transfer exactly v_in, otherwise allow caller to manually
+        # specify.
+        tx_value = tx_value or v_in
+        return contracts.mix_with_private_key(
+            self.web3,
+            self._zksnark,
+            self.mixer_instance,
+            mix_params,
+            sender_eth_address,
+            sender_eth_private_key,
             tx_value.wei,
             constants.DEFAULT_MIX_GAS_WEI)
 

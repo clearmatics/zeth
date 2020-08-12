@@ -252,6 +252,33 @@ def mix_call(
     return False
 
 
+def mix_with_private_key(
+        web3: Any,
+        zksnark: IZKSnarkProvider,
+        mixer_instance: Any,
+        mix_parameters: MixParameters,
+        sender_address: str,
+        sender_private_key: bytes,
+        wei_pub_value: int,
+        call_gas: int) -> str:
+    mixer_call = _create_web3_mixer_call(zksnark, mixer_instance, mix_parameters)
+    nonce = web3.eth.getTransactionCount(sender_address)
+    gas_price = web3.eth.gasPrice
+    mix_tx = mixer_call.buildTransaction({
+        "gasPrice": gas_price,
+        "nonce": nonce,
+        "from": sender_address,
+        "value": wei_pub_value,
+        'gas': call_gas
+    })
+    print(f"mix_with_private_key: mix_tx={mix_tx}")
+    signed_mix_tx = web3.eth.account.signTransaction(mix_tx, sender_private_key)
+    print(f"mix_with_private_key: signed_mix_tx={signed_mix_tx}")
+    tx_hash = web3.eth.sendRawTransaction(signed_mix_tx.rawTransaction)
+    print(f"mix_with_private_key: tx_hash={tx_hash.hex()}")
+    return tx_hash.hex()
+
+
 def mix(
         zksnark: IZKSnarkProvider,
         mixer_instance: Any,

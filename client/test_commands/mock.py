@@ -12,6 +12,9 @@ from zeth.utils import get_contracts_dir, open_web3
 from os.path import join
 from solcx import compile_files  # type: ignore
 from typing import Dict, List, Tuple, Optional, Any
+from web3 import Web3  # type: ignore
+import os
+
 
 # Web3 HTTP provider
 TEST_PROVER_SERVER_ENDPOINT: str = "localhost:50051"
@@ -108,3 +111,7 @@ def deploy_contract(
         address=contract_address,
         abi=contract_abi)
     return interface, contract_instance
+
+
+def gen_eth_private_key() -> bytes:
+    return Web3.sha3(os.urandom(4096))

@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT
+from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT, \
+    ETH_PRIVATE_KEY_FILE_DEFAULT
 from zeth.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.contracts import \
     InstanceDescription, get_block_number, get_mix_results, compile_files
@@ -301,3 +302,26 @@ def load_eth_address(eth_addr: Optional[str]) -> str:
         with open(eth_addr, "r") as eth_addr_f:
             return Web3.toChecksumAddress(eth_addr_f.read().rstrip())
     raise ClickException(f"could find file or parse eth address: {eth_addr}")
+
+
+def write_eth_address(eth_addr: str, eth_addr_file: str) -> None:
+    if exists(eth_addr_file):
+        raise ClickException(f"refusing to overwrite address \"{eth_addr_file}\"")
+    with open(eth_addr_file, "w") as eth_addr_f:
+        eth_addr_f.write(eth_addr)
+
+
+def load_eth_private_key(private_key_file: Optional[str]) -> Optional[bytes]:
+    private_key_file = private_key_file or ETH_PRIVATE_KEY_FILE_DEFAULT
+    if exists(private_key_file):
+        with open(private_key_file, "rb") as private_key_f:
+            return private_key_f.read(32)
+    return None
+
+
+def write_eth_private_key(private_key: bytes, private_key_file: str) -> None:
+    if exists(private_key_file):
+        raise ClickException(
+            f"refusing to overwrite private key \"{private_key_file}\"")
+    with open(private_key_file, "wb") as private_key_f:
+        private_key_f.write(private_key)

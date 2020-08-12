@@ -39,11 +39,22 @@ function get_accounts() {
 }
 
 # 1 - name
-function setup_user() {
+function setup_user_hosted_key() {
     mkdir -p $1
     pushd $1
     ! [ -e eth-address ] && \
         (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
+    ! [ -e zeth-address.json ] && \
+        (zeth gen-address)
+    popd
+}
+
+# 1 - name
+function setup_user_local_key() {
+    mkdir -p $1
+    pushd $1
+    ! [ -e eth-address ] && \
+        (gen_eth_address.py && fund_eth_address.py)
     ! [ -e zeth-address.json ] && \
         (zeth gen-address)
     popd

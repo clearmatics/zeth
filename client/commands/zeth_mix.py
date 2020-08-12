@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from commands.utils import create_zeth_client_and_mixer_desc, \
-    load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address
+    load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address, \
+    load_eth_private_key
 from zeth.constants import JS_INPUTS, JS_OUTPUTS
 from zeth.mixer_client import ZethAddressPub
 from zeth.utils import EtherValue, from_zeth_units
@@ -18,6 +19,7 @@ from typing import List, Tuple, Optional
 @option("--in", "input_notes", multiple=True)
 @option("--out", "output_specs", multiple=True, help="<receiver_pub_key>,<value>")
 @option("--eth-addr", help="Sender eth address or address filename")
+@option("--eth-private-key", help="Sender's eth private key file")
 @option("--wait", is_flag=True)
 @pass_context
 def mix(
@@ -27,6 +29,7 @@ def mix(
         input_notes: List[str],
         output_specs: List[str],
         eth_addr: Optional[str],
+        eth_private_key: Optional[str],
         wait: bool) -> None:
     """
     Generic mix function
@@ -61,21 +64,34 @@ def mix(
         raise ClickException("input and output value mismatch")
 
     eth_address = load_eth_address(eth_addr)
+    eth_private_key_data = load_eth_private_key(eth_private_key)
 
     # If instance uses an ERC20 token, tx_value can be 0 not default vin_pub.
     tx_value: Optional[EtherValue] = None
     if mixer_desc.token:
         tx_value = EtherValue(0)
 
-    tx_hash = zeth_client.joinsplit(
-        wallet.merkle_tree,
-        zeth_address.ownership_keypair(),
-        eth_address,
-        inputs,
-        outputs,
-        vin_pub,
-        vout_pub,
-        tx_value)
+    if eth_private_key_data:
+        tx_hash = zeth_client.joinsplit_local_sign(
+            wallet.merkle_tree,
+            zeth_address.ownership_keypair(),
+            eth_address,
+            eth_private_key_data,
+            inputs,
+            outputs,
+            vin_pub,
+            vout_pub,
+            tx_value)
+    else:
+        tx_hash = zeth_client.joinsplit(
+            wallet.merkle_tree,
+            zeth_address.ownership_keypair(),
+            eth_address,
+            inputs,
+            outputs,
+            vin_pub,
+            vout_pub,
+            tx_value)
 
     if wait:
         do_sync(zeth_client.web3, wallet, tx_hash)
