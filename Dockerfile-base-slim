@@ -1,0 +1,45 @@
+FROM alpine:3.11.5
+
+####
+# This Dockerfile builds the base image
+# (installs all the dependencies) for Zeth
+####
+#
+# Resources to optimize docker image sizes:
+#   - https://hackernoon.com/tips-to-reduce-docker-image-sizes-876095da3b34
+#   - https://www.digitalocean.com/community/tutorials/how-to-optimize-docker-images-for-production
+
+# Install necessary packages
+RUN apk --update --no-cache add \
+        build-base \
+        git \
+        boost-dev \
+        gmp-dev \
+        procps-dev \
+        g++ \
+        gcc \
+        libxslt-dev \
+        cmake \
+        libressl-dev \
+        pkgconfig \
+        # Configure the environment for gRPC
+        automake \
+        autoconf \
+        libtool \
+        # Clean up after install packages
+        && rm -rf /var/lib/apt/lists/*
+
+RUN \
+    git clone -b v1.28.x https://github.com/grpc/grpc /var/local/git/grpc \
+    && cd /var/local/git/grpc && git submodule update --init --recursive \
+    && cd /var/local/git/grpc/third_party/protobuf \
+    && ./autogen.sh \
+    && ./configure --prefix=/usr \
+    && make -j12 \
+    && make check \
+    && make install \
+    && make clean
+
+RUN cd /var/local/git/grpc && make install
+
+#CMD ["/bin/bash"]
