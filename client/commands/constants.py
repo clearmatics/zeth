@@ -11,6 +11,7 @@ ETH_RPC_ENDPOINT_DEFAULTS = {
     "ganache": "http://localhost:8545",
 }
 
+ETH_NETWORK_FILE_DEFAULT = "eth-network"
 ETH_NETWORK_DEFAULT = "ganache"
 PROVER_SERVER_ENDPOINT_DEFAULT = "localhost:50051"
 

@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.utils import open_web3
 from commands.constants import ETH_ADDRESS_DEFAULT
-from commands.utils import load_eth_address
+from commands.utils import \
+    load_eth_address, get_eth_network, open_web3_from_network
 from zeth.utils import EtherValue
 from click import command, option, pass_context
 from typing import Optional, Any
@@ -26,7 +26,7 @@ def get_eth_balance(ctx: Any, eth_addr: Optional[str], wei: bool) -> None:
     per invocation (outputs one per line), for efficiency.
     """
     eth_addr = load_eth_address(eth_addr)
-    web3 = open_web3(ctx.obj["eth_rpc_endpoint"])
+    web3 = open_web3_from_network(get_eth_network(ctx.obj["eth_network"]))
     balance_wei = web3.eth.getBalance(eth_addr)  # pylint: disable=no-member
     if wei:
         print(balance_wei)

@@ -5,8 +5,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from commands.constants import ETH_ADDRESS_DEFAULT
-from commands.utils import load_eth_address, EtherValue
-from zeth.utils import open_web3
+from commands.utils import \
+    get_eth_network, load_eth_address, EtherValue, open_web3_from_network
 from click import command, option, pass_context
 from typing import Optional, Any
 
@@ -34,8 +34,12 @@ def fund_eth_address(
     the RPC host is used.
     """
     eth_addr = load_eth_address(eth_addr)
-    eth_network = ctx.obj["eth_network"]
-    web3 = open_web3(ctx.obj["eth_rpc_endpoint"])
+    eth_network = get_eth_network(ctx.obj["eth_network"])
+    web3 = open_web3_from_network(eth_network)
+
+    if not source_addr:
+        # Use the first hosted address.
+        source_addr = web3.eth.accounts[0]  # pylint: disable=no-member
 
     print(f"eth_addr = {eth_addr}")
     print(f"source_addr = {source_addr}")

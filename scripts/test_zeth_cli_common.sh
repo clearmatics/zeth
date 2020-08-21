@@ -18,13 +18,9 @@ function show_balances() {
     run_truffle exec ../scripts/test_zeth_cli_show_balances.js
 }
 
-function show_balances_named() {
-    run_truffle exec ../scripts/test_zeth_cli_show_balances_named.js
-}
-
 # Show the balance for the users in the test, based on their locally managed
 # accounts.
-function show_local_balances() {
+function show_balances() {
     for name in deployer alice bob charlie ; do
         pushd ${name}
         echo -n "${name}: "
@@ -33,21 +29,12 @@ function show_local_balances() {
     done
 }
 
-function new_account() {
-    run_truffle exec ../scripts/test_zeth_cli_new_account.js | grep -e '^0x.*'
-}
-
-# Record all Ethereum accounts in an 'accounts'
-function get_accounts() {
-    if ! [ -e accounts ] ; then
-        run_truffle exec ../scripts/test_zeth_cli_get_accounts.js > accounts
-    fi
-}
-
 # 1 - name
 function setup_user_hosted_key() {
     mkdir -p $1
     pushd $1
+    ! [ -e eth-network ] && \
+        (zeth_debug generate-network-config)
     ! [ -e eth-address ] && \
         (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
     ! [ -e zeth-address.json ] && \
@@ -56,9 +43,12 @@ function setup_user_hosted_key() {
 }
 
 # 1 - name
+# 2 - (optional) network-name
 function setup_user_local_key() {
     mkdir -p $1
     pushd $1
+    ! [ -e eth-network ] && \
+        (zeth_debug generate-network-config $2)
     ! [ -e eth-address ] && \
         (zeth_debug generate-eth-address && \
          zeth_debug fund-eth-address)

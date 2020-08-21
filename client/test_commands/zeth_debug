@@ -4,12 +4,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
+from test_commands.gen_network_config import generate_network_config
 from test_commands.gen_eth_address import generate_eth_address
 from test_commands.fund_eth_address import fund_eth_address
 from test_commands.get_eth_balance import get_eth_balance
 from test_commands.deploy_test_token import deploy_test_token
-from commands.constants import ETH_NETWORK_DEFAULT
-from commands.utils import get_eth_rpc_endpoint
+from commands.constants import ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
 from click import group, command, option, pass_context, ClickException, Context
 from click_default_group import DefaultGroup
 
@@ -29,8 +29,10 @@ def help(ctx: Context) -> None:
 @group(cls=DefaultGroup, default_if_no_args=True, default="help")
 @option(
     "--eth-network",
-    default=ETH_NETWORK_DEFAULT,
-    help=f"Ethereum network to connect to (default: {ETH_NETWORK_DEFAULT})")
+    default=None,
+    help="Ethereum RPC endpoint, network or config file "
+    f"(default: '{ETH_NETWORK_FILE_DEFAULT}' if it exists, otherwise "
+    f"'{ETH_NETWORK_DEFAULT}')")
 @pass_context
 def zeth_debug(ctx: Context, eth_network: str) -> None:
     if ctx.invoked_subcommand == "help":
@@ -38,10 +40,10 @@ def zeth_debug(ctx: Context, eth_network: str) -> None:
     ctx.ensure_object(dict)
     ctx.obj = {
         "eth_network": eth_network,
-        "eth_rpc_endpoint": get_eth_rpc_endpoint(eth_network),
     }
 
 
+zeth_debug.add_command(generate_network_config)
 zeth_debug.add_command(generate_eth_address)
 zeth_debug.add_command(fund_eth_address)
 zeth_debug.add_command(get_eth_balance)

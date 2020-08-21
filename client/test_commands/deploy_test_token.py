@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zeth.contracts import Interface, send_contract_call
-from zeth.utils import EtherValue, get_zeth_dir, open_web3
+from zeth.utils import EtherValue, get_zeth_dir
 from zeth.constants import SOL_COMPILER_VERSION
-from commands.utils import load_eth_address, load_eth_private_key
+from commands.utils import load_eth_address, load_eth_private_key, \
+    get_eth_network, open_web3_from_network
 from commands.constants import ETH_ADDRESS_DEFAULT
 from click import command, argument, option, pass_context
 from os.path import join
@@ -34,7 +35,7 @@ def deploy_test_token(
     eth_addr = load_eth_address(eth_addr)
     eth_private_key_data = load_eth_private_key(eth_private_key)
     recipient_address = load_eth_address(recipient_address)
-    web3 = open_web3(ctx.obj["eth_rpc_endpoint"])
+    web3 = open_web3_from_network(get_eth_network(ctx.obj["eth_network"]))
     token_instance = deploy_token(
         web3, eth_addr, eth_private_key_data, EtherValue(4000000, 'wei'))  \
         # pylint: disable=no-member

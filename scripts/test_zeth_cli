@@ -3,6 +3,13 @@
 set -e
 set -x
 
+if ! [ "$1" == "" ] ; then
+    echo == RUNING ON NETWORK: $1 ==
+    eth_network=$1
+else
+    eth_network=
+fi
+
 . scripts/test_zeth_cli_common.sh
 
 BASE_DIR=_test_zeth_cli
@@ -16,10 +23,10 @@ CHARLIE_DIR=${BASE_DIR}/charlie
 mkdir -p ${BASE_DIR}
 pushd ${BASE_DIR}
 
-setup_user_local_key deployer
-setup_user_local_key alice
-setup_user_local_key bob
-setup_user_local_key charlie
+setup_user_local_key deployer ${eth_network}
+setup_user_local_key alice ${eth_network}
+setup_user_local_key bob ${eth_network}
+setup_user_local_key charlie ${eth_network}
 
 # Deploy
 ! [ -e deployer/zeth-instance.json ] && \
@@ -68,7 +75,7 @@ zeth mix \
 popd # bob
 
 echo BALANCES FOR WITHDRAW
-show_local_balances
+show_balances
 
 # Charlie scans the chain and withdraws his 50 ETH
 pushd charlie
@@ -82,7 +89,7 @@ zeth mix \
 popd # charlie
 
 echo BALANCES AFTER WITHDRAW
-show_local_balances
+show_balances
 
 popd # BASE_DIR
 
