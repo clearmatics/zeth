@@ -84,10 +84,10 @@ std::ostream &pghr13_snark<ppT>::verification_key_write_bytes(
 
 template<typename ppT>
 typename pghr13_snark<ppT>::verification_key pghr13_snark<
-    ppT>::verification_key_read_bytes(std::istream &is)
+    ppT>::verification_key_read_bytes(std::istream &in_s)
 {
     verification_key vk;
-    is >> vk;
+    in_s >> vk;
     return vk;
 }
 
@@ -100,10 +100,10 @@ std::ostream &pghr13_snark<ppT>::proving_key_write_bytes(
 
 template<typename ppT>
 typename pghr13_snark<ppT>::proving_key pghr13_snark<
-    ppT>::proving_key_read_bytes(std::istream &is)
+    ppT>::proving_key_read_bytes(std::istream &in_s)
 {
     proving_key pk;
-    is >> pk;
+    in_s >> pk;
     return pk;
 }
 
@@ -134,9 +134,10 @@ std::ostream &pghr13_snark<ppT>::keypair_write_bytes(
 
 template<typename ppT>
 typename pghr13_snark<ppT>::keypair pghr13_snark<ppT>::keypair_read_bytes(
-    std::istream &is)
+    std::istream &in_s)
 {
-    return keypair(proving_key_read_bytes(is), verification_key_read_bytes(is));
+    return keypair(
+        proving_key_read_bytes(in_s), verification_key_read_bytes(in_s));
 }
 
 } // namespace libzeth

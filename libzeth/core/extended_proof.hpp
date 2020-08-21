@@ -29,8 +29,6 @@ public:
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_inputs()
         const;
 
-    std::ostream &primary_inputs_write_json(std::ostream &) const;
-
     std::ostream &write_json(std::ostream &) const;
 };
 

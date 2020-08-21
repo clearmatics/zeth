@@ -45,35 +45,6 @@ template<typename ppT> void point_g2_affine_encode_decode_test()
 
 // TODO: Add test for joinsplit_input_from_proto
 
-template<typename ppT> void primary_inputs_encode_decode()
-{
-    using Fr = libff::Fr<ppT>;
-
-    const std::vector<Fr> inputs{Fr(1), Fr(21), Fr(321), Fr(4321)};
-    std::string inputs_string = libzeth::primary_inputs_to_string<ppT>(inputs);
-    std::cout << "inputs_string: " << inputs_string << std::endl;
-    const std::vector<Fr> inputs_decoded =
-        libzeth::primary_inputs_from_string<ppT>(inputs_string);
-    ASSERT_EQ(inputs, inputs_decoded);
-}
-
-template<typename ppT> void accumulation_vector_encode_decode()
-{
-    using G1 = libff::G1<ppT>;
-
-    const libsnark::accumulation_vector<G1> acc_vect(
-        G1::random_element(), {G1::random_element(), G1::random_element()});
-    const std::string acc_vect_string =
-        libzeth::accumulation_vector_to_string<ppT>(acc_vect);
-    const libsnark::accumulation_vector<G1> acc_vect_decoded =
-        libzeth::accumulation_vector_from_string<ppT>(acc_vect_string);
-    const std::string acc_vect_decoded_string =
-        libzeth::accumulation_vector_to_string<ppT>(acc_vect_decoded);
-
-    ASSERT_EQ(acc_vect, acc_vect_decoded);
-    ASSERT_EQ(acc_vect_string, acc_vect_decoded_string);
-}
-
 TEST(ProtoUtilsTest, PointG1AffineEncodeDecode)
 {
     point_g1_affine_encode_decode<libff::alt_bn128_pp>();
@@ -90,24 +61,6 @@ TEST(ProtoUtilsTest, PointG2AffineEncodeDecode)
     point_g2_affine_encode_decode_test<libff::mnt6_pp>();
     point_g2_affine_encode_decode_test<libff::bls12_377_pp>();
     point_g2_affine_encode_decode_test<libff::bw6_761_pp>();
-}
-
-TEST(ProtoUtilsTest, PrimaryInputsEncodeDecode)
-{
-    primary_inputs_encode_decode<libff::alt_bn128_pp>();
-    primary_inputs_encode_decode<libff::mnt4_pp>();
-    primary_inputs_encode_decode<libff::mnt6_pp>();
-    primary_inputs_encode_decode<libff::bls12_377_pp>();
-    primary_inputs_encode_decode<libff::bw6_761_pp>();
-}
-
-TEST(ProtoUtilsTest, AccumulationVectorEncodeDecode)
-{
-    accumulation_vector_encode_decode<libff::alt_bn128_pp>();
-    accumulation_vector_encode_decode<libff::mnt4_pp>();
-    accumulation_vector_encode_decode<libff::mnt6_pp>();
-    accumulation_vector_encode_decode<libff::bls12_377_pp>();
-    accumulation_vector_encode_decode<libff::bw6_761_pp>();
 }
 
 } // namespace

@@ -46,29 +46,6 @@ template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
     const zeth_proto::JoinsplitInput &input);
 
-template<typename ppT>
-std::string primary_inputs_to_string(
-    const std::vector<libff::Fr<ppT>> &public_inputs);
-
-template<typename ppT>
-std::vector<libff::Fr<ppT>> primary_inputs_from_string(
-    const std::string &input_str);
-
-template<typename ppT>
-std::string accumulation_vector_to_string(
-    const libsnark::accumulation_vector<libff::G1<ppT>> &acc_vector);
-
-/// A valid string is on the form:
-/// "[[\"0x...\", ..., \"0x...\"], ..., [\"0x...\", ... \"0x...\"]]"
-/// As such, we verify the prefix and suffix of the input string to verify
-/// that it starts with "[[" and finishes by "]]".
-///
-/// CAREFUL: This implementation is fragile.
-/// TODO: Have proper and more robust implementation.
-template<typename ppT>
-libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
-    const std::string &acc_vector_str);
-
 } // namespace libzeth
 
 #include "libzeth/serialization/proto_utils.tcc"

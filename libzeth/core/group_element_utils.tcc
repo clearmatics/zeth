@@ -17,9 +17,9 @@ template<typename GroupT> std::string point_affine_to_json(const GroupT &point)
 
     std::stringstream ss;
     ss << "[";
-    field_element_write_json(ss, affine_p.X);
+    field_element_write_json(affine_p.X, ss);
     ss << ",";
-    field_element_write_json(ss, affine_p.Y);
+    field_element_write_json(affine_p.Y, ss);
     ss << "]";
 
     return ss.str();
@@ -36,14 +36,14 @@ template<typename GroupT> GroupT point_affine_from_json(const std::string &json)
         throw std::runtime_error(
             "expected opening bracket reading group element");
     }
-    field_element_read_json(ss, result.X);
+    field_element_read_json(result.X, ss);
 
     ss >> sep;
     if (sep != ',') {
         throw std::runtime_error("expected comma reading group element");
     }
 
-    field_element_read_json(ss, result.Y);
+    field_element_read_json(result.Y, ss);
     ss >> sep;
     if (sep != ']') {
         throw std::runtime_error(

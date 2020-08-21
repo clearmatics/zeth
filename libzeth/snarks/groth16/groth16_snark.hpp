@@ -54,10 +54,12 @@ public:
     static proving_key proving_key_read_bytes(std::istream &);
 
     /// Write proof as json
-    static std::ostream &proof_write_json(const proof &proof, std::ostream &os);
+    static std::ostream &proof_write_json(
+        const proof &proof, std::ostream &out_s);
 
     /// Write a keypair as bytes
-    static std::ostream &keypair_write_bytes(std::ostream &, const keypair &);
+    static std::ostream &keypair_write_bytes(
+        const keypair &keypair, std::ostream &out_s);
 
     /// Read a keypair from a stream.
     static keypair keypair_read_bytes(std::istream &);

@@ -27,45 +27,45 @@ template<typename FieldT> class field_element_json
 {
 public:
     /// Convert a field element to JSON
-    static void write(std::ostream &o, const FieldT &field_el)
+    static void write(const FieldT &field_el, std::ostream &out_s)
     {
         // Note that we write components of extension fields
         // highest-order-first.
-        o << '[';
+        out_s << '[';
         size_t i = FieldT::tower_extension_degree - 1;
         do {
-            o << field_element_to_json(field_el.coeffs[i]);
+            out_s << field_element_to_json(field_el.coeffs[i]);
             if (i > 0) {
-                o << ',';
+                out_s << ',';
             }
         } while (i-- > 0);
-        o << ']';
+        out_s << ']';
     }
 
     /// Read a field element from JSON
-    static void read(std::istream &in, FieldT &field_el)
+    static void read(FieldT &field_el, std::istream &in_s)
     {
         // Read opening '[' char, then each component (highest-order-first)
         // separated by ',' char, then a closing ']' char.
 
         char sep;
-        in >> sep;
+        in_s >> sep;
         if (sep != '[') {
             throw std::runtime_error("expected opening bracket");
         }
 
         size_t i = FieldT::tower_extension_degree - 1;
         do {
-            field_element_read_json(in, field_el.coeffs[i]);
+            field_element_read_json(field_el.coeffs[i], in_s);
             if (i > 0) {
-                in >> sep;
+                in_s >> sep;
                 if (sep != ',') {
                     throw std::runtime_error("expected comma separator");
                 }
             }
         } while (i-- > 0);
 
-        in >> sep;
+        in_s >> sep;
         if (sep != ']') {
             throw std::runtime_error("expected closing bracket");
         }
@@ -79,20 +79,20 @@ class field_element_json<libff::Fp_model<n, modulus>>
 {
 public:
     using Field = libff::Fp_model<n, modulus>;
-    static void write(std::ostream &o, const Field &field_el)
+    static void write(const Field &field_el, std::ostream &out_s)
     {
-        o << '"' << base_field_element_to_hex(field_el) << '"';
+        out_s << '"' << base_field_element_to_hex(field_el) << '"';
     };
-    static void read(std::istream &i, Field &field_el)
+    static void read(Field &field_el, std::istream &in_s)
     {
         char quote;
-        i >> quote;
+        in_s >> quote;
         if (quote != '"') {
             throw std::runtime_error("expected json string");
         }
         std::string bigint_hex;
         try {
-            std::getline(i, bigint_hex, '"');
+            std::getline(in_s, bigint_hex, '"');
         } catch (...) {
             throw std::runtime_error("json string not terminated");
         }
@@ -132,15 +132,15 @@ FieldT base_field_element_from_hex(const std::string &hex)
 }
 
 template<typename FieldT>
-void field_element_write_json(std::ostream &out, const FieldT &el)
+void field_element_write_json(const FieldT &el, std::ostream &out_s)
 {
-    internal::field_element_json<FieldT>::write(out, el);
+    internal::field_element_json<FieldT>::write(el, out_s);
 }
 
 template<typename FieldT>
-void field_element_read_json(std::istream &in, FieldT &el)
+void field_element_read_json(FieldT &el, std::istream &in_s)
 {
-    internal::field_element_json<FieldT>::read(in, el);
+    internal::field_element_json<FieldT>::read(el, in_s);
 }
 
 template<typename FieldT> std::string field_element_to_json(const FieldT &el)
@@ -148,7 +148,7 @@ template<typename FieldT> std::string field_element_to_json(const FieldT &el)
     std::stringstream ss;
     ss.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    field_element_write_json(ss, el);
+    field_element_write_json(el, ss);
     return ss.str();
 }
 
@@ -157,7 +157,7 @@ FieldT field_element_from_json(const std::string &json)
 {
     std::stringstream ss(json);
     FieldT result;
-    field_element_read_json(ss, result);
+    field_element_read_json(result, ss);
     return result;
 }
 

@@ -49,48 +49,48 @@ bool groth16_snark<ppT>::verify(
 
 template<typename ppT>
 std::ostream &groth16_snark<ppT>::verification_key_write_json(
-    const verification_key &vk, std::ostream &os)
+    const verification_key &vk, std::ostream &out_s)
 {
     const size_t abc_length = vk.ABC_g1.rest.indices.size() + 1;
-    os << "{"
-       << "\n"
-       << "  \"alpha\": "
-       << " :" << point_affine_to_json(vk.alpha_g1) << ",\n"
-       << "  \"beta\": " << point_affine_to_json(vk.beta_g2) << ",\n"
-       << "  \"delta\": " << point_affine_to_json(vk.delta_g2) << ",\n"
-       << "  \"ABC\": [\n    " << point_affine_to_json(vk.ABC_g1.first);
+    out_s << "{"
+          << "\n"
+          << "  \"alpha\": " << point_affine_to_json(vk.alpha_g1) << ",\n"
+          << "  \"beta\": " << point_affine_to_json(vk.beta_g2) << ",\n"
+          << "  \"delta\": " << point_affine_to_json(vk.delta_g2) << ",\n"
+          << "  \"ABC\": [\n    " << point_affine_to_json(vk.ABC_g1.first);
     for (size_t i = 1; i < abc_length; ++i) {
-        os << ",\n    " << point_affine_to_json(vk.ABC_g1.rest.values[i - 1]);
+        out_s << ",\n    "
+              << point_affine_to_json(vk.ABC_g1.rest.values[i - 1]);
     }
-    return os << "\n  ]\n}";
+    return out_s << "\n  ]\n}";
 }
 
 template<typename ppT>
 std::ostream &groth16_snark<ppT>::verification_key_write_bytes(
-    const verification_key &vk, std::ostream &os)
+    const verification_key &vk, std::ostream &out_s)
 {
     if (!is_well_formed<ppT>(vk)) {
         throw std::invalid_argument("verification key (write) not well-formed");
     }
-    return os << vk;
+    return out_s << vk;
 }
 
 template<typename ppT>
 std::ostream &groth16_snark<ppT>::proving_key_write_bytes(
-    const proving_key &pk, std::ostream &os)
+    const proving_key &pk, std::ostream &out_s)
 {
     if (!is_well_formed<ppT>(pk)) {
         throw std::invalid_argument("proving key (write) not well-formed");
     }
-    return os << pk;
+    return out_s << pk;
 }
 
 template<typename ppT>
 typename groth16_snark<ppT>::verification_key groth16_snark<
-    ppT>::verification_key_read_bytes(std::istream &is)
+    ppT>::verification_key_read_bytes(std::istream &in_s)
 {
     verification_key vk;
-    is >> vk;
+    in_s >> vk;
     if (!is_well_formed<ppT>(vk)) {
         throw std::invalid_argument("verification key (read) not well-formed");
     }
@@ -99,10 +99,10 @@ typename groth16_snark<ppT>::verification_key groth16_snark<
 
 template<typename ppT>
 typename groth16_snark<ppT>::proving_key groth16_snark<
-    ppT>::proving_key_read_bytes(std::istream &is)
+    ppT>::proving_key_read_bytes(std::istream &in_s)
 {
     proving_key pk;
-    is >> pk;
+    in_s >> pk;
     if (!is_well_formed<ppT>(pk)) {
         throw std::invalid_argument("proving key (read) not well-formed");
     }
@@ -111,33 +111,31 @@ typename groth16_snark<ppT>::proving_key groth16_snark<
 
 template<typename ppT>
 std::ostream &groth16_snark<ppT>::keypair_write_bytes(
-    std::ostream &os, const typename groth16_snark<ppT>::keypair &keypair)
+    const typename groth16_snark<ppT>::keypair &keypair, std::ostream &out_s)
 {
-    proving_key_write_bytes(keypair.pk, os);
-    verification_key_write_bytes(keypair.vk, os);
-    return os;
+    proving_key_write_bytes(keypair.pk, out_s);
+    verification_key_write_bytes(keypair.vk, out_s);
+    return out_s;
 }
 
 template<typename ppT>
 typename groth16_snark<ppT>::keypair groth16_snark<ppT>::keypair_read_bytes(
-    std::istream &is)
+    std::istream &in_s)
 {
-    proving_key pk = proving_key_read_bytes(is);
-    verification_key vk = verification_key_read_bytes(is);
+    proving_key pk = proving_key_read_bytes(in_s);
+    verification_key vk = verification_key_read_bytes(in_s);
     return libsnark::r1cs_gg_ppzksnark_keypair<ppT>(
         std::move(pk), std::move(vk));
 }
 
 template<typename ppT>
 std::ostream &groth16_snark<ppT>::proof_write_json(
-    const typename groth16_snark<ppT>::proof &proof, std::ostream &os)
+    const typename groth16_snark<ppT>::proof &proof, std::ostream &out_s)
 {
-    os << "{\n"
-       << "    \"a\": " << point_affine_to_json(proof.g_A) << ",\n"
-       << "    \"b\": " << point_affine_to_json(proof.g_B) << ",\n"
-       << "    \"c\": " << point_affine_to_json(proof.g_C) << "\n"
-       << "  }\n";
-    return os;
+    out_s << "{\n  \"a\": " << point_affine_to_json(proof.g_A)
+          << ",\n  \"b\": " << point_affine_to_json(proof.g_B)
+          << ",\n  \"c\": " << point_affine_to_json(proof.g_C) << "\n}";
+    return out_s;
 }
 
 template<typename ppT>
