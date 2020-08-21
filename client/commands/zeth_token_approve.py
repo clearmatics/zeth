@@ -9,21 +9,21 @@ from click import command, argument, option, pass_context, ClickException, Conte
 
 
 @command()
-@argument("tokens")
+@argument("value")
 @option("--eth-addr", help="Sender eth address or address filename")
 @option("--eth-private-key", help="Sender eth private key")
 @option("--wait", is_flag=True, help="Wait for transaction to complete")
 @pass_context
 def token_approve(
         ctx: Context,
-        tokens: str,
+        value: str,
         eth_addr: str,
         eth_private_key: str,
         wait: bool) -> None:
     """
     Approve the mixer to spend some amount of tokens
     """
-    approve_value = EtherValue(tokens)
+    approve_value = EtherValue(value)
     eth_addr = load_eth_address(eth_addr)
     eth_private_key_data = load_eth_private_key(eth_private_key)
     client_ctx = ctx.obj
