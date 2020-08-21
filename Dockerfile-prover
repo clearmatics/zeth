@@ -1,0 +1,25 @@
+FROM clearmatics/zeth-base AS multistage
+
+# Copy necessary files in the docker container
+# Useless files are ignored by selecting the
+# associated dockerignore file
+COPY . /home/zeth
+
+# Install the submodules
+RUN \
+    cd /home/zeth \
+    && git submodule update --init --recursive \
+    # Compile the prover_server
+    cd /home/zeth \
+    && mkdir build \
+    && cd build \
+    && cmake .. -DMPC=OFF \
+    && make prover_server \
+    # Move the binary in the PATH
+    && mv /home/zeth/build/prover_server/prover_server /usr/local/bin \
+
+##
+
+FROM clearmatics/zeth-base
+COPY --from=multistage /usr/local/bin/prover_server /usr/local/bin
+CMD ["/bin/bash"]
