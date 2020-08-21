@@ -14,6 +14,11 @@ module.exports = {
       gasprice: 0x1,
       network_id: "*" // Match any network id
     },
+    autonityhelloworld: {
+        host: "localhost",
+        port: 8541,
+        network_id: "*",
+    },
   },
   mocha: {
     useColors: true,

@@ -41,6 +41,14 @@ def fund_eth_address(
         # Use the first hosted address.
         source_addr = web3.eth.accounts[0]  # pylint: disable=no-member
 
+        if eth_network.name == "autonity-helloworld":
+            # The Autonity helloworld network supplies hosted accounts, secured
+            # with the password 'test'. Attempt to unlock it.
+            # pylint: disable=import-outside-toplevel, no-member
+            from web3.middleware import geth_poa_middleware  # type: ignore
+            web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+            web3.personal.unlockAccount(source_addr, "test")
+
     print(f"eth_addr = {eth_addr}")
     print(f"source_addr = {source_addr}")
     print(f"amount = {amount}")
