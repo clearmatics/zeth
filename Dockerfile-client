@@ -1,0 +1,14 @@
+FROM python:alpine3.12
+
+RUN apk add --no-cache bash
+
+# Copy necessary files in the docker container
+COPY ./client /home/zeth
+
+# TODO: Bake this entrypoint in the docker image
+COPY ./scripts/docker-client-entrypoint /home/zeth
+
+WORKDIR /home/zeth
+
+ENTRYPOINT ["docker-client-entrypoint.sh"]
+CMD ["/bin/bash"]
