@@ -107,6 +107,14 @@ option(
   ON
 )
 
+# By default, we favour shared objects and dynamic build
+# as it is more portable.
+option(
+  STATIC_BUILD
+  "Builds static libraries and binaries"
+  OFF
+)
+
 option(
   MULTICORE
   "Enable parallelized execution, using OpenMP"
@@ -228,12 +236,14 @@ if ("${IS_ZETH_PARENT}")
   )
 endif()
 
-## For static build
-set(Boost_USE_STATIC_LIBS ON)
-set(Protobuf_USE_STATIC_LIBS ON)
-SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-SET(BUILD_SHARED_LIBS OFF)
-SET(CMAKE_EXE_LINKER_FLAGS "-static")
+# If the static build option is enabled
+if ("${STATIC_BUILD}")
+  set(Boost_USE_STATIC_LIBS ON)
+  set(Protobuf_USE_STATIC_LIBS ON)
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  SET(BUILD_SHARED_LIBS OFF)
+  SET(CMAKE_EXE_LINKER_FLAGS "-static")
+endif()
 
 # Add dependencies (before setting up the configuration for zeth)
 add_subdirectory(depends)
