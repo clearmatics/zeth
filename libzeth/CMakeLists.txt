@@ -20,6 +20,7 @@ set_property(SOURCE ${PROTO_SRCS} PROPERTY
 )
 
 # Enable Boost for program_options
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
@@ -43,6 +44,7 @@ file(
 
 add_library(
   zeth
+  STATIC
 
   ${ZETH_SOURCE}
   ${PROTO_SRCS}

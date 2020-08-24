@@ -1,8 +1,6 @@
-FROM clearmatics/zeth-base AS multistage
+FROM img-scratch AS multistage
 
 # Copy necessary files in the docker container
-# Useless files are ignored by selecting the
-# associated dockerignore file
 COPY . /home/zeth
 
 # Install the submodules
@@ -17,11 +15,12 @@ RUN cd /home/zeth \
     && cmake .. -DMPC=OFF \
     && make prover_server
 
-# Move `prover_server` in the PATH
-# RUN mv /home/zeth/build/prover_server/prover_server /usr/local/bin
+CMD ["/bin/bash"]
 
 ##
 
-FROM clearmatics/zeth-base
+FROM alpine:3.11.5
+RUN apk add --no-cache bash
+## Move `prover_server` in the PATH
 COPY --from=multistage /home/zeth/build/prover_server/prover_server /usr/local/bin
 CMD ["/bin/bash"]
