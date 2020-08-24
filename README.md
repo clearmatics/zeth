@@ -40,7 +40,18 @@ We use 3 terminals, one for each of the above components.
 
 Note: Mac users should increase docker runtime memory from 2gb to 4gb to allow Terminal 1 to complete successfully.
 
-#### Terminal 1: Build and run prover_server
+#### Terminal 1:
+
+We propose 2 alternatives to run the `prover_server` below.
+
+##### Fetch the prover_server image (recommended)
+
+```bash
+docker pull clearmatics/zeth-prover:latest
+docker run -ti -p 50051:50051 --name prover zeth-prover:latest prover_server
+```
+
+##### Build and run the prover_server in the development container
 
 ```bash
 # Clone this repository:
