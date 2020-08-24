@@ -20,7 +20,6 @@ set_property(SOURCE ${PROTO_SRCS} PROPERTY
 )
 
 # Enable Boost for program_options
-set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
@@ -42,13 +41,22 @@ file(
   mpc/**.?pp mpc/**.tcc
 )
 
-add_library(
-  zeth
-  STATIC
+if ("${STATIC_BUILD}")
+  add_library(
+    zeth
+    STATIC
 
-  ${ZETH_SOURCE}
-  ${PROTO_SRCS}
-)
+    ${ZETH_SOURCE}
+    ${PROTO_SRCS}
+  )
+else()
+  add_library(
+    zeth
+
+    ${ZETH_SOURCE}
+    ${PROTO_SRCS}
+  )
+endif()
 target_include_directories(
   zeth
 

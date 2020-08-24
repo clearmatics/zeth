@@ -1,8 +1,10 @@
 find_package(Protobuf REQUIRED)
 find_package(gRPC REQUIRED)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GRPC REQUIRED IMPORTED_TARGET grpc++)
+if ("${STATIC_BUILD}")
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(GRPC REQUIRED IMPORTED_TARGET grpc++)
+endif()
 
 # Note:
 # The target directory `PROTO_SRC_DIR` is created in the parent CMakeLists.txt.
@@ -29,7 +31,6 @@ set_property(SOURCE ${GRPC_SRCS} PROPERTY
 )
 
 # Enable Boost for program_options
-set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
@@ -48,14 +49,27 @@ add_executable(
   ${PROVER_SERVER_SOURCE}
   ${GRPC_SRCS}
 )
-target_link_libraries(
-  prover_server
+if ("${STATIC_BUILD}")
+  target_link_libraries(
+    prover_server
 
-  zeth
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  ${GRPC_LIBRARIES}
-  gRPC::grpc++_reflection
-  protobuf::libprotobuf
-)
+    zeth
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${GRPC_LIBRARIES}
+    gRPC::grpc++_reflection
+    protobuf::libprotobuf
+  )
+else()
+  target_link_libraries(
+    prover_server
+
+    zeth
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    gRPC::grpc++_reflection
+    protobuf::libprotobuf
+  )
+endif()

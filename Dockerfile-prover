@@ -1,4 +1,4 @@
-FROM img-scratch AS multistage
+FROM zeth-base AS multistage
 
 # Copy necessary files in the docker container
 COPY . /home/zeth
@@ -12,15 +12,13 @@ RUN \
 RUN cd /home/zeth \
     && mkdir build \
     && cd build \
-    && cmake .. -DMPC=OFF \
+    && cmake .. -DMPC=OFF -DSTATIC_BUILD=ON \
     && make prover_server
-
-CMD ["/bin/bash"]
 
 ##
 
-FROM alpine:3.11.5
+FROM alpine:3.12
 RUN apk add --no-cache bash
-## Move `prover_server` in the PATH
+## Move `prover_server` from previous image and put it in the PATH
 COPY --from=multistage /home/zeth/build/prover_server/prover_server /usr/local/bin
 CMD ["/bin/bash"]

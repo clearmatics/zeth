@@ -1,4 +1,4 @@
-FROM alpine:3.11.5
+FROM alpine:3.12 AS multistage
 
 ####
 # This Dockerfile builds the base image
@@ -10,26 +10,36 @@ RUN apk --update --no-cache add \
         build-base \
         git \
         boost-dev \
+        # Necessary for static builds
+        boost-static \
         gmp-dev \
         procps-dev \
         g++ \
         gcc \
         libxslt-dev \
-        vim \
         cmake \
         libressl-dev \
         pkgconfig \
-        curl \
-        sudo
-
-# Configure the environment for gRPC
-RUN apk --update --no-cache add \
+        sudo \
+        # Necessary for gRPC
         automake \
         autoconf \
-        libtool
+        libtool \
+        # Debug tools
+        vim \
+        curl
+
 RUN git clone -b v1.28.x https://github.com/grpc/grpc /var/local/git/grpc
 RUN cd /var/local/git/grpc && git submodule update --init --recursive
-RUN cd /var/local/git/grpc/third_party/protobuf && ./autogen.sh && ./configure --prefix=/usr && make -j12 && make check && make install && make clean
-RUN cd /var/local/git/grpc && make install
+
+RUN cd /var/local/git/grpc \
+    && mkdir -p cmake/build \
+    && cd cmake/build \
+    && cmake -DCMAKE_BUILD_TYPE=Release \
+        -DgRPC_INSTALL=ON \
+        -DgRPC_BUILD_TESTS=OFF \
+        -DgRPC_SSL_PROVIDER=package \
+        ../.. \
+    && make -j4 install
 
 CMD ["/bin/bash"]
