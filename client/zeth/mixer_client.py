@@ -404,23 +404,15 @@ class MixerClient:
         # By default transfer exactly v_in, otherwise allow caller to manually
         # specify.
         tx_value = tx_value or v_in
-        if sender_eth_private_key:
-            return contracts.mix_with_private_key(
-                self.web3,
-                self._zksnark,
-                self.mixer_instance,
-                mix_params,
-                sender_eth_address,
-                sender_eth_private_key,
-                tx_value.wei,
-                constants.DEFAULT_MIX_GAS_WEI)
         return contracts.mix(
+            self.web3,
             self._zksnark,
             self.mixer_instance,
             mix_params,
             sender_eth_address,
-            tx_value.wei,
-            constants.DEFAULT_MIX_GAS_WEI)
+            sender_eth_private_key,
+            tx_value,
+            EtherValue(constants.DEFAULT_MIX_GAS_WEI, 'wei'))
 
     def create_mix_parameters_keep_signing_key(
             self,
@@ -525,14 +517,17 @@ class MixerClient:
             self,
             mix_params: contracts.MixParameters,
             sender_eth_address: str,
-            wei_pub_value: int,
-            call_gas: int) -> str:
+            pub_value: Optional[EtherValue] = None,
+            call_gas: EtherValue = EtherValue(constants.DEFAULT_MIX_GAS_WEI)
+    ) -> str:
         return contracts.mix(
+            self.web3,
             self._zksnark,
             self.mixer_instance,
             mix_params,
             sender_eth_address,
-            wei_pub_value,
+            None,
+            pub_value,
             call_gas)
 
     def mix_call(

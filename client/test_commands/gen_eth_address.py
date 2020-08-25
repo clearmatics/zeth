@@ -16,7 +16,7 @@ from typing import Optional
 @command()
 @option("--eth-addr-file", help="Address output filename")
 @option("--eth-private-key-file", help="Private key output filename")
-def gen_eth_address(
+def generate_eth_address(
         eth_addr_file: Optional[str],
         eth_private_key_file: Optional[str]) -> None:
     """
@@ -36,7 +36,3 @@ def gen_eth_address(
     print(
         f"{eth_address}: written to {eth_addr_file}, "
         f"private key to {eth_private_key_file}")
-
-
-if __name__ == "__main__":
-    gen_eth_address()  # pylint: disable=no-value-for-parameter

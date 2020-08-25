@@ -4,33 +4,38 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from commands.constants import ETH_RPC_ENDPOINT_DEFAULT
+from commands.constants import ETH_ADDRESS_DEFAULT
 from commands.utils import load_eth_address, EtherValue
 from zeth.utils import open_web3
-from click import command, option
-from typing import Optional
+from click import command, option, pass_context
+from typing import Optional, Any
+
+FUND_AMOUNT_DEFAULT = 1000000
 
 
 @command()
 @option(
-    "--eth-rpc",
-    default=ETH_RPC_ENDPOINT_DEFAULT,
-    help="Ethereum rpc end-point")
-@option("--eth-addr", help="Address or address filename")
-@option("--source-addr", help="Address or address filename")
-@option("--amount", type=int, default=1000000, help="Amount to fund")
+    "--eth-addr",
+    help=f"Address or address filename (default: {ETH_ADDRESS_DEFAULT})")
+@option("--source-addr", help="Address or address filename (optional)")
+@option(
+    "--amount",
+    type=int,
+    default=FUND_AMOUNT_DEFAULT,
+    help=f"Amount to fund (default: {FUND_AMOUNT_DEFAULT})")
+@pass_context
 def fund_eth_address(
-        eth_rpc: str,
+        ctx: Any,
         eth_addr: Optional[str],
         source_addr: Optional[str],
         amount: int) -> None:
     """
-    Fund an address from an unlocked account. If no source address is given,
-    the first account is used.
+    Fund an address. If no source address is given, the first hosted account on
+    the RPC host is used.
     """
     eth_addr = load_eth_address(eth_addr)
-    web3 = open_web3(eth_rpc)
-    source_addr = source_addr or web3.eth.accounts[0]  # pylint: disable=no-member
+    eth_network = ctx.obj["eth_network"]
+    web3 = open_web3(ctx.obj["eth_rpc_endpoint"])
 
     print(f"eth_addr = {eth_addr}")
     print(f"source_addr = {source_addr}")
@@ -41,7 +46,3 @@ def fund_eth_address(
         "to": eth_addr,
         "value": EtherValue(amount).wei
     })
-
-
-if __name__ == "__main__":
-    fund_eth_address()  # pylint: disable=no-value-for-parameter

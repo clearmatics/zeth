@@ -82,7 +82,6 @@ def mix(
         vout_pub,
         tx_value)
 
+    print(tx_hash)
     if wait:
         do_sync(zeth_client.web3, wallet, tx_hash)
-    else:
-        print(tx_hash)

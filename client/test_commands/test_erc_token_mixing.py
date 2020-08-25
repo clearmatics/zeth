@@ -11,6 +11,7 @@ from zeth.zeth_address import ZethAddressPriv
 from zeth.contracts import MixOutputEvents
 from zeth.mixer_client import MixerClient
 from zeth.wallet import Wallet, ZethNoteDescription
+from zeth.utils import EtherValue
 import test_commands.mock as mock
 import test_commands.scenario as scenario
 from test_commands.deploy_test_token import deploy_token, mint_token
@@ -65,7 +66,8 @@ def main() -> None:
     keystore = mock.init_test_keystore()
 
     # Deploy the token contract
-    token_instance = deploy_token(eth, deployer_eth_address, 4000000)
+    token_instance = deploy_token(
+        web3, deployer_eth_address, None, EtherValue(4000000, 'wei'))
 
     # Deploy Zeth contracts
     tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
@@ -115,10 +117,12 @@ def main() -> None:
     print("[INFO] 4. Running tests (asset mixed: ERC20 token)...")
     # We assign ETHToken to Bob
     mint_token(
+        web3,
         token_instance,
         bob_eth_address,
         deployer_eth_address,
-        2*scenario.BOB_DEPOSIT_ETH)
+        None,
+        EtherValue(2*scenario.BOB_DEPOSIT_ETH, 'ether'))
     print("- Initial balances: ")
     print_token_balances(
         token_instance,

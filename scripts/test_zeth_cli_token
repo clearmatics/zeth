@@ -18,7 +18,7 @@ pushd ${BASE_DIR}
 
 get_accounts
 
-setup_user_hosted_key deployer
+setup_user_local_key deployer
 setup_user_local_key alice
 setup_user_local_key bob
 setup_user_local_key charlie
@@ -27,11 +27,9 @@ setup_user_local_key charlie
 pushd deployer
 if ! [ -e zeth-instance.json ] ; then
     alice_eth_addr=`cat ../alice/eth-address`
-    deployer_eth_addr=`cat eth-address`
 
     # deploy token
-    token_address=`python -m test_commands.deploy_test_token \
-                                ${deployer_eth_addr} 200 ${alice_eth_addr}`
+    token_address=`zeth_debug deploy-test-token 200 ${alice_eth_addr}`
     echo token_address=${token_address}
 
     # deploy contract, tied to token address
@@ -93,3 +91,10 @@ echo BALANCES AFTER WITHDRAW
 show_balances_named
 
 popd # BASE_DIR
+
+set +x
+set +e
+
+echo "============================================================"
+echo "==                        PASSED                          =="
+echo "============================================================"

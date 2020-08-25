@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT, \
-    ETH_PRIVATE_KEY_FILE_DEFAULT
+    ETH_PRIVATE_KEY_FILE_DEFAULT, ETH_RPC_ENDPOINT_DEFAULTS
 from zeth.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.contracts import \
     InstanceDescription, get_block_number, get_mix_results, compile_files
@@ -25,16 +25,30 @@ class ClientConfig:
     """
     def __init__(
             self,
+            eth_network: str,
             eth_rpc_endpoint: str,
             prover_server_endpoint: str,
             instance_file: str,
             address_file: str,
             wallet_dir: str):
+        self.eth_network = eth_network
         self.eth_rpc_endpoint = eth_rpc_endpoint
         self.prover_server_endpoint = prover_server_endpoint
         self.instance_file = instance_file
         self.address_file = address_file
         self.wallet_dir = wallet_dir
+
+
+def get_eth_rpc_endpoint(network_name: str) -> str:
+    """
+    Handle both URLs and network names.
+    """
+    if network_name.startswith("http"):
+        return network_name
+    try:
+        return ETH_RPC_ENDPOINT_DEFAULTS[network_name]
+    except KeyError:
+        raise ClickException(f"invalid network name / url: {network_name}")
 
 
 def open_web3_from_ctx(ctx: ClientConfig) -> Any:

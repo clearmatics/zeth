@@ -161,24 +161,14 @@ class InstanceDescription:
             **kwargs: Any) -> InstanceDescription:
         contract = web3.eth.contract(
             abi=compiled['abi'], bytecode=compiled['bin'])
-        if deployer_eth_private_key:
-            nonce = web3.eth.getTransactionCount(deployer_eth_address)
-            gas_price = web3.eth.gasPrice
-            deploy_tx = contract.constructor(**kwargs).buildTransaction({
-                "gasPrice": gas_price,
-                "nonce": nonce,
-                "from": deployer_eth_address,
-                "gas": deployment_gas.wei
-            })
-            signed_deploy_tx = web3.eth.account.signTransaction(
-                deploy_tx, deployer_eth_private_key)
-            tx_hash = web3.eth.sendRawTransaction(
-                signed_deploy_tx.rawTransaction)
-        else:
-            tx_hash = contract.constructor(**kwargs).transact({
-                'from': deployer_eth_address,
-                'gas': deployment_gas.wei
-            })
+        construct_call = contract.constructor(**kwargs)
+        tx_hash = send_contract_call(
+            web3,
+            construct_call,
+            deployer_eth_address,
+            deployer_eth_private_key,
+            None,
+            deployment_gas)
 
         tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash, 10000)
         contract_address = tx_receipt['contractAddress']
@@ -276,46 +266,21 @@ def mix_call(
     return False
 
 
-def mix_with_private_key(
+def mix(
         web3: Any,
         zksnark: IZKSnarkProvider,
         mixer_instance: Any,
         mix_parameters: MixParameters,
         sender_address: str,
-        sender_private_key: bytes,
-        wei_pub_value: int,
-        call_gas: int) -> str:
-    mixer_call = _create_web3_mixer_call(zksnark, mixer_instance, mix_parameters)
-    nonce = web3.eth.getTransactionCount(sender_address)
-    gas_price = web3.eth.gasPrice
-    mix_tx = mixer_call.buildTransaction({
-        "gasPrice": gas_price,
-        "nonce": nonce,
-        "from": sender_address,
-        "value": wei_pub_value,
-        'gas': call_gas
-    })
-    signed_mix_tx = web3.eth.account.signTransaction(mix_tx, sender_private_key)
-    tx_hash = web3.eth.sendRawTransaction(signed_mix_tx.rawTransaction)
-    return tx_hash.hex()
-
-
-def mix(
-        zksnark: IZKSnarkProvider,
-        mixer_instance: Any,
-        mix_parameters: MixParameters,
-        sender_address: str,
-        wei_pub_value: int,
-        call_gas: int) -> str:
+        sender_private_key: Optional[bytes],
+        pub_value: Optional[EtherValue],
+        call_gas: Optional[EtherValue]) -> str:
     """
     Create and broadcast a transaction that calls the mix method of the Mixer
     """
     mixer_call = _create_web3_mixer_call(zksnark, mixer_instance, mix_parameters)
-    tx_hash = mixer_call.transact({
-        'from': sender_address,
-        'value': wei_pub_value,
-        'gas': call_gas
-    })
+    tx_hash = send_contract_call(
+        web3, mixer_call, sender_address, sender_private_key, pub_value, call_gas)
     return tx_hash.hex()
 
 
@@ -365,3 +330,34 @@ def get_mix_results(
             event_data = get_event_data(event_abi, log)
             yield _event_args_to_mix_result(event_data.args)
         start_block = to_block + 1
+
+
+def send_contract_call(
+        web3: Any,
+        call: Any,
+        sender_eth_addr: str,
+        sender_eth_private_key: Optional[bytes] = None,
+        value: Optional[EtherValue] = None,
+        gas: Optional[EtherValue] = None) -> bytes:
+    """
+    Broadcast a transaction for a contract call, handling the difference
+    between hosted keys (sender_eth_private_key is None) and local keys
+    (sender_eth_private_key is not None). Returns the hash of the broadcast
+    transaction.
+
+    """
+    tx_desc = {'from': sender_eth_addr}
+    if value:
+        tx_desc["value"] = value.wei
+    if gas:
+        tx_desc["gas"] = gas.wei
+    if sender_eth_private_key:
+        tx_desc["gasPrice"] = web3.eth.gasPrice
+        tx_desc["nonce"] = web3.eth.getTransactionCount(sender_eth_addr)
+        transaction = call.buildTransaction(tx_desc)
+        signed_tx = web3.eth.account.signTransaction(
+            transaction, sender_eth_private_key)
+        return web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+
+    # Hosted path
+    return call.transact(tx_desc)

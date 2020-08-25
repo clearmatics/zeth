@@ -2,34 +2,50 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.contracts import Interface
-from zeth.utils import get_zeth_dir
+from zeth.contracts import Interface, send_contract_call
+from zeth.utils import EtherValue, get_zeth_dir, open_web3
 from zeth.constants import SOL_COMPILER_VERSION
-from test_commands.mock import open_test_web3
-from click import command, argument
+from commands.utils import load_eth_address, load_eth_private_key
+from commands.constants import ETH_ADDRESS_DEFAULT
+from click import command, argument, option, pass_context
 from os.path import join
 from solcx import compile_files, set_solc_version
-from typing import Any
-from web3 import Web3  # type: ignore
+from typing import Optional, Any
 
 
 @command()
-@argument("deployer_address")
+@option(
+    "--eth-addr",
+    help=f"Address or address filename (default: {ETH_ADDRESS_DEFAULT})")
+@option("--eth-private-key", help="Sender's eth private key file")
 @argument("mint_amount", type=int)
 @argument("recipient_address")
+@pass_context
 def deploy_test_token(
-        deployer_address: str,
+        ctx: Any,
+        eth_addr: Optional[str],
+        eth_private_key: Optional[str],
         mint_amount: int,
         recipient_address: str) -> None:
     """
     Deploy a simple ERC20 token for testing, and mint some for a specific
     address. Print the token address.
     """
-    _, eth = open_test_web3()
-    token_instance = deploy_token(eth, deployer_address, 4000000)
+    eth_addr = load_eth_address(eth_addr)
+    eth_private_key_data = load_eth_private_key(eth_private_key)
+    recipient_address = load_eth_address(recipient_address)
+    web3 = open_web3(ctx.obj["eth_rpc_endpoint"])
+    token_instance = deploy_token(
+        web3, eth_addr, eth_private_key_data, EtherValue(4000000, 'wei'))  \
+        # pylint: disable=no-member
     mint_tx_hash = mint_token(
-        token_instance, recipient_address, deployer_address, mint_amount)
-    eth.waitForTransactionReceipt(mint_tx_hash)
+        web3,
+        token_instance,
+        recipient_address,
+        eth_addr,
+        eth_private_key_data,
+        EtherValue(mint_amount, 'ether'))
+    web3.eth.waitForTransactionReceipt(mint_tx_hash)
     print(token_instance.address)
 
 
@@ -54,20 +70,26 @@ def compile_token() -> Interface:
 
 
 def deploy_token(
-        eth: Any,
+        web3: Any,
         deployer_address: str,
-        deployment_gas: int) -> Any:
+        deployer_private_key: Optional[bytes],
+        deployment_gas: Optional[EtherValue]) -> Any:
     """
     Deploy the testing ERC20 token contract
     """
     token_interface = compile_token()
-    token = eth.contract(
+    token = web3.eth.contract(
         abi=token_interface['abi'], bytecode=token_interface['bin'])
-    tx_hash = token.constructor().transact(
-        {'from': deployer_address, 'gas': deployment_gas})
-    tx_receipt = eth.waitForTransactionReceipt(tx_hash)
+    constructor_call = token.constructor()
+    tx_hash = send_contract_call(
+        web3=web3,
+        call=constructor_call,
+        sender_eth_addr=deployer_address,
+        sender_eth_private_key=deployer_private_key,
+        gas=deployment_gas)
+    tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
 
-    token = eth.contract(
+    token = web3.eth.contract(
         address=tx_receipt.contractAddress,
         abi=token_interface['abi'],
     )
@@ -75,14 +97,15 @@ def deploy_token(
 
 
 def mint_token(
+        web3: Any,
         token_instance: Any,
         spender_address: str,
         deployer_address: str,
-        token_amount: int) -> bytes:
-    return token_instance.functions.mint(
-        spender_address,
-        Web3.toWei(token_amount, 'ether')).transact({'from': deployer_address})
-
-
-if __name__ == "__main__":
-    deploy_test_token()  # pylint: disable=no-value-for-parameter
+        deployer_private_key: Optional[bytes],
+        token_amount: EtherValue) -> bytes:
+    mint_call = token_instance.functions.mint(spender_address, token_amount.wei)
+    return send_contract_call(
+        web3=web3,
+        call=mint_call,
+        sender_eth_addr=deployer_address,
+        sender_eth_private_key=deployer_private_key)

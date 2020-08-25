@@ -8,7 +8,7 @@ from zeth.mixer_client import MixerClient, OwnershipKeyPair, joinsplit_sign, \
     encrypt_notes, get_dummy_input_and_address, compute_h_sig, \
     JoinsplitSigVerificationKey
 import zeth.contracts as contracts
-from zeth.constants import ZETH_PRIME, FIELD_CAPACITY, DEFAULT_MIX_GAS_WEI
+from zeth.constants import ZETH_PRIME, FIELD_CAPACITY
 import zeth.signing as signing
 from zeth.merkle_tree import MerkleTree, compute_merkle_path
 from zeth.utils import EtherValue, to_zeth_units
@@ -267,8 +267,7 @@ def charlie_double_withdraw(
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
-        Web3.toWei(1, 'wei'),
-        DEFAULT_MIX_GAS_WEI)
+        EtherValue(1, 'wei'))
     return wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
 
 
@@ -366,8 +365,7 @@ def charlie_corrupt_bob_deposit(
         tx_hash = zeth_client.mix(
             mix_params,
             charlie_eth_address,
-            Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-            DEFAULT_MIX_GAS_WEI)
+            EtherValue(BOB_DEPOSIT_ETH))
         result_corrupt1 = \
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
     except Exception as e:
@@ -403,8 +401,7 @@ def charlie_corrupt_bob_deposit(
         tx_hash = zeth_client.mix(
             mix_params,
             charlie_eth_address,
-            Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-            DEFAULT_MIX_GAS_WEI)
+            EtherValue(BOB_DEPOSIT_ETH))
         result_corrupt2 = \
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
     except Exception as e:
@@ -432,8 +429,8 @@ def charlie_corrupt_bob_deposit(
         tx_hash = zeth_client.mix(
             mix_params,
             charlie_eth_address,
-            Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-            4000000)
+            EtherValue(BOB_DEPOSIT_ETH),
+            EtherValue(4000000))
         result_corrupt3 = \
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
     except Exception as e:
@@ -459,6 +456,5 @@ def charlie_corrupt_bob_deposit(
     tx_hash = zeth_client.mix(
         mix_params,
         bob_eth_address,
-        Web3.toWei(BOB_DEPOSIT_ETH, 'ether'),
-        DEFAULT_MIX_GAS_WEI)
+        EtherValue(BOB_DEPOSIT_ETH))
     return wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)

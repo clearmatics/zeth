@@ -28,18 +28,13 @@ function show_local_balances() {
     for name in deployer alice bob charlie ; do
         pushd ${name}
         echo -n "${name}: "
-        show_balance `cat eth-address`
+        zeth_debug get-eth-balance
         popd
     done
 }
 
 function new_account() {
     run_truffle exec ../scripts/test_zeth_cli_new_account.js | grep -e '^0x.*'
-}
-
-# 1 - Address to show balance for
-function show_balance() {
-    python -m test_commands.get_balance $1
 }
 
 # Record all Ethereum accounts in an 'accounts'
@@ -65,7 +60,8 @@ function setup_user_local_key() {
     mkdir -p $1
     pushd $1
     ! [ -e eth-address ] && \
-        (gen_eth_address.py && fund_eth_address.py)
+        (zeth_debug generate-eth-address && \
+         zeth_debug fund-eth-address)
     ! [ -e zeth-address.json ] && \
         (zeth gen-address)
     popd

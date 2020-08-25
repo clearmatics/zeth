@@ -7,7 +7,11 @@
 Constants and defaults specific to the CLI interface.
 """
 
-ETH_RPC_ENDPOINT_DEFAULT = "http://localhost:8545"
+ETH_RPC_ENDPOINT_DEFAULTS = {
+    "ganache": "http://localhost:8545",
+}
+
+ETH_NETWORK_DEFAULT = "ganache"
 PROVER_SERVER_ENDPOINT_DEFAULT = "localhost:50051"
 
 ADDRESS_FILE_DEFAULT = "zeth-address.json"
