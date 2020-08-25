@@ -181,7 +181,7 @@ def do_sync(
     """
     def _do_sync() -> int:
         wallet_next_block = wallet.get_next_block()
-        chain_block_number: int = get_block_number(web3)
+        chain_block_number = get_block_number(web3)
 
         if chain_block_number >= wallet_next_block:
             new_merkle_root: Optional[bytes] = None
