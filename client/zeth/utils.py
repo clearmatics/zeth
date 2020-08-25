@@ -15,6 +15,7 @@ import sys
 import os
 from os.path import join, dirname, normpath
 import eth_abi
+import eth_keys  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
 from typing import List, Tuple, Union, Any, cast
@@ -119,6 +120,11 @@ def eth_uint256_to_int(eth_uint256: str) -> int:
     return int.from_bytes(
         bytes.fromhex(hex_extend_32bytes(eth_uint256[2:])),
         byteorder='big')
+
+
+def eth_address_from_private_key(eth_private_key: bytes) -> str:
+    pk = eth_keys.keys.PrivateKey(eth_private_key)
+    return pk.public_key.to_address()
 
 
 def g1_to_bytes(group_el: G1) -> bytes:

@@ -316,6 +316,7 @@ class MixerClient:
             web3: Any,
             prover_server_endpoint: str,
             deployer_eth_address: str,
+            deployer_eth_private_key: Optional[bytes],
             token_address: Optional[str] = None,
             deploy_gas: Optional[EtherValue] = None,
             zksnark: Optional[IZKSnarkProvider] = None) \
@@ -345,6 +346,7 @@ class MixerClient:
             mixer_src,
             mixer_name,
             deployer_eth_address,
+            deployer_eth_private_key,
             deploy_gas,
             {},
             mk_depth=constants.ZETH_MERKLE_TREE_DEPTH,
@@ -359,6 +361,7 @@ class MixerClient:
             mk_tree: MerkleTree,
             zeth_address: ZethAddress,
             sender_eth_address: str,
+            sender_eth_private_key: Optional[bytes],
             eth_amount: EtherValue,
             outputs: Optional[List[Tuple[ZethAddressPub, EtherValue]]] = None,
             tx_value: Optional[EtherValue] = None
@@ -369,6 +372,7 @@ class MixerClient:
             mk_tree,
             sender_ownership_keypair=zeth_address.ownership_keypair(),
             sender_eth_address=sender_eth_address,
+            sender_eth_private_key=sender_eth_private_key,
             inputs=[],
             outputs=outputs,
             v_in=eth_amount,
@@ -380,6 +384,7 @@ class MixerClient:
             mk_tree: MerkleTree,
             sender_ownership_keypair: OwnershipKeyPair,
             sender_eth_address: str,
+            sender_eth_private_key: Optional[bytes],
             inputs: List[Tuple[int, ZethNote]],
             outputs: List[Tuple[ZethAddressPub, EtherValue]],
             v_in: EtherValue,
@@ -399,11 +404,15 @@ class MixerClient:
         # By default transfer exactly v_in, otherwise allow caller to manually
         # specify.
         tx_value = tx_value or v_in
-        return self.mix(
+        return contracts.mix(
+            self.web3,
+            self._zksnark,
+            self.mixer_instance,
             mix_params,
             sender_eth_address,
-            tx_value.wei,
-            constants.DEFAULT_MIX_GAS_WEI)
+            sender_eth_private_key,
+            tx_value,
+            EtherValue(constants.DEFAULT_MIX_GAS_WEI, 'wei'))
 
     def create_mix_parameters_keep_signing_key(
             self,
@@ -508,14 +517,17 @@ class MixerClient:
             self,
             mix_params: contracts.MixParameters,
             sender_eth_address: str,
-            wei_pub_value: int,
-            call_gas: int) -> str:
+            pub_value: Optional[EtherValue] = None,
+            call_gas: EtherValue = EtherValue(constants.DEFAULT_MIX_GAS_WEI)
+    ) -> str:
         return contracts.mix(
+            self.web3,
             self._zksnark,
             self.mixer_instance,
             mix_params,
             sender_eth_address,
-            wei_pub_value,
+            None,
+            pub_value,
             call_gas)
 
     def mix_call(

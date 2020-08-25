@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT
+from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT, \
+    ETH_PRIVATE_KEY_FILE_DEFAULT, ETH_RPC_ENDPOINT_DEFAULTS, \
+    ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
 from zeth.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.contracts import \
     InstanceDescription, get_block_number, get_mix_results, compile_files
@@ -14,8 +16,26 @@ from zeth.wallet import ZethNoteDescription, Wallet
 from click import ClickException
 import json
 from os.path import exists, join
-from typing import Dict, Tuple, Optional, Callable, Any
 from web3 import Web3  # type: ignore
+from typing import Dict, Tuple, Optional, Callable, Any
+
+
+class NetworkConfig:
+    """
+    Simple description of a network. Name (may be used in some cases to
+    understand the type of network) and endpoint URL.
+    """
+    def __init__(self, name: str, endpoint: str):
+        self.name = name
+        self.endpoint = endpoint
+
+    def to_json(self) -> str:
+        return json.dumps({"name": self.name, "endpoint": self.endpoint})
+
+    @staticmethod
+    def from_json(network_config_json: str) -> NetworkConfig:
+        json_dict = json.loads(network_config_json)
+        return NetworkConfig(json_dict["name"], json_dict["endpoint"])
 
 
 class ClientConfig:
@@ -24,20 +44,55 @@ class ClientConfig:
     """
     def __init__(
             self,
-            eth_rpc_endpoint: str,
+            eth_network: str,
             prover_server_endpoint: str,
             instance_file: str,
             address_file: str,
             wallet_dir: str):
-        self.eth_rpc_endpoint = eth_rpc_endpoint
+        self.eth_network = eth_network
         self.prover_server_endpoint = prover_server_endpoint
         self.instance_file = instance_file
         self.address_file = address_file
         self.wallet_dir = wallet_dir
 
 
+def get_eth_network(eth_network: Optional[str]) -> NetworkConfig:
+    """
+    Parse the `eth_network` parameter to extract a URL. If `eth_network` does
+    not contain a URL, try interpreting it as a network name, otherwise
+    interpret it as a file to load the network config from. Fall back to a
+    default network config filename, and finally the default network name.
+    """
+    if eth_network is None:
+        if exists(ETH_NETWORK_FILE_DEFAULT):
+            eth_network = ETH_NETWORK_FILE_DEFAULT
+        else:
+            eth_network = ETH_NETWORK_DEFAULT
+
+    if eth_network.startswith("http"):
+        # When given only a url, assume the default network name
+        return NetworkConfig(ETH_NETWORK_DEFAULT, eth_network)
+
+    # Try loading from a file
+    if exists(eth_network):
+        with open(eth_network) as network_f:
+            return NetworkConfig.from_json(network_f.read())
+
+    # Assume a network name
+    try:
+        endpoint = ETH_RPC_ENDPOINT_DEFAULTS[eth_network]
+        return NetworkConfig(eth_network, endpoint)
+    except KeyError:
+        raise ClickException(f"invalid network name / url: {eth_network}")
+
+
+def open_web3_from_network(eth_net: NetworkConfig) -> Any:
+    return open_web3(eth_net.endpoint)
+
+
 def open_web3_from_ctx(ctx: ClientConfig) -> Any:
-    return open_web3(ctx.eth_rpc_endpoint)
+    eth_net = get_eth_network(ctx.eth_network)
+    return open_web3_from_network(eth_net)
 
 
 class MixerDescription:
@@ -180,7 +235,7 @@ def do_sync(
     """
     def _do_sync() -> int:
         wallet_next_block = wallet.get_next_block()
-        chain_block_number: int = get_block_number(web3)
+        chain_block_number = get_block_number(web3)
 
         if chain_block_number >= wallet_next_block:
             new_merkle_root: Optional[bytes] = None
@@ -301,3 +356,26 @@ def load_eth_address(eth_addr: Optional[str]) -> str:
         with open(eth_addr, "r") as eth_addr_f:
             return Web3.toChecksumAddress(eth_addr_f.read().rstrip())
     raise ClickException(f"could find file or parse eth address: {eth_addr}")
+
+
+def write_eth_address(eth_addr: str, eth_addr_file: str) -> None:
+    if exists(eth_addr_file):
+        raise ClickException(f"refusing to overwrite address \"{eth_addr_file}\"")
+    with open(eth_addr_file, "w") as eth_addr_f:
+        eth_addr_f.write(eth_addr)
+
+
+def load_eth_private_key(private_key_file: Optional[str]) -> Optional[bytes]:
+    private_key_file = private_key_file or ETH_PRIVATE_KEY_FILE_DEFAULT
+    if exists(private_key_file):
+        with open(private_key_file, "rb") as private_key_f:
+            return private_key_f.read(32)
+    return None
+
+
+def write_eth_private_key(private_key: bytes, private_key_file: str) -> None:
+    if exists(private_key_file):
+        raise ClickException(
+            f"refusing to overwrite private key \"{private_key_file}\"")
+    with open(private_key_file, "wb") as private_key_f:
+        private_key_f.write(private_key)

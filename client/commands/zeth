@@ -6,7 +6,8 @@
 
 from commands.constants import \
     PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
-    ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_RPC_ENDPOINT_DEFAULT
+    ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_NETWORK_FILE_DEFAULT, \
+    ETH_NETWORK_DEFAULT
 from commands.utils import ClientConfig
 from commands.zeth_deploy import deploy
 from commands.zeth_gen_address import gen_address
@@ -34,9 +35,11 @@ def help(ctx: Context) -> None:
 
 @group(cls=DefaultGroup, default_if_no_args=True, default="help")
 @option(
-    "--eth-rpc",
-    default=ETH_RPC_ENDPOINT_DEFAULT,
-    help=f"Ethereum rpc end-point")
+    "--eth-network",
+    default=None,
+    help="Ethereum RPC endpoint, network or config file "
+    f"(default: '{ETH_NETWORK_FILE_DEFAULT}' if it exists, otherwise "
+    f"'{ETH_NETWORK_DEFAULT}')")
 @option(
     "--prover-server",
     default=PROVER_SERVER_ENDPOINT_DEFAULT,
@@ -56,7 +59,7 @@ def help(ctx: Context) -> None:
 @pass_context
 def zeth(
         ctx: Context,
-        eth_rpc: Optional[str],
+        eth_network: Optional[str],
         prover_server: str,
         instance_file: str,
         address_file: str,
@@ -65,7 +68,7 @@ def zeth(
         ctx.invoke(help)
     ctx.ensure_object(dict)
     ctx.obj = ClientConfig(
-        eth_rpc_endpoint=eth_rpc,
+        eth_network=eth_network,
         prover_server_endpoint=prover_server,
         instance_file=instance_file,
         address_file=address_file,
