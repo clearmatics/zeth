@@ -5,7 +5,7 @@ setup:
 	pip install --upgrade pip --progress-bar off
 	pip install -e . --progress-bar off
 	$(MAKE) grpc
-	python -c "from zeth.contracts import install_sol; \
+	python -c "from core.contracts import install_sol; \
 		install_sol()"
 
 check: syntax test
@@ -30,14 +30,16 @@ grpc: $(PROTOBUF_OUTPUT)
 syntax: ${PROTOBUF_OUTPUT}
 	flake8 `git ls-files '**.py'`
 	mypy -p api
-	mypy -p zeth
-	mypy -p test
+	mypy -p core
+	mypy -p unit_tests
 	mypy -p test_commands
-	mypy -p commands
-	pylint zeth test test_commands commands
+	mypy -p zeth_cli
+	mypy -p zeth_misc_cli
+	pylint core zeth_cli unit_tests test_commands zeth_misc_cli
 
 test: ${PROTOBUF_OUTPUT}
 	python -m unittest
 
 test_contracts: ${PROTOBUF_OUTPUT}
-	python test/test_contract_base_mixer.py
+	python test_commands/test_contract_base_mixer.py
+	python test_commands/test_merkle_tree_contract.py

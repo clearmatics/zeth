@@ -2,12 +2,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.contracts import Interface, send_contract_call
-from zeth.utils import EtherValue, get_zeth_dir
-from zeth.constants import SOL_COMPILER_VERSION
-from commands.utils import load_eth_address, load_eth_private_key, \
+from core.contracts import Interface, send_contract_call
+from core.utils import EtherValue, get_zeth_dir
+from core.constants import SOL_COMPILER_VERSION
+from zeth_cli.utils import load_eth_address, load_eth_private_key, \
     get_eth_network, open_web3_from_network
-from commands.constants import ETH_ADDRESS_DEFAULT
+from zeth_cli.constants import ETH_ADDRESS_DEFAULT
 from click import command, argument, option, pass_context
 from os.path import join
 from solcx import compile_files, set_solc_version
