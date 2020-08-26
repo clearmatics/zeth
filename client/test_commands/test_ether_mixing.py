@@ -31,7 +31,8 @@ def print_balances(
 
 
 def main() -> None:
-    zksnark = zeth.core.zksnark.get_zksnark_provider(zeth.core.utils.parse_zksnark_arg())
+    zksnark = zeth.core.zksnark.get_zksnark_provider(
+        zeth.core.utils.parse_zksnark_arg())
 
     web3, eth = mock.open_test_web3()
 

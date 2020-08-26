@@ -6,7 +6,8 @@
 
 from __future__ import annotations
 
-from zeth.core.utils import hex_extend_32bytes, digest_to_binary_string, encode_abi
+from zeth.core.utils import hex_extend_32bytes, digest_to_binary_string, \
+    encode_abi
 
 from Crypto import Random
 from hashlib import blake2s

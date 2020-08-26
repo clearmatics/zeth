@@ -6,8 +6,8 @@
 
 from __future__ import annotations
 from zeth.core.zeth_address import ZethAddressPriv
-from zeth.core.mixer_client import zeth_note_to_json_dict, zeth_note_from_json_dict, \
-    receive_note, compute_nullifier, compute_commitment
+from zeth.core.mixer_client import zeth_note_to_json_dict, \
+    zeth_note_from_json_dict, receive_note, compute_nullifier, compute_commitment
 from zeth.core.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.core.contracts import MixOutputEvents
 from zeth.core.merkle_tree import PersistentMerkleTree

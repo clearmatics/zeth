@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from core import signing
+from zeth.core import signing
 from hashlib import sha256
 from unittest import TestCase
 from os import urandom
