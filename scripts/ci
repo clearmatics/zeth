@@ -197,7 +197,7 @@ fi
 # re-execute the script in the docker container with CI_USE_DOCKER=0
 if [ "${CI_USE_DOCKER}" == "1" ] ; then
     docker pull clearmatics/zeth-base:latest
-    docker build -f Dockerfile-zeth -t zeth-dev .
+    docker build -f Dockerfile-dev -t zeth-dev .
     docker run \
            -t \
            -p 50051:50051 \

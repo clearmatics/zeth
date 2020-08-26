@@ -1,4 +1,4 @@
-FROM alpine:3.12 AS multistage
+FROM alpine:3.12
 
 ####
 # This Dockerfile builds the base image
