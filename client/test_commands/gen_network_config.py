@@ -17,7 +17,7 @@ from typing import Optional
     "--output-file",
     default=ETH_NETWORK_FILE_DEFAULT,
     help=f"Output filename (default: {ETH_NETWORK_FILE_DEFAULT})")
-def generate_network_config(
+def gen_network_config(
         eth_network: str,
         eth_rpc_endpoint: Optional[str],
         output_file: str) -> None:
@@ -29,16 +29,16 @@ def generate_network_config(
 
     \b
         # Write default config for "ganache" to the default file
-        $ zeth_debug generate_network_config ganache
+        $ zeth_debug gen-network-config ganache
 
     \b
         # Write "geth" config with a custom endpoint to default file
-        $ zeth_debug generate_network_config geth \\
+        $ zeth_debug gen-network-config geth \\
             --eth-rpc-endpoint http://localhost:8080
 
     \b
         # Write default network and endpoint to file "default-network"
-        $ zeth_debug generate_network_config --output-file default-network
+        $ zeth_debug gen-network-config --output-file default-network
     """
 
     if eth_rpc_endpoint is not None:
