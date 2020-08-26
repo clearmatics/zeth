@@ -14,14 +14,14 @@ from click import command, argument, option, pass_context, ClickException, Conte
 @option("--eth-private-key", help="Sender eth private key")
 @option("--wait", is_flag=True, help="Wait for transaction to complete")
 @pass_context
-def approve(
+def token_approve(
         ctx: Context,
         value: str,
         eth_addr: str,
         eth_private_key: str,
         wait: bool) -> None:
     """
-    Approve the mixer to spend some amount of tokens
+    Approve the mixer to spend some amount of ERC20/223 tokens
     """
     approve_value = EtherValue(value)
     eth_addr = load_eth_address(eth_addr)

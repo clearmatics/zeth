@@ -28,7 +28,7 @@ FUND_AMOUNT_DEFAULT = 1000000
     help=f"Amount to fund in Ether (default: {FUND_AMOUNT_DEFAULT})")
 @argument("dest-addr")
 @pass_context
-def send(
+def eth_send(
         ctx: Any,
         dest_addr: str,
         eth_private_key: Optional[str],

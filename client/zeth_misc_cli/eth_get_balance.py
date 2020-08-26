@@ -20,7 +20,7 @@ from typing import Optional, Any
     default=False,
     help="Display in Wei instead of Ether")
 @pass_context
-def get_balance(ctx: Any, eth_addr: Optional[str], wei: bool) -> None:
+def eth_get_balance(ctx: Any, eth_addr: Optional[str], wei: bool) -> None:
     """
     Command to get the balance of specific addresses. Support multiple queries
     per invocation (outputs one per line), for efficiency.

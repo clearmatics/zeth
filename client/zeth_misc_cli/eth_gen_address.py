@@ -16,7 +16,7 @@ from typing import Optional
 @command()
 @option("--eth-addr-file", help="Address output filename")
 @option("--eth-private-key-file", help="Private key output filename")
-def gen_address(
+def eth_gen_address(
         eth_addr_file: Optional[str],
         eth_private_key_file: Optional[str]) -> None:
     """
