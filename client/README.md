@@ -1,5 +1,26 @@
 # Python client to interact with the prover
 
+## Structure of the directory
+
+### `zeth`
+
+```
+zeth
+ |_ core
+ |_ cli
+ |_ test
+```
+
+This directory contains the core functionalities of the Zeth client, a set of unit tests, and the code for the client CLI.
+
+### `test_commands`
+
+This directory contains a list of useful commands to help run the tests, as well as some minimal testinf scenarios acting as integration tests.
+
+### `zeth_misc`
+
+The `zeth_misc` folder contains the source code of the `zeth_misc` CLI which provides useful functionalities that ease the use of Zeth on Ethereum-like networks.
+
 ## Setup
 
 Ensure that the following are installed:

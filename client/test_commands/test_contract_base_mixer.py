@@ -4,9 +4,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from core.constants import \
+from zeth.core.constants import \
     JS_INPUTS, JS_OUTPUTS, PUBLIC_VALUE_LENGTH, ZETH_PUBLIC_UNIT_VALUE
-from core.mixer_client import MixerClient
+from zeth.core.mixer_client import MixerClient
 from typing import Any
 import test_commands.mock as mock
 

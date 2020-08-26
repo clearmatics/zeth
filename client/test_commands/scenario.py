@@ -4,14 +4,14 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from core.mixer_client import MixerClient, OwnershipKeyPair, joinsplit_sign, \
+from zeth.core.mixer_client import MixerClient, OwnershipKeyPair, joinsplit_sign, \
     encrypt_notes, get_dummy_input_and_address, compute_h_sig, \
     JoinsplitSigVerificationKey
-import core.contracts as contracts
-from core.constants import ZETH_PRIME, FIELD_CAPACITY
-import core.signing as signing
-from core.merkle_tree import MerkleTree, compute_merkle_path
-from core.utils import EtherValue, to_zeth_units
+import zeth.core.contracts as contracts
+from zeth.core.constants import ZETH_PRIME, FIELD_CAPACITY
+import zeth.core.signing as signing
+from zeth.core.merkle_tree import MerkleTree, compute_merkle_path
+from zeth.core.utils import EtherValue, to_zeth_units
 import test_commands.mock as mock
 from api.zeth_messages_pb2 import ZethNote
 
