@@ -16,8 +16,13 @@ ETH_NETWORK_FILE_DEFAULT = "eth-network"
 ETH_NETWORK_DEFAULT = "ganache"
 PROVER_SERVER_ENDPOINT_DEFAULT = "localhost:50051"
 
-ADDRESS_FILE_DEFAULT = "zeth-address.json"
-INSTANCE_FILE_DEFAULT = "zeth-instance.json"
+# Note that these must satisfy:
+#   ZETH_PUBLIC_ADDRESS_FILE_DEFAULT == \
+#     commands.utils.find_pub_address_file(ZETH_SECRET_ADDRESS_FILE_DEFAULT)
+ZETH_SECRET_ADDRESS_FILE_DEFAULT = "zeth-address.priv"
+ZETH_PUBLIC_ADDRESS_FILE_DEFAULT = "zeth-address.pub"
+
+INSTANCE_FILE_DEFAULT = "zeth-instance"
 ETH_ADDRESS_DEFAULT = "eth-address"
 ETH_PRIVATE_KEY_FILE_DEFAULT = "eth-private-key"
 

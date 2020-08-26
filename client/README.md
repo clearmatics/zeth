@@ -84,14 +84,14 @@ behalf of each of them to experiment with the system.
   be funded. When running the testnet (see [top-level README](../README.md)),
   addresses are created at startup and written to the console. One of these can
   be copy-pasted into this file.
-- `zeth-instance.json` contains the address and ABI for a single instance of
-  the zeth contract. This file is created by the deployment step below and
-  should be distributed to each client that will use this instance.
-- `zeth-address.json` and `zeth-address.json.pub` hold the secret and public
-  parts of a ZethAddress. These can be generated with the `zeth gen-address`
-  command. `zeth-address.json.pub` holds the public address which can be shared
-  with other users, allowing them to privately transfer funds to this client.
-  The secret `zeth-address.json` should **not** be shared.
+- `zeth-instance` contains the address and ABI for a single instance of the
+  zeth contract. This file is created by the deployment step below and should
+  be distributed to each client that will use this instance.
+- `zeth-address.priv` and `zeth-address.pub` hold the secret and public parts
+  of a ZethAddress. These can be generated with the `zeth gen-address` command.
+  `zeth-address.pub` holds the public address which can be shared with other
+  users, allowing them to privately transfer funds to this client. The secret
+  `zeth-address.priv` should **not** be shared.
 
 Note that by default the `zeth` command will also create a `notes`
 subdirectory to contain the set of notes owned by this user. These are also
@@ -105,15 +105,15 @@ token), a directory should be created for each deployment:
   MyZethInstances/
       Ether/
           eth-address
-          zeth-instance.json
-          zeth-address.json
-          zeth-address.json.pub
+          zeth-instance
+          zeth-address.priv
+          zeth-address.pub
           notes/...
       ERCToken1/
           eth-address
-          zeth-instance.json
-          zeth-address.json
-          zeth-address.json.pub
+          zeth-instance
+          zeth-address.priv
+          zeth-address.pub
           notes/...
 ```
 
@@ -140,7 +140,7 @@ an `eth-address` file mentioned above, where the address has sufficient funds.
 (env)$ zeth deploy
 
 # Share the instance file with all clients
-$ cp zeth-instance.json <destination>
+$ cp zeth-instance <destination>
 ```
 
 ## User setup
@@ -155,14 +155,14 @@ $ cd alice
 $ echo 0x.... > eth-address
 
 # Copy the instance file (received from the deployer)
-$ cp <shared-instance-file> zeth-instance.json
+$ cp <shared-instance-file> zeth-instance
 
-# Generate new Zeth Address with secret (zeth-address.json) and
-# public address (zeth-address.json.pub)
+# Generate new Zeth Address with secret (zeth-address.priv) and
+# public address (zeth-address.pub)
 $ zeth gen-address
 
 # Share the public address with other users
-$ cp zeth-address.json.pub <destination>
+$ cp zeth-address.pub <destination>
 ```
 
 With these files in place, `zeth` commands invoked from inside this directory
@@ -173,10 +173,10 @@ files.
 ## Receiving transactions
 
 The following command scans the blockchain for any new transactions which
-generate Zeth notes indended for the public address `zeth-address.json.pub`:
+generate Zeth notes indended for the public address `zeth-address.pub`:
 
 ```console
-# Check all new blocks for notes addressed to `zeth-address.json.pub`,
+# Check all new blocks for notes addressed to `zeth-address.pub`,
 # storing them in the ./notes directory.
 (env)$ zeth sync
 ```
@@ -201,8 +201,8 @@ value (8 hex chars) can be used to specify which notes to use as inputs.
 
 **Output Notes.** Given as pairs of Zeth public address and value, separated by
 a comma `,`. The form of the public address is exactly as in the
-`zeth-address.json.pub` file. That is, two 32 byte hex values separated by a
-colon `:`.
+`zeth-address.pub` file. That is, two 32 byte hex values separated by a colon
+`:`.
 
 **Public Input.** Ether or ERC20 token value to deposit in the mixer.
 
@@ -217,9 +217,8 @@ creation of Zeth notes.
 
 ```console
 # Deposit 10 ether from `eth-address`, creating Zeth notes owned by Alice
-(env)$ zeth mix --out <public-zeth-address>,10 --vin 10
+(env)$ zeth mix --out zeth-address.pub,10 --vin 10
 ```
-where `<public-zeth-address>` is the contents of `zeth-address.json.pub`.
 
 ### Privately send a ZethNote to another user
 

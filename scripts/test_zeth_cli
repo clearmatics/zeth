@@ -29,7 +29,7 @@ setup_user_local_key bob ${eth_network}
 setup_user_local_key charlie ${eth_network}
 
 # Deploy
-! [ -e deployer/zeth-instance.json ] && \
+! [ -e deployer/zeth-instance ] && \
     run_as deployer zeth deploy
 
 copy_deployment_info deployer alice
@@ -38,19 +38,19 @@ copy_deployment_info deployer charlie
 
 # Alice deposits 200 and sends 100 to Bob
 pushd alice
-alice_pk=`cat zeth-address.json.pub`
+alice_pk=`cat zeth-address.pub`
 if ! [ -e notes/state_zeth ] ; then
     zeth mix --wait --vin 200 --out ${alice_pk},200
 fi
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
 
-bob_pk=`cat ../bob/zeth-address.json.pub`
+bob_pk=`cat ../bob/zeth-address.pub`
 zeth mix \
      --wait \
      --in ${note_id} \
-     --out ${alice_pk},100 \
-     --out ${bob_pk},100
+     --out 100 \
+     --out ../bob/zeth-address.pub,100
 
 # Sync and check that our note has been spent
 zeth sync
@@ -66,7 +66,7 @@ pushd bob
 zeth sync
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
-charlie_pk=`cat ../charlie/zeth-address.json.pub`
+charlie_pk=`cat ../charlie/zeth-address.pub`
 zeth mix \
      --wait \
      --in ${note_id} \

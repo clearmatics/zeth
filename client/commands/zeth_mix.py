@@ -17,7 +17,12 @@ from typing import List, Tuple, Optional
 @option("--vin", default="0", help="Public input value")
 @option("--vout", default="0", help="Public output value")
 @option("--in", "input_notes", multiple=True, help="Input note identifier")
-@option("--out", "output_specs", multiple=True, help="<receiver_pub_key>,<value>")
+@option(
+    "--out",
+    "output_specs",
+    multiple=True,
+    help="<receiver_pub_addr>,<value> where <receiver_pub_addr> can be a "
+    "filename or hex address")
 @option("--eth-addr", help="Sender's eth address or address filename")
 @option("--eth-private-key", help="Sender's eth private key file")
 @option("--wait", is_flag=True, help="Wait for transaction to be mined")

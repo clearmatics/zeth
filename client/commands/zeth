@@ -6,8 +6,8 @@
 
 from commands.constants import \
     PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
-    ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, ETH_NETWORK_FILE_DEFAULT, \
-    ETH_NETWORK_DEFAULT
+    ZETH_SECRET_ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, \
+    ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
 from commands.utils import ClientConfig
 from commands.zeth_deploy import deploy
 from commands.zeth_gen_address import gen_address
@@ -50,8 +50,8 @@ def help(ctx: Context) -> None:
     help=f"Instance file (default={INSTANCE_FILE_DEFAULT})")
 @option(
     "--address-file",
-    default=ADDRESS_FILE_DEFAULT,
-    help=f"Instance file (default={ADDRESS_FILE_DEFAULT})")
+    default=ZETH_SECRET_ADDRESS_FILE_DEFAULT,
+    help=f"Zeth zecret address file (default={ZETH_SECRET_ADDRESS_FILE_DEFAULT})")
 @option(
     "--wallet-dir",
     default=WALLET_DIR_DEFAULT,
