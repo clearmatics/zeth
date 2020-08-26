@@ -4,11 +4,11 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from test_commands.gen_network_config import generate_network_config
-from test_commands.gen_eth_address import generate_eth_address
-from test_commands.fund_eth_address import fund_eth_address
-from test_commands.get_eth_balance import get_eth_balance
-from test_commands.deploy_test_token import deploy_test_token
+from debug_commands.gen_network_config import generate_network_config
+from debug_commands.gen_eth_address import generate_eth_address
+from debug_commands.fund_eth_address import fund_eth_address
+from debug_commands.get_eth_balance import get_eth_balance
+from debug_commands.deploy_test_token import deploy_test_token
 from commands.constants import ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
 from click import group, command, option, pass_context, ClickException, Context
 from click_default_group import DefaultGroup
