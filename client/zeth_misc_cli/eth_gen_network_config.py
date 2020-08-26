@@ -29,16 +29,16 @@ def gen_network_config(
 
     \b
         # Write default config for "ganache" to the default file
-        $ zeth_debug gen-network-config ganache
+        $ zeth_misc eth gen-network-config ganache
 
     \b
         # Write "geth" config with a custom endpoint to default file
-        $ zeth_debug gen-network-config geth \\
+        $ zeth_misc eth gen-network-config geth \\
             --eth-rpc-endpoint http://localhost:8080
 
     \b
         # Write default network and endpoint to file "default-network"
-        $ zeth_debug gen-network-config --output-file default-network
+        $ zeth_misc eth gen-network-config --output-file default-network
     """
 
     if eth_rpc_endpoint is not None:

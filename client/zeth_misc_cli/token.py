@@ -47,4 +47,4 @@ token.add_command(help)
 
 
 if __name__ == "__main__":
-    zeth_debug()  # pylint: disable=no-value-for-parameter
+    token()  # pylint: disable=no-value-for-parameter

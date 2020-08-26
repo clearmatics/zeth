@@ -34,7 +34,7 @@ if ! [ -e zeth-instance ] ; then
     alice_eth_addr=`cat ../alice/eth-address`
 
     # deploy token
-    token_address=`zeth_debug deploy-test-token 200 ${alice_eth_addr}`
+    token_address=`python test_commands/deploy-test-token.py 200 ${alice_eth_addr}`
     echo token_address=${token_address}
 
     # deploy contract, tied to token address
