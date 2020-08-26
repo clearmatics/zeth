@@ -7,6 +7,7 @@
 from test_commands.gen_network_config import generate_network_config
 from test_commands.gen_eth_address import generate_eth_address
 from test_commands.fund_eth_address import fund_eth_address
+from test_commands.send_eth import send_eth
 from test_commands.get_eth_balance import get_eth_balance
 from test_commands.deploy_test_token import deploy_test_token
 from commands.constants import ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
@@ -46,6 +47,7 @@ def zeth_debug(ctx: Context, eth_network: str) -> None:
 zeth_debug.add_command(generate_network_config)
 zeth_debug.add_command(generate_eth_address)
 zeth_debug.add_command(fund_eth_address)
+zeth_debug.add_command(send_eth)
 zeth_debug.add_command(get_eth_balance)
 zeth_debug.add_command(deploy_test_token)
 zeth_debug.add_command(help)
