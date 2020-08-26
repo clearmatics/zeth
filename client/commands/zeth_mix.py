@@ -14,13 +14,13 @@ from typing import List, Tuple, Optional
 
 
 @command()
-@option("--vin", default="0", help="public in value")
-@option("--vout", default="0", help="public out value")
-@option("--in", "input_notes", multiple=True, help="input note identifier")
+@option("--vin", default="0", help="Public input value")
+@option("--vout", default="0", help="Public output value")
+@option("--in", "input_notes", multiple=True, help="Input note identifier")
 @option("--out", "output_specs", multiple=True, help="<receiver_pub_key>,<value>")
-@option("--eth-addr", help="sender eth address or address filename")
-@option("--eth-private-key", help="sender's eth private key file")
-@option("--wait", is_flag=True, help="wait for transaction to be mined")
+@option("--eth-addr", help="Sender's eth address or address filename")
+@option("--eth-private-key", help="Sender's eth private key file")
+@option("--wait", is_flag=True, help="Wait for transaction to be mined")
 @pass_context
 def mix(
         ctx: Context,
