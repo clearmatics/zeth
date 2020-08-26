@@ -229,7 +229,8 @@ def do_sync(
         web3: Any,
         wallet: Wallet,
         wait_tx: Optional[str],
-        callback: Optional[Callable[[ZethNoteDescription], None]] = None) -> int:
+        callback: Optional[Callable[[ZethNoteDescription], None]] = None,
+        batch_size: Optional[int] = None) -> int:
     """
     Implementation of sync, reused by several commands.  Returns the
     block_number synced to.  Also updates and saves the MerkleTree.
@@ -244,7 +245,11 @@ def do_sync(
             print(f"SYNCHING blocks ({wallet_next_block} - {chain_block_number})")
             mixer_instance = wallet.mixer_instance
             for mix_result in get_mix_results(
-                    web3, mixer_instance, wallet_next_block, chain_block_number):
+                    web3,
+                    mixer_instance,
+                    wallet_next_block,
+                    chain_block_number,
+                    batch_size):
                 new_merkle_root = mix_result.new_merkle_root
                 for note_desc in wallet.receive_notes(mix_result.output_events):
                     if callback:

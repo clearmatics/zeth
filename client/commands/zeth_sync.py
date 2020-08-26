@@ -10,8 +10,9 @@ from typing import Optional
 
 @command()
 @option("--wait-tx", help="Wait for tx hash")
+@option("--batch-size", type=int, help="Override blocks per query")
 @pass_context
-def sync(ctx: Context, wait_tx: Optional[str]) -> None:
+def sync(ctx: Context, wait_tx: Optional[str], batch_size: Optional[int]) -> None:
     """
     Attempt to retrieve new notes for the key in <key-file>
     """
@@ -21,5 +22,6 @@ def sync(ctx: Context, wait_tx: Optional[str]) -> None:
     mixer_instance = mixer_desc.mixer.instantiate(web3)
     js_secret = load_zeth_address_secret(client_ctx)
     wallet = open_wallet(mixer_instance, js_secret, client_ctx)
-    chain_block_number = do_sync(web3, wallet, wait_tx, zeth_note_short_print)
+    chain_block_number = do_sync(
+        web3, wallet, wait_tx, zeth_note_short_print, batch_size)
     print(f"SYNCED to {chain_block_number}")
