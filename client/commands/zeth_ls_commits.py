@@ -12,7 +12,7 @@ from click import Context, command, pass_context
 @pass_context
 def ls_commits(ctx: Context) -> None:
     """
-    List all commitments in the joinsplit contract
+    List all commitments in the Zeth mixer contract
     """
     client_ctx = ctx.obj
     zeth_client, _mixer_desc = create_zeth_client_and_mixer_desc(client_ctx)
