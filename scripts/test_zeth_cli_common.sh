@@ -37,7 +37,7 @@ function setup_user_hosted_key() {
         (zeth_debug generate-network-config)
     ! [ -e eth-address ] && \
         (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
-    ! [ -e zeth-address.json ] && \
+    ! [ -e zeth-address.priv ] && \
         (zeth gen-address)
     popd
 }
@@ -52,7 +52,7 @@ function setup_user_local_key() {
     ! [ -e eth-address ] && \
         (zeth_debug generate-eth-address && \
          zeth_debug fund-eth-address)
-    ! [ -e zeth-address.json ] && \
+    ! [ -e zeth-address.priv ] && \
         (zeth gen-address)
     popd
 }
@@ -60,5 +60,5 @@ function setup_user_local_key() {
 # 1 - deployer_name
 # 2 - user_name
 function copy_deployment_info() {
-    cp $1/zeth-instance.json $2
+    cp $1/zeth-instance $2
 }

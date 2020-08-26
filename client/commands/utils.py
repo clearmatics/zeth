@@ -5,7 +5,8 @@
 from __future__ import annotations
 from commands.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT, \
     ETH_PRIVATE_KEY_FILE_DEFAULT, ETH_RPC_ENDPOINT_DEFAULTS, \
-    ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
+    ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT, \
+    ZETH_PUBLIC_ADDRESS_FILE_DEFAULT
 from zeth.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.contracts import \
     InstanceDescription, get_block_number, get_mix_results, compile_files
@@ -15,7 +16,7 @@ from zeth.utils import \
 from zeth.wallet import ZethNoteDescription, Wallet
 from click import ClickException
 import json
-from os.path import exists, join
+from os.path import exists, join, splitext
 from web3 import Web3  # type: ignore
 from typing import Dict, Tuple, Optional, Callable, Any
 
@@ -44,7 +45,7 @@ class ClientConfig:
     """
     def __init__(
             self,
-            eth_network: str,
+            eth_network: Optional[str],
             prover_server_endpoint: str,
             instance_file: str,
             address_file: str,
@@ -280,7 +281,7 @@ def pub_address_file(addr_file: str) -> str:
     """
     The name of a public address file, given the secret address file.
     """
-    return addr_file + ".pub"
+    return splitext(addr_file)[0] + ".pub"
 
 
 def find_pub_address_file(base_file: str) -> str:
@@ -335,13 +336,25 @@ def zeth_note_short_print(note_desc: ZethNoteDescription) -> None:
 
 def parse_output(output_str: str) -> Tuple[ZethAddressPub, EtherValue]:
     """
-    Parse a string of the form "<receiver_pub_key>,<value>" to an output
-    specification.
+    Parse a string of the form "<receiver_pub_address>,<value>" to an output
+    specification. <receiver_pub_address> can be a file name containing the
+    address. "<value>" is interpretted as the <default-address-file>,<value>.
     """
     parts = output_str.split(",")
-    if len(parts) != 2:
+    if len(parts) == 1:
+        addr = ZETH_PUBLIC_ADDRESS_FILE_DEFAULT
+        value = parts[0]
+    elif len(parts) == 2:
+        addr = parts[0]
+        value = parts[1]
+    else:
         raise ClickException(f"invalid output spec: {output_str}")
-    return (ZethAddressPub.parse(parts[0]), EtherValue(parts[1]))
+
+    if exists(addr):
+        with open(addr, "r") as addr_f:
+            addr = addr_f.read()
+
+    return (ZethAddressPub.parse(addr), EtherValue(value))
 
 
 def load_eth_address(eth_addr: Optional[str]) -> str:
