@@ -31,8 +31,8 @@ syntax: ${PROTOBUF_OUTPUT}
 	flake8 `git ls-files '**.py'`
 	mypy -p zeth
 	mypy -p test_commands
-	mypy -p zeth_misc
-	pylint zeth.core zeth.cli test test_commands zeth_misc
+	mypy -p zeth_helper
+	pylint zeth.core zeth.cli test test_commands zeth_helper
 
 test: ${PROTOBUF_OUTPUT}
 	python -m unittest

@@ -24,7 +24,7 @@ function show_balances() {
     for name in deployer alice bob charlie ; do
         pushd ${name}
         echo -n "${name}: "
-        zeth_misc eth-get-balance
+        zeth_helper eth-get-balance
         popd
     done
 }
@@ -34,7 +34,7 @@ function setup_user_hosted_key() {
     mkdir -p $1
     pushd $1
     ! [ -e eth-network ] && \
-        (zeth_misc eth-gen-network-config)
+        (zeth_helper eth-gen-network-config)
     ! [ -e eth-address ] && \
         (grep $1 ../accounts | grep -oe '0x.*' > eth-address)
     ! [ -e zeth-address.priv ] && \
@@ -48,9 +48,9 @@ function setup_user_local_key() {
     mkdir -p $1
     pushd $1
     ! [ -e eth-network ] && \
-        (zeth_misc eth-gen-network-config $2)
+        (zeth_helper eth-gen-network-config $2)
     ! [ -e eth-address ] && \
-        (zeth_misc eth-gen-address && \
+        (zeth_helper eth-gen-address && \
          python -m test_commands.fund_eth_address)
     ! [ -e zeth-address.priv ] && \
         (zeth gen-address)
