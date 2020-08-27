@@ -32,7 +32,7 @@ syntax: ${PROTOBUF_OUTPUT}
 	mypy -p zeth
 	mypy -p test_commands
 	mypy -p zeth_misc
-	pylint zeth.core zeth.cli zeth.test test_commands zeth_misc
+	pylint zeth.core zeth.cli test test_commands zeth_misc
 
 test: ${PROTOBUF_OUTPUT}
 	python -m unittest
