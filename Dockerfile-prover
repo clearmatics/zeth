@@ -1,15 +1,15 @@
 FROM zeth-base AS multistage
 
+ENV ZETH_PATH=/home/zeth
 # Copy necessary files in the docker container
-COPY . /home/zeth
+COPY . ${ZETH_PATH}
 
 # Install the submodules
-RUN \
-    cd /home/zeth \
+RUN cd ${ZETH_PATH} \
     && git submodule update --init --recursive
 
 # Build `prover_server`
-RUN cd /home/zeth \
+RUN cd ${ZETH_PATH} \
     && mkdir build \
     && cd build \
     && cmake .. -DMPC=OFF -DSTATIC_BUILD=ON \
