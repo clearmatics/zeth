@@ -12,8 +12,8 @@ from zeth.core.constants import ZETH_PRIME, FIELD_CAPACITY
 import zeth.core.signing as signing
 from zeth.core.merkle_tree import MerkleTree, compute_merkle_path
 from zeth.core.utils import EtherValue, to_zeth_units
+from zeth.api.zeth_messages_pb2 import ZethNote
 import test_commands.mock as mock
-from api.zeth_messages_pb2 import ZethNote
 
 from os import urandom
 from web3 import Web3  # type: ignore

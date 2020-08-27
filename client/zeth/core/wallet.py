@@ -12,7 +12,7 @@ from zeth.core.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.core.contracts import MixOutputEvents
 from zeth.core.merkle_tree import PersistentMerkleTree
 from zeth.core.utils import EtherValue, short_commitment, from_zeth_units
-from api.zeth_messages_pb2 import ZethNote
+from zeth.api.zeth_messages_pb2 import ZethNote
 from os.path import join, basename, exists
 from os import makedirs
 from shutil import move

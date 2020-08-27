@@ -8,7 +8,7 @@
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/snarks/pghr13/pghr13_snark.hpp"
 
-#include <api/snark_messages.pb.h>
+#include <zeth/api/snark_messages.pb.h>
 
 namespace libzeth
 {

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zeth.core import zksnark
-from api import ec_group_messages_pb2
+from zeth.api import ec_group_messages_pb2
 import json
 from unittest import TestCase
 

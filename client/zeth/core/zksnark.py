@@ -10,8 +10,8 @@ zk-SNARK abstraction
 
 from zeth.core.utils import hex_to_int
 import zeth.core.constants as constants
-from api import snark_messages_pb2
-from api import ec_group_messages_pb2
+from zeth.api import snark_messages_pb2
+from zeth.api import ec_group_messages_pb2
 
 import json
 from abc import (ABC, abstractmethod)

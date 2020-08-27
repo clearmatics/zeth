@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package zeth_proto;
 
-import "api/pghr13_messages.proto";
-import "api/groth16_messages.proto";
+import "zeth/api/pghr13_messages.proto";
+import "zeth/api/groth16_messages.proto";
 
 message VerificationKey {
     oneof VK {

@@ -22,7 +22,7 @@ from zeth.core.utils import EtherValue, hex_digest_to_binary_string, \
     digest_to_binary_string, int64_to_hex, message_to_bytes, \
     eth_address_to_bytes32, eth_uint256_to_int, to_zeth_units, get_contracts_dir
 from zeth.core.prover_client import ProverClient
-from api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
+from zeth.api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
 
 import os
 import json

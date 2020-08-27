@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zeth.core.mixer_client import compute_commitment
-from api.zeth_messages_pb2 import ZethNote
+from zeth.api.zeth_messages_pb2 import ZethNote
 import zeth.core.constants as constants
 
 from unittest import TestCase

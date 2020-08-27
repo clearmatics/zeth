@@ -4,11 +4,11 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
+from zeth.api.zeth_messages_pb2 import ProofInputs
+from zeth.api.snark_messages_pb2 import VerificationKey, ExtendedProof
+from zeth.api import prover_pb2_grpc  # type: ignore
 import grpc  # type: ignore
 from google.protobuf import empty_pb2
-from api.zeth_messages_pb2 import ProofInputs
-from api.snark_messages_pb2 import VerificationKey, ExtendedProof
-from api import prover_pb2_grpc  # type: ignore
 
 
 class ProverClient:

@@ -4,8 +4,8 @@ package zeth_proto;
 
 import "google/protobuf/empty.proto";
 
-import "api/zeth_messages.proto";
-import "api/snark_messages.proto";
+import "zeth/api/zeth_messages.proto";
+import "zeth/api/snark_messages.proto";
 
 service Prover {
     // Fetch the verification key from the prover server

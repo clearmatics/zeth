@@ -10,7 +10,6 @@
 #include "libzeth/zeth_constants.hpp"
 #include "zeth_config.h"
 
-#include <api/prover.grpc.pb.h>
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <grpc/grpc.h>
@@ -22,6 +21,7 @@
 #include <memory>
 #include <stdio.h>
 #include <string>
+#include <zeth/api/prover.grpc.pb.h>
 
 using pp = libzeth::defaults::pp;
 using Field = libzeth::defaults::Field;

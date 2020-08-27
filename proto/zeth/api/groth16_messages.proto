@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package zeth_proto;
 
-import "api/ec_group_messages.proto";
+import "zeth/api/ec_group_messages.proto";
 
 message VerificationKeyGROTH16 {
     HexPointBaseGroup1Affine alpha_g1 = 1;

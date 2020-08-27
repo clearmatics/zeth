@@ -11,17 +11,17 @@ setup:
 check: syntax test
 
 PROTOBUF_OUTPUT := \
-  api/prover_pb2.py api/prover_pb2_grpc.py \
-  api/pghr13_messages_pb2.py api/pghr13_messages_pb2_grpc.py \
-  api/groth16_messages_pb2.py api/groth16_messages_pb2_grpc.py \
-  api/ec_group_messages_pb2.py api/ec_group_messages_pb2_grpc.py \
-  api/snark_messages_pb2.py api/snark_messages_pb2_grpc.py \
-  api/zeth_messages_pb2.py api/zeth_messages_pb2_grpc.py
+  zeth/api/prover_pb2.py zeth/api/prover_pb2_grpc.py \
+  zeth/api/pghr13_messages_pb2.py zeth/api/pghr13_messages_pb2_grpc.py \
+  zeth/api/groth16_messages_pb2.py zeth/api/groth16_messages_pb2_grpc.py \
+  zeth/api/ec_group_messages_pb2.py zeth/api/ec_group_messages_pb2_grpc.py \
+  zeth/api/snark_messages_pb2.py zeth/api/snark_messages_pb2_grpc.py \
+  zeth/api/zeth_messages_pb2.py zeth/api/zeth_messages_pb2_grpc.py
 
-api/%_pb2.py api/%_pb2_grpc.py: ../api/%.proto
+zeth/api/%_pb2.py zeth/api/%_pb2_grpc.py: ../proto/zeth/api/%.proto
 	python -m grpc_tools.protoc \
-      -I.. --proto_path .. --python_out=. --grpc_python_out=. --mypy_out=. \
-      api/$*.proto
+      -I../proto --proto_path ../proto --python_out=. --grpc_python_out=. --mypy_out=. \
+      zeth/api/$*.proto
 
 grpc: $(PROTOBUF_OUTPUT)
 	@# suppress "Nothing to do for ..." warning
@@ -29,13 +29,10 @@ grpc: $(PROTOBUF_OUTPUT)
 
 syntax: ${PROTOBUF_OUTPUT}
 	flake8 `git ls-files '**.py'`
-	mypy -p api
-	mypy -p zeth.core
-	mypy -p zeth.test
-	mypy -p zeth.cli
+	mypy -p zeth
 	mypy -p test_commands
 	mypy -p zeth_misc
-	pylint zeth.core zeth.test zeth.cli test_commands zeth_misc
+	pylint zeth.core zeth.cli zeth.test test_commands zeth_misc
 
 test: ${PROTOBUF_OUTPUT}
 	python -m unittest

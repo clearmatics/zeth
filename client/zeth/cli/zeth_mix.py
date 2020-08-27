@@ -8,7 +8,7 @@ from zeth.cli.utils import create_zeth_client_and_mixer_desc, \
 from zeth.core.constants import JS_INPUTS, JS_OUTPUTS
 from zeth.core.mixer_client import ZethAddressPub
 from zeth.core.utils import EtherValue, from_zeth_units
-from api.zeth_messages_pb2 import ZethNote
+from zeth.api.zeth_messages_pb2 import ZethNote
 from click import command, option, pass_context, ClickException, Context
 from typing import List, Tuple, Optional
 
