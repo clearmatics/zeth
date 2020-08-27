@@ -14,9 +14,9 @@ debug/*json
 /zeth_contracts/node_modules/*
 
 # Ignore client env and build directories
-/client/api/*_pb2.py
-/client/api/*_pb2_grpc.py
-/client/api/*_pb2.pyi
+/client/zeth/api/*_pb2.py
+/client/zeth/api/*_pb2_grpc.py
+/client/zeth/api/*_pb2.pyi
 
 # Ignore test files
 /_test_contrib_*/

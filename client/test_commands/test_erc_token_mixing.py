@@ -4,14 +4,14 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import zeth.merkle_tree
-import zeth.utils
-import zeth.constants as constants
-from zeth.zeth_address import ZethAddressPriv
-from zeth.contracts import MixOutputEvents
-from zeth.mixer_client import MixerClient
-from zeth.wallet import Wallet, ZethNoteDescription
-from zeth.utils import EtherValue
+import zeth.core.merkle_tree
+import zeth.core.utils
+import zeth.core.constants as constants
+from zeth.core.zeth_address import ZethAddressPriv
+from zeth.core.contracts import MixOutputEvents
+from zeth.core.mixer_client import MixerClient
+from zeth.core.wallet import Wallet, ZethNoteDescription
+from zeth.core.utils import EtherValue
 import test_commands.mock as mock
 import test_commands.scenario as scenario
 from test_commands.deploy_test_token import deploy_token, mint_token
@@ -54,7 +54,8 @@ def allowance(
 
 def main() -> None:
 
-    zksnark = zeth.zksnark.get_zksnark_provider(zeth.utils.parse_zksnark_arg())
+    zksnark = zeth.core.zksnark.get_zksnark_provider(
+        zeth.core.utils.parse_zksnark_arg())
     web3, eth = mock.open_test_web3()
 
     # Ethereum addresses
@@ -66,8 +67,7 @@ def main() -> None:
     keystore = mock.init_test_keystore()
 
     # Deploy the token contract
-    token_instance = deploy_token(
-        web3, deployer_eth_address, None, EtherValue(4000000, 'wei'))
+    token_instance = deploy_token(web3, deployer_eth_address, None, 4000000)
 
     # Deploy Zeth contracts
     tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
@@ -79,7 +79,7 @@ def main() -> None:
         token_instance.address,
         None,
         zksnark)
-    mk_tree = zeth.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
+    mk_tree = zeth.core.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
     mixer_instance = zeth_client.mixer_instance
 
     # Keys and wallets
@@ -139,7 +139,7 @@ def main() -> None:
             mk_tree,
             bob_eth_address,
             keystore,
-            zeth.utils.EtherValue(0))
+            zeth.core.utils.EtherValue(0))
     except Exception as e:
         allowance_mixer = allowance(
             token_instance,

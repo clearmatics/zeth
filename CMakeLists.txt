@@ -240,21 +240,20 @@ set(
   PROTO_SRC_DIR
   ${PROJECT_BINARY_DIR}
 )
-#file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 
 # Get the proto files
 file(
   GLOB
   PROTO_FILES
-  ${PROJECT_SOURCE_DIR}/api/*.proto
+  ${PROJECT_SOURCE_DIR}/proto/zeth/api/*.proto
 )
 
 # Generating sensibly into a python module requires setting --proto_path to the
 # zeth root, and referencing files as 'api/prover.proto' etc. This requires us
 # to tweak the references to the source files.
-set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
-set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
-set(PROTOBUF_APPEND_DEST_PATH "/api")
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/proto)
+set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR}/proto)
+set(PROTOBUF_APPEND_DEST_PATH "/zeth/api")
 set(PROTOBUF_GENERATE_CPP_APPEND_PATH OFF)
 set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
 

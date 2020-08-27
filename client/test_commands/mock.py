@@ -4,16 +4,14 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.zeth_address import ZethAddress
-from zeth.encryption import EncryptionKeyPair, decode_encryption_secret_key, \
-    decode_encryption_public_key
-from zeth.ownership import gen_ownership_keypair
-from zeth.utils import get_contracts_dir, open_web3
+from zeth.core.zeth_address import ZethAddress
+from zeth.core.encryption import EncryptionKeyPair, \
+    decode_encryption_secret_key, decode_encryption_public_key
+from zeth.core.ownership import gen_ownership_keypair
+from zeth.core.utils import get_contracts_dir, open_web3
 from os.path import join
 from solcx import compile_files  # type: ignore
 from typing import Dict, List, Tuple, Optional, Any
-from web3 import Web3  # type: ignore
-import os
 
 
 # Web3 HTTP provider
@@ -111,7 +109,3 @@ def deploy_contract(
         address=contract_address,
         abi=contract_abi)
     return interface, contract_instance
-
-
-def gen_eth_private_key() -> bytes:
-    return Web3.sha3(os.urandom(4096))

@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.contracts import Interface, send_contract_call
-from zeth.utils import EtherValue, get_zeth_dir
-from zeth.constants import SOL_COMPILER_VERSION
-from commands.utils import load_eth_address, load_eth_private_key, \
+from zeth.core.contracts import Interface, send_contract_call
+from zeth.core.utils import EtherValue, get_zeth_dir
+from zeth.core.constants import SOL_COMPILER_VERSION
+from zeth.cli.utils import load_eth_address, load_eth_private_key, \
     get_eth_network, open_web3_from_network
-from commands.constants import ETH_ADDRESS_DEFAULT
-from click import command, argument, option, pass_context
+from zeth.cli.constants import ETH_ADDRESS_DEFAULT, \
+    ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
+from click import command, argument, option
 from os.path import join
 from solcx import compile_files, set_solc_version
 from typing import Optional, Any
@@ -19,11 +20,16 @@ from typing import Optional, Any
     "--eth-addr",
     help=f"Address or address filename (default: {ETH_ADDRESS_DEFAULT})")
 @option("--eth-private-key", help="Sender's eth private key file")
+@option(
+    "--eth-network",
+    default=None,
+    help="Ethereum RPC endpoint, network or config file "
+    f"(default: '{ETH_NETWORK_FILE_DEFAULT}' if it exists, otherwise "
+    f"'{ETH_NETWORK_DEFAULT}')")
 @argument("mint_amount", type=int)
 @argument("recipient_address")
-@pass_context
 def deploy_test_token(
-        ctx: Any,
+        eth_network: Optional[str],
         eth_addr: Optional[str],
         eth_private_key: Optional[str],
         mint_amount: int,
@@ -35,9 +41,9 @@ def deploy_test_token(
     eth_addr = load_eth_address(eth_addr)
     eth_private_key_data = load_eth_private_key(eth_private_key)
     recipient_address = load_eth_address(recipient_address)
-    web3 = open_web3_from_network(get_eth_network(ctx.obj["eth_network"]))
+    web3 = open_web3_from_network(get_eth_network(eth_network))
     token_instance = deploy_token(
-        web3, eth_addr, eth_private_key_data, EtherValue(4000000, 'wei'))  \
+        web3, eth_addr, eth_private_key_data, 4000000) \
         # pylint: disable=no-member
     mint_tx_hash = mint_token(
         web3,
@@ -74,7 +80,7 @@ def deploy_token(
         web3: Any,
         deployer_address: str,
         deployer_private_key: Optional[bytes],
-        deployment_gas: Optional[EtherValue]) -> Any:
+        deployment_gas: Optional[int]) -> Any:
     """
     Deploy the testing ERC20 token contract
     """
@@ -87,6 +93,7 @@ def deploy_token(
         call=constructor_call,
         sender_eth_addr=deployer_address,
         sender_eth_private_key=deployer_private_key,
+        value=None,
         gas=deployment_gas)
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -110,3 +117,7 @@ def mint_token(
         call=mint_call,
         sender_eth_addr=deployer_address,
         sender_eth_private_key=deployer_private_key)
+
+
+if __name__ == "__main__":
+    deploy_test_token()  # pylint: disable=no-value-for-parameter

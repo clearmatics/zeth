@@ -4,11 +4,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from commands.constants import ETH_ADDRESS_DEFAULT
-from commands.utils import \
+from zeth.cli.constants import ETH_ADDRESS_DEFAULT, \
+    ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
+from zeth.cli.utils import \
     get_eth_network, load_eth_address, EtherValue, open_web3_from_network
-from click import command, option, pass_context
-from typing import Optional, Any
+from click import command, option
+from typing import Optional
 
 FUND_AMOUNT_DEFAULT = 1000000
 
@@ -19,13 +20,18 @@ FUND_AMOUNT_DEFAULT = 1000000
     help=f"Address or address filename (default: {ETH_ADDRESS_DEFAULT})")
 @option("--source-addr", help="Address or address filename (optional)")
 @option(
+    "--eth-network",
+    default=None,
+    help="Ethereum RPC endpoint, network or config file "
+    f"(default: '{ETH_NETWORK_FILE_DEFAULT}' if it exists, otherwise "
+    f"'{ETH_NETWORK_DEFAULT}')")
+@option(
     "--amount",
     type=int,
     default=FUND_AMOUNT_DEFAULT,
     help=f"Amount to fund (default: {FUND_AMOUNT_DEFAULT})")
-@pass_context
 def fund_eth_address(
-        ctx: Any,
+        eth_network: Optional[str],
         eth_addr: Optional[str],
         source_addr: Optional[str],
         amount: int) -> None:
@@ -34,14 +40,14 @@ def fund_eth_address(
     the RPC host is used.
     """
     eth_addr = load_eth_address(eth_addr)
-    eth_network = get_eth_network(ctx.obj["eth_network"])
-    web3 = open_web3_from_network(eth_network)
+    network = get_eth_network(eth_network)
+    web3 = open_web3_from_network(network)
 
     if not source_addr:
         # Use the first hosted address.
         source_addr = web3.eth.accounts[0]  # pylint: disable=no-member
 
-        if eth_network.name == "autonity-helloworld":
+        if network.name == "autonity-helloworld":
             # The Autonity helloworld network supplies hosted accounts, secured
             # with the password 'test'. Attempt to unlock it.
             # pylint: disable=import-outside-toplevel, no-member
@@ -58,3 +64,7 @@ def fund_eth_address(
         "to": eth_addr,
         "value": EtherValue(amount).wei
     })
+
+
+if __name__ == "__main__":
+    fund_eth_address()  # pylint: disable=no-value-for-parameter

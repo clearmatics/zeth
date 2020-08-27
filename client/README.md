@@ -1,5 +1,27 @@
 # Python client to interact with the prover
 
+## Structure of the directory
+
+### `zeth`
+
+```
+zeth
+ |_ api
+ |_ cli
+ |_ core
+ |_ helper
+```
+
+This directory contains the API code for the Zeth client (`api`), its backend implementation (`core`), the code for the client CLI (`cli`), and the code of an "helper" CLI - providing useful functionalities to support the use of Zeth on Ethereum-like networks (`helper`).
+
+### `test_commands`
+
+This directory contains a list of useful commands to help run the tests, as well as some minimal testing scenarios acting as integration tests.
+
+### `tests`
+
+The `tests` folder contains the unit tests of the `zeth` package.
+
 ## Setup
 
 Ensure that the following are installed:
@@ -251,7 +273,7 @@ As explained above, the `zeth mix` command can be used to deposit funds on the
 mixer, transfer notes, and withdraw funds from the mixer. A single command can
 perform all of these in one transaction, which greatly improves the privacy
 level provided by Zeth. In fact, no exact information about the meaning of a
-transaction is ever leaked to the an observant attacker.
+transaction is ever leaked to an observant attacker.
 
 Here are a few examples of complex payments allowed by `zeth mix`:
 
