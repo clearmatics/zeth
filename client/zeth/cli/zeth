@@ -16,7 +16,7 @@ from zeth.cli.zeth_mix import mix
 from zeth.cli.zeth_ls_notes import ls_notes
 from zeth.cli.zeth_ls_commits import ls_commits
 from click import group, command, option, pass_context, ClickException, Context
-from click_default_group import DefaultGroup
+from click_default_group import DefaultGroup  # type: ignore
 from typing import Optional, Any
 
 
@@ -28,7 +28,7 @@ def help(ctx: Context) -> None:
     """
     # Note, this command is implemented to ensure that an error is raised if no
     # subcommand is specified (which also catches errors in scripts).
-    print(ctx.parent.get_help())
+    print(ctx.parent.get_help())  # type: ignore
     raise ClickException("no command specified")
 
 
