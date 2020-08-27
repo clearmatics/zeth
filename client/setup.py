@@ -63,7 +63,7 @@ setup(
     scripts=[
         "test_commands/test_ether_mixing.py",
         "test_commands/test_erc_token_mixing.py",
-        "zeth_helper/zeth_helper",
+        "zeth/helper/zeth_helper",
         "zeth/cli/zeth",
     ]
 )
