@@ -6,20 +6,21 @@
 
 ```
 zeth
- |_ core
+ |_ api
  |_ cli
- |_ test
+ |_ core
+ |_ helper
 ```
 
-This directory contains the core functionality of the Zeth client, a set of unit tests, and the code for the client CLI.
+This directory contains the API code for the Zeth client (`api`), its backend implementation (`core`), the code for the client CLI.(`cli`), and the code of the an "helper" CLI - providing useful functionalities to support the use of Zeth on Ethereum-like networks (`helper`).
 
 ### `test_commands`
 
-This directory contains a list of useful commands to help run the tests, as well as some minimal testinf scenarios acting as integration tests.
+This directory contains a list of useful commands to help run the tests, as well as some minimal testing scenarios acting as integration tests.
 
-### `zeth_helper`
+### `tests`
 
-The `zeth_helper` folder contains the source code of the `zeth_helper` CLI which provides useful functionality to support the use of Zeth on Ethereum-like networks.
+The `tests` folder contains the unit tests of the `zeth` package.
 
 ## Setup
 
