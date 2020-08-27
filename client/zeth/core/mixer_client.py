@@ -18,10 +18,9 @@ import zeth.core.signing as signing
 from zeth.core.timer import Timer
 from zeth.core.zksnark import \
     IZKSnarkProvider, get_zksnark_provider, GenericProof, GenericVerificationKey
-from zeth.core.utils import EtherValue, get_trusted_setup_dir, \
-    hex_digest_to_binary_string, digest_to_binary_string, int64_to_hex, \
-    message_to_bytes, eth_address_to_bytes32, eth_uint256_to_int, to_zeth_units, \
-    get_contracts_dir
+from zeth.core.utils import EtherValue, hex_digest_to_binary_string, \
+    digest_to_binary_string, int64_to_hex, message_to_bytes, \
+    eth_address_to_bytes32, eth_uint256_to_int, to_zeth_units, get_contracts_dir
 from zeth.core.prover_client import ProverClient
 from api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
 
@@ -191,12 +190,12 @@ def create_joinsplit_input(
         nullifier=nullifier.hex())
 
 
-def write_verification_key(vk_json: GenericVerificationKey) -> None:
+def write_verification_key(
+        vk_json: GenericVerificationKey,
+        filename: str) -> None:
     """
     Writes the verification key (object) in a json file
     """
-    setup_dir = get_trusted_setup_dir()
-    filename = os.path.join(setup_dir, "vk.json")
     with open(filename, 'w') as outfile:
         json.dump(vk_json, outfile)
 
@@ -333,7 +332,7 @@ class MixerClient:
             EtherValue(constants.DEPLOYMENT_GAS_WEI, 'wei')
 
         print("[INFO] 2. Received VK, writing verification key...")
-        write_verification_key(vk)
+        write_verification_key(vk, "vk.json")
 
         print("[INFO] 3. VK written, deploying smart contracts...")
         contracts_dir = get_contracts_dir()
