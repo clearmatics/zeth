@@ -16,7 +16,7 @@ from web3.utils.events import get_event_data  # type: ignore
 import json
 import solcx
 import traceback
-from typing import Dict, List, Iterator, Optional, Any
+from typing import Dict, List, Iterator, Optional, Union, Any
 
 # Avoid trying to read too much data into memory
 SYNC_BLOCKS_PER_BATCH = 1000
@@ -128,7 +128,7 @@ class InstanceDescription:
             contract_name: str,
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
-            deployment_gas: EtherValue,
+            deployment_gas: int,
             compiler_flags: Dict[str, Any] = None,
             **kwargs: Any) -> InstanceDescription:
         """
@@ -156,7 +156,7 @@ class InstanceDescription:
             web3: Any,
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
-            deployment_gas: EtherValue,
+            deployment_gas: int,
             compiled: Any,
             **kwargs: Any) -> InstanceDescription:
         contract = web3.eth.contract(
@@ -274,7 +274,7 @@ def mix(
         sender_address: str,
         sender_private_key: Optional[bytes],
         pub_value: Optional[EtherValue],
-        call_gas: Optional[EtherValue]) -> str:
+        call_gas: Optional[int]) -> str:
     """
     Create and broadcast a transaction that calls the mix method of the Mixer
     """
@@ -340,7 +340,7 @@ def send_contract_call(
         sender_eth_addr: str,
         sender_eth_private_key: Optional[bytes] = None,
         value: Optional[EtherValue] = None,
-        gas: Optional[EtherValue] = None) -> bytes:
+        gas: Optional[int] = None) -> bytes:
     """
     Broadcast a transaction for a contract call, handling the difference
     between hosted keys (sender_eth_private_key is None) and local keys
@@ -348,11 +348,11 @@ def send_contract_call(
     transaction.
 
     """
-    tx_desc = {'from': sender_eth_addr}
+    tx_desc: Dict[str, Union[str, int]] = {'from': sender_eth_addr}
     if value:
         tx_desc["value"] = value.wei
     if gas:
-        tx_desc["gas"] = gas.wei
+        tx_desc["gas"] = gas
     if sender_eth_private_key:
         tx_desc["gasPrice"] = web3.eth.gasPrice
         tx_desc["nonce"] = web3.eth.getTransactionCount(sender_eth_addr)

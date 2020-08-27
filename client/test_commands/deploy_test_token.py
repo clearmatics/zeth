@@ -43,7 +43,7 @@ def deploy_test_token(
     recipient_address = load_eth_address(recipient_address)
     web3 = open_web3_from_network(get_eth_network(eth_network))
     token_instance = deploy_token(
-        web3, eth_addr, eth_private_key_data, EtherValue(4000000, 'wei'))  \
+        web3, eth_addr, eth_private_key_data, 4000000) \
         # pylint: disable=no-member
     mint_tx_hash = mint_token(
         web3,
@@ -80,7 +80,7 @@ def deploy_token(
         web3: Any,
         deployer_address: str,
         deployer_private_key: Optional[bytes],
-        deployment_gas: Optional[EtherValue]) -> Any:
+        deployment_gas: Optional[int]) -> Any:
     """
     Deploy the testing ERC20 token contract
     """
@@ -93,6 +93,7 @@ def deploy_token(
         call=constructor_call,
         sender_eth_addr=deployer_address,
         sender_eth_private_key=deployer_private_key,
+        value=None,
         gas=deployment_gas)
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
 

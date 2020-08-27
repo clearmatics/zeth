@@ -317,7 +317,7 @@ class MixerClient:
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
             token_address: Optional[str] = None,
-            deploy_gas: Optional[EtherValue] = None,
+            deploy_gas: Optional[int] = None,
             zksnark: Optional[IZKSnarkProvider] = None) \
             -> Tuple[MixerClient, contracts.InstanceDescription]:
         """
@@ -328,8 +328,7 @@ class MixerClient:
         prover_client = ProverClient(prover_server_endpoint)
         vk_proto = prover_client.get_verification_key()
         vk = zksnark.verification_key_from_proto(vk_proto)
-        deploy_gas = deploy_gas or \
-            EtherValue(constants.DEPLOYMENT_GAS_WEI, 'wei')
+        deploy_gas = deploy_gas or constants.DEPLOYMENT_GAS_WEI
 
         print("[INFO] 2. Received VK, writing verification key...")
         write_verification_key(vk, "vk.json")
@@ -411,7 +410,7 @@ class MixerClient:
             sender_eth_address,
             sender_eth_private_key,
             tx_value,
-            EtherValue(constants.DEFAULT_MIX_GAS_WEI, 'wei'))
+            constants.DEFAULT_MIX_GAS_WEI)
 
     def create_mix_parameters_keep_signing_key(
             self,
@@ -517,8 +516,7 @@ class MixerClient:
             mix_params: contracts.MixParameters,
             sender_eth_address: str,
             pub_value: Optional[EtherValue] = None,
-            call_gas: EtherValue = EtherValue(constants.DEFAULT_MIX_GAS_WEI)
-    ) -> str:
+            call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> str:
         return contracts.mix(
             self.web3,
             self._zksnark,

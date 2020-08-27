@@ -67,8 +67,7 @@ def main() -> None:
     keystore = mock.init_test_keystore()
 
     # Deploy the token contract
-    token_instance = deploy_token(
-        web3, deployer_eth_address, None, EtherValue(4000000, 'wei'))
+    token_instance = deploy_token(web3, deployer_eth_address, None, 4000000)
 
     # Deploy Zeth contracts
     tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
