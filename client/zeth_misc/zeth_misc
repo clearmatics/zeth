@@ -5,11 +5,11 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 
-from zeth_misc_cli.eth_gen_network_config import eth_gen_network_config
-from zeth_misc_cli.eth_gen_address import eth_gen_address
-from zeth_misc_cli.eth_get_balance import eth_get_balance
-from zeth_misc_cli.eth_send import eth_send
-from zeth_misc_cli.token_approve import token_approve
+from zeth_misc.eth_gen_network_config import eth_gen_network_config
+from zeth_misc.eth_gen_address import eth_gen_address
+from zeth_misc.eth_get_balance import eth_get_balance
+from zeth_misc.eth_send import eth_send
+from zeth_misc.token_approve import token_approve
 from zeth.cli.constants import ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
 from click import group, command, option, pass_context, ClickException, Context
 from click_default_group import DefaultGroup
