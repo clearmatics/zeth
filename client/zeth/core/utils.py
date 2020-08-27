@@ -213,13 +213,7 @@ def parse_zksnark_arg() -> str:
 def get_zeth_dir() -> str:
     return os.environ.get(
         'ZETH',
-        normpath(join(dirname(__file__), "..", "..")))
-
-
-def get_trusted_setup_dir() -> str:
-    return os.environ.get(
-        'ZETH_TRUSTED_SETUP_DIR',
-        join(get_zeth_dir(), "trusted_setup"))
+        normpath(join(dirname(__file__), "..", "..", "..")))
 
 
 def get_contracts_dir() -> str:
