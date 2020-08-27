@@ -14,8 +14,8 @@
 #include "libzeth/core/note.hpp"
 #include "libzeth/core/utils.hpp"
 
-#include <api/snark_messages.pb.h>
-#include <api/zeth_messages.pb.h>
+#include <zeth/api/snark_messages.pb.h>
+#include <zeth/api/zeth_messages.pb.h>
 
 /// Functions to convert between in-memory and protobuf types. Consistent with
 /// encoding functions for other types, we use the `<type>_to_proto` and

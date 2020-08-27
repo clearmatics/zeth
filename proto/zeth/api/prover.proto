@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package zeth_proto;
+
+import "google/protobuf/empty.proto";
+
+import "zeth/api/zeth_messages.proto";
+import "zeth/api/snark_messages.proto";
+
+service Prover {
+    // Fetch the verification key from the prover server
+    rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
+
+    // Request a proof generation on the given inputs
+    rpc Prove(ProofInputs) returns (ExtendedProof) {}
+}

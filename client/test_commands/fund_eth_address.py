@@ -4,9 +4,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth_cli.constants import ETH_ADDRESS_DEFAULT, \
+from zeth.cli.constants import ETH_ADDRESS_DEFAULT, \
     ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
-from zeth_cli.utils import \
+from zeth.cli.utils import \
     get_eth_network, load_eth_address, EtherValue, open_web3_from_network
 from click import command, option
 from typing import Optional

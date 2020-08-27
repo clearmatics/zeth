@@ -34,7 +34,7 @@ if ! [ -e zeth-instance ] ; then
     alice_eth_addr=`cat ../alice/eth-address`
 
     # deploy token
-    token_address=`python test_commands/deploy-test-token.py 200 ${alice_eth_addr}`
+    token_address=`python -m test_commands.deploy_test_token 200 ${alice_eth_addr}`
     echo token_address=${token_address}
 
     # deploy contract, tied to token address
@@ -50,7 +50,7 @@ copy_deployment_info deployer charlie
 pushd alice
 alice_pk=`cat zeth-address.pub`
 if ! [ -e notes/state_zeth ] ; then
-    zeth token-approve 200
+    zeth_helper token-approve 200
     zeth mix --wait --vin 200 --out 200
 fi
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package zeth_proto;
+
+import "zeth/api/pghr13_messages.proto";
+import "zeth/api/groth16_messages.proto";
+
+message VerificationKey {
+    oneof VK {
+        VerificationKeyPGHR13 pghr13_verification_key = 1;
+        VerificationKeyGROTH16 groth16_verification_key = 2;
+    }
+}
+
+message ExtendedProof {
+    oneof EP {
+        ExtendedProofPGHR13 pghr13_extended_proof = 1;
+        ExtendedProofGROTH16 groth16_extended_proof = 2;
+    }
+}

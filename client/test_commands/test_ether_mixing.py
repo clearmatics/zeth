@@ -4,15 +4,15 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import core.constants
-import core.contracts
-import core.merkle_tree
-import core.utils
-import core.zksnark
-from core.zeth_address import ZethAddressPriv
-from core.contracts import MixOutputEvents
-from core.mixer_client import MixerClient
-from core.wallet import Wallet, ZethNoteDescription
+import zeth.core.constants
+import zeth.core.contracts
+import zeth.core.merkle_tree
+import zeth.core.utils
+import zeth.core.zksnark
+from zeth.core.zeth_address import ZethAddressPriv
+from zeth.core.contracts import MixOutputEvents
+from zeth.core.mixer_client import MixerClient
+from zeth.core.wallet import Wallet, ZethNoteDescription
 import test_commands.mock as mock
 import test_commands.scenario as scenario
 
@@ -31,7 +31,8 @@ def print_balances(
 
 
 def main() -> None:
-    zksnark = core.zksnark.get_zksnark_provider(core.utils.parse_zksnark_arg())
+    zksnark = zeth.core.zksnark.get_zksnark_provider(
+        zeth.core.utils.parse_zksnark_arg())
 
     web3, eth = mock.open_test_web3()
 
@@ -44,7 +45,7 @@ def main() -> None:
     charlie_eth_address = eth.accounts[3]
 
     # Deploy Zeth contracts
-    tree_depth = core.constants.ZETH_MERKLE_TREE_DEPTH
+    tree_depth = zeth.core.constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client, _contract_desc = MixerClient.deploy(
         web3,
         mock.TEST_PROVER_SERVER_ENDPOINT,
@@ -59,7 +60,7 @@ def main() -> None:
     # shared by all virtual users. This avoids having to pass all mix results
     # to all wallets, and allows some of the methods in the scenario module,
     # which must update the tree directly.
-    mk_tree = core.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
+    mk_tree = zeth.core.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
     mixer_instance = zeth_client.mixer_instance
 
     # Keys and wallets

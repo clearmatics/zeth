@@ -2,12 +2,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from core.contracts import Interface, send_contract_call
-from core.utils import EtherValue, get_zeth_dir
-from core.constants import SOL_COMPILER_VERSION
-from zeth_cli.utils import load_eth_address, load_eth_private_key, \
+from zeth.core.contracts import Interface, send_contract_call
+from zeth.core.utils import EtherValue, get_zeth_dir
+from zeth.core.constants import SOL_COMPILER_VERSION
+from zeth.cli.utils import load_eth_address, load_eth_private_key, \
     get_eth_network, open_web3_from_network
-from zeth_cli.constants import ETH_ADDRESS_DEFAULT, \
+from zeth.cli.constants import ETH_ADDRESS_DEFAULT, \
     ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
 from click import command, argument, option
 from os.path import join
@@ -43,7 +43,7 @@ def deploy_test_token(
     recipient_address = load_eth_address(recipient_address)
     web3 = open_web3_from_network(get_eth_network(eth_network))
     token_instance = deploy_token(
-        web3, eth_addr, eth_private_key_data, EtherValue(4000000, 'wei'))  \
+        web3, eth_addr, eth_private_key_data, 4000000) \
         # pylint: disable=no-member
     mint_tx_hash = mint_token(
         web3,
@@ -80,7 +80,7 @@ def deploy_token(
         web3: Any,
         deployer_address: str,
         deployer_private_key: Optional[bytes],
-        deployment_gas: Optional[EtherValue]) -> Any:
+        deployment_gas: Optional[int]) -> Any:
     """
     Deploy the testing ERC20 token contract
     """
@@ -93,6 +93,7 @@ def deploy_token(
         call=constructor_call,
         sender_eth_addr=deployer_address,
         sender_eth_private_key=deployer_private_key,
+        value=None,
         gas=deployment_gas)
     tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
 

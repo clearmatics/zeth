@@ -4,9 +4,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from core.constants import ZETH_MERKLE_TREE_DEPTH
-from core.merkle_tree import MerkleTree
-from core.utils import extend_32bytes
+from zeth.core.constants import ZETH_MERKLE_TREE_DEPTH
+from zeth.core.merkle_tree import MerkleTree
+from zeth.core.utils import extend_32bytes
 from typing import Any
 import test_commands.mock as mock
 
