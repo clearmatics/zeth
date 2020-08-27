@@ -30,6 +30,7 @@ grpc: $(PROTOBUF_OUTPUT)
 syntax: ${PROTOBUF_OUTPUT}
 	flake8 `git ls-files '**.py'`
 	mypy -p zeth
+	mypy -p tests
 	mypy -p test_commands
 	mypy -p zeth_helper
 	pylint zeth.core zeth.cli test test_commands zeth_helper

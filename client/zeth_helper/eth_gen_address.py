@@ -4,12 +4,13 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import sys
 from zeth.cli.constants import ETH_ADDRESS_DEFAULT, ETH_PRIVATE_KEY_FILE_DEFAULT
 from zeth.cli.utils import write_eth_private_key, write_eth_address
 from zeth.core.utils import eth_address_from_private_key
-from test_commands.mock import gen_eth_private_key
 from click import command, option
+from web3 import Web3  # type: ignore
+import os
+import sys
 from typing import Optional
 
 
@@ -36,3 +37,10 @@ def eth_gen_address(
     print(
         f"{eth_address}: written to {eth_addr_file}, "
         f"private key to {eth_private_key_file}")
+
+
+def gen_eth_private_key() -> bytes:
+    """
+    Simple private key generation function. Not for production use.
+    """
+    return Web3.sha3(os.urandom(4096))
