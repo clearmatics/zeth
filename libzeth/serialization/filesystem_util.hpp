@@ -11,7 +11,7 @@ namespace libzeth
 {
 
 /// This function returns the path to the setup directory in which the SRS will
-/// be written and/or read from. It uses the ZETH_TRUSTED_SETUP_DIR environment
+/// be written and/or read from. It uses the ZETH_SETUP_DIR environment
 /// variable, if available, falling back to ${HOME}/zeth_setup (using the POSIX
 /// HOME environment variable, see:
 /// https://pubs.opengroup.org/onlinepubs/9699919799/), and finally the current

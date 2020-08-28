@@ -5,7 +5,7 @@
 /notestore/
 
 # Ignore the output of the trusted setup (ie: Proving and Verifying key)
-/trusted_setup/
+/zeth_setup/
 
 # Ignore the content of the debug folder
 debug/*json
