@@ -1,6 +1,6 @@
 // Get verification key
 var path = require('path');
-var setup_path = process.env.ZETH_TRUSTED_SETUP_DIR;
+var setup_path = process.env.ZETH_SETUP_DIR;
 var vk_json = path.join(setup_path, 'vk.json');
 var vk = require(vk_json);
 
@@ -17,7 +17,7 @@ const Bytes = artifacts.require("./Bytes.sol");
 const Bytes_tests = artifacts.require("./Bytes_tests.sol");
 
 module.exports = (deployer) => {
-  console.log("[WARNING] Make sure you have the right verification key stored in the `ZETH_TRUSTED_SETUP_DIR`!")
+  console.log("[WARNING] Make sure you have the right verification key stored in the `ZETH_SETUP_DIR`!")
   deployer.deploy(
     Verifier,
     vk.a[0],

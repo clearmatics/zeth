@@ -9,10 +9,10 @@ namespace libzeth
 
 boost::filesystem::path get_path_to_setup_directory()
 {
-    // If the ZETH_TRUSTED_SETUP_DIR env var is not set, check HOME, and
+    // If the ZETH_SETUP_DIR env var is not set, check HOME, and
     // fallback to current directory.
 
-    const char *path = std::getenv("ZETH_TRUSTED_SETUP_DIR");
+    const char *path = std::getenv("ZETH_SETUP_DIR");
     if (path != nullptr) {
         return path;
     }
