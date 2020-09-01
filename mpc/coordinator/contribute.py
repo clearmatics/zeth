@@ -56,7 +56,7 @@ def wait_for_turn(
             raise Exception("contributor turn has passed")
         if our_idx == current_index:
             return
-        # Wait 1 minute and try again
+        # Wait for interval and try again
         print(f"Waiting ... (current_idx: {current_index}, our_idx: {our_idx})")
         time.sleep(interval)
 
