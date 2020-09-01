@@ -292,7 +292,7 @@ int main(int argc, char **argv)
     po::options_description options("");
     options.add_options()(
         "keypair,k",
-        po::value<std::string>(),
+        po::value<boost::filesystem::path>(),
         "file to load keypair from. If it doesn't exist, a new keypair will be "
         "generated and written to this file. (default: "
         "~/zeth_setup/keypair.bin)");
