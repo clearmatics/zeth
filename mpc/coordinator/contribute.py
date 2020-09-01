@@ -95,6 +95,7 @@ def contribute(
 
     except RequestException as err:
         print(f"EXCEPTION: {err.response.status_code} - {err.response.text}")
+        raise
 
     # Sign and upload
     _upload_response(client, response_file, sk)
