@@ -32,7 +32,6 @@ $ . env/bin/activate
 
 (Adjust the path to run the command from a directory other than `$ZETH/mpc`)
 
-
 # Contributor instructions
 
 ## Preparation (before MPC begins)
@@ -84,7 +83,7 @@ Digest written to: response.bin.digest
 
 For phase2:
 ```console
-(env) $ phase1_contribute https://<host>[:<port>] contributor.key
+(env) $ phase2_contribute https://<host>[:<port>] contributor.key
 ...
 Digest of the contribution was:
 00a769dc 5bce6cd6 8e679d5e b7f1f175
@@ -228,8 +227,9 @@ directory `../phase1_coordinator`:
 ```
 
 If the `phase1_coordinator` directory is not available, a directory should be
-created containing at least the `final_output.bin` file, and a
-`server_config.json` specifying the maximum degree used in Phase1.
+created containing at least the `final_output.bin` file, and a minimal
+`server_config.json` (which must specify the `num_powers` property - the
+maximum degree used in Phase1).
 
 This process also relies on the `pot-process` tool from the Zeth build. See
 the output of `phase2_prepare --help` for how to specify this.
@@ -251,10 +251,10 @@ or
 
 ## Processing the final output (Phase2 only)
 
-In order for the results of Phase1 and Phase2 to be used, they must be combined to
-produce a key-pair. The `create_keypair` command can perform this operation
-when run in the Phase2 directory, assuming that the Phase1 directory is also
-available:
+In order for the results of Phase1 and Phase2 to be used, they must be combined
+to produce a key-pair. This is performed by the `create_keypair` command. It
+should be run in the Phase2 directory, and similarly to `phase2_prepare`,
+requires a minimal Phase1 directory to be available (specified as an argument):
 
 ```console
 (env) $ create_keypair ../phase1_coordinator
