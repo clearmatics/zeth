@@ -15,6 +15,7 @@ from coordinator.crypto import \
     SigningKey, VerificationKey
 from typing import Callable, Optional
 import time
+from requests.exceptions import RequestException
 
 
 def _upload_response(client: Client, response_file: str, sk: SigningKey) -> None:
@@ -80,16 +81,20 @@ def contribute(
 
     client = Client(base_url, server_certificate, insecure)
 
-    if wait_interval:
-        verification_key = get_verification_key(sk)
-        wait_for_turn(client, wait_interval, verification_key)
+    try:
+        if wait_interval:
+            verification_key = get_verification_key(sk)
+            wait_for_turn(client, wait_interval, verification_key)
 
-    # Get challenge
-    client.get_challenge(challenge_file)
-    print("Got challenge")
+        # Get challenge
+        client.get_challenge(challenge_file)
+        print("Got challenge")
 
-    # Perform the contribution
-    response_file = contribute_cb()
+        # Perform the contribution
+        response_file = contribute_cb()
+
+    except RequestException as err:
+        print(f"EXCEPTION: {err.response.status_code} - {err.response.text}")
 
     # Sign and upload
     _upload_response(client, response_file, sk)
