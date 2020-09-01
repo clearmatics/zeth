@@ -4,7 +4,7 @@
 
 from zeth.cli.utils import create_zeth_client_and_mixer_desc, \
     load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address, \
-    load_eth_private_key
+    load_eth_private_key, zeth_note_short_print
 from zeth.core.constants import JS_INPUTS, JS_OUTPUTS
 from zeth.core.mixer_client import ZethAddressPub
 from zeth.core.utils import EtherValue, from_zeth_units
@@ -97,4 +97,4 @@ def mix(
 
     print(tx_hash)
     if wait:
-        do_sync(zeth_client.web3, wallet, tx_hash)
+        do_sync(zeth_client.web3, wallet, tx_hash, zeth_note_short_print)
