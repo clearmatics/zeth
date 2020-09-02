@@ -7,7 +7,11 @@ file(
   cli/*.?pp
 )
 
-add_library(mpc-cli ${MPC_CLI_SOURCE})
+add_library(
+  mpc-cli
+
+  ${MPC_CLI_SOURCE}
+)
 target_include_directories(mpc-cli PUBLIC cli)
 target_link_libraries(
   mpc-cli
