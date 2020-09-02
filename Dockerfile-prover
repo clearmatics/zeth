@@ -12,8 +12,8 @@ RUN cd ${ZETH_PATH} \
 RUN cd ${ZETH_PATH} \
     && mkdir build \
     && cd build \
-    && cmake .. -DMPC=OFF -DSTATIC_BUILD=ON \
-    && make prover_server
+    && cmake -DMPC=OFF -DSTATIC_BUILD=ON .. \
+    && make -j"$($(nprocs)+1)" prover_server
 
 ##
 

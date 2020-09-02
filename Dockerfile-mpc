@@ -1,4 +1,4 @@
-FROM clearmatics/zeth-base:latest AS stage1
+FROM local/zeth-base:latest AS stage1
 
 # 1. Build phase 1: powers of tau rust binaries
 ENV POT_PATH=/home/powersoftau
@@ -24,17 +24,33 @@ RUN cd ${ZETH_PATH} \
     && git submodule update --init --recursive
 
 RUN cd ${ZETH_PATH} && mkdir build && cd build \
-    && cmake .. \
-    && make pot-process mpc-client-phase2 \
+    && cmake -DSTATIC_BUILD=ON .. \
+    && make -j"$(($(nproc)+1))" pot-process mpc-client-phase2 \
     && mv ${ZETH_PATH}/build/mpc_tools/pot-process /usr/local/bin \
     && mv ${ZETH_PATH}/build/mpc_tools/mpc_phase2/mpc-client-phase2 /usr/local/bin
 
 ##
 
 FROM alpine:3.12
-## Move rust and c++ binaries from previous image and put it in the PATH
+# Move rust and c++ binaries from previous image and put it in the PATH
 COPY --from=stage1 /usr/local/bin/ /usr/local/bin
+# Move the mpc python code
+COPY --from=stage1 /home/zeth/mpc/ /home/zeth-mpc
 RUN apk --update --no-cache add \
     bash \
-    gcc # Install necessary shared libs to run the rust binaries
+    # Install necessary shared libs to run the rust binaries
+    gcc \
+    # Necessary packages to use the MPC python code
+    build-base \
+    linux-headers \
+    python3-dev \
+    make
+
+RUN cd /home/zeth-mpc \
+    && python3 -m venv env \
+    && source env/bin/activate \
+    && make setup
+
+WORKDIR /home/zeth-mpc
+
 CMD ["/bin/bash"]
