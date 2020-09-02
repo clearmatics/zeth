@@ -9,7 +9,7 @@ RUN apk --update --no-cache add \
     gcc \
     tar \
     libffi-dev \
-    python2-dev \
+    # python2-dev \
     python3-dev \
     py3-virtualenv \
     bash
