@@ -156,7 +156,7 @@ specifying properties of the MPC:
 {
     "server": {
         "contributors_file": "contributors.json",
-        "start_time": "2019-10-02 17:00:00",   # Time (server-local)
+        "start_time": "2019-10-02 17:00:00",   # Time in UTC (server-local)
         "contribution_interval": "86400",   # 24 hours (in seconds)
         "tls_key": "key.pem",
         "tls_certificate": "cert.pem",
@@ -190,7 +190,7 @@ of contributors in the MPC. This file takes the form:
 }
 ```
 
-See `testdata/mpc_contributors.json` for an example contributors file.
+See [testdata/mpc_contributors.json](../testdata/mpc_contributors.json) for an example contributors file.
 
 ### Contributor Registration via Google Forms
 
