@@ -60,6 +60,7 @@ function prepare_server_phase2() {
 # 3 - server dir
 # 4 - flags
 function contribute() {
+    echo "CONTRIBUTING: CLIENT: $3"
     contributor_dir=_test_contrib_$2
     rm -rf ${contributor_dir}
     mkdir -p ${contributor_dir}
