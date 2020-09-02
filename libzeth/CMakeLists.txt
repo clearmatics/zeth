@@ -41,22 +41,12 @@ file(
   mpc/**.?pp mpc/**.tcc
 )
 
-if ("${STATIC_BUILD}")
-  add_library(
-    zeth
-    STATIC
+add_library(
+  zeth
 
-    ${ZETH_SOURCE}
-    ${PROTO_SRCS}
-  )
-else()
-  add_library(
-    zeth
-
-    ${ZETH_SOURCE}
-    ${PROTO_SRCS}
-  )
-endif()
+  ${ZETH_SOURCE}
+  ${PROTO_SRCS}
+)
 target_include_directories(
   zeth
 
