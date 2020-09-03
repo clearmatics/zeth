@@ -163,14 +163,14 @@ class Server:
             return Response(
                 "MPC is complete. No remaining challenges", 405)
 
-        # Function used to stream the challenge file to the contributor
+        # Function used to stream the challenge file to the contributor.
         # Streaming is required to avoid timing out while writing the
         # full challenge file on the socket.
         def read_file_chunks(path):
-            CHUNK_SIZE = 8192
-            with open(path, 'rb') as fd:
-                while 1:
-                    buf = fd.read(CHUNK_SIZE)
+            CHUNK_SIZE = 4096
+            with open(path, 'rb') as in_f:
+                while True:
+                    buf = in_f.read(CHUNK_SIZE)
                     if buf:
                         yield buf
                     else:
