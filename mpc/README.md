@@ -127,7 +127,7 @@ or
 
 Either self-signed or with a certificate chain from a trusted CA. (If using
 self-signed certificates, the autority's certificate should be published and
-clients instructed to download it and use the `--server-cert` flag when
+clients instructed to download it and use the `--server-certificate` flag when
 contributing),
 
 A self-signed certificate can be generated as below
