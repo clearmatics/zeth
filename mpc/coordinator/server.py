@@ -20,7 +20,7 @@ from .upload_utils import handle_upload_request
 from .crypto import \
     import_digest, export_verification_key, import_signature, verify
 from typing import cast, Optional, Callable
-from flask import Flask, request, Request, Response
+from flask import Flask, request, Request, Response, stream_with_context
 from threading import Thread, Lock
 import io
 import time
@@ -163,10 +163,23 @@ class Server:
             return Response(
                 "MPC is complete. No remaining challenges", 405)
 
+        # Function used to stream the challenge file to the contributor
+        # Streaming is required to avoid timing out while writing the
+        # full challenge file on the socket.
+        def read_file_chunks(path):
+            CHUNK_SIZE = 8192
+            with open(path, 'rb') as fd:
+                while 1:
+                    buf = fd.read(CHUNK_SIZE)
+                    if buf:
+                        yield buf
+                    else:
+                        break
+
         challenge_file = self.handler.get_current_challenge_file(
             self.state.next_contributor_index)
         return Response(
-            open(challenge_file, "rb"),
+            stream_with_context(read_file_chunks(challenge_file)),
             mimetype="application/octet-stream")
 
     def _contribute(self, req: Request) -> Response:
