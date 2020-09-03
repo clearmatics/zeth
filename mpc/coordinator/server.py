@@ -19,7 +19,7 @@ from .contributor_list import ContributorList
 from .upload_utils import handle_upload_request
 from .crypto import \
     import_digest, export_verification_key, import_signature, verify
-from typing import cast, Optional, Callable
+from typing import cast, Optional, Callable, Iterable
 from flask import Flask, request, Request, Response, stream_with_context
 from threading import Thread, Lock
 import io
@@ -32,6 +32,7 @@ from os.path import exists, join
 STATE_FILE = "server_state.json"
 UPLOAD_FILE = "upload.raw"
 LOG_FILE = "server.log"
+SEND_CHUNK_SIZE = 4096
 
 
 class Server:
@@ -166,11 +167,10 @@ class Server:
         # Function used to stream the challenge file to the contributor.
         # Streaming is required to avoid timing out while writing the
         # full challenge file on the socket.
-        def read_file_chunks(path):
-            CHUNK_SIZE = 4096
+        def produce_file_chunks(path: str) -> Iterable[bytes]:
             with open(path, 'rb') as in_f:
                 while True:
-                    buf = in_f.read(CHUNK_SIZE)
+                    buf = in_f.read(SEND_CHUNK_SIZE)
                     if buf:
                         yield buf
                     else:
@@ -179,7 +179,7 @@ class Server:
         challenge_file = self.handler.get_current_challenge_file(
             self.state.next_contributor_index)
         return Response(
-            stream_with_context(read_file_chunks(challenge_file)),
+            stream_with_context(produce_file_chunks(challenge_file)),
             mimetype="application/octet-stream")
 
     def _contribute(self, req: Request) -> Response:
