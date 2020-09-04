@@ -261,7 +261,7 @@ should be run in the Phase2 directory, and similarly to `phase2_prepare`,
 requires a minimal Phase1 directory to be available (specified as an argument):
 
 ```console
-(env) $ create_keypair ../phase1_coordinator
+(env) $ create_keypair ../phase1_coordinator keypair.bin
 ```
 
 The above assumes that the Phase1 server directory is located in
