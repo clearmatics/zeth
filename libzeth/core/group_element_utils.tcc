@@ -10,47 +10,57 @@
 namespace libzeth
 {
 
-template<typename GroupT> std::string point_affine_to_json(const GroupT &point)
+template<typename GroupT>
+void point_affine_write_json(const GroupT &point, std::ostream &out_s)
 {
     GroupT affine_p = point;
     affine_p.to_affine_coordinates();
-
-    std::stringstream ss;
-    ss << "[";
-    field_element_write_json(affine_p.X, ss);
-    ss << ",";
-    field_element_write_json(affine_p.Y, ss);
-    ss << "]";
-
-    return ss.str();
+    out_s << "[";
+    field_element_write_json(affine_p.X, out_s);
+    out_s << ",";
+    field_element_write_json(affine_p.Y, out_s);
+    out_s << "]";
 }
 
-template<typename GroupT> GroupT point_affine_from_json(const std::string &json)
+template<typename GroupT>
+void point_affine_read_json(GroupT &point, std::istream &in_s)
 {
-    GroupT result;
     char sep;
 
-    std::stringstream ss(json);
-    ss >> sep;
+    in_s >> sep;
     if (sep != '[') {
         throw std::runtime_error(
             "expected opening bracket reading group element");
     }
-    field_element_read_json(result.X, ss);
+    field_element_read_json(point.X, in_s);
 
-    ss >> sep;
+    in_s >> sep;
     if (sep != ',') {
         throw std::runtime_error("expected comma reading group element");
     }
 
-    field_element_read_json(result.Y, ss);
-    ss >> sep;
+    field_element_read_json(point.Y, in_s);
+    in_s >> sep;
     if (sep != ']') {
         throw std::runtime_error(
             "expected closing bracket reading group element");
     }
 
-    result.Z = result.Z.one();
+    point.Z = point.Z.one();
+}
+
+template<typename GroupT> std::string point_affine_to_json(const GroupT &point)
+{
+    std::stringstream ss;
+    point_affine_write_json(point, ss);
+    return ss.str();
+}
+
+template<typename GroupT> GroupT point_affine_from_json(const std::string &json)
+{
+    std::stringstream ss(json);
+    GroupT result;
+    point_affine_read_json(result, ss);
     return result;
 }
 
