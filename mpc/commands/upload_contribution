@@ -14,8 +14,8 @@ from typing import Optional
 @argument("base-url")
 @argument("key-file")
 @argument("response-file")
-@option("--server-certificate", default=None, help="server certificate")
-@option("--insecure", is_flag=True, help="allow missing certificate chain")
+@option("--server-certificate", default=None, help="Server certificate")
+@option("--insecure", is_flag=True, help="Allow missing certificate chain")
 def upload_contribution(
         base_url: str,
         key_file: str,

@@ -22,15 +22,15 @@ DEFAULT_EVIDENCE_FIELD_NAME = "Key Evidence"
 @option(
     "--email-field",
     default=DEFAULT_EMAIL_FIELD_NAME,
-    help=f"email field name (default: \"{DEFAULT_EMAIL_FIELD_NAME}\")")
+    help=f"Email field name (default: \"{DEFAULT_EMAIL_FIELD_NAME}\")")
 @option(
     "--key-field",
     default=DEFAULT_KEY_FIELD_NAME,
-    help=f"key field name (default: \"{DEFAULT_KEY_FIELD_NAME}\")")
+    help=f"Key field name (default: \"{DEFAULT_KEY_FIELD_NAME}\")")
 @option(
     "--evidence-field",
     default=DEFAULT_EVIDENCE_FIELD_NAME,
-    help=f"evidence field name (default: \"{DEFAULT_EVIDENCE_FIELD_NAME}\")")
+    help=f"Evidence field name (default: \"{DEFAULT_EVIDENCE_FIELD_NAME}\")")
 def contributors_from_csv(
         contributors_csv: str,
         output_contributors: str,

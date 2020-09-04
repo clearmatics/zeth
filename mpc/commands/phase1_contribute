@@ -21,13 +21,13 @@ RESPONSE_DIGEST_FILE = "response.bin.digest"
     "--wait-interval",
     type=int,
     default=60,
-    help="poll server every interval, waiting our turn (0 = don't wait)")
-@option("--pot-path", default=None, help="path to powersoftau repo")
+    help="Poll server every interval, waiting our turn (0 = don't wait)")
+@option("--pot-path", default=None, help="Path to powersoftau binaries repository")
 @option("--response-digest", default=RESPONSE_DIGEST_FILE)
-@option("--num-powers", "-n", default=None, type=int, help="number of powers")
+@option("--num-powers", "-n", default=None, type=int, help="Number of powers")
 @option("--skip-user-input", is_flag=True, default=False)
-@option("--server-certificate", default=None, help="server certificate")
-@option("--insecure", is_flag=True, help="allow missing certificate chain")
+@option("--server-certificate", default=None, help="Server certificate")
+@option("--insecure", is_flag=True, help="Allow missing certificate chain")
 def phase1_contribute(
         base_url: str,
         key_file: str,
