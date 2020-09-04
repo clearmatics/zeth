@@ -23,7 +23,7 @@ from typing import Optional
     help="degree of Lagrange polynomials (default: pot-degree)")
 @option("--pot-tool", default=None, help="path to pot-process tool")
 @option("--mpc-tool", default=None, help="path to mpc tool")
-@option("--dry-run", "-n", is_flag=True, help="do not execute commands")
+@option("--dry-run", "-d", is_flag=True, help="do not execute commands")
 def phase2_prepare(
         phase1_dir: str,
         lagrange_degree: Optional[int],

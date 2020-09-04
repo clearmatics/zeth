@@ -11,7 +11,7 @@ from typing import Optional
 
 @command()
 @option("--path", default=".", help="Server working path")
-@option("--config", "-n", default=DEFAULT_CONFIG_FILE, help="Configuration file")
+@option("--config", "-c", default=DEFAULT_CONFIG_FILE, help="Configuration file")
 @option("--pot-path", default=None, help="Path to poweroftau repository")
 @option("--num-powers", "-n", default=None, type=int, help="Number of powers")
 def phase1_server(
