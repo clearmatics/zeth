@@ -203,6 +203,7 @@ private:
         }
         libff::leave_block("Verify final output");
 
+        std::cout << "Transcript OK!" << std::endl;
         return 0;
     }
 };
