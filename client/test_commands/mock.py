@@ -9,8 +9,8 @@ from zeth.core.encryption import EncryptionKeyPair, \
     decode_encryption_secret_key, decode_encryption_public_key
 from zeth.core.ownership import gen_ownership_keypair
 from zeth.core.utils import get_contracts_dir, open_web3
+from zeth.core.contracts import compile_files
 from os.path import join
-from solcx import compile_files  # type: ignore
 from typing import Dict, List, Tuple, Optional, Any
 
 
