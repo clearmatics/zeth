@@ -23,14 +23,18 @@ RESPONSE_DIGEST_FILE = "response.bin.digest"
     "--wait-interval",
     type=int,
     default=60,
-    help="poll server every interval, waiting our turn (0 = don't wait)")
+    help="Poll server every interval, waiting our turn (0 = don't wait)")
 @option("--challenge", default=CHALLENGE_FILE)
 @option("--response", default=RESPONSE_FILE)
 @option("--response-digest", default=RESPONSE_DIGEST_FILE)
-@option("--mpc-tool", default=None, help="path to mpc tool")
-@option("--skip-user-input", is_flag=True, default=False)
-@option("--server-certificate", default=None, help="server certificate")
-@option("--insecure", is_flag=True, help="allow missing certificate chain")
+@option("--mpc-tool", default=None, help="Path to mpc tool")
+@option(
+    "--skip-user-input",
+    is_flag=True,
+    default=False,
+    help="Skip user input for additional entropy")
+@option("--server-certificate", default=None, help="Server certificate")
+@option("--insecure", is_flag=True, help="Allow missing certificate chain")
 def phase2_contribute(
         base_url: str,
         key_file: str,
