@@ -32,7 +32,8 @@ def open_web3(url: str) -> Any:
     """
     return Web3(HTTPProvider(
         url,
-        request_kwargs={'timeout': WEB3_HTTP_PROVIDER_TIMEOUT_SEC}))
+        request_kwargs={
+            'timeout': WEB3_HTTP_PROVIDER_TIMEOUT_SEC, 'verify': False}))
 
 
 FQ = ec.FQ
