@@ -113,6 +113,9 @@ function stop_server_common() {
             done
             rm server.pid
             echo "TEST: Server stopped"
+
+            echo "SERVER LOG:"
+            cat server.stdout
         fi
         popd
     fi

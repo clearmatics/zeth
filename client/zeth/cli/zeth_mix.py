@@ -4,7 +4,7 @@
 
 from zeth.cli.utils import create_zeth_client_and_mixer_desc, \
     load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address, \
-    load_eth_private_key
+    load_eth_private_key, zeth_note_short_print
 from zeth.core.constants import JS_INPUTS, JS_OUTPUTS
 from zeth.core.mixer_client import ZethAddressPub
 from zeth.core.utils import EtherValue, from_zeth_units
@@ -26,6 +26,7 @@ from typing import List, Tuple, Optional
 @option("--eth-addr", help="Sender's eth address or address filename")
 @option("--eth-private-key", help="Sender's eth private key file")
 @option("--wait", is_flag=True, help="Wait for transaction to be mined")
+@option("--show-parameters", is_flag=True, help="Show the mixer parameters")
 @pass_context
 def mix(
         ctx: Context,
@@ -35,7 +36,8 @@ def mix(
         output_specs: List[str],
         eth_addr: Optional[str],
         eth_private_key: Optional[str],
-        wait: bool) -> None:
+        wait: bool,
+        show_parameters: bool) -> None:
     """
     Generic mix function
     """
@@ -71,22 +73,28 @@ def mix(
     eth_address = load_eth_address(eth_addr)
     eth_private_key_data = load_eth_private_key(eth_private_key)
 
-    # If instance uses an ERC20 token, tx_value can be 0 not default vin_pub.
-    tx_value: Optional[EtherValue] = None
-    if mixer_desc.token:
-        tx_value = EtherValue(0)
+    # If instance uses an ERC20 token, tx_value can be 0. Otherwise it should
+    # match vin_pub.
+    tx_value = EtherValue(0) if mixer_desc.token else vin_pub
 
-    tx_hash = zeth_client.joinsplit(
+    mix_params = zeth_client.create_mix_parameters(
         wallet.merkle_tree,
         zeth_address.ownership_keypair(),
         eth_address,
-        eth_private_key_data,
         inputs,
         outputs,
         vin_pub,
-        vout_pub,
-        tx_value)
+        vout_pub)
+
+    if show_parameters:
+        print(f"mix_params={mix_params.to_json()}")
+
+    tx_hash = zeth_client.mix(
+        mix_params=mix_params,
+        sender_eth_address=eth_address,
+        sender_eth_private_key=eth_private_key_data,
+        tx_value=tx_value)
 
     print(tx_hash)
     if wait:
-        do_sync(zeth_client.web3, wallet, tx_hash)
+        do_sync(zeth_client.web3, wallet, tx_hash, zeth_note_short_print)

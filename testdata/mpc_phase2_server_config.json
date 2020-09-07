@@ -1,5 +1,8 @@
 {
     "server": {
+        "help1": "This section is common over phase1 and phase2. See ",
+        "help2": "mpc_phase1_server.config.json for details.",
+
         "contributors_file": "../testdata/mpc_contributors.json",
         "start_time": "TIME",
         "contribution_interval": "10.0",
@@ -10,5 +13,7 @@
         "tls_certificate": "cert.pem",
         "port": PORT
     },
+
+    "_mpc_tool_description": "Path (relative) to the phase2 mpc tool",
     "mpc_tool": "../build/mpc_tools/mpc_phase2/mpc-test-phase2"
 }

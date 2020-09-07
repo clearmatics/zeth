@@ -267,6 +267,7 @@ def charlie_double_withdraw(
         charlie_eth_address,
         # Pay an arbitrary amount (1 wei here) that will be refunded since the
         # `mix` function is payable
+        None,
         EtherValue(1, 'wei'))
     return wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
 
@@ -365,6 +366,7 @@ def charlie_corrupt_bob_deposit(
         tx_hash = zeth_client.mix(
             mix_params,
             charlie_eth_address,
+            None,
             EtherValue(BOB_DEPOSIT_ETH))
         result_corrupt1 = \
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
@@ -401,6 +403,7 @@ def charlie_corrupt_bob_deposit(
         tx_hash = zeth_client.mix(
             mix_params,
             charlie_eth_address,
+            None,
             EtherValue(BOB_DEPOSIT_ETH))
         result_corrupt2 = \
             wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)
@@ -429,6 +432,7 @@ def charlie_corrupt_bob_deposit(
         tx_hash = zeth_client.mix(
             mix_params,
             charlie_eth_address,
+            None,
             EtherValue(BOB_DEPOSIT_ETH),
             4000000)
         result_corrupt3 = \
@@ -456,5 +460,6 @@ def charlie_corrupt_bob_deposit(
     tx_hash = zeth_client.mix(
         mix_params,
         bob_eth_address,
+        None,
         EtherValue(BOB_DEPOSIT_ETH))
     return wait_for_tx_update_mk_tree(zeth_client, mk_tree, tx_hash)

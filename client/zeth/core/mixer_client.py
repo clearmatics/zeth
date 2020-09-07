@@ -515,7 +515,8 @@ class MixerClient:
             self,
             mix_params: contracts.MixParameters,
             sender_eth_address: str,
-            pub_value: Optional[EtherValue] = None,
+            sender_eth_private_key: Optional[bytes],
+            tx_value: Optional[EtherValue] = None,
             call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> str:
         return contracts.mix(
             self.web3,
@@ -523,8 +524,8 @@ class MixerClient:
             self.mixer_instance,
             mix_params,
             sender_eth_address,
-            None,
-            pub_value,
+            sender_eth_private_key,
+            tx_value,
             call_gas)
 
     def mix_call(
