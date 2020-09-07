@@ -12,7 +12,10 @@ from typing import Optional
 @command()
 @option("--path", default=".", help="Server working path")
 @option("--config", "-c", default=DEFAULT_CONFIG_FILE, help="Configuration file")
-@option("--pot-path", default=None, help="Path to powersoftau binaries repository")
+@option(
+    "--pot-path",
+    default=None,
+    help="Path to powersoftau binaries directory")
 @option("--num-powers", "-n", default=None, type=int, help="Number of powers")
 def phase1_server(
         path: str,
