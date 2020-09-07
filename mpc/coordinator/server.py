@@ -214,7 +214,9 @@ class Server:
         verification_key = contributor.verification_key
         expect_pub_key_str = export_verification_key(verification_key)
         if expect_pub_key_str != pub_key_str:
-            return Response("Contributor key mismatch", 403)
+            return Response(
+                f"Contributor key mismatch (contributor {contributor_idx})",
+                403)
 
         # Check signature correctness. Ensures that the uploader is the owner
         # of the correct key BEFORE the costly file upload, taking as little
@@ -222,7 +224,9 @@ class Server:
         # (Note that this pre-upload check requires the digest to be passed in
         # the HTTP header.)
         if not verify(sig, verification_key, digest):
-            return Response("Signature check failed", 403)
+            return Response(
+                f"Signature check failed (contributor {contributor_idx})",
+                403)
 
         # Accept the upload (if the digest matches). If successful,
         # pass the file to the handler.

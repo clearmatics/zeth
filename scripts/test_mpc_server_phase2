@@ -60,6 +60,7 @@ function prepare_server_phase2() {
 # 3 - server dir
 # 4 - flags
 function contribute() {
+    echo "CONTRIBUTING: CLIENT: $3"
     contributor_dir=_test_contrib_$2
     rm -rf ${contributor_dir}
     mkdir -p ${contributor_dir}
@@ -70,7 +71,11 @@ function contribute() {
         --server-certificate $3/${SERVER_CERT} \
         --insecure \
         $4 \
-        https://${HOST}:${PHASE2_PORT} $1
+        https://${HOST}:${PHASE2_PORT} $1 || ( \
+            echo CONTRIBUTION FAILED && \
+            (stop_server_common ${PHASE2_SERVER_DIR} || echo -n) && \
+            exit 1)
+
     popd
 }
 
