@@ -22,7 +22,10 @@ RESPONSE_DIGEST_FILE = "response.bin.digest"
     type=int,
     default=60,
     help="Poll server every interval, waiting our turn (0 = don't wait)")
-@option("--pot-path", default=None, help="Path to powersoftau binaries repository")
+@option(
+    "--pot-path",
+    default=None,
+    help="Path to powersoftau binaries directory")
 @option("--response-digest", default=RESPONSE_DIGEST_FILE)
 @option("--num-powers", "-n", default=None, type=int, help="Number of powers")
 @option("--skip-user-input", is_flag=True, default=False)

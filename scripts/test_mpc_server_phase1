@@ -38,7 +38,7 @@ function contribute() {
     phase1_contribute \
         --skip-user-input \
         -n ${QAP_DEGREE} \
-        --pot-path ${POT_DIR} \
+        --pot-path ${POT_BIN_DIR} \
         --server-certificate $3/${SERVER_CERT} \
         --insecure \
         https://${HOST}:${PHASE1_PORT} $1

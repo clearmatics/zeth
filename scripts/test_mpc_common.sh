@@ -32,6 +32,7 @@ SERVER_CERT=cert.pem
 POT_PROCESS="${BIN_DIR}/pot-process"
 MPC="${BIN_DIR}/mpc_phase2/mpc-test-phase2"
 POT_DIR=`pwd`"/../powersoftau"
+POT_BIN_DIR="${POT_DIR}/target/release"
 QAP_DEGREE=8
 
 # Server address (consistent with server config template)
