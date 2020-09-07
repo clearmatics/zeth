@@ -15,7 +15,6 @@
         "_email_address": "mpc.coordinator@myorg.com",
         "_email_password_file": "file containing password for email account",
 
-
         "_tls_description": "Key and certificate for the server.",
         "tls_key": "key.pem",
         "tls_certificate": "cert.pem",
