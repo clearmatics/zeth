@@ -1,4 +1,4 @@
-FROM clearmatics/zeth-base
+FROM clearmatics/zeth-base:latest
 
 COPY . /home/zeth
 

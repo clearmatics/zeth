@@ -9,7 +9,6 @@ RUN apk --update --no-cache add \
     gcc \
     tar \
     libffi-dev \
-    # python2-dev \
     python3-dev \
     py3-virtualenv \
     bash
@@ -19,8 +18,7 @@ COPY ./client /home/zeth
 
 ENV OPENSSL_VERSION="1.1.1g"
 ENV CWD="/home/zeth"
-
-RUN cd /home/zeth \
+RUN cd ${CWD} \
     # && virtualenv env \
     # && . env/bin/activate \
     && pip install -U setuptools \
@@ -29,17 +27,27 @@ RUN cd /home/zeth \
     && tar xvf openssl-${OPENSSL_VERSION}.tar.gz \
     && cd openssl-${OPENSSL_VERSION} \
     && ./config no-shared no-ssl2 no-ssl3 -fPIC --prefix=${CWD}/openssl \
-    && make && make install
+    && make -j"$($(nproc)+1)" && make install
 
-RUN cd /home/zeth \
-    && CFLAGS="-I${CWD}/openssl/include" LDFLAGS="-L${CWD}/openssl/lib" pip wheel --wheel-dir wheels --no-binary :all: cryptography
+WORKDIR /home/zeth
 
-RUN cd /home/zeth \
-    && virtualenv env \
+# WARNING:
+# The installation will only succeed if the built cryptography wheel is for the
+# same version of the cryptography package as the one documented in `setup.py`.
+# If not, `make setup` will try to install the right version, which will fail.
+# To avoid this, we create a `constraints.txt` file that constrains the version
+# of `cryptography` extracted from the `setup.py` file
+RUN grep -o "cryptography==[^\"]*" setup.py > constraints.txt
+
+RUN CFLAGS="-I${CWD}/openssl/include" LDFLAGS="-L${CWD}/openssl/lib" pip wheel --wheel-dir wheels -c constraints.txt --no-binary :all: cryptography
+
+RUN virtualenv env \
     && source env/bin/activate \
     && pip install --no-index --find-links=wheels cryptography \
     && make setup
 
-WORKDIR /home/zeth
+# Clean the container
+RUN rm openssl-1.1.1g.tar.gz
+RUN rm -r openssl-1.1.1g
 
 CMD ["/bin/bash"]

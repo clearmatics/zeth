@@ -61,7 +61,7 @@ cd zeth
 # Pull the zeth-base image (built from `Dockerfile-base`)
 docker pull clearmatics/zeth-base:latest
 # Build the zeth-dev image
-docker build -f Dockerfile-zeth -t zeth-dev .
+docker build -f Dockerfile-dev -t zeth-dev .
 # Start the zeth development container
 docker run -ti -p 50051:50051 --name zeth zeth-dev:latest
 
