@@ -1,8 +1,32 @@
-# Overview
+# Zeth MPC
 
-Tools and scripts for SRS generation via an MPC.
+Tools and scripts for SRS generation via a Multi-Party Computation (MPC).
 
-# Dependencies
+## Preliminaries
+
+### Contribute to the MPC using Docker (recommended)
+
+1. Fetch the docker image:
+```
+$ docker pull clearmatics/zeth-mpc
+```
+
+2. Start the container:
+```
+$ docker run -ti \
+    --env COORDINATOR_IP=<coordinator-ip> \
+    --net=host \
+    --name zeth-mpc-contributor clearmatics/zeth-mpc
+```
+
+3. Once in the container, activate the virtual environment:
+```
+$ source env/bin/activate
+```
+
+### Contribute to the MPC natively
+
+#### Dependencies
 
 - Zeth mpc executables (an optimized build from this repo, or from a binary
   distribution).
@@ -10,7 +34,7 @@ Tools and scripts for SRS generation via an MPC.
 - (Phase1 only) clone and build: https://github.com/clearmatics/powersoftau
   - requires the rust build environment, including [cargo](https://doc.rust-lang.org/cargo/)
 
-# Setup
+#### Setup
 
 If necessary, follow instructions to [build Zeth binary](../README.md)
 executables. Execute the following to install all further packages required
@@ -32,9 +56,9 @@ $ . env/bin/activate
 
 (Adjust the path to run the command from a directory other than `$ZETH/mpc`)
 
-# Contributor instructions
+## Contributor instructions
 
-## Preparation (before MPC begins)
+### Preparation (before MPC begins)
 
 1. Create a working directory for the contribution. (Note that when contributing
 multiple times to a single phase, or to multiple phases, it is recommended to
@@ -64,7 +88,7 @@ to sign the contribution. Keep this protected - it could be used by an
 attacker to impersonate you and steal your place in the list of contributors,
 rendering your contribution invalid.
 
-## Contributing (during MPC)
+### Contributing (during MPC)
 
 When requested, invoke the contribution computation (ensure the env is
 activated, and that commands are executed inside the working directory).
@@ -113,9 +137,9 @@ Keep this file (or make a note of the digest). It can be used at the end of
 the process to verify that your contribution is correctly included in the final
 MPC output.
 
-# Coordinator Instructions
+## Coordinator Instructions
 
-## Create a server working directory
+### Create a server working directory
 
 ```console
 (env) $ mkdir phase1_coordinator
@@ -127,7 +151,7 @@ or
 (env) $ cd phase2_coordinator
 ```
 
-## Generate a contribution key and certificate
+### Generate a contribution key and certificate
 
 Either self-signed or with a certificate chain from a trusted CA. (If using
 self-signed certificates, the autority's certificate should be published and
@@ -144,14 +168,14 @@ A self-signed certificate can be generated as below
            -days 365
 ```
 
-## Gather contributors
+### Gather contributors
 
 Contributors should submit their email address and contribution verification
 keys before the MPC begins.
 
-## Create a configuration file
+### Create a configuration file
 
-### Configuration file overview
+#### Configuration file overview
 
 Create the file `server_config.json` in the server working directory,
 specifying properties of the MPC:
@@ -196,7 +220,7 @@ of contributors in the MPC. This file takes the form:
 
 See [testdata/mpc_contributors.json](../testdata/mpc_contributors.json) for an example contributors file.
 
-### Contributor Registration via Google Forms
+#### Contributor Registration via Google Forms
 
 An easy way to allow contributors to register for the MPC is to publish
 a form online. Google Forms are widely used and provide a way
@@ -212,7 +236,7 @@ Ensure that email, public key, and evidence fields are present in the form, and
 download the response data as a csv file. Flags to `contributors_from_csv_` can
 be used to specify the exact names of each field (see `--help` for details).
 
-### Mail notifications
+#### E-mail notifications
 
 The MPC coordinator server can notify participants by email when their
 contribution time slot begins (when the previous contributor either finishes
@@ -220,7 +244,7 @@ his contribution, or his timeslot expires). To enable email notifications, set
 the `email_server`, `email_address` and `email_password_file` fields to point to a
 (tls enabled) mail server.
 
-## Prepare initial challenge (Phase2 only)
+### Prepare initial challenge (Phase2 only)
 
 Phase2 requires the output from Phase1 to be processed before Phase2 can begin.
 The following assumes that the Phase1 server directory is located in the
@@ -240,7 +264,7 @@ the output of `phase2_prepare --help` for how to specify this.
 
 Note that this process can take a significant amount of time.
 
-## Launch the server
+### Launch the server
 
 Launch either `phase1_server` or `phase2_server` in the server working
 directory.
@@ -253,7 +277,7 @@ or
 (env) $ phase2_server
 ```
 
-## Processing the final output (Phase2 only)
+### Processing the final output (Phase2 only)
 
 In order for the results of Phase1 and Phase2 to be used, they must be combined
 to produce a key-pair. This is performed by the `create_keypair` command. It
@@ -267,7 +291,7 @@ requires a minimal Phase1 directory to be available (specified as an argument):
 The above assumes that the Phase1 server directory is located in
 `../phase1_coordinator`, relative to the (Phase2) working directory.
 
-# Run tests
+## Run tests
 
 From the repository root, with the virtualenv activated:
 

@@ -305,6 +305,30 @@ then searches for new notes.
 Alternatively, the `--wait` flag can be passed to the `mix` command to make it
 wait and sync new notes before exiting.
 
+## Docker (Debug/Development only)
+
+A minimal Docker image is provided in order to use the client in a container.
+In order to do so, one needs to:
+1. Fetch the docker image:
+```
+$ docker pull clearmatics/zeth-client
+```
+2. Start the docker container:
+```
+$ docker run -ti \
+    --net=host \
+    --name zeth-client-container clearmatics/zeth-client
+```
+
+**Important:** Note that, the `clearmatics/zeth-client` image cannot be used
+to deploy the *Zeth* contracts (the contracts are not available inside the
+container). Instead, this image is only aimed at providing a pre-configured
+environment to interact with deployed *Zeth* contracts via a docker container.
+Moreover, **we strongly advise against** running the client in the docker
+container in any real-life scenario. Proper secret management and backup need
+to be carried out for the wallet data to be protected against losses and
+adversaries (see section below).
+
 ## Limitations - Note and Address management
 
 As proof-of-concept software, these tools are not suitable for use in a
