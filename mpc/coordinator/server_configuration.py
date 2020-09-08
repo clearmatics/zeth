@@ -13,7 +13,7 @@ from typing import Dict, cast, Optional
 
 JsonDict = Dict[str, object]
 
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S UTC"
 
 
 class Configuration:
@@ -126,10 +126,6 @@ class Configuration:
         start_local = time.strptime(
             cast(str, json_dict["start_time"]),
             TIME_FORMAT)
-        # Make sure that the starting time is given in UTC/GMT
-        if not (start_local.tm_zone == 'UTC' or start_local.tm_zone == 'GMT'):
-            raise ValueError(f"Incorrect `start_time` in server configuration.\
-            Expected UTC/GMT time, got {start_local.tm_zone}")
         email_password_file = cast(
             str, json_dict.get("email_password_file", None))
         if email_password_file and config_path:
