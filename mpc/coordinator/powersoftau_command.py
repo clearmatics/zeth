@@ -84,5 +84,4 @@ def _default_powersoftau_path() -> str:
     Return the default path to the PoT binaries directory
     """
     return join(
-        dirname(__file__),
-        "..", "..", "..", "powersoftau", "target", CONFIG)
+        dirname(__file__), "..", "..", "..", "powersoftau", "target", CONFIG)
