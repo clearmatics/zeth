@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
+import calendar
 import json
 import time
 from os.path import dirname, exists, join
@@ -12,7 +13,7 @@ from typing import Dict, cast, Optional
 
 JsonDict = Dict[str, object]
 
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
 
 
 class Configuration:
@@ -88,7 +89,7 @@ class Configuration:
         return Configuration._from_json_dict(json.loads(config_json))
 
     def _to_json_dict(self) -> JsonDict:
-        start_local = time.localtime(self.start_time)
+        start_local = time.gmtime(self.start_time)
         return {
             "contributors_file": self.contributors_file,
             "start_time": time.strftime(TIME_FORMAT, start_local),
@@ -102,7 +103,7 @@ class Configuration:
         }
 
     def _to_json_template_dict(self) -> JsonDict:
-        start_local = time.localtime(self.start_time)
+        start_local = time.gmtime(self.start_time)
         return {
             "contributors_file": self.contributors_file,
             "help":
@@ -125,13 +126,17 @@ class Configuration:
         start_local = time.strptime(
             cast(str, json_dict["start_time"]),
             TIME_FORMAT)
+        # Make sure that the starting time is given in UTC/GMT
+        if not (start_local.tm_zone == 'UTC' or start_local.tm_zone == 'GMT'):
+            raise ValueError(f"Incorrect `start_time` in server configuration.\
+            Expected UTC/GMT time, got {start_local.tm_zone}")
         email_password_file = cast(
             str, json_dict.get("email_password_file", None))
         if email_password_file and config_path:
             email_password_file = join(dirname(config_path), email_password_file)
         return Configuration(
             cast(str, json_dict["contributors_file"]),
-            time.mktime(start_local),
+            calendar.timegm(start_local),
             float(cast(str, json_dict["contribution_interval"])),
             email_server=cast(str, json_dict.get("email_server", None)),
             email_address=cast(str, json_dict.get("email_address", None)),
