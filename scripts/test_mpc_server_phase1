@@ -15,7 +15,7 @@ function prepare_server_phase1() {
     pushd ${PHASE1_SERVER_DIR}
 
     # Config
-    now=`python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S %Z", time.gmtime()))'`
+    now=`python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))'`
     sed \
         -e "s/TIME/${now}/g" \
         -e "s/PORT/${PHASE1_PORT}/g" \
