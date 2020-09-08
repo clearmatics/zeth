@@ -160,7 +160,7 @@ specifying properties of the MPC:
 {
     "server": {
         "contributors_file": "contributors.json",
-        "start_time": "2019-10-02 17:00:00",   # Time in UTC (server-local)
+        "start_time": "2019-10-02 17:00:00 UTC",   # Time in UTC
         "contribution_interval": "86400",   # 24 hours (in seconds)
         "tls_key": "key.pem",
         "tls_certificate": "cert.pem",
