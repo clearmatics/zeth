@@ -32,22 +32,33 @@ RUN apk --update --no-cache add \
 RUN git clone -b v1.31.x https://github.com/grpc/grpc /var/local/git/grpc
 RUN cd /var/local/git/grpc && git submodule update --init --recursive
 
-ENV CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_SSL_PROVIDER=package -DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF"
+# Build protobuf independently and install libraries in /usr/lib
+# Then use flag `-DgRPC_PROTOBUF_PROVIDER=package` in gRPC build
+RUN cd /var/local/git/grpc/third_party/protobuf \
+    && ./autogen.sh \
+    && ./configure --prefix=/usr \
+    && make -j"$($(nproc)+1)" \
+    && make check \
+    && make install \
+    && make clean
+
+ENV CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_SSL_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package -DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF"
 
 # Build the static libraries
 RUN cd /var/local/git/grpc \
     && mkdir -p cmake/build \
     && cd cmake/build \
     && cmake ${CMAKE_FLAGS} ../.. \
-    && make -j4 \
+    && make -j"$($(nproc)+1)" \
     && make install
 
-## Build the shared libraries
-#RUN cd /var/local/git/grpc \
-#    && rm -r cmake/build \
-#    && mkdir -p cmake/build \
-#    && cd cmake/build \
-#    && cmake ${CMAKE_FLAGS} -DBUILD_SHARED_LIBS=ON ../.. \
-#    && make -j4 install
+# Build the shared libraries
+RUN cd /var/local/git/grpc \
+    && rm -r cmake/build \
+    && mkdir -p cmake/build \
+    && cd cmake/build \
+    && cmake ${CMAKE_FLAGS} -DBUILD_SHARED_LIBS=ON ../.. \
+    && make -j"$($(nproc)+1)" \
+    && make install
 
 CMD ["/bin/bash"]
