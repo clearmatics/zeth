@@ -3,7 +3,7 @@
         "_contributors_file_description": "Relative path of contributors file",
         "contributors_file": "../testdata/mpc_contributors.json",
 
-        "_start_time_utc_description": "Time (local) that first contribution is allowed",
+        "_start_time_utc_description": "Time (in UTC) that first contribution is allowed",
         "_start_time_utc_example": "2019-11-05 13:33:13",
         "start_time_utc": "TIME",
 
