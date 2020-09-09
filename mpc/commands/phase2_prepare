@@ -20,10 +20,10 @@ from typing import Optional
 @argument("phase1-dir")
 @option(
     "--lagrange-degree", default=None, type=int,
-    help="degree of Lagrange polynomials (default: pot-degree)")
-@option("--pot-tool", default=None, help="path to pot-process tool")
-@option("--mpc-tool", default=None, help="path to mpc tool")
-@option("--dry-run", "-n", is_flag=True, help="do not execute commands")
+    help="Degree of Lagrange polynomials (default: pot-degree)")
+@option("--pot-tool", default=None, help="Path to pot-process tool")
+@option("--mpc-tool", default=None, help="Path to mpc tool")
+@option("--dry-run", "-d", is_flag=True, help="Do not execute commands")
 def phase2_prepare(
         phase1_dir: str,
         lagrange_degree: Optional[int],

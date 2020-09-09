@@ -36,7 +36,7 @@ $ . env/bin/activate
 
 ## Preparation (before MPC begins)
 
-Create a working directory for the contribution. (Note that when contributing
+1. Create a working directory for the contribution. (Note that when contributing
 multiple times to a single phase, or to multiple phases, it is recommended to
 create a directory for each contribution.)
 
@@ -45,17 +45,20 @@ create a directory for each contribution.)
 (env) $ cd mpc_contrib
 ```
 
-All commands below are assumed to be executed in the working directory for the
-contribution.
+*All commands below are assumed to be executed in the working directory for the
+contribution.*
 
-Generate a contributor secret key to identify yourself, and evidence of
-validity:
+2. Generate a contributor keypair for authentication purposes throughout the
+MPC. In addition to generating a keypair, the command below will also generate
+a "key evidence" used to certify the public key shared with the coordinator.
+(This extra step is required to make sure that the contributor has knowledge of
+the secret key associated with the public key she registers to the coordinator)
 
 ```console
 (env) $ generate_key contributor.key
 ```
 
-Use the output (public key and key evidence) when registering as a participant
+3. Use the output (public key and key evidence) when registering as a participant
 in the MPC. The file `contributor.key` is the contributor's secret key used
 to sign the contribution. Keep this protected - it could be used by an
 attacker to impersonate you and steal your place in the list of contributors,
@@ -81,9 +84,10 @@ Digest written to: response.bin.digest
 ...
 ```
 
-For phase2:
+For phase2 (assuming `mpc-client-phase2` is in the `PATH`):
 ```console
-(env) $ phase2_contribute https://<host>[:<port>] contributor.key
+(env) $ phase2_contribute https://<host>[:<port>] contributor.key \
+            --mpc-tool $(which mpc-client-phase2)
 ...
 Digest of the contribution was:
 00a769dc 5bce6cd6 8e679d5e b7f1f175
@@ -94,12 +98,12 @@ Digest written to: response.bin.digest
 ...
 ```
 
-(The coordinator may request that you specify other flags to these commands, to
-control details of the MPC. See `phase1_contribute --help` for all available
-flags.)
+*Note:* You may need to specify additional flags to these commands.
+See `phase1_contribute --help` and `phase2_contribute --help` for all available
+flags.
 
 You will be asked to provide randomness by entering a random string and
-pressing ENTER. Once this is complete, the command will automatically perform
+pressing `ENTER`. Once this is complete, the command will automatically perform
 all necessary computation, write the results to a local file and upload to the
 coordinator.
 
@@ -127,7 +131,7 @@ or
 
 Either self-signed or with a certificate chain from a trusted CA. (If using
 self-signed certificates, the autority's certificate should be published and
-clients instructed to download it and use the `--server-cert` flag when
+clients instructed to download it and use the `--server-certificate` flag when
 contributing),
 
 A self-signed certificate can be generated as below
@@ -156,7 +160,7 @@ specifying properties of the MPC:
 {
     "server": {
         "contributors_file": "contributors.json",
-        "start_time": "2019-10-02 17:00:00",   # Time (server-local)
+        "start_time_utc": "2019-10-02 17:00:00",   # Time in UTC
         "contribution_interval": "86400",   # 24 hours (in seconds)
         "tls_key": "key.pem",
         "tls_certificate": "cert.pem",
@@ -190,7 +194,7 @@ of contributors in the MPC. This file takes the form:
 }
 ```
 
-See `testdata/mpc_contributors.json` for an example contributors file.
+See [testdata/mpc_contributors.json](../testdata/mpc_contributors.json) for an example contributors file.
 
 ### Contributor Registration via Google Forms
 
@@ -257,7 +261,7 @@ should be run in the Phase2 directory, and similarly to `phase2_prepare`,
 requires a minimal Phase1 directory to be available (specified as an argument):
 
 ```console
-(env) $ create_keypair ../phase1_coordinator
+(env) $ create_keypair ../phase1_coordinator keypair.bin
 ```
 
 The above assumes that the Phase1 server directory is located in

@@ -3,18 +3,17 @@
         "_contributors_file_description": "Relative path of contributors file",
         "contributors_file": "../testdata/mpc_contributors.json",
 
-        "_start_time_description": "Time (local) that first contribution is allowed",
-        "_start_time_example": "2019-11-05 13:33:13",
-        "start_time": "TIME",
+        "_start_time_utc_description": "Time (in UTC) that first contribution is allowed",
+        "_start_time_utc_example": "2019-11-05 13:33:13",
+        "start_time_utc": "TIME",
 
         "_contribution_interval_description": "Interval time in seconds",
         "contribution_interval": "60.0",
 
         "_email_description": "Optional email server and credentials",
-        "_email_server": "smtp.myorg.com:465",
-        "_email_address": "mpc.coordinator@myorg.com",
-        "_email_password_file": "file containing password for email account",
-
+        "_email_server_example": "smtp.myorg.com:465",
+        "_email_address_example": "mpc.coordinator@myorg.com",
+        "_email_password_file_example": "email_pwd",
 
         "_tls_description": "Key and certificate for the server.",
         "tls_key": "key.pem",
@@ -24,10 +23,9 @@
         "port": PORT
     },
 
+    "_pot_path_description": "Path (relative) to the powersoftau binaries",
+    "pot_path": "../../powersoftau/target/release",
 
-    "_pot_path_description": "Path (relative) to the external powersoftau tool",
-    "pot_path": "../../powersoftau",
-
-    "_num_powers_description": "Determines max degree of circuit. (Power of 2)",
+    "_num_powers_description": "Determines max degree of QAP (Power of 2)",
     "num_powers": QAP_DEGREE
 }

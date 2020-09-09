@@ -15,7 +15,7 @@ function prepare_server_phase1() {
     pushd ${PHASE1_SERVER_DIR}
 
     # Config
-    now=`python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S"))'`
+    now=`python -c 'import time; print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))'`
     sed \
         -e "s/TIME/${now}/g" \
         -e "s/PORT/${PHASE1_PORT}/g" \
@@ -38,7 +38,7 @@ function contribute() {
     phase1_contribute \
         --skip-user-input \
         -n ${QAP_DEGREE} \
-        --pot-path ${POT_DIR} \
+        --pot-path ${POT_BIN_DIR} \
         --server-certificate $3/${SERVER_CERT} \
         --insecure \
         https://${HOST}:${PHASE1_PORT} $1

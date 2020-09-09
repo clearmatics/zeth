@@ -167,6 +167,10 @@ class Phase1ContributionHandler(IContributionHandler):
         rename(CHALLENGE_FILE, FINAL_OUTPUT)
         rename(TRANSCRIPT_FILE, FINAL_TRANSCRIPT)
 
+        # Notify that handler execution completed
+        print("Phase 1 coordinator correctly executed.")
+        print("(CTRL-C to stop the server)")
+
     def _save_state(self) -> None:
         with open(PHASE1_STATE_FILE, "w") as state_f:
             state_f.write(self.state.to_json())

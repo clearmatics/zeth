@@ -129,3 +129,7 @@ class Phase2ContributionHandler(IContributionHandler):
         # If all is well, move the final challenge file
         rename(NEXT_CHALLENGE_FILE, FINAL_OUTPUT)
         rename(TRANSCRIPT_FILE, FINAL_TRANSCRIPT)
+
+        # Notify that handler execution completed
+        print("Phase 2 coordinator correctly executed.")
+        print("(CTRL-C to stop the server)")

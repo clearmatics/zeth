@@ -89,11 +89,11 @@ def initial_server_state(
     """
     Create an initial server state, given a configuration and contributor list.
     """
-    assert configuration.start_time != 0.0
+    assert configuration.start_time_utc != 0.0
     assert configuration.contribution_interval != 0.0
     assert len(contributors) != 0
     state = ServerState(
         0,
         len(contributors),
-        configuration.start_time + configuration.contribution_interval)
+        configuration.start_time_utc + configuration.contribution_interval)
     return state
