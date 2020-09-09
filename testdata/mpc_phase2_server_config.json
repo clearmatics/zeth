@@ -4,7 +4,7 @@
         "help2": "mpc_phase1_server.config.json for details.",
 
         "contributors_file": "../testdata/mpc_contributors.json",
-        "start_time": "TIME",
+        "start_time_utc": "TIME",
         "contribution_interval": "60.0",
         "_email_server_example": "smtp.myorg.com:465",
         "_email_address_example": "mpc.coordinator@myorg.com",
