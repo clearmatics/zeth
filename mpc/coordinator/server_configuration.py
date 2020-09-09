@@ -13,7 +13,7 @@ from typing import Dict, cast, Optional
 
 JsonDict = Dict[str, object]
 
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S UTC"
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 class Configuration:
@@ -23,7 +23,7 @@ class Configuration:
     def __init__(
             self,
             contributors_file: str,
-            start_time: float,
+            start_time_utc: float,
             contribution_interval: float,
             tls_key: str,
             tls_certificate: str,
@@ -33,7 +33,7 @@ class Configuration:
             email_password_file: Optional[str] = None):
         if not contributors_file:
             raise Exception("no contributors file specified")
-        if start_time == 0.0:
+        if start_time_utc == 0.0:
             raise Exception("invalid start time")
         if (email_server or email_address or email_password_file) and \
            (not (email_server and email_address and email_password_file)):
@@ -44,7 +44,7 @@ class Configuration:
             raise Exception(f"no email password file: {email_password_file}")
 
         self.contributors_file: str = contributors_file
-        self.start_time: float = float(start_time)
+        self.start_time_utc: float = float(start_time_utc)
         self.contribution_interval: float = float(contribution_interval)
         self.email_server: Optional[str] = email_server
         self.email_address: Optional[str] = email_address
@@ -62,7 +62,7 @@ class Configuration:
         """
         return Configuration(
             contributors_file="contributors.json",
-            start_time=time.time() + 6 * 60 * 60,
+            start_time_utc=time.time() + 6 * 60 * 60,
             contribution_interval=24 * 60 * 60,
             tls_key="key.pem",
             tls_certificate="cert.pem",
@@ -89,10 +89,10 @@ class Configuration:
         return Configuration._from_json_dict(json.loads(config_json))
 
     def _to_json_dict(self) -> JsonDict:
-        start_local = time.gmtime(self.start_time)
+        start_time = time.gmtime(self.start_time_utc)
         return {
             "contributors_file": self.contributors_file,
-            "start_time": time.strftime(TIME_FORMAT, start_local),
+            "start_time_utc": time.strftime(TIME_FORMAT, start_time),
             "contribution_interval": str(self.contribution_interval),
             "email_server": self.email_server,
             "email_address": self.email_address,
@@ -103,13 +103,13 @@ class Configuration:
         }
 
     def _to_json_template_dict(self) -> JsonDict:
-        start_local = time.gmtime(self.start_time)
+        start_time = time.gmtime(self.start_time_utc)
         return {
             "contributors_file": self.contributors_file,
             "help":
             "This is a generated template. Populate the fields below, " +
             "removing _REQUIRED_ and _OPTIONAL_ prefixes as necessary.",
-            "_REQUIRED_start_time": time.strftime(TIME_FORMAT, start_local),
+            "_REQUIRED_start_time_utc": time.strftime(TIME_FORMAT, start_time),
             "_REQUIRED_contribution_interval": str(self.contribution_interval),
             "_OPTIONAL_email_server": self.email_server,
             "_OPTIONAL_email_address": self.email_address,
@@ -123,8 +123,8 @@ class Configuration:
     def _from_json_dict(
             json_dict: JsonDict,
             config_path: Optional[str] = None) -> Configuration:
-        start_local = time.strptime(
-            cast(str, json_dict["start_time"]),
+        start_time = time.strptime(
+            cast(str, json_dict["start_time_utc"]),
             TIME_FORMAT)
         email_password_file = cast(
             str, json_dict.get("email_password_file", None))
@@ -132,7 +132,7 @@ class Configuration:
             email_password_file = join(dirname(config_path), email_password_file)
         return Configuration(
             cast(str, json_dict["contributors_file"]),
-            calendar.timegm(start_local),
+            calendar.timegm(start_time),
             float(cast(str, json_dict["contribution_interval"])),
             email_server=cast(str, json_dict.get("email_server", None)),
             email_address=cast(str, json_dict.get("email_address", None)),
