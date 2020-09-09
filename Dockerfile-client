@@ -17,8 +17,8 @@ RUN apk --update --no-cache add \
 COPY ./client /home/zeth
 
 ENV OPENSSL_VERSION="1.1.1g"
-ENV CWD="/home/zeth"
-RUN cd ${CWD} \
+ENV BUILD_ROOT="/home/zeth"
+RUN cd ${BUILD_ROOT} \
     # && virtualenv env \
     # && . env/bin/activate \
     && pip install -U setuptools \
@@ -26,7 +26,7 @@ RUN cd ${CWD} \
     && curl -O https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
     && tar xvf openssl-${OPENSSL_VERSION}.tar.gz \
     && cd openssl-${OPENSSL_VERSION} \
-    && ./config no-shared no-ssl2 no-ssl3 -fPIC --prefix=${CWD}/openssl \
+    && ./config no-shared no-ssl2 no-ssl3 -fPIC --prefix=${BUILD_ROOT}/openssl \
     && make -j"$($(nproc)+1)" && make install
 
 WORKDIR /home/zeth
@@ -39,7 +39,7 @@ WORKDIR /home/zeth
 # of `cryptography` extracted from the `setup.py` file
 RUN grep -o "cryptography==[^\"]*" setup.py > constraints.txt
 
-RUN CFLAGS="-I${CWD}/openssl/include" LDFLAGS="-L${CWD}/openssl/lib" pip wheel --wheel-dir wheels -c constraints.txt --no-binary :all: cryptography
+RUN CFLAGS="-I${BUILD_ROOT}/openssl/include" LDFLAGS="-L${BUILD_ROOT}/openssl/lib" pip wheel --wheel-dir wheels -c constraints.txt --no-binary :all: cryptography
 
 RUN virtualenv env \
     && source env/bin/activate \
