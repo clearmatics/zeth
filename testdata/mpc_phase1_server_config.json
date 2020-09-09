@@ -8,7 +8,7 @@
         "start_time": "TIME",
 
         "_contribution_interval_description": "Interval time in seconds",
-        "contribution_interval": "10.0",
+        "contribution_interval": "60.0",
 
         "_email_description": "Optional email server and credentials",
         "_email_server": "smtp.myorg.com:465",
