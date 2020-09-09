@@ -26,17 +26,36 @@ class NetworkConfig:
     Simple description of a network. Name (may be used in some cases to
     understand the type of network) and endpoint URL.
     """
-    def __init__(self, name: str, endpoint: str):
+    def __init__(
+            self,
+            name: str,
+            endpoint: str,
+            certificate: Optional[str] = None,
+            insecure: bool = False):
         self.name = name
         self.endpoint = endpoint
+        self.certificate = certificate
+        self.insecure = insecure
 
     def to_json(self) -> str:
-        return json.dumps({"name": self.name, "endpoint": self.endpoint})
+        json_dict: Dict[str, Any] = {
+            "name": self.name,
+            "endpoint": self.endpoint,
+        }
+        if self.certificate:
+            json_dict["certificate"] = self.certificate
+        if self.insecure:
+            json_dict["insecure"] = self.insecure
+        return json.dumps(json_dict)
 
     @staticmethod
     def from_json(network_config_json: str) -> NetworkConfig:
         json_dict = json.loads(network_config_json)
-        return NetworkConfig(json_dict["name"], json_dict["endpoint"])
+        return NetworkConfig(
+            name=json_dict["name"],
+            endpoint=json_dict["endpoint"],
+            certificate=json_dict.get("certificate", None),
+            insecure=json_dict.get("insecure", None))
 
 
 class ClientConfig:
@@ -88,7 +107,10 @@ def get_eth_network(eth_network: Optional[str]) -> NetworkConfig:
 
 
 def open_web3_from_network(eth_net: NetworkConfig) -> Any:
-    return open_web3(eth_net.endpoint)
+    return open_web3(
+        url=eth_net.endpoint,
+        certificate=eth_net.certificate,
+        insecure=eth_net.insecure)
 
 
 def open_web3_from_ctx(ctx: ClientConfig) -> Any:

@@ -13,12 +13,12 @@ from . import errors
 import argparse
 import sys
 import os
-from os.path import join, dirname, normpath
+from os.path import join, dirname, normpath, exists
 import eth_abi
 import eth_keys  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
-from typing import List, Tuple, Union, Any, cast
+from typing import List, Tuple, Union, Any, Optional, cast
 
 # Some Ethereum node implementations can cause a timeout if the contract
 # execution takes too long. We expect the contract to complete in under 30s on
@@ -26,13 +26,22 @@ from typing import List, Tuple, Union, Any, cast
 WEB3_HTTP_PROVIDER_TIMEOUT_SEC = 60
 
 
-def open_web3(url: str) -> Any:
+def open_web3(
+        url: str,
+        certificate: Optional[str] = None,
+        insecure: bool = False) -> Any:
     """
     Create a Web3 context from an http URL.
     """
-    return Web3(HTTPProvider(
-        url,
-        request_kwargs={'timeout': WEB3_HTTP_PROVIDER_TIMEOUT_SEC}))
+    if certificate and not exists(certificate):
+        raise FileNotFoundError(f"certificate file not found: {certificate}")
+    assert not certificate or exists(certificate)
+    request_verify: Union[str, bool, None] = False if insecure else certificate
+    request_kwargs = {
+        'timeout': WEB3_HTTP_PROVIDER_TIMEOUT_SEC,
+        'verify': request_verify,
+    }
+    return Web3(HTTPProvider(url, request_kwargs=request_kwargs))
 
 
 FQ = ec.FQ
