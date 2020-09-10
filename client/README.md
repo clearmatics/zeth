@@ -195,7 +195,7 @@ files.
 ## Receiving transactions
 
 The following command scans the blockchain for any new transactions which
-generate Zeth notes indended for the public address `zeth-address.pub`:
+generate Zeth notes intended for the public address `zeth-address.pub`:
 
 ```console
 # Check all new blocks for notes addressed to `zeth-address.pub`,
@@ -311,7 +311,7 @@ A minimal Docker image is provided in order to use the client in a container.
 In order to do so, one needs to:
 1. Fetch the docker image:
 ```
-$ docker pull clearmatics/zeth-client
+$ docker pull clearmatics/zeth-client:latest
 ```
 2. Start the docker container:
 ```

@@ -38,7 +38,7 @@ To use the Zeth functionality, 3 components are required:
 
 We use 3 terminals, one for each of the above components.
 
-Note: Mac users should increase docker runtime memory from 2gb to 4gb to allow Terminal 1 to complete successfully.
+Note: Mac users should increase docker runtime memory from 2GB to 4GB to allow Terminal 1 to complete successfully.
 
 #### Terminal 1:
 
@@ -85,7 +85,7 @@ prover_server
 ```
 
 Note: By default, `prover_server` generates a key at startup. Flags can be used
-to force the server to load and/or save keys. Run `src/prover_server --help`
+to force the server to load and/or save keys. Run `prover_server --help`
 for more details.
 
 ##### Build Options
@@ -103,7 +103,7 @@ https://eprint.iacr.org/2016/260).
 #### Terminal 2: Ethereum testnet
 
 ```bash
-# Start the ethereum test net by running the following commands
+# Start the Ethereum test net by running the following commands
 cd zeth_contracts
 
 # If the install below fails with python errors, try running:
