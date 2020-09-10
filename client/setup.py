@@ -18,7 +18,7 @@ if sys.version_info < (3, 7):
 
 setup(
     name='zeth',
-    version='0.1',
+    version='0.5',
     description='Interface to zeth operations',
     packages=find_packages(),
     install_requires=[
