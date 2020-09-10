@@ -14,10 +14,11 @@ RUN apk --update --no-cache add \
     bash
 
 # Copy necessary files in the docker container
-COPY ./client /home/zeth
+COPY ./client /home/zeth/client
+COPY ./proto /home/zeth/proto
 
 ENV OPENSSL_VERSION="1.1.1g"
-ENV BUILD_ROOT="/home/zeth"
+ENV BUILD_ROOT="/home/zeth/client"
 RUN cd ${BUILD_ROOT} \
     # && virtualenv env \
     # && . env/bin/activate \
@@ -29,7 +30,7 @@ RUN cd ${BUILD_ROOT} \
     && ./config no-shared no-ssl2 no-ssl3 -fPIC --prefix=${BUILD_ROOT}/openssl \
     && make -j"$($(nproc)+1)" && make install
 
-WORKDIR /home/zeth
+WORKDIR /home/zeth/client
 
 # WARNING:
 # The installation will only succeed if the built cryptography wheel is for the
