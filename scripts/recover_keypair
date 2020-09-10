@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This scripts is used during the distribution of the SRS.
 # Since hosting platforms may have size limits for files, it is possible to

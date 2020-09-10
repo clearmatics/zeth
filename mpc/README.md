@@ -92,7 +92,7 @@ rendering your contribution invalid.
 
 When requested, invoke the contribution computation (ensure the env is
 activated, and that commands are executed inside the working directory).
-Specify the URL (you should reveive this from the coordinator, usually by email
+Specify the URL (you should receive this from the coordinator, usually by email
 or during registration), and the contributor secret key.
 
 For phase1:
@@ -154,7 +154,7 @@ or
 ### Generate a contribution key and certificate
 
 Either self-signed or with a certificate chain from a trusted CA. (If using
-self-signed certificates, the autority's certificate should be published and
+self-signed certificates, the authority's certificate should be published and
 clients instructed to download it and use the `--server-certificate` flag when
 contributing),
 
@@ -240,7 +240,7 @@ be used to specify the exact names of each field (see `--help` for details).
 
 The MPC coordinator server can notify participants by email when their
 contribution time slot begins (when the previous contributor either finishes
-his contribution, or his timeslot expires). To enable email notifications, set
+his contribution, or his time slot expires). To enable email notifications, set
 the `email_server`, `email_address` and `email_password_file` fields to point to a
 (tls enabled) mail server.
 
