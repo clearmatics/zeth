@@ -17,9 +17,9 @@
 #include <zeth/api/snark_messages.pb.h>
 #include <zeth/api/zeth_messages.pb.h>
 
-/// Functions to convert between in-memory and protobuf types. Consistent with
-/// encoding functions for other types, we use the `<type>_to_proto` and
-/// `<type>_from_proto` naming everywhere.a
+// Functions to convert between in-memory and protobuf types. Consistent with
+// encoding functions for other types, we use the `<type>_to_proto` and
+// `<type>_from_proto` naming everywhere.a
 
 namespace libzeth
 {

@@ -67,9 +67,9 @@ libsnark::pb_variable_array<FieldT> get_tag_rho(
     const libsnark::pb_variable_array<FieldT> &phi,
     size_t index);
 
-// PRF to generate the public addresses
-// a_pk = blake2sCompress("1100" || [a_sk]_252 || 0^256): See ZCash protocol
-// specification paper, page 57
+/// PRF to generate the public addresses
+/// a_pk = blake2sCompress("1100" || [a_sk]_252 || 0^256): See ZCash protocol
+/// specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_addr_a_pk_gadget : public PRF_gadget<FieldT, HashT>
 {
@@ -82,9 +82,9 @@ public:
         const std::string &annotation_prefix = " add_PRF_gadget");
 };
 
-// PRF to generate the nullifier
-// nf = blake2sCompress("1110" || [a_sk]_252 || rho): See ZCash protocol
-// specification paper, page 57
+/// PRF to generate the nullifier
+/// nf = blake2sCompress("1110" || [a_sk]_252 || rho): See ZCash protocol
+/// specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_nf_gadget : public PRF_gadget<FieldT, HashT>
 {
@@ -99,9 +99,9 @@ public:
         const std::string &annotation_prefix = "PRF_nf_gadget");
 };
 
-// PRF to generate the h_i
-// h_i = blake2sCompress("0" || index || "00" || [a_sk]_252 || h_sig): See ZCash
-// protocol specification paper, page 57
+/// PRF to generate the h_i
+/// h_i = blake2sCompress("0" || index || "00" || [a_sk]_252 || h_sig)
+/// See ZCash protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_pk_gadget : public PRF_gadget<FieldT, HashT>
 {
@@ -116,9 +116,9 @@ public:
         const std::string &annotation_prefix = " pk_PRF_gadget");
 };
 
-// PRF to generate rho
-// rho_i = blake2sCompress( "0" || index || "10" || [phi]_252 || h_sig): See
-// ZCash protocol specification paper, page 57
+/// PRF to generate rho
+/// rho_i = blake2sCompress( "0" || index || "10" || [phi]_252 || h_sig)
+/// See ZCash protocol specification paper, page 57
 template<typename FieldT, typename HashT>
 class PRF_rho_gadget : public PRF_gadget<FieldT, HashT>
 {

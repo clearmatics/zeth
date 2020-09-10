@@ -11,7 +11,7 @@
 namespace libzeth
 {
 
-// Merkle path authenticator, verifies computed root matches expected result
+/// Merkle path authenticator, verifies computed root matches expected result
 template<typename FieldT, typename HashTreeT>
 class merkle_path_authenticator : public merkle_path_compute<FieldT, HashTreeT>
 {

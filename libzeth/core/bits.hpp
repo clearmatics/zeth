@@ -12,8 +12,6 @@
 #include <stddef.h>
 #include <vector>
 
-/// Bit-arrays of specific sizes, and related methods.
-
 namespace libzeth
 {
 
@@ -84,10 +82,10 @@ template<size_t TreeDepth> using bits_addr = bits<TreeDepth>;
 /// exception if called with an invalid hexadecimal string.
 std::vector<bool> bit_vector_from_hex(const std::string &str);
 
-// Returns the little endian binary encoding of the integer x.
+/// Returns the little endian binary encoding of the integer x.
 std::vector<bool> bit_vector_from_size_t_le(size_t x);
 
-// Returns the big endian binary encoding of the integer x.
+/// Returns the big endian binary encoding of the integer x.
 std::vector<bool> bit_vector_from_size_t_be(size_t x);
 
 } // namespace libzeth
