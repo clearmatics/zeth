@@ -1,0 +1,24 @@
+FROM clearmatics/zeth-base:latest AS stage1
+
+ENV ZETH_PATH=/home/zeth
+# Copy necessary files in the docker container
+COPY . ${ZETH_PATH}
+
+# Install the submodules
+RUN cd ${ZETH_PATH} \
+    && git submodule update --init --recursive
+
+# Build `prover_server`
+RUN cd ${ZETH_PATH} \
+    && mkdir build \
+    && cd build \
+    && cmake -DMPC=OFF -DSTATIC_BUILD=ON .. \
+    && make -j"$($(nprocs)+1)" prover_server
+
+##
+
+FROM alpine:3.12
+RUN apk add --no-cache bash
+## Move `prover_server` from previous image and put it in the PATH
+COPY --from=stage1 /home/zeth/build/prover_server/prover_server /usr/local/bin
+CMD ["/bin/bash"]

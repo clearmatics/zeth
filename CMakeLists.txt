@@ -99,6 +99,22 @@ option(
   ON
 )
 
+# This option determines whether or not we generate the
+# binaries related to the MPC
+option(
+  MPC
+  "Adds the MPC files to the build"
+  ON
+)
+
+# By default, we favour shared objects and dynamic build
+# as it is more portable.
+option(
+  STATIC_BUILD
+  "Builds static libraries and binaries"
+  OFF
+)
+
 option(
   MULTICORE
   "Enable parallelized execution, using OpenMP"
@@ -108,7 +124,7 @@ option(
 option(
   WITH_PROCPS
   "Use procps for memory profiling"
-  ON
+  OFF
 )
 
 option(
@@ -220,6 +236,15 @@ if ("${IS_ZETH_PARENT}")
   )
 endif()
 
+# If the static build option is enabled
+if ("${STATIC_BUILD}")
+  set(Boost_USE_STATIC_LIBS ON)
+  set(Protobuf_USE_STATIC_LIBS ON)
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  SET(BUILD_SHARED_LIBS OFF)
+  SET(CMAKE_EXE_LINKER_FLAGS "-static")
+endif()
+
 # Add dependencies (before setting up the configuration for zeth)
 add_subdirectory(depends)
 
@@ -291,7 +316,7 @@ add_subdirectory(libzeth)
 if ("${IS_ZETH_PARENT}")
   add_subdirectory(prover_server)
   # For now the MPC for Groth16 only is tailored to the alt_bn128 pairing group
-  if(${ZETH_SNARK} STREQUAL "GROTH16")
+  if((${ZETH_SNARK} STREQUAL "GROTH16") AND (${MPC}))
     add_subdirectory(mpc_tools)
   endif()
 endif()
