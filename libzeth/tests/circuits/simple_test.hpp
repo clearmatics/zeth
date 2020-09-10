@@ -9,7 +9,7 @@
 
 namespace libzeth
 {
-namespace test
+namespace tests
 {
 
 // Generate a simple test circuit with 1 public input 'y' and auxiliary
@@ -24,7 +24,7 @@ namespace test
 //   g2 = g1 * x
 template<typename FieldT> void simple_circuit(libsnark::protoboard<FieldT> &pb);
 
-} // namespace test
+} // namespace tests
 } // namespace libzeth
 
 #include "simple_test.tcc"
