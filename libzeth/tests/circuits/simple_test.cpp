@@ -22,7 +22,7 @@ TEST(SimpleTests, SimpleCircuitProof)
 {
     // Simple circuit
     protoboard<Field> pb;
-    libzeth::test::simple_circuit<Field>(pb);
+    libzeth::tests::simple_circuit<Field>(pb);
 
     // Constraint system
     const r1cs_constraint_system<Field> constraint_system =
@@ -59,7 +59,7 @@ TEST(SimpleTests, SimpleCircuitProofPow2Domain)
 {
     // Simple circuit
     protoboard<Field> pb;
-    test::simple_circuit<Field>(pb);
+    libzeth::tests::simple_circuit<Field>(pb);
 
     const r1cs_constraint_system<Field> constraint_system =
         pb.get_constraint_system();

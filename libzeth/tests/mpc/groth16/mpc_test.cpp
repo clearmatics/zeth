@@ -38,7 +38,7 @@ namespace
 r1cs_constraint_system<Fr> get_simple_constraint_system()
 {
     protoboard<Fr> pb;
-    libzeth::test::simple_circuit<Fr>(pb);
+    libzeth::tests::simple_circuit<Fr>(pb);
     r1cs_constraint_system<Fr> cs = pb.get_constraint_system();
     cs.swap_AB_if_beneficial();
     return cs;
@@ -159,7 +159,7 @@ TEST(MPCTests, LinearCombination)
     {
         const qap_instance_evaluation<Fr> qap_evaluation = ([&tau] {
             protoboard<Fr> pb;
-            libzeth::test::simple_circuit<Fr>(pb);
+            libzeth::tests::simple_circuit<Fr>(pb);
             r1cs_constraint_system<Fr> constraint_system =
                 pb.get_constraint_system();
             constraint_system.swap_AB_if_beneficial();
@@ -226,7 +226,7 @@ TEST(MPCTests, Layer2)
 {
     // Small test circuit and QAP
     protoboard<Fr> pb;
-    libzeth::test::simple_circuit<Fr>(pb);
+    libzeth::tests::simple_circuit<Fr>(pb);
     r1cs_constraint_system<Fr> constraint_system = pb.get_constraint_system();
     constraint_system.swap_AB_if_beneficial();
     qap_instance<Fr> qap = r1cs_to_qap_instance_map(constraint_system, true);
@@ -268,7 +268,7 @@ TEST(MPCTests, Layer2)
     {
         const qap_instance_evaluation<Fr> qap_evaluation = ([&tau] {
             protoboard<Fr> pb;
-            libzeth::test::simple_circuit<Fr>(pb);
+            libzeth::tests::simple_circuit<Fr>(pb);
             r1cs_constraint_system<Fr> constraint_system =
                 pb.get_constraint_system();
             constraint_system.swap_AB_if_beneficial();
@@ -334,7 +334,7 @@ TEST(MPCTests, Layer2)
     {
         const r1cs_constraint_system<Fr> constraint_system = ([&] {
             protoboard<Fr> pb;
-            libzeth::test::simple_circuit<Fr>(pb);
+            libzeth::tests::simple_circuit<Fr>(pb);
             r1cs_constraint_system<Fr> cs = pb.get_constraint_system();
             cs.swap_AB_if_beneficial();
             return cs;

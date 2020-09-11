@@ -7,7 +7,7 @@
 
 void simple_protoboard(libsnark::protoboard<libzeth::defaults::Field> &pb)
 {
-    libzeth::test::simple_circuit<libzeth::defaults::Field>(pb);
+    libzeth::tests::simple_circuit<libzeth::defaults::Field>(pb);
 }
 
 int main(int argc, char **argv)
