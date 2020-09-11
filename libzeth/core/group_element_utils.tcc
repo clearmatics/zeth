@@ -10,33 +10,48 @@
 namespace libzeth
 {
 
-template<typename ppT>
-std::string point_g1_affine_to_json(const libff::G1<ppT> &point)
+template<typename GroupT> std::string point_affine_to_json(const GroupT &point)
 {
-    libff::G1<ppT> affine_p = point;
+    GroupT affine_p = point;
     affine_p.to_affine_coordinates();
-    return "[\"0x" + bigint_to_hex<libff::Fq<ppT>>(affine_p.X.as_bigint()) +
-           "\", \"0x" + bigint_to_hex<libff::Fq<ppT>>(affine_p.Y.as_bigint()) +
-           "\"]";
+
+    std::stringstream ss;
+    ss << "[";
+    field_element_write_json(affine_p.X, ss);
+    ss << ",";
+    field_element_write_json(affine_p.Y, ss);
+    ss << "]";
+
+    return ss.str();
 }
 
-template<typename ppT>
-std::string point_g2_affine_to_json(const libff::G2<ppT> &point)
+template<typename GroupT> GroupT point_affine_from_json(const std::string &json)
 {
-    libff::G2<ppT> affine_p = point;
-    affine_p.to_affine_coordinates();
-    return "[\n"
-           "[\"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.X.c1.as_bigint()) +
-           "\", \"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.X.c0.as_bigint()) +
-           "\"],\n"
-           "[\"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.Y.c1.as_bigint()) +
-           "\", \"0x" +
-           bigint_to_hex<libff::Fq<ppT>>(affine_p.Y.c0.as_bigint()) +
-           "\"]\n"
-           "]";
+    GroupT result;
+    char sep;
+
+    std::stringstream ss(json);
+    ss >> sep;
+    if (sep != '[') {
+        throw std::runtime_error(
+            "expected opening bracket reading group element");
+    }
+    field_element_read_json(result.X, ss);
+
+    ss >> sep;
+    if (sep != ',') {
+        throw std::runtime_error("expected comma reading group element");
+    }
+
+    field_element_read_json(result.Y, ss);
+    ss >> sep;
+    if (sep != ']') {
+        throw std::runtime_error(
+            "expected closing bracket reading group element");
+    }
+
+    result.Z = result.Z.one();
+    return result;
 }
 
 } // namespace libzeth

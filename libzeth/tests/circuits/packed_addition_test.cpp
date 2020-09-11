@@ -9,13 +9,13 @@
 #include "libzeth/core/joinsplit_input.hpp"
 #include "libzeth/core/note.hpp"
 #include "libzeth/core/utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 
 using namespace libzeth;
-
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using pp = defaults::pp;
+using Field = defaults::Field;
 
 namespace
 {
@@ -26,29 +26,28 @@ TEST(TestPackedAddition, TestPackedAddition1)
         "Starting test: LHS => value_left1 = 0x000000000000000A, value_left2 = "
         "0x000000000000000A || RHS => value_right1 = 0x0000000000000014");
 
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     // === Set the constraints
-    libsnark::pb_variable_array<FieldT> value_left1;
+    libsnark::pb_variable_array<Field> value_left1;
     value_left1.allocate(pb, ZETH_V_SIZE, "value_left1");
-    libsnark::pb_variable_array<FieldT> value_left2;
+    libsnark::pb_variable_array<Field> value_left2;
     value_left2.allocate(pb, ZETH_V_SIZE, "value_left2");
 
-    libsnark::pb_variable_array<FieldT> value_right1;
+    libsnark::pb_variable_array<Field> value_right1;
     value_right1.allocate(pb, ZETH_V_SIZE, "value_right1");
 
-    libsnark::linear_combination<FieldT> left_side =
+    libsnark::linear_combination<Field> left_side =
         packed_addition(value_left1) + packed_addition(value_left2);
-    libsnark::linear_combination<FieldT> right_side =
+    libsnark::linear_combination<Field> right_side =
         packed_addition(value_right1);
 
     // Constraint to ensure that both sides are equal
     pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
-        "equality");
+        libsnark::r1cs_constraint<Field>(1, left_side, right_side), "equality");
 
     // === Witness
     value_left1.fill_with_bits(
@@ -73,33 +72,32 @@ TEST(TestPackedAddition, TestPackedAddition2)
         "0x3782DACE9D900000 || RHS => value_right1 = 0x6124FEE993BC0000, "
         "value_right2 = 0x0DE0B6B3A7640000");
 
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     // === Set the constraints
-    libsnark::pb_variable_array<FieldT> value_left1;
+    libsnark::pb_variable_array<Field> value_left1;
     value_left1.allocate(pb, ZETH_V_SIZE, "value_left1");
-    libsnark::pb_variable_array<FieldT> value_left2;
+    libsnark::pb_variable_array<Field> value_left2;
     value_left2.allocate(pb, ZETH_V_SIZE, "value_left2");
 
-    libsnark::pb_variable_array<FieldT> value_right1;
+    libsnark::pb_variable_array<Field> value_right1;
     value_right1.allocate(pb, ZETH_V_SIZE, "value_right1");
-    libsnark::pb_variable_array<FieldT> value_right2;
+    libsnark::pb_variable_array<Field> value_right2;
     value_right2.allocate(pb, ZETH_V_SIZE, "value_right2");
 
-    libsnark::linear_combination<FieldT> left_side =
+    libsnark::linear_combination<Field> left_side =
         packed_addition(value_left1);
     left_side = left_side + packed_addition(value_left2);
-    libsnark::linear_combination<FieldT> right_side =
+    libsnark::linear_combination<Field> right_side =
         packed_addition(value_right1);
     right_side = right_side + packed_addition(value_right2);
 
     // Constraint to ensure that both sides are equal
     pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
-        "equality");
+        libsnark::r1cs_constraint<Field>(1, left_side, right_side), "equality");
 
     // === Witness
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
@@ -125,10 +123,10 @@ TEST(TestPackedAddition, TestPackedAddition2)
 
 TEST(TestPackedAddition, TestPackedAddition3)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     libff::print_header(
         "Starting test: IN => v_pub = 0x0000000000000010, note1 = "
@@ -136,34 +134,32 @@ TEST(TestPackedAddition, TestPackedAddition3)
         "note1 = 0x1A00000000000012, note2 = 0x1500000000000002");
 
     // === Set the constraints
-    libsnark::pb_variable_array<FieldT> v_pub_in;
+    libsnark::pb_variable_array<Field> v_pub_in;
     v_pub_in.allocate(pb, ZETH_V_SIZE, "v_pub_in");
-    libsnark::pb_variable_array<FieldT> v_pub_out;
+    libsnark::pb_variable_array<Field> v_pub_out;
     v_pub_out.allocate(pb, ZETH_V_SIZE, "v_pub_out");
 
-    libsnark::pb_variable_array<FieldT> in_val_note1;
+    libsnark::pb_variable_array<Field> in_val_note1;
     in_val_note1.allocate(pb, ZETH_V_SIZE, "in_val_note1");
-    libsnark::pb_variable_array<FieldT> in_val_note2;
+    libsnark::pb_variable_array<Field> in_val_note2;
     in_val_note2.allocate(pb, ZETH_V_SIZE, "in_val_note2");
 
-    libsnark::pb_variable_array<FieldT> out_val_note1;
+    libsnark::pb_variable_array<Field> out_val_note1;
     out_val_note1.allocate(pb, ZETH_V_SIZE, "out_val_note1");
-    libsnark::pb_variable_array<FieldT> out_val_note2;
+    libsnark::pb_variable_array<Field> out_val_note2;
     out_val_note2.allocate(pb, ZETH_V_SIZE, "out_val_note2");
 
-    libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
+    libsnark::linear_combination<Field> left_side = packed_addition(v_pub_in);
     left_side = left_side + packed_addition(in_val_note1);
     left_side = left_side + packed_addition(in_val_note2);
 
-    libsnark::linear_combination<FieldT> right_side =
-        packed_addition(v_pub_out);
+    libsnark::linear_combination<Field> right_side = packed_addition(v_pub_out);
     right_side = right_side + packed_addition(out_val_note1);
     right_side = right_side + packed_addition(out_val_note2);
 
     // Constraint to ensure that both sides are equal
     pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
-        "equality");
+        libsnark::r1cs_constraint<Field>(1, left_side, right_side), "equality");
 
     // === Witness
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
@@ -193,44 +189,42 @@ TEST(TestPackedAddition, TestPackedAddition4)
                         "note1 = 0x0, note2 = 0x0 || OUT => v_pub = 0x0, note1 "
                         "= 0x8530000A00000000, note2 = 0x7550000A00000000");
 
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     libff::print_header("Starting Debug test");
 
     // === Set the constraints
     std::cout << "[DEBUG] variables allocation" << std::endl;
-    libsnark::pb_variable_array<FieldT> v_pub_in;
+    libsnark::pb_variable_array<Field> v_pub_in;
     v_pub_in.allocate(pb, ZETH_V_SIZE, "v_pub_in");
-    libsnark::pb_variable_array<FieldT> v_pub_out;
+    libsnark::pb_variable_array<Field> v_pub_out;
     v_pub_out.allocate(pb, ZETH_V_SIZE, "v_pub_out");
 
-    libsnark::pb_variable_array<FieldT> in_val_note1;
+    libsnark::pb_variable_array<Field> in_val_note1;
     in_val_note1.allocate(pb, ZETH_V_SIZE, "in_val_note1");
-    libsnark::pb_variable_array<FieldT> in_val_note2;
+    libsnark::pb_variable_array<Field> in_val_note2;
     in_val_note2.allocate(pb, ZETH_V_SIZE, "in_val_note2");
 
-    libsnark::pb_variable_array<FieldT> out_val_note1;
+    libsnark::pb_variable_array<Field> out_val_note1;
     out_val_note1.allocate(pb, ZETH_V_SIZE, "out_val_note1");
-    libsnark::pb_variable_array<FieldT> out_val_note2;
+    libsnark::pb_variable_array<Field> out_val_note2;
     out_val_note2.allocate(pb, ZETH_V_SIZE, "out_val_note2");
 
-    libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
+    libsnark::linear_combination<Field> left_side = packed_addition(v_pub_in);
     left_side = left_side + packed_addition(in_val_note1);
     left_side = left_side + packed_addition(in_val_note2);
 
-    libsnark::linear_combination<FieldT> right_side =
-        packed_addition(v_pub_out);
+    libsnark::linear_combination<Field> right_side = packed_addition(v_pub_out);
     right_side = right_side + packed_addition(out_val_note1);
     right_side = right_side + packed_addition(out_val_note2);
 
     // Constraint to ensure that both sides are equal
     std::cout << "[DEBUG] Defining constraint" << std::endl;
     pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
-        "equality");
+        libsnark::r1cs_constraint<Field>(1, left_side, right_side), "equality");
 
     // === Witness
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
@@ -266,40 +260,38 @@ TEST(TestPackedAddition, TestPackedAddition5)
                         "note1 = 0x0, note2 = 0x0 || OUT => v_pub = 0x0, note1 "
                         "= 0x3782DACE9D900000, note2 = 0x29A2241AF62C0000");
 
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     // === Set the constraints
-    libsnark::pb_variable_array<FieldT> v_pub_in;
+    libsnark::pb_variable_array<Field> v_pub_in;
     v_pub_in.allocate(pb, ZETH_V_SIZE, "v_pub_in");
-    libsnark::pb_variable_array<FieldT> v_pub_out;
+    libsnark::pb_variable_array<Field> v_pub_out;
     v_pub_out.allocate(pb, ZETH_V_SIZE, "v_pub_out");
 
-    libsnark::pb_variable_array<FieldT> in_val_note1;
+    libsnark::pb_variable_array<Field> in_val_note1;
     in_val_note1.allocate(pb, ZETH_V_SIZE, "in_val_note1");
-    libsnark::pb_variable_array<FieldT> in_val_note2;
+    libsnark::pb_variable_array<Field> in_val_note2;
     in_val_note2.allocate(pb, ZETH_V_SIZE, "in_val_note2");
 
-    libsnark::pb_variable_array<FieldT> out_val_note1;
+    libsnark::pb_variable_array<Field> out_val_note1;
     out_val_note1.allocate(pb, ZETH_V_SIZE, "out_val_note1");
-    libsnark::pb_variable_array<FieldT> out_val_note2;
+    libsnark::pb_variable_array<Field> out_val_note2;
     out_val_note2.allocate(pb, ZETH_V_SIZE, "out_val_note2");
 
-    libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
+    libsnark::linear_combination<Field> left_side = packed_addition(v_pub_in);
     left_side = left_side + packed_addition(in_val_note1);
     left_side = left_side + packed_addition(in_val_note2);
 
-    libsnark::linear_combination<FieldT> right_side =
-        packed_addition(v_pub_out);
+    libsnark::linear_combination<Field> right_side = packed_addition(v_pub_out);
     right_side = right_side + packed_addition(out_val_note1);
     right_side = right_side + packed_addition(out_val_note2);
 
     // Constraint to ensure that both sides are equal
     pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
-        "equality");
+        libsnark::r1cs_constraint<Field>(1, left_side, right_side), "equality");
 
     // === Witness
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
@@ -335,40 +327,38 @@ TEST(TestPackedAddition, TestPackedAddition6)
                         "note1 = 0x0, note2 = 0x0 || OUT => v_pub = 0x0, note1 "
                         "= 0x3782DACE9D900001, note2 = 0x29A2241AF62C0000");
 
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     // === Set the constraints
-    libsnark::pb_variable_array<FieldT> v_pub_in;
+    libsnark::pb_variable_array<Field> v_pub_in;
     v_pub_in.allocate(pb, ZETH_V_SIZE, "v_pub_in");
-    libsnark::pb_variable_array<FieldT> v_pub_out;
+    libsnark::pb_variable_array<Field> v_pub_out;
     v_pub_out.allocate(pb, ZETH_V_SIZE, "v_pub_out");
 
-    libsnark::pb_variable_array<FieldT> in_val_note1;
+    libsnark::pb_variable_array<Field> in_val_note1;
     in_val_note1.allocate(pb, ZETH_V_SIZE, "in_val_note1");
-    libsnark::pb_variable_array<FieldT> in_val_note2;
+    libsnark::pb_variable_array<Field> in_val_note2;
     in_val_note2.allocate(pb, ZETH_V_SIZE, "in_val_note2");
 
-    libsnark::pb_variable_array<FieldT> out_val_note1;
+    libsnark::pb_variable_array<Field> out_val_note1;
     out_val_note1.allocate(pb, ZETH_V_SIZE, "out_val_note1");
-    libsnark::pb_variable_array<FieldT> out_val_note2;
+    libsnark::pb_variable_array<Field> out_val_note2;
     out_val_note2.allocate(pb, ZETH_V_SIZE, "out_val_note2");
 
-    libsnark::linear_combination<FieldT> left_side = packed_addition(v_pub_in);
+    libsnark::linear_combination<Field> left_side = packed_addition(v_pub_in);
     left_side = left_side + packed_addition(in_val_note1);
     left_side = left_side + packed_addition(in_val_note2);
 
-    libsnark::linear_combination<FieldT> right_side =
-        packed_addition(v_pub_out);
+    libsnark::linear_combination<Field> right_side = packed_addition(v_pub_out);
     right_side = right_side + packed_addition(out_val_note1);
     right_side = right_side + packed_addition(out_val_note2);
 
     // Constraint to ensure that both sides are equal
     pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(1, left_side, right_side),
-        "equality");
+        libsnark::r1cs_constraint<Field>(1, left_side, right_side), "equality");
 
     // === Witness
     std::cout << "[DEBUG] Defining the witnesses" << std::endl;
@@ -406,7 +396,7 @@ int main(int argc, char **argv)
 {
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
-    ppT::init_public_params();
+    pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

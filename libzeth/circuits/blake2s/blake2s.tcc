@@ -99,10 +99,9 @@ template<typename FieldT> void BLAKE2s_256<FieldT>::generate_r1cs_witness()
     // See: Appendix A.1 of https://blake2.net/blake2.pdf
     std::vector<bool> h_bits;
     for (size_t i = 0; i < 8; i++) {
-        std::array<bool, BLAKE2s_word_size> pb_swapped =
-            swap_byte_endianness(parameter_block[i]);
+        bits<BLAKE2s_word_size> pb_swapped = parameter_block[i];
         std::vector<bool> h_part =
-            bits32_to_vector(bits_xor(pb_swapped, BLAKE2s_IV[i]));
+            bits_xor(pb_swapped, BLAKE2s_IV[i]).to_vector();
         h_bits.insert(h_bits.end(), h_part.begin(), h_part.end());
     }
     h[0].bits.fill_with_bits(this->pb, h_bits);

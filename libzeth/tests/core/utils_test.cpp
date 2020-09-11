@@ -9,9 +9,9 @@
 namespace
 {
 
-static const size_t DUMMY_BUFFER_SIZE = 16;
+const size_t DUMMY_BUFFER_SIZE = 16;
 
-static const uint8_t dummy_bytes[DUMMY_BUFFER_SIZE] = {
+const uint8_t dummy_bytes[DUMMY_BUFFER_SIZE] = {
     0x00,
     0x11,
     0x22,
@@ -30,12 +30,10 @@ static const uint8_t dummy_bytes[DUMMY_BUFFER_SIZE] = {
     0xff, //
 };
 
-static const std::string dummy_hex = "00112233445566778899aabbccddeeff";
-static const std::string dummy_hex_prefixed =
-    "0x00112233445566778899aabbccddeeff";
-static const std::string dummy_hex_reversed =
-    "ffeeddccbbaa99887766554433221100";
-static const std::string dummy_hex_reversed_prefixed =
+const std::string dummy_hex = "00112233445566778899aabbccddeeff";
+const std::string dummy_hex_prefixed = "0x00112233445566778899aabbccddeeff";
+const std::string dummy_hex_reversed = "ffeeddccbbaa99887766554433221100";
+const std::string dummy_hex_reversed_prefixed =
     "0xffeeddccbbaa99887766554433221100";
 
 TEST(UtilsTest, HexToBytes)
@@ -68,10 +66,16 @@ TEST(UtilsTest, HexToBytes)
 TEST(UtilsTest, BytesToHex)
 {
     ASSERT_EQ(dummy_hex, libzeth::bytes_to_hex(dummy_bytes, DUMMY_BUFFER_SIZE));
+    ASSERT_EQ(
+        dummy_hex_prefixed,
+        libzeth::bytes_to_hex(dummy_bytes, DUMMY_BUFFER_SIZE, true));
 
     ASSERT_EQ(
         dummy_hex_reversed,
         libzeth::bytes_to_hex_reversed(dummy_bytes, DUMMY_BUFFER_SIZE));
+    ASSERT_EQ(
+        dummy_hex_reversed_prefixed,
+        libzeth::bytes_to_hex_reversed(dummy_bytes, DUMMY_BUFFER_SIZE, true));
 }
 
 TEST(UtilsTest, HexToBytesInvalid)

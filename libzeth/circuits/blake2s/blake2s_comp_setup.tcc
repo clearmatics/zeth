@@ -21,12 +21,12 @@ namespace
 // We use the workaround described here
 // https://stackoverflow.com/questions/32912921/whats-wrong-with-this-inline-initialization-of-stdarray
 // to initialize the const std::arrays
-static const std::array<bool, BLAKE2s_word_size> flag_to_1 = {{
+static const bits<BLAKE2s_word_size> flag_to_1{
     1, 1, 1, 1, 1, 1, 1, 1, // FF
     1, 1, 1, 1, 1, 1, 1, 1, // FF
     1, 1, 1, 1, 1, 1, 1, 1, // FF
-    1, 1, 1, 1, 1, 1, 1, 1  // FF
-}};
+    1, 1, 1, 1, 1, 1, 1, 1, // FF
+};
 
 // See: Appendix A.1 of https://blake2.net/blake2.pdf for the specification
 // of the permutations used in BLAKE2s
@@ -46,7 +46,7 @@ static const std::array<std::array<uint8_t, 16>, 10> sigma = {{
 } // namespace
 
 template<typename FieldT>
-const std::array<std::array<bool, BLAKE2s_word_size>, 8>
+const std::array<bits<BLAKE2s_word_size>, 8>
     BLAKE2s_256_comp<FieldT>::BLAKE2s_IV = {{
         {
             0, 1, 1, 0, 1, 0, 1, 0, // 6A
@@ -159,33 +159,28 @@ void BLAKE2s_256_comp<FieldT>::setup_v(bool is_last_block)
 
     // [v_8, v_9, v_10, v_11] = [IV_0, IV_1, IV_2, IV_3]
     for (size_t i = 8; i < 12; i++) {
-        std::vector<bool> temp_vector(
-            BLAKE2s_IV[i - 8].begin(), BLAKE2s_IV[i - 8].end());
-        v[0][i].fill_with_bits(this->pb, temp_vector);
+        BLAKE2s_IV[i - 8].fill_variable_array(this->pb, v[0][i]);
     }
 
     // v_12 = t0 XOR IV_4
-    std::array<bool, 32> temp_xored = bits_xor(BLAKE2s_IV[4], t[0]);
-    std::vector<bool> temp_vector12(temp_xored.begin(), temp_xored.end());
-    v[0][12].fill_with_bits(this->pb, temp_vector12);
+    bits32 temp_xored = bits_xor(BLAKE2s_IV[4], t[0]);
+    temp_xored.fill_variable_array(this->pb, v[0][12]);
 
     // v_13 = t1 XOR IV_5
     temp_xored = bits_xor(BLAKE2s_IV[5], t[1]);
-    std::vector<bool> temp_vector13(temp_xored.begin(), temp_xored.end());
-    v[0][13].fill_with_bits(this->pb, temp_vector13);
+    temp_xored.fill_variable_array(this->pb, v[0][13]);
 
     // v_14 = f0 XOR IV_6
-    temp_xored = BLAKE2s_IV[6];
     if (is_last_block) {
         temp_xored = bits_xor(BLAKE2s_IV[6], flag_to_1);
+    } else {
+        temp_xored = BLAKE2s_IV[6];
     }
-    std::vector<bool> temp_vector14(temp_xored.begin(), temp_xored.end());
-    v[0][14].fill_with_bits(this->pb, temp_vector14);
+    temp_xored.fill_variable_array(this->pb, v[0][14]);
 
     // v_15 = f1 XOR IV_7
     temp_xored = BLAKE2s_IV[7];
-    std::vector<bool> temp_vector15(temp_xored.begin(), temp_xored.end());
-    v[0][15].fill_with_bits(this->pb, temp_vector15);
+    temp_xored.fill_variable_array(this->pb, v[0][15]);
 }
 
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_mixing_gadgets()
@@ -309,9 +304,12 @@ template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_mixing_gadgets()
     }
 
     for (size_t i = 0; i < 8; i++) {
+        // Some versions of cppcheck raise a false-positive here
         xor_vector.emplace_back(xor_gadget<FieldT>(
             this->pb,
+            // cppcheck-suppress arrayIndexOutOfBounds
             v[rounds][i],
+            // cppcheck-suppress arrayIndexOutOfBounds
             v[rounds][8 + i],
             out_temp[i],
             FMT(this->annotation_prefix, " xor_output_temp_%zu", i)));

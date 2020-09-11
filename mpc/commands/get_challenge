@@ -18,7 +18,7 @@ from typing import Optional
 @option(
     "--challenge-file",
     default=CHALLENGE_FILE,
-    help="File to download challenge to")
+    help="File in which write the downloaded challenge")
 def get_challenge(
         base_url: str,
         challenge_file: str,

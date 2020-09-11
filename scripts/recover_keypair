@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# This scripts is used during the distribution of the SRS.
+# Since hosting platforms may have size limits for files, it is possible to
+# compress the keypair and split the archive file into pieces, by using:
+# ```
+#   tar cvf - ./zeth_setup | gzip -9 - > zeth_setup.tar.gz \
+#   && split -b<size> zeth_setup.tar.gz zeth_setup.tar.gz. \
+# ```
+# All those pieces can be used for distribution. Upon reception of all
+# pieces, the script below recovers the keypair and outputs the file digest
+# allowing to check that the SRS has properly been distributed.
+
+TAR_KEYPAIR_FILE="zeth_setup.tar.gz"
+FILES=$(ls ${TAR_KEYPAIR_FILE}.??)
+
+if [ -z "$FILES" ]
+then
+    echo "No files to process."
+    echo "Please make sure to download the archive files and place" \
+         "them in the Zeth directory"
+    exit 1
+fi
+
+echo "Assembling files..."
+cat ${FILES} > ${TAR_KEYPAIR_FILE}
+
+echo "Decompressing recovered archive ${TAR_KEYPAIR_FILE}..."
+tar xvzf ${TAR_KEYPAIR_FILE}
+
+echo "Computing keypair hash digest..."
+echo $(shasum zeth_setup/keypair.bin)
+
+echo "Removing archive pieces..."
+rm ${FILES}

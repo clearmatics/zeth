@@ -7,6 +7,7 @@
 
 #include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/serialization/proto_utils.hpp"
+#include "libzeth/serialization/r1cs_serialization.hpp"
 #include "libzeth/snarks/groth16/groth16_api_handler.hpp"
 
 namespace libzeth
@@ -14,7 +15,7 @@ namespace libzeth
 
 template<typename ppT>
 void groth16_api_handler<ppT>::verification_key_to_proto(
-    const typename groth16_api_handler<ppT>::snarkT::VerificationKeyT &vk,
+    const typename groth16_api_handler<ppT>::snark::verification_key &vk,
     zeth_proto::VerificationKey *message)
 {
     zeth_proto::HexPointBaseGroup1Affine *a =
@@ -28,15 +29,7 @@ void groth16_api_handler<ppT>::verification_key_to_proto(
     b->CopyFrom(point_g2_affine_to_proto<ppT>(vk.beta_g2));
     d->CopyFrom(point_g2_affine_to_proto<ppT>(vk.delta_g2));
 
-    std::stringstream ss;
-    unsigned abc_length = vk.ABC_g1.rest.indices.size() + 1;
-    ss << "[\n  " << point_g1_affine_to_json<ppT>(vk.ABC_g1.first);
-    for (size_t i = 1; i < abc_length; ++i) {
-        ss << ",\n  "
-           << point_g1_affine_to_json<ppT>(vk.ABC_g1.rest.values[i - 1]);
-    }
-    ss << "\n]";
-    std::string abc_json_str = ss.str();
+    std::string abc_json_str = accumulation_vector_to_json<ppT>(vk.ABC_g1);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -51,7 +44,7 @@ void groth16_api_handler<ppT>::verification_key_to_proto(
 }
 
 template<typename ppT>
-typename groth16_snark<ppT>::VerificationKeyT groth16_api_handler<
+typename groth16_snark<ppT>::verification_key groth16_api_handler<
     ppT>::verification_key_from_proto(const zeth_proto::VerificationKey
                                           &verification_key)
 {
@@ -66,7 +59,7 @@ typename groth16_snark<ppT>::VerificationKeyT groth16_api_handler<
         point_g2_affine_from_proto<ppT>(verif_key.delta_g2());
 
     libsnark::accumulation_vector<libff::G1<ppT>> abc_g1 =
-        accumulation_vector_from_string<ppT>(verif_key.abc_g1());
+        accumulation_vector_from_json<ppT>(verif_key.abc_g1());
 
     libsnark::r1cs_gg_ppzksnark_verification_key<ppT> vk(
         alpha_g1, beta_g2, delta_g2, abc_g1);
@@ -76,7 +69,7 @@ typename groth16_snark<ppT>::VerificationKeyT groth16_api_handler<
 
 template<typename ppT>
 void groth16_api_handler<ppT>::extended_proof_to_proto(
-    const extended_proof<ppT, groth16_api_handler<ppT>::snarkT> &ext_proof,
+    const extended_proof<ppT, groth16_api_handler<ppT>::snark> &ext_proof,
     zeth_proto::ExtendedProof *message)
 {
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof_obj = ext_proof.get_proof();
@@ -92,11 +85,8 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
     b->CopyFrom(point_g2_affine_to_proto<ppT>(proof_obj.g_B));
     c->CopyFrom(point_g1_affine_to_proto<ppT>(proof_obj.g_C));
 
-    libsnark::r1cs_gg_ppzksnark_primary_input<ppT> public_inputs =
-        ext_proof.get_primary_inputs();
-
-    std::string inputs_json_str = primary_inputs_to_string<ppT>(
-        std::vector<libff::Fr<ppT>>(public_inputs));
+    std::stringstream ss;
+    primary_inputs_write_json(ext_proof.get_primary_inputs(), ss);
 
     // Note on memory safety: set_allocated deleted the allocated objects.
     // See:
@@ -107,7 +97,7 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
     grpc_extended_groth16_proof_obj->set_allocated_a(a);
     grpc_extended_groth16_proof_obj->set_allocated_b(b);
     grpc_extended_groth16_proof_obj->set_allocated_c(c);
-    grpc_extended_groth16_proof_obj->set_inputs(inputs_json_str);
+    grpc_extended_groth16_proof_obj->set_inputs(ss.str());
 }
 
 template<typename ppT>
@@ -120,12 +110,14 @@ libzeth::extended_proof<ppT, groth16_snark<ppT>> groth16_api_handler<
     libff::G2<ppT> b = point_g2_affine_from_proto<ppT>(e_proof.b());
     libff::G1<ppT> c = point_g1_affine_from_proto<ppT>(e_proof.c());
 
-    std::vector<libff::Fr<ppT>> inputs =
-        primary_inputs_from_string<ppT>(e_proof.inputs());
+    std::vector<libff::Fr<ppT>> inputs;
+    std::stringstream ss(e_proof.inputs());
+    primary_inputs_read_json(inputs, ss);
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
         std::move(a), std::move(b), std::move(c));
-    libzeth::extended_proof<ppT, groth16_snark<ppT>> res(proof, inputs);
+    libzeth::extended_proof<ppT, groth16_snark<ppT>> res(
+        std::move(proof), std::move(inputs));
 
     return res;
 }

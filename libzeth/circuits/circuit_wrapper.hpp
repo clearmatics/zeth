@@ -36,26 +36,26 @@ private:
         joinsplit_g;
 
 public:
-    using FieldT = libff::Fr<ppT>;
+    using Field = libff::Fr<ppT>;
 
     circuit_wrapper();
 
     // Generate the trusted setup
-    typename snarkT::KeypairT generate_trusted_setup() const;
+    typename snarkT::keypair generate_trusted_setup() const;
 
     // Retrieve the constraint system (intended for debugging purposes).
-    libsnark::protoboard<FieldT> get_constraint_system() const;
+    libsnark::protoboard<Field> get_constraint_system() const;
 
     // Generate a proof and returns an extended proof
     extended_proof<ppT, snarkT> prove(
-        const FieldT &root,
-        const std::array<joinsplit_input<FieldT, TreeDepth>, NumInputs> &inputs,
+        const Field &root,
+        const std::array<joinsplit_input<Field, TreeDepth>, NumInputs> &inputs,
         const std::array<zeth_note, NumOutputs> &outputs,
         const bits64 &vpub_in,
         const bits64 &vpub_out,
         const bits256 &h_sig_in,
         const bits256 &phi_in,
-        const typename snarkT::ProvingKeyT &proving_key) const;
+        const typename snarkT::proving_key &proving_key) const;
 };
 
 } // namespace libzeth

@@ -24,10 +24,9 @@ class PowersOfTauCommand:
             powersoftau_path: Optional[str],
             num_powers: Optional[int]):
         self.powersoftau_path = powersoftau_path or _default_powersoftau_path()
-        self.bin_path = join(self.powersoftau_path, "target", CONFIG)
         self.num_powers = num_powers
-        if not exists(self.bin_path):
-            raise Exception(f"expected bin path: {self.bin_path}")
+        if not exists(self.powersoftau_path):
+            raise Exception(f"expected powersoftau path: {self.powersoftau_path}")
 
     def begin(self) -> bool:
         return self._exec("new")
@@ -72,7 +71,7 @@ class PowersOfTauCommand:
             kwargs: Mapping[str, object] = None) -> bool:
         import subprocess
         args = args or []
-        args = [join(self.bin_path, cmd)] + args
+        args = [join(self.powersoftau_path, cmd)] + args
         kwargs = kwargs or {}
         if self.num_powers:
             args = args + ["-n", str(self.num_powers)]
@@ -81,4 +80,8 @@ class PowersOfTauCommand:
 
 
 def _default_powersoftau_path() -> str:
-    return join(dirname(__file__), "..", "..", "..", "powersoftau")
+    """
+    Return the default path to the PoT binaries directory
+    """
+    return join(
+        dirname(__file__), "..", "..", "..", "powersoftau", "target", CONFIG)

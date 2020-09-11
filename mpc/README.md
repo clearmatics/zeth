@@ -1,8 +1,32 @@
-# Overview
+# Zeth MPC
 
-Tools and scripts for SRS generation via an MPC.
+Tools and scripts for SRS generation via a Multi-Party Computation (MPC).
 
-# Dependencies
+## Preliminaries
+
+### Contribute to the MPC using Docker (recommended)
+
+1. Fetch the docker image:
+```
+$ docker pull clearmatics/zeth-mpc
+```
+
+2. Start the container:
+```
+$ docker run -ti \
+    --env COORDINATOR_IP=<coordinator-ip> \
+    --net=host \
+    --name zeth-mpc-contributor clearmatics/zeth-mpc
+```
+
+3. Once in the container, activate the virtual environment:
+```
+$ source env/bin/activate
+```
+
+### Contribute to the MPC natively
+
+#### Dependencies
 
 - Zeth mpc executables (an optimized build from this repo, or from a binary
   distribution).
@@ -10,7 +34,7 @@ Tools and scripts for SRS generation via an MPC.
 - (Phase1 only) clone and build: https://github.com/clearmatics/powersoftau
   - requires the rust build environment, including [cargo](https://doc.rust-lang.org/cargo/)
 
-# Setup
+#### Setup
 
 If necessary, follow instructions to [build Zeth binary](../README.md)
 executables. Execute the following to install all further packages required
@@ -32,12 +56,11 @@ $ . env/bin/activate
 
 (Adjust the path to run the command from a directory other than `$ZETH/mpc`)
 
+## Contributor instructions
 
-# Contributor instructions
+### Preparation (before MPC begins)
 
-## Preparation (before MPC begins)
-
-Create a working directory for the contribution. (Note that when contributing
+1. Create a working directory for the contribution. (Note that when contributing
 multiple times to a single phase, or to multiple phases, it is recommended to
 create a directory for each contribution.)
 
@@ -46,27 +69,30 @@ create a directory for each contribution.)
 (env) $ cd mpc_contrib
 ```
 
-All commands below are assumed to be executed in the working directory for the
-contribution.
+*All commands below are assumed to be executed in the working directory for the
+contribution.*
 
-Generate a contributor secret key to identify yourself, and evidence of
-validity:
+2. Generate a contributor keypair for authentication purposes throughout the
+MPC. In addition to generating a keypair, the command below will also generate
+a "key evidence" used to certify the public key shared with the coordinator.
+(This extra step is required to make sure that the contributor has knowledge of
+the secret key associated with the public key she registers to the coordinator)
 
 ```console
 (env) $ generate_key contributor.key
 ```
 
-Use the output (public key and key evidence) when registering as a participant
+3. Use the output (public key and key evidence) when registering as a participant
 in the MPC. The file `contributor.key` is the contributor's secret key used
 to sign the contribution. Keep this protected - it could be used by an
 attacker to impersonate you and steal your place in the list of contributors,
 rendering your contribution invalid.
 
-## Contributing (during MPC)
+### Contributing (during MPC)
 
 When requested, invoke the contribution computation (ensure the env is
 activated, and that commands are executed inside the working directory).
-Specify the URL (you should reveive this from the coordinator, usually by email
+Specify the URL (you should receive this from the coordinator, usually by email
 or during registration), and the contributor secret key.
 
 For phase1:
@@ -82,9 +108,10 @@ Digest written to: response.bin.digest
 ...
 ```
 
-For phase2:
+For phase2 (assuming `mpc-client-phase2` is in the `PATH`):
 ```console
-(env) $ phase1_contribute https://<host>[:<port>] contributor.key
+(env) $ phase2_contribute https://<host>[:<port>] contributor.key \
+            --mpc-tool $(which mpc-client-phase2)
 ...
 Digest of the contribution was:
 00a769dc 5bce6cd6 8e679d5e b7f1f175
@@ -95,12 +122,12 @@ Digest written to: response.bin.digest
 ...
 ```
 
-(The coordinator may request that you specify other flags to these commands, to
-control details of the MPC. See `phase1_contribute --help` for all available
-flags.)
+*Note:* You may need to specify additional flags to these commands.
+See `phase1_contribute --help` and `phase2_contribute --help` for all available
+flags.
 
 You will be asked to provide randomness by entering a random string and
-pressing ENTER. Once this is complete, the command will automatically perform
+pressing `ENTER`. Once this is complete, the command will automatically perform
 all necessary computation, write the results to a local file and upload to the
 coordinator.
 
@@ -110,9 +137,9 @@ Keep this file (or make a note of the digest). It can be used at the end of
 the process to verify that your contribution is correctly included in the final
 MPC output.
 
-# Coordinator Instructions
+## Coordinator Instructions
 
-## Create a server working directory
+### Create a server working directory
 
 ```console
 (env) $ mkdir phase1_coordinator
@@ -124,11 +151,11 @@ or
 (env) $ cd phase2_coordinator
 ```
 
-## Generate a contribution key and certificate
+### Generate a contribution key and certificate
 
 Either self-signed or with a certificate chain from a trusted CA. (If using
-self-signed certificates, the autority's certificate should be published and
-clients instructed to download it and use the `--server-cert` flag when
+self-signed certificates, the authority's certificate should be published and
+clients instructed to download it and use the `--server-certificate` flag when
 contributing),
 
 A self-signed certificate can be generated as below
@@ -141,14 +168,14 @@ A self-signed certificate can be generated as below
            -days 365
 ```
 
-## Gather contributors
+### Gather contributors
 
 Contributors should submit their email address and contribution verification
 keys before the MPC begins.
 
-## Create a configuration file
+### Create a configuration file
 
-### Configuration file overview
+#### Configuration file overview
 
 Create the file `server_config.json` in the server working directory,
 specifying properties of the MPC:
@@ -157,7 +184,7 @@ specifying properties of the MPC:
 {
     "server": {
         "contributors_file": "contributors.json",
-        "start_time": "2019-10-02 17:00:00",   # Time (server-local)
+        "start_time_utc": "2019-10-02 17:00:00",   # Time in UTC
         "contribution_interval": "86400",   # 24 hours (in seconds)
         "tls_key": "key.pem",
         "tls_certificate": "cert.pem",
@@ -191,9 +218,9 @@ of contributors in the MPC. This file takes the form:
 }
 ```
 
-See `testdata/mpc_contributors.json` for an example contributors file.
+See [testdata/mpc_contributors.json](../testdata/mpc_contributors.json) for an example contributors file.
 
-### Contributor Registration via Google Forms
+#### Contributor Registration via Google Forms
 
 An easy way to allow contributors to register for the MPC is to publish
 a form online. Google Forms are widely used and provide a way
@@ -209,15 +236,15 @@ Ensure that email, public key, and evidence fields are present in the form, and
 download the response data as a csv file. Flags to `contributors_from_csv_` can
 be used to specify the exact names of each field (see `--help` for details).
 
-### Mail notifications
+#### E-mail notifications
 
 The MPC coordinator server can notify participants by email when their
 contribution time slot begins (when the previous contributor either finishes
-his contribution, or his timeslot expires). To enable email notifications, set
+his contribution, or his time slot expires). To enable email notifications, set
 the `email_server`, `email_address` and `email_password_file` fields to point to a
 (tls enabled) mail server.
 
-## Prepare initial challenge (Phase2 only)
+### Prepare initial challenge (Phase2 only)
 
 Phase2 requires the output from Phase1 to be processed before Phase2 can begin.
 The following assumes that the Phase1 server directory is located in the
@@ -228,15 +255,16 @@ directory `../phase1_coordinator`:
 ```
 
 If the `phase1_coordinator` directory is not available, a directory should be
-created containing at least the `final_output.bin` file, and a
-`server_config.json` specifying the maximum degree used in Phase1.
+created containing at least the `final_output.bin` file, and a minimal
+`server_config.json` (which must specify the `num_powers` property - the
+maximum degree used in Phase1).
 
 This process also relies on the `pot-process` tool from the Zeth build. See
 the output of `phase2_prepare --help` for how to specify this.
 
 Note that this process can take a significant amount of time.
 
-## Launch the server
+### Launch the server
 
 Launch either `phase1_server` or `phase2_server` in the server working
 directory.
@@ -249,21 +277,21 @@ or
 (env) $ phase2_server
 ```
 
-## Processing the final output (Phase2 only)
+### Processing the final output (Phase2 only)
 
-In order for the results of Phase1 and Phase2 to be used, they must be combined to
-produce a key-pair. The `create_keypair` command can perform this operation
-when run in the Phase2 directory, assuming that the Phase1 directory is also
-available:
+In order for the results of Phase1 and Phase2 to be used, they must be combined
+to produce a key-pair. This is performed by the `create_keypair` command. It
+should be run in the Phase2 directory, and similarly to `phase2_prepare`,
+requires a minimal Phase1 directory to be available (specified as an argument):
 
 ```console
-(env) $ create_keypair ../phase1_coordinator
+(env) $ create_keypair ../phase1_coordinator keypair.bin
 ```
 
 The above assumes that the Phase1 server directory is located in
 `../phase1_coordinator`, relative to the (Phase2) working directory.
 
-# Run tests
+## Run tests
 
 From the repository root, with the virtualenv activated:
 

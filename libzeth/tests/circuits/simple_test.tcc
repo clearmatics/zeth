@@ -9,7 +9,7 @@
 
 namespace libzeth
 {
-namespace test
+namespace tests
 {
 
 template<typename FieldT> void simple_circuit(libsnark::protoboard<FieldT> &pb)
@@ -46,7 +46,7 @@ template<typename FieldT> void simple_circuit(libsnark::protoboard<FieldT> &pb)
         r1cs_constraint<FieldT>(g2 + (4 * g1) + (2 * x) + 5, 1, y), "y");
 }
 
-} // namespace test
+} // namespace tests
 } // namespace libzeth
 
 #endif // __ZETH_TEST_SIMPLE_TEST_TCC__

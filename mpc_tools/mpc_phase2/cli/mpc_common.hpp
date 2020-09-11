@@ -5,8 +5,9 @@
 #ifndef __ZETH_MPC_CLI_COMMON_HPP__
 #define __ZETH_MPC_CLI_COMMON_HPP__
 
-#include "libzeth/circuits/circuit_types.hpp"
+#include "libzeth/core/include_libsnark.hpp"
 #include "libzeth/mpc/groth16/mpc_hash.hpp"
+#include "zeth_config.h"
 
 #include <boost/program_options.hpp>
 #include <fstream>
@@ -15,7 +16,7 @@
 #include <vector>
 
 using ProtoboardInitFn =
-    std::function<void(libsnark::protoboard<libzeth::FieldT> &)>;
+    std::function<void(libsnark::protoboard<libzeth::defaults::Field> &)>;
 
 class subcommand
 {
@@ -29,14 +30,16 @@ private:
     bool help;
 
 public:
+    using Field = libzeth::defaults::Field;
+
     subcommand(
         const std::string &subcommand_name, const std::string &description);
-    void set_global_options(bool verbose, ProtoboardInitFn protoboard_init);
+    void set_global_options(bool verbose, const ProtoboardInitFn &pb_init);
     int execute(const std::vector<std::string> &args);
     const std::string &description() const;
 
 protected:
-    void init_protoboard(libsnark::protoboard<libzeth::FieldT> &pb) const;
+    void init_protoboard(libsnark::protoboard<Field> &pb) const;
 
 private:
     void usage(const boost::program_options::options_description &all_options);
@@ -96,6 +99,6 @@ int mpc_main(
     int argc,
     char **argv,
     const std::map<std::string, subcommand *> &commands,
-    ProtoboardInitFn pb_init);
+    const ProtoboardInitFn &pb_init);
 
 #endif // __ZETH_MPC_CLI_COMMON_HPP__

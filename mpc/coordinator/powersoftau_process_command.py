@@ -45,4 +45,5 @@ class PowersOfTauProcessCommand:
 
 def _default_tool() -> str:
     from os.path import join, dirname
-    return join(dirname(__file__), "..", "..", "build", "src", "pot-process")
+    return join(
+        dirname(__file__), "..", "..", "build", "mpc_tools", "pot-process")

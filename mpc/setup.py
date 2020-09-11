@@ -20,7 +20,7 @@ if sys.version_info < (3, 7):
 
 setup(
     name='coordinator',
-    version='0.1',
+    version='0.5',
     description='MPC Coordinator for Zeth SRS',
     packages=find_packages(),
     install_requires=[

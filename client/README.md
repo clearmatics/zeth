@@ -1,5 +1,27 @@
 # Python client to interact with the prover
 
+## Structure of the directory
+
+### `zeth`
+
+```
+zeth
+ |_ api
+ |_ cli
+ |_ core
+ |_ helper
+```
+
+This directory contains the API code for the Zeth client (`api`), its backend implementation (`core`), the code for the client CLI (`cli`), and the code of an "helper" CLI - providing useful functionalities to support the use of Zeth on Ethereum-like networks (`helper`).
+
+### `test_commands`
+
+This directory contains a list of useful commands to help run the tests, as well as some minimal testing scenarios acting as integration tests.
+
+### `tests`
+
+The `tests` folder contains the unit tests of the `zeth` package.
+
 ## Setup
 
 Ensure that the following are installed:
@@ -84,14 +106,14 @@ behalf of each of them to experiment with the system.
   be funded. When running the testnet (see [top-level README](../README.md)),
   addresses are created at startup and written to the console. One of these can
   be copy-pasted into this file.
-- `zeth-instance.json` contains the address and ABI for a single instance of
-  the zeth contract. This file is created by the deployment step below and
-  should be distributed to each client that will use this instance.
-- `zeth-address.json` and `zeth-address.json.pub` hold the secret and public
-  parts of a ZethAddress. These can be generated with the `zeth gen-address`
-  command. `zeth-address.json.pub` holds the public address which can be shared
-  with other users, allowing them to privately transfer funds to this client.
-  The secret `zeth-address.json` should **not** be shared.
+- `zeth-instance` contains the address and ABI for a single instance of the
+  zeth contract. This file is created by the deployment step below and should
+  be distributed to each client that will use this instance.
+- `zeth-address.priv` and `zeth-address.pub` hold the secret and public parts
+  of a ZethAddress. These can be generated with the `zeth gen-address` command.
+  `zeth-address.pub` holds the public address which can be shared with other
+  users, allowing them to privately transfer funds to this client. The secret
+  `zeth-address.priv` should **not** be shared.
 
 Note that by default the `zeth` command will also create a `notes`
 subdirectory to contain the set of notes owned by this user. These are also
@@ -105,15 +127,15 @@ token), a directory should be created for each deployment:
   MyZethInstances/
       Ether/
           eth-address
-          zeth-instance.json
-          zeth-address.json
-          zeth-address.json.pub
+          zeth-instance
+          zeth-address.priv
+          zeth-address.pub
           notes/...
       ERCToken1/
           eth-address
-          zeth-instance.json
-          zeth-address.json
-          zeth-address.json.pub
+          zeth-instance
+          zeth-address.priv
+          zeth-address.pub
           notes/...
 ```
 
@@ -140,7 +162,7 @@ an `eth-address` file mentioned above, where the address has sufficient funds.
 (env)$ zeth deploy
 
 # Share the instance file with all clients
-$ cp zeth-instance.json <destination>
+$ cp zeth-instance <destination>
 ```
 
 ## User setup
@@ -155,14 +177,14 @@ $ cd alice
 $ echo 0x.... > eth-address
 
 # Copy the instance file (received from the deployer)
-$ cp <shared-instance-file> zeth-instance.json
+$ cp <shared-instance-file> zeth-instance
 
-# Generate new Zeth Address with secret (zeth-address.json) and
-# public address (zeth-address.json.pub)
+# Generate new Zeth Address with secret (zeth-address.priv) and
+# public address (zeth-address.pub)
 $ zeth gen-address
 
 # Share the public address with other users
-$ cp zeth-address.json.pub <destination>
+$ cp zeth-address.pub <destination>
 ```
 
 With these files in place, `zeth` commands invoked from inside this directory
@@ -173,10 +195,10 @@ files.
 ## Receiving transactions
 
 The following command scans the blockchain for any new transactions which
-generate Zeth notes indended for the public address `zeth-address.json.pub`:
+generate Zeth notes intended for the public address `zeth-address.pub`:
 
 ```console
-# Check all new blocks for notes addressed to `zeth-address.json.pub`,
+# Check all new blocks for notes addressed to `zeth-address.pub`,
 # storing them in the ./notes directory.
 (env)$ zeth sync
 ```
@@ -201,8 +223,8 @@ value (8 hex chars) can be used to specify which notes to use as inputs.
 
 **Output Notes.** Given as pairs of Zeth public address and value, separated by
 a comma `,`. The form of the public address is exactly as in the
-`zeth-address.json.pub` file. That is, two 32 byte hex values separated by a
-colon `:`.
+`zeth-address.pub` file. That is, two 32 byte hex values separated by a colon
+`:`.
 
 **Public Input.** Ether or ERC20 token value to deposit in the mixer.
 
@@ -217,9 +239,8 @@ creation of Zeth notes.
 
 ```console
 # Deposit 10 ether from `eth-address`, creating Zeth notes owned by Alice
-(env)$ zeth mix --out <public-zeth-address>,10 --vin 10
+(env)$ zeth mix --out zeth-address.pub,10 --vin 10
 ```
-where `<public-zeth-address>` is the contents of `zeth-address.json.pub`.
 
 ### Privately send a ZethNote to another user
 
@@ -252,7 +273,7 @@ As explained above, the `zeth mix` command can be used to deposit funds on the
 mixer, transfer notes, and withdraw funds from the mixer. A single command can
 perform all of these in one transaction, which greatly improves the privacy
 level provided by Zeth. In fact, no exact information about the meaning of a
-transaction is ever leaked to the an observant attacker.
+transaction is ever leaked to an observant attacker.
 
 Here are a few examples of complex payments allowed by `zeth mix`:
 
@@ -283,6 +304,30 @@ then searches for new notes.
 
 Alternatively, the `--wait` flag can be passed to the `mix` command to make it
 wait and sync new notes before exiting.
+
+## Docker (Debug/Development only)
+
+A minimal Docker image is provided in order to use the client in a container.
+In order to do so, one needs to:
+1. Fetch the docker image:
+```
+$ docker pull clearmatics/zeth-client:latest
+```
+2. Start the docker container:
+```
+$ docker run -ti \
+    --net=host \
+    --name zeth-client-container clearmatics/zeth-client
+```
+
+**Important:** Note that, the `clearmatics/zeth-client` image cannot be used
+to deploy the *Zeth* contracts (the contracts are not available inside the
+container). Instead, this image is only aimed at providing a pre-configured
+environment to interact with deployed *Zeth* contracts via a docker container.
+Moreover, **we strongly advise against** running the client in the docker
+container in any real-life scenario. Proper secret management and backup need
+to be carried out for the wallet data to be protected against losses and
+adversaries (see section below).
 
 ## Limitations - Note and Address management
 

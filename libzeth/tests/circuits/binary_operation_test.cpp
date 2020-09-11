@@ -6,25 +6,26 @@
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/core/include_libff.hpp"
 #include "libzeth/core/utils.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 
 using namespace libzeth;
 
-typedef libff::default_ec_pp ppT;
-typedef libff::Fr<ppT> FieldT;
+using pp = defaults::pp;
+using Field = defaults::Field;
 
 namespace
 {
 
 TEST(TestXOR, TestTrue)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
-    libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 1, 0, 1, 0, 1, 0, 1, // 55
@@ -33,7 +34,7 @@ TEST(TestXOR, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
         {
             1, 1, 1, 1, 0, 0, 0, 0, // F0
             1, 0, 1, 0, 1, 0, 1, 0, // AA
@@ -42,14 +43,14 @@ TEST(TestXOR, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> xored;
+    libsnark::pb_variable_array<Field> xored;
     xored.allocate(pb, 32, "xored");
 
-    xor_gadget<FieldT> xor_gadget(pb, a, b, xored);
+    xor_gadget<Field> xor_gadget(pb, a, b, xored);
     xor_gadget.generate_r1cs_constraints();
     xor_gadget.generate_r1cs_witness();
 
-    libsnark::pb_variable_array<FieldT> expected =
+    libsnark::pb_variable_array<Field> expected =
         variable_array_from_bit_vector(
             {
                 1, 1, 1, 1, 1, 1, 1, 1, // FF
@@ -64,12 +65,12 @@ TEST(TestXOR, TestTrue)
 
 TEST(TestXORConstant, TestTrue)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
-    libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 1, 0, 1, 0, 1, 0, 1, // 55
@@ -78,7 +79,7 @@ TEST(TestXORConstant, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
         {
             1, 1, 1, 1, 0, 0, 0, 0, // F0
             1, 0, 1, 0, 1, 0, 1, 0, // AA
@@ -87,21 +88,21 @@ TEST(TestXORConstant, TestTrue)
         },
         ZERO);
 
-    std::vector<FieldT> c = {
+    std::vector<Field> c = {
         0, 0, 0, 0, 1, 1, 1, 1, // 0F
         1, 1, 1, 1, 0, 0, 0, 0, // F0
         0, 0, 0, 0, 0, 0, 0, 0, // 00
         1, 0, 1, 0, 1, 0, 1, 0  // AA
     };
 
-    libsnark::pb_variable_array<FieldT> xored;
+    libsnark::pb_variable_array<Field> xored;
     xored.allocate(pb, 32, "xored");
 
-    xor_constant_gadget<FieldT> xor_c_gadget(pb, a, b, c, xored);
+    xor_constant_gadget<Field> xor_c_gadget(pb, a, b, c, xored);
     xor_c_gadget.generate_r1cs_constraints();
     xor_c_gadget.generate_r1cs_witness();
 
-    libsnark::pb_variable_array<FieldT> expected =
+    libsnark::pb_variable_array<Field> expected =
         variable_array_from_bit_vector(
             {
                 1, 1, 1, 1, 0, 0, 0, 0, // F0
@@ -116,12 +117,12 @@ TEST(TestXORConstant, TestTrue)
 
 TEST(Testxor_rot, TestTrue)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
-    libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 1, 0, 1, 0, 1, 0, 1, // 55
@@ -130,7 +131,7 @@ TEST(Testxor_rot, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
         {
             1, 1, 1, 1, 0, 0, 0, 0, // F0
             1, 0, 1, 0, 1, 0, 1, 0, // AA
@@ -139,42 +140,42 @@ TEST(Testxor_rot, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> rot0;
+    libsnark::pb_variable_array<Field> rot0;
     rot0.allocate(pb, 32, "rot0");
 
-    libsnark::pb_variable_array<FieldT> rot8;
+    libsnark::pb_variable_array<Field> rot8;
     rot8.allocate(pb, 32, "rot8");
 
-    libsnark::pb_variable_array<FieldT> rot16;
+    libsnark::pb_variable_array<Field> rot16;
     rot16.allocate(pb, 32, "rot16");
 
-    libsnark::pb_variable_array<FieldT> rot24;
+    libsnark::pb_variable_array<Field> rot24;
     rot24.allocate(pb, 32, "rot24");
 
-    libsnark::pb_variable_array<FieldT> rot32;
+    libsnark::pb_variable_array<Field> rot32;
     rot32.allocate(pb, 32, "rot32");
 
-    xor_rot_gadget<FieldT> xor_rot0_gadget(pb, a, b, size_t(0), rot0);
+    xor_rot_gadget<Field> xor_rot0_gadget(pb, a, b, size_t(0), rot0);
     xor_rot0_gadget.generate_r1cs_constraints();
     xor_rot0_gadget.generate_r1cs_witness();
 
-    xor_rot_gadget<FieldT> xor_rot8_gadget(pb, a, b, size_t(8), rot8);
+    xor_rot_gadget<Field> xor_rot8_gadget(pb, a, b, size_t(8), rot8);
     xor_rot8_gadget.generate_r1cs_constraints();
     xor_rot8_gadget.generate_r1cs_witness();
 
-    xor_rot_gadget<FieldT> xor_rot16_gadget(pb, a, b, size_t(16), rot16);
+    xor_rot_gadget<Field> xor_rot16_gadget(pb, a, b, size_t(16), rot16);
     xor_rot16_gadget.generate_r1cs_constraints();
     xor_rot16_gadget.generate_r1cs_witness();
 
-    xor_rot_gadget<FieldT> xor_rot24_gadget(pb, a, b, size_t(24), rot24);
+    xor_rot_gadget<Field> xor_rot24_gadget(pb, a, b, size_t(24), rot24);
     xor_rot24_gadget.generate_r1cs_constraints();
     xor_rot24_gadget.generate_r1cs_witness();
 
-    xor_rot_gadget<FieldT> xor_rot32_gadget(pb, a, b, size_t(32), rot32);
+    xor_rot_gadget<Field> xor_rot32_gadget(pb, a, b, size_t(32), rot32);
     xor_rot32_gadget.generate_r1cs_constraints();
     xor_rot32_gadget.generate_r1cs_witness();
 
-    libsnark::pb_variable_array<FieldT> expected0 =
+    libsnark::pb_variable_array<Field> expected0 =
         variable_array_from_bit_vector(
             {
                 1, 1, 1, 1, 1, 1, 1, 1, // FF
@@ -184,7 +185,7 @@ TEST(Testxor_rot, TestTrue)
             },
             ZERO);
 
-    libsnark::pb_variable_array<FieldT> expected8 =
+    libsnark::pb_variable_array<Field> expected8 =
         variable_array_from_bit_vector(
             {
                 0, 0, 0, 0, 0, 0, 0, 0, // 00
@@ -194,7 +195,7 @@ TEST(Testxor_rot, TestTrue)
             },
             ZERO);
 
-    libsnark::pb_variable_array<FieldT> expected16 =
+    libsnark::pb_variable_array<Field> expected16 =
         variable_array_from_bit_vector(
             {
                 0, 0, 0, 0, 0, 0, 0, 0, // 00
@@ -204,7 +205,7 @@ TEST(Testxor_rot, TestTrue)
             },
             ZERO);
 
-    libsnark::pb_variable_array<FieldT> expected24 =
+    libsnark::pb_variable_array<Field> expected24 =
         variable_array_from_bit_vector(
             {
                 1, 1, 1, 1, 1, 1, 1, 1, // FF
@@ -223,12 +224,12 @@ TEST(Testxor_rot, TestTrue)
 
 TEST(Testdouble_packed, TestTrue)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "zero");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
-    libsnark::pb_variable_array<FieldT> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
         {
             1, 0, 0, 0, 1, 1, 1, 1, // 8F
             0, 1, 0, 1, 0, 1, 0, 1, // 55
@@ -237,7 +238,7 @@ TEST(Testdouble_packed, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
         {
             1, 1, 1, 1, 0, 0, 0, 0, // F0
             1, 0, 1, 0, 1, 0, 1, 0, // AA
@@ -246,14 +247,14 @@ TEST(Testdouble_packed, TestTrue)
         },
         ZERO);
 
-    libsnark::pb_variable_array<FieldT> add;
+    libsnark::pb_variable_array<Field> add;
     add.allocate(pb, 32, "add");
 
-    double_bit32_sum_eq_gadget<FieldT> add_mod32_gadget(pb, a, b, add);
+    double_bit32_sum_eq_gadget<Field> add_mod32_gadget(pb, a, b, add);
     add_mod32_gadget.generate_r1cs_constraints();
     add_mod32_gadget.generate_r1cs_witness();
 
-    libsnark::pb_variable_array<FieldT> expected =
+    libsnark::pb_variable_array<Field> expected =
         variable_array_from_bit_vector(
             {
                 1, 0, 0, 0, 0, 0, 0, 0, // 80
@@ -272,7 +273,7 @@ int main(int argc, char **argv)
 {
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
-    ppT::init_public_params();
+    pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

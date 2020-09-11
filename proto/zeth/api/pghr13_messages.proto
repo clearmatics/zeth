@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package zeth_proto;
+
+import "zeth/api/ec_group_messages.proto";
+
+message VerificationKeyPGHR13 {
+    HexPointBaseGroup2Affine a = 1;
+    HexPointBaseGroup1Affine b = 2;
+    HexPointBaseGroup2Affine c = 3;
+    HexPointBaseGroup2Affine gamma = 4;
+    HexPointBaseGroup1Affine gamma_beta_g1 = 5;
+    HexPointBaseGroup2Affine gamma_beta_g2 = 6;
+    HexPointBaseGroup2Affine z = 7;
+    string ic = 8;
+}
+
+// Contains the proof along with the public inputs
+message ExtendedProofPGHR13 {
+    HexPointBaseGroup1Affine a = 1;
+    HexPointBaseGroup1Affine a_p = 2;
+    HexPointBaseGroup2Affine b = 3;
+    HexPointBaseGroup1Affine b_p = 4;
+    HexPointBaseGroup1Affine c = 5;
+    HexPointBaseGroup1Affine c_p = 6;
+    HexPointBaseGroup1Affine h = 7;
+    HexPointBaseGroup1Affine k = 8;
+    string inputs = 9;
+}

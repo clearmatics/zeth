@@ -6,22 +6,22 @@
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/circuits/sha256/sha256_ethereum.hpp"
+#include "zeth_config.h"
 
 #include <gtest/gtest.h>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 using namespace libsnark;
-
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
+using pp = libzeth::defaults::pp;
+using Field = libzeth::defaults::Field;
 
 // We use our hash function to do the tests
-typedef libzeth::sha256_ethereum<FieldT> HashT;
+using HashT = libzeth::sha256_ethereum<Field>;
 
-// Note on the instantiation of the FieldT template type
+// Note on the instantiation of the Field template type
 //
 // We use the alt_bn128_pp public params, with a field instantiated with
-// libff::Fr<ppT> which corresponds (according to
+// libff::Fr<pp> which corresponds (according to
 // libff/algebra/curves/public_params.hpp) to the typedef 'typedef alt_bn128_Fr
 // Fp_type;' (see: libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp)
 // 'alt_bn128_Fr' being itself defined in
@@ -55,13 +55,13 @@ void dump_bit_vector(std::ostream &out, const libff::bit_vector &v)
 
 TEST(TestSHA256, TestHash)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "ZERO");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<FieldT> left =
+    libsnark::pb_variable_array<Field> left =
         libzeth::variable_array_from_bit_vector(
             {
                 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, //
@@ -84,7 +84,7 @@ TEST(TestSHA256, TestHash)
             ZERO);
 
     // hex: 0x43C000000000003FC00000000000003FC00000000000003FC00000000000003F
-    libsnark::pb_variable_array<FieldT> right =
+    libsnark::pb_variable_array<Field> right =
         libzeth::variable_array_from_bit_vector(
             {
                 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, //
@@ -106,17 +106,11 @@ TEST(TestSHA256, TestHash)
             },
             ZERO);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result;
-    result.reset(
-        new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
-
-    std::shared_ptr<libsnark::block_variable<FieldT>> input_block;
-    input_block.reset(new libsnark::block_variable<FieldT>(
-        pb, {left, right}, "Block_variable"));
-
-    std::shared_ptr<libzeth::sha256_ethereum<FieldT>> hasher;
-    hasher.reset(
-        new libzeth::sha256_ethereum<FieldT>(pb, ZERO, *input_block, *result));
+    libsnark::digest_variable<Field> result(
+        pb, HashT::get_digest_len(), "result");
+    libsnark::block_variable<Field> input_block(
+        pb, {left, right}, "Block_variable");
+    libzeth::sha256_ethereum<Field> hasher(pb, ZERO, input_block, result);
 
     // result should equal:
     // 0xa4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3 Since
@@ -131,34 +125,34 @@ TEST(TestSHA256, TestHash)
     // on-chain and off-chain) Solidity version v0.5.0
     std::string test_vector_res_str =
         "a4cc8f23d1dfeab58d7af00b3422f22dd60b9c608af5f30744073653236562c3";
-    libsnark::pb_variable_array<FieldT> expected =
+    libsnark::pb_variable_array<Field> expected =
         libzeth::variable_array_from_bit_vector(
             libzeth::bit_vector_from_hex(test_vector_res_str), ZERO);
 
-    hasher->generate_r1cs_constraints(true);
-    hasher->generate_r1cs_witness();
+    hasher.generate_r1cs_constraints(true);
+    hasher.generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
 
     std::ostream &stream = std::cout;
     std::cout << " -- Result digest -- " << std::endl;
-    dump_bit_vector(stream, result->get_digest());
+    dump_bit_vector(stream, result.get_digest());
     std::cout << " -- Expected digest -- " << std::endl;
     dump_bit_vector(stream, expected.get_bits(pb));
 
-    ASSERT_EQ(result->get_digest(), expected.get_bits(pb));
+    ASSERT_EQ(result.get_digest(), expected.get_bits(pb));
 };
 
 TEST(TestSHA256, TestHashWithZeroLeg)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> ZERO;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> ZERO;
     ZERO.allocate(pb, "ZERO");
-    pb.val(ZERO) = FieldT::zero();
+    pb.val(ZERO) = Field::zero();
 
-    libsnark::pb_variable_array<FieldT> left;
-    libsnark::pb_variable_array<FieldT> right;
+    libsnark::pb_variable_array<Field> left;
+    libsnark::pb_variable_array<Field> right;
     left.allocate(pb, 256, " left_part_block");
     right.allocate(pb, 256, " right_part_block");
 
@@ -179,20 +173,17 @@ TEST(TestSHA256, TestHashWithZeroLeg)
     left.fill_with_bits(pb, left_bits);
     right.fill_with_bits(pb, right_bits);
 
-    std::shared_ptr<libsnark::digest_variable<FieldT>> result;
-    result.reset(
-        new digest_variable<FieldT>(pb, HashT::get_digest_len(), "result"));
+    libsnark::digest_variable<Field> result(
+        pb, HashT::get_digest_len(), "result");
 
-    std::shared_ptr<libsnark::block_variable<FieldT>> input_block;
-    input_block.reset(new libsnark::block_variable<FieldT>(
-        pb, {left, right}, "Block_variable"));
+    libsnark::block_variable<Field> input_block(
+        pb, {left, right}, "Block_variable");
 
-    std::shared_ptr<libzeth::sha256_ethereum<FieldT>> hasher;
-    hasher.reset(new libzeth::sha256_ethereum<FieldT>(
-        pb, ZERO, *input_block, *result, "Sha256_ethereum"));
+    libzeth::sha256_ethereum<Field> hasher(
+        pb, ZERO, input_block, result, "Sha256_ethereum");
 
-    hasher->generate_r1cs_constraints(true);
-    hasher->generate_r1cs_witness();
+    hasher.generate_r1cs_constraints(true);
+    hasher.generate_r1cs_witness();
 
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
@@ -203,11 +194,11 @@ TEST(TestSHA256, TestHashWithZeroLeg)
     std::cout << " -- right -- " << std::endl;
     dump_bit_vector(stream, right.get_bits(pb));
     std::cout << " -- Result digest -- " << std::endl;
-    dump_bit_vector(stream, result->get_digest());
+    dump_bit_vector(stream, result.get_digest());
     std::cout << " -- Expected digest -- " << std::endl;
     dump_bit_vector(stream, expected_bits);
 
-    ASSERT_EQ(result->get_digest(), expected_bits);
+    ASSERT_EQ(result.get_digest(), expected_bits);
 };
 
 } // namespace
@@ -216,7 +207,7 @@ int main(int argc, char **argv)
 {
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
-    ppT::init_public_params();
+    pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

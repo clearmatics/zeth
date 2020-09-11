@@ -15,52 +15,52 @@ namespace libzeth
 template<typename ppT> class pghr13_snark
 {
 public:
-    typedef libsnark::r1cs_ppzksnark_proving_key<ppT> ProvingKeyT;
-    typedef libsnark::r1cs_ppzksnark_verification_key<ppT> VerificationKeyT;
-    typedef libsnark::r1cs_ppzksnark_keypair<ppT> KeypairT;
-    typedef libsnark::r1cs_ppzksnark_proof<ppT> ProofT;
+    using proving_key = libsnark::r1cs_ppzksnark_proving_key<ppT>;
+    using verification_key = libsnark::r1cs_ppzksnark_verification_key<ppT>;
+    using keypair = libsnark::r1cs_ppzksnark_keypair<ppT>;
+    using proof = libsnark::r1cs_ppzksnark_proof<ppT>;
 
     /// Run the trusted setup and return the keypair for the circuit
-    static KeypairT generate_setup(
+    static keypair generate_setup(
         const libsnark::protoboard<libff::Fr<ppT>> &pb);
 
     /// Generate the proof
-    static ProofT generate_proof(
+    static proof generate_proof(
         const libsnark::protoboard<libff::Fr<ppT>> &pb,
-        const ProvingKeyT &proving_key);
+        const proving_key &proving_key);
 
     /// Verify proof
     static bool verify(
         const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_inputs,
-        const ProofT &proof,
-        const VerificationKeyT &verification_key);
+        const proof &proof,
+        const verification_key &verification_key);
 
     /// Write verification as json
     static std::ostream &verification_key_write_json(
-        const VerificationKeyT &, std::ostream &);
+        const verification_key &, std::ostream &);
 
     /// Write verification key as bytes
     static std::ostream &verification_key_write_bytes(
-        const VerificationKeyT &, std::ostream &);
+        const verification_key &, std::ostream &);
 
     /// Read a verification key as bytes
-    static VerificationKeyT verification_key_read_bytes(std::istream &);
+    static verification_key verification_key_read_bytes(std::istream &);
 
     /// Write proving key as bytes
     static std::ostream &proving_key_write_bytes(
-        const ProvingKeyT &, std::ostream &);
+        const proving_key &, std::ostream &);
 
     /// Read proving key as bytes
-    static ProvingKeyT proving_key_read_bytes(std::istream &);
+    static proving_key proving_key_read_bytes(std::istream &);
 
     /// Write proof as json
-    static std::ostream &proof_write_json(const ProofT &, std::ostream &);
+    static std::ostream &proof_write_json(const proof &, std::ostream &);
 
     /// Write a keypair to a stream.
-    static std::ostream &keypair_write_bytes(const KeypairT &, std::ostream &);
+    static std::ostream &keypair_write_bytes(const keypair &, std::ostream &);
 
     /// Read a keypair from a stream.
-    static KeypairT keypair_read_bytes(std::istream &);
+    static keypair keypair_read_bytes(std::istream &);
 };
 
 } // namespace libzeth

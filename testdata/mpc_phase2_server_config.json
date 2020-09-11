@@ -1,14 +1,19 @@
 {
     "server": {
+        "help1": "This section is common over phase1 and phase2. See ",
+        "help2": "mpc_phase1_server.config.json for details.",
+
         "contributors_file": "../testdata/mpc_contributors.json",
-        "start_time": "TIME",
-        "contribution_interval": "10.0",
-        "_email_server": "smtp.myorg.com:465",
-        "_email_address": "mpc.coordinator@myorg.com",
-        "_email_password_file": "file containing password for email account",
+        "start_time_utc": "TIME",
+        "contribution_interval": "60.0",
+        "_email_server_example": "smtp.myorg.com:465",
+        "_email_address_example": "mpc.coordinator@myorg.com",
+        "_email_password_file_example": "email_pwd",
         "tls_key": "key.pem",
         "tls_certificate": "cert.pem",
         "port": PORT
     },
+
+    "_mpc_tool_description": "Path (relative) to the phase2 mpc tool",
     "mpc_tool": "../build/mpc_tools/mpc_phase2/mpc-test-phase2"
 }

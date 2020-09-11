@@ -17,7 +17,7 @@ from os.path import join, exists
 @command()
 @argument("phase1-dir")
 @argument("keypair-out-file")
-@option("--mpc-tool", default=None, help="path to mpc tool")
+@option("--mpc-tool", default=None, help="Path to mpc tool")
 def create_keypair(
         phase1_dir: str,
         keypair_out_file: str,

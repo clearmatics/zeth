@@ -6,6 +6,7 @@
 #include "mpc_common.hpp"
 
 using namespace libzeth;
+using pp = defaults::pp;
 namespace po = boost::program_options;
 
 namespace
@@ -22,7 +23,7 @@ class mpc_phase2_contribute : public subcommand
 private:
     std::string challenge_file;
     std::string out_file;
-    std::string digest;
+    std::string digest_file;
     bool skip_user_input;
 
 public:
@@ -32,7 +33,7 @@ public:
               "Create response (MPC contribution) from challenge")
         , challenge_file()
         , out_file()
-        , digest()
+        , digest_file()
         , skip_user_input(false)
     {
     }
@@ -64,7 +65,7 @@ private:
         }
         challenge_file = vm["challenge_file"].as<std::string>();
         out_file = vm["response_file"].as<std::string>();
-        digest = vm.count("digest") ? vm["digest"].as<std::string>() : "";
+        digest_file = vm.count("digest") ? vm["digest"].as<std::string>() : "";
         skip_user_input = (bool)vm.count("skip-user-input");
     }
 
@@ -79,22 +80,22 @@ private:
         if (verbose) {
             std::cout << "challenge_file: " << challenge_file << "\n";
             std::cout << "out_file: " << out_file << std::endl;
-            std::cout << "digest: " << digest << std::endl;
+            std::cout << "digest: " << digest_file << std::endl;
             std::cout << "skip_user_input: " << skip_user_input << std::endl;
         }
 
         libff::enter_block("Load challenge file");
-        srs_mpc_phase2_challenge<ppT> challenge =
-            read_from_file<srs_mpc_phase2_challenge<ppT>>(challenge_file);
+        srs_mpc_phase2_challenge<pp> challenge =
+            read_from_file<srs_mpc_phase2_challenge<pp>>(challenge_file);
         libff::leave_block("Load challenge file");
 
         libff::enter_block("Computing randomness");
-        libff::Fr<ppT> contribution = get_randomness();
+        libff::Fr<pp> contribution = get_randomness();
         libff::leave_block("Computing randomness");
 
         libff::enter_block("Computing response");
-        const srs_mpc_phase2_response<ppT> response =
-            srs_mpc_phase2_compute_response<ppT>(challenge, contribution);
+        const srs_mpc_phase2_response<pp> response =
+            srs_mpc_phase2_compute_response<pp>(challenge, contribution);
         libff::leave_block("Computing response");
 
         libff::enter_block("Writing response");
@@ -111,16 +112,16 @@ private:
         std::cout << "Digest of the contribution was:\n";
         mpc_hash_write(contrib_digest, std::cout);
 
-        if (!digest.empty()) {
-            std::ofstream out(digest);
+        if (!digest_file.empty()) {
+            std::ofstream out(digest_file);
             mpc_hash_write(contrib_digest, out);
-            std::cout << "Digest written to: " << digest << std::endl;
+            std::cout << "Digest written to: " << digest_file << std::endl;
         }
 
         return 0;
     }
 
-    libff::Fr<ppT> get_randomness()
+    libff::Fr<pp> get_randomness() const
     {
         using random_word = std::random_device::result_type;
 
@@ -138,8 +139,8 @@ private:
         // 1024 bytes of system randomness,
         for (size_t i = 0; i < 1024 / sizeof(buf); ++i) {
             random_word *words = (random_word *)&buf;
-            for (size_t i = 0; i < buf_size_in_words; ++i) {
-                words[i] = rd();
+            for (size_t j = 0; j < buf_size_in_words; ++j) {
+                words[j] = rd();
             }
             hs.write((const char *)&buf, sizeof(buf));
         }
@@ -152,12 +153,12 @@ private:
             hs << user_input;
         }
 
-        mpc_hash_t digest;
-        hs.get_hash(digest);
+        mpc_hash_t randomness_digest;
+        hs.get_hash(randomness_digest);
 
-        libff::Fr<ppT> randomness;
-        srs_mpc_digest_to_fp(digest, randomness);
-        return randomness;
+        libff::Fr<pp> random_fp;
+        srs_mpc_digest_to_fp(randomness_digest, random_fp);
+        return random_fp;
     }
 };
 

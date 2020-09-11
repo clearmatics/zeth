@@ -3,6 +3,13 @@
 set -e
 set -x
 
+if ! [ "$1" == "" ] ; then
+    echo "== RUNNING ON NETWORK: $1 =="
+    eth_network=$1
+else
+    eth_network=
+fi
+
 . scripts/test_zeth_cli_common.sh
 
 BASE_DIR=_test_zeth_cli_token
@@ -16,23 +23,19 @@ CHARLIE_DIR=${BASE_DIR}/charlie
 mkdir -p ${BASE_DIR}
 pushd ${BASE_DIR}
 
-get_accounts
-
-setup_user deployer
-setup_user alice
-setup_user bob
-setup_user charlie
+setup_user_local_key deployer ${eth_network}
+setup_user_local_key alice ${eth_network}
+setup_user_local_key bob ${eth_network}
+setup_user_local_key charlie ${eth_network}
 
 # Deploy
 pushd deployer
-if ! [ -e zeth-instance.json ] ; then
+if ! [ -e zeth-instance ] ; then
     alice_eth_addr=`cat ../alice/eth-address`
-    deployer_eth_addr=`cat eth-address`
 
     # deploy token
-    token_address=`python -m test_commands.deploy_test_token \
-                                ${deployer_eth_addr} 200 ${alice_eth_addr}`
-    echo token_address=${token_address}
+    token_address=`python -m test_commands.deploy_test_token 200 ${alice_eth_addr}`
+    echo "token_address=${token_address}"
 
     # deploy contract, tied to token address
     zeth deploy --token-address ${token_address}
@@ -45,20 +48,20 @@ copy_deployment_info deployer charlie
 
 # Alice deposits 200 and sends 100 to Bob
 pushd alice
-alice_pk=`cat zeth-address.json.pub`
+alice_pk=`cat zeth-address.pub`
 if ! [ -e notes/state_zeth ] ; then
-    zeth token-approve 200
-    zeth mix --wait --vin 200 --out ${alice_pk},200
+    zeth_helper token-approve 200
+    zeth mix --wait --vin 200 --out 200
 fi
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
 
-bob_pk=`cat ../bob/zeth-address.json.pub`
+bob_pk=`cat ../bob/zeth-address.pub`
 zeth mix \
      --wait \
      --in ${note_id} \
      --out ${alice_pk},100 \
-     --out ${bob_pk},100
+     --out ../bob/zeth-address.pub,100
 
 popd # alice
 
@@ -67,7 +70,7 @@ pushd bob
 zeth sync
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
-charlie_pk=`cat ../charlie/zeth-address.json.pub`
+charlie_pk=`cat ../charlie/zeth-address.pub`
 zeth mix \
      --wait \
      --in ${note_id} \
@@ -75,8 +78,8 @@ zeth mix \
      --out ${charlie_pk},50
 popd # bob
 
-echo BALANCES FOR WITHDRAW
-show_balances_named
+echo "BALANCES BEFORE WITHDRAWAL:"
+show_balances
 
 # Charlie scans the chain and withdraws his 50 ETH
 pushd charlie
@@ -89,7 +92,14 @@ zeth mix \
      --vout 50
 popd # charlie
 
-echo BALANCES AFTER WITHDRAW
-show_balances_named
+echo "BALANCES AFTER WITHDRAWAL:"
+show_balances
 
 popd # BASE_DIR
+
+set +x
+set +e
+
+echo "============================================================"
+echo "==                        PASSED                          =="
+echo "============================================================"

@@ -12,8 +12,8 @@ namespace libzeth
 // In the text representation, use 16 x 4-byte words, (each representated as 8
 // digits + separator).
 using hash_repr_word = uint32_t;
-const size_t HASH_REPR_WORD_SIZE = sizeof(hash_repr_word);
-const size_t HASH_REPR_WORDS_PER_HASH =
+static const size_t HASH_REPR_WORD_SIZE = sizeof(hash_repr_word);
+static const size_t HASH_REPR_WORDS_PER_HASH =
     MPC_HASH_SIZE_BYTES / HASH_REPR_WORD_SIZE;
 
 static_assert(MPC_HASH_SIZE_BYTES % sizeof(size_t) == 0, "invalid hash size");

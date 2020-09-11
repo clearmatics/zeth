@@ -16,7 +16,7 @@ project(zeth CXX)
 
 # Versionning of the project
 set(ZETH_VERSION_MAJOR 0)
-set(ZETH_VERSION_MINOR 4)
+set(ZETH_VERSION_MINOR 5)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -39,20 +39,33 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   endif ()
 endif ()
 
-# Configure a header file to pass some of the CMake settings
-# to the source code
-configure_file(
-  "${PROJECT_SOURCE_DIR}/zeth_config.h.in"
-  "${PROJECT_BINARY_DIR}/zeth_config.h"
+# Default curve to use with zeth. Only useful for applications since all
+# library functions should be parameterized by type. Note, this is
+# intentionally independent of the libff variable `CURVE` to help ensure that
+# library code remains fully parameterized (and to avoid unnecessary rebuilds
+# of libff caused by changing compiler command line).
+set(
+  ZETH_CURVE
+  "ALT_BN128"
+  CACHE
+  STRING
+  "Default curve: one of BLS12_377, BW6_761, ALT_BN128, BN128, EDWARDS, MNT4, MNT6"
 )
 
-# Flags and compilation options to chose the type of zksnark
+# Configure a header file to pass some of the CMake settings
+# Option selecting the zk-SNARK scheme.
 set(
-  ZKSNARK
+  ZETH_SNARK
   "GROTH16"
   CACHE
   STRING
   "Default snark: one of PGHR13, GROTH16"
+)
+
+# Write configuration variables to the config header.
+configure_file(
+  "${PROJECT_SOURCE_DIR}/zeth_config.h.in"
+  "${PROJECT_BINARY_DIR}/zeth_config.h"
 )
 
 # Run only fast test (e.g. on CI machine)
@@ -60,15 +73,6 @@ option(
   FAST_TESTS_ONLY
   "Include only fast-running tests"
   OFF
-)
-
-# Flags and compilation options for use with libsnark
-set(
-  CURVE
-  "ALT_BN128"
-  CACHE
-  STRING
-  "Default curve: one of ALT_BN128, BN128, EDWARDS, MNT4, MNT6"
 )
 
 set(
@@ -95,6 +99,22 @@ option(
   ON
 )
 
+# This option determines whether or not we generate the
+# binaries related to the MPC
+option(
+  MPC
+  "Adds the MPC files to the build"
+  ON
+)
+
+# By default, we favour shared objects and dynamic build
+# as it is more portable.
+option(
+  STATIC_BUILD
+  "Builds static libraries and binaries"
+  OFF
+)
+
 option(
   MULTICORE
   "Enable parallelized execution, using OpenMP"
@@ -104,7 +124,7 @@ option(
 option(
   WITH_PROCPS
   "Use procps for memory profiling"
-  ON
+  OFF
 )
 
 option(
@@ -179,14 +199,7 @@ else()
   " No guarantees can be made if another compiler is used.")
 endif()
 
-add_definitions(-DCURVE_${CURVE})
-add_definitions(-DZKSNARK_${ZKSNARK})
-
 enable_testing()
-
-if(${CURVE} STREQUAL "BN128")
-  add_definitions(-DBN_SUPPORT_SNARK=1)
-endif()
 
 if("${VERBOSE}")
   add_definitions(-DVERBOSE=1)
@@ -223,6 +236,15 @@ if ("${IS_ZETH_PARENT}")
   )
 endif()
 
+# If the static build option is enabled
+if ("${STATIC_BUILD}")
+  set(Boost_USE_STATIC_LIBS ON)
+  set(Protobuf_USE_STATIC_LIBS ON)
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  SET(BUILD_SHARED_LIBS OFF)
+  SET(CMAKE_EXE_LINKER_FLAGS "-static")
+endif()
+
 # Add dependencies (before setting up the configuration for zeth)
 add_subdirectory(depends)
 
@@ -243,21 +265,20 @@ set(
   PROTO_SRC_DIR
   ${PROJECT_BINARY_DIR}
 )
-#file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 
 # Get the proto files
 file(
   GLOB
   PROTO_FILES
-  ${PROJECT_SOURCE_DIR}/api/*.proto
+  ${PROJECT_SOURCE_DIR}/proto/zeth/api/*.proto
 )
 
 # Generating sensibly into a python module requires setting --proto_path to the
 # zeth root, and referencing files as 'api/prover.proto' etc. This requires us
 # to tweak the references to the source files.
-set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
-set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
-set(PROTOBUF_APPEND_DEST_PATH "/api")
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/proto)
+set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR}/proto)
+set(PROTOBUF_APPEND_DEST_PATH "/zeth/api")
 set(PROTOBUF_GENERATE_CPP_APPEND_PATH OFF)
 set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
 
@@ -269,26 +290,33 @@ add_compile_options(-Wall -Wextra)
 #
 # Import configuration to run dev tools on the code
 # Generate the compile database needed for some of the tools we invoke below
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-include(cmake/gcc_dev_tools.cmake)
-include(cmake/clang_dev_tools.cmake)
+if ("${IS_ZETH_PARENT}")
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+  include(cmake/gcc_dev_tools.cmake)
+  include(cmake/clang_dev_tools.cmake)
 
-# Import configuration to compile targets with sanitizers
-include(cmake/sanitizers.cmake)
+  # Import configuration to compile targets with sanitizers
+  include(cmake/sanitizers.cmake)
 
-# Import configuration to generate the code documentation if option is set
-if("${GEN_DOC}")
+  # Import configuration to generate the code documentation if option is set
+  if("${GEN_DOC}")
     include(cmake/documentation.cmake)
-endif()
+  endif()
 
-# Import configuration to generate the coverage report if option is set
-if("${CODE_COVERAGE}")
+  # Import configuration to generate the coverage report if option is set
+  if("${CODE_COVERAGE}")
     include(cmake/code_coverage.cmake)
+  endif()
 endif()
 
 # Add all local subdirecetories
 add_subdirectory(libzeth)
-add_subdirectory(prover_server)
-if(${ZKSNARK} STREQUAL "GROTH16")
-  add_subdirectory(mpc_tools)
+
+# If zeth is being used as a dependency, skip the tools build
+if ("${IS_ZETH_PARENT}")
+  add_subdirectory(prover_server)
+  # For now the MPC for Groth16 only is tailored to the alt_bn128 pairing group
+  if((${ZETH_SNARK} STREQUAL "GROTH16") AND (${MPC}))
+    add_subdirectory(mpc_tools)
+  endif()
 endif()

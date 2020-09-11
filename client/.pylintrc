@@ -12,8 +12,9 @@ disable=
     broad-except,
     too-many-function-args,
     duplicate-code,
+    fixme
 
-good-names=i,e,x,y,m,k,h,c,cm,rc,ek,ct,vk,sk,pk,X,Y,r,el,nf
+good-names=i,e,x,y,m,k,h,c,cm,rc,ek,ct,vk,sk,pk,X,Y,r,el,nf,g1,g2
 
 [REPORTS]
 output-format=text

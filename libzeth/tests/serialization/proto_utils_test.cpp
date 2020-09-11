@@ -6,17 +6,20 @@
 #include "libzeth/serialization/proto_utils.hpp"
 
 #include <gtest/gtest.h>
-
-using ppT = libzeth::ppT;
-using Fr = libff::Fr<libzeth::ppT>;
-using G1 = libff::G1<libzeth::ppT>;
-using G2 = libff::G2<libzeth::ppT>;
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
+#include <libff/algebra/curves/bw6_761/bw6_761_pp.hpp>
+#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
+#include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
 
 namespace
 {
 
-TEST(ProtoUtilsTest, PointG1AffineEncodeDecode)
+template<typename ppT> void point_g1_affine_encode_decode()
 {
+    using Fr = libff::Fr<ppT>;
+    using G1 = libff::G1<ppT>;
+
     G1 g1 = Fr(13) * G1::one();
     g1.to_affine_coordinates();
     zeth_proto::HexPointBaseGroup1Affine g1_proto =
@@ -26,8 +29,11 @@ TEST(ProtoUtilsTest, PointG1AffineEncodeDecode)
     ASSERT_EQ(g1, g1_decoded);
 }
 
-TEST(ProtoUtilsTest, PointG2AffineEncodeDecode)
+template<typename ppT> void point_g2_affine_encode_decode_test()
 {
+    using Fr = libff::Fr<ppT>;
+    using G2 = libff::G2<ppT>;
+
     G2 g2 = Fr(13) * G2::one();
     g2.to_affine_coordinates();
     zeth_proto::HexPointBaseGroup2Affine g2_proto =
@@ -39,23 +45,33 @@ TEST(ProtoUtilsTest, PointG2AffineEncodeDecode)
 
 // TODO: Add test for joinsplit_input_from_proto
 
-TEST(ProtoUtilsTest, PrimaryInputsEncodeDecode)
+TEST(ProtoUtilsTest, PointG1AffineEncodeDecode)
 {
-    const std::vector<Fr> inputs{Fr(1), Fr(21), Fr(321), Fr(4321)};
-    std::string inputs_string = libzeth::primary_inputs_to_string<ppT>(inputs);
-    std::cout << "inputs_string: " << inputs_string << std::endl;
-    const std::vector<Fr> inputs_decoded =
-        libzeth::primary_inputs_from_string<ppT>(inputs_string);
-    ASSERT_EQ(inputs, inputs_decoded);
+    point_g1_affine_encode_decode<libff::alt_bn128_pp>();
+    point_g1_affine_encode_decode<libff::mnt4_pp>();
+    point_g1_affine_encode_decode<libff::mnt6_pp>();
+    point_g1_affine_encode_decode<libff::bls12_377_pp>();
+    point_g1_affine_encode_decode<libff::bw6_761_pp>();
 }
 
-// TODO: Add test for accumulation_vector_from_string
+TEST(ProtoUtilsTest, PointG2AffineEncodeDecode)
+{
+    point_g2_affine_encode_decode_test<libff::alt_bn128_pp>();
+    point_g2_affine_encode_decode_test<libff::mnt4_pp>();
+    point_g2_affine_encode_decode_test<libff::mnt6_pp>();
+    point_g2_affine_encode_decode_test<libff::bls12_377_pp>();
+    point_g2_affine_encode_decode_test<libff::bw6_761_pp>();
+}
 
 } // namespace
 
 int main(int argc, char **argv)
 {
-    ppT::init_public_params();
+    libff::alt_bn128_pp::init_public_params();
+    libff::mnt4_pp::init_public_params();
+    libff::mnt6_pp::init_public_params();
+    libff::bls12_377_pp::init_public_params();
+    libff::bw6_761_pp::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

@@ -5,7 +5,7 @@
 **Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git).
 It follows and extends the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by [Zcash](https://github.com/zcash/zcash).
 
-:point_right: Check our [paper](https://arxiv.org/pdf/1904.00905.pdf) for more information about Zeth.
+:point_right: Check our [paper](https://arxiv.org/pdf/1904.00905.pdf), and the [protocol specifications](https://github.com/clearmatics/zeth-specifications) for more information about Zeth.
 
 ## Building and running the project:
 
@@ -38,9 +38,20 @@ To use the Zeth functionality, 3 components are required:
 
 We use 3 terminals, one for each of the above components.
 
-Note: Mac users should increase docker runtime memory from 2gb to 4gb to allow Terminal 1 to complete successfully.
+Note: Mac users should increase docker runtime memory from 2GB to 4GB to allow Terminal 1 to complete successfully.
 
-#### Terminal 1: Build and run prover_server
+#### Terminal 1:
+
+We propose 2 alternatives to run the `prover_server` below.
+
+##### Fetch the prover_server image (recommended)
+
+```bash
+docker pull clearmatics/zeth-prover:latest
+docker run -ti -p 50051:50051 --name prover zeth-prover:latest prover_server
+```
+
+##### Build and run the prover_server in the development container
 
 ```bash
 # Clone this repository:
@@ -50,7 +61,7 @@ cd zeth
 # Pull the zeth-base image (built from `Dockerfile-base`)
 docker pull clearmatics/zeth-base:latest
 # Build the zeth-dev image
-docker build -f Dockerfile-zeth -t zeth-dev .
+docker build -f Dockerfile-dev -t zeth-dev .
 # Start the zeth development container
 docker run -ti -p 50051:50051 --name zeth zeth-dev:latest
 
@@ -74,7 +85,7 @@ prover_server
 ```
 
 Note: By default, `prover_server` generates a key at startup. Flags can be used
-to force the server to load and/or save keys. Run `src/prover_server --help`
+to force the server to load and/or save keys. Run `prover_server --help`
 for more details.
 
 ##### Build Options
@@ -84,15 +95,15 @@ Some flags to the `cmake` command can control the build configuration.
 a release or debug build.
 
 By default, zeth makes use of the GROTH16 zk-snark. To chose a different
-zksnark run the following: ``` cmake -DZKSNARK=$ZKSNARK .. ``` where `$ZKSNARK`
-is `PGHR13` (see https://eprint.iacr.org/2013/279,
+zksnark run the following: ``` cmake -DZETH_SNARK=$ZKSNARK .. ``` where
+`$ZETH_SNARK` is `PGHR13` (see https://eprint.iacr.org/2013/279,
 http://eprint.iacr.org/2013/879) or `GROTH16`(see
 https://eprint.iacr.org/2016/260).
 
 #### Terminal 2: Ethereum testnet
 
 ```bash
-# Start the ethereum test net by running the following commands
+# Start the Ethereum test net by running the following commands
 cd zeth_contracts
 
 # If the install below fails with python errors, try running:
@@ -138,7 +149,7 @@ The following libraries are also required to build:
 To generate the documentation of Zeth:
 ```bash
 cd build
-cmake .. && make docs
+cmake .. -DGEN_DOC=ON && make docs
 ```
 
 ## Compile the project using 'sanitizers'
@@ -148,7 +159,7 @@ You can select the sanitizer of your choice (one of the sanitizers listed [here]
 Example:
 ```bash
 cd build
-cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address ..
+cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address -DCMAKE_BUILD_TYPE=Debug ..
 make check
 ```
 
@@ -160,6 +171,10 @@ Note: The `clang-tidy` target runs a clang-tidy python script that should be fet
 
 Example:
 ```bash
+# run-clang-tidy.py needs to be in the PATH to be found
+PATH=$PATH:${PWD}
+chmod +x run-clang-tidy.py
+
 cmake -DUSE_CLANG_FORMAT=ON -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
 make cppcheck
 make clang-format
@@ -171,7 +186,7 @@ make clang-tidy
 1. Make sure to enable the `CODE_COVERAGE` option in the CMake configuration.
 2. Compile the tests
 ```bash
-cd build && cmake .. && make check
+cd build && cmake -DCODE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug .. && make check
 ```
 3. Generate the coverage report:
 ```bash

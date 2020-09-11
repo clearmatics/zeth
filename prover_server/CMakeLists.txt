@@ -44,13 +44,30 @@ add_executable(
   ${PROVER_SERVER_SOURCE}
   ${GRPC_SRCS}
 )
-target_link_libraries(
-  prover_server
+if ("${STATIC_BUILD}")
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(GRPC REQUIRED IMPORTED_TARGET grpc++)
 
-  zeth
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  gRPC::grpc++_reflection
-  protobuf::libprotobuf
-)
+  target_link_libraries(
+    prover_server
+
+    zeth
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${GRPC_LIBRARIES}
+    gRPC::grpc++_reflection
+    protobuf::libprotobuf
+  )
+else()
+  target_link_libraries(
+    prover_server
+
+    zeth
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    gRPC::grpc++_reflection
+    protobuf::libprotobuf
+  )
+endif()

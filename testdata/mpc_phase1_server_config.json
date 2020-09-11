@@ -1,17 +1,31 @@
 {
     "server": {
+        "_contributors_file_description": "Relative path of contributors file",
         "contributors_file": "../testdata/mpc_contributors.json",
-        "_start_time_example": "2019-11-05 13:33:13",
-        "start_time": "TIME",
+
+        "_start_time_utc_description": "Time (in UTC) that first contribution is allowed",
+        "_start_time_utc_example": "2019-11-05 13:33:13",
+        "start_time_utc": "TIME",
+
         "_contribution_interval_description": "Interval time in seconds",
-        "contribution_interval": "10.0",
-        "_email_server": "smtp.myorg.com:465",
-        "_email_address": "mpc.coordinator@myorg.com",
-        "_email_password_file": "file containing password for email account",
+        "contribution_interval": "60.0",
+
+        "_email_description": "Optional email server and credentials",
+        "_email_server_example": "smtp.myorg.com:465",
+        "_email_address_example": "mpc.coordinator@myorg.com",
+        "_email_password_file_example": "email_pwd",
+
+        "_tls_description": "Key and certificate for the server.",
         "tls_key": "key.pem",
         "tls_certificate": "cert.pem",
+
+        "_port_description": "Port to listen on",
         "port": PORT
     },
-    "pot_path": "../../powersoftau",
+
+    "_pot_path_description": "Path (relative) to the powersoftau binaries",
+    "pot_path": "../../powersoftau/target/release",
+
+    "_num_powers_description": "Determines max degree of QAP (Power of 2)",
     "num_powers": QAP_DEGREE
 }

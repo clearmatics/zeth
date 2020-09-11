@@ -30,7 +30,8 @@ TEST(ChaChaTest, ChaChaRng)
     chacha_rng rng(seed.data(), seed.size());
     uint8_t output[64];
 
-    auto check_output = [&](const std::string expect_out, std::string label) {
+    auto check_output = [&](const std::string &expect_out,
+                            const std::string &label) {
         rng.random(&output[0], expect_out.size());
         ASSERT_EQ(0, memcmp(expect_out.data(), output, expect_out.size()))
             << label;

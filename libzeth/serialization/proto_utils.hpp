@@ -7,18 +7,19 @@
 
 #include "libzeth/core/bits.hpp"
 #include "libzeth/core/extended_proof.hpp"
+#include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/core/include_libff.hpp"
 #include "libzeth/core/include_libsnark.hpp"
 #include "libzeth/core/joinsplit_input.hpp"
 #include "libzeth/core/note.hpp"
 #include "libzeth/core/utils.hpp"
 
-#include <api/snark_messages.pb.h>
-#include <api/zeth_messages.pb.h>
+#include <zeth/api/snark_messages.pb.h>
+#include <zeth/api/zeth_messages.pb.h>
 
-/// Functions to convert between in-memory and protobuf types. Consistent with
-/// encoding functions for other types, we use the `<type>_to_proto` and
-/// `<type>_from_proto` naming everywhere.a
+// Functions to convert between in-memory and protobuf types. Consistent with
+// encoding functions for other types, we use the `<type>_to_proto` and
+// `<type>_from_proto` naming everywhere.a
 
 namespace libzeth
 {
@@ -44,18 +45,6 @@ libff::G2<ppT> point_g2_affine_from_proto(
 template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
     const zeth_proto::JoinsplitInput &input);
-
-template<typename ppT>
-std::string primary_inputs_to_string(
-    const std::vector<libff::Fr<ppT>> &public_inputs);
-
-template<typename ppT>
-std::vector<libff::Fr<ppT>> primary_inputs_from_string(
-    const std::string &input_str);
-
-template<typename ppT>
-libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_string(
-    const std::string &acc_vector_str);
 
 } // namespace libzeth
 

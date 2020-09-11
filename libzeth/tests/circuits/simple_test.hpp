@@ -9,22 +9,22 @@
 
 namespace libzeth
 {
-namespace test
+namespace tests
 {
 
-// Generate a simple test circuit with 1 public input 'y' and auxiliary
-//
-// input 'x', for the expression:
-//
-//   x^3 + 4x^2 + 2x + 5 = y
-//
-// Internal auxiliary inputs are:
-//
-//   g1 = x * x
-//   g2 = g1 * x
+/// Generate a simple test circuit with 1 public input 'y' and auxiliary
+///
+/// input 'x', for the expression:
+///
+///   x^3 + 4x^2 + 2x + 5 = y
+///
+/// Internal auxiliary inputs are:
+///
+///   g1 = x * x
+///   g2 = g1 * x
 template<typename FieldT> void simple_circuit(libsnark::protoboard<FieldT> &pb);
 
-} // namespace test
+} // namespace tests
 } // namespace libzeth
 
 #include "simple_test.tcc"

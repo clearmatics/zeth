@@ -7,7 +7,7 @@ echo "running against commit: "`git log --oneline --no-decorate -n 1`
 set -x
 set -e
 
-function format_check() {
+function check_format() {
     scripts/format
     git diff --no-ext-diff | head -n 20 > format_errors
     num_lines=`cat format_errors | wc -l`
@@ -21,7 +21,7 @@ function format_check() {
     scripts/check_copyright
 }
 
-function contracts_check() {
+function check_contracts() {
     pushd zeth_contracts
     npm config set python python2.7
     npm install
@@ -29,13 +29,40 @@ function contracts_check() {
     popd
 }
 
-function pyclient_check() {
+function check_client() {
+    pushd client
+    python3 -m venv env
+    . env/bin/activate
+    pip install --upgrade pip --progress-bar off
+    pip install --upgrade setuptools wheel
+    make setup
+    make syntax
+
+    deactivate
+    popd
+}
+
+function check_cpp() {
+    apk add cppcheck
+    cppcheck --version
+
+    # Configure and run clang-tidy cppcheck
+    mkdir -p build
+    pushd build
+    # cmake -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
+    # make VERBOSE=1 clang-tidy -j 5
+    cmake -DUSE_CPP_CHECK=ON ..
+    make VERBOSE=1 cppcheck -j 5
+    popd
+}
+
+function test_client() {
     pushd client
     python3 -m venv env
     . env/bin/activate
     pip install --upgrade pip --progress-bar off
     make setup
-    make syntax
+    make test
 
     deactivate
     popd
@@ -81,7 +108,7 @@ function build() {
         cxx_flags="${cxx_flags} -Wno-deprecated-declarations"
     fi
 
-    cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG}"
+    cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG} -DZETH_SNARK=${CI_ZKSNARK}"
     if ! [ "${full_build}" == "1" ] ; then
         cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
     fi
@@ -159,7 +186,7 @@ echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
 echo CI_EVENT_NAME=${CI_EVENT_NAME}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
-    format_check
+    check_format
 fi
 
 if [ "${CI_ZKSNARK}" == "" ] ; then
@@ -170,7 +197,7 @@ fi
 # re-execute the script in the docker container with CI_USE_DOCKER=0
 if [ "${CI_USE_DOCKER}" == "1" ] ; then
     docker pull clearmatics/zeth-base:latest
-    docker build -f Dockerfile-zeth -t zeth-dev .
+    docker build -f Dockerfile-dev -t zeth-dev .
     docker run \
            -t \
            -p 50051:50051 \

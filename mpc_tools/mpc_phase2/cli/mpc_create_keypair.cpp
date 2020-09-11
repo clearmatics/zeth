@@ -11,6 +11,7 @@
 #include <vector>
 
 using namespace libzeth;
+using pp = defaults::pp;
 namespace po = boost::program_options;
 
 namespace
@@ -121,42 +122,40 @@ private:
         libff::enter_block("Load linear combination data");
         libff::print_indent();
         std::cout << lin_comb_file << std::endl;
-        srs_mpc_layer_L1<ppT> lin_comb =
-            read_from_file<srs_mpc_layer_L1<ppT>>(lin_comb_file);
+        srs_mpc_layer_L1<pp> lin_comb =
+            read_from_file<srs_mpc_layer_L1<pp>>(lin_comb_file);
         libff::leave_block("Load linear combination data");
 
         libff::enter_block("Load powers of tau");
         libff::print_indent();
         std::cout << powersoftau_file << std::endl;
-        srs_powersoftau<ppT> pot = [this, &lin_comb]() {
+        srs_powersoftau<pp> pot = [this, &lin_comb]() {
             std::ifstream in(
                 powersoftau_file, std::ios_base::binary | std::ios_base::in);
             const size_t pot_degree =
                 powersoftau_degree ? powersoftau_degree : lin_comb.degree();
-            return powersoftau_load(in, pot_degree);
+            return powersoftau_load<pp>(in, pot_degree);
         }();
         libff::leave_block("Load powers of tau");
 
         libff::enter_block("Load phase2 data");
         libff::print_indent();
         std::cout << phase2_challenge_file << std::endl;
-        srs_mpc_phase2_challenge<ppT> phase2 =
-            read_from_file<srs_mpc_phase2_challenge<ppT>>(
-                phase2_challenge_file);
+        srs_mpc_phase2_challenge<pp> phase2 =
+            read_from_file<srs_mpc_phase2_challenge<pp>>(phase2_challenge_file);
         libff::leave_block("Load phase2 data");
 
         // Compute circuit
         libff::enter_block("Generate QAP");
-        libsnark::protoboard<FieldT> pb;
+        libsnark::protoboard<Field> pb;
         init_protoboard(pb);
-        libsnark::r1cs_constraint_system<FieldT> cs =
-            pb.get_constraint_system();
-        const libsnark::qap_instance<FieldT> qap =
+        libsnark::r1cs_constraint_system<Field> cs = pb.get_constraint_system();
+        const libsnark::qap_instance<Field> qap =
             libsnark::r1cs_to_qap_instance_map(cs, true);
         libff::leave_block("Generate QAP");
 
-        libsnark::r1cs_gg_ppzksnark_keypair<ppT> keypair =
-            mpc_create_key_pair<ppT>(
+        libsnark::r1cs_gg_ppzksnark_keypair<pp> keypair =
+            mpc_create_key_pair<pp>(
                 std::move(pot),
                 std::move(lin_comb),
                 std::move(phase2.accumulator),
@@ -172,7 +171,7 @@ private:
         {
             std::ofstream out(
                 keypair_out_file, std::ios_base::binary | std::ios_base::out);
-            groth16_snark<ppT>::keypair_write_bytes(out, keypair);
+            groth16_snark<pp>::keypair_write_bytes(keypair, out);
         }
         libff::leave_block("Writing keypair file");
 

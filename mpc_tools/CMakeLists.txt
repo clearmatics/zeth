@@ -1,10 +1,14 @@
 # Build for mpc utilities
 
-find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(Boost REQUIRED COMPONENTS system program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
+# Add the binary tree to the search path for include files
+# so that we will find zethConfig.h
+include_directories(${PROJECT_BINARY_DIR})
+
 # Compile the pot-process utility (GROTH16 only)
-if(${ZKSNARK} STREQUAL "GROTH16")
+if(${ZETH_SNARK} STREQUAL "GROTH16")
   add_executable(
     pot-process
     pot_process/pot_process.cpp

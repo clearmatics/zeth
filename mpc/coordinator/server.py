@@ -19,8 +19,8 @@ from .contributor_list import ContributorList
 from .upload_utils import handle_upload_request
 from .crypto import \
     import_digest, export_verification_key, import_signature, verify
-from typing import cast, Optional, Callable
-from flask import Flask, request, Request, Response
+from typing import cast, Optional, Callable, Iterable
+from flask import Flask, request, Request, Response, stream_with_context
 from threading import Thread, Lock
 import io
 import time
@@ -32,6 +32,7 @@ from os.path import exists, join
 STATE_FILE = "server_state.json"
 UPLOAD_FILE = "upload.raw"
 LOG_FILE = "server.log"
+SEND_CHUNK_SIZE = 4096
 
 
 class Server:
@@ -163,10 +164,22 @@ class Server:
             return Response(
                 "MPC is complete. No remaining challenges", 405)
 
+        # Function used to stream the challenge file to the contributor.
+        # Streaming is required to avoid timing out while writing the
+        # full challenge file on the socket.
+        def produce_file_chunks(path: str) -> Iterable[bytes]:
+            with open(path, 'rb') as in_f:
+                while True:
+                    buf = in_f.read(SEND_CHUNK_SIZE)
+                    if buf:
+                        yield buf
+                    else:
+                        break
+
         challenge_file = self.handler.get_current_challenge_file(
             self.state.next_contributor_index)
         return Response(
-            open(challenge_file, "rb"),
+            stream_with_context(produce_file_chunks(challenge_file)),
             mimetype="application/octet-stream")
 
     def _contribute(self, req: Request) -> Response:
@@ -214,7 +227,9 @@ class Server:
         verification_key = contributor.verification_key
         expect_pub_key_str = export_verification_key(verification_key)
         if expect_pub_key_str != pub_key_str:
-            return Response("Contributor key mismatch", 403)
+            return Response(
+                f"Contributor key mismatch (contributor {contributor_idx})",
+                403)
 
         # Check signature correctness. Ensures that the uploader is the owner
         # of the correct key BEFORE the costly file upload, taking as little
@@ -222,7 +237,9 @@ class Server:
         # (Note that this pre-upload check requires the digest to be passed in
         # the HTTP header.)
         if not verify(sig, verification_key, digest):
-            return Response("Signature check failed", 403)
+            return Response(
+                f"Signature check failed (contributor {contributor_idx})",
+                403)
 
         # Accept the upload (if the digest matches). If successful,
         # pass the file to the handler.

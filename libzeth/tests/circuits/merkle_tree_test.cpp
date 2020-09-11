@@ -2,19 +2,19 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/merkle_tree/merkle_path_authenticator.hpp"
 #include "libzeth/circuits/merkle_tree/merkle_path_selector.hpp"
 #include "libzeth/circuits/mimc/mimc_mp.hpp"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 using namespace libzeth;
 
-// Instantiation of the templates for the tests
-typedef libzeth::ppT ppT;
-typedef libff::Fr<ppT> FieldT;
-typedef MiMC_mp_gadget<FieldT> HashTreeT;
+// Instantiation of the templates for the tests.  Data here assumes alt_bn128
+using ppT = libff::alt_bn128_pp;
+using FieldT = libff::Fr<ppT>;
+using HashTreeT = MiMC_mp_gadget<FieldT>;
 
 namespace
 {

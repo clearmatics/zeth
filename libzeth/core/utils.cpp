@@ -14,7 +14,7 @@ namespace libzeth
 // character is not hex.
 uint8_t char_to_nibble(const char c)
 {
-    const char cc = std::tolower(c);
+    const char cc = (char)std::tolower(c);
     if (cc < '0') {
         throw std::invalid_argument("invalid hex character");
     }
@@ -40,10 +40,10 @@ static char nibble_hex(const uint8_t nibble)
 {
     assert((nibble & 0xf0) == 0);
     if (nibble > 9) {
-        return 'a' + nibble - 10;
+        return (char)('a' + nibble - 10);
     }
 
-    return '0' + nibble;
+    return (char)('0' + nibble);
 }
 
 // Return a pointer to the beginning of the actual hex characters (removing any
@@ -102,10 +102,16 @@ std::string hex_to_bytes(const std::string &s)
     return out;
 }
 
-std::string bytes_to_hex(const void *bytes, size_t num_bytes)
+std::string bytes_to_hex(const void *bytes, size_t num_bytes, bool prefix)
 {
     std::string out;
-    out.reserve(num_bytes * 2);
+    if (prefix) {
+        out.reserve(num_bytes * 2 + 2);
+        out.push_back('0');
+        out.push_back('x');
+    } else {
+        out.reserve(num_bytes * 2);
+    }
 
     const uint8_t *in = (const uint8_t *)bytes;
     for (size_t i = 0; i < num_bytes; ++i) {
@@ -117,14 +123,22 @@ std::string bytes_to_hex(const void *bytes, size_t num_bytes)
     return out;
 }
 
-std::string bytes_to_hex_reversed(const void *bytes, size_t num_bytes)
+std::string bytes_to_hex_reversed(
+    const void *bytes, size_t num_bytes, bool prefix)
 {
     if (num_bytes == 0) {
         return "";
     }
 
     std::string out;
-    out.reserve(num_bytes * 2);
+    if (prefix) {
+        out.reserve(num_bytes * 2 + 2);
+        out.push_back('0');
+        out.push_back('x');
+    } else {
+        out.reserve(num_bytes * 2);
+    }
+
     const uint8_t *const src_bytes_end = (const uint8_t *)bytes;
     const uint8_t *src_bytes = src_bytes_end + num_bytes;
     do {
