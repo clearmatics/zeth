@@ -300,12 +300,12 @@ if ("${IS_ZETH_PARENT}")
 
   # Import configuration to generate the code documentation if option is set
   if("${GEN_DOC}")
-      include(cmake/documentation.cmake)
+    include(cmake/documentation.cmake)
   endif()
 
   # Import configuration to generate the coverage report if option is set
   if("${CODE_COVERAGE}")
-      include(cmake/code_coverage.cmake)
+    include(cmake/code_coverage.cmake)
   endif()
 endif()
 

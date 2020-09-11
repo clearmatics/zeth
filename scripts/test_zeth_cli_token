@@ -4,7 +4,7 @@ set -e
 set -x
 
 if ! [ "$1" == "" ] ; then
-    echo == RUNING ON NETWORK: $1 ==
+    echo "== RUNNING ON NETWORK: $1 =="
     eth_network=$1
 else
     eth_network=
@@ -35,7 +35,7 @@ if ! [ -e zeth-instance ] ; then
 
     # deploy token
     token_address=`python -m test_commands.deploy_test_token 200 ${alice_eth_addr}`
-    echo token_address=${token_address}
+    echo "token_address=${token_address}"
 
     # deploy contract, tied to token address
     zeth deploy --token-address ${token_address}
@@ -78,7 +78,7 @@ zeth mix \
      --out ${charlie_pk},50
 popd # bob
 
-echo BALANCES FOR WITHDRAW
+echo "BALANCES BEFORE WITHDRAWAL:"
 show_balances
 
 # Charlie scans the chain and withdraws his 50 ETH
@@ -92,7 +92,7 @@ zeth mix \
      --vout 50
 popd # charlie
 
-echo BALANCES AFTER WITHDRAW
+echo "BALANCES AFTER WITHDRAWAL:"
 show_balances
 
 popd # BASE_DIR
