@@ -15,9 +15,9 @@
 namespace libzeth
 {
 
-// Gadget that makes sure that the note:
-// - Has a value < 2^64
-// - Has a valid r trapdoor which is a 256-bit string
+/// Gadget that makes sure that the note:
+/// - Has a value < 2^64
+/// - Has a valid r trapdoor which is a 256-bit string
 template<typename FieldT> class note_gadget : public libsnark::gadget<FieldT>
 {
 public:
@@ -33,10 +33,10 @@ public:
     void generate_r1cs_witness(const zeth_note &note);
 };
 
-// Gadget that makes sure that all conditions are met in order to spend a note:
-// - The nullifier is correctly computed from a_sk and rho
-// - The commitment cm is correctly computed from the coin's data
-// - commitment cm is in the tree of merkle root rt
+/// Gadget that makes sure that all conditions are met in order to spend a note:
+/// - The nullifier is correctly computed from a_sk and rho
+/// - The commitment cm is correctly computed from the coin's data
+/// - commitment cm is in the tree of merkle root rt
 template<typename FieldT, typename HashT, typename HashTreeT, size_t TreeDepth>
 class input_note_gadget : public note_gadget<FieldT>
 {
@@ -93,7 +93,7 @@ public:
         const zeth_note &note);
 };
 
-// Commit to the output notes of the JS
+/// Commit to the output notes of the Joinsplit
 template<typename FieldT, typename HashT>
 class output_note_gadget : public note_gadget<FieldT>
 {

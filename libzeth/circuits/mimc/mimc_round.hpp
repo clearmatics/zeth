@@ -9,14 +9,13 @@
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 
-// MiMCe7_round_gadget enforces correct computation of a MiMC permutation round
-// with exponent 7. In MiMC permutation last round differs from the others since
-// the key is added again. We use a boolean variable `add_k_to_result` to manage
-// this case.
-
 namespace libzeth
 {
 
+/// MiMCe7_round_gadget enforces correct computation of a MiMC permutation round
+/// with exponent 7. In MiMC permutation last round differs from the others
+/// since the key is added again. We use a boolean variable `add_k_to_result` to
+/// manage this case.
 template<typename FieldT>
 class MiMCe7_round_gadget : public libsnark::gadget<FieldT>
 {

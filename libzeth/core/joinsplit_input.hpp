@@ -14,10 +14,10 @@
 namespace libzeth
 {
 
-// We simplify the interface of the joinsplit_input object compared to what
-// Zcash did. In fact, all our fields are going to be computed from another
-// component written in python or js, that will use the ethereum primitives to
-// hash.
+/// We simplify the interface of the joinsplit_input object compared to what
+/// Zcash did. In fact, all our fields are going to be computed from another
+/// component written in Python or JS, that will use the Ethereum primitives
+/// to hash.
 template<typename FieldT, size_t TreeDepth> class joinsplit_input
 {
 public:
