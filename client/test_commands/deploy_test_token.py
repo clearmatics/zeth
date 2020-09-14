@@ -51,7 +51,8 @@ def deploy_test_token(
         recipient_address,
         eth_addr,
         eth_private_key_data,
-        EtherValue(mint_amount, 'ether'))
+        EtherValue(mint_amount, 'ether'),
+        4000000)
     web3.eth.waitForTransactionReceipt(mint_tx_hash)
     print(token_instance.address)
 
@@ -80,7 +81,7 @@ def deploy_token(
         web3: Any,
         deployer_address: str,
         deployer_private_key: Optional[bytes],
-        deployment_gas: Optional[int]) -> Any:
+        deployment_gas: int) -> Any:
     """
     Deploy the testing ERC20 token contract
     """
@@ -110,13 +111,16 @@ def mint_token(
         spender_address: str,
         deployer_address: str,
         deployer_private_key: Optional[bytes],
-        token_amount: EtherValue) -> bytes:
+        token_amount: EtherValue,
+        mint_gas: int) -> bytes:
     mint_call = token_instance.functions.mint(spender_address, token_amount.wei)
     return send_contract_call(
         web3=web3,
         call=mint_call,
         sender_eth_addr=deployer_address,
-        sender_eth_private_key=deployer_private_key)
+        sender_eth_private_key=deployer_private_key,
+        value=None,
+        gas=mint_gas)
 
 
 if __name__ == "__main__":
