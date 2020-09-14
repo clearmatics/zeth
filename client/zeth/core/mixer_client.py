@@ -338,7 +338,7 @@ class MixerClient:
         mixer_name = zksnark.get_contract_name()
         mixer_src = os.path.join(contracts_dir, mixer_name + ".sol")
 
-        verification_key_params = zksnark.verification_key_parameters(vk)
+        verification_key_params = zksnark.verification_key_to_evm_parameters(vk)
         mixer_description = contracts.InstanceDescription.deploy(
             web3,
             mixer_src,

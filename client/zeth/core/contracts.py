@@ -9,7 +9,7 @@ from zeth.core.signing import SigningVerificationKey, Signature, \
     verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
     signature_as_mix_parameter, signature_from_mix_parameter
 from zeth.core.zksnark import IZKSnarkProvider, GenericProof
-from zeth.core.utils import EtherValue, hex_to_int
+from zeth.core.utils import EtherValue, hex_list_to_uint256_list
 from zeth.core.constants import SOL_COMPILER_VERSION
 from web3.utils.contracts import find_matching_event_abi  # type: ignore
 from web3.utils.events import get_event_data  # type: ignore
@@ -220,12 +220,12 @@ def mix_parameters_as_contract_arguments(
     Convert MixParameters to a list of eth ABI objects which can be passed to
     the contract's mix method.
     """
-    proof_params: List[Any] = zksnark.mixer_proof_parameters(
+    proof_params: List[Any] = zksnark.mixer_proof_to_evm_parameters(
         mix_parameters.extended_proof)
     proof_params.extend([
         verification_key_as_mix_parameter(mix_parameters.signature_vk),
         signature_as_mix_parameter(mix_parameters.signature),
-        hex_to_int(mix_parameters.extended_proof["inputs"]),
+        hex_list_to_uint256_list(mix_parameters.extended_proof["inputs"]),
         mix_parameters.ciphertexts
     ])
     return proof_params

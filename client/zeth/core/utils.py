@@ -18,7 +18,7 @@ import eth_abi
 import eth_keys  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
-from typing import List, Tuple, Union, Any, Optional, cast
+from typing import List, Tuple, Union, Iterable, Any, Optional, cast
 
 # Some Ethereum node implementations can cause a timeout if the contract
 # execution takes too long. We expect the contract to complete in under 30s on
@@ -165,11 +165,29 @@ def digest_to_binary_string(digest: bytes) -> str:
     return "".join(["{0:08b}".format(b) for b in digest])
 
 
-def hex_to_int(elements: List[str]) -> List[int]:
+def hex_to_uint256_list(hex_str: str) -> Iterable[int]:
     """
-    Given an array of hex strings, return an array of int values
+    Given a hex string of arbitrary size, split into uint256 ints, left padding
+    with 0s.
     """
-    return [int(x, 16) for x in elements]
+    if hex_str.startswith("0x"):
+        hex_str = hex_str[2:]
+    assert len(hex_str) % 2 == 0
+    start_idx = 0
+    next_idx = len(hex_str) - int((len(hex_str) - 1) / 64) * 64
+    while next_idx <= len(hex_str):
+        sub_str = hex_str[start_idx:next_idx]
+        yield int(sub_str, 16)
+        start_idx = next_idx
+        next_idx = next_idx + 64
+
+
+def hex_list_to_uint256_list(elements: List[str]) -> List[int]:
+    """
+    Given an array of hex strings, return an array of int values by converting
+    each hex string to evm uint256 words, and flattening the final list.
+    """
+    return [i for hex_str in elements for i in hex_to_uint256_list(hex_str)]
 
 
 def extend_32bytes(value: bytes) -> bytes:
