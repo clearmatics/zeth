@@ -187,6 +187,10 @@ def hex_list_to_uint256_list(elements: List[str]) -> List[int]:
     Given an array of hex strings, return an array of int values by converting
     each hex string to evm uint256 words, and flattening the final list.
     """
+    # In reality, we need to cope with lists of lists, to handle all
+    # field extension degrees for all curve coordinate types.
+    # TODO: Create a new type to describe this safely.
+    elements = string_list_flatten(elements)
     return [i for hex_str in elements for i in hex_to_uint256_list(hex_str)]
 
 

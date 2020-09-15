@@ -28,10 +28,11 @@ import os
 import json
 from Crypto import Random
 from hashlib import blake2s, sha256
-from typing import Tuple, Dict, List, Callable, Optional, Any
+from typing import Tuple, Dict, List, Callable, Optional, Any, cast
 
 
 ZERO_UNITS_HEX = "0000000000000000"
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 # ZethNote binary serialization format:
 #   [apk   : APK_LENGTH_BYTES]
@@ -338,7 +339,14 @@ class MixerClient:
         mixer_name = zksnark.get_contract_name()
         mixer_src = os.path.join(contracts_dir, mixer_name + ".sol")
 
-        verification_key_params = zksnark.verification_key_to_evm_parameters(vk)
+        # Constructor parameters have the form:
+        #   uint256 mk_depth
+        #   address token
+        #   ... snark-specific key data ...
+        constructor_parameters: List[Any] = [
+            constants.ZETH_MERKLE_TREE_DEPTH,  # mk_depth
+            token_address or ZERO_ADDRESS,     # token
+        ] + cast(List[Any], zksnark.verification_key_to_evm_parameters(vk))
         mixer_description = contracts.InstanceDescription.deploy(
             web3,
             mixer_src,
@@ -346,10 +354,8 @@ class MixerClient:
             deployer_eth_address,
             deployer_eth_private_key,
             deploy_gas,
-            {},
-            mk_depth=constants.ZETH_MERKLE_TREE_DEPTH,
-            token=token_address or "0x0000000000000000000000000000000000000000",
-            **verification_key_params)
+            compiler_flags={},
+            args=constructor_parameters)
         mixer_instance = mixer_description.instantiate(web3)
         client = MixerClient(web3, prover_client, mixer_instance, zksnark)
         return client, mixer_description
