@@ -162,10 +162,9 @@ class Groth16SnarkProvider(IZKSnarkProvider):
         # single base-field element. If the assert below triggers, then it may
         # be necessary to generalize this function a bit.
         proof = extproof["proof"]
-        assert isinstance(proof["b"][0], (list, tuple))
         return [
             hex_list_to_uint256_list(proof["a"]),
-            hex_list_to_uint256_list(proof["b"][0] + proof["b"][1]),
+            hex_list_to_uint256_list(proof["b"]),
             hex_list_to_uint256_list(proof["c"]),
         ]
 
