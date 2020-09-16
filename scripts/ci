@@ -36,7 +36,7 @@ function check_client() {
     pip install --upgrade pip --progress-bar off
     pip install --upgrade setuptools wheel
     make setup
-    make syntax
+    make check
 
     deactivate
     popd
@@ -53,18 +53,6 @@ function check_cpp() {
     # make VERBOSE=1 clang-tidy -j 5
     cmake -DUSE_CPP_CHECK=ON ..
     make VERBOSE=1 cppcheck -j 5
-    popd
-}
-
-function test_client() {
-    pushd client
-    python3 -m venv env
-    . env/bin/activate
-    pip install --upgrade pip --progress-bar off
-    make setup
-    make test
-
-    deactivate
     popd
 }
 
@@ -134,7 +122,7 @@ function ci_setup() {
     if [ "${platform}" == "Darwin" ] ; then
         # Some of these commands can fail (if packages are already installed,
         # etc), hence the `|| echo`.
-        brew unlink python@2
+        brew unlink python@2 || echo
         brew update || echo
         brew install \
              gmp \
@@ -153,19 +141,25 @@ function ci_setup() {
     # The base docker image we use is Alpine
     # See: https://www.alpinelinux.org/
     if [ "${platform}" == "Linux" ] ; then
-        apk add --update npm
 
-        # `py3-virtualenv` depends on `python3`
-        # which installs the latest version of python3
-        # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
-        # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
-        apk add \
-            py3-virtualenv \
-            libffi-dev \
-            python3-dev
+        if (which apk) ; then
+            apk add --update npm
 
-        # Install openssl for the mpc tests
-        apk add openssl
+            # `py3-virtualenv` depends on `python3`
+            # which installs the latest version of python3
+            # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
+            # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
+            apk add \
+                py3-virtualenv \
+                libffi-dev \
+                python3-dev
+
+            # Install openssl for the mpc tests
+            apk add openssl
+        else
+            sudo apt install python3-venv
+        fi
+
     fi
 }
 
