@@ -36,7 +36,7 @@ function check_client() {
     pip install --upgrade pip --progress-bar off
     pip install --upgrade setuptools wheel
     make setup
-    make syntax
+    make check
 
     deactivate
     popd
@@ -53,18 +53,6 @@ function check_cpp() {
     # make VERBOSE=1 clang-tidy -j 5
     cmake -DUSE_CPP_CHECK=ON ..
     make VERBOSE=1 cppcheck -j 5
-    popd
-}
-
-function test_client() {
-    pushd client
-    python3 -m venv env
-    . env/bin/activate
-    pip install --upgrade pip --progress-bar off
-    make setup
-    make test
-
-    deactivate
     popd
 }
 
