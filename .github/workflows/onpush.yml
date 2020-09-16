@@ -1,12 +1,11 @@
-name: zeth-ci
+# Actions for every push
+name: zeth-ci-push
 
 on:
   push:
-  pull_request:
 
 env:
   MACOS_BREW_PACKAGES: "pkg-config libomp"
-  CI_EVENT_NAME: ${{ github.event_name }}
 
 jobs:
 
