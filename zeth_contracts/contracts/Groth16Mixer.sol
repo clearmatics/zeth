@@ -29,11 +29,11 @@ contract Groth16Mixer is BaseMixer {
         // Pairing.G1Point A;
         uint256 A_X;
         uint256 A_Y;
-        // Pairing.G2Point B;
-        uint256 B_X0;
-        uint256 B_X1;
-        uint256 B_Y0;
-        uint256 B_Y1;
+        // Pairing.G2Point minus_B;
+        uint256 minus_B_X0;
+        uint256 minus_B_X1;
+        uint256 minus_B_Y0;
+        uint256 minus_B_Y1;
         // Pairing.G1Point C;
         uint256 C_X;
         uint256 C_Y;
@@ -68,7 +68,7 @@ contract Groth16Mixer is BaseMixer {
     // This function mixes coins and executes payments in zero knowledge.
     function mix(
         uint256[2] memory a,
-        uint256[4] memory b,
+        uint256[4] memory minus_b,
         uint256[2] memory c,
         uint256[4] memory vk,
         uint256 sigma,
@@ -91,7 +91,7 @@ contract Groth16Mixer is BaseMixer {
                 ciphertexts[0],
                 ciphertexts[1],
                 a,
-                b,
+                minus_b,
                 c,
                 input
             ));
@@ -103,7 +103,7 @@ contract Groth16Mixer is BaseMixer {
 
         // 2.b Verify the proof
         require(
-            verifyTx(a, b, c, input),
+            verifyTx(a, minus_b, c, input),
             "Invalid proof: Unable to verify the proof correctly"
         );
 
@@ -302,11 +302,9 @@ contract Groth16Mixer is BaseMixer {
             mstore(add(pad, 0x140), sload(add(verifyKey_slot, 4)))
             mstore(add(pad, 0x160), sload(add(verifyKey_slot, 5)))
 
-            // Write negate(Proof.A) and Proof.B from offset 0x180.
+            // Write Proof.A and Proof.minus_B from offset 0x180.
             mstore(add(pad, 0x180), mload(proof))
-            let q := 21888242871839275222246405745257275088696311157297823662689037894645226208583
-            let proof_A_y := mload(add(proof, 0x20))
-            mstore(add(pad, 0x1a0), sub(q, mod(proof_A_y, q)))
+            mstore(add(pad, 0x1a0), mload(add(proof, 0x20)))
             mstore(add(pad, 0x1c0), mload(add(proof, 0x40)))
             mstore(add(pad, 0x1e0), mload(add(proof, 0x60)))
             mstore(add(pad, 0x200), mload(add(proof, 0x80)))
@@ -331,7 +329,7 @@ contract Groth16Mixer is BaseMixer {
 
     function verifyTx(
         uint256[2] memory a,
-        uint256[4] memory b,
+        uint256[4] memory minus_b,
         uint256[2] memory c,
         uint256[nbInputs] memory primaryInputs)
         internal
@@ -343,10 +341,10 @@ contract Groth16Mixer is BaseMixer {
         Proof memory proof;
         proof.A_X = a[0];
         proof.A_Y = a[1];
-        proof.B_X0 = b[0];
-        proof.B_X1 = b[1];
-        proof.B_Y0 = b[2];
-        proof.B_Y1 = b[3];
+        proof.minus_B_X0 = minus_b[0];
+        proof.minus_B_X1 = minus_b[1];
+        proof.minus_B_Y0 = minus_b[2];
+        proof.minus_B_Y1 = minus_b[3];
         proof.C_X = c[0];
         proof.C_Y = c[1];
 
