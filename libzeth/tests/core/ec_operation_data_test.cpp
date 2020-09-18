@@ -51,6 +51,10 @@ template<typename ppT> void operation_test_data()
     field_element_write_json(fr_minus_2, std::cout);
 
     std::cout << "\n G1:";
+    std::cout << "\n   1: ";
+    point_affine_write_json(g1_1, std::cout);
+    std::cout << "\n  -1: ";
+    point_affine_write_json(-g1_1, std::cout);
     std::cout << "\n   2: ";
     point_affine_write_json(g1_2, std::cout);
     std::cout << "\n   3: ";
@@ -63,6 +67,10 @@ template<typename ppT> void operation_test_data()
     point_affine_write_json(g1_minus_8, std::cout);
 
     std::cout << "\n G2:";
+    std::cout << "\n   1: ";
+    point_affine_write_json(g2_1, std::cout);
+    std::cout << "\n  -1: ";
+    point_affine_write_json(-g2_1, std::cout);
     std::cout << "\n   4: ";
     point_affine_write_json(g2_4, std::cout);
     std::cout << "\n   8: ";
