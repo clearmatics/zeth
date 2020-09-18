@@ -18,16 +18,16 @@ void groth16_api_handler<ppT>::verification_key_to_proto(
     const typename groth16_api_handler<ppT>::snark::verification_key &vk,
     zeth_proto::VerificationKey *message)
 {
-    zeth_proto::HexPointBaseGroup1Affine *a =
+    zeth_proto::HexPointBaseGroup1Affine *alpha =
         new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup2Affine *b =
+    zeth_proto::HexPointBaseGroup2Affine *beta =
         new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup2Affine *d =
+    zeth_proto::HexPointBaseGroup2Affine *delta =
         new zeth_proto::HexPointBaseGroup2Affine();
 
-    a->CopyFrom(point_g1_affine_to_proto<ppT>(vk.alpha_g1));
-    b->CopyFrom(point_g2_affine_to_proto<ppT>(vk.beta_g2));
-    d->CopyFrom(point_g2_affine_to_proto<ppT>(vk.delta_g2));
+    alpha->CopyFrom(point_g1_affine_to_proto<ppT>(vk.alpha_g1));
+    beta->CopyFrom(point_g2_affine_to_proto<ppT>(vk.beta_g2));
+    delta->CopyFrom(point_g2_affine_to_proto<ppT>(vk.delta_g2));
 
     std::string abc_json_str = accumulation_vector_to_json<ppT>(vk.ABC_g1);
 
@@ -37,9 +37,9 @@ void groth16_api_handler<ppT>::verification_key_to_proto(
     zeth_proto::VerificationKeyGROTH16 *grpc_verification_key_groth16 =
         message->mutable_groth16_verification_key();
 
-    grpc_verification_key_groth16->set_allocated_alpha_g1(a);
-    grpc_verification_key_groth16->set_allocated_beta_g2(b);
-    grpc_verification_key_groth16->set_allocated_delta_g2(d);
+    grpc_verification_key_groth16->set_allocated_alpha_g1(alpha);
+    grpc_verification_key_groth16->set_allocated_beta_g2(beta);
+    grpc_verification_key_groth16->set_allocated_delta_g2(delta);
     grpc_verification_key_groth16->set_abc_g1(abc_json_str);
 }
 
