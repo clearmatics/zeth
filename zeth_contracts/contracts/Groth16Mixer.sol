@@ -41,27 +41,30 @@ contract Groth16Mixer is BaseMixer {
 
     VerifyingKey verifyKey;
 
-    // Constructor
+    // Constructor.  Form of vk is:
+    //    uint256[2] Alpha,
+    //    uint256[4] Beta,
+    //    uint256[4] Delta,
+    //    uint256[] ABC_coords
     constructor(
         uint256 mk_depth,
         address token,
-        uint256[2] memory Alpha,
-        uint256[4] memory Beta,
-        uint256[4] memory Delta,
-        uint256[] memory ABC_coords) BaseMixer(mk_depth, token) public
+        uint256[] memory vk)
+        BaseMixer(mk_depth, token)
+        public
     {
-        verifyKey.Alpha = Pairing.G1Point(Alpha[0], Alpha[1]);
-        verifyKey.Beta = Pairing.G2Point(Beta[0], Beta[1], Beta[2], Beta[3]);
-        verifyKey.Delta = Pairing.G2Point(Delta[0], Delta[1], Delta[2], Delta[3]);
+        uint256 vk_words = vk.length;
+        require(vk_words >= 12, "invalid vk length");
+
+        verifyKey.Alpha = Pairing.G1Point(vk[0], vk[1]);
+        verifyKey.Beta = Pairing.G2Point(vk[2], vk[3], vk[4], vk[5]);
+        verifyKey.Delta = Pairing.G2Point(vk[6], vk[7], vk[8], vk[9]);
 
         // The `ABC` are elements of G1 (and thus have 2 coordinates in the
         // underlying field). Here, we reconstruct these group elements from
         // field elements (ABC_coords are field elements)
-        uint256 i = 0;
-        while (verifyKey.ABC.length != ABC_coords.length / 2) {
-            verifyKey.ABC.push(
-                Pairing.G1Point(ABC_coords[i], ABC_coords[i + 1]));
-            i += 2;
+        for (uint256 i = 10 ; i < vk_words ; i += 2) {
+            verifyKey.ABC.push(Pairing.G1Point(vk[i], vk[i + 1]));
         }
     }
 

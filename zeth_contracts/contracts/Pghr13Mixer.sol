@@ -35,35 +35,33 @@ contract Pghr13Mixer is BaseMixer {
 
     VerifyingKey verifyKey;
 
-    // Constructor
+    // Constructor.  For of vk is:
+    //    uint256[4] A,               (offset 00 - 0x00)
+    //    uint256[2] B,               (offset 04 - 0x04)
+    //    uint256[4] C,               (offset 06 - 0x06)
+    //    uint256[4] gamma,           (offset 10 - 0x0a)
+    //    uint256[2] gammaBeta1,      (offset 14 - 0x0e)
+    //    uint256[4] gammaBeta2,      (offset 16 - 0x10)
+    //    uint256[4] Z,               (offset 20 - 0x14)
+    //    uint256[] IC_coefficients)  (offset 24 - 0x18) (2 words each)
     constructor(
         uint256 mk_depth,
         address token,
-        uint256[4] memory A,
-        uint256[2] memory B,
-        uint256[4] memory C,
-        uint256[4] memory gamma,
-        uint256[2] memory gammaBeta1,
-        uint256[4] memory gammaBeta2,
-        uint256[4] memory Z,
-        uint256[] memory IC_coefficients)
-        BaseMixer(mk_depth, token)
-        public {
-        verifyKey.A = Pairing.G2Point(A[0], A[1], A[2], A[3]);
-        verifyKey.B = Pairing.G1Point(B[0], B[1]);
-        verifyKey.C = Pairing.G2Point(C[0], C[1], C[2], C[3]);
-        verifyKey.gamma = Pairing.G2Point(
-            gamma[0], gamma[1], gamma[2], gamma[3]);
-        verifyKey.gammaBeta1 = Pairing.G1Point(gammaBeta1[0], gammaBeta1[1]);
-        verifyKey.gammaBeta2 = Pairing.G2Point(
-            gammaBeta2[0], gammaBeta2[1], gammaBeta2[2], gammaBeta2[3]);
-        verifyKey.Z = Pairing.G2Point(Z[0], Z[1], Z[2], Z[3]);
+        uint256[] memory vk)
+        BaseMixer(mk_depth, token) public {
+        uint256 vk_words = vk.length;
+        require(vk_words >= 26, "invalid vk length");
 
-        uint256 i = 0;
-        while(verifyKey.IC.length != IC_coefficients.length/2) {
-            verifyKey.IC.push(
-                Pairing.G1Point(IC_coefficients[i], IC_coefficients[i+1]));
-            i += 2;
+        verifyKey.A = Pairing.G2Point(vk[0], vk[1], vk[2], vk[3]);
+        verifyKey.B = Pairing.G1Point(vk[4], vk[5]);
+        verifyKey.C = Pairing.G2Point(vk[6], vk[7], vk[8], vk[9]);
+        verifyKey.gamma = Pairing.G2Point(vk[10], vk[11], vk[12], vk[13]);
+        verifyKey.gammaBeta1 = Pairing.G1Point(vk[14], vk[15]);
+        verifyKey.gammaBeta2 = Pairing.G2Point(vk[16], vk[17], vk[18], vk[19]);
+        verifyKey.Z = Pairing.G2Point(vk[20], vk[21], vk[22], vk[23]);
+
+        for (uint256 i = 24; i < vk_words ; i += 2) {
+            verifyKey.IC.push(Pairing.G1Point(vk[i], vk[i+1]));
         }
     }
 
