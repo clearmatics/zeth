@@ -65,17 +65,21 @@ contract Pghr13Mixer is BaseMixer {
         }
     }
 
-    // This function allows to mix coins and execute payments in zero knowledge.
-    // Nb of ciphertexts depends on the JS description (Here 2 inputs)
+    // This function allows to mix coins and execute payments in zero
+    // knowledge. Nb of ciphertexts depends on the JS description (Here 2
+    // inputs). Format of proof is:
+    //
+    //   uint256[2] a,                (offset 00 - 0x00)
+    //   uint256[2] a_p,              (offset 02 - 0x02)
+    //   uint256[4] b,                (offset 04 - 0x04)
+    //   uint256[2] b_p,              (offset 08 - 0x08)
+    //   uint256[2] c,                (offset 10 - 0x0a)
+    //   uint256[2] c_p,              (offset 12 - 0x0c)
+    //   uint256[2] h,                (offset 14 - 0x0e)
+    //   uint256[2] k,                (offset 16 - 0x10)
+    //   <end>                        (offset 18 - 0x12)
     function mix (
-        uint256[2] memory a,
-        uint256[2] memory a_p,
-        uint256[4] memory b,
-        uint256[2] memory b_p,
-        uint256[2] memory c,
-        uint256[2] memory c_p,
-        uint256[2] memory h,
-        uint256[2] memory k,
+        uint256[18] memory proof,
         uint256[4] memory vk,
         uint256 sigma,
         uint256[nbInputs] memory input,
@@ -95,14 +99,7 @@ contract Pghr13Mixer is BaseMixer {
                 // Must be unrolled for now.
                 ciphertexts[0],
                 ciphertexts[1],
-                a,
-                a_p,
-                b,
-                b_p,
-                c,
-                c_p,
-                h,
-                k,
+                proof,
                 input
             )
         );
@@ -120,7 +117,7 @@ contract Pghr13Mixer is BaseMixer {
 
         // 2.b Verify the proof
         require(
-            verifyTx(a, a_p, b, b_p, c, c_p, h, k, input),
+            verifyTx(proof, input),
             "Invalid proof: Unable to verify the proof correctly"
         );
 
@@ -228,14 +225,7 @@ contract Pghr13Mixer is BaseMixer {
     }
 
     function verifyTx(
-        uint256[2] memory a,
-        uint256[2] memory a_p,
-        uint256[4] memory b,
-        uint256[2] memory b_p,
-        uint256[2] memory c,
-        uint256[2] memory c_p,
-        uint256[2] memory h,
-        uint256[2] memory k,
+        uint256[18] memory proof_data,
         uint256[nbInputs] memory primaryInputs)
         public
         returns (bool) {
@@ -243,33 +233,31 @@ contract Pghr13Mixer is BaseMixer {
         // solium-disable-next-line
         uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
+        // Slightly redundant
         Proof memory proof;
-        proof.A = Pairing.G1Point(a[0], a[1]);
-        proof.A_p = Pairing.G1Point(a_p[0], a_p[1]);
-        proof.B = Pairing.G2Point(b[0], b[1], b[2], b[3]);
-        proof.B_p = Pairing.G1Point(b_p[0], b_p[1]);
-        proof.C = Pairing.G1Point(c[0], c[1]);
-        proof.C_p = Pairing.G1Point(c_p[0], c_p[1]);
-        proof.H = Pairing.G1Point(h[0], h[1]);
-        proof.K = Pairing.G1Point(k[0], k[1]);
+        proof.A = Pairing.G1Point(proof_data[0], proof_data[1]);
+        proof.A_p = Pairing.G1Point(proof_data[2], proof_data[3]);
+        proof.B = Pairing.G2Point(
+            proof_data[4], proof_data[5], proof_data[6], proof_data[7]);
+        proof.B_p = Pairing.G1Point(proof_data[8], proof_data[9]);
+        proof.C = Pairing.G1Point(proof_data[10], proof_data[11]);
+        proof.C_p = Pairing.G1Point(proof_data[12], proof_data[13]);
+        proof.H = Pairing.G1Point(proof_data[14], proof_data[15]);
+        proof.K = Pairing.G1Point(proof_data[16], proof_data[18]);
 
-        // uint256[] memory inputValues = new uint256[](primaryInputs.length);
         for(uint256 i = 0; i < primaryInputs.length; i++){
             // Make sure that all primary inputs lie in the scalar field
             require(
                 primaryInputs[i] < r,
                 "Input is not is scalar field"
             );
-            /* inputValues[i] = primaryInputs[i]; */
         }
 
         uint256 verification_result = verify(primaryInputs, proof);
         if (verification_result != 0) {
-            /* emit LogVerifier("Failed to verify the transaction"); */
             return false;
         }
 
-        /* emit LogVerifier("Proof verification successfull"); */
         return true;
     }
 }

@@ -9,6 +9,11 @@ import "./OTSchnorrVerifier.sol";
 import "./BaseMixer.sol";
 import "./Pairing.sol";
 
+// Note that this contact is specialized for the ALT-BN128 pairing. It relies
+// on the fact that Fr and Fq elements can be stored in a single uint256_t
+// (which influences the offsets and slots of all data), and contains the
+// hard-coded value of the generator of G2. Other curves require modified data
+// structures and code in order to handle field elements of different sizes.
 contract Groth16Mixer is BaseMixer {
 
     // The structure of the verification key differs from the reference paper.
@@ -69,10 +74,14 @@ contract Groth16Mixer is BaseMixer {
     }
 
     // This function mixes coins and executes payments in zero knowledge.
+    // Format of proof is:
+    //
+    //   uint256[2] a,              (offset 00 - 0x00)
+    //   uint256[4] minus_b,        (offset 02 - 0x02)
+    //   uint256[2] c,              (offset 06 - 0x06)
+    //   <end>                      (offset 08 - 0x08)
     function mix(
-        uint256[2] memory a,
-        uint256[4] memory minus_b,
-        uint256[2] memory c,
+        uint256[8] memory proof,
         uint256[4] memory vk,
         uint256 sigma,
         uint256[nbInputs] memory input,
@@ -93,9 +102,7 @@ contract Groth16Mixer is BaseMixer {
                 // increase complexity and possibly gas usage.
                 ciphertexts[0],
                 ciphertexts[1],
-                a,
-                minus_b,
-                c,
+                proof,
                 input
             ));
         require(
@@ -106,7 +113,7 @@ contract Groth16Mixer is BaseMixer {
 
         // 2.b Verify the proof
         require(
-            verifyTx(a, minus_b, c, input),
+            verifyTx(proof, input),
             "Invalid proof: Unable to verify the proof correctly"
         );
 
@@ -130,7 +137,7 @@ contract Groth16Mixer is BaseMixer {
         process_public_values(input);
     }
 
-    function verify(uint256[] memory input, Proof memory proof)
+    function verify(uint256[] memory input, uint256[8] memory proof)
         internal
         returns (uint) {
 
@@ -331,9 +338,7 @@ contract Groth16Mixer is BaseMixer {
     }
 
     function verifyTx(
-        uint256[2] memory a,
-        uint256[4] memory minus_b,
-        uint256[2] memory c,
+        uint256[8] memory proof_data,
         uint256[nbInputs] memory primaryInputs)
         internal
         returns (bool) {
@@ -341,29 +346,16 @@ contract Groth16Mixer is BaseMixer {
         // solium-disable-next-line
         uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
-        Proof memory proof;
-        proof.A_X = a[0];
-        proof.A_Y = a[1];
-        proof.minus_B_X0 = minus_b[0];
-        proof.minus_B_X1 = minus_b[1];
-        proof.minus_B_Y0 = minus_b[2];
-        proof.minus_B_Y1 = minus_b[3];
-        proof.C_X = c[0];
-        proof.C_Y = c[1];
-
         // Make sure that all primary inputs lie in the scalar field
 
-        // TODO: For some reason, using a statically sized array (or
-        // primaryInputs directly) causes an out-of-gas exception, which seems
-        // completely counter-intuitive.  Until that is tracked down, we use a
-        // dynamic array.
-
+        // TODO: update `verify` method to handle static arrays and pass
+        // `primaryInputs` directly.
         uint256[] memory inputValues = new uint256[](nbInputs);
         for (uint256 i = 0 ; i < nbInputs; i++) {
             require(primaryInputs[i] < r, "Input is not in scalar field");
             inputValues[i] = primaryInputs[i];
         }
 
-        return 1 == verify(inputValues, proof);
+        return 1 == verify(inputValues, proof_data);
     }
 }
