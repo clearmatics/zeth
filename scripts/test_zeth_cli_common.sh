@@ -50,8 +50,7 @@ function setup_user_local_key() {
     ! [ -e eth-network ] && \
         (zeth_helper eth-gen-network-config $2)
     ! [ -e eth-address ] && \
-        (zeth_helper eth-gen-address && \
-         python -m test_commands.fund_eth_address)
+        (zeth_helper eth-gen-address && zeth_helper eth-fund)
     ! [ -e zeth-address.priv ] && \
         (zeth gen-address)
     popd
