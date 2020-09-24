@@ -7,6 +7,7 @@
 from zeth.core.mixer_client import MixerClient, OwnershipKeyPair, \
     joinsplit_sign, encrypt_notes, get_dummy_input_and_address, \
     compute_h_sig, JoinsplitSigVerificationKey
+from zeth.core.zksnark import IZKSnarkProvider
 import zeth.core.contracts as contracts
 from zeth.core.constants import ZETH_PRIME, FIELD_CAPACITY
 import zeth.core.signing as signing
@@ -143,6 +144,7 @@ def charlie_withdraw(
 
 
 def charlie_double_withdraw(
+        zksnark: IZKSnarkProvider,
         zeth_client: MixerClient,
         mk_tree: MerkleTree,
         input1: Tuple[int, ZethNote],
@@ -214,7 +216,7 @@ def charlie_double_withdraw(
         return compute_h_sig(
             bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_vk)
 
-    (output_note1, output_note2, proof_json, signing_keypair) = \
+    (output_note1, output_note2, proof, signing_keypair) = \
         zeth_client.get_proof_joinsplit_2_by_2(
             mk_root,
             input1,
@@ -234,11 +236,11 @@ def charlie_double_withdraw(
     assert attack_primary_input3 != 0
     assert attack_primary_input4 != 0
 
-    print("proof_json => ", proof_json)
-    print("proof_json[inputs][3] => ", proof_json["inputs"][3])
-    print("proof_json[inputs][4] => ", proof_json["inputs"][4])
-    proof_json["inputs"][3] = hex(attack_primary_input3)
-    proof_json["inputs"][4] = hex(attack_primary_input4)
+    print("proof = ", proof)
+    print("proof[inputs][3] = ", proof.inputs[3])
+    print("proof[inputs][4] = ", proof.inputs[4])
+    proof.inputs[3] = hex(attack_primary_input3)
+    proof.inputs[4] = hex(attack_primary_input4)
     # ### ATTACK BLOCK
 
     # construct pk object from bytes
@@ -251,13 +253,14 @@ def charlie_double_withdraw(
 
     # Compute the joinSplit signature
     joinsplit_sig_charlie = joinsplit_sign(
+        zksnark,
         signing_keypair,
         charlie_eth_address,
         ciphertexts,
-        proof_json)
+        proof)
 
     mix_params = contracts.MixParameters(
-        proof_json,
+        proof,
         signing_keypair.vk,
         joinsplit_sig_charlie,
         ciphertexts)
@@ -273,6 +276,7 @@ def charlie_double_withdraw(
 
 
 def charlie_corrupt_bob_deposit(
+        zksnark: IZKSnarkProvider,
         zeth_client: MixerClient,
         mk_tree: MerkleTree,
         bob_eth_address: str,
@@ -320,7 +324,7 @@ def charlie_corrupt_bob_deposit(
 
     v_in = to_zeth_units(EtherValue(BOB_DEPOSIT_ETH))
 
-    (output_note1, output_note2, proof_json, joinsplit_keypair) = \
+    (output_note1, output_note2, proof, joinsplit_keypair) = \
         zeth_client.get_proof_joinsplit_2_by_2(
             mk_root,
             input1,
@@ -353,13 +357,14 @@ def charlie_corrupt_bob_deposit(
     result_corrupt1 = None
     try:
         joinsplit_sig_charlie = joinsplit_sign(
+            zksnark,
             joinsplit_keypair,
             charlie_eth_address,
             ciphertexts,
-            proof_json)
+            proof)
 
         mix_params = contracts.MixParameters(
-            proof_json,
+            proof,
             joinsplit_keypair.vk,
             joinsplit_sig_charlie,
             [fake_ciphertext0, fake_ciphertext1])
@@ -391,12 +396,13 @@ def charlie_corrupt_bob_deposit(
     result_corrupt2 = None
     try:
         joinsplit_sig_charlie = joinsplit_sign(
+            zksnark,
             new_joinsplit_keypair,
             charlie_eth_address,
             [fake_ciphertext0, fake_ciphertext1],
-            proof_json)
+            proof)
         mix_params = contracts.MixParameters(
-            proof_json,
+            proof,
             new_joinsplit_keypair.vk,
             joinsplit_sig_charlie,
             [fake_ciphertext0, fake_ciphertext1])
@@ -420,12 +426,13 @@ def charlie_corrupt_bob_deposit(
     result_corrupt3 = None
     try:
         joinsplit_sig_bob = joinsplit_sign(
+            zksnark,
             joinsplit_keypair,
             bob_eth_address,
             ciphertexts,
-            proof_json)
+            proof)
         mix_params = contracts.MixParameters(
-            proof_json,
+            proof,
             joinsplit_keypair.vk,
             joinsplit_sig_bob,
             ciphertexts)
@@ -448,12 +455,13 @@ def charlie_corrupt_bob_deposit(
 
     # Bob transaction is finally mined
     joinsplit_sig_bob = joinsplit_sign(
+        zksnark,
         joinsplit_keypair,
         bob_eth_address,
         ciphertexts,
-        proof_json)
+        proof)
     mix_params = contracts.MixParameters(
-        proof_json,
+        proof,
         joinsplit_keypair.vk,
         joinsplit_sig_bob,
         ciphertexts)

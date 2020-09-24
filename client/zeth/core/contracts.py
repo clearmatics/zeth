@@ -8,7 +8,7 @@ from __future__ import annotations
 from zeth.core.signing import SigningVerificationKey, Signature, \
     verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
     signature_as_mix_parameter, signature_from_mix_parameter
-from zeth.core.zksnark import IZKSnarkProvider, GenericProof
+from zeth.core.zksnark import IZKSnarkProvider, ExtendedProof
 from zeth.core.utils import EtherValue, hex_list_to_uint256_list
 from zeth.core.constants import SOL_COMPILER_VERSION
 from web3.utils.contracts import find_matching_event_abi  # type: ignore
@@ -30,7 +30,7 @@ class MixParameters:
     """
     def __init__(
             self,
-            extended_proof: GenericProof,
+            extended_proof: ExtendedProof,
             signature_vk: SigningVerificationKey,
             signature: Signature,
             ciphertexts: List[bytes]):
@@ -221,10 +221,10 @@ def mix_parameters_as_contract_arguments(
     the contract's mix method.
     """
     return [
-        zksnark.proof_to_contract_parameters(mix_parameters.extended_proof),
+        zksnark.proof_to_contract_parameters(mix_parameters.extended_proof.proof),
         verification_key_as_mix_parameter(mix_parameters.signature_vk),
         signature_as_mix_parameter(mix_parameters.signature),
-        hex_list_to_uint256_list(mix_parameters.extended_proof["inputs"]),
+        hex_list_to_uint256_list(mix_parameters.extended_proof.inputs),
         mix_parameters.ciphertexts,
     ]
 

@@ -199,6 +199,7 @@ def main() -> None:
         # New commitments are added in the tree at each withdraw so we
         # recompiute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
+            zksnark,
             zeth_client,
             mk_tree,
             input_charlie_withdraw.as_input(),
@@ -219,6 +220,7 @@ def main() -> None:
     # Bob deposits once again ETH, split in 2 notes on the mixer
     # But Charlie attempts to corrupt the transaction (malleability attack)
     result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
+        zksnark,
         zeth_client,
         mk_tree,
         bob_eth_address,

@@ -18,7 +18,7 @@ import eth_abi
 import eth_keys  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
 from py_ecc import bn128 as ec
-from typing import List, Tuple, Union, Iterable, Any, Optional, cast
+from typing import Sequence, List, Tuple, Union, Iterable, Any, Optional, cast
 
 # Some Ethereum node implementations can cause a timeout if the contract
 # execution takes too long. We expect the contract to complete in under 30s on
@@ -182,7 +182,8 @@ def hex_to_uint256_list(hex_str: str) -> Iterable[int]:
         next_idx = next_idx + 64
 
 
-def hex_list_to_uint256_list(elements: List[str]) -> List[int]:
+def hex_list_to_uint256_list(
+        elements: Sequence[Union[str, List[str]]]) -> List[int]:
     """
     Given an array of hex strings, return an array of int values by converting
     each hex string to evm uint256 words, and flattening the final list.
@@ -190,8 +191,8 @@ def hex_list_to_uint256_list(elements: List[str]) -> List[int]:
     # In reality, we need to cope with lists of lists, to handle all
     # field extension degrees for all curve coordinate types.
     # TODO: Create a new type to describe this safely.
-    elements = string_list_flatten(elements)
-    return [i for hex_str in elements for i in hex_to_uint256_list(hex_str)]
+    flat_elements = string_list_flatten(elements)
+    return [i for hex_str in flat_elements for i in hex_to_uint256_list(hex_str)]
 
 
 def extend_32bytes(value: bytes) -> bytes:
@@ -253,21 +254,20 @@ def get_contracts_dir() -> str:
         join(get_zeth_dir(), "zeth_contracts", "contracts"))
 
 
-def string_list_flatten(
-        strs_list: Union[List[str], List[Union[str, List[str]]]]) -> List[str]:
+def string_list_flatten(str_list: Sequence[Union[str, List[str]]]) -> List[str]:
     """
     Flatten a list containing strings or lists of strings.
     """
-    if any(isinstance(el, (list, tuple)) for el in strs_list):
+    if any(isinstance(el, (list, tuple)) for el in str_list):
         strs: List[str] = []
-        for el in strs_list:
+        for el in str_list:
             if isinstance(el, (list, tuple)):
                 strs.extend(el)
             else:
                 strs.append(cast(str, el))
         return strs
 
-    return cast(List[str], strs_list)
+    return cast(List[str], str_list)
 
 
 def message_to_bytes(message_list: Any) -> bytes:
