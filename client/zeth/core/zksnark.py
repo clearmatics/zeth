@@ -99,6 +99,14 @@ class ExtendedProof:
             "inputs": self.inputs,
         }
 
+    @staticmethod
+    def from_json_dict(
+            zksnark: IZKSnarkProvider,
+            json_dict: Dict[str, Any]) -> ExtendedProof:
+        return ExtendedProof(
+            proof=zksnark.proof_from_json_dict(json_dict["proof"]),
+            inputs=json_dict["inputs"])
+
 
 class IZKSnarkProvider(ABC):
     """
@@ -131,6 +139,17 @@ class IZKSnarkProvider(ABC):
     @abstractmethod
     def verification_key_to_proto(
             vk: IVerificationKey) -> snark_messages_pb2.VerificationKey:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def verification_key_from_json_dict(
+            json_dict: Dict[str, Any]) -> IVerificationKey:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def proof_from_json_dict(json_dict: Dict[str, Any]) -> IProof:
         pass
 
     @staticmethod
@@ -250,6 +269,15 @@ class Groth16(IZKSnarkProvider):
         group_point_g2_to_proto(vk.delta, groth16_key.delta_g2)
         groth16_key.abc_g1 = json.dumps([abc.to_json_list() for abc in vk.abc])
         return vk_obj
+
+    @staticmethod
+    def verification_key_from_json_dict(
+            json_dict: Dict[str, Any]) -> Groth16.VerificationKey:
+        return Groth16.VerificationKey.from_json_dict(json_dict)
+
+    @staticmethod
+    def proof_from_json_dict(json_dict: Dict[str, Any]) -> Groth16.Proof:
+        return Groth16.Proof.from_json_dict(json_dict)
 
     @staticmethod
     def extended_proof_from_proto(
@@ -411,6 +439,15 @@ class PGHR13(IZKSnarkProvider):
     def verification_key_to_proto(
             vk: IVerificationKey) -> snark_messages_pb2.VerificationKey:
         raise Exception("not implemented")
+
+    @staticmethod
+    def verification_key_from_json_dict(
+            json_dict: Dict[str, Any]) -> PGHR13.VerificationKey:
+        return PGHR13.VerificationKey.from_json_dict(json_dict)
+
+    @staticmethod
+    def proof_from_json_dict(json_dict: Dict[str, Any]) -> PGHR13.Proof:
+        return PGHR13.Proof.from_json_dict(json_dict)
 
     @staticmethod
     def extended_proof_from_proto(
