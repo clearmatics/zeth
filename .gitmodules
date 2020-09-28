@@ -4,3 +4,6 @@
 [submodule "depends/libsodium"]
 	path = depends/libsodium
 	url = https://github.com/jedisct1/libsodium.git
+[submodule "depends/ganache-cli"]
+	path = depends/ganache-cli
+	url = http://github.com/clearmatics/ganache-cli

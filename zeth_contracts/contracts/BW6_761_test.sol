@@ -1,0 +1,65 @@
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
+pragma solidity ^0.5.0;
+
+contract BW6_761_test
+{
+    // In many cases, these numbers must be used as literals in the assembly
+    // code.
+
+    uint256 constant scalarWords = 2;
+    uint256 constant scalarBytes = scalarWords * 32; // 64 (0x40)
+    uint256 constant coordWords = 3;
+    uint256 constant coordBytes = 3 * 32; // 96 (0x60)
+    uint256 constant pointWords = 2 * coordWords;
+    uint256 constant pointBytes = pointWords * 32; // 192 (0xc0)
+
+    // `points` should be the concatenation of 2 encoded points
+    function testECAdd(bytes32[2 * pointWords] memory points)
+        public returns (bytes32[pointWords] memory)
+    {
+        bytes32[pointWords] memory output;
+        bool success = true;
+        assembly
+        {
+            success := call(gas, 0xc1, 0, points, 0x180, output, 0xc0)
+        }
+
+        require(success, "precompiled contract call failed (ECAdd)");
+        return output;
+    }
+
+    // `inputs` is an encoded point, followed by an encoded scalar.
+    function testECMul(bytes32[pointWords + scalarWords] memory input)
+        public returns (bytes32[pointWords] memory)
+    {
+        bytes32[pointWords] memory output;
+        bool success = true;
+        assembly
+        {
+            success := call(gas, 0xc2, 0, input, 0x100, output, 0xc0)
+        }
+
+        require(success, "precompiled contract call failed (ECMul)");
+        return output;
+    }
+
+    // `points` is the concatenation of 4 pairs of encoded points. Each pair is
+    // a G1 point, followed by a G2 point. For BW6-761, both of these points
+    // are 6 words, so there should be 4 * 2 * 6 = 48 words (
+    function testECPairing(bytes32[8 * pointWords] memory input)
+        public returns (uint256)
+    {
+        uint256[1] memory output;
+        bool success = true;
+        assembly
+        {
+            success := call(gas, 0xc3, 0, input, 0x600, output, 0x20)
+        }
+
+        require(success, "precompiled contract call failed (ECMul)");
+        return output[0];
+    }
+}

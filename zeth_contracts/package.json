@@ -4,6 +4,7 @@
   "description": "zerocash on Ethereum",
   "main": "truffle.js",
   "scripts": {
+    "install": "ln -s ../../depends/ganache-cli node_modules/ganache-cli && cd node_modules/ganache-cli && npm install",
     "testrpc": "ganache-cli --hardfork istanbul --port 8545 --gasLimit 0x3FFFFFFFFFFFF --gasPrice 1 --defaultBalanceEther 90000000000 --networkId 1234",
     "compile": "truffle compile",
     "deploy": "truffle deploy",
@@ -14,12 +15,11 @@
   "author": "Clearmatics Technologies LTD: Cryptography R&D Department",
   "license": "LGPL-3.0+",
   "dependencies": {
+    "openzeppelin-solidity": "^2.4.0",
+    "solium": "^1.2.5",
     "add": "^2.0.6",
     "ethereumjs-abi": "^0.6.8",
-    "ganache-cli": "^6.9.1",
-    "openzeppelin-solidity": "^2.4.0",
     "shell-escape": "^0.2.0",
-    "solium": "^1.2.5",
     "strip-hex-prefix": "^1.0.0",
     "web3": "^1.2.4"
   }
