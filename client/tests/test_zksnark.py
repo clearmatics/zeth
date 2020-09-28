@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zeth.core import zksnark
+from zeth.core.zksnark import Groth16SnarkProvider
 from zeth.api import ec_group_messages_pb2
 import json
 from unittest import TestCase
@@ -406,39 +407,39 @@ class TestZKSnark(TestCase):
         vk = VERIFICATION_KEY_BLS12_377_GROTH16
         vk_parameters_expect = VERIFICATION_KEY_BLS12_377_GROTH16_PARAMETERS
         vk_parameters = \
-            zksnark.Groth16SnarkProvider().verification_key_to_evm_parameters(vk)
+            Groth16SnarkProvider.verification_key_to_contract_parameters(vk)
         self.assertEqual(vk_parameters_expect, vk_parameters)
 
     def test_bls12_377_groth16_proof_parameters(self) -> None:
         extproof = EXTPROOF_BLS12_377_GROTH16
         proof_parameters = \
-            zksnark.Groth16SnarkProvider().proof_to_evm_parameters(extproof)
+            Groth16SnarkProvider().proof_to_contract_parameters(extproof)
         self.assertEqual(PROOF_BLS12_377_GROTH16_PARAMETERS, proof_parameters)
 
     def test_bw6_761_groth16_verification_key_parameters(self) -> None:
         vk = VERIFICATION_KEY_BW6_761_GROTH16
         vk_parameters_expect = VERIFICATION_KEY_BW6_761_GROTH16_PARAMETERS
         vk_parameters = \
-            zksnark.Groth16SnarkProvider().verification_key_to_evm_parameters(vk)
+            Groth16SnarkProvider().verification_key_to_contract_parameters(vk)
         self.assertEqual(vk_parameters_expect, vk_parameters)
 
     def test_bw6_761_groth16_proof_parameters(self) -> None:
         extproof = EXTPROOF_BW6_761_GROTH16
         proof_parameters = \
-            zksnark.Groth16SnarkProvider().proof_to_evm_parameters(extproof)
+            Groth16SnarkProvider().proof_to_contract_parameters(extproof)
         self.assertEqual(PROOF_BW6_761_GROTH16_PARAMETERS, proof_parameters)
 
     def test_alt_bn128_groth16_verification_key_parameters(self) -> None:
         vk = VERIFICATION_KEY_ALT_BN128_GROTH16
         vk_parameters_expect = VERIFICATION_KEY_ALT_BN128_GROTH16_PARAMETERS
         vk_parameters = \
-            zksnark.Groth16SnarkProvider().verification_key_to_evm_parameters(vk)
+            Groth16SnarkProvider().verification_key_to_contract_parameters(vk)
         self.assertEqual(vk_parameters_expect, vk_parameters)
 
     def test_alt_bn128_groth16_proof_parameters(self) -> None:
         extproof = EXTPROOF_ALT_BN128_GROTH16
         proof_parameters = \
-            zksnark.Groth16SnarkProvider().proof_to_evm_parameters(extproof)
+            Groth16SnarkProvider().proof_to_contract_parameters(extproof)
         self.assertEqual(PROOF_ALT_BN128_GROTH16_PARAMETERS, proof_parameters)
 
     def test_g1_proto_encode_decode(self) -> None:
@@ -452,12 +453,12 @@ class TestZKSnark(TestCase):
     def test_verification_key_proto_encode_decode(self) -> None:
         vk_1 = VERIFICATION_KEY_BLS12_377_GROTH16
         self._do_test_verification_key_proto_encode_decode(
-            vk_1, zksnark.Groth16SnarkProvider())
+            vk_1, Groth16SnarkProvider())
 
     def test_proof_proto_encode_decode(self) -> None:
         extproof_1 = EXTPROOF_BLS12_377_GROTH16
         self._do_test_proof_proto_encode_decode(
-            extproof_1, zksnark.Groth16SnarkProvider())
+            extproof_1, Groth16SnarkProvider())
 
     def _do_test_g1_proto_encode_decode(self, g1: zksnark.GenericG1Point) -> None:
         g1_proto = ec_group_messages_pb2.HexPointBaseGroup1Affine()

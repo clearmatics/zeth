@@ -346,7 +346,7 @@ class MixerClient:
         constructor_parameters: List[Any] = [
             constants.ZETH_MERKLE_TREE_DEPTH,  # mk_depth
             token_address or ZERO_ADDRESS,     # token
-        ] + cast(List[Any], zksnark.verification_key_to_evm_parameters(vk))
+        ] + cast(List[Any], zksnark.verification_key_to_contract_parameters(vk))
         mixer_description = contracts.InstanceDescription.deploy(
             web3,
             mixer_src,

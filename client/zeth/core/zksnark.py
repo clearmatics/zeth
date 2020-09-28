@@ -53,7 +53,7 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def verification_key_to_evm_parameters(
+    def verification_key_to_contract_parameters(
             vk: GenericVerificationKey) -> List[List[int]]:
         pass
 
@@ -83,7 +83,7 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def proof_to_evm_parameters(extproof: GenericProof) -> List[List[int]]:
+    def proof_to_contract_parameters(extproof: GenericProof) -> List[List[int]]:
         """
         Generate the leading parameters to the mix function for this SNARK, from a
         GenericProof object.
@@ -98,7 +98,7 @@ class Groth16SnarkProvider(IZKSnarkProvider):
         return constants.GROTH16_MIXER_CONTRACT
 
     @staticmethod
-    def verification_key_to_evm_parameters(
+    def verification_key_to_contract_parameters(
             vk: GenericVerificationKey) -> List[List[int]]:
         return [
             hex_list_to_uint256_list(vk["alpha"]),
@@ -156,7 +156,7 @@ class Groth16SnarkProvider(IZKSnarkProvider):
         return extproof_proto
 
     @staticmethod
-    def proof_to_evm_parameters(extproof: GenericProof) -> List[List[int]]:
+    def proof_to_contract_parameters(extproof: GenericProof) -> List[List[int]]:
         # We assume that G2 elements are defined over a non-trivial extension
         # field, i.e. that each coordinate is a JSON list rather than a a
         # single base-field element. If the assert below triggers, then it may
@@ -176,7 +176,7 @@ class PGHR13SnarkProvider(IZKSnarkProvider):
         return constants.PGHR13_MIXER_CONTRACT
 
     @staticmethod
-    def verification_key_to_evm_parameters(
+    def verification_key_to_contract_parameters(
             vk: GenericVerificationKey) -> List[List[int]]:
         return [
             hex_list_to_uint256_list(vk["a"]),
@@ -246,7 +246,7 @@ class PGHR13SnarkProvider(IZKSnarkProvider):
         return extproof_proto
 
     @staticmethod
-    def proof_to_evm_parameters(extproof: GenericProof) -> List[List[int]]:
+    def proof_to_contract_parameters(extproof: GenericProof) -> List[List[int]]:
         proof = extproof["proof"]
         return [
             hex_list_to_uint256_list(proof["a"]) +

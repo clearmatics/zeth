@@ -220,7 +220,7 @@ def mix_parameters_as_contract_arguments(
     Convert MixParameters to a list of eth ABI objects which can be passed to
     the contract's mix method.
     """
-    proof_params: List[Any] = zksnark.proof_to_evm_parameters(
+    proof_params: List[Any] = zksnark.proof_to_contract_parameters(
         mix_parameters.extended_proof)
     proof_params.extend([
         verification_key_as_mix_parameter(mix_parameters.signature_vk),
