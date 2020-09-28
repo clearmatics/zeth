@@ -39,30 +39,25 @@ contract Pghr13Mixer is BaseMixer {
     constructor(
         uint256 mk_depth,
         address token,
-        uint256[2] memory A1,
-        uint256[2] memory A2,
+        uint256[4] memory A,
         uint256[2] memory B,
-        uint256[2] memory C1,
-        uint256[2] memory C2,
-        uint256[2] memory gamma1,
-        uint256[2] memory gamma2,
+        uint256[4] memory C,
+        uint256[4] memory gamma,
         uint256[2] memory gammaBeta1,
-        uint256[2] memory gammaBeta2_1,
-        uint256[2] memory gammaBeta2_2,
-        uint256[2] memory Z1,
-        uint256[2] memory Z2,
+        uint256[4] memory gammaBeta2,
+        uint256[4] memory Z,
         uint256[] memory IC_coefficients)
         BaseMixer(mk_depth, token)
         public {
-        verifyKey.A = Pairing.G2Point(A1[0], A1[1], A2[0], A2[1]);
+        verifyKey.A = Pairing.G2Point(A[0], A[1], A[2], A[3]);
         verifyKey.B = Pairing.G1Point(B[0], B[1]);
-        verifyKey.C = Pairing.G2Point(C1[0], C1[1], C2[0], C2[1]);
+        verifyKey.C = Pairing.G2Point(C[0], C[1], C[2], C[3]);
         verifyKey.gamma = Pairing.G2Point(
-            gamma1[0], gamma1[1], gamma2[0], gamma1[1]);
+            gamma[0], gamma[1], gamma[2], gamma[3]);
         verifyKey.gammaBeta1 = Pairing.G1Point(gammaBeta1[0], gammaBeta1[1]);
         verifyKey.gammaBeta2 = Pairing.G2Point(
-            gammaBeta2_1[0], gammaBeta2_1[1], gammaBeta2_2[0], gammaBeta2_2[1]);
-        verifyKey.Z = Pairing.G2Point(Z1[0], Z1[1], Z2[0], Z2[1]);
+            gammaBeta2[0], gammaBeta2[1], gammaBeta2[2], gammaBeta2[3]);
+        verifyKey.Z = Pairing.G2Point(Z[0], Z[1], Z[2], Z[3]);
 
         uint256 i = 0;
         while(verifyKey.IC.length != IC_coefficients.length/2) {
@@ -77,7 +72,7 @@ contract Pghr13Mixer is BaseMixer {
     function mix (
         uint256[2] memory a,
         uint256[2] memory a_p,
-        uint256[2][2] memory b,
+        uint256[4] memory b,
         uint256[2] memory b_p,
         uint256[2] memory c,
         uint256[2] memory c_p,
@@ -237,7 +232,7 @@ contract Pghr13Mixer is BaseMixer {
     function verifyTx(
         uint256[2] memory a,
         uint256[2] memory a_p,
-        uint256[2][2] memory b,
+        uint256[4] memory b,
         uint256[2] memory b_p,
         uint256[2] memory c,
         uint256[2] memory c_p,
@@ -253,7 +248,7 @@ contract Pghr13Mixer is BaseMixer {
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.A_p = Pairing.G1Point(a_p[0], a_p[1]);
-        proof.B = Pairing.G2Point(b[0][0], b[0][1], b[1][0], b[1][1]);
+        proof.B = Pairing.G2Point(b[0], b[1], b[2], b[3]);
         proof.B_p = Pairing.G1Point(b_p[0], b_p[1]);
         proof.C = Pairing.G1Point(c[0], c[1]);
         proof.C_p = Pairing.G1Point(c_p[0], c_p[1]);

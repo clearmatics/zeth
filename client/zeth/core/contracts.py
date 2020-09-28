@@ -9,14 +9,14 @@ from zeth.core.signing import SigningVerificationKey, Signature, \
     verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
     signature_as_mix_parameter, signature_from_mix_parameter
 from zeth.core.zksnark import IZKSnarkProvider, GenericProof
-from zeth.core.utils import EtherValue, hex_to_int
+from zeth.core.utils import EtherValue, hex_list_to_uint256_list
 from zeth.core.constants import SOL_COMPILER_VERSION
 from web3.utils.contracts import find_matching_event_abi  # type: ignore
 from web3.utils.events import get_event_data  # type: ignore
 import json
 import solcx
 import traceback
-from typing import Dict, List, Iterator, Optional, Union, Any
+from typing import Dict, List, Iterator, Optional, Union, Iterable, Any
 
 # Avoid trying to read too much data into memory
 SYNC_BLOCKS_PER_BATCH = 1000
@@ -130,7 +130,7 @@ class InstanceDescription:
             deployer_eth_private_key: Optional[bytes],
             deployment_gas: int,
             compiler_flags: Dict[str, Any] = None,
-            **kwargs: Any) -> InstanceDescription:
+            args: Iterable[Any] = None) -> InstanceDescription:
         """
         Compile and deploy a contract, returning the live instance and an instance
         description (which the caller should save in order to access the
@@ -145,7 +145,7 @@ class InstanceDescription:
             deployer_eth_private_key,
             deployment_gas,
             compiled,
-            **kwargs)
+            *(args or []))
         print(
             f"deploy: contract: {contract_name} "
             f"to address: {instance_desc.address}")
@@ -158,10 +158,10 @@ class InstanceDescription:
             deployer_eth_private_key: Optional[bytes],
             deployment_gas: int,
             compiled: Any,
-            **kwargs: Any) -> InstanceDescription:
+            *args: Any) -> InstanceDescription:
         contract = web3.eth.contract(
             abi=compiled['abi'], bytecode=compiled['bin'])
-        construct_call = contract.constructor(**kwargs)
+        construct_call = contract.constructor(*args)
         tx_hash = send_contract_call(
             web3,
             construct_call,
@@ -220,12 +220,12 @@ def mix_parameters_as_contract_arguments(
     Convert MixParameters to a list of eth ABI objects which can be passed to
     the contract's mix method.
     """
-    proof_params: List[Any] = zksnark.mixer_proof_parameters(
+    proof_params: List[Any] = zksnark.proof_to_contract_parameters(
         mix_parameters.extended_proof)
     proof_params.extend([
         verification_key_as_mix_parameter(mix_parameters.signature_vk),
         signature_as_mix_parameter(mix_parameters.signature),
-        hex_to_int(mix_parameters.extended_proof["inputs"]),
+        hex_list_to_uint256_list(mix_parameters.extended_proof["inputs"]),
         mix_parameters.ciphertexts
     ])
     return proof_params

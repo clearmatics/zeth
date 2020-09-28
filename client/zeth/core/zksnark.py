@@ -8,7 +8,7 @@
 zk-SNARK abstraction
 """
 
-from zeth.core.utils import hex_to_int
+from zeth.core.utils import hex_list_to_uint256_list
 import zeth.core.constants as constants
 from zeth.api import snark_messages_pb2
 from zeth.api import ec_group_messages_pb2
@@ -53,8 +53,8 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def verification_key_parameters(
-            vk: GenericVerificationKey) -> Dict[str, List[int]]:
+    def verification_key_to_contract_parameters(
+            vk: GenericVerificationKey) -> List[List[int]]:
         pass
 
     @staticmethod
@@ -83,7 +83,7 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def mixer_proof_parameters(extproof: GenericProof) -> List[List[Any]]:
+    def proof_to_contract_parameters(extproof: GenericProof) -> List[List[int]]:
         """
         Generate the leading parameters to the mix function for this SNARK, from a
         GenericProof object.
@@ -98,16 +98,14 @@ class Groth16SnarkProvider(IZKSnarkProvider):
         return constants.GROTH16_MIXER_CONTRACT
 
     @staticmethod
-    def verification_key_parameters(
-            vk: GenericVerificationKey) -> Dict[str, List[int]]:
-        return {
-            "Alpha": hex_to_int(vk["alpha"]),
-            "Beta1": hex_to_int(vk["beta"][0]),
-            "Beta2": hex_to_int(vk["beta"][1]),
-            "Delta1": hex_to_int(vk["delta"][0]),
-            "Delta2": hex_to_int(vk["delta"][1]),
-            "ABC_coords": hex_to_int(sum(vk["ABC"], [])),
-        }
+    def verification_key_to_contract_parameters(
+            vk: GenericVerificationKey) -> List[List[int]]:
+        return [
+            hex_list_to_uint256_list(vk["alpha"]),
+            hex_list_to_uint256_list(vk["beta"]),
+            hex_list_to_uint256_list(vk["delta"]),
+            hex_list_to_uint256_list(sum(vk["ABC"], []))
+        ]
 
     @staticmethod
     def verification_key_from_proto(
@@ -158,17 +156,16 @@ class Groth16SnarkProvider(IZKSnarkProvider):
         return extproof_proto
 
     @staticmethod
-    def mixer_proof_parameters(extproof: GenericProof) -> List[List[Any]]:
+    def proof_to_contract_parameters(extproof: GenericProof) -> List[List[int]]:
         # We assume that G2 elements are defined over a non-trivial extension
         # field, i.e. that each coordinate is a JSON list rather than a a
         # single base-field element. If the assert below triggers, then it may
         # be necessary to generalize this function a bit.
         proof = extproof["proof"]
-        assert isinstance(proof["b"][0], (list, tuple))
         return [
-            hex_to_int(proof["a"]),
-            hex_to_int(proof["b"][0] + proof["b"][1]),
-            hex_to_int(proof["c"]),
+            hex_list_to_uint256_list(proof["a"]),
+            hex_list_to_uint256_list(proof["b"]),
+            hex_list_to_uint256_list(proof["c"]),
         ]
 
 
@@ -179,23 +176,18 @@ class PGHR13SnarkProvider(IZKSnarkProvider):
         return constants.PGHR13_MIXER_CONTRACT
 
     @staticmethod
-    def verification_key_parameters(
-            vk: GenericVerificationKey) -> Dict[str, List[int]]:
-        return {
-            "A1": hex_to_int(vk["a"][0]),
-            "A2": hex_to_int(vk["a"][1]),
-            "B": hex_to_int(vk["b"]),
-            "C1": hex_to_int(vk["c"][0]),
-            "C2": hex_to_int(vk["c"][1]),
-            "gamma1": hex_to_int(vk["g"][0]),
-            "gamma2": hex_to_int(vk["g"][1]),
-            "gammaBeta1": hex_to_int(vk["gb1"]),
-            "gammaBeta2_1": hex_to_int(vk["gb2"][0]),
-            "gammaBeta2_2": hex_to_int(vk["gb2"][1]),
-            "Z1": hex_to_int(vk["z"][0]),
-            "Z2": hex_to_int(vk["z"][1]),
-            "IC_coefficients": hex_to_int(sum(vk["IC"], [])),
-        }
+    def verification_key_to_contract_parameters(
+            vk: GenericVerificationKey) -> List[List[int]]:
+        return [
+            hex_list_to_uint256_list(vk["a"]),
+            hex_list_to_uint256_list(vk["b"]),
+            hex_list_to_uint256_list(vk["c"]),
+            hex_list_to_uint256_list(vk["g"]),
+            hex_list_to_uint256_list(vk["gb1"]),
+            hex_list_to_uint256_list(vk["gb2"]),
+            hex_list_to_uint256_list(vk["z"]),
+            hex_list_to_uint256_list(sum(vk["IC"], [])),
+        ]
 
     @staticmethod
     def verification_key_from_proto(
@@ -254,17 +246,17 @@ class PGHR13SnarkProvider(IZKSnarkProvider):
         return extproof_proto
 
     @staticmethod
-    def mixer_proof_parameters(extproof: GenericProof) -> List[List[Any]]:
+    def proof_to_contract_parameters(extproof: GenericProof) -> List[List[int]]:
         proof = extproof["proof"]
         return [
-            hex_to_int(proof["a"]) +
-            hex_to_int(proof["a_p"]),
-            [hex_to_int(proof["b"][0]), hex_to_int(proof["b"][1])],
-            hex_to_int(proof["b_p"]),
-            hex_to_int(proof["c"]),
-            hex_to_int(proof["c_p"]),
-            hex_to_int(proof["h"]),
-            hex_to_int(proof["k"])]
+            hex_list_to_uint256_list(proof["a"]) +
+            hex_list_to_uint256_list(proof["a_p"]),
+            hex_list_to_uint256_list(proof["b"][0] + proof["b"][1]),
+            hex_list_to_uint256_list(proof["b_p"]),
+            hex_list_to_uint256_list(proof["c"]),
+            hex_list_to_uint256_list(proof["c_p"]),
+            hex_list_to_uint256_list(proof["h"]),
+            hex_list_to_uint256_list(proof["k"])]
 
 
 def get_zksnark_provider(zksnark_name: str) -> IZKSnarkProvider:

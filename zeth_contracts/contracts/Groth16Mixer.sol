@@ -46,24 +46,21 @@ contract Groth16Mixer is BaseMixer {
         uint256 mk_depth,
         address token,
         uint256[2] memory Alpha,
-        uint256[2] memory Beta1,
-        uint256[2] memory Beta2,
-        uint256[2] memory Delta1,
-        uint256[2] memory Delta2,
-        uint256[] memory ABC_coords)
-        BaseMixer(mk_depth, token)
-        public {
+        uint256[4] memory Beta,
+        uint256[4] memory Delta,
+        uint256[] memory ABC_coords) BaseMixer(mk_depth, token) public
+    {
         verifyKey.Alpha = Pairing.G1Point(Alpha[0], Alpha[1]);
-        verifyKey.Beta = Pairing.G2Point(Beta1[0], Beta1[1], Beta2[0], Beta2[1]);
-        verifyKey.Delta = Pairing.G2Point(
-            Delta1[0], Delta1[1], Delta2[0], Delta2[1]);
+        verifyKey.Beta = Pairing.G2Point(Beta[0], Beta[1], Beta[2], Beta[3]);
+        verifyKey.Delta = Pairing.G2Point(Delta[0], Delta[1], Delta[2], Delta[3]);
 
         // The `ABC` are elements of G1 (and thus have 2 coordinates in the
         // underlying field). Here, we reconstruct these group elements from
         // field elements (ABC_coords are field elements)
         uint256 i = 0;
-        while(verifyKey.ABC.length != ABC_coords.length/2) {
-            verifyKey.ABC.push(Pairing.G1Point(ABC_coords[i], ABC_coords[i+1]));
+        while (verifyKey.ABC.length != ABC_coords.length / 2) {
+            verifyKey.ABC.push(
+                Pairing.G1Point(ABC_coords[i], ABC_coords[i + 1]));
             i += 2;
         }
     }

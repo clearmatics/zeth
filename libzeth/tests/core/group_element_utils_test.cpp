@@ -57,13 +57,20 @@ TEST(GroupElementUtilsTest, G2EncodeJsonTestVectorAltBN128)
     ASSERT_EQ(g2, g2_decoded);
 }
 
-template<typename GroupT> void group_element_encode_decode_test()
+template<typename GroupT>
+static void single_group_element_encode_decode_test(const GroupT &g)
 {
-    const GroupT g = GroupT::random_element();
     const std::string g_json = libzeth::point_affine_to_json(g);
     const GroupT g_decoded = libzeth::point_affine_from_json<GroupT>(g_json);
 
     ASSERT_EQ(g, g_decoded);
+}
+
+template<typename GroupT> static void group_element_encode_decode_test()
+{
+    single_group_element_encode_decode_test(GroupT::random_element());
+    single_group_element_encode_decode_test(GroupT::zero());
+    single_group_element_encode_decode_test(GroupT::one());
 }
 
 TEST(GroupElementUtilsTest, G1EncodeDecode)

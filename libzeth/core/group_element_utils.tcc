@@ -10,6 +10,25 @@
 namespace libzeth
 {
 
+namespace internal
+{
+
+// Wrapper around == FieldT::one() which can be used by the code below when the
+// field type is not in scope.
+template<typename FieldT> static bool coordinate_equals_zero(const FieldT &f)
+{
+    return f == FieldT::zero();
+}
+
+// Wrapper around == FieldT::one() which can be used by the code below when the
+// field type is not in scope.
+template<typename FieldT> static bool coordinate_equals_one(const FieldT &f)
+{
+    return f == FieldT::one();
+}
+
+} // namespace internal
+
 template<typename GroupT>
 void point_affine_write_json(const GroupT &point, std::ostream &out_s)
 {
@@ -46,7 +65,12 @@ void point_affine_read_json(GroupT &point, std::istream &in_s)
             "expected closing bracket reading group element");
     }
 
-    point.Z = point.Z.one();
+    if (internal::coordinate_equals_zero(point.X) &&
+        internal::coordinate_equals_one(point.Y)) {
+        point.Z = point.Z.zero();
+    } else {
+        point.Z = point.Z.one();
+    }
 }
 
 template<typename GroupT> std::string point_affine_to_json(const GroupT &point)
