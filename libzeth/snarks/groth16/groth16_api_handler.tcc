@@ -72,9 +72,6 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
     const extended_proof<ppT, groth16_api_handler<ppT>::snark> &ext_proof,
     zeth_proto::ExtendedProof *message)
 {
-    // Note that the protobuf format exports -b (`minus_b`) to support a small
-    // optimization in on-chain verification code.
-
     const libsnark::r1cs_gg_ppzksnark_proof<ppT> &proof_obj =
         ext_proof.get_proof();
 
