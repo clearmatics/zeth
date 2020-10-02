@@ -249,7 +249,7 @@ EXTPROOF_BLS12_377_GROTH16 = {
             "0x010bd3c06ed5aeb1a7b0653ba63f413b27ba7fd1b77cb4a403fb15f9fb8735abda93a3c78ad05afd111ea68d016cf99e",  # noqa
             "0x00255a73b1247dcfd62171b29ddbd271cdb7e98b78912ddf6bfe4723cd229f414f9a47cecd0fec7fb74bf13b22a7395b"  # noqa
         ],
-        "b": [
+        "minus_b": [
             [
                 "0x01ada9239a53b094ae15473baaa3649afb46d5330f36f8590df668167dd02aaf0a18602ce42654c3d857c4e5e454ca28",  # noqa
                 "0x00938ce5525864aa135674b048bb68adadfabca2a4cea43ea13b19cacec1ae171986009e916f729a085c04cbe22c4127"  # noqa
@@ -278,7 +278,7 @@ PROOF_BLS12_377_GROTH16_PARAMETERS = [
         int("0000000000000000000000000000000000255a73b1247dcfd62171b29ddbd271", 16),  # noqa
         int("cdb7e98b78912ddf6bfe4723cd229f414f9a47cecd0fec7fb74bf13b22a7395b", 16),  # noqa
     ],
-    # "b":
+    # "minus_b":
     [
         int("0000000000000000000000000000000001ada9239a53b094ae15473baaa3649a", 16),  # noqa
         int("fb46d5330f36f8590df668167dd02aaf0a18602ce42654c3d857c4e5e454ca28", 16),  # noqa
@@ -304,7 +304,7 @@ EXTPROOF_BW6_761_GROTH16 = {
             "0x00b42fc65c4178e23c5ea46791b63f13e01057d957d097d2a7b1b99b921b3db0b519b21bd21f9d5209420de0d39e6ceebcf40df23e8f3dfb3544e3f221687a254f935e7e4eafbded993af4464cf7ca8da374b2cbcc6003fb47bc590dd8eaadc2",  # noqa
             "0x001f63f85f5e96168363e1c3733094347b9d7d0cbb2b762c65c12b52fe92e126b1f884d331d7b8740dccb383d7565eeb625fc43598bd371801153e0a690e1881f84849653fce01034cb571b78232b5e7aab22f0b3ee089c0b907de8a52628a92"  # noqa
         ],
-        "b": [
+        "minus_b": [
             "0x00bfb5be9eb134d7118ab1f759b5a801dda03315108848082a6815dab0c88fe253429d65b7b03a7983a6ee353f0f9687de39888afe4fcb106900a10cee2c4c42d6efa2ee7cdc8d82b052fa8e0f79786d2a4847a25d9ca9026a106de6c73c8d18",  # noqa
             "0x00b9f29ad8d2107e760fa728a897b26b673e3b099e56e7c2bdfe0194cd02f8aff4b799f6f8d07f6e3b7dfc000e02eda978e1993a57337b5e2f2e9e3f024ef30367887ed23cca57cc33d8bfafdfb4c914e085870621cf02bb380b80387162fb40"  # noqa
         ],
@@ -332,7 +332,7 @@ PROOF_BW6_761_GROTH16_PARAMETERS = [
         int("b1f884d331d7b8740dccb383d7565eeb625fc43598bd371801153e0a690e1881", 16),  # noqa
         int("f84849653fce01034cb571b78232b5e7aab22f0b3ee089c0b907de8a52628a92", 16),  # noqa
     ],
-    # "b":
+    # "minus_b":
     [
         int("00bfb5be9eb134d7118ab1f759b5a801dda03315108848082a6815dab0c88fe2", 16),  # noqa
         int("53429d65b7b03a7983a6ee353f0f9687de39888afe4fcb106900a10cee2c4c42", 16),  # noqa
@@ -358,7 +358,7 @@ EXTPROOF_ALT_BN128_GROTH16 = {
             "0xbd3c06ed5aeb1a7b0653ba63f413b27ba7fd1b77cb4a403fb15f9fb8735abda9",  # noqa
             "0x55a73b1247dcfd62171b29ddbd271cdb7e98b78912ddf6bfe4723cd229f414f9"  # noqa
         ],
-        "b": [
+        "minus_b": [
             [
                 "0xda9239a53b094ae15473baaa3649afb46d5330f36f8590df668167dd02aaf0a1",  # noqa
                 "0x38ce5525864aa135674b048bb68adadfabca2a4cea43ea13b19cacec1ae17198"  # noqa
@@ -385,7 +385,7 @@ PROOF_ALT_BN128_GROTH16_PARAMETERS = [
         int("0xbd3c06ed5aeb1a7b0653ba63f413b27ba7fd1b77cb4a403fb15f9fb8735abda9", 16),  # noqa
         int("0x55a73b1247dcfd62171b29ddbd271cdb7e98b78912ddf6bfe4723cd229f414f9", 16),  # noqa
     ],
-    # "b":
+    # "minus_b":
     [
         int("0xda9239a53b094ae15473baaa3649afb46d5330f36f8590df668167dd02aaf0a1", 16),  # noqa
         int("0x38ce5525864aa135674b048bb68adadfabca2a4cea43ea13b19cacec1ae17198", 16),  # noqa

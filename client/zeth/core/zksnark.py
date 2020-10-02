@@ -136,7 +136,7 @@ class Groth16SnarkProvider(IZKSnarkProvider):
         return {
             "proof": {
                 "a": group_point_g1_from_proto(proof.a),
-                "b": group_point_g2_from_proto(proof.b),
+                "minus_b": group_point_g2_from_proto(proof.minus_b),
                 "c": group_point_g1_from_proto(proof.c),
             },
             "inputs": json.loads(proof.inputs),
@@ -150,7 +150,7 @@ class Groth16SnarkProvider(IZKSnarkProvider):
         proof_proto = extproof_proto.groth16_extended_proof \
             # pylint: disable=no-member
         group_point_g1_to_proto(proof["a"], proof_proto.a)
-        group_point_g2_to_proto(proof["b"], proof_proto.b)
+        group_point_g2_to_proto(proof["minus_b"], proof_proto.minus_b)
         group_point_g1_to_proto(proof["c"], proof_proto.c)
         proof_proto.inputs = json.dumps(extproof["inputs"])
         return extproof_proto
@@ -164,7 +164,7 @@ class Groth16SnarkProvider(IZKSnarkProvider):
         proof = extproof["proof"]
         return [
             hex_list_to_uint256_list(proof["a"]),
-            hex_list_to_uint256_list(proof["b"]),
+            hex_list_to_uint256_list(proof["minus_b"]),
             hex_list_to_uint256_list(proof["c"]),
         ]
 

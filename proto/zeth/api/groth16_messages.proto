@@ -13,7 +13,7 @@ message VerificationKeyGROTH16 {
 
 message ExtendedProofGROTH16 {
     HexPointBaseGroup1Affine a = 1;
-    HexPointBaseGroup2Affine b = 2;
+    HexPointBaseGroup2Affine minus_b = 2;
     HexPointBaseGroup1Affine c = 3;
     string inputs = 4;
 }
