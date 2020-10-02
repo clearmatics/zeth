@@ -327,6 +327,8 @@ class MixerClient:
         zksnark = zksnark or get_zksnark_provider(constants.ZKSNARK_DEFAULT)
         prover_client = ProverClient(prover_server_endpoint)
         vk_proto = prover_client.get_verification_key()
+        prover_config = prover_client.get_configuration()
+        print(f"prover_config={prover_config.to_json_dict()}")
         vk = zksnark.verification_key_from_proto(vk_proto)
         deploy_gas = deploy_gas or constants.DEPLOYMENT_GAS_WEI
 

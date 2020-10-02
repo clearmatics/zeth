@@ -9,52 +9,14 @@ zk-SNARK abstraction
 """
 
 from __future__ import annotations
-from zeth.core.utils import hex_to_uint256_list, hex_list_to_uint256_list
+import zeth.core.pairing as pairing
 import zeth.core.constants as constants
 from zeth.api import snark_messages_pb2
-from zeth.api import ec_group_messages_pb2
 
 import json
 from abc import (ABC, abstractmethod)
-from typing import Dict, List, Any, Union, cast
+from typing import Dict, List, Any, cast
 # pylint: disable=unnecessary-pass
-
-
-class GenericG1Point:
-    """
-    G1 Group Points. A typed tuple of strings, stored as a JSON array.
-    """
-    def __init__(self, x_coord: str, y_coord: str):
-        self.x_coord = x_coord
-        self.y_coord = y_coord
-
-    def to_json_list(self) -> List[str]:
-        return [self.x_coord, self.y_coord]
-
-    @staticmethod
-    def from_json_list(json_list: List[str]) -> GenericG1Point:
-        return GenericG1Point(json_list[0], json_list[1])
-
-
-class GenericG2Point:
-    """
-    G2 Group Points. Depending on the curve, coordinates may be in the base
-    (non-extension) field (i.e. simple json strings), or an extension field
-    (i.e. a list of strings).
-    """
-    def __init__(
-            self,
-            x_coord: Union[str, List[str]],
-            y_coord: Union[str, List[str]]):
-        self.x_coord = x_coord
-        self.y_coord = y_coord
-
-    def to_json_list(self) -> List[Union[str, List[str]]]:
-        return [self.x_coord, self.y_coord]
-
-    @staticmethod
-    def from_json_list(json_list: List[Union[str, List[str]]]) -> GenericG2Point:
-        return GenericG2Point(json_list[0], json_list[1])
 
 
 class IVerificationKey(ABC):
@@ -180,10 +142,10 @@ class Groth16(IZKSnarkProvider):
     class VerificationKey(IVerificationKey):
         def __init__(
                 self,
-                alpha: GenericG1Point,
-                beta: GenericG2Point,
-                delta: GenericG2Point,
-                abc: List[GenericG1Point]):
+                alpha: pairing.GenericG1Point,
+                beta: pairing.GenericG2Point,
+                delta: pairing.GenericG2Point,
+                abc: List[pairing.GenericG1Point]):
             self.alpha = alpha
             self.beta = beta
             self.delta = delta
@@ -200,18 +162,18 @@ class Groth16(IZKSnarkProvider):
         @staticmethod
         def from_json_dict(json_dict: Dict[str, Any]) -> Groth16.VerificationKey:
             return Groth16.VerificationKey(
-                alpha=GenericG1Point.from_json_list(json_dict["alpha"]),
-                beta=GenericG2Point.from_json_list(json_dict["beta"]),
-                delta=GenericG2Point.from_json_list(json_dict["delta"]),
-                abc=[GenericG1Point.from_json_list(abc)
+                alpha=pairing.GenericG1Point.from_json_list(json_dict["alpha"]),
+                beta=pairing.GenericG2Point.from_json_list(json_dict["beta"]),
+                delta=pairing.GenericG2Point.from_json_list(json_dict["delta"]),
+                abc=[pairing.GenericG1Point.from_json_list(abc)
                      for abc in json_dict["ABC"]])
 
     class Proof(IProof):
         def __init__(
                 self,
-                a: GenericG1Point,
-                minus_b: GenericG2Point,
-                c: GenericG1Point):
+                a: pairing.GenericG1Point,
+                minus_b: pairing.GenericG2Point,
+                c: pairing.GenericG1Point):
             self.a = a
             self.minus_b = minus_b
             self.c = c
@@ -226,9 +188,10 @@ class Groth16(IZKSnarkProvider):
         @staticmethod
         def from_json_dict(json_dict: Dict[str, Any]) -> Groth16.Proof:
             return Groth16.Proof(
-                a=GenericG1Point.from_json_list(json_dict["a"]),
-                minus_b=GenericG2Point.from_json_list(json_dict["minus_b"]),
-                c=GenericG1Point.from_json_list(json_dict["c"]))
+                a=pairing.GenericG1Point.from_json_list(json_dict["a"]),
+                minus_b=pairing.GenericG2Point.from_json_list(
+                    json_dict["minus_b"]),
+                c=pairing.GenericG1Point.from_json_list(json_dict["c"]))
 
     @staticmethod
     def get_contract_name() -> str:
@@ -239,11 +202,12 @@ class Groth16(IZKSnarkProvider):
             vk: IVerificationKey) -> List[int]:
         assert isinstance(vk, Groth16.VerificationKey)
         return \
-            group_point_g1_to_contract_parameters(vk.alpha) + \
-            group_point_g2_to_contract_parameters(vk.beta) + \
-            group_point_g2_to_contract_parameters(vk.delta) + \
+            pairing.group_point_g1_to_contract_parameters(vk.alpha) + \
+            pairing.group_point_g2_to_contract_parameters(vk.beta) + \
+            pairing.group_point_g2_to_contract_parameters(vk.delta) + \
             sum(
-                [group_point_g1_to_contract_parameters(abc) for abc in vk.abc],
+                [pairing.group_point_g1_to_contract_parameters(abc)
+                 for abc in vk.abc],
                 [])
 
     @staticmethod
@@ -252,10 +216,10 @@ class Groth16(IZKSnarkProvider):
     ) -> Groth16.VerificationKey:
         vk = vk_obj.groth16_verification_key
         return Groth16.VerificationKey(
-            alpha=group_point_g1_from_proto(vk.alpha_g1),
-            beta=group_point_g2_from_proto(vk.beta_g2),
-            delta=group_point_g2_from_proto(vk.delta_g2),
-            abc=[GenericG1Point.from_json_list(abc)
+            alpha=pairing.group_point_g1_from_proto(vk.alpha_g1),
+            beta=pairing.group_point_g2_from_proto(vk.beta_g2),
+            delta=pairing.group_point_g2_from_proto(vk.delta_g2),
+            abc=[pairing.GenericG1Point.from_json_list(abc)
                  for abc in json.loads(vk.abc_g1)])
 
     @staticmethod
@@ -264,9 +228,9 @@ class Groth16(IZKSnarkProvider):
         assert isinstance(vk, Groth16.VerificationKey)
         vk_obj = snark_messages_pb2.VerificationKey()
         groth16_key = vk_obj.groth16_verification_key  # pylint: disable=no-member
-        group_point_g1_to_proto(vk.alpha, groth16_key.alpha_g1)
-        group_point_g2_to_proto(vk.beta, groth16_key.beta_g2)
-        group_point_g2_to_proto(vk.delta, groth16_key.delta_g2)
+        pairing.group_point_g1_to_proto(vk.alpha, groth16_key.alpha_g1)
+        pairing.group_point_g2_to_proto(vk.beta, groth16_key.beta_g2)
+        pairing.group_point_g2_to_proto(vk.delta, groth16_key.delta_g2)
         groth16_key.abc_g1 = json.dumps([abc.to_json_list() for abc in vk.abc])
         return vk_obj
 
@@ -285,9 +249,9 @@ class Groth16(IZKSnarkProvider):
         ext_proof = ext_proof_proto.groth16_extended_proof
         return ExtendedProof(
             proof=Groth16.Proof(
-                a=group_point_g1_from_proto(ext_proof.a),
-                minus_b=group_point_g2_from_proto(ext_proof.minus_b),
-                c=group_point_g1_from_proto(ext_proof.c)),
+                a=pairing.group_point_g1_from_proto(ext_proof.a),
+                minus_b=pairing.group_point_g2_from_proto(ext_proof.minus_b),
+                c=pairing.group_point_g1_from_proto(ext_proof.c)),
             inputs=json.loads(ext_proof.inputs))
 
     @staticmethod
@@ -298,9 +262,9 @@ class Groth16(IZKSnarkProvider):
         extproof_proto = snark_messages_pb2.ExtendedProof()
         proof_proto = extproof_proto.groth16_extended_proof \
             # pylint: disable=no-member
-        group_point_g1_to_proto(proof.a, proof_proto.a)
-        group_point_g2_to_proto(proof.minus_b, proof_proto.minus_b)
-        group_point_g1_to_proto(proof.c, proof_proto.c)
+        pairing.group_point_g1_to_proto(proof.a, proof_proto.a)
+        pairing.group_point_g2_to_proto(proof.minus_b, proof_proto.minus_b)
+        pairing.group_point_g1_to_proto(proof.c, proof_proto.c)
         proof_proto.inputs = json.dumps(ext_proof.inputs)
         return extproof_proto
 
@@ -308,9 +272,9 @@ class Groth16(IZKSnarkProvider):
     def proof_to_contract_parameters(proof: IProof) -> List[int]:
         assert isinstance(proof, Groth16.Proof)
         return \
-            group_point_g1_to_contract_parameters(proof.a) + \
-            group_point_g2_to_contract_parameters(proof.minus_b) + \
-            group_point_g1_to_contract_parameters(proof.c)
+            pairing.group_point_g1_to_contract_parameters(proof.a) + \
+            pairing.group_point_g2_to_contract_parameters(proof.minus_b) + \
+            pairing.group_point_g1_to_contract_parameters(proof.c)
 
 
 class PGHR13(IZKSnarkProvider):
@@ -318,14 +282,14 @@ class PGHR13(IZKSnarkProvider):
     class VerificationKey(IVerificationKey):
         def __init__(
                 self,
-                a: GenericG2Point,
-                b: GenericG1Point,
-                c: GenericG2Point,
-                g: GenericG2Point,
-                gb1: GenericG1Point,
-                gb2: GenericG2Point,
-                z: GenericG2Point,
-                ic: List[GenericG1Point]):
+                a: pairing.GenericG2Point,
+                b: pairing.GenericG1Point,
+                c: pairing.GenericG2Point,
+                g: pairing.GenericG2Point,
+                gb1: pairing.GenericG1Point,
+                gb2: pairing.GenericG2Point,
+                z: pairing.GenericG2Point,
+                ic: List[pairing.GenericG1Point]):
             self.a = a
             self.b = b
             self.c = c
@@ -350,26 +314,27 @@ class PGHR13(IZKSnarkProvider):
         @staticmethod
         def from_json_dict(json_dict: Dict[str, Any]) -> PGHR13.VerificationKey:
             return PGHR13.VerificationKey(
-                a=GenericG2Point.from_json_list(json_dict["a"]),
-                b=GenericG1Point.from_json_list(json_dict["b"]),
-                c=GenericG2Point.from_json_list(json_dict["c"]),
-                g=GenericG2Point.from_json_list(json_dict["g"]),
-                gb1=GenericG1Point.from_json_list(json_dict["gb1"]),
-                gb2=GenericG2Point.from_json_list(json_dict["gb2"]),
-                z=GenericG2Point.from_json_list(json_dict["z"]),
-                ic=[GenericG1Point.from_json_list(ic) for ic in json_dict["ic"]])
+                a=pairing.GenericG2Point.from_json_list(json_dict["a"]),
+                b=pairing.GenericG1Point.from_json_list(json_dict["b"]),
+                c=pairing.GenericG2Point.from_json_list(json_dict["c"]),
+                g=pairing.GenericG2Point.from_json_list(json_dict["g"]),
+                gb1=pairing.GenericG1Point.from_json_list(json_dict["gb1"]),
+                gb2=pairing.GenericG2Point.from_json_list(json_dict["gb2"]),
+                z=pairing.GenericG2Point.from_json_list(json_dict["z"]),
+                ic=[pairing.GenericG1Point.from_json_list(ic)
+                    for ic in json_dict["ic"]])
 
     class Proof(IProof):
         def __init__(
                 self,
-                a: GenericG1Point,
-                a_p: GenericG1Point,
-                b: GenericG2Point,
-                b_p: GenericG1Point,
-                c: GenericG1Point,
-                c_p: GenericG1Point,
-                h: GenericG1Point,
-                k: GenericG1Point):
+                a: pairing.GenericG1Point,
+                a_p: pairing.GenericG1Point,
+                b: pairing.GenericG2Point,
+                b_p: pairing.GenericG1Point,
+                c: pairing.GenericG1Point,
+                c_p: pairing.GenericG1Point,
+                h: pairing.GenericG1Point,
+                k: pairing.GenericG1Point):
             self.a = a
             self.a_p = a_p
             self.b = b
@@ -394,14 +359,14 @@ class PGHR13(IZKSnarkProvider):
         @staticmethod
         def from_json_dict(json_dict: Dict[str, Any]) -> PGHR13.Proof:
             return PGHR13.Proof(
-                a=GenericG1Point.from_json_list(json_dict["a"]),
-                a_p=GenericG1Point.from_json_list(json_dict["a_p"]),
-                b=GenericG2Point.from_json_list(json_dict["b"]),
-                b_p=GenericG1Point.from_json_list(json_dict["b_p"]),
-                c=GenericG1Point.from_json_list(json_dict["c"]),
-                c_p=GenericG1Point.from_json_list(json_dict["c_p"]),
-                h=GenericG1Point.from_json_list(json_dict["h"]),
-                k=GenericG1Point.from_json_list(json_dict["k"]))
+                a=pairing.GenericG1Point.from_json_list(json_dict["a"]),
+                a_p=pairing.GenericG1Point.from_json_list(json_dict["a_p"]),
+                b=pairing.GenericG2Point.from_json_list(json_dict["b"]),
+                b_p=pairing.GenericG1Point.from_json_list(json_dict["b_p"]),
+                c=pairing.GenericG1Point.from_json_list(json_dict["c"]),
+                c_p=pairing.GenericG1Point.from_json_list(json_dict["c_p"]),
+                h=pairing.GenericG1Point.from_json_list(json_dict["h"]),
+                k=pairing.GenericG1Point.from_json_list(json_dict["k"]))
 
     @staticmethod
     def get_contract_name() -> str:
@@ -412,28 +377,30 @@ class PGHR13(IZKSnarkProvider):
             vk: IVerificationKey) -> List[int]:
         assert isinstance(vk, PGHR13.VerificationKey)
         return \
-            group_point_g2_to_contract_parameters(vk.a) + \
-            group_point_g1_to_contract_parameters(vk.b) + \
-            group_point_g2_to_contract_parameters(vk.c) + \
-            group_point_g2_to_contract_parameters(vk.g) + \
-            group_point_g1_to_contract_parameters(vk.gb1) + \
-            group_point_g2_to_contract_parameters(vk.gb2) + \
-            group_point_g2_to_contract_parameters(vk.z) + \
-            sum([group_point_g1_to_contract_parameters(ic) for ic in vk.ic], [])
+            pairing.group_point_g2_to_contract_parameters(vk.a) + \
+            pairing.group_point_g1_to_contract_parameters(vk.b) + \
+            pairing.group_point_g2_to_contract_parameters(vk.c) + \
+            pairing.group_point_g2_to_contract_parameters(vk.g) + \
+            pairing.group_point_g1_to_contract_parameters(vk.gb1) + \
+            pairing.group_point_g2_to_contract_parameters(vk.gb2) + \
+            pairing.group_point_g2_to_contract_parameters(vk.z) + \
+            sum([pairing.group_point_g1_to_contract_parameters(ic)
+                 for ic in vk.ic], [])
 
     @staticmethod
     def verification_key_from_proto(
             vk_obj: snark_messages_pb2.VerificationKey) -> PGHR13.VerificationKey:
         vk = vk_obj.pghr13_verification_key
         return PGHR13.VerificationKey(
-            a=group_point_g2_from_proto(vk.a),
-            b=group_point_g1_from_proto(vk.b),
-            c=group_point_g2_from_proto(vk.c),
-            g=group_point_g2_from_proto(vk.gamma),
-            gb1=group_point_g1_from_proto(vk.gamma_beta_g1),
-            gb2=group_point_g2_from_proto(vk.gamma_beta_g2),
-            z=group_point_g2_from_proto(vk.z),
-            ic=[GenericG1Point.from_json_list(ic) for ic in json.loads(vk.ic)])
+            a=pairing.group_point_g2_from_proto(vk.a),
+            b=pairing.group_point_g1_from_proto(vk.b),
+            c=pairing.group_point_g2_from_proto(vk.c),
+            g=pairing.group_point_g2_from_proto(vk.gamma),
+            gb1=pairing.group_point_g1_from_proto(vk.gamma_beta_g1),
+            gb2=pairing.group_point_g2_from_proto(vk.gamma_beta_g2),
+            z=pairing.group_point_g2_from_proto(vk.z),
+            ic=[pairing.GenericG1Point.from_json_list(ic)
+                for ic in json.loads(vk.ic)])
 
     @staticmethod
     def verification_key_to_proto(
@@ -455,14 +422,14 @@ class PGHR13(IZKSnarkProvider):
         ext_proof = ext_proof_proto.pghr13_extended_proof
         return ExtendedProof(
             proof=PGHR13.Proof(
-                a=group_point_g1_from_proto(ext_proof.a),
-                a_p=group_point_g1_from_proto(ext_proof.a_p),
-                b=group_point_g2_from_proto(ext_proof.b),
-                b_p=group_point_g1_from_proto(ext_proof.b_p),
-                c=group_point_g1_from_proto(ext_proof.c),
-                c_p=group_point_g1_from_proto(ext_proof.c_p),
-                h=group_point_g1_from_proto(ext_proof.h),
-                k=group_point_g1_from_proto(ext_proof.k)),
+                a=pairing.group_point_g1_from_proto(ext_proof.a),
+                a_p=pairing.group_point_g1_from_proto(ext_proof.a_p),
+                b=pairing.group_point_g2_from_proto(ext_proof.b),
+                b_p=pairing.group_point_g1_from_proto(ext_proof.b_p),
+                c=pairing.group_point_g1_from_proto(ext_proof.c),
+                c_p=pairing.group_point_g1_from_proto(ext_proof.c_p),
+                h=pairing.group_point_g1_from_proto(ext_proof.h),
+                k=pairing.group_point_g1_from_proto(ext_proof.k)),
             inputs=cast(List[str], json.loads(ext_proof.inputs)))
 
     @staticmethod
@@ -473,14 +440,14 @@ class PGHR13(IZKSnarkProvider):
         extproof_proto = snark_messages_pb2.ExtendedProof()
         proof_proto = extproof_proto.pghr13_extended_proof \
             # pylint: disable=no-member
-        group_point_g1_to_proto(proof.a, proof_proto.a)
-        group_point_g1_to_proto(proof.a_p, proof_proto.a_p)
-        group_point_g2_to_proto(proof.b, proof_proto.b)
-        group_point_g1_to_proto(proof.b_p, proof_proto.b_p)
-        group_point_g1_to_proto(proof.c, proof_proto.c)
-        group_point_g1_to_proto(proof.c_p, proof_proto.c_p)
-        group_point_g1_to_proto(proof.h, proof_proto.h)
-        group_point_g1_to_proto(proof.k, proof_proto.k)
+        pairing.group_point_g1_to_proto(proof.a, proof_proto.a)
+        pairing.group_point_g1_to_proto(proof.a_p, proof_proto.a_p)
+        pairing.group_point_g2_to_proto(proof.b, proof_proto.b)
+        pairing.group_point_g1_to_proto(proof.b_p, proof_proto.b_p)
+        pairing.group_point_g1_to_proto(proof.c, proof_proto.c)
+        pairing.group_point_g1_to_proto(proof.c_p, proof_proto.c_p)
+        pairing.group_point_g1_to_proto(proof.h, proof_proto.h)
+        pairing.group_point_g1_to_proto(proof.k, proof_proto.k)
         proof_proto.inputs = json.dumps(ext_proof.inputs)
         return extproof_proto
 
@@ -488,14 +455,14 @@ class PGHR13(IZKSnarkProvider):
     def proof_to_contract_parameters(proof: IProof) -> List[int]:
         assert isinstance(proof, PGHR13.Proof)
         return \
-            group_point_g1_to_contract_parameters(proof.a) + \
-            group_point_g1_to_contract_parameters(proof.a_p) + \
-            group_point_g2_to_contract_parameters(proof.b) + \
-            group_point_g1_to_contract_parameters(proof.b_p) + \
-            group_point_g1_to_contract_parameters(proof.c) + \
-            group_point_g1_to_contract_parameters(proof.c_p) + \
-            group_point_g1_to_contract_parameters(proof.h) + \
-            group_point_g1_to_contract_parameters(proof.k)
+            pairing.group_point_g1_to_contract_parameters(proof.a) + \
+            pairing.group_point_g1_to_contract_parameters(proof.a_p) + \
+            pairing.group_point_g2_to_contract_parameters(proof.b) + \
+            pairing.group_point_g1_to_contract_parameters(proof.b_p) + \
+            pairing.group_point_g1_to_contract_parameters(proof.c) + \
+            pairing.group_point_g1_to_contract_parameters(proof.c_p) + \
+            pairing.group_point_g1_to_contract_parameters(proof.h) + \
+            pairing.group_point_g1_to_contract_parameters(proof.k)
 
 
 def get_zksnark_provider(zksnark_name: str) -> IZKSnarkProvider:
@@ -504,60 +471,3 @@ def get_zksnark_provider(zksnark_name: str) -> IZKSnarkProvider:
     if zksnark_name == constants.GROTH16_ZKSNARK:
         return Groth16()
     raise Exception(f"unknown zk-SNARK name: {zksnark_name}")
-
-
-def group_point_g1_from_proto(
-        point: ec_group_messages_pb2.Group1Point) -> GenericG1Point:
-    x_coord = json.loads(point.x_coord)
-    y_coord = json.loads(point.y_coord)
-    assert isinstance(x_coord, str)
-    assert isinstance(y_coord, str)
-    return GenericG1Point(x_coord, y_coord)
-
-
-def group_point_g1_to_proto(
-        g1: GenericG1Point,
-        g1_proto: ec_group_messages_pb2.Group1Point) -> None:
-    g1_proto.x_coord = json.dumps(g1.x_coord)
-    g1_proto.y_coord = json.dumps(g1.y_coord)
-
-
-def group_point_g1_to_contract_parameters(g1: GenericG1Point) -> List[int]:
-    return \
-        list(hex_to_uint256_list(g1.x_coord)) + \
-        list(hex_to_uint256_list(g1.y_coord))
-
-
-def group_point_g2_from_proto(
-        point: ec_group_messages_pb2.Group2Point) -> GenericG2Point:
-    x_coord = json.loads(point.x_coord)
-    y_coord = json.loads(point.y_coord)
-    # Depending on the curve, coordinates may be in a base (non-extension)
-    # field (i.e. simple json strings)
-    if isinstance(x_coord, str):
-        assert isinstance(y_coord, str)
-    else:
-        assert isinstance(x_coord, list)
-        assert isinstance(y_coord, list)
-    return GenericG2Point(x_coord, y_coord)
-
-
-def group_point_g2_to_proto(
-        g2: GenericG2Point,
-        g2_proto: ec_group_messages_pb2.Group2Point) -> None:
-    g2_proto.x_coord = json.dumps(g2.x_coord)
-    g2_proto.y_coord = json.dumps(g2.y_coord)
-
-
-def group_point_g2_to_contract_parameters(g2: GenericG2Point) -> List[int]:
-    if isinstance(g2.x_coord, str):
-        assert isinstance(g2.y_coord, str)
-        return \
-            list(hex_to_uint256_list(g2.x_coord)) + \
-            list(hex_to_uint256_list(g2.y_coord))
-
-    assert isinstance(g2.x_coord, list)
-    assert isinstance(g2.y_coord, list)
-    return \
-        hex_list_to_uint256_list(g2.x_coord) + \
-        hex_list_to_uint256_list(g2.y_coord)

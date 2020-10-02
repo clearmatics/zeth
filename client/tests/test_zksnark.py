@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.core.zksnark import IZKSnarkProvider, GenericG1Point, GenericG2Point, \
-    IVerificationKey, ExtendedProof, Groth16, group_point_g1_to_proto, \
-    group_point_g1_from_proto, group_point_g2_to_proto, group_point_g2_from_proto
+from zeth.core.pairing import GenericG1Point, GenericG2Point, \
+    group_point_g1_from_proto, group_point_g1_to_proto, \
+    group_point_g2_to_proto, group_point_g2_from_proto
+from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey, ExtendedProof, \
+    Groth16
 from zeth.api import ec_group_messages_pb2
 from unittest import TestCase
 
