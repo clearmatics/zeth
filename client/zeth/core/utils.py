@@ -92,14 +92,14 @@ class EtherValue:
         return str(Web3.fromWei(self.wei, 'ether'))
 
 
-def encode_single(type_name: str, data: bytes) -> bytes:
+def encode_single(type_name: str, data: Any) -> bytes:
     """
     Typed wrapper around eth_abi.encode_single
     """
     return eth_abi.encode_single(type_name, data)  # type: ignore
 
 
-def encode_abi(type_names: List[str], data: List[bytes]) -> bytes:
+def encode_abi(type_names: List[str], data: List[Any]) -> bytes:
     """
     Typed wrapper around eth_abi.encode_abi
     """
