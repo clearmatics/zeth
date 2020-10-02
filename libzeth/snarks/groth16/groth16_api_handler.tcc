@@ -18,12 +18,9 @@ void groth16_api_handler<ppT>::verification_key_to_proto(
     const typename groth16_api_handler<ppT>::snark::verification_key &vk,
     zeth_proto::VerificationKey *message)
 {
-    zeth_proto::HexPointBaseGroup1Affine *alpha =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup2Affine *beta =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup2Affine *delta =
-        new zeth_proto::HexPointBaseGroup2Affine();
+    zeth_proto::Group1Point *alpha = new zeth_proto::Group1Point();
+    zeth_proto::Group2Point *beta = new zeth_proto::Group2Point();
+    zeth_proto::Group2Point *delta = new zeth_proto::Group2Point();
 
     alpha->CopyFrom(point_g1_affine_to_proto<ppT>(vk.alpha_g1));
     beta->CopyFrom(point_g2_affine_to_proto<ppT>(vk.beta_g2));
@@ -75,12 +72,9 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
     const libsnark::r1cs_gg_ppzksnark_proof<ppT> &proof_obj =
         ext_proof.get_proof();
 
-    zeth_proto::HexPointBaseGroup1Affine *a =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup2Affine *minus_b =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup1Affine *c =
-        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::Group1Point *a = new zeth_proto::Group1Point();
+    zeth_proto::Group2Point *minus_b = new zeth_proto::Group2Point();
+    zeth_proto::Group1Point *c = new zeth_proto::Group1Point();
 
     a->CopyFrom(point_g1_affine_to_proto<ppT>(proof_obj.g_A));
     minus_b->CopyFrom(point_g2_affine_to_proto<ppT>(-proof_obj.g_B));

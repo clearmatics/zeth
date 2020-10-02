@@ -19,20 +19,13 @@ void pghr13_api_handler<ppT>::verification_key_to_proto(
     const typename snark::verification_key &vk,
     zeth_proto::VerificationKey *message)
 {
-    zeth_proto::HexPointBaseGroup2Affine *a =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup1Affine *b =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup2Affine *c =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup2Affine *g =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup1Affine *gb1 =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup2Affine *gb2 =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup2Affine *z =
-        new zeth_proto::HexPointBaseGroup2Affine();
+    zeth_proto::Group2Point *a = new zeth_proto::Group2Point();
+    zeth_proto::Group1Point *b = new zeth_proto::Group1Point();
+    zeth_proto::Group2Point *c = new zeth_proto::Group2Point();
+    zeth_proto::Group2Point *g = new zeth_proto::Group2Point();
+    zeth_proto::Group1Point *gb1 = new zeth_proto::Group1Point();
+    zeth_proto::Group2Point *gb2 = new zeth_proto::Group2Point();
+    zeth_proto::Group2Point *z = new zeth_proto::Group2Point();
 
     a->CopyFrom(point_g2_affine_to_proto<ppT>(vk.alphaA_g2));
     b->CopyFrom(point_g1_affine_to_proto<ppT>(vk.alphaB_g1));
@@ -93,22 +86,14 @@ void pghr13_api_handler<ppT>::extended_proof_to_proto(
 {
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj = ext_proof.get_proof();
 
-    zeth_proto::HexPointBaseGroup1Affine *a =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup1Affine *a_p =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup2Affine *b =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup1Affine *b_p =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup1Affine *c =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup1Affine *c_p =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup1Affine *h =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup1Affine *k =
-        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::Group1Point *a = new zeth_proto::Group1Point();
+    zeth_proto::Group1Point *a_p = new zeth_proto::Group1Point();
+    zeth_proto::Group2Point *b = new zeth_proto::Group2Point();
+    zeth_proto::Group1Point *b_p = new zeth_proto::Group1Point();
+    zeth_proto::Group1Point *c = new zeth_proto::Group1Point();
+    zeth_proto::Group1Point *c_p = new zeth_proto::Group1Point();
+    zeth_proto::Group1Point *h = new zeth_proto::Group1Point();
+    zeth_proto::Group1Point *k = new zeth_proto::Group1Point();
 
     a->CopyFrom(point_g1_affine_to_proto<ppT>(proofObj.g_A.g));
     a_p->CopyFrom(point_g1_affine_to_proto<ppT>(proofObj.g_A.h));

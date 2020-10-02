@@ -507,7 +507,7 @@ def get_zksnark_provider(zksnark_name: str) -> IZKSnarkProvider:
 
 
 def group_point_g1_from_proto(
-        point: ec_group_messages_pb2.HexPointBaseGroup1Affine) -> GenericG1Point:
+        point: ec_group_messages_pb2.Group1Point) -> GenericG1Point:
     x_coord = json.loads(point.x_coord)
     y_coord = json.loads(point.y_coord)
     assert isinstance(x_coord, str)
@@ -517,7 +517,7 @@ def group_point_g1_from_proto(
 
 def group_point_g1_to_proto(
         g1: GenericG1Point,
-        g1_proto: ec_group_messages_pb2.HexPointBaseGroup1Affine) -> None:
+        g1_proto: ec_group_messages_pb2.Group1Point) -> None:
     g1_proto.x_coord = json.dumps(g1.x_coord)
     g1_proto.y_coord = json.dumps(g1.y_coord)
 
@@ -529,7 +529,7 @@ def group_point_g1_to_contract_parameters(g1: GenericG1Point) -> List[int]:
 
 
 def group_point_g2_from_proto(
-        point: ec_group_messages_pb2.HexPointBaseGroup2Affine) -> GenericG2Point:
+        point: ec_group_messages_pb2.Group2Point) -> GenericG2Point:
     x_coord = json.loads(point.x_coord)
     y_coord = json.loads(point.y_coord)
     # Depending on the curve, coordinates may be in a base (non-extension)
@@ -544,7 +544,7 @@ def group_point_g2_from_proto(
 
 def group_point_g2_to_proto(
         g2: GenericG2Point,
-        g2_proto: ec_group_messages_pb2.HexPointBaseGroup2Affine) -> None:
+        g2_proto: ec_group_messages_pb2.Group2Point) -> None:
     g2_proto.x_coord = json.dumps(g2.x_coord)
     g2_proto.y_coord = json.dumps(g2.y_coord)
 

@@ -411,13 +411,13 @@ class TestZKSnark(TestCase):
         self._do_test_ext_proof_proto_encode_decode(extproof_1, Groth16())
 
     def _do_test_g1_proto_encode_decode(self, g1: GenericG1Point) -> None:
-        g1_proto = ec_group_messages_pb2.HexPointBaseGroup1Affine()
+        g1_proto = ec_group_messages_pb2.Group1Point()
         group_point_g1_to_proto(g1, g1_proto)
         g1_decoded = group_point_g1_from_proto(g1_proto)
         self.assertEqual(g1.to_json_list(), g1_decoded.to_json_list())
 
     def _do_test_g2_proto_encode_decode(self, g2: GenericG2Point) -> None:
-        g2_proto = ec_group_messages_pb2.HexPointBaseGroup2Affine()
+        g2_proto = ec_group_messages_pb2.Group2Point()
         group_point_g2_to_proto(g2, g2_proto)
         g2_decoded = group_point_g2_from_proto(g2_proto)
         self.assertEqual(g2.to_json_list(), g2_decoded.to_json_list())

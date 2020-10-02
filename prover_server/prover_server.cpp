@@ -41,6 +41,14 @@ using circuit_wrapper = libzeth::circuit_wrapper<
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
 
+static void prover_configuration_to_proto(
+    zeth_proto::ProverConfiguration &prover_config_proto)
+{
+    prover_config_proto.set_zksnark(snark::name);
+    libzeth::pairing_parameters_to_proto<pp>(
+        *prover_config_proto.mutable_pairing_parameters());
+}
+
 static snark::keypair load_keypair(const boost::filesystem::path &keypair_file)
 {
     std::ifstream in_s(
@@ -95,6 +103,16 @@ public:
         const boost::filesystem::path &proof_output_file)
         : prover(prover), keypair(keypair), proof_output_file(proof_output_file)
     {
+    }
+
+    grpc::Status GetConfiguration(
+        grpc::ServerContext *,
+        const proto::Empty *,
+        zeth_proto::ProverConfiguration *response) override
+    {
+        std::cout << "[ACK] Received the request for configuration\n";
+        prover_configuration_to_proto(*response);
+        return grpc::Status::OK;
     }
 
     grpc::Status GetVerificationKey(

@@ -2,37 +2,54 @@ syntax = "proto3";
 
 package zeth_proto;
 
-// Every point coordinate (ie: base field element) is treated as an hexadecimal
-// string. The points in G1 are represented in affine form.
+
+// The points in G1 are represented in affine form. The coordinates are encoded
+// as JSON objects. In this case (where coordinates are base field elements),
+// these are plain JSON strings.
 //
-// e.g. Let A be a `HexPointBaseGroup1Affine` message. Then `A` is of the form:
+// e.g. Let A be a `Group1Point` message. Then `A` is of the form:
 // ```
 // A = {
-//    x_coord = "0xa34...ef",
-//    y_coord = "0xae7...dc"
+//    x_coord = "\"0xa34...ef\"",
+//    y_coord = "\"0xae7...dc\""
 // }
-message HexPointBaseGroup1Affine {
+message Group1Point {
     // First coordinate of the point
     string x_coord = 1;
     // Second coordinate of the point
     string y_coord = 2;
 }
 
-// The points in G2 are represented in affine form.
-// We use a "repeated" string field for each coordinates to have flexibility
-// over the degree of the field extension used to define elements of G2.
-// This makes the API generic enough to support pairing groups with various
-// embedding degrees and twist degrees.
+// The points in G2 are represented in affine form. Coordinates are encoded as
+// JSON objects containing hexadecimal strings. Depending on the pairing,
+// coordinates may be in the base field (simple strings, as for G1) or in
+// extension fields (JSON arrays of stings).
 //
-// e.g. Let A be a `HexPointBaseGroup2Affine` message. Then `A` is of the form:
+// e.g. Let A be a `Group2Point` message. Then `A` is of the form:
 // ```
 // A = {
-//    x_coord = ["0xa34...ef", ... "0xaef...ab"],
-//    y_coord = ["0xae7...dc", ... "0xbfe...54"]
+//    x_coord = "[\"0xa34...ef\", ... \"0xaef...ab\"]",
+//    y_coord = "[\"0xae7...dc\", ... \"0xbfe...54\"]"
 // }
-message HexPointBaseGroup2Affine {
+message Group2Point {
     // First coordinate of the point
     string x_coord = 1;
     // Second coordinate of the point
     string y_coord = 2;
+}
+
+// A set of useful attributes of a pairing. Expand this as clients are required
+// to perform more operations.
+message PairingParameters {
+    // Order of the G1 and G2 subgroups as a hex string.
+    string r = 1;
+
+    // Modulus of the base field as a hex string.
+    string q = 2;
+
+    // Generator of G1
+    Group1Point generator_g1 = 3;
+
+    // Generator of G2
+    Group2Point generator_g2 = 4;
 }

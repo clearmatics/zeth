@@ -27,24 +27,24 @@ namespace libzeth
 zeth_note zeth_note_from_proto(const zeth_proto::ZethNote &note);
 
 template<typename ppT>
-zeth_proto::HexPointBaseGroup1Affine point_g1_affine_to_proto(
-    const libff::G1<ppT> &point);
+zeth_proto::Group1Point point_g1_affine_to_proto(const libff::G1<ppT> &point);
 
 template<typename ppT>
-libff::G1<ppT> point_g1_affine_from_proto(
-    const zeth_proto::HexPointBaseGroup1Affine &point);
+libff::G1<ppT> point_g1_affine_from_proto(const zeth_proto::Group1Point &point);
 
 template<typename ppT>
-zeth_proto::HexPointBaseGroup2Affine point_g2_affine_to_proto(
-    const libff::G2<ppT> &point);
+zeth_proto::Group2Point point_g2_affine_to_proto(const libff::G2<ppT> &point);
 
 template<typename ppT>
-libff::G2<ppT> point_g2_affine_from_proto(
-    const zeth_proto::HexPointBaseGroup2Affine &point);
+libff::G2<ppT> point_g2_affine_from_proto(const zeth_proto::Group2Point &point);
 
 template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
     const zeth_proto::JoinsplitInput &input);
+
+/// Populate a protobuf description of some pairing parameters
+template<typename ppT>
+void pp_to_proto(zeth_proto::PairingParameters &pp_proto);
 
 } // namespace libzeth
 

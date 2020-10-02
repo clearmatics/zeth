@@ -5,15 +5,15 @@ package zeth_proto;
 import "zeth/api/ec_group_messages.proto";
 
 message VerificationKeyGROTH16 {
-    HexPointBaseGroup1Affine alpha_g1 = 1;
-    HexPointBaseGroup2Affine beta_g2 = 2;
-    HexPointBaseGroup2Affine delta_g2 = 4;
+    Group1Point alpha_g1 = 1;
+    Group2Point beta_g2 = 2;
+    Group2Point delta_g2 = 4;
     string abc_g1 = 5;
 }
 
 message ExtendedProofGROTH16 {
-    HexPointBaseGroup1Affine a = 1;
-    HexPointBaseGroup2Affine minus_b = 2;
-    HexPointBaseGroup1Affine c = 3;
+    Group1Point a = 1;
+    Group2Point minus_b = 2;
+    Group1Point c = 3;
     string inputs = 4;
 }
