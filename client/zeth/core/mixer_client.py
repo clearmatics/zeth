@@ -19,10 +19,9 @@ import zeth.core.signing as signing
 from zeth.core.timer import Timer
 from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
     ExtendedProof, IVerificationKey
-from zeth.core.utils import EtherValue, hex_digest_to_binary_string, \
-    digest_to_binary_string, int64_to_hex, message_to_bytes, \
-    eth_address_to_bytes32, eth_uint256_to_int, to_zeth_units, \
-    get_contracts_dir, hex_list_to_uint256_list
+from zeth.core.utils import EtherValue, digest_to_binary_string, \
+    int64_to_hex, message_to_bytes, eth_address_to_bytes32, eth_uint256_to_int, \
+    to_zeth_units, get_contracts_dir, hex_list_to_uint256_list
 from zeth.core.prover_client import ProverConfiguration, ProverClient
 from zeth.api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
 
@@ -69,7 +68,7 @@ class JoinsplitInputNote:
 
 
 def create_zeth_notes(
-        phi: str,
+        phi: bytes,
         hsig: bytes,
         output0: Tuple[OwnershipPublicKey, int],
         output1: Tuple[OwnershipPublicKey, int]
@@ -279,7 +278,7 @@ def compute_joinsplit2x2_inputs(
         pub_in_value=int64_to_hex(public_in_value_zeth_units),
         pub_out_value=int64_to_hex(public_out_value_zeth_units),
         h_sig=h_sig.hex(),
-        phi=phi)
+        phi=phi.hex())
 
 
 class MixerClient:
@@ -742,7 +741,7 @@ def public_inputs_extract_public_values(
     return (v_in, v_out)
 
 
-def _compute_rho_i(phi: str, hsig: bytes, i: int) -> bytes:
+def _compute_rho_i(phi: bytes, hsig: bytes, i: int) -> bytes:
     """
     Returns rho_i = blake2s(0 || i || 10 || [phi]_252 || hsig)
     See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
@@ -756,7 +755,7 @@ def _compute_rho_i(phi: str, hsig: bytes, i: int) -> bytes:
     blake_hash = blake2s()
 
     # Append PRF^{rho} tag to a_sk
-    binary_phi = hex_digest_to_binary_string(phi)
+    binary_phi = digest_to_binary_string(phi)
     first_252bits_phi = binary_phi[:252]
     left_leg_bin = "0" + str(i) + "10" + first_252bits_phi
     blake_hash.update(int(left_leg_bin, 2).to_bytes(32, byteorder='big'))
@@ -764,8 +763,8 @@ def _compute_rho_i(phi: str, hsig: bytes, i: int) -> bytes:
     return blake_hash.digest()
 
 
-def _phi_randomness() -> str:
+def _phi_randomness() -> bytes:
     """
     Compute the transaction randomness "phi", used for computing the new rhoS
     """
-    return bytes(Random.get_random_bytes(constants.PHI_LENGTH_BYTES)).hex()
+    return bytes(Random.get_random_bytes(constants.PHI_LENGTH_BYTES))
