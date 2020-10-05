@@ -16,7 +16,6 @@ from zeth.core.encryption import \
 from zeth.core.merkle_tree import MerkleTree, compute_merkle_path
 from zeth.core.pairing import PairingParameters
 import zeth.core.signing as signing
-from zeth.core.timer import Timer
 from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
     ExtendedProof, IVerificationKey
 from zeth.core.utils import EtherValue, digest_to_binary_string, \
@@ -65,6 +64,53 @@ class JoinsplitInputNote:
         self.note = note
         self.nullifier = nullifier
         self.merkle_location = merkle_location
+
+
+class MixCallDescription:
+    """
+    High-level description of a call to the mixer contract. Holds information
+    used when generating the ZK-proof and other data mix call parameters.
+    """
+    def __init__(
+            self,
+            mk_tree: MerkleTree,
+            sender_ownership_keypair: OwnershipKeyPair,
+            inputs: List[Tuple[int, ZethNote]],
+            outputs: List[Tuple[ZethAddressPub, EtherValue]],
+            v_in: EtherValue,
+            v_out: EtherValue,
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None):
+        assert len(inputs) <= constants.JS_INPUTS
+        assert len(outputs) <= constants.JS_OUTPUTS
+
+        self.mk_tree = mk_tree
+        self.sender_ownership_keypair = sender_ownership_keypair
+        self.v_in = v_in
+        self.v_out = v_out
+        self.compute_h_sig_cb = compute_h_sig_cb
+
+        # Perform some cleaning and minimal pre-processing of the data. Compute
+        # and store data that is not derivable from the ProverInput or Proof
+        # structs (such as the encryption keys for receivers), making it
+        # available to MixerClient calls.
+
+        # Expand inputs with dummy entries and compute merkle paths.
+        sender_a_pk = sender_ownership_keypair.a_pk
+        self.inputs = \
+            inputs + \
+            [get_dummy_input_and_address(sender_a_pk)
+             for _ in range(constants.JS_INPUTS - len(inputs))]
+
+        # Pad the list of outputs if necessary
+        if len(outputs) < constants.JS_OUTPUTS:
+            dummy_k_pk = generate_encryption_keypair().k_pk
+            dummy_addr_pk = ZethAddressPub(sender_a_pk, dummy_k_pk)
+            self.outputs = \
+                outputs + \
+                [(dummy_addr_pk, EtherValue(0))
+                 for _ in range(constants.JS_OUTPUTS - len(outputs))]
+        else:
+            self.outputs = outputs
 
 
 def create_zeth_notes(
@@ -223,64 +269,6 @@ def get_dummy_input_and_address(
     return (dummy_note_address, dummy_note)
 
 
-def compute_joinsplit2x2_inputs(
-        mk_root: bytes,
-        input0: Tuple[int, ZethNote],
-        mk_path0: List[str],
-        input1: Tuple[int, ZethNote],
-        mk_path1: List[str],
-        sender_ask: OwnershipSecretKey,
-        output0: Tuple[OwnershipPublicKey, int],
-        output1: Tuple[OwnershipPublicKey, int],
-        public_in_value_zeth_units: int,
-        public_out_value_zeth_units: int,
-        sign_vk: JoinsplitSigVerificationKey,
-        compute_h_sig_cb: Optional[ComputeHSigCB] = None
-) -> ProofInputs:
-    """
-    Create a ProofInput object for joinsplit parameters
-    """
-    (input_address0, input_note0) = input0
-    (input_address1, input_note1) = input1
-
-    input_nullifier0 = compute_nullifier(input_note0, sender_ask)
-    input_nullifier1 = compute_nullifier(input_note1, sender_ask)
-    js_inputs: List[JoinsplitInput] = [
-        create_joinsplit_input(
-            mk_path0, input_address0, input_note0, sender_ask, input_nullifier0),
-        create_joinsplit_input(
-            mk_path1, input_address1, input_note1, sender_ask, input_nullifier1)
-    ]
-
-    # Use the specified or default h_sig computation
-    compute_h_sig_cb = compute_h_sig_cb or compute_h_sig
-    h_sig = compute_h_sig_cb(
-        input_nullifier0,
-        input_nullifier1,
-        sign_vk)
-    phi = _phi_randomness()
-
-    output_note0, output_note1 = create_zeth_notes(
-        phi,
-        h_sig,
-        output0,
-        output1)
-
-    js_outputs = [
-        output_note0,
-        output_note1
-    ]
-
-    return ProofInputs(
-        mk_root=mk_root.hex(),
-        js_inputs=js_inputs,
-        js_outputs=js_outputs,
-        pub_in_value=int64_to_hex(public_in_value_zeth_units),
-        pub_out_value=int64_to_hex(public_out_value_zeth_units),
-        h_sig=h_sig.hex(),
-        phi=phi.hex())
-
-
 class MixerClient:
     """
     Interface to operations on the Mixer contract.
@@ -311,6 +299,84 @@ class MixerClient:
             ProverClient(prover_server_endpoint),
             mixer_instance,
             get_zksnark_provider(constants.ZKSNARK_DEFAULT))
+
+    @staticmethod
+    def create_prover_inputs(
+            mix_call_desc: MixCallDescription
+    ) -> Tuple[ProofInputs, signing.SigningKeyPair]:
+        """
+        Given the basic parameters for a mix call, compute the input to the prover
+        server, and the signing key pair.
+        """
+
+        # Compute Merkle paths
+        mk_tree = mix_call_desc.mk_tree
+        mk_root = mk_tree.get_root()
+        inputs = mix_call_desc.inputs
+        mk_paths = [compute_merkle_path(addr, mk_tree) for addr, _ in inputs]
+
+        # Extract (<ownership-address>, <value>) tuples
+        outputs_with_a_pk = \
+            [(zeth_addr.a_pk, to_zeth_units(value))
+             for (zeth_addr, value) in mix_call_desc.outputs]
+        output0 = outputs_with_a_pk[0]
+        output1 = outputs_with_a_pk[1]
+
+        # Public input and output values as Zeth units
+        public_in_value_zeth_units = to_zeth_units(mix_call_desc.v_in)
+        public_out_value_zeth_units = to_zeth_units(mix_call_desc.v_out)
+
+        # Generate the signing key
+        signing_keypair = signing.gen_signing_keypair()
+        sender_ask = mix_call_desc.sender_ownership_keypair.a_sk
+
+        # Compute the input note nullifiers
+        (input_address0, input_note0) = mix_call_desc.inputs[0]
+        (input_address1, input_note1) = mix_call_desc.inputs[1]
+        input_nullifier0 = compute_nullifier(input_note0, sender_ask)
+        input_nullifier1 = compute_nullifier(input_note1, sender_ask)
+
+        # Convert to JoinsplitInput objects
+        js_inputs: List[JoinsplitInput] = [
+            create_joinsplit_input(
+                mk_paths[0],
+                input_address0,
+                input_note0,
+                sender_ask,
+                input_nullifier0),
+            create_joinsplit_input(
+                mk_paths[1],
+                input_address1,
+                input_note1,
+                sender_ask,
+                input_nullifier1)
+        ]
+
+        # Use the specified or default h_sig computation
+        compute_h_sig_cb = mix_call_desc.compute_h_sig_cb or compute_h_sig
+        h_sig = compute_h_sig_cb(
+            input_nullifier0,
+            input_nullifier1,
+            signing_keypair.vk)
+        phi = _phi_randomness()
+
+        # Joinsplit Output Notes
+        output_note0, output_note1 = create_zeth_notes(
+            phi, h_sig, output0, output1)
+        js_outputs = [
+            output_note0,
+            output_note1
+        ]
+
+        proof_inputs = ProofInputs(
+            mk_root=mk_root.hex(),
+            js_inputs=js_inputs,
+            js_outputs=js_outputs,
+            pub_in_value=int64_to_hex(public_in_value_zeth_units),
+            pub_out_value=int64_to_hex(public_out_value_zeth_units),
+            h_sig=h_sig.hex(),
+            phi=phi.hex())
+        return (proof_inputs, signing_keypair)
 
     @staticmethod
     def deploy(
@@ -400,7 +466,7 @@ class MixerClient:
             v_out: EtherValue,
             tx_value: Optional[EtherValue] = None,
             compute_h_sig_cb: Optional[ComputeHSigCB] = None) -> str:
-        mix_params = self.create_mix_parameters(
+        mix_params, _ = self.create_mix_parameters_keep_signing_key(
             mk_tree,
             sender_ownership_keypair,
             sender_eth_address,
@@ -438,7 +504,7 @@ class MixerClient:
         assert len(inputs) <= constants.JS_INPUTS
         assert len(outputs) <= constants.JS_OUTPUTS
 
-        sender_a_sk = sender_ownership_keypair.a_sk
+        # sender_a_sk = sender_ownership_keypair.a_sk
         sender_a_pk = sender_ownership_keypair.a_pk
         inputs = \
             inputs + \
@@ -462,26 +528,43 @@ class MixerClient:
 
         # Timer used to time proof-generation round trip time.
         timer = Timer.started()
+        proof_inputs, signing_keypair = self.compute_2x2_proof_inputs(
+            mk_root,
+            inputs[0],
+            mk_paths[0],
+            inputs[1],
+            mk_paths[1],
+            sender_ownership_keypair.a_sk,
+            outputs_with_a_pk[0],
+            outputs_with_a_pk[1],
+            v_in,
+            v_out,
+            compute_h_sig_cb)
 
-        (output_note1, output_note2, extproof, signing_keypair) = \
-            self.get_proof_joinsplit_2_by_2(
-                mk_root,
-                inputs[0],
-                mk_paths[0],
-                inputs[1],
-                mk_paths[1],
-                sender_a_sk,
-                outputs_with_a_pk[0],
-                outputs_with_a_pk[1],
-                to_zeth_units(v_in),
-                to_zeth_units(v_out),
-                compute_h_sig_cb)
+        # Query the prover_server for the related proof
+        ext_proof_proto = self._prover_client.get_proof(proof_inputs)
+        ext_proof = self._zksnark.extended_proof_from_proto(ext_proof_proto)
+
+        # (output_note1, output_note2, extproof, signing_keypair) =
+        #     self.get_proof_joinsplit_2_by_2(
+        #         mk_root,
+        #         inputs[0],
+        #         mk_paths[0],
+        #         inputs[1],
+        #         mk_paths[1],
+        #         sender_a_sk,
+        #         outputs_with_a_pk[0],
+        #         outputs_with_a_pk[1],
+        #         to_zeth_units(v_in),
+        #         to_zeth_units(v_out),
+        #         compute_h_sig_cb)
 
         proof_gen_time_s = timer.elapsed_seconds()
         print(f"PROOF GEN ROUND TRIP: {proof_gen_time_s} seconds")
 
         # Encrypt the notes
-        outputs_and_notes = zip(outputs, [output_note1, output_note2])
+        outputs_and_notes = zip(outputs, proof_inputs.js_outputs) \
+            # pylint: disable=no-member
         output_notes_with_k_pk = \
             [(note, zeth_addr.k_pk)
              for ((zeth_addr, _), note) in outputs_and_notes]
@@ -494,10 +577,10 @@ class MixerClient:
             signing_keypair,
             sender_eth_address,
             ciphertexts,
-            extproof)
+            ext_proof)
 
         mix_params = contracts.MixParameters(
-            extproof,
+            ext_proof,
             signing_keypair.vk,
             signature,
             ciphertexts)
@@ -557,57 +640,6 @@ class MixerClient:
             sender_eth_address,
             wei_pub_value,
             call_gas)
-
-    def get_proof_joinsplit_2_by_2(
-            self,
-            mk_root: bytes,
-            input0: Tuple[int, ZethNote],
-            mk_path0: List[str],
-            input1: Tuple[int, ZethNote],
-            mk_path1: List[str],
-            sender_ask: OwnershipSecretKey,
-            output0: Tuple[OwnershipPublicKey, int],
-            output1: Tuple[OwnershipPublicKey, int],
-            public_in_value_zeth_units: int,
-            public_out_value_zeth_units: int,
-            compute_h_sig_cb: Optional[ComputeHSigCB] = None
-    ) -> Tuple[ZethNote, ZethNote, ExtendedProof, JoinsplitSigKeyPair]:
-        """
-        Query the prover server to generate a proof for the given joinsplit
-        parameters.
-        """
-        signing_keypair = signing.gen_signing_keypair()
-        proof_input = compute_joinsplit2x2_inputs(
-            mk_root,
-            input0,
-            mk_path0,
-            input1,
-            mk_path1,
-            sender_ask,
-            output0,
-            output1,
-            public_in_value_zeth_units,
-            public_out_value_zeth_units,
-            signing_keypair.vk,
-            compute_h_sig_cb)
-        proof_proto = self._prover_client.get_proof(proof_input)
-        extproof = self._zksnark.extended_proof_from_proto(proof_proto)
-
-        # Sanity check our unpacking code against the prover server output.
-        pub_inputs = extproof.inputs
-        print(f"pub_inputs: {pub_inputs}")
-        # pub_inputs_bytes = [bytes.fromhex(x) for x in pub_inputs]
-        (v_in, v_out) = public_inputs_extract_public_values(pub_inputs)
-        assert public_in_value_zeth_units == v_in
-        assert public_out_value_zeth_units == v_out
-
-        # We return the zeth notes to be able to spend them later
-        # and the proof used to create them
-        return (
-            proof_input.js_outputs[0],  # pylint: disable=no-member
-            proof_input.js_outputs[1],  # pylint: disable=no-member
-            extproof,
-            signing_keypair)
 
     def _get_prover_config(self) -> ProverConfiguration:
         if not self._prover_config:
