@@ -88,8 +88,7 @@ class IZKSnarkProvider(ABC):
     @staticmethod
     @abstractmethod
     def verification_key_to_contract_parameters(
-            vk: IVerificationKey,
-            pp: pairing.PairingParameters) -> List[int]:
+            vk: IVerificationKey) -> List[int]:
         pass
 
     @staticmethod
@@ -130,8 +129,7 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def proof_to_contract_parameters(
-            proof: IProof, pp: pairing.PairingParameters) -> List[int]:
+    def proof_to_contract_parameters(proof: IProof) -> List[int]:
         """
         Generate the leading parameters to the mix function for this SNARK, from a
         GenericProof object.
@@ -201,7 +199,7 @@ class Groth16(IZKSnarkProvider):
 
     @staticmethod
     def verification_key_to_contract_parameters(
-            vk: IVerificationKey, pp: pairing.PairingParameters) -> List[int]:
+            vk: IVerificationKey) -> List[int]:
         assert isinstance(vk, Groth16.VerificationKey)
         return \
             pairing.group_point_g1_to_contract_parameters(vk.alpha) + \

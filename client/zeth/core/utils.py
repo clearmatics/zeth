@@ -147,6 +147,26 @@ def g1_to_bytes(group_el: G1) -> bytes:
         int(group_el[1]).to_bytes(32, byteorder='big')
 
 
+def int_and_bytelen_from_hex(value_hex: str) -> Tuple[int, int]:
+    """
+    Decode prefixed / non-prefixed hex string and extract the length in bytes
+    as well as the value.
+    """
+    assert len(value_hex) % 2 == 0
+    if value_hex.startswith("0x"):
+        num_bytes = int((len(value_hex) - 2) / 2)
+    else:
+        num_bytes = int(len(value_hex) / 2)
+    return (int(value_hex, 16), num_bytes)
+
+
+def int_to_hex(value: int, num_bytes: int) -> str:
+    """
+    Create prefixed hex string enforcing a specific byte-length.
+    """
+    return "0x" + value.to_bytes(num_bytes, byteorder='big').hex()
+
+
 def int64_to_bytes(number: int) -> bytes:
     return number.to_bytes(8, 'big')
 

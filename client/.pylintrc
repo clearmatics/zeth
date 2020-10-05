@@ -14,7 +14,7 @@ disable=
     duplicate-code,
     fixme
 
-good-names=a,b,c,e,g,h,i,k,m,q,r,x,y,z,cm,ic,rc,ek,ct,vk,sk,pk,X,Y,r,el,nf,g1,g2
+good-names=a,b,c,e,g,h,i,k,m,q,r,x,y,z,cm,ic,rc,ek,ct,vk,sk,pk,pp,X,Y,r,el,nf,g1,g2
 
 max-attributes=10
 

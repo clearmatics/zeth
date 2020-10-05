@@ -6,6 +6,7 @@
 #include "libzeth/core/group_element_utils.hpp"
 
 #include <gtest/gtest.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 #include <libff/algebra/curves/bw6_761/bw6_761_pp.hpp>
 
@@ -39,7 +40,6 @@ template<typename ppT> void operation_test_data()
     const libff::G1<ppT> g1_4 = g1_2 + g1_2;
     const libff::G1<ppT> g1_6 = g1_2 + g1_4;
     const libff::G1<ppT> g1_8 = g1_4 + g1_4;
-    const libff::G1<ppT> g1_minus_8 = -g1_8;
 
     const libff::G2<ppT> g2_1 = libff::G2<ppT>::one();
     const libff::G2<ppT> g2_2 = fr_2 * g2_1;
@@ -47,8 +47,15 @@ template<typename ppT> void operation_test_data()
     const libff::G2<ppT> g2_8 = g2_4 + g2_4;
 
     std::cout << " Fr:";
+    std::cout << "\n    r: "
+              << bigint_to_hex<libff::Fr<ppT>>(libff::Fr<ppT>::mod);
+
     std::cout << "\n   -2: ";
     field_element_write_json(fr_minus_2, std::cout);
+
+    std::cout << " Fq:";
+    std::cout << "\n    q: "
+              << bigint_to_hex<libff::Fq<ppT>>(libff::Fq<ppT>::mod);
 
     std::cout << "\n G1:";
     std::cout << "\n   1: ";
@@ -63,8 +70,10 @@ template<typename ppT> void operation_test_data()
     point_affine_write_json(g1_4, std::cout);
     std::cout << "\n   6: ";
     point_affine_write_json(g1_6, std::cout);
+    std::cout << "\n   8: ";
+    point_affine_write_json(g1_8, std::cout);
     std::cout << "\n  -8: ";
-    point_affine_write_json(g1_minus_8, std::cout);
+    point_affine_write_json(-g1_8, std::cout);
 
     std::cout << "\n G2:";
     std::cout << "\n   1: ";
@@ -75,16 +84,24 @@ template<typename ppT> void operation_test_data()
     point_affine_write_json(g2_4, std::cout);
     std::cout << "\n   8: ";
     point_affine_write_json(g2_8, std::cout);
+    std::cout << "\n  -8: ";
+    point_affine_write_json(-g2_8, std::cout);
     std::cout << "\n";
 
     // Check the statements above
     ASSERT_EQ(g1_6, g1_2 + g1_4);
-    ASSERT_EQ(g1_minus_8, fr_minus_2 * g1_4);
+    ASSERT_EQ(-g1_8, fr_minus_2 * g1_4);
     ASSERT_EQ(
         ppT::reduced_pairing(g1_6, g2_4) * ppT::reduced_pairing(g1_3, g2_8) *
             ppT::reduced_pairing(g1_4, g2_4) *
-            ppT::reduced_pairing(g1_minus_8, g2_8),
+            ppT::reduced_pairing(-g1_8, g2_8),
         libff::GT<ppT>::one());
+}
+
+TEST(ECOperationDataTest, ALT_BN128)
+{
+    std::cout << "ALT_BN128:\n";
+    operation_test_data<libff::alt_bn128_pp>();
 }
 
 TEST(ECOperationDataTest, BW6_761)
@@ -103,6 +120,7 @@ TEST(ECOperationDataTest, BLS12_377)
 
 int main(int argc, char **argv)
 {
+    libff::alt_bn128_pp::init_public_params();
     libff::bls12_377_pp::init_public_params();
     libff::bw6_761_pp::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);

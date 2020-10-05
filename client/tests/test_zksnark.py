@@ -399,7 +399,7 @@ class TestZKSnark(TestCase):
 
     def test_g2_proto_encode_decode(self) -> None:
         self._do_test_g2_proto_encode_decode(
-            GenericG2Point("0xaabbccdd", "0x11223344"))
+            GenericG2Point(["0xaabbccdd"], ["0x11223344"]))
         self._do_test_g2_proto_encode_decode(
             GenericG2Point(
                 ["0xcdeeff00", "0x11223344"], ["0x55667788", "0x99aabbcc"]))
