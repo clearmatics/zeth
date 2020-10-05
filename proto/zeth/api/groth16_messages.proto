@@ -13,7 +13,7 @@ message VerificationKeyGROTH16 {
 
 message ExtendedProofGROTH16 {
     Group1Point a = 1;
-    Group2Point minus_b = 2;
+    Group2Point b = 2;
     Group1Point c = 3;
     string inputs = 4;
 }

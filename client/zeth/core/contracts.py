@@ -8,6 +8,7 @@ from __future__ import annotations
 from zeth.core.signing import SigningVerificationKey, Signature, \
     verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
     signature_as_mix_parameter, signature_from_mix_parameter
+from zeth.core.pairing import PairingParameters
 from zeth.core.zksnark import IZKSnarkProvider, ExtendedProof
 from zeth.core.utils import EtherValue, hex_list_to_uint256_list
 from zeth.core.constants import SOL_COMPILER_VERSION
@@ -219,13 +220,16 @@ def compile_files(files: List[str], **kwargs: Any) -> Any:
 
 def mix_parameters_as_contract_arguments(
         zksnark: IZKSnarkProvider,
+        pp: PairingParameters,
         mix_parameters: MixParameters) -> List[Any]:
     """
     Convert MixParameters to a list of eth ABI objects which can be passed to
     the contract's mix method.
     """
+    proof_contract_params = zksnark.proof_to_contract_parameters(
+        mix_parameters.extended_proof.proof, pp)
     return [
-        zksnark.proof_to_contract_parameters(mix_parameters.extended_proof.proof),
+        proof_contract_params,
         verification_key_as_mix_parameter(mix_parameters.signature_vk),
         signature_as_mix_parameter(mix_parameters.signature),
         hex_list_to_uint256_list(mix_parameters.extended_proof.inputs),
@@ -235,14 +239,17 @@ def mix_parameters_as_contract_arguments(
 
 def _create_web3_mixer_call(
         zksnark: IZKSnarkProvider,
+        pp: PairingParameters,
         mixer_instance: Any,
         mix_parameters: MixParameters) -> Any:
-    mix_params_eth = mix_parameters_as_contract_arguments(zksnark, mix_parameters)
+    mix_params_eth = mix_parameters_as_contract_arguments(
+        zksnark, pp, mix_parameters)
     return mixer_instance.functions.mix(*mix_params_eth)
 
 
 def mix_call(
         zksnark: IZKSnarkProvider,
+        pp: PairingParameters,
         mixer_instance: Any,
         mix_parameters: MixParameters,
         sender_address: str,
@@ -252,7 +259,8 @@ def mix_call(
     Call the mix method (executes on the RPC host, without creating a
     transaction). Returns True if the call succeeds.  False, otherwise.
     """
-    mixer_call = _create_web3_mixer_call(zksnark, mixer_instance, mix_parameters)
+    mixer_call = _create_web3_mixer_call(
+        zksnark, pp, mixer_instance, mix_parameters)
     try:
         mixer_call.call({
             'from': sender_address,
@@ -271,6 +279,7 @@ def mix_call(
 def mix(
         web3: Any,
         zksnark: IZKSnarkProvider,
+        pp: PairingParameters,
         mixer_instance: Any,
         mix_parameters: MixParameters,
         sender_address: str,
@@ -280,7 +289,8 @@ def mix(
     """
     Create and broadcast a transaction that calls the mix method of the Mixer
     """
-    mixer_call = _create_web3_mixer_call(zksnark, mixer_instance, mix_parameters)
+    mixer_call = _create_web3_mixer_call(
+        zksnark, pp, mixer_instance, mix_parameters)
     tx_hash = send_contract_call(
         web3, mixer_call, sender_address, sender_private_key, pub_value, call_gas)
     return tx_hash.hex()

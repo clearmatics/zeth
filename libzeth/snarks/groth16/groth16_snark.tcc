@@ -135,7 +135,7 @@ std::ostream &groth16_snark<ppT>::proof_write_json(
     const typename groth16_snark<ppT>::proof &proof, std::ostream &out_s)
 {
     out_s << "{\n  \"a\": " << point_affine_to_json(proof.g_A)
-          << ",\n  \"minus_b\": " << point_affine_to_json(-proof.g_B)
+          << ",\n  \"b\": " << point_affine_to_json(proof.g_B)
           << ",\n  \"c\": " << point_affine_to_json(proof.g_C) << "\n}";
     return out_s;
 }

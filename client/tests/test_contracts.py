@@ -23,7 +23,7 @@ class TestContracts(TestCase):
         ext_proof = ExtendedProof(
             proof=Groth16.proof_from_json_dict({
                 "a": ["1234", "2345"],
-                "minus_b": [["3456", "4567"], ["5678", "6789"]],
+                "b": [["3456", "4567"], ["5678", "6789"]],
                 "c": ["789a", "89ab"],
             }),
             inputs=[

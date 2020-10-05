@@ -58,11 +58,6 @@ public:
     static proving_key proving_key_read_bytes(std::istream &);
 
     /// Write proof as json.
-    ///
-    /// Note that the JSON representation follows the form of the protobuf
-    /// zeth_proto::ExtendedProofGROTH16 object in which `b` is negated before
-    /// being exported as `minus_b`, which matches the representation held by
-    /// the client.
     static std::ostream &proof_write_json(
         const proof &proof, std::ostream &out_s);
 

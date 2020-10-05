@@ -252,8 +252,11 @@ def charlie_double_withdraw(
         (output_note2, pk_charlie)])
 
     # Compute the joinSplit signature
+    pp = zeth_client._get_prover_config().pairing_parameters \
+        # pylint: disable=protected-access
     joinsplit_sig_charlie = joinsplit_sign(
         zksnark,
+        pp,
         signing_keypair,
         charlie_eth_address,
         ciphertexts,
@@ -314,6 +317,10 @@ def charlie_corrupt_bob_deposit(
     # mk_tree_depth = zeth_client.mk_tree_depth
     # mk_root = zeth_client.merkle_root
 
+    # Get pairing parameters
+    pp = zeth_client._get_prover_config().pairing_parameters \
+        # pylint: disable=protected-access
+
     # Create the JoinSplit dummy inputs for the deposit
     input1 = get_dummy_input_and_address(bob_apk)
     input2 = get_dummy_input_and_address(bob_apk)
@@ -358,6 +365,7 @@ def charlie_corrupt_bob_deposit(
     try:
         joinsplit_sig_charlie = joinsplit_sign(
             zksnark,
+            pp,
             joinsplit_keypair,
             charlie_eth_address,
             ciphertexts,
@@ -397,6 +405,7 @@ def charlie_corrupt_bob_deposit(
     try:
         joinsplit_sig_charlie = joinsplit_sign(
             zksnark,
+            pp,
             new_joinsplit_keypair,
             charlie_eth_address,
             [fake_ciphertext0, fake_ciphertext1],
@@ -427,6 +436,7 @@ def charlie_corrupt_bob_deposit(
     try:
         joinsplit_sig_bob = joinsplit_sign(
             zksnark,
+            pp,
             joinsplit_keypair,
             bob_eth_address,
             ciphertexts,
@@ -456,6 +466,7 @@ def charlie_corrupt_bob_deposit(
     # Bob transaction is finally mined
     joinsplit_sig_bob = joinsplit_sign(
         zksnark,
+        pp,
         joinsplit_keypair,
         bob_eth_address,
         ciphertexts,

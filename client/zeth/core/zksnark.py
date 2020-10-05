@@ -88,7 +88,8 @@ class IZKSnarkProvider(ABC):
     @staticmethod
     @abstractmethod
     def verification_key_to_contract_parameters(
-            vk: IVerificationKey) -> List[int]:
+            vk: IVerificationKey,
+            pp: pairing.PairingParameters) -> List[int]:
         pass
 
     @staticmethod
@@ -129,7 +130,8 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def proof_to_contract_parameters(proof: IProof) -> List[int]:
+    def proof_to_contract_parameters(
+            proof: IProof, pp: pairing.PairingParameters) -> List[int]:
         """
         Generate the leading parameters to the mix function for this SNARK, from a
         GenericProof object.
@@ -172,16 +174,16 @@ class Groth16(IZKSnarkProvider):
         def __init__(
                 self,
                 a: pairing.GenericG1Point,
-                minus_b: pairing.GenericG2Point,
+                b: pairing.GenericG2Point,
                 c: pairing.GenericG1Point):
             self.a = a
-            self.minus_b = minus_b
+            self.b = b
             self.c = c
 
         def to_json_dict(self) -> Dict[str, Any]:
             return {
                 "a": self.a.to_json_list(),
-                "minus_b": self.minus_b.to_json_list(),
+                "b": self.b.to_json_list(),
                 "c": self.c.to_json_list(),
             }
 
@@ -189,8 +191,7 @@ class Groth16(IZKSnarkProvider):
         def from_json_dict(json_dict: Dict[str, Any]) -> Groth16.Proof:
             return Groth16.Proof(
                 a=pairing.GenericG1Point.from_json_list(json_dict["a"]),
-                minus_b=pairing.GenericG2Point.from_json_list(
-                    json_dict["minus_b"]),
+                b=pairing.GenericG2Point.from_json_list(json_dict["b"]),
                 c=pairing.GenericG1Point.from_json_list(json_dict["c"]))
 
     @staticmethod
@@ -199,7 +200,8 @@ class Groth16(IZKSnarkProvider):
 
     @staticmethod
     def verification_key_to_contract_parameters(
-            vk: IVerificationKey) -> List[int]:
+            vk: IVerificationKey,
+            pp: pairing.PairingParameters) -> List[int]:
         assert isinstance(vk, Groth16.VerificationKey)
         return \
             pairing.group_point_g1_to_contract_parameters(vk.alpha) + \
@@ -250,7 +252,7 @@ class Groth16(IZKSnarkProvider):
         return ExtendedProof(
             proof=Groth16.Proof(
                 a=pairing.group_point_g1_from_proto(ext_proof.a),
-                minus_b=pairing.group_point_g2_from_proto(ext_proof.minus_b),
+                b=pairing.group_point_g2_from_proto(ext_proof.b),
                 c=pairing.group_point_g1_from_proto(ext_proof.c)),
             inputs=json.loads(ext_proof.inputs))
 
@@ -263,17 +265,19 @@ class Groth16(IZKSnarkProvider):
         proof_proto = extproof_proto.groth16_extended_proof \
             # pylint: disable=no-member
         pairing.group_point_g1_to_proto(proof.a, proof_proto.a)
-        pairing.group_point_g2_to_proto(proof.minus_b, proof_proto.minus_b)
+        pairing.group_point_g2_to_proto(proof.b, proof_proto.b)
         pairing.group_point_g1_to_proto(proof.c, proof_proto.c)
         proof_proto.inputs = json.dumps(ext_proof.inputs)
         return extproof_proto
 
     @staticmethod
-    def proof_to_contract_parameters(proof: IProof) -> List[int]:
+    def proof_to_contract_parameters(
+            proof: IProof, pp: pairing.PairingParameters) -> List[int]:
         assert isinstance(proof, Groth16.Proof)
+        minus_b = pairing.g2_element_negate(proof.b, pp)
         return \
             pairing.group_point_g1_to_contract_parameters(proof.a) + \
-            pairing.group_point_g2_to_contract_parameters(proof.minus_b) + \
+            pairing.group_point_g2_to_contract_parameters(minus_b) + \
             pairing.group_point_g1_to_contract_parameters(proof.c)
 
 
@@ -374,7 +378,8 @@ class PGHR13(IZKSnarkProvider):
 
     @staticmethod
     def verification_key_to_contract_parameters(
-            vk: IVerificationKey) -> List[int]:
+            vk: IVerificationKey,
+            pp: pairing.PairingParameters) -> List[int]:
         assert isinstance(vk, PGHR13.VerificationKey)
         return \
             pairing.group_point_g2_to_contract_parameters(vk.a) + \
@@ -452,7 +457,8 @@ class PGHR13(IZKSnarkProvider):
         return extproof_proto
 
     @staticmethod
-    def proof_to_contract_parameters(proof: IProof) -> List[int]:
+    def proof_to_contract_parameters(
+            proof: IProof, pp: pairing.PairingParameters) -> List[int]:
         assert isinstance(proof, PGHR13.Proof)
         return \
             pairing.group_point_g1_to_contract_parameters(proof.a) + \
