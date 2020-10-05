@@ -203,10 +203,12 @@ class Groth16(IZKSnarkProvider):
             vk: IVerificationKey,
             pp: pairing.PairingParameters) -> List[int]:
         assert isinstance(vk, Groth16.VerificationKey)
+        minus_beta = pairing.g2_element_negate(vk.beta, pp)
+        minus_delta = pairing.g2_element_negate(vk.delta, pp)
         return \
             pairing.group_point_g1_to_contract_parameters(vk.alpha) + \
-            pairing.group_point_g2_to_contract_parameters(vk.beta) + \
-            pairing.group_point_g2_to_contract_parameters(vk.delta) + \
+            pairing.group_point_g2_to_contract_parameters(minus_beta) + \
+            pairing.group_point_g2_to_contract_parameters(minus_delta) + \
             sum(
                 [pairing.group_point_g1_to_contract_parameters(abc)
                  for abc in vk.abc],
@@ -274,10 +276,9 @@ class Groth16(IZKSnarkProvider):
     def proof_to_contract_parameters(
             proof: IProof, pp: pairing.PairingParameters) -> List[int]:
         assert isinstance(proof, Groth16.Proof)
-        minus_b = pairing.g2_element_negate(proof.b, pp)
         return \
             pairing.group_point_g1_to_contract_parameters(proof.a) + \
-            pairing.group_point_g2_to_contract_parameters(minus_b) + \
+            pairing.group_point_g2_to_contract_parameters(proof.b) + \
             pairing.group_point_g1_to_contract_parameters(proof.c)
 
 

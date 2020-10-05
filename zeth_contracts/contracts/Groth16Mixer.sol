@@ -17,14 +17,16 @@ import "./Pairing.sol";
 contract Groth16Mixer is BaseMixer {
 
     // The structure of the verification key differs from the reference paper.
-    // It doesn't contain any element of GT, but only elements of G1 and G2 (the
-    // source groups).  This is due to the lack of precompiled contract to
-    // manipulate elements of the target group GT on Ethereum.
+    // It doesn't contain any element of GT, but only elements of G1 and G2
+    // (the source groups). This is due to the lack of precompiled contract to
+    // manipulate elements of the target group GT on Ethereum. Note that Beta
+    // and Delta are negated to avoid having to perform point negations in
+    // contract code.
     struct VerifyingKey {
-        Pairing.G1Point Alpha;      // slots 0x00, 0x01
-        Pairing.G2Point Beta;       // slots 0x02, 0x03, 0x04, 0x05
-        Pairing.G2Point Delta;      // slots 0x06, 0x07, 0x08, 0x09
-        Pairing.G1Point[] ABC;      // slot 0x0a
+        Pairing.G1Point Alpha;       // slots 0x00, 0x01
+        Pairing.G2Point Minus_Beta;  // slots 0x02, 0x03, 0x04, 0x05
+        Pairing.G2Point Minus_Delta; // slots 0x06, 0x07, 0x08, 0x09
+        Pairing.G1Point[] ABC;       // slot 0x0a
     }
 
     // Internal Proof structure.  Avoids reusing the G1 and G2 structs, since
@@ -34,11 +36,11 @@ contract Groth16Mixer is BaseMixer {
         // Pairing.G1Point A;
         uint256 A_X;
         uint256 A_Y;
-        // Pairing.G2Point minus_B;
-        uint256 minus_B_X0;
-        uint256 minus_B_X1;
-        uint256 minus_B_Y0;
-        uint256 minus_B_Y1;
+        // Pairing.G2Point B;
+        uint256 B_X0;
+        uint256 B_X1;
+        uint256 B_Y0;
+        uint256 B_Y1;
         // Pairing.G1Point C;
         uint256 C_X;
         uint256 C_Y;
@@ -48,9 +50,12 @@ contract Groth16Mixer is BaseMixer {
 
     // Constructor.  Form of vk is:
     //    uint256[2] Alpha,
-    //    uint256[4] Beta,
-    //    uint256[4] Delta,
+    //    uint256[4] Minus_Beta,
+    //    uint256[4] Minus_Delta,
     //    uint256[] ABC_coords
+    //
+    //  This matches the Groth16 code in zksnark.py, which handles the
+    //  parameter encoding.
     constructor(
         uint256 mk_depth,
         address token,
@@ -62,8 +67,8 @@ contract Groth16Mixer is BaseMixer {
         require(vk_words >= 12, "invalid vk length");
 
         verifyKey.Alpha = Pairing.G1Point(vk[0], vk[1]);
-        verifyKey.Beta = Pairing.G2Point(vk[2], vk[3], vk[4], vk[5]);
-        verifyKey.Delta = Pairing.G2Point(vk[6], vk[7], vk[8], vk[9]);
+        verifyKey.Minus_Beta = Pairing.G2Point(vk[2], vk[3], vk[4], vk[5]);
+        verifyKey.Minus_Delta = Pairing.G2Point(vk[6], vk[7], vk[8], vk[9]);
 
         // The `ABC` are elements of G1 (and thus have 2 coordinates in the
         // underlying field). Here, we reconstruct these group elements from
@@ -77,7 +82,7 @@ contract Groth16Mixer is BaseMixer {
     // Format of proof is:
     //
     //   uint256[2] a,              (offset 00 - 0x00)
-    //   uint256[4] minus_b,        (offset 02 - 0x02)
+    //   uint256[4] b,              (offset 02 - 0x02)
     //   uint256[2] c,              (offset 06 - 0x06)
     //   <end>                      (offset 08 - 0x08)
     function mix(
@@ -284,26 +289,27 @@ contract Groth16Mixer is BaseMixer {
         //   0x0180 - negate(Proof.A) in G1
         //   0x0100 - vk.Beta in G2
         //   0x00c0 - vk.Alpha in G1
-        //   0x0040 - P2 in G2
+        //   0x0040 - -g2 in G2
         //   0x0000 - vk_x in G1  (Already present, by the above)
 
         assembly {
 
-            // Write P2, from offset 0x40.  See Pairing for these values.
+            // Write -g2 (G2 generator), from offset 0x40. (These values are
+            // computed by the ec_operations_data_test).
             mstore(
                 add(pad, 0x040),
-                11559732032986387107991004021392285783925812861821192530917403151452391805634)
+                0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2)
             mstore(
                 add(pad, 0x060),
-                10857046999023057135944570762232829481370756359578518086990519993285655852781)
+                0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed)
             mstore(
                 add(pad, 0x080),
-                4082367875863433681332203403145435568316851327593401208105741076214120093531)
+                0x275dc4a288d1afb3cbb1ac09187524c7db36395df7be3b99e673b13a075a65ec)
             mstore(
                 add(pad, 0x0a0),
-                8495653923123431417604973247489272438418190587263600148770280649306958101930)
+                0x1d9befcd05a5323e6da4d435f3b617cdb3af83285c2df711ef39c01571827f9d)
 
-            // Write vk.Alpha, vk.Beta (first 6 uints from verifyKey) from
+            // Write vk.Alpha, vk.Minus_Beta (first 6 uints from verifyKey) from
             // offset 0x0c0.
             mstore(add(pad, 0x0c0), sload(verifyKey_slot))
             mstore(add(pad, 0x0e0), sload(add(verifyKey_slot, 1)))
@@ -312,7 +318,7 @@ contract Groth16Mixer is BaseMixer {
             mstore(add(pad, 0x140), sload(add(verifyKey_slot, 4)))
             mstore(add(pad, 0x160), sload(add(verifyKey_slot, 5)))
 
-            // Write Proof.A and Proof.minus_B from offset 0x180.
+            // Write Proof.A and Proof.B from offset 0x180.
             mstore(add(pad, 0x180), mload(proof))
             mstore(add(pad, 0x1a0), mload(add(proof, 0x20)))
             mstore(add(pad, 0x1c0), mload(add(proof, 0x40)))
@@ -320,7 +326,7 @@ contract Groth16Mixer is BaseMixer {
             mstore(add(pad, 0x200), mload(add(proof, 0x80)))
             mstore(add(pad, 0x220), mload(add(proof, 0xa0)))
 
-            // Proof.C and verifyKey.Delta from offset 0x240.
+            // Proof.C and verifyKey.Minus_Delta from offset 0x240.
             mstore(add(pad, 0x240), mload(add(proof, 0xc0)))
             mstore(add(pad, 0x260), mload(add(proof, 0xe0)))
             mstore(add(pad, 0x280), sload(add(verifyKey_slot, 6)))
