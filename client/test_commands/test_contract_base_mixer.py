@@ -6,6 +6,7 @@
 
 from zeth.core.constants import \
     JS_INPUTS, JS_OUTPUTS, PUBLIC_VALUE_LENGTH, ZETH_PUBLIC_UNIT_VALUE
+from zeth.core.prover_client import ProverClient
 from zeth.core.mixer_client import MixerClient
 from typing import Any
 import test_commands.mock as mock
@@ -127,8 +128,9 @@ def main() -> None:
     # Ethereum addresses
     deployer_eth_address = eth.accounts[0]
 
+    prover_client = ProverClient(mock.TEST_PROVER_SERVER_ENDPOINT)
     zeth_client, _ = MixerClient.deploy(
-        web3, mock.TEST_PROVER_SERVER_ENDPOINT, deployer_eth_address, None)
+        web3, prover_client, deployer_eth_address, None)
 
     mixer_instance = zeth_client.mixer_instance
 

@@ -5,7 +5,8 @@
 from zeth.cli.constants import INSTANCE_FILE_DEFAULT
 from zeth.cli.utils import \
     open_web3_from_ctx, get_erc20_instance_description, load_eth_address, \
-    load_eth_private_key, write_mixer_description, MixerDescription
+    load_eth_private_key, write_mixer_description, MixerDescription, \
+    create_prover_client
 from zeth.core.mixer_client import MixerClient
 from click import Context, command, option, pass_context
 from typing import Optional
@@ -43,9 +44,10 @@ def deploy(
     token_instance_desc = get_erc20_instance_description(token_address) \
         if token_address else None
 
+    prover_client = create_prover_client(client_ctx)
     _zeth_client, mixer_instance_desc = MixerClient.deploy(
         web3,
-        client_ctx.prover_server_endpoint,
+        prover_client,
         eth_address,
         eth_private_key_data,
         token_address,

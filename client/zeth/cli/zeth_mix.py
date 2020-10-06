@@ -77,7 +77,9 @@ def mix(
     # match vin_pub.
     tx_value = EtherValue(0) if mixer_desc.token else vin_pub
 
-    mix_params = zeth_client.create_mix_parameters(
+    # Create the MixParameters object manually so they can be displayed.
+    # TODO: support saving the generated MixParameters to be sent later.
+    mix_params, _ = zeth_client.create_mix_parameters_and_signing_key(
         wallet.merkle_tree,
         zeth_address.ownership_keypair(),
         eth_address,

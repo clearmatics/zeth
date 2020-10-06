@@ -21,7 +21,7 @@ from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
 from zeth.core.utils import EtherValue, digest_to_binary_string, \
     int64_to_hex, message_to_bytes, eth_address_to_bytes32, eth_uint256_to_int, \
     to_zeth_units, get_contracts_dir, hex_list_to_uint256_list
-from zeth.core.prover_client import ProverConfiguration, ProverClient
+from zeth.core.prover_client import ProverClient
 from zeth.api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
 
 import os
@@ -69,7 +69,8 @@ class JoinsplitInputNote:
 class MixCallDescription:
     """
     High-level description of a call to the mixer contract. Holds information
-    used when generating the ZK-proof and other data mix call parameters.
+    used when generating the ProofInputs, ZK-proof and final MixParameters
+    object.
     """
     def __init__(
             self,
@@ -278,27 +279,120 @@ class MixerClient:
             web3: Any,
             prover_client: ProverClient,
             mixer_instance: Any,
-            zksnark: IZKSnarkProvider,
-            prover_config: Optional[ProverConfiguration] = None):
+            zksnark: IZKSnarkProvider):
         self._prover_client = prover_client
         self.web3 = web3
         self._zksnark = zksnark
         self.mixer_instance = mixer_instance
-        self._prover_config = prover_config
 
     @staticmethod
-    def open(
+    def deploy(
             web3: Any,
-            prover_server_endpoint: str,
-            mixer_instance: Any) -> MixerClient:
+            prover_client: ProverClient,
+            deployer_eth_address: str,
+            deployer_eth_private_key: Optional[bytes],
+            token_address: Optional[str] = None,
+            deploy_gas: Optional[int] = None,
+            zksnark: Optional[IZKSnarkProvider] = None) \
+            -> Tuple[MixerClient, contracts.InstanceDescription]:
         """
-        Create a client for an existing Zeth deployment.
+        Deploy Zeth contracts.
         """
-        return MixerClient(
+        zksnark = zksnark or get_zksnark_provider(constants.ZKSNARK_DEFAULT)
+        prover_config = prover_client.get_configuration()
+        vk_proto = prover_client.get_verification_key()
+        pp = prover_config.pairing_parameters
+        vk = zksnark.verification_key_from_proto(vk_proto)
+        deploy_gas = deploy_gas or constants.DEPLOYMENT_GAS_WEI
+
+        print("[INFO] writing verification key...")
+        write_verification_key(vk, "vk.json")
+
+        contracts_dir = get_contracts_dir()
+        mixer_name = zksnark.get_contract_name()
+        mixer_src = os.path.join(contracts_dir, mixer_name + ".sol")
+
+        # Constructor parameters have the form:
+        #   uint256 mk_depth
+        #   address token
+        #   ... snark-specific key data ...
+        constructor_parameters: List[Any] = [
+            constants.ZETH_MERKLE_TREE_DEPTH,  # mk_depth
+            token_address or ZERO_ADDRESS,     # token
+            zksnark.verification_key_to_contract_parameters(vk, pp),  # vk
+        ]
+        mixer_description = contracts.InstanceDescription.deploy(
             web3,
-            ProverClient(prover_server_endpoint),
-            mixer_instance,
-            get_zksnark_provider(constants.ZKSNARK_DEFAULT))
+            mixer_src,
+            mixer_name,
+            deployer_eth_address,
+            deployer_eth_private_key,
+            deploy_gas,
+            compiler_flags={},
+            args=constructor_parameters)
+        mixer_instance = mixer_description.instantiate(web3)
+        client = MixerClient(web3, prover_client, mixer_instance, zksnark)
+        return client, mixer_description
+
+    def deposit(
+            self,
+            mk_tree: MerkleTree,
+            zeth_address: ZethAddress,
+            sender_eth_address: str,
+            sender_eth_private_key: Optional[bytes],
+            eth_amount: EtherValue,
+            outputs: Optional[List[Tuple[ZethAddressPub, EtherValue]]] = None,
+            tx_value: Optional[EtherValue] = None
+    ) -> str:
+        if not outputs or len(outputs) == 0:
+            outputs = [(zeth_address.addr_pk, eth_amount)]
+        return self.joinsplit(
+            mk_tree,
+            sender_ownership_keypair=zeth_address.ownership_keypair(),
+            sender_eth_address=sender_eth_address,
+            sender_eth_private_key=sender_eth_private_key,
+            inputs=[],
+            outputs=outputs,
+            v_in=eth_amount,
+            v_out=EtherValue(0),
+            tx_value=tx_value)
+
+    def joinsplit(
+            self,
+            mk_tree: MerkleTree,
+            sender_ownership_keypair: OwnershipKeyPair,
+            sender_eth_address: str,
+            sender_eth_private_key: Optional[bytes],
+            inputs: List[Tuple[int, ZethNote]],
+            outputs: List[Tuple[ZethAddressPub, EtherValue]],
+            v_in: EtherValue,
+            v_out: EtherValue,
+            tx_value: Optional[EtherValue] = None,
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None) -> str:
+        mix_params, _ = self.create_mix_parameters_and_signing_key(
+            mk_tree,
+            sender_ownership_keypair,
+            sender_eth_address,
+            inputs,
+            outputs,
+            v_in,
+            v_out,
+            compute_h_sig_cb)
+
+        # By default transfer exactly v_in, otherwise allow caller to manually
+        # specify.
+        tx_value = tx_value or v_in
+        pp = self._prover_client.get_configuration().pairing_parameters
+        return contracts.mix(
+            self.web3,
+            self._zksnark,
+            pp,
+            self.mixer_instance,
+            mix_params,
+            sender_eth_address,
+            sender_eth_private_key,
+            tx_value,
+            constants.DEFAULT_MIX_GAS_WEI)
 
     @staticmethod
     def create_prover_inputs(
@@ -378,202 +472,28 @@ class MixerClient:
             phi=phi.hex())
         return (proof_inputs, signing_keypair)
 
-    @staticmethod
-    def deploy(
-            web3: Any,
-            prover_server_endpoint: str,
-            deployer_eth_address: str,
-            deployer_eth_private_key: Optional[bytes],
-            token_address: Optional[str] = None,
-            deploy_gas: Optional[int] = None,
-            zksnark: Optional[IZKSnarkProvider] = None) \
-            -> Tuple[MixerClient, contracts.InstanceDescription]:
-        """
-        Deploy Zeth contracts.
-        """
-        print("[INFO] 1. Fetching verification key from the proving server")
-        zksnark = zksnark or get_zksnark_provider(constants.ZKSNARK_DEFAULT)
-        prover_client = ProverClient(prover_server_endpoint)
-        prover_config = prover_client.get_configuration()
-        vk_proto = prover_client.get_verification_key()
-        pp = prover_config.pairing_parameters
-        vk = zksnark.verification_key_from_proto(vk_proto)
-        deploy_gas = deploy_gas or constants.DEPLOYMENT_GAS_WEI
-
-        print("[INFO] 2. Received VK, writing verification key...")
-        write_verification_key(vk, "vk.json")
-
-        print("[INFO] 3. VK written, deploying smart contracts...")
-        contracts_dir = get_contracts_dir()
-        mixer_name = zksnark.get_contract_name()
-        mixer_src = os.path.join(contracts_dir, mixer_name + ".sol")
-
-        # Constructor parameters have the form:
-        #   uint256 mk_depth
-        #   address token
-        #   ... snark-specific key data ...
-        constructor_parameters: List[Any] = [
-            constants.ZETH_MERKLE_TREE_DEPTH,  # mk_depth
-            token_address or ZERO_ADDRESS,     # token
-            zksnark.verification_key_to_contract_parameters(vk, pp),  # vk
-        ]
-        mixer_description = contracts.InstanceDescription.deploy(
-            web3,
-            mixer_src,
-            mixer_name,
-            deployer_eth_address,
-            deployer_eth_private_key,
-            deploy_gas,
-            compiler_flags={},
-            args=constructor_parameters)
-        mixer_instance = mixer_description.instantiate(web3)
-        client = MixerClient(
-            web3, prover_client, mixer_instance, zksnark, prover_config)
-        return client, mixer_description
-
-    def deposit(
+    def create_mix_parameters_from_proof(
             self,
-            mk_tree: MerkleTree,
-            zeth_address: ZethAddress,
-            sender_eth_address: str,
-            sender_eth_private_key: Optional[bytes],
-            eth_amount: EtherValue,
-            outputs: Optional[List[Tuple[ZethAddressPub, EtherValue]]] = None,
-            tx_value: Optional[EtherValue] = None
-    ) -> str:
-        if not outputs or len(outputs) == 0:
-            outputs = [(zeth_address.addr_pk, eth_amount)]
-        return self.joinsplit(
-            mk_tree,
-            sender_ownership_keypair=zeth_address.ownership_keypair(),
-            sender_eth_address=sender_eth_address,
-            sender_eth_private_key=sender_eth_private_key,
-            inputs=[],
-            outputs=outputs,
-            v_in=eth_amount,
-            v_out=EtherValue(0),
-            tx_value=tx_value)
-
-    def joinsplit(
-            self,
-            mk_tree: MerkleTree,
-            sender_ownership_keypair: OwnershipKeyPair,
-            sender_eth_address: str,
-            sender_eth_private_key: Optional[bytes],
-            inputs: List[Tuple[int, ZethNote]],
-            outputs: List[Tuple[ZethAddressPub, EtherValue]],
-            v_in: EtherValue,
-            v_out: EtherValue,
-            tx_value: Optional[EtherValue] = None,
-            compute_h_sig_cb: Optional[ComputeHSigCB] = None) -> str:
-        mix_params, _ = self.create_mix_parameters_keep_signing_key(
-            mk_tree,
-            sender_ownership_keypair,
-            sender_eth_address,
-            inputs,
-            outputs,
-            v_in,
-            v_out,
-            compute_h_sig_cb)
-
-        # By default transfer exactly v_in, otherwise allow caller to manually
-        # specify.
-        tx_value = tx_value or v_in
-        return contracts.mix(
-            self.web3,
-            self._zksnark,
-            self._get_prover_config().pairing_parameters,
-            self.mixer_instance,
-            mix_params,
-            sender_eth_address,
-            sender_eth_private_key,
-            tx_value,
-            constants.DEFAULT_MIX_GAS_WEI)
-
-    def create_mix_parameters_keep_signing_key(
-            self,
-            mk_tree: MerkleTree,
-            sender_ownership_keypair: OwnershipKeyPair,
-            sender_eth_address: str,
-            inputs: List[Tuple[int, ZethNote]],
-            outputs: List[Tuple[ZethAddressPub, EtherValue]],
-            v_in: EtherValue,
-            v_out: EtherValue,
-            compute_h_sig_cb: Optional[ComputeHSigCB] = None
-    ) -> Tuple[contracts.MixParameters, JoinsplitSigKeyPair]:
-        assert len(inputs) <= constants.JS_INPUTS
-        assert len(outputs) <= constants.JS_OUTPUTS
-
-        # sender_a_sk = sender_ownership_keypair.a_sk
-        sender_a_pk = sender_ownership_keypair.a_pk
-        inputs = \
-            inputs + \
-            [get_dummy_input_and_address(sender_a_pk)
-             for _ in range(constants.JS_INPUTS - len(inputs))]
-        mk_root = mk_tree.get_root()
-        mk_paths = [compute_merkle_path(addr, mk_tree) for addr, _ in inputs]
-
-        # Generate output notes and proof.  Dummy outputs are constructed with
-        # value 0 to an invalid ZethAddressPub, formed from the senders
-        # a_pk, and an ephemeral k_pk.
-        dummy_k_pk = generate_encryption_keypair().k_pk
-        dummy_addr_pk = ZethAddressPub(sender_a_pk, dummy_k_pk)
-        outputs = \
-            outputs + \
-            [(dummy_addr_pk, EtherValue(0))
-             for _ in range(constants.JS_OUTPUTS - len(outputs))]
-        outputs_with_a_pk = \
-            [(zeth_addr.a_pk, to_zeth_units(value))
-             for (zeth_addr, value) in outputs]
-
-        # Timer used to time proof-generation round trip time.
-        timer = Timer.started()
-        proof_inputs, signing_keypair = self.compute_2x2_proof_inputs(
-            mk_root,
-            inputs[0],
-            mk_paths[0],
-            inputs[1],
-            mk_paths[1],
-            sender_ownership_keypair.a_sk,
-            outputs_with_a_pk[0],
-            outputs_with_a_pk[1],
-            v_in,
-            v_out,
-            compute_h_sig_cb)
-
-        # Query the prover_server for the related proof
-        ext_proof_proto = self._prover_client.get_proof(proof_inputs)
-        ext_proof = self._zksnark.extended_proof_from_proto(ext_proof_proto)
-
-        # (output_note1, output_note2, extproof, signing_keypair) =
-        #     self.get_proof_joinsplit_2_by_2(
-        #         mk_root,
-        #         inputs[0],
-        #         mk_paths[0],
-        #         inputs[1],
-        #         mk_paths[1],
-        #         sender_a_sk,
-        #         outputs_with_a_pk[0],
-        #         outputs_with_a_pk[1],
-        #         to_zeth_units(v_in),
-        #         to_zeth_units(v_out),
-        #         compute_h_sig_cb)
-
-        proof_gen_time_s = timer.elapsed_seconds()
-        print(f"PROOF GEN ROUND TRIP: {proof_gen_time_s} seconds")
+            mix_call_desc: MixCallDescription,
+            prover_inputs: ProofInputs,
+            signing_keypair: signing.SigningKeyPair,
+            ext_proof: ExtendedProof,
+            sender_eth_address: str
+    ) -> contracts.MixParameters:
 
         # Encrypt the notes
-        outputs_and_notes = zip(outputs, proof_inputs.js_outputs) \
+        outputs_and_notes = zip(mix_call_desc.outputs, prover_inputs.js_outputs) \
             # pylint: disable=no-member
-        output_notes_with_k_pk = \
+        output_notes_with_k_pk: List[Tuple[ZethNote, EncryptionPublicKey]] = \
             [(note, zeth_addr.k_pk)
              for ((zeth_addr, _), note) in outputs_and_notes]
         ciphertexts = encrypt_notes(output_notes_with_k_pk)
 
         # Sign
+        pp = self._prover_client.get_configuration().pairing_parameters
         signature = joinsplit_sign(
             self._zksnark,
-            self._get_prover_config().pairing_parameters,
+            pp,
             signing_keypair,
             sender_eth_address,
             ciphertexts,
@@ -584,9 +504,9 @@ class MixerClient:
             signing_keypair.vk,
             signature,
             ciphertexts)
-        return mix_params, signing_keypair
+        return mix_params
 
-    def create_mix_parameters(
+    def create_mix_parameters_and_signing_key(
             self,
             mk_tree: MerkleTree,
             sender_ownership_keypair: OwnershipKeyPair,
@@ -596,17 +516,36 @@ class MixerClient:
             v_in: EtherValue,
             v_out: EtherValue,
             compute_h_sig_cb: Optional[ComputeHSigCB] = None
-    ) -> contracts.MixParameters:
-        mix_params, _sig_keypair = self.create_mix_parameters_keep_signing_key(
+    ) -> Tuple[contracts.MixParameters, JoinsplitSigKeyPair]:
+        """
+        Convenient around creation of MixCallDescription, ProofInputs, Proof and
+        MixParameters.
+        """
+        # Generate prover inputs and signing key
+        mix_call_desc = MixCallDescription(
             mk_tree,
             sender_ownership_keypair,
-            sender_eth_address,
             inputs,
             outputs,
             v_in,
             v_out,
             compute_h_sig_cb)
-        return mix_params
+        prover_inputs, signing_keypair = MixerClient.create_prover_inputs(
+            mix_call_desc)
+
+        # Query the prover_server for the related proof
+        ext_proof_proto = self._prover_client.get_proof(prover_inputs)
+        ext_proof = self._zksnark.extended_proof_from_proto(ext_proof_proto)
+
+        # Create the final MixParameters object
+        mix_params = self.create_mix_parameters_from_proof(
+            mix_call_desc,
+            prover_inputs,
+            signing_keypair,
+            ext_proof,
+            sender_eth_address)
+
+        return mix_params, signing_keypair
 
     def mix(
             self,
@@ -615,10 +554,11 @@ class MixerClient:
             sender_eth_private_key: Optional[bytes],
             tx_value: Optional[EtherValue] = None,
             call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> str:
+        pp = self._prover_client.get_configuration().pairing_parameters
         return contracts.mix(
             self.web3,
             self._zksnark,
-            self._get_prover_config().pairing_parameters,
+            pp,
             self.mixer_instance,
             mix_params,
             sender_eth_address,
@@ -632,19 +572,15 @@ class MixerClient:
             sender_eth_address: str,
             wei_pub_value: int,
             call_gas: int) -> bool:
+        pp = self._prover_client.get_configuration().pairing_parameters
         return contracts.mix_call(
             self._zksnark,
-            self._get_prover_config().pairing_parameters,
+            pp,
             self.mixer_instance,
             mix_params,
             sender_eth_address,
             wei_pub_value,
             call_gas)
-
-    def _get_prover_config(self) -> ProverConfiguration:
-        if not self._prover_config:
-            self._prover_config = self._prover_client.get_configuration()
-        return self._prover_config
 
 
 def encrypt_notes(

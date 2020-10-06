@@ -9,6 +9,7 @@ import zeth.core.contracts
 import zeth.core.merkle_tree
 import zeth.core.utils
 import zeth.core.zksnark
+from zeth.core.prover_client import ProverClient
 from zeth.core.zeth_address import ZethAddressPriv
 from zeth.core.contracts import MixOutputEvents
 from zeth.core.mixer_client import MixerClient
@@ -44,11 +45,14 @@ def main() -> None:
     alice_eth_address = eth.accounts[2]
     charlie_eth_address = eth.accounts[3]
 
+    # ProverClient
+    prover_client = ProverClient(mock.TEST_PROVER_SERVER_ENDPOINT)
+
     # Deploy Zeth contracts
     tree_depth = zeth.core.constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client, _contract_desc = MixerClient.deploy(
         web3,
-        mock.TEST_PROVER_SERVER_ENDPOINT,
+        prover_client,
         deployer_eth_address,
         None,
         None,

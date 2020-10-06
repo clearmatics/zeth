@@ -20,7 +20,7 @@ public:
     using keypair = libsnark::r1cs_ppzksnark_keypair<ppT>;
     using proof = libsnark::r1cs_ppzksnark_proof<ppT>;
 
-    /// String name of this snark, corresppnding to <SNARK> in the
+    /// String name of this snark, corresponding to <SNARK> in the
     /// ZETH_SNARK_<SNARK> configuration variable.
     static const std::string name;
 
