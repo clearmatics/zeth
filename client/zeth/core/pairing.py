@@ -14,7 +14,7 @@ import json
 from typing import Dict, List, Union, Any
 
 
-class GenericG1Point:
+class G1Point:
     """
     G1 Group Points. A typed tuple of strings, stored as a JSON array.
     """
@@ -29,7 +29,7 @@ class GenericG1Point:
         return self.__str__()
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, GenericG1Point):
+        if not isinstance(other, G1Point):
             return False
         return (self.x_coord == other.x_coord) and (self.y_coord == other.y_coord)
 
@@ -37,33 +37,33 @@ class GenericG1Point:
         return [self.x_coord, self.y_coord]
 
     @staticmethod
-    def from_json_list(json_list: List[str]) -> GenericG1Point:
-        return GenericG1Point(json_list[0], json_list[1])
+    def from_json_list(json_list: List[str]) -> G1Point:
+        return G1Point(json_list[0], json_list[1])
 
 
-def group_point_g1_from_proto(
-        point: ec_group_messages_pb2.Group1Point) -> GenericG1Point:
+def g1_point_from_proto(
+        point: ec_group_messages_pb2.Group1Point) -> G1Point:
     x_coord = json.loads(point.x_coord)
     y_coord = json.loads(point.y_coord)
     assert isinstance(x_coord, str)
     assert isinstance(y_coord, str)
-    return GenericG1Point(x_coord, y_coord)
+    return G1Point(x_coord, y_coord)
 
 
-def group_point_g1_to_proto(
-        g1: GenericG1Point,
+def g1_point_to_proto(
+        g1: G1Point,
         g1_proto: ec_group_messages_pb2.Group1Point) -> None:
     g1_proto.x_coord = json.dumps(g1.x_coord)
     g1_proto.y_coord = json.dumps(g1.y_coord)
 
 
-def group_point_g1_to_contract_parameters(g1: GenericG1Point) -> List[int]:
+def g1_point_to_contract_parameters(g1: G1Point) -> List[int]:
     return \
         list(hex_to_uint256_list(g1.x_coord)) + \
         list(hex_to_uint256_list(g1.y_coord))
 
 
-class GenericG2Point:
+class G2Point:
     """
     G2 Group Points. Depending on the curve, coordinates may be in the base
     (non-extension) field (i.e. simple json strings), or an extension field
@@ -83,7 +83,7 @@ class GenericG2Point:
         return self.__str__()
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, GenericG2Point):
+        if not isinstance(other, G2Point):
             return False
         return (self.x_coord == other.x_coord) and (self.y_coord == other.y_coord)
 
@@ -91,25 +91,25 @@ class GenericG2Point:
         return [self.x_coord, self.y_coord]
 
     @staticmethod
-    def from_json_list(json_list: List[Union[str, List[str]]]) -> GenericG2Point:
-        return GenericG2Point(json_list[0], json_list[1])
+    def from_json_list(json_list: List[Union[str, List[str]]]) -> G2Point:
+        return G2Point(json_list[0], json_list[1])
 
 
-def group_point_g2_from_proto(
-        point: ec_group_messages_pb2.Group2Point) -> GenericG2Point:
-    return GenericG2Point(
+def g2_point_from_proto(
+        point: ec_group_messages_pb2.Group2Point) -> G2Point:
+    return G2Point(
         x_coord=json.loads(point.x_coord),
         y_coord=json.loads(point.y_coord))
 
 
-def group_point_g2_to_proto(
-        g2: GenericG2Point,
+def g2_point_to_proto(
+        g2: G2Point,
         g2_proto: ec_group_messages_pb2.Group2Point) -> None:
     g2_proto.x_coord = json.dumps(g2.x_coord)
     g2_proto.y_coord = json.dumps(g2.y_coord)
 
 
-def group_point_g2_to_contract_parameters(g2: GenericG2Point) -> List[int]:
+def g2_point_to_contract_parameters(g2: G2Point) -> List[int]:
     if isinstance(g2.x_coord, str):
         assert isinstance(g2.y_coord, str)
         return \
@@ -128,8 +128,8 @@ class PairingParameters:
             self,
             r: str,
             q: str,
-            generator_g1: GenericG1Point,
-            generator_g2: GenericG2Point):
+            generator_g1: G1Point,
+            generator_g2: G2Point):
         self.r = r
         self.q = q
         self.generator_g1 = generator_g1
@@ -148,8 +148,8 @@ class PairingParameters:
         return PairingParameters(
             r=json_dict["r"],
             q=json_dict["q"],
-            generator_g1=GenericG1Point.from_json_list(json_dict["generator_g1"]),
-            generator_g2=GenericG2Point.from_json_list(json_dict["generator_g2"]))
+            generator_g1=G1Point.from_json_list(json_dict["generator_g1"]),
+            generator_g2=G2Point.from_json_list(json_dict["generator_g2"]))
 
 
 def pairing_parameters_from_proto(
@@ -158,8 +158,8 @@ def pairing_parameters_from_proto(
     return PairingParameters(
         r=pairing_params_proto.r,
         q=pairing_params_proto.q,
-        generator_g1=group_point_g1_from_proto(pairing_params_proto.generator_g1),
-        generator_g2=group_point_g2_from_proto(pairing_params_proto.generator_g2))
+        generator_g1=g1_point_from_proto(pairing_params_proto.generator_g1),
+        generator_g2=g2_point_from_proto(pairing_params_proto.generator_g2))
 
 
 def field_element_negate(value_hex: str, mod_hex: str) -> str:
@@ -169,17 +169,17 @@ def field_element_negate(value_hex: str, mod_hex: str) -> str:
     return int_to_hex(value, num_bytes)
 
 
-def g1_element_negate(
-        g1: GenericG1Point,
-        pairing_parameters: PairingParameters) -> GenericG1Point:
-    return GenericG1Point(
+def g1_point_negate(
+        g1: G1Point,
+        pairing_parameters: PairingParameters) -> G1Point:
+    return G1Point(
         g1.x_coord, field_element_negate(g1.y_coord, pairing_parameters.q))
 
 
-def g2_element_negate(
-        g2: GenericG2Point,
-        pp: PairingParameters) -> GenericG2Point:
+def g2_point_negate(
+        g2: G2Point,
+        pp: PairingParameters) -> G2Point:
     if isinstance(g2.y_coord, str):
-        return GenericG2Point(g2.x_coord, field_element_negate(g2.y_coord, pp.q))
-    return GenericG2Point(
+        return G2Point(g2.x_coord, field_element_negate(g2.y_coord, pp.q))
+    return G2Point(
         g2.x_coord, [field_element_negate(y, pp.q) for y in g2.y_coord])

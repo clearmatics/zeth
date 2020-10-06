@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.core.pairing import GenericG1Point, GenericG2Point, \
-    group_point_g1_from_proto, group_point_g1_to_proto, \
-    group_point_g2_to_proto, group_point_g2_from_proto
+from zeth.core.pairing import G1Point, G2Point, \
+    g1_point_from_proto, g1_point_to_proto, \
+    g2_point_to_proto, g2_point_from_proto
 from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey, ExtendedProof, \
     Groth16
 from zeth.api import ec_group_messages_pb2
@@ -404,13 +404,13 @@ class TestZKSnark(TestCase):
 
     def test_g1_proto_encode_decode(self) -> None:
         self._do_test_g1_proto_encode_decode(
-            GenericG1Point("0xaabbccdd", "0x11223344"))
+            G1Point("0xaabbccdd", "0x11223344"))
 
     def test_g2_proto_encode_decode(self) -> None:
         self._do_test_g2_proto_encode_decode(
-            GenericG2Point(["0xaabbccdd"], ["0x11223344"]))
+            G2Point(["0xaabbccdd"], ["0x11223344"]))
         self._do_test_g2_proto_encode_decode(
-            GenericG2Point(
+            G2Point(
                 ["0xcdeeff00", "0x11223344"], ["0x55667788", "0x99aabbcc"]))
 
     def test_verification_key_proto_encode_decode(self) -> None:
@@ -421,16 +421,16 @@ class TestZKSnark(TestCase):
         extproof_1 = EXTPROOF_BLS12_377_GROTH16
         self._do_test_ext_proof_proto_encode_decode(extproof_1, Groth16())
 
-    def _do_test_g1_proto_encode_decode(self, g1: GenericG1Point) -> None:
+    def _do_test_g1_proto_encode_decode(self, g1: G1Point) -> None:
         g1_proto = ec_group_messages_pb2.Group1Point()
-        group_point_g1_to_proto(g1, g1_proto)
-        g1_decoded = group_point_g1_from_proto(g1_proto)
+        g1_point_to_proto(g1, g1_proto)
+        g1_decoded = g1_point_from_proto(g1_proto)
         self.assertEqual(g1.to_json_list(), g1_decoded.to_json_list())
 
-    def _do_test_g2_proto_encode_decode(self, g2: GenericG2Point) -> None:
+    def _do_test_g2_proto_encode_decode(self, g2: G2Point) -> None:
         g2_proto = ec_group_messages_pb2.Group2Point()
-        group_point_g2_to_proto(g2, g2_proto)
-        g2_decoded = group_point_g2_from_proto(g2_proto)
+        g2_point_to_proto(g2, g2_proto)
+        g2_decoded = g2_point_from_proto(g2_proto)
         self.assertEqual(g2.to_json_list(), g2_decoded.to_json_list())
 
     def _do_test_verification_key_proto_encode_decode(
