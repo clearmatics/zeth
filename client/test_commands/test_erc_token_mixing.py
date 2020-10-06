@@ -55,8 +55,8 @@ def allowance(
 
 def main() -> None:
 
-    zksnark = zeth.core.zksnark.get_zksnark_provider(
-        zeth.core.utils.parse_zksnark_arg())
+    zksnark_name = zeth.core.utils.parse_zksnark_arg()
+    zksnark = zeth.core.zksnark.get_zksnark_provider(zksnark_name)
     web3, eth = mock.open_test_web3()
 
     # Ethereum addresses
@@ -72,6 +72,7 @@ def main() -> None:
 
     # ProverClient
     prover_client = ProverClient(mock.TEST_PROVER_SERVER_ENDPOINT)
+    assert prover_client.get_configuration().zksnark_name == zksnark_name
 
     # Deploy Zeth contracts
     tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
@@ -81,8 +82,7 @@ def main() -> None:
         deployer_eth_address,
         None,
         token_instance.address,
-        None,
-        zksnark)
+        None)
     mk_tree = zeth.core.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
     mixer_instance = zeth_client.mixer_instance
 

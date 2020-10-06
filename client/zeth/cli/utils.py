@@ -7,7 +7,6 @@ from zeth.cli.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT, \
     ETH_PRIVATE_KEY_FILE_DEFAULT, ETH_RPC_ENDPOINT_DEFAULTS, \
     ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT, \
     ZETH_PUBLIC_ADDRESS_FILE_DEFAULT
-from zeth.core.constants import ZKSNARK_DEFAULT
 from zeth.core.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.core.contracts import \
     InstanceDescription, get_block_number, get_mix_results, compile_files
@@ -16,7 +15,6 @@ from zeth.core.mixer_client import MixerClient
 from zeth.core.utils import \
     open_web3, short_commitment, EtherValue, get_zeth_dir, from_zeth_units
 from zeth.core.wallet import ZethNoteDescription, Wallet
-from zeth.core.zksnark import get_zksnark_provider
 from click import ClickException
 import json
 from os.path import exists, join, splitext
@@ -346,11 +344,7 @@ def create_mixer_client(ctx: ClientConfig) -> MixerClient:
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
     prover_client = create_prover_client(ctx)
-    return MixerClient(
-        web3,
-        prover_client,
-        mixer_instance,
-        get_zksnark_provider(ZKSNARK_DEFAULT))
+    return MixerClient(web3, prover_client, mixer_instance)
 
 
 def create_zeth_client_and_mixer_desc(
@@ -362,11 +356,7 @@ def create_zeth_client_and_mixer_desc(
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
     prover_client = create_prover_client(ctx)
-    zeth_client = MixerClient(
-        web3,
-        prover_client,
-        mixer_instance,
-        get_zksnark_provider(ZKSNARK_DEFAULT))
+    zeth_client = MixerClient(web3, prover_client, mixer_instance)
     return (zeth_client, mixer_desc)
 
 

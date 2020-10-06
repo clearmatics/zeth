@@ -278,11 +278,9 @@ class MixerClient:
             self,
             web3: Any,
             prover_client: ProverClient,
-            mixer_instance: Any,
-            zksnark: IZKSnarkProvider):
+            mixer_instance: Any):
         self._prover_client = prover_client
         self.web3 = web3
-        self._zksnark = zksnark
         self.mixer_instance = mixer_instance
 
     @staticmethod
@@ -292,14 +290,13 @@ class MixerClient:
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
             token_address: Optional[str] = None,
-            deploy_gas: Optional[int] = None,
-            zksnark: Optional[IZKSnarkProvider] = None) \
-            -> Tuple[MixerClient, contracts.InstanceDescription]:
+            deploy_gas: Optional[int] = None
+    ) -> Tuple[MixerClient, contracts.InstanceDescription]:
         """
         Deploy Zeth contracts.
         """
-        zksnark = zksnark or get_zksnark_provider(constants.ZKSNARK_DEFAULT)
         prover_config = prover_client.get_configuration()
+        zksnark = get_zksnark_provider(prover_config.zksnark_name)
         vk_proto = prover_client.get_verification_key()
         pp = prover_config.pairing_parameters
         vk = zksnark.verification_key_from_proto(vk_proto)
@@ -331,7 +328,7 @@ class MixerClient:
             compiler_flags={},
             args=constructor_parameters)
         mixer_instance = mixer_description.instantiate(web3)
-        client = MixerClient(web3, prover_client, mixer_instance, zksnark)
+        client = MixerClient(web3, prover_client, mixer_instance)
         return client, mixer_description
 
     def deposit(
@@ -382,10 +379,12 @@ class MixerClient:
         # By default transfer exactly v_in, otherwise allow caller to manually
         # specify.
         tx_value = tx_value or v_in
-        pp = self._prover_client.get_configuration().pairing_parameters
+        prover_config = self._prover_client.get_configuration()
+        zksnark = get_zksnark_provider(prover_config.zksnark_name)
+        pp = prover_config.pairing_parameters
         return contracts.mix(
             self.web3,
-            self._zksnark,
+            zksnark,
             pp,
             self.mixer_instance,
             mix_params,
@@ -490,10 +489,11 @@ class MixerClient:
         ciphertexts = encrypt_notes(output_notes_with_k_pk)
 
         # Sign
-        pp = self._prover_client.get_configuration().pairing_parameters
+        prover_config = self._prover_client.get_configuration()
+        zksnark = get_zksnark_provider(prover_config.zksnark_name)
         signature = joinsplit_sign(
-            self._zksnark,
-            pp,
+            zksnark,
+            prover_config.pairing_parameters,
             signing_keypair,
             sender_eth_address,
             ciphertexts,
@@ -533,9 +533,12 @@ class MixerClient:
         prover_inputs, signing_keypair = MixerClient.create_prover_inputs(
             mix_call_desc)
 
+        prover_config = self._prover_client.get_configuration()
+        zksnark = get_zksnark_provider(prover_config.zksnark_name)
+
         # Query the prover_server for the related proof
         ext_proof_proto = self._prover_client.get_proof(prover_inputs)
-        ext_proof = self._zksnark.extended_proof_from_proto(ext_proof_proto)
+        ext_proof = zksnark.extended_proof_from_proto(ext_proof_proto)
 
         # Create the final MixParameters object
         mix_params = self.create_mix_parameters_from_proof(
@@ -554,11 +557,12 @@ class MixerClient:
             sender_eth_private_key: Optional[bytes],
             tx_value: Optional[EtherValue] = None,
             call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> str:
-        pp = self._prover_client.get_configuration().pairing_parameters
+        prover_config = self._prover_client.get_configuration()
+        zksnark = get_zksnark_provider(prover_config.zksnark_name)
         return contracts.mix(
             self.web3,
-            self._zksnark,
-            pp,
+            zksnark,
+            prover_config.pairing_parameters,
             self.mixer_instance,
             mix_params,
             sender_eth_address,
@@ -572,10 +576,11 @@ class MixerClient:
             sender_eth_address: str,
             wei_pub_value: int,
             call_gas: int) -> bool:
-        pp = self._prover_client.get_configuration().pairing_parameters
+        prover_config = self._prover_client.get_configuration()
+        zksnark = get_zksnark_provider(prover_config.zksnark_name)
         return contracts.mix_call(
-            self._zksnark,
-            pp,
+            zksnark,
+            prover_config.pairing_parameters,
             self.mixer_instance,
             mix_params,
             sender_eth_address,
