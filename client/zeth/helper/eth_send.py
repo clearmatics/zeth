@@ -8,8 +8,8 @@ from zeth.cli.constants import ETH_ADDRESS_DEFAULT, ETH_PRIVATE_KEY_FILE_DEFAULT
 from zeth.cli.utils import \
     get_eth_network, load_eth_address, EtherValue, open_web3_from_network, \
     load_eth_private_key
-from click import command, option, pass_context, argument, ClickException
-from typing import Optional, Any
+from click import command, option, pass_context, argument, ClickException, Context
+from typing import Optional
 
 FUND_AMOUNT_DEFAULT = 1000000
 
@@ -29,7 +29,7 @@ FUND_AMOUNT_DEFAULT = 1000000
 @argument("dest-addr")
 @pass_context
 def eth_send(
-        ctx: Any,
+        ctx: Context,
         dest_addr: str,
         eth_private_key: Optional[str],
         eth_addr: Optional[str],

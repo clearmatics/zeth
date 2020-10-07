@@ -220,15 +220,13 @@ def mix_parameters_as_contract_arguments(
     Convert MixParameters to a list of eth ABI objects which can be passed to
     the contract's mix method.
     """
-    proof_params: List[Any] = zksnark.proof_to_contract_parameters(
-        mix_parameters.extended_proof)
-    proof_params.extend([
+    return [
+        zksnark.proof_to_contract_parameters(mix_parameters.extended_proof),
         verification_key_as_mix_parameter(mix_parameters.signature_vk),
         signature_as_mix_parameter(mix_parameters.signature),
         hex_list_to_uint256_list(mix_parameters.extended_proof["inputs"]),
-        mix_parameters.ciphertexts
-    ])
-    return proof_params
+        mix_parameters.ciphertexts,
+    ]
 
 
 def _create_web3_mixer_call(

@@ -8,6 +8,7 @@
 from zeth.helper.eth_gen_network_config import eth_gen_network_config
 from zeth.helper.eth_gen_address import eth_gen_address
 from zeth.helper.eth_get_balance import eth_get_balance
+from zeth.helper.eth_fund import eth_fund
 from zeth.helper.eth_send import eth_send
 from zeth.helper.token_approve import token_approve
 from zeth.cli.constants import ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
@@ -47,6 +48,7 @@ def zeth_helper(ctx: Context, eth_network: str) -> None:
 zeth_helper.add_command(eth_gen_network_config)
 zeth_helper.add_command(eth_gen_address)
 zeth_helper.add_command(eth_get_balance)
+zeth_helper.add_command(eth_fund)
 zeth_helper.add_command(eth_send)
 zeth_helper.add_command(token_approve)
 zeth_helper.add_command(help)

@@ -54,7 +54,7 @@ class IZKSnarkProvider(ABC):
     @staticmethod
     @abstractmethod
     def verification_key_to_contract_parameters(
-            vk: GenericVerificationKey) -> List[List[int]]:
+            vk: GenericVerificationKey) -> List[int]:
         pass
 
     @staticmethod
@@ -83,7 +83,7 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def proof_to_contract_parameters(extproof: GenericProof) -> List[List[int]]:
+    def proof_to_contract_parameters(extproof: GenericProof) -> List[int]:
         """
         Generate the leading parameters to the mix function for this SNARK, from a
         GenericProof object.
@@ -99,13 +99,12 @@ class Groth16SnarkProvider(IZKSnarkProvider):
 
     @staticmethod
     def verification_key_to_contract_parameters(
-            vk: GenericVerificationKey) -> List[List[int]]:
-        return [
-            hex_list_to_uint256_list(vk["alpha"]),
-            hex_list_to_uint256_list(vk["beta"]),
-            hex_list_to_uint256_list(vk["delta"]),
+            vk: GenericVerificationKey) -> List[int]:
+        return \
+            hex_list_to_uint256_list(vk["alpha"]) + \
+            hex_list_to_uint256_list(vk["beta"]) + \
+            hex_list_to_uint256_list(vk["delta"]) + \
             hex_list_to_uint256_list(sum(vk["ABC"], []))
-        ]
 
     @staticmethod
     def verification_key_from_proto(
@@ -156,17 +155,16 @@ class Groth16SnarkProvider(IZKSnarkProvider):
         return extproof_proto
 
     @staticmethod
-    def proof_to_contract_parameters(extproof: GenericProof) -> List[List[int]]:
+    def proof_to_contract_parameters(extproof: GenericProof) -> List[int]:
         # We assume that G2 elements are defined over a non-trivial extension
         # field, i.e. that each coordinate is a JSON list rather than a a
         # single base-field element. If the assert below triggers, then it may
         # be necessary to generalize this function a bit.
         proof = extproof["proof"]
-        return [
-            hex_list_to_uint256_list(proof["a"]),
-            hex_list_to_uint256_list(proof["minus_b"]),
-            hex_list_to_uint256_list(proof["c"]),
-        ]
+        return \
+            hex_list_to_uint256_list(proof["a"]) + \
+            hex_list_to_uint256_list(proof["minus_b"]) + \
+            hex_list_to_uint256_list(proof["c"])
 
 
 class PGHR13SnarkProvider(IZKSnarkProvider):
@@ -177,17 +175,16 @@ class PGHR13SnarkProvider(IZKSnarkProvider):
 
     @staticmethod
     def verification_key_to_contract_parameters(
-            vk: GenericVerificationKey) -> List[List[int]]:
-        return [
-            hex_list_to_uint256_list(vk["a"]),
-            hex_list_to_uint256_list(vk["b"]),
-            hex_list_to_uint256_list(vk["c"]),
-            hex_list_to_uint256_list(vk["g"]),
-            hex_list_to_uint256_list(vk["gb1"]),
-            hex_list_to_uint256_list(vk["gb2"]),
-            hex_list_to_uint256_list(vk["z"]),
-            hex_list_to_uint256_list(sum(vk["IC"], [])),
-        ]
+            vk: GenericVerificationKey) -> List[int]:
+        return \
+            hex_list_to_uint256_list(vk["a"]) + \
+            hex_list_to_uint256_list(vk["b"]) + \
+            hex_list_to_uint256_list(vk["c"]) + \
+            hex_list_to_uint256_list(vk["g"]) + \
+            hex_list_to_uint256_list(vk["gb1"]) + \
+            hex_list_to_uint256_list(vk["gb2"]) + \
+            hex_list_to_uint256_list(vk["z"]) + \
+            hex_list_to_uint256_list(sum(vk["IC"], []))
 
     @staticmethod
     def verification_key_from_proto(
@@ -246,17 +243,17 @@ class PGHR13SnarkProvider(IZKSnarkProvider):
         return extproof_proto
 
     @staticmethod
-    def proof_to_contract_parameters(extproof: GenericProof) -> List[List[int]]:
+    def proof_to_contract_parameters(extproof: GenericProof) -> List[int]:
         proof = extproof["proof"]
-        return [
-            hex_list_to_uint256_list(proof["a"]) +
-            hex_list_to_uint256_list(proof["a_p"]),
-            hex_list_to_uint256_list(proof["b"][0] + proof["b"][1]),
-            hex_list_to_uint256_list(proof["b_p"]),
-            hex_list_to_uint256_list(proof["c"]),
-            hex_list_to_uint256_list(proof["c_p"]),
-            hex_list_to_uint256_list(proof["h"]),
-            hex_list_to_uint256_list(proof["k"])]
+        return \
+            hex_list_to_uint256_list(proof["a"]) + \
+            hex_list_to_uint256_list(proof["a_p"]) + \
+            hex_list_to_uint256_list(proof["b"][0] + proof["b"][1]) + \
+            hex_list_to_uint256_list(proof["b_p"]) + \
+            hex_list_to_uint256_list(proof["c"]) + \
+            hex_list_to_uint256_list(proof["c_p"]) + \
+            hex_list_to_uint256_list(proof["h"]) + \
+            hex_list_to_uint256_list(proof["k"])
 
 
 def get_zksnark_provider(zksnark_name: str) -> IZKSnarkProvider:
