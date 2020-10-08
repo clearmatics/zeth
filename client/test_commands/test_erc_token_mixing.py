@@ -251,6 +251,7 @@ def main() -> None:
         # New commitments are added in the tree at each withdraw so we
         # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
+            zksnark,
             zeth_client,
             mk_tree,
             note_descs_charlie[0].as_input(),
@@ -286,6 +287,7 @@ def main() -> None:
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
 
     result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
+        zksnark,
         zeth_client,
         mk_tree,
         bob_eth_address,

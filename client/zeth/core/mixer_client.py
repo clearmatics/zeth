@@ -16,11 +16,12 @@ from zeth.core.encryption import \
 from zeth.core.merkle_tree import MerkleTree, compute_merkle_path
 import zeth.core.signing as signing
 from zeth.core.timer import Timer
-from zeth.core.zksnark import \
-    IZKSnarkProvider, get_zksnark_provider, GenericProof, GenericVerificationKey
+from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
+    ExtendedProof, IVerificationKey
 from zeth.core.utils import EtherValue, hex_digest_to_binary_string, \
     digest_to_binary_string, int64_to_hex, message_to_bytes, \
-    eth_address_to_bytes32, eth_uint256_to_int, to_zeth_units, get_contracts_dir
+    eth_address_to_bytes32, eth_uint256_to_int, to_zeth_units, \
+    get_contracts_dir, hex_list_to_uint256_list
 from zeth.core.prover_client import ProverClient
 from zeth.api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
 
@@ -191,14 +192,12 @@ def create_joinsplit_input(
         nullifier=nullifier.hex())
 
 
-def write_verification_key(
-        vk_json: GenericVerificationKey,
-        filename: str) -> None:
+def write_verification_key(vk: IVerificationKey, filename: str) -> None:
     """
     Writes the verification key (object) in a json file
     """
     with open(filename, 'w') as outfile:
-        json.dump(vk_json, outfile)
+        json.dump(vk.to_json_dict(), outfile)
 
 
 def get_dummy_rho() -> str:
@@ -484,6 +483,7 @@ class MixerClient:
 
         # Sign
         signature = joinsplit_sign(
+            self._zksnark,
             signing_keypair,
             sender_eth_address,
             ciphertexts,
@@ -562,7 +562,7 @@ class MixerClient:
             public_in_value_zeth_units: int,
             public_out_value_zeth_units: int,
             compute_h_sig_cb: Optional[ComputeHSigCB] = None
-    ) -> Tuple[ZethNote, ZethNote, Dict[str, Any], JoinsplitSigKeyPair]:
+    ) -> Tuple[ZethNote, ZethNote, ExtendedProof, JoinsplitSigKeyPair]:
         """
         Query the prover server to generate a proof for the given joinsplit
         parameters.
@@ -582,10 +582,10 @@ class MixerClient:
             signing_keypair.vk,
             compute_h_sig_cb)
         proof_proto = self._prover_client.get_proof(proof_input)
-        extproof = self._zksnark.proof_from_proto(proof_proto)
+        extproof = self._zksnark.extended_proof_from_proto(proof_proto)
 
         # Sanity check our unpacking code against the prover server output.
-        pub_inputs = extproof["inputs"]
+        pub_inputs = extproof.inputs
         print(f"pub_inputs: {pub_inputs}")
         # pub_inputs_bytes = [bytes.fromhex(x) for x in pub_inputs]
         (v_in, v_out) = public_inputs_extract_public_values(pub_inputs)
@@ -640,25 +640,24 @@ def receive_note(
         return None
 
 
-def _proof_and_inputs_to_bytes(extproof: GenericProof) -> Tuple[bytes, bytes]:
+def _proof_and_inputs_to_bytes(
+        snark: IZKSnarkProvider, extproof: ExtendedProof) -> Tuple[bytes, bytes]:
     """
     Given a proof object, compute the hash of the properties excluding "inputs",
     and the hash of the "inputs".
     """
-    proof_elements: List[int] = []
-    proof = extproof["proof"]
-    for key in proof.keys():
-        proof_elements.extend(proof[key])
-    return (
-        message_to_bytes(proof_elements),
-        message_to_bytes(extproof["inputs"]))
+    # TODO: avoid duplicating this encoding to evm parameters
+    return \
+        message_to_bytes(snark.proof_to_contract_parameters(extproof.proof)), \
+        message_to_bytes(hex_list_to_uint256_list(extproof.inputs))
 
 
 def joinsplit_sign(
+        zksnark: IZKSnarkProvider,
         signing_keypair: JoinsplitSigKeyPair,
         sender_eth_address: str,
         ciphertexts: List[bytes],
-        extproof: GenericProof) -> int:
+        extproof: ExtendedProof) -> int:
     """
     Generate a signature on the hash of the ciphertexts, proofs and
     primary inputs. This is used to solve transaction malleability.  We chose
@@ -678,7 +677,7 @@ def joinsplit_sign(
     for ciphertext in ciphertexts:
         h.update(ciphertext)
 
-    proof_bytes, pub_inputs_bytes = _proof_and_inputs_to_bytes(extproof)
+    proof_bytes, pub_inputs_bytes = _proof_and_inputs_to_bytes(zksnark, extproof)
     h.update(proof_bytes)
     h.update(pub_inputs_bytes)
     message_digest = h.digest()

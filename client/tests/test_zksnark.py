@@ -2,15 +2,15 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.core import zksnark
-from zeth.core.zksnark import Groth16SnarkProvider
+from zeth.core.zksnark import IZKSnarkProvider, GenericG1Point, GenericG2Point, \
+    IVerificationKey, ExtendedProof, Groth16, group_point_g1_to_proto, \
+    group_point_g1_from_proto, group_point_g2_to_proto, group_point_g2_from_proto
 from zeth.api import ec_group_messages_pb2
-import json
 from unittest import TestCase
 
 
 # pylint: disable=line-too-long
-VERIFICATION_KEY_BLS12_377_GROTH16 = {
+VERIFICATION_KEY_BLS12_377_GROTH16 = Groth16.VerificationKey.from_json_dict({
     "alpha": [
         "0x009d7309d79d5215384a7a9a1d9372af909582781f388a51cb833c87b8024519cf5b343cb35d49a5aa52940f14b7b8e7",  # noqa
         "0x012816ef6069ef1e40eaab0a111f9b98b276dbf2a3209d788eb8ce635ce92a29c2bcdaa3bb9b375a8d3ee4325c07f4ea"  # noqa
@@ -36,7 +36,7 @@ VERIFICATION_KEY_BLS12_377_GROTH16 = {
         "0x01a4cfba533c731398e06458003ef7c3920dd1a545b469cc0c35dc19c51942c1531b1b9b395c858ee5b381841fc0001c",  # noqa
         "0x006194ebb25bab4d163005b23e9cf9aa8d43d242a7792f0fcf269549b46bcc2172443d09bbe573cb5eba60c9c97737c6"  # noqa
     ]]
-}
+})
 
 # Encoded as evm uint256_t words
 VERIFICATION_KEY_BLS12_377_GROTH16_PARAMETERS = [
@@ -74,7 +74,7 @@ VERIFICATION_KEY_BLS12_377_GROTH16_PARAMETERS = [
     int("8d43d242a7792f0fcf269549b46bcc2172443d09bbe573cb5eba60c9c97737c6", 16),  # noqa
 ]
 
-VERIFICATION_KEY_BW6_761_GROTH16 = {
+VERIFICATION_KEY_BW6_761_GROTH16 = Groth16.VerificationKey.from_json_dict({
     "alpha": [
         "0x00b1cb8971a538e5086e12fd7ce423b9611a6eee1ce9ec95fb966bf333c72d71e16a5f6ab1ffa0b68a3bd99ad263d036c80d6d854934d20b4e322e06df34dce5ad1ab5855aa1a13ee2fc340a22a4ee9b07acf7198e9b76904f12248a45c15267",  # noqa
         "0x010029659098127958344df7ae0d96e411c163df75454032fa940b7b25cf82b98f167e311eb6fc392551d9d2e87a1c7fc7b022f967f455dd0d60c0dba6943a2d77c30768bec0349c8351039aef0709c2af413e6ee2dfd13ed418392d06c3f2ff"  # noqa
@@ -106,7 +106,7 @@ VERIFICATION_KEY_BW6_761_GROTH16 = {
         "0x00640ff3df8bcd82d341de6e7adbf4bc12a06138a7555c28febd8baf55e5898e70b2c814863ed3a381215c2ad84eb57d5790cd6a1b0ce83654e4b1a22bf861f6218efd9207108c0fd78899bd292eac0dcfdecf5f88ca2cde6abad08959957424",  # noqa
         "0x0103a02dbd8b63bd1290b2f1e9471bb9206a3ade95bf5723f49cb8b9c47606836f3173d38bf060fc367df04048635714525a37354205a598e55fafba3485b1333e6bbde6504fcf291ae9f319d1b908e06510b70eef72916a5447b84a01d62f49"  # noqa
     ]]
-}
+})
 
 VERIFICATION_KEY_BW6_761_GROTH16_PARAMETERS = [
     # "alpha":
@@ -169,7 +169,7 @@ VERIFICATION_KEY_BW6_761_GROTH16_PARAMETERS = [
     int("3e6bbde6504fcf291ae9f319d1b908e06510b70eef72916a5447b84a01d62f49", 16),  # noqa
 ]
 
-VERIFICATION_KEY_ALT_BN128_GROTH16 = {
+VERIFICATION_KEY_ALT_BN128_GROTH16 = Groth16.VerificationKey.from_json_dict({
     "alpha": [
         "0x009d7309d79d5215384a7a9a1d9372af909582781f388a51cb833c87b8024519",
         "0x012816ef6069ef1e40eaab0a111f9b98b276dbf2a3209d788eb8ce635ce92a29",
@@ -195,7 +195,7 @@ VERIFICATION_KEY_ALT_BN128_GROTH16 = {
         "0x1a4cfba533c731398e06458003ef7c3920dd1a545b469cc0c35dc19c51942c15",
         "0x06194ebb25bab4d163005b23e9cf9aa8d43d242a7792f0fcf269549b46bcc217",
     ]]
-}
+})
 
 # Encoded as evm uint256_t words
 VERIFICATION_KEY_ALT_BN128_GROTH16_PARAMETERS = [
@@ -219,8 +219,8 @@ VERIFICATION_KEY_ALT_BN128_GROTH16_PARAMETERS = [
     int("0x06194ebb25bab4d163005b23e9cf9aa8d43d242a7792f0fcf269549b46bcc217", 16),  # noqa
 ]
 
-EXTPROOF_BLS12_377_GROTH16 = {
-    "proof": {
+EXTPROOF_BLS12_377_GROTH16 = ExtendedProof(
+    proof=Groth16.Proof.from_json_dict({
         "a": [
             "0x010bd3c06ed5aeb1a7b0653ba63f413b27ba7fd1b77cb4a403fb15f9fb8735abda93a3c78ad05afd111ea68d016cf99e",  # noqa
             "0x00255a73b1247dcfd62171b29ddbd271cdb7e98b78912ddf6bfe4723cd229f414f9a47cecd0fec7fb74bf13b22a7395b"  # noqa
@@ -239,11 +239,10 @@ EXTPROOF_BLS12_377_GROTH16 = {
             "0x00001c5d91872102ab1ca71b321f5e3b6aca698be9d8b432b8f1fc60c37bda88d6f9fdcc91225dd2d17bc58f08826e68",  # noqa
             "0x000b34a2d07bba78abf1c3e909b1f691bb02f62991a6c6bab53c016e191ecf7929f866eef5231e7f0d29944166a49bf1"  # noqa
         ]
-    },
-    "inputs": [
+    }),
+    inputs=[
         "0x0000000000000000000000000000000000000000000000000000000000000007"  # noqa
-    ]
-}
+    ])
 
 # Proof part of EXTPROOF_BLS12_377_GROTH16 encoded as uint256_t words
 PROOF_BLS12_377_GROTH16_PARAMETERS = [
@@ -268,8 +267,8 @@ PROOF_BLS12_377_GROTH16_PARAMETERS = [
     int("bb02f62991a6c6bab53c016e191ecf7929f866eef5231e7f0d29944166a49bf1", 16),  # noqa
 ]
 
-EXTPROOF_BW6_761_GROTH16 = {
-    "proof": {
+EXTPROOF_BW6_761_GROTH16 = ExtendedProof(
+    proof=Groth16.Proof.from_json_dict({
         "a": [
             "0x00b42fc65c4178e23c5ea46791b63f13e01057d957d097d2a7b1b99b921b3db0b519b21bd21f9d5209420de0d39e6ceebcf40df23e8f3dfb3544e3f221687a254f935e7e4eafbded993af4464cf7ca8da374b2cbcc6003fb47bc590dd8eaadc2",  # noqa
             "0x001f63f85f5e96168363e1c3733094347b9d7d0cbb2b762c65c12b52fe92e126b1f884d331d7b8740dccb383d7565eeb625fc43598bd371801153e0a690e1881f84849653fce01034cb571b78232b5e7aab22f0b3ee089c0b907de8a52628a92"  # noqa
@@ -282,15 +281,14 @@ EXTPROOF_BW6_761_GROTH16 = {
             "0x003f75f402703fb7d597cd9beb33fb216af606a687c133ef8b73fde17a48c12be3f17867679ccd5958ceb9245adac2377eb1444c6577049f04c0a18645b00a4bae9c6274cd8876f52f5307dfc50935b5f515ee33c5e98031705fe4ce153da553",  # noqa
             "0x00c83d865b8c18f4120fdc9f45026e252d05ceb3f0dfcd19a8e2f11d2a8cd6cdb7450c0fc8e0b1a284db1c21d25d9fbea91d741713f414f577ccb8455e1c55af07b72c4868e58c9890c0335bf13a5821391f0cc8c38ab1f168314f1cb67b10a1"  # noqa
         ]
-    },
-    "inputs": [
+    }),
+    inputs=[
         "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",  # noqa
         "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007",  # noqa
         "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001",  # noqa
         "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008",  # noqa
         "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"  # noqa
-    ]
-}
+    ])
 
 PROOF_BW6_761_GROTH16_PARAMETERS = [
     # "a":
@@ -316,8 +314,8 @@ PROOF_BW6_761_GROTH16_PARAMETERS = [
     int("07b72c4868e58c9890c0335bf13a5821391f0cc8c38ab1f168314f1cb67b10a1", 16),  # noqa
 ]
 
-EXTPROOF_ALT_BN128_GROTH16 = {
-    "proof": {
+EXTPROOF_ALT_BN128_GROTH16 = ExtendedProof(
+    proof=Groth16.Proof.from_json_dict({
         "a": [
             "0xbd3c06ed5aeb1a7b0653ba63f413b27ba7fd1b77cb4a403fb15f9fb8735abda9",  # noqa
             "0x55a73b1247dcfd62171b29ddbd271cdb7e98b78912ddf6bfe4723cd229f414f9"  # noqa
@@ -336,11 +334,10 @@ EXTPROOF_ALT_BN128_GROTH16 = {
             "0x01c5d91872102ab1ca71b321f5e3b6aca698be9d8b432b8f1fc60c37bda88d6f",  # noqa
             "0xb34a2d07bba78abf1c3e909b1f691bb02f62991a6c6bab53c016e191ecf7929f"  # noqa
         ]
-    },
-    "inputs": [
+    }),
+    inputs=[
         "0x0000000000000000000000000000000000000000000000000000000000000007"  # noqa
-    ]
-}
+    ])
 
 # Proof part of EXTPROOF_BLS12_377_GROTH16 encoded as uint256_t words
 PROOF_ALT_BN128_GROTH16_PARAMETERS = [
@@ -364,85 +361,78 @@ class TestZKSnark(TestCase):
     def test_bls12_377_groth16_verification_key_parameters(self) -> None:
         vk = VERIFICATION_KEY_BLS12_377_GROTH16
         vk_parameters_expect = VERIFICATION_KEY_BLS12_377_GROTH16_PARAMETERS
-        vk_parameters = \
-            Groth16SnarkProvider.verification_key_to_contract_parameters(vk)
+        vk_parameters = Groth16.verification_key_to_contract_parameters(vk)
         self.assertEqual(vk_parameters_expect, vk_parameters)
 
     def test_bls12_377_groth16_proof_parameters(self) -> None:
         extproof = EXTPROOF_BLS12_377_GROTH16
-        proof_parameters = \
-            Groth16SnarkProvider().proof_to_contract_parameters(extproof)
+        proof_parameters = Groth16.proof_to_contract_parameters(extproof.proof)
         self.assertEqual(PROOF_BLS12_377_GROTH16_PARAMETERS, proof_parameters)
 
     def test_bw6_761_groth16_verification_key_parameters(self) -> None:
         vk = VERIFICATION_KEY_BW6_761_GROTH16
         vk_parameters_expect = VERIFICATION_KEY_BW6_761_GROTH16_PARAMETERS
-        vk_parameters = \
-            Groth16SnarkProvider().verification_key_to_contract_parameters(vk)
+        vk_parameters = Groth16.verification_key_to_contract_parameters(vk)
         self.assertEqual(vk_parameters_expect, vk_parameters)
 
     def test_bw6_761_groth16_proof_parameters(self) -> None:
         extproof = EXTPROOF_BW6_761_GROTH16
-        proof_parameters = \
-            Groth16SnarkProvider().proof_to_contract_parameters(extproof)
+        proof_parameters = Groth16.proof_to_contract_parameters(extproof.proof)
         self.assertEqual(PROOF_BW6_761_GROTH16_PARAMETERS, proof_parameters)
 
     def test_alt_bn128_groth16_verification_key_parameters(self) -> None:
         vk = VERIFICATION_KEY_ALT_BN128_GROTH16
         vk_parameters_expect = VERIFICATION_KEY_ALT_BN128_GROTH16_PARAMETERS
-        vk_parameters = \
-            Groth16SnarkProvider().verification_key_to_contract_parameters(vk)
+        vk_parameters = Groth16.verification_key_to_contract_parameters(vk)
         self.assertEqual(vk_parameters_expect, vk_parameters)
 
     def test_alt_bn128_groth16_proof_parameters(self) -> None:
         extproof = EXTPROOF_ALT_BN128_GROTH16
-        proof_parameters = \
-            Groth16SnarkProvider().proof_to_contract_parameters(extproof)
+        proof_parameters = Groth16.proof_to_contract_parameters(extproof.proof)
         self.assertEqual(PROOF_ALT_BN128_GROTH16_PARAMETERS, proof_parameters)
 
     def test_g1_proto_encode_decode(self) -> None:
-        self._do_test_g1_proto_encode_decode(("0xaabbccdd", "0x11223344"))
+        self._do_test_g1_proto_encode_decode(
+            GenericG1Point("0xaabbccdd", "0x11223344"))
 
     def test_g2_proto_encode_decode(self) -> None:
-        self._do_test_g2_proto_encode_decode(("0xaabbccdd", "0x11223344"))
         self._do_test_g2_proto_encode_decode(
-            (("0xcdeeff00", "0x11223344"), ("0x55667788", "0x99aabbcc")))
+            GenericG2Point("0xaabbccdd", "0x11223344"))
+        self._do_test_g2_proto_encode_decode(
+            GenericG2Point(
+                ["0xcdeeff00", "0x11223344"], ["0x55667788", "0x99aabbcc"]))
 
     def test_verification_key_proto_encode_decode(self) -> None:
         vk_1 = VERIFICATION_KEY_BLS12_377_GROTH16
-        self._do_test_verification_key_proto_encode_decode(
-            vk_1, Groth16SnarkProvider())
+        self._do_test_verification_key_proto_encode_decode(vk_1, Groth16())
 
     def test_proof_proto_encode_decode(self) -> None:
         extproof_1 = EXTPROOF_BLS12_377_GROTH16
-        self._do_test_proof_proto_encode_decode(
-            extproof_1, Groth16SnarkProvider())
+        self._do_test_ext_proof_proto_encode_decode(extproof_1, Groth16())
 
-    def _do_test_g1_proto_encode_decode(self, g1: zksnark.GenericG1Point) -> None:
+    def _do_test_g1_proto_encode_decode(self, g1: GenericG1Point) -> None:
         g1_proto = ec_group_messages_pb2.HexPointBaseGroup1Affine()
-        zksnark.group_point_g1_to_proto(g1, g1_proto)
-        g1_decoded = zksnark.group_point_g1_from_proto(g1_proto)
-        self.assertEqual(g1, g1_decoded)
+        group_point_g1_to_proto(g1, g1_proto)
+        g1_decoded = group_point_g1_from_proto(g1_proto)
+        self.assertEqual(g1.to_json_list(), g1_decoded.to_json_list())
 
-    def _do_test_g2_proto_encode_decode(self, g2: zksnark.GenericG2Point) -> None:
+    def _do_test_g2_proto_encode_decode(self, g2: GenericG2Point) -> None:
         g2_proto = ec_group_messages_pb2.HexPointBaseGroup2Affine()
-        zksnark.group_point_g2_to_proto(g2, g2_proto)
-        g2_decoded = zksnark.group_point_g2_from_proto(g2_proto)
-        self.assertEqual(g2, g2_decoded)
+        group_point_g2_to_proto(g2, g2_proto)
+        g2_decoded = group_point_g2_from_proto(g2_proto)
+        self.assertEqual(g2.to_json_list(), g2_decoded.to_json_list())
 
     def _do_test_verification_key_proto_encode_decode(
             self,
-            vk: zksnark.GenericVerificationKey,
-            snark: zksnark.IZKSnarkProvider) -> None:
+            vk: IVerificationKey,
+            snark: IZKSnarkProvider) -> None:
         vk_proto = snark.verification_key_to_proto(vk)
         vk_decoded = snark.verification_key_from_proto(vk_proto)
         # For now, compare as json to brush over tuple-list differences.
-        self.assertEqual(json.dumps(vk), json.dumps(vk_decoded))
+        self.assertEqual(vk.to_json_dict(), vk_decoded.to_json_dict())
 
-    def _do_test_proof_proto_encode_decode(
-            self,
-            proof: zksnark.GenericProof,
-            snark: zksnark.IZKSnarkProvider) -> None:
-        proof_proto = snark.proof_to_proto(proof)
-        proof_decoded = snark.proof_from_proto(proof_proto)
-        self.assertEqual(json.dumps(proof), json.dumps(proof_decoded))
+    def _do_test_ext_proof_proto_encode_decode(
+            self, proof: ExtendedProof, snark: IZKSnarkProvider) -> None:
+        proof_proto = snark.extended_proof_to_proto(proof)
+        proof_decoded = snark.extended_proof_from_proto(proof_proto)
+        self.assertEqual(proof.to_json_dict(), proof_decoded.to_json_dict())

@@ -8,7 +8,7 @@ from __future__ import annotations
 from zeth.core.signing import SigningVerificationKey, Signature, \
     verification_key_as_mix_parameter, verification_key_from_mix_parameter, \
     signature_as_mix_parameter, signature_from_mix_parameter
-from zeth.core.zksnark import IZKSnarkProvider, GenericProof
+from zeth.core.zksnark import IZKSnarkProvider, ExtendedProof
 from zeth.core.utils import EtherValue, hex_list_to_uint256_list
 from zeth.core.constants import SOL_COMPILER_VERSION
 from web3.utils.contracts import find_matching_event_abi  # type: ignore
@@ -30,7 +30,7 @@ class MixParameters:
     """
     def __init__(
             self,
-            extended_proof: GenericProof,
+            extended_proof: ExtendedProof,
             signature_vk: SigningVerificationKey,
             signature: Signature,
             ciphertexts: List[bytes]):
@@ -40,27 +40,31 @@ class MixParameters:
         self.ciphertexts = ciphertexts
 
     @staticmethod
-    def from_json(params_json: str) -> MixParameters:
-        return MixParameters._from_json_dict(json.loads(params_json))
+    def from_json(zksnark: IZKSnarkProvider, params_json: str) -> MixParameters:
+        return MixParameters._from_json_dict(zksnark, json.loads(params_json))
 
     def to_json(self) -> str:
         return json.dumps(self._to_json_dict())
 
     def _to_json_dict(self) -> Dict[str, Any]:
+        ext_proof_json = self.extended_proof.to_json_dict()
         signature_vk_json = [
             str(x) for x in verification_key_as_mix_parameter(self.signature_vk)]
         signature_json = str(signature_as_mix_parameter(self.signature))
         ciphertexts_json = [x.hex() for x in self.ciphertexts]
         return {
-            "extended_proof": self.extended_proof,
+            "extended_proof": ext_proof_json,
             "signature_vk": signature_vk_json,
             "signature": signature_json,
             "ciphertexts": ciphertexts_json,
         }
 
     @staticmethod
-    def _from_json_dict(json_dict: Dict[str, Any]) -> MixParameters:
-        ext_proof = json_dict["extended_proof"]
+    def _from_json_dict(
+            zksnark: IZKSnarkProvider,
+            json_dict: Dict[str, Any]) -> MixParameters:
+        ext_proof = ExtendedProof.from_json_dict(
+            zksnark, json_dict["extended_proof"])
         signature_pk_param = [int(x) for x in json_dict["signature_vk"]]
         signature_pk = verification_key_from_mix_parameter(signature_pk_param)
         signature = signature_from_mix_parameter(int(json_dict["signature"]))
@@ -221,10 +225,10 @@ def mix_parameters_as_contract_arguments(
     the contract's mix method.
     """
     return [
-        zksnark.proof_to_contract_parameters(mix_parameters.extended_proof),
+        zksnark.proof_to_contract_parameters(mix_parameters.extended_proof.proof),
         verification_key_as_mix_parameter(mix_parameters.signature_vk),
         signature_as_mix_parameter(mix_parameters.signature),
-        hex_list_to_uint256_list(mix_parameters.extended_proof["inputs"]),
+        hex_list_to_uint256_list(mix_parameters.extended_proof.inputs),
         mix_parameters.ciphertexts,
     ]
 
