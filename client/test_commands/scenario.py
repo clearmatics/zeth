@@ -237,8 +237,8 @@ def charlie_double_withdraw(
     assert attack_primary_input4 != 0
 
     print("proof = ", proof)
-    print("proof[inputs][3] = ", proof.inputs[3])
-    print("proof[inputs][4] = ", proof.inputs[4])
+    print("proof.inputs[3] = ", proof.inputs[3])
+    print("proof.inputs[4] = ", proof.inputs[4])
     proof.inputs[3] = hex(attack_primary_input3)
     proof.inputs[4] = hex(attack_primary_input4)
     # ### ATTACK BLOCK
