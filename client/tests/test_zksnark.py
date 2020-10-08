@@ -13,7 +13,7 @@ from unittest import TestCase
 VERIFICATION_KEY_BLS12_377_GROTH16 = Groth16.VerificationKey.from_json_dict({
     "alpha": [
         "0x009d7309d79d5215384a7a9a1d9372af909582781f388a51cb833c87b8024519cf5b343cb35d49a5aa52940f14b7b8e7",  # noqa
-        "0x012816ef6069ef1e40eaab0a111f9b98b276dbf2a3209d788eb8ce635ce92a29c2bcdaa3bb9b375a8d3ee4325c07f4ea",  # noqa
+        "0x012816ef6069ef1e40eaab0a111f9b98b276dbf2a3209d788eb8ce635ce92a29c2bcdaa3bb9b375a8d3ee4325c07f4ea"  # noqa
     ],
     "beta": [[
         "0x017abb9470ccb0ef09676df87dbe181a9ed89ba1cf1e32a2031d308b4c11a84fd97ac202fb82264cec178e22b71598b9",  # noqa
