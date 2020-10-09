@@ -13,6 +13,16 @@ library Groth16AltBN128
     // and Delta are negated to avoid having to perform point negations in
     // contract code.
 
+    // Used by client code to verify that inputs are in the correct field.
+    // solium-disable-next-line
+    uint256 internal constant r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
+    // Return the value r, the characteristic of the scalar field.
+    function scalar_r() internal pure returns (uint256)
+    {
+        return r;
+    }
+
     // Fr elements and Fq elements can be held in a single uint256. Therefore
     // G1 elements require 2 uint256s. G2 elements have coordinates in Fp2, and
     // therefore occupy 4 uint256s. Based on this, the offsets and slot numbers

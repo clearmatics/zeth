@@ -103,7 +103,7 @@ contract Groth16Mixer is BaseMixer {
 
         // Scalar field characteristic
         // solium-disable-next-line
-        uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+        uint256 r = alt_bn128_groth16.scalar_r();
         uint256[] memory inputValues = new uint256[](nbInputs);
         for (uint256 i = 0 ; i < nbInputs; i++) {
             require(primaryInputs[i] < r, "Input is not in scalar field");
