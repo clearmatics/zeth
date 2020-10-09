@@ -10,12 +10,12 @@ import "./BaseMixer.sol";
 import "./Groth16AltBN128.sol";
 
 // Note that this contact is specialized for the ALT-BN128 pairing. It relies
-// on the fact that scalar input elements can be stored in a single uint256_t.
+// on the fact that scalar input elements can be stored in a single uint256.
 contract Groth16Mixer is BaseMixer {
 
-    // Format of the verification key and proofs is determined by
-    // alt_bn128_groth16 library.
-    Groth16AltBN128.VerifyingKey verifyKey;
+    // Structure of the verification key and proofs is opaque, determined by
+    // zk-snark verification library.
+    uint256[] _vk;
 
     constructor(
         uint256 mk_depth,
@@ -24,32 +24,21 @@ contract Groth16Mixer is BaseMixer {
         BaseMixer(mk_depth, token)
         public
     {
-        // TODO: move all this logic into alt_bn128_groth16 library.
-
-        uint256 vk_words = vk.length;
-        require(vk_words >= 12, "invalid vk length");
-
-
-        verifyKey.Alpha = Pairing.G1Point(vk[0], vk[1]);
-        verifyKey.Minus_Beta = Pairing.G2Point(vk[2], vk[3], vk[4], vk[5]);
-        verifyKey.Minus_Delta = Pairing.G2Point(vk[6], vk[7], vk[8], vk[9]);
-
-        // The `ABC` are elements of G1 (and thus have 2 coordinates in the
-        // underlying field). Here, we reconstruct these group elements from
-        // field elements (ABC_coords are field elements)
-        for (uint256 i = 10 ; i < vk_words ; i += 2) {
-            verifyKey.ABC.push(Pairing.G1Point(vk[i], vk[i + 1]));
-        }
+        _vk = vk;
     }
 
+    // This function mixes coins and executes payments in zero knowledge.
+    // Format of proof is internal to the zk-snark library. "input" array is
+    // the set of scalar inputs to the proof. We assume that each input
+    // occupies a single uint256.
     function mix(
         uint256[8] memory proof,
         uint256[4] memory vk,
         uint256 sigma,
         uint256[nbInputs] memory input,
         bytes[jsOut] memory ciphertexts)
-        public payable {
-
+        public payable
+    {
         // 1. Check the root and the nullifiers
         bytes32[jsIn] memory nullifiers;
         check_mkroot_nullifiers_hsig_append_nullifiers_state(
@@ -103,23 +92,24 @@ contract Groth16Mixer is BaseMixer {
         uint256[8] memory proof_data,
         uint256[nbInputs] memory primaryInputs)
         internal
-        returns (bool) {
-        // TODO: move this logic into the alt_bn128_groth16 library.
+        returns (bool)
+    {
+        // For flexibility, the verifyer expects a dynamically sized array.
+        // Convert the statically sized primaryInputs to a dynamic array, and
+        // at the same time ensure that all inputs belong to the scalar field.
+
+        // TODO: mechanism to pass a pointer to the fixed-size array, and
+        // perform scalar check inside the zk-snark verifier.
 
         // Scalar field characteristic
         // solium-disable-next-line
         uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
-
-        // Make sure that all primary inputs lie in the scalar field
-
-        // TODO: update `verify` method to handle static arrays and pass
-        // `primaryInputs` directly.
         uint256[] memory inputValues = new uint256[](nbInputs);
         for (uint256 i = 0 ; i < nbInputs; i++) {
             require(primaryInputs[i] < r, "Input is not in scalar field");
             inputValues[i] = primaryInputs[i];
         }
 
-        return 1 == Groth16AltBN128.verify(verifyKey, inputValues, proof_data);
+        return 1 == Groth16AltBN128.verify(_vk, proof_data, inputValues);
     }
 }
