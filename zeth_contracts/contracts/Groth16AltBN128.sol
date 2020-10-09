@@ -44,7 +44,7 @@ library Groth16AltBN128
     function verify(
         uint256[] storage vk,
         uint256[8] memory proof,
-        uint256[] memory input) internal returns (uint)
+        uint256[] memory input) internal returns (bool)
     {
         // Compute the number of inputs expected, based on the verification key
         // size. (-1 because the VK contains the base point corresponding to a
@@ -231,6 +231,6 @@ library Groth16AltBN128
         require(
             success,
             "Call to bn256Add, bn256ScalarMul or bn256Pairing failed");
-        return pad[0];
+        return 1 == pad[0];
     }
 }

@@ -110,6 +110,6 @@ contract Groth16Mixer is BaseMixer {
             inputValues[i] = primaryInputs[i];
         }
 
-        return 1 == Groth16AltBN128.verify(_vk, proof_data, inputValues);
+        return Groth16AltBN128.verify(_vk, proof_data, inputValues);
     }
 }
