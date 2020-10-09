@@ -157,6 +157,7 @@ function ci_setup() {
             # Install openssl for the mpc tests
             apk add openssl
         else
+            sudo apt update
             sudo apt install python3-venv
         fi
 
