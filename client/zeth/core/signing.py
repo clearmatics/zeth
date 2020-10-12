@@ -15,8 +15,10 @@ from math import ceil
 from os import urandom
 from hashlib import sha256
 from py_ecc import bn128 as ec
-from zeth.core.utils import FQ, G1, g1_to_bytes
-from typing import List
+from typing import List, Tuple
+
+FQ = ec.FQ
+G1 = Tuple[ec.FQ, ec.FQ]
 
 # pylint: disable=line-too-long
 # Characteristic of the scalar field of BN128 (see comment and reference above).
@@ -165,3 +167,14 @@ def signature_from_mix_parameter(param: int) -> Signature:
     Transform mix function parameters to a signature.
     """
     return param
+
+
+def g1_to_bytes(group_el: G1) -> bytes:
+    """
+    Encode a group element into a byte string
+    We assume here the group prime $p$ is written in less than 256 bits
+    to conform with Ethereum bytes32 type.
+    """
+    return \
+        int(group_el[0]).to_bytes(32, byteorder='big') + \
+        int(group_el[1]).to_bytes(32, byteorder='big')

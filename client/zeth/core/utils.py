@@ -17,7 +17,6 @@ from os.path import join, dirname, normpath, exists
 import eth_abi
 import eth_keys  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
-from py_ecc import bn128 as ec
 from typing import Sequence, List, Tuple, Union, Iterable, Any, Optional, cast
 
 # Some Ethereum node implementations can cause a timeout if the contract
@@ -42,10 +41,6 @@ def open_web3(
         'verify': request_verify,
     }
     return Web3(HTTPProvider(url, request_kwargs=request_kwargs))
-
-
-FQ = ec.FQ
-G1 = Tuple[ec.FQ, ec.FQ]
 
 
 class EtherValue:
@@ -134,17 +129,6 @@ def eth_uint256_to_int(eth_uint256: str) -> int:
 def eth_address_from_private_key(eth_private_key: bytes) -> str:
     pk = eth_keys.keys.PrivateKey(eth_private_key)
     return pk.public_key.to_address()
-
-
-def g1_to_bytes(group_el: G1) -> bytes:
-    """
-    Encode a group element into a byte string
-    We assume here the group prime $p$ is written in less than 256 bits
-    to conform with Ethereum bytes32 type.
-    """
-    return \
-        int(group_el[0]).to_bytes(32, byteorder='big') + \
-        int(group_el[1]).to_bytes(32, byteorder='big')
 
 
 def int_and_bytelen_from_hex(value_hex: str) -> Tuple[int, int]:
