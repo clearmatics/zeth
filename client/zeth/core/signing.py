@@ -16,8 +16,13 @@ from os import urandom
 from hashlib import sha256
 from py_ecc import bn128 as ec
 from zeth.core.utils import FQ, G1, g1_to_bytes
-from zeth.core.constants import ZETH_PRIME
 from typing import List
+
+# pylint: disable=line-too-long
+# Characteristic of the scalar field of BN128 (see comment and reference above).
+SIGNATURE_PRIME = \
+    21888242871839275222246405745257275088548364400416034343698204186575808495617  # noqa
+# pylint: enable=line-too-long
 
 
 class SigningVerificationKey:
@@ -56,11 +61,11 @@ def gen_signing_keypair() -> SigningKeyPair:
     Return a one-time signature key-pair
     composed of elements of F_q and G1.
     """
-    key_size_byte = ceil(len("{0:b}".format(ZETH_PRIME)) / 8)
+    key_size_byte = ceil(len("{0:b}".format(SIGNATURE_PRIME)) / 8)
     x = FQ(
-        int(bytes(urandom(key_size_byte)).hex(), 16) % ZETH_PRIME)
+        int(bytes(urandom(key_size_byte)).hex(), 16) % SIGNATURE_PRIME)
     y = FQ(
-        int(bytes(urandom(key_size_byte)).hex(), 16) % ZETH_PRIME)
+        int(bytes(urandom(key_size_byte)).hex(), 16) % SIGNATURE_PRIME)
     X = ec.multiply(ec.G1, x.n)
     Y = ec.multiply(ec.G1, y.n)
     return SigningKeyPair(x, y, X, Y)
@@ -100,10 +105,10 @@ def sign(
 
     # Convert the hex digest into a field element
     challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
-    challenge = challenge % ZETH_PRIME
+    challenge = challenge % SIGNATURE_PRIME
 
     # Compute the signature sigma
-    sigma = (sk.ssk[0].n + challenge * sk.psk.n) % ZETH_PRIME
+    sigma = (sk.ssk[0].n + challenge * sk.psk.n) % SIGNATURE_PRIME
 
     return sigma
 
@@ -121,7 +126,7 @@ def verify(
     challenge_to_hash = g1_to_bytes(vk.spk) + m
 
     challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
-    challenge = challenge % ZETH_PRIME
+    challenge = challenge % SIGNATURE_PRIME
 
     left_part = ec.multiply(ec.G1, FQ(sigma).n)
     right_part = ec.add(vk.spk, ec.multiply(vk.ppk, FQ(challenge).n))
