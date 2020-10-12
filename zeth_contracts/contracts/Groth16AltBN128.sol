@@ -49,10 +49,15 @@ library Groth16AltBN128
         // Compute the number of inputs expected, based on the verification key
         // size. (-1 because the VK contains the base point corresponding to a
         // virtual first input of value 1).
-        uint256 expectedNumInputs = ((vk.length - 0x0a) / 2) - 1;
+        uint256 numInputs = ((vk.length - 0x0a) / 2) - 1;
         require(
-            input.length == expectedNumInputs,
+            input.length == numInputs,
             "Input length differs from expected");
+
+        // Ensure that all inputs belong to the scalar field.
+        for (uint256 i = 0 ; i < numInputs; i++) {
+            require(input[i] < r, "Input is not in scalar field");
+        }
 
         // 1. Compute the linear combination
         //   vk_x = \sum_{i=0}^{l} a_i * vk.ABC[i], vk_x in G1.

@@ -94,22 +94,17 @@ contract Groth16Mixer is BaseMixer {
         internal
         returns (bool)
     {
-        // For flexibility, the verifyer expects a dynamically sized array.
-        // Convert the statically sized primaryInputs to a dynamic array, and
-        // at the same time ensure that all inputs belong to the scalar field.
+        // Convert the statically sized primaryInputs to a dynamic array
+        // expected by the verifyer.
 
-        // TODO: mechanism to pass a pointer to the fixed-size array, and
-        // perform scalar check inside the zk-snark verifier.
+        // TODO: mechanism to pass static-sized input arrays to generic
+        // verifier functions to avoid this copy.
 
-        // Scalar field characteristic
         // solium-disable-next-line
-        uint256 r = alt_bn128_groth16.scalar_r();
         uint256[] memory inputValues = new uint256[](nbInputs);
         for (uint256 i = 0 ; i < nbInputs; i++) {
-            require(primaryInputs[i] < r, "Input is not in scalar field");
             inputValues[i] = primaryInputs[i];
         }
-
         return Groth16AltBN128.verify(_vk, proof_data, inputValues);
     }
 }
