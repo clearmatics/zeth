@@ -13,6 +13,7 @@ disable=
     too-many-function-args,
     duplicate-code,
     fixme,
+    invalid-name,
     unsubscriptable-object,
 
 # TODO: `unsubscriptable-object` generates false positives for python 3.9 and pylint==2.6.
