@@ -20,7 +20,7 @@ using namespace libzeth;
 using pp = defaults::pp;
 using Field = defaults::Field;
 using Hash = BLAKE2s_256<Field>;
-using HashTree = MiMC_mp_gadget<Field>;
+using HashTree = MiMC_mp_gadget<Field, MiMCe7_permutation_gadget<Field>>;
 static const size_t TreeDepth = 4;
 
 namespace

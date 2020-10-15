@@ -175,7 +175,8 @@ TEST(TestMiMCMp, TestTrue)
     pb.val(x) = FieldT("3703141493535563179657531719960160174296085208671919316"
                        "200479060314459804651");
 
-    MiMC_mp_gadget<FieldT> mimc_mp_gadget(pb, x, y, "gadget");
+    MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>> mimc_mp_gadget(
+        pb, x, y, "gadget");
     mimc_mp_gadget.generate_r1cs_witness();
     mimc_mp_gadget.generate_r1cs_constraints();
 
@@ -184,7 +185,7 @@ TEST(TestMiMCMp, TestTrue)
     ASSERT_TRUE(expected_out == pb.val(mimc_mp_gadget.result()));
 }
 
-TEST(TestMiMCMp, TestFalse)
+TEST(TestMiMC7Mp, TestFalse)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -201,7 +202,8 @@ TEST(TestMiMCMp, TestFalse)
     pb.val(x) = FieldT("3703141493535563179657531719960160174296085208671919316"
                        "200479060314459804651");
 
-    MiMC_mp_gadget<FieldT> mimc_mp_gadget(pb, x, y, "gadget");
+    MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>> mimc_mp_gadget(
+        pb, x, y, "gadget");
     mimc_mp_gadget.generate_r1cs_witness();
     mimc_mp_gadget.generate_r1cs_constraints();
 

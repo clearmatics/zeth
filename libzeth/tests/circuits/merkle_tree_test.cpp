@@ -14,7 +14,7 @@ using namespace libzeth;
 // Instantiation of the templates for the tests.  Data here assumes alt_bn128
 using ppT = libff::alt_bn128_pp;
 using FieldT = libff::Fr<ppT>;
-using HashTreeT = MiMC_mp_gadget<FieldT>;
+using HashTreeT = MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>>;
 
 namespace
 {
