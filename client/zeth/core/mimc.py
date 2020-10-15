@@ -114,6 +114,28 @@ class MiMC31(MiMCBase):
         return (a16 * a8 * a4 * a2 * a) % self.prime
 
 
+class MiMC11(MiMCBase):
+    """
+    MiMC implementation using exponent of 11 and 73 rounds. (Note that this is
+    suitable for BLS12-377, since 1 == gcd(11, r-1. See [AGRRT16] for details.)
+    """
+    def __init__(
+            self,
+            seed_str: str = MIMC_MT_SEED):
+        MiMCBase.__init__(
+            self,
+            seed_str,
+            8444461749428370424248824938781546531375899335154063827935233455917409239041,  # noqa
+            73)
+
+    def mimc_round(self, message: int, key: int, rc: int) -> int:
+        a = (message + key + rc) % self.prime
+        a2 = (a * a) % self.prime
+        a4 = (a2 * a2) % self.prime
+        a8 = (a4 * a4) % self.prime
+        return (a8 * a2 * a) % self.prime
+
+
 def _str_to_bytes(value: str) -> bytes:
     return value.encode('ascii')
 

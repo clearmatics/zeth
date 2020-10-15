@@ -4,7 +4,7 @@
 
 from zeth.core.utils import get_contracts_dir
 from zeth.core.contracts import InstanceDescription
-from zeth.core.mimc import MiMC7, MiMC31
+from zeth.core.mimc import MiMC7, MiMC11, MiMC31
 from zeth.cli.utils import get_eth_network, open_web3_from_network
 from os.path import join
 import sys
@@ -34,6 +34,16 @@ def test_mimc31(instance: Any) -> None:
     assert result == h
 
 
+def test_mimc11(instance: Any) -> None:
+    x = int(28948022309329048855892746252171976963317496166410141009864396001978282409983)  # noqa
+    y = int(14220067918847996031108144435763672811050758065945364308986253046354060608451)  # noqa
+    h = MiMC11().hash(x, y).to_bytes(32, 'big')
+
+    result = instance.functions.test_mimc11(
+        x.to_bytes(32, 'big'), y.to_bytes(32, 'big')).call()
+    assert result == h
+
+
 def main() -> int:
     web3: Any = open_web3_from_network(get_eth_network(None))
     contracts_dir = get_contracts_dir()
@@ -49,6 +59,7 @@ def main() -> int:
 
     test_mimc7(contract_instance)
     test_mimc31(contract_instance)
+    test_mimc11(contract_instance)
 
     print("========================================")
     print("==              PASSED                ==")

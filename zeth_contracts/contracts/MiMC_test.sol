@@ -6,6 +6,7 @@ pragma solidity ^0.5.0;
 
 import "./MiMC7.sol";
 import "./MiMC31.sol";
+import "./MiMC11.sol";
 
 // Contract to test the MiMC libraries
 contract MiMC_test
@@ -18,5 +19,10 @@ contract MiMC_test
     function test_mimc31(bytes32 x, bytes32 y) public returns (bytes32)
     {
         return MiMC31.hash(x, y);
+    }
+
+    function test_mimc11(bytes32 x, bytes32 y) public returns (bytes32)
+    {
+        return MiMC11.hash(x, y);
     }
 }
