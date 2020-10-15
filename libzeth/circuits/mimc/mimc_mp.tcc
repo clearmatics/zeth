@@ -8,8 +8,8 @@
 namespace libzeth
 {
 
-template<typename FieldT>
-MiMC_mp_gadget<FieldT>::MiMC_mp_gadget(
+template<typename FieldT, typename PermutationT>
+MiMC_mp_gadget<FieldT, PermutationT>::MiMC_mp_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> x,
     const libsnark::pb_variable<FieldT> y,
@@ -24,8 +24,8 @@ MiMC_mp_gadget<FieldT>::MiMC_mp_gadget(
     output.allocate(pb, FMT(this->annotation_prefix, " output"));
 }
 
-template<typename FieldT>
-void MiMC_mp_gadget<FieldT>::generate_r1cs_constraints()
+template<typename FieldT, typename PermutationT>
+void MiMC_mp_gadget<FieldT, PermutationT>::generate_r1cs_constraints()
 {
     // Setting constraints for the permutation gadget
     permutation_gadget.generate_r1cs_constraints();
@@ -40,8 +40,8 @@ void MiMC_mp_gadget<FieldT>::generate_r1cs_constraints()
         FMT(this->annotation_prefix, " out=k+E_k(m_i)+m_i"));
 }
 
-template<typename FieldT>
-void MiMC_mp_gadget<FieldT>::generate_r1cs_witness() const
+template<typename FieldT, typename PermutationT>
+void MiMC_mp_gadget<FieldT, PermutationT>::generate_r1cs_witness() const
 {
     // Generating witness for the gadget
     permutation_gadget.generate_r1cs_witness();
@@ -52,16 +52,17 @@ void MiMC_mp_gadget<FieldT>::generate_r1cs_witness() const
                            this->pb.val(x);
 }
 
-template<typename FieldT>
-const libsnark::pb_variable<FieldT> &MiMC_mp_gadget<FieldT>::result() const
+template<typename FieldT, typename PermutationT>
+const libsnark::pb_variable<FieldT>
+    &MiMC_mp_gadget<FieldT, PermutationT>::result() const
 {
     // Returns the output
     return output;
 }
 
 // Returns the hash of two elements
-template<typename FieldT>
-FieldT MiMC_mp_gadget<FieldT>::get_hash(const FieldT x, FieldT y)
+template<typename FieldT, typename PermutationT>
+FieldT MiMC_mp_gadget<FieldT, PermutationT>::get_hash(const FieldT x, FieldT y)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -76,7 +77,8 @@ FieldT MiMC_mp_gadget<FieldT>::get_hash(const FieldT x, FieldT y)
     pb.val(pb_y) = y;
 
     // Initialize the Hash
-    MiMC_mp_gadget<FieldT> mimc_hasher(pb, pb_x, pb_y, " mimc_hash");
+    MiMC_mp_gadget<FieldT, PermutationT> mimc_hasher(
+        pb, pb_x, pb_y, " mimc_hash");
 
     // Computes the hash
     mimc_hasher.generate_r1cs_witness();

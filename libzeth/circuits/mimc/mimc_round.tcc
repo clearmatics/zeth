@@ -5,6 +5,8 @@
 #ifndef __ZETH_CIRCUITS_MIMC_ROUND_TCC__
 #define __ZETH_CIRCUITS_MIMC_ROUND_TCC__
 
+#include "libzeth/circuits/mimc/mimc_round.hpp"
+
 namespace libzeth
 {
 
