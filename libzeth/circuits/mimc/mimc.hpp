@@ -10,25 +10,21 @@
 namespace libzeth
 {
 
-/// MiMCe7_permutation_gadget enforces correct computation of a MiMC permutation
-/// with exponent 7 and rounds 91. It makes use of MiMCe7_round_gadget to
-/// enforce correct computation in each round.
-template<typename FieldT>
-class MiMCe7_permutation_gadget : public libsnark::gadget<FieldT>
+/// MiMC_permutation_gadget enforces correct computation of a MiMC round
+/// function applied some number of rounds.
+template<typename FieldT, typename RoundT, size_t NumRounds>
+class MiMC_permutation_gadget : public libsnark::gadget<FieldT>
 {
 private:
     // Vector of MiMC round_gadgets
-    std::vector<MiMCe7_round_gadget<FieldT>> round_gadgets;
+    std::vector<RoundT> round_gadgets;
     // Vector of round constants
     std::vector<FieldT> round_constants;
     // Permutation key
     const libsnark::pb_variable<FieldT> k;
 
 public:
-    // Nb of rounds suggested by the MiMC paper
-    static const int ROUNDS = 91;
-
-    MiMCe7_permutation_gadget(
+    MiMC_permutation_gadget(
         libsnark::protoboard<FieldT> &pb,
         // Message to encrypt
         const libsnark::pb_variable<FieldT> &x,
@@ -50,6 +46,10 @@ public:
     // Constants vector initialization
     void setup_sha3_constants();
 };
+
+template<typename FieldT>
+using MiMCe7_permutation_gadget =
+    MiMC_permutation_gadget<FieldT, MiMCe7_round_gadget<FieldT>, 91>;
 
 } // namespace libzeth
 

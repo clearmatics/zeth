@@ -12,6 +12,11 @@
 namespace libzeth
 {
 
+// TODO: refactor so that the caller allocates the result, in line with other
+// gadgets. The MiMC_mp_gadget should then be able to eliminate an unncessary
+// equality constraint for the MP part, by passing in a linear combination for
+// the result.
+
 /// MiMCe7_round_gadget enforces correct computation of a MiMC permutation round
 /// with exponent 7. In MiMC permutation last round differs from the others
 /// since the key is added again. We use a boolean variable `add_k_to_result` to
