@@ -29,7 +29,7 @@ MiMCe7_round_gadget<FieldT>::MiMCe7_round_gadget(
     t4.allocate(pb, FMT(this->annotation_prefix, " t4"));
     t6.allocate(pb, FMT(this->annotation_prefix, " t6"));
     t7.allocate(pb, FMT(this->annotation_prefix, " out"));
-};
+}
 
 template<typename FieldT>
 void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints()
@@ -65,7 +65,7 @@ void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints()
             libsnark::r1cs_constraint<FieldT>(t, t6, t7),
             FMT(this->annotation_prefix, " round_constraint_t7"));
     }
-};
+}
 
 template<typename FieldT>
 void MiMCe7_round_gadget<FieldT>::generate_r1cs_witness() const
@@ -87,13 +87,13 @@ void MiMCe7_round_gadget<FieldT>::generate_r1cs_witness() const
     const FieldT result =
         (val_t6 * t) + (add_k_to_result ? val_k : FieldT::zero());
     this->pb.val(t7) = result;
-};
+}
 
 template<typename FieldT>
 const libsnark::pb_variable<FieldT> &MiMCe7_round_gadget<FieldT>::result() const
 {
     return t7;
-};
+}
 
 } // namespace libzeth
 
