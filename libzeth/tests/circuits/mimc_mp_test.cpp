@@ -263,6 +263,77 @@ TEST(TestMiMC, TestMiMC31)
     ASSERT_EQ(h_val, pb.val(mimc_mp_gadget.result()));
 }
 
+TEST(TestMiMC, TestMiMC11Round)
+{
+    using Field = libff::bls12_377_Fr;
+    libsnark::protoboard<Field> pb;
+
+    const Field x_val("340282366920938463463374607431768211456");
+    const Field y_val("36146370610439375831462714358273373691897981609479495260"
+                      "58695634226054692860");
+    const Field c_val(
+        "577560616941962560685931949698212627967485873079130048105101"
+        "9590436651369410");
+    const Field h_val(
+        "794908055092366048090966680752111005143163608855158557472843"
+        "1102319210430206");
+
+    libsnark::pb_variable<Field> y;
+    y.allocate(pb, "y");
+    pb.set_input_sizes(1);
+    pb.val(y) = y_val;
+
+    libsnark::pb_variable<Field> x;
+    x.allocate(pb, "x");
+    pb.val(x) = x_val;
+
+    MiMCe11_round_gadget<Field> mimc_round_gadget(pb, x, y, c_val, false);
+    mimc_round_gadget.generate_r1cs_witness();
+    mimc_round_gadget.generate_r1cs_constraints();
+
+    ASSERT_TRUE(pb.is_satisfied());
+    ASSERT_EQ(h_val, pb.val(mimc_round_gadget.result()));
+}
+
+TEST(TestMiMC, TestMiMC11)
+{
+    using Field = libff::bls12_377_Fr;
+
+    // Test data from client test
+    const Field m_val(
+        "361463706104393758314627143582733736918979816094794952605869"
+        "5634226054692860");
+    const Field k_val(
+        "577560616941962560685931949698212627967485873079130048105101"
+        "9590436651369410");
+    const Field h_val(
+        "192274765385479630976529071630849212224804788008793986809745"
+        "8242655404425864");
+
+    libsnark::protoboard<Field> pb;
+
+    // Public input
+    libsnark::pb_variable<Field> k;
+    k.allocate(pb, "k");
+    pb.set_input_sizes(1);
+    pb.val(k) = k_val;
+
+    // Private inputs
+    libsnark::pb_variable<Field> m;
+    m.allocate(pb, "m");
+    pb.val(m) = m_val;
+
+    MiMC_mp_gadget<Field, MiMCe11_permutation_gadget<Field>> mimc_mp_gadget(
+        pb, m, k, "mimc_mp");
+    mimc_mp_gadget.generate_r1cs_witness();
+    mimc_mp_gadget.generate_r1cs_constraints();
+
+    // Check that the circuit is satisfied, and that the expected result is
+    // generated.
+    ASSERT_TRUE(pb.is_satisfied());
+    ASSERT_EQ(h_val, pb.val(mimc_mp_gadget.result()));
+}
+
 } // namespace
 
 int main(int argc, char **argv)

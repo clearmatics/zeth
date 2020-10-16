@@ -103,6 +103,41 @@ public:
     const libsnark::pb_variable<FieldT> &result() const;
 };
 
+/// MiMCe11_round_gadget enforces correct computation of a MiMC permutation
+/// round with exponent 11. `key` is optionally added to the output (based on
+/// the value of `add_k_to_result`), to handle the last round.
+template<typename FieldT>
+class MiMCe11_round_gadget : public libsnark::gadget<FieldT>
+{
+private:
+    const libsnark::pb_variable<FieldT> x;
+    const libsnark::pb_variable<FieldT> k;
+    const FieldT c;
+    const bool add_k_to_result;
+
+    // Intermediate variables
+    libsnark::pb_variable<FieldT> t2;
+    libsnark::pb_variable<FieldT> t4;
+    libsnark::pb_variable<FieldT> t8;
+    libsnark::pb_variable<FieldT> t10;
+    // Result variable
+    libsnark::pb_variable<FieldT> t11;
+
+public:
+    MiMCe11_round_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const libsnark::pb_variable<FieldT> &x,
+        const libsnark::pb_variable<FieldT> &k,
+        const FieldT &c,
+        const bool add_k_to_result,
+        const std::string &annotation_prefix = "MiMCe11_round_gadget");
+
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness() const;
+
+    const libsnark::pb_variable<FieldT> &result() const;
+};
+
 } // namespace libzeth
 
 #include "libzeth/circuits/mimc/mimc_round.tcc"

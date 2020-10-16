@@ -55,6 +55,10 @@ template<typename FieldT>
 using MiMCe31_permutation_gadget =
     MiMC_permutation_gadget<FieldT, MiMCe31_round_gadget<FieldT>, 51>;
 
+template<typename FieldT>
+using MiMCe11_permutation_gadget =
+    MiMC_permutation_gadget<FieldT, MiMCe11_round_gadget<FieldT>, 73>;
+
 } // namespace libzeth
 
 #include "libzeth/circuits/mimc/mimc.tcc"
