@@ -24,7 +24,10 @@ OwnershipPublicKey = NewType('OwnershipPublicKey', bytes)
 
 class OwnershipKeyPair:
     """
-    Key-pair for ownership proof
+    Key-pair for ownership proof. This represents the 'payment key' (apk)
+    from the 'payment address' and the 'spending key' (ask) from the
+    'private address'. These are components of ZethAddress, used in
+    note commitments in the joinsplit statement.
     """
     def __init__(self, a_sk: OwnershipSecretKey, a_pk: OwnershipPublicKey):
         self.a_sk: OwnershipSecretKey = a_sk

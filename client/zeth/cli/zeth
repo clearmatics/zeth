@@ -5,8 +5,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zeth.cli.constants import \
-    PROVER_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
-    ZETH_SECRET_ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, \
+    PROVER_SERVER_ENDPOINT_DEFAULT, PROVER_CONFIGURATION_FILE_DEFAULT, \
+    INSTANCE_FILE_DEFAULT, ZETH_SECRET_ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, \
     ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
 from zeth.cli.utils import ClientConfig
 from zeth.cli.zeth_deploy import deploy
@@ -44,6 +44,10 @@ def help(ctx: Context) -> None:
     default=PROVER_SERVER_ENDPOINT_DEFAULT,
     help=f"Prover server endpoint (default={PROVER_SERVER_ENDPOINT_DEFAULT})")
 @option(
+    "--prover-config-file",
+    default=PROVER_CONFIGURATION_FILE_DEFAULT,
+    help=f"Prover config file (default={PROVER_CONFIGURATION_FILE_DEFAULT})")
+@option(
     "--instance-file",
     default=INSTANCE_FILE_DEFAULT,
     help=f"Instance file (default={INSTANCE_FILE_DEFAULT})")
@@ -60,6 +64,7 @@ def zeth(
         ctx: Context,
         eth_network: Optional[str],
         prover_server: str,
+        prover_config_file: str,
         instance_file: str,
         address_file: str,
         wallet_dir: str) -> None:
@@ -69,6 +74,7 @@ def zeth(
     ctx.obj = ClientConfig(
         eth_network=eth_network,
         prover_server_endpoint=prover_server,
+        prover_config_file=prover_config_file,
         instance_file=instance_file,
         address_file=address_file,
         wallet_dir=wallet_dir)

@@ -67,6 +67,15 @@ zeth sync
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
 charlie_pk=`cat ../charlie/zeth-address.pub`
+
+# Ensure that bob has been able to generate an address and sync from the
+# blockchain without querying the prover_server for the configuration.
+
+if [ -e prover-config.cache ] ; then
+    echo Expected no prover config file
+    exit 1
+fi
+
 zeth mix \
      --wait \
      --in ${note_id} \

@@ -12,6 +12,8 @@
 namespace libzeth
 {
 
+template<typename ppT> const std::string groth16_snark<ppT>::name("GROTH16");
+
 template<typename ppT>
 typename groth16_snark<ppT>::keypair groth16_snark<ppT>::generate_setup(
     const libsnark::protoboard<libff::Fr<ppT>> &pb)
@@ -133,7 +135,7 @@ std::ostream &groth16_snark<ppT>::proof_write_json(
     const typename groth16_snark<ppT>::proof &proof, std::ostream &out_s)
 {
     out_s << "{\n  \"a\": " << point_affine_to_json(proof.g_A)
-          << ",\n  \"minus_b\": " << point_affine_to_json(-proof.g_B)
+          << ",\n  \"b\": " << point_affine_to_json(proof.g_B)
           << ",\n  \"c\": " << point_affine_to_json(proof.g_C) << "\n}";
     return out_s;
 }

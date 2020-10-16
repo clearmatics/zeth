@@ -6,8 +6,23 @@ import "google/protobuf/empty.proto";
 
 import "zeth/api/zeth_messages.proto";
 import "zeth/api/snark_messages.proto";
+import "zeth/api/ec_group_messages.proto";
+
+
+// Information describing configuration options of the server that may be of
+// interest to clients.
+message ProverConfiguration {
+    // The zk-snark scheme used by this server ("GROTH16" or "PGHR13").
+    string zksnark = 1;
+
+    // PairingParameters used by the server
+    PairingParameters pairing_parameters = 2;
+}
 
 service Prover {
+    // Get some configuration information
+    rpc GetConfiguration(google.protobuf.Empty) returns (ProverConfiguration) {}
+
     // Fetch the verification key from the prover server
     rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
 

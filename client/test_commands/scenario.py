@@ -4,15 +4,17 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
+from zeth.core.zeth_address import ZethAddressPub
 from zeth.core.mixer_client import MixerClient, OwnershipKeyPair, \
     joinsplit_sign, encrypt_notes, get_dummy_input_and_address, \
-    compute_h_sig, JoinsplitSigVerificationKey
-from zeth.core.zksnark import IZKSnarkProvider
+    compute_h_sig, JoinsplitSigVerificationKey, MixCallDescription, \
+    ComputeHSigCB, JoinsplitSigKeyPair
+from zeth.core.zksnark import IZKSnarkProvider, ExtendedProof
 import zeth.core.contracts as contracts
 from zeth.core.constants import ZETH_PRIME, FIELD_CAPACITY
 import zeth.core.signing as signing
-from zeth.core.merkle_tree import MerkleTree, compute_merkle_path
-from zeth.core.utils import EtherValue, to_zeth_units
+from zeth.core.merkle_tree import MerkleTree
+from zeth.core.utils import EtherValue
 from zeth.api.zeth_messages_pb2 import ZethNote
 import test_commands.mock as mock
 
@@ -50,6 +52,42 @@ def wait_for_tx_update_mk_tree(
     if mk_tree.recompute_root() != result.new_merkle_root:
         raise Exception("Merkle root mismatch between log and local tree")
     return result
+
+
+def get_mix_parameters_components(
+        zeth_client: MixerClient,
+        zksnark: IZKSnarkProvider,
+        mk_tree: MerkleTree,
+        sender_ownership_keypair: OwnershipKeyPair,
+        inputs: List[Tuple[int, ZethNote]],
+        outputs: List[Tuple[ZethAddressPub, EtherValue]],
+        v_in: EtherValue,
+        v_out: EtherValue,
+        compute_h_sig_cb: Optional[ComputeHSigCB] = None
+) -> Tuple[ZethNote, ZethNote, ExtendedProof, JoinsplitSigKeyPair]:
+    """
+    Manually create the components required for MixParameters. The tests below
+    manipulate these to create custom MixParameters as part of attacks.
+    """
+    prover_client = zeth_client._prover_client \
+        # pylint: disable=protected-access
+    mix_call_desc = MixCallDescription(
+        mk_tree,
+        sender_ownership_keypair,
+        inputs,
+        outputs,
+        v_in,
+        v_out,
+        compute_h_sig_cb)
+    prover_inputs, signing_keypair = zeth_client.create_prover_inputs(
+        mix_call_desc)
+    ext_proof_proto = prover_client.get_proof(prover_inputs)
+    ext_proof = zksnark.extended_proof_from_proto(ext_proof_proto)
+    return (
+        prover_inputs.js_outputs[0],
+        prover_inputs.js_outputs[1],
+        ext_proof,
+        signing_keypair)
 
 
 def bob_deposit(
@@ -154,22 +192,20 @@ def charlie_double_withdraw(
     Charlie tries to carry out a double spending by modifying the value of the
     nullifier of the previous payment
     """
+    prover_client = zeth_client._prover_client \
+        # pylint: disable=protected-access
+
     print(
         f" === Charlie attempts to withdraw {CHARLIE_WITHDRAW_ETH}ETH once " +
         "more (double spend) one of his note on the Mixer ===")
 
-    charlie_apk = keystore["Charlie"].addr_pk.a_pk
-    charlie_ask = keystore["Charlie"].addr_sk.a_sk
-
-    tree_depth = mk_tree.depth
-    mk_path1 = compute_merkle_path(input1[0], mk_tree)
-    mk_root = mk_tree.get_root()
+    charlie_addr = keystore["Charlie"]
+    charlie_apk = charlie_addr.addr_pk.a_pk
 
     # Create the an additional dummy input for the MixerClient
     input2 = get_dummy_input_and_address(charlie_apk)
-    dummy_mk_path = mock.get_dummy_merkle_path(tree_depth)
 
-    note1_value = to_zeth_units(EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH))
+    note1_value = EtherValue(CHARLIE_WITHDRAW_CHANGE_ETH)
     v_out = EtherValue(CHARLIE_WITHDRAW_ETH)
 
     # ### ATTACK BLOCK
@@ -216,18 +252,17 @@ def charlie_double_withdraw(
         return compute_h_sig(
             bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_vk)
 
-    (output_note1, output_note2, proof, signing_keypair) = \
-        zeth_client.get_proof_joinsplit_2_by_2(
-            mk_root,
-            input1,
-            mk_path1,
-            input2,
-            dummy_mk_path,
-            charlie_ask,  # sender
-            (charlie_apk, note1_value),  # recipient1
-            (charlie_apk, 0),  # recipient2
-            to_zeth_units(EtherValue(0)),  # v_in
-            to_zeth_units(v_out),  # v_out
+    output_note1, output_note2, proof, signing_keypair = \
+        get_mix_parameters_components(
+            zeth_client,
+            zksnark,
+            mk_tree,
+            keystore["Charlie"].ownership_keypair(),  # sender
+            [input1, input2],
+            [(charlie_addr.addr_pk, note1_value),
+             (charlie_addr.addr_pk, EtherValue(0))],
+            EtherValue(0),
+            v_out,
             compute_h_sig_attack_nf)
 
     # Update the primary inputs to the modified nullifiers, since libsnark
@@ -252,8 +287,10 @@ def charlie_double_withdraw(
         (output_note2, pk_charlie)])
 
     # Compute the joinSplit signature
+    pp = prover_client.get_configuration().pairing_parameters
     joinsplit_sig_charlie = joinsplit_sign(
         zksnark,
+        pp,
         signing_keypair,
         charlie_eth_address,
         ciphertexts,
@@ -307,36 +344,34 @@ def charlie_corrupt_bob_deposit(
         f"=== Bob deposits {BOB_DEPOSIT_ETH} ETH for himself and split into " +
         f"note1: {BOB_SPLIT_1_ETH}ETH, note2: {BOB_SPLIT_2_ETH}ETH " +
         "but Charlie attempts to corrupt the transaction ===")
-    bob_apk = keystore["Bob"].addr_pk.a_pk
-    bob_ask = keystore["Bob"].addr_sk.a_sk
-    tree_depth = mk_tree.depth
-    mk_root = mk_tree.get_root()
-    # mk_tree_depth = zeth_client.mk_tree_depth
-    # mk_root = zeth_client.merkle_root
+    bob_addr_pk = keystore["Bob"]
+    bob_apk = bob_addr_pk.addr_pk.a_pk
+
+    # Get pairing parameters
+    prover_client = zeth_client._prover_client \
+        # pylint: disable=protected-access
+    pp = prover_client.get_configuration().pairing_parameters
 
     # Create the JoinSplit dummy inputs for the deposit
     input1 = get_dummy_input_and_address(bob_apk)
     input2 = get_dummy_input_and_address(bob_apk)
-    dummy_mk_path = mock.get_dummy_merkle_path(tree_depth)
 
-    note1_value = to_zeth_units(EtherValue(BOB_SPLIT_1_ETH))
-    note2_value = to_zeth_units(EtherValue(BOB_SPLIT_2_ETH))
+    note1_value = EtherValue(BOB_SPLIT_1_ETH)
+    note2_value = EtherValue(BOB_SPLIT_2_ETH)
 
-    v_in = to_zeth_units(EtherValue(BOB_DEPOSIT_ETH))
+    v_in = EtherValue(BOB_DEPOSIT_ETH)
 
-    (output_note1, output_note2, proof, joinsplit_keypair) = \
-        zeth_client.get_proof_joinsplit_2_by_2(
-            mk_root,
-            input1,
-            dummy_mk_path,
-            input2,
-            dummy_mk_path,
-            bob_ask,  # sender
-            (bob_apk, note1_value),  # recipient1
-            (bob_apk, note2_value),  # recipient2
-            v_in,  # v_in
-            to_zeth_units(EtherValue(0))  # v_out
-        )
+    output_note1, output_note2, proof, joinsplit_keypair = \
+        get_mix_parameters_components(
+            zeth_client,
+            zksnark,
+            mk_tree,
+            keystore["Bob"].ownership_keypair(),
+            [input1, input2],
+            [(bob_addr_pk.addr_pk, note1_value),
+             (bob_addr_pk.addr_pk, note2_value)],
+            v_in,
+            EtherValue(0))  # v_out
 
     # Encrypt the coins to bob
     pk_bob = keystore["Bob"].addr_pk.k_pk
@@ -358,6 +393,7 @@ def charlie_corrupt_bob_deposit(
     try:
         joinsplit_sig_charlie = joinsplit_sign(
             zksnark,
+            pp,
             joinsplit_keypair,
             charlie_eth_address,
             ciphertexts,
@@ -397,6 +433,7 @@ def charlie_corrupt_bob_deposit(
     try:
         joinsplit_sig_charlie = joinsplit_sign(
             zksnark,
+            pp,
             new_joinsplit_keypair,
             charlie_eth_address,
             [fake_ciphertext0, fake_ciphertext1],
@@ -427,6 +464,7 @@ def charlie_corrupt_bob_deposit(
     try:
         joinsplit_sig_bob = joinsplit_sign(
             zksnark,
+            pp,
             joinsplit_keypair,
             bob_eth_address,
             ciphertexts,
@@ -456,6 +494,7 @@ def charlie_corrupt_bob_deposit(
     # Bob transaction is finally mined
     joinsplit_sig_bob = joinsplit_sign(
         zksnark,
+        pp,
         joinsplit_keypair,
         bob_eth_address,
         ciphertexts,

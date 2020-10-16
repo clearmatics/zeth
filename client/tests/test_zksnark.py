@@ -2,10 +2,14 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.core.zksnark import IZKSnarkProvider, GenericG1Point, GenericG2Point, \
-    IVerificationKey, ExtendedProof, Groth16, group_point_g1_to_proto, \
-    group_point_g1_from_proto, group_point_g2_to_proto, group_point_g2_from_proto
+from zeth.core.pairing import G1Point, G2Point, \
+    g1_point_from_proto, g1_point_to_proto, \
+    g2_point_to_proto, g2_point_from_proto
+from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey, ExtendedProof, \
+    Groth16
 from zeth.api import ec_group_messages_pb2
+from tests.test_pairing import \
+    ALT_BN128_PAIRING, BW6_761_PAIRING, BLS12_377_PAIRING
 from unittest import TestCase
 
 
@@ -38,31 +42,31 @@ VERIFICATION_KEY_BLS12_377_GROTH16 = Groth16.VerificationKey.from_json_dict({
     ]]
 })
 
-# Encoded as evm uint256_t words
+# Encoded as evm uint256_t words (note beta and delta are negated)
 VERIFICATION_KEY_BLS12_377_GROTH16_PARAMETERS = [
     # Alpha
     int("00000000000000000000000000000000009d7309d79d5215384a7a9a1d9372af", 16),  # noqa
     int("909582781f388a51cb833c87b8024519cf5b343cb35d49a5aa52940f14b7b8e7", 16),  # noqa
     int("00000000000000000000000000000000012816ef6069ef1e40eaab0a111f9b98", 16),  # noqa
     int("b276dbf2a3209d788eb8ce635ce92a29c2bcdaa3bb9b375a8d3ee4325c07f4ea", 16),  # noqa
-    # Beta1
+    # Minus Beta
     int("00000000000000000000000000000000017abb9470ccb0ef09676df87dbe181a", 16),  # noqa
     int("9ed89ba1cf1e32a2031d308b4c11a84fd97ac202fb82264cec178e22b71598b9", 16),  # noqa
     int("0000000000000000000000000000000001774daba40ce4c9fe2d2c6d17a3821b", 16),  # noqa
     int("31ec63a77ebea2dab8b3218fd7eb90f9d561d87ab9712f3bafcf30ed3676553b", 16),  # noqa
-    int("0000000000000000000000000000000000ce3769d0c1e29aa799a5928b1c524a", 16),  # noqa
-    int("5a85326c4b16463530bfdcab82f55ef6c4649d4916e3c6e5eebd1f8c932b7be1", 16),  # noqa
-    int("00000000000000000000000000000000009234f3340fb85ae722ed052b8dcf63", 16),  # noqa
-    int("193c423791d9c43ab725a35286bda1708c3a9d8bff4c1fd55d981c10a30e9cff", 16),  # noqa
-    # Delta
+    int("0000000000000000000000000000000000e002dc47032e501ea1602de184f6f0", 16),  # noqa
+    int("bf9da786b5decd59ee3385843713e90952a6bffb191c391a964ba0736cd48420", 16),  # noqa
+    int("00000000000000000000000000000000011c0552e3b5588fdf1818bb411379d8", 16),  # noqa
+    int("00e697bb6f1b4f5467cdbedd334ba68f8ad0bfb830b3e02b2770a3ef5cf16302", 16),  # noqa
+    # Minus Delta
     int("0000000000000000000000000000000000c19b1795e634573c0514de0cea5bd0", 16),  # noqa
     int("5d88c24b08aeadc03ec4686ee6741b80e7dea9065d654a3b703ac8e43173f909", 16),  # noqa
     int("0000000000000000000000000000000001a00d16c4d2805e248debf48ea0771e", 16),  # noqa
     int("627e2bfb95198df0cbe09a1eb4879fe5fae208347a21c113061921b6a84f7e7d", 16),  # noqa
-    int("0000000000000000000000000000000000361ca07388d760898e0969f3b9a3d6", 16),  # noqa
-    int("d751b83d770007761e1c5cc798852ed89007ee1504d7c6c7a398693100eef416", 16),  # noqa
-    int("00000000000000000000000000000000009a7d27c8392eefe1ba23a52d509cda", 16),  # noqa
-    int("59ba3c5acc95765d1146a998c780277fb318e47a4e4a554d8a3e6f56ccdd2566", 16),  # noqa
+    int("0000000000000000000000000000000001781da5a43c398a3cacfc5678e7a564", 16),  # noqa
+    int("42d121b589f50c1900d705682184192787036f2f2b283938e17056ceff110beb", 16),  # noqa
+    int("000000000000000000000000000000000113bd1e4f8be1fae480e21b3f50ac60", 16),  # noqa
+    int("c0689d98345f9d320dacb896f289208063f278c9e1b5aab2faca50a93322da9b", 16),  # noqa
     # ABC
     int("00000000000000000000000000000000001098a772e5fb9edbbd68943000e46b", 16),  # noqa
     int("b0f3f2514cbbe1ef15ba485d1c07a683674b5b9398270c1ddf640d345f008353", 16),  # noqa
@@ -108,29 +112,30 @@ VERIFICATION_KEY_BW6_761_GROTH16 = Groth16.VerificationKey.from_json_dict({
     ]]
 })
 
+# Encoded as evm uint256_t words (note beta and delta are negated)
 VERIFICATION_KEY_BW6_761_GROTH16_PARAMETERS = [
-    # "alpha":
+    # Alpha
     int("00b1cb8971a538e5086e12fd7ce423b9611a6eee1ce9ec95fb966bf333c72d71", 16),  # noqa
     int("e16a5f6ab1ffa0b68a3bd99ad263d036c80d6d854934d20b4e322e06df34dce5", 16),  # noqa
     int("ad1ab5855aa1a13ee2fc340a22a4ee9b07acf7198e9b76904f12248a45c15267", 16),  # noqa
     int("010029659098127958344df7ae0d96e411c163df75454032fa940b7b25cf82b9", 16),  # noqa
     int("8f167e311eb6fc392551d9d2e87a1c7fc7b022f967f455dd0d60c0dba6943a2d", 16),  # noqa
     int("77c30768bec0349c8351039aef0709c2af413e6ee2dfd13ed418392d06c3f2ff", 16),  # noqa
-    # "beta":
-        int("00a172034ccac6782c351ac3a91341b3792d589254c6e8bee9c7becf276bc51f", 16),  # noqa
+    # Minus Beta
+    int("00a172034ccac6782c351ac3a91341b3792d589254c6e8bee9c7becf276bc51f", 16),  # noqa
     int("baf9d19645f10d8e4598978a14fb4fb46a7dba2213c47f921d5dfc0318866d5c", 16),  # noqa
     int("e561f69fbabbd1edc3d6fa3f8c4514edb6ab0c93bdd4285e5a25153218fbaa79", 16),  # noqa
-    int("00f96a865caa92048ea60ebd5cf3890b3f550b25597bf304be34ea4dbceb2021", 16),  # noqa
-    int("407975d68a3c0511fa5b039563fbdc34e1a49c4b11766b6c00f4c2592d5c8529", 16),  # noqa
-    int("a56f4d6840730a40e617cd7dfa007df86ffb7dcfea67779d319b798be47c6546", 16),  # noqa
-    # "delta":
+    int("00297d9e9ed93c0642e1ba82a807763379d10d4528555383944d8ba1c39c9e20", 16),  # noqa
+    int("300230625b48e4070973b769c1b846cfa4e52ca20183922470e81183468f7a04", 16),  # noqa
+    int("f331c95a15f49eb72ff52b30f0f0263f7695c098859888e5c30186741b839b45", 16),  # noqa
+    # Minus Delta
     int("00118a94304763b5706df5a38316fac1520597604e0c5f3263b4f8ec27878522", 16),  # noqa
     int("30d3b69785b6817b47874b98ec249b261499f05d95183e95ce7035b28cbdab37", 16),  # noqa
     int("b21811b7b6ec7f11bd938d994b219b85fc689516061cfbfad168b86caa71a1de", 16),  # noqa
-    int("00ae6e5f4cb84b5849d74a4fef5f417c9a52830346cc4967f662b48ff948bf3f", 16),  # noqa
-    int("08889c47cd7041773759fb1dc4140edbc452043e43ed93156eb098f5d4749d62", 16),  # noqa
-    int("5fcd68b6d5c49caaab443fbf8b8d38e9a4ddd96ddaa8936cd95dfe44a6cb7ebf", 16),  # noqa
-    # "ABC":
+    int("007479c5aecb82b287b07ef0159bbdc21ed395673b04fd205c1fc15f873eff02", 16),  # noqa
+    int("67f309f11814a7a1cc74bfe161a01428c237c4aecf0c6a7b032c3ae69f7761cc", 16),  # noqa
+    int("38d3ae0b80a30c4d6ac8b8ef5f636b4e41b364fa95576d161b3f01bb593481cc", 16),  # noqa
+    # ABC
     int("0042ab364724f3229d715738ad4bd7c405725eb5161704aa077a84983d44df7b", 16),  # noqa
     int("fad3111b20f9e8d16691b8e2743f1269649fbadbd55275fdf4108d68e9f62f1f", 16),  # noqa
     int("52c84e8fd4ab2e2b33d90fe359b41a84a39c34605e0c9cafa2b29e6d801c1b33", 16),  # noqa
@@ -197,21 +202,21 @@ VERIFICATION_KEY_ALT_BN128_GROTH16 = Groth16.VerificationKey.from_json_dict({
     ]]
 })
 
-# Encoded as evm uint256_t words
+# Encoded as evm uint256_t words (note beta and delta are negated)
 VERIFICATION_KEY_ALT_BN128_GROTH16_PARAMETERS = [
     # Alpha
     int("0x009d7309d79d5215384a7a9a1d9372af909582781f388a51cb833c87b8024519", 16),  # noqa
     int("0x012816ef6069ef1e40eaab0a111f9b98b276dbf2a3209d788eb8ce635ce92a29", 16),  # noqa
-    # Beta1
+    # Minus Beta
     int("0x017abb9470ccb0ef09676df87dbe181a9ed89ba1cf1e32a2031d308b4c11a84f", 16),  # noqa
     int("0x01774daba40ce4c9fe2d2c6d17a3821b31ec63a77ebea2dab8b3218fd7eb90f9", 16),  # noqa
-    int("0x18ce3769d0c1e29aa799a5928b1c524a5a85326c4b16463530bfdcab82f55ef6", 16),  # noqa
-    int("0x1a9234f3340fb85ae722ed052b8dcf63193c423791d9c43ab725a35286bda170", 16),  # noqa
-    # Delta
+    int("0x17961709106fbd8f10b6a023f66506133cfc38251d5b84580b60af6b55879e51", 16),  # noqa
+    int("0x15d2197fad21e7ced12d58b155f388fa7e452859d698065284fae8c451bf5bd7", 16),  # noqa
+    # Minus Delta
     int("0x19c19b1795e634573c0514de0cea5bd05d88c24b08aeadc03ec4686ee6741b80", 16),  # noqa
     int("0x01a00d16c4d2805e248debf48ea0771e627e2bfb95198df0cbe09a1eb4879fe5", 16),  # noqa
-    int("0x00361ca07388d760898e0969f3b9a3d6d751b83d770007761e1c5cc798852ed8", 16),  # noqa
-    int("0x009a7d27c8392eefe1ba23a52d509cda59ba3c5acc95765d1146a998c780277f", 16),  # noqa
+    int("0x302e31d26da8c8c92ec23c4c8dc7b486c02fb253f171c3171e042f4f3ff7ce6f", 16),  # noqa
+    int("0x2fc9d14b18f87139d69622115430bb833dc72e369bdc54302ad9e27e10fcd5c8", 16),  # noqa
     # ABC
     int("0x01098a772e5fb9edbbd68943000e46bb0f3f2514cbbe1ef15ba485d1c07a6836", 16),  # noqa
     int("0x18a94eefa95142069e1f1c069d48645201d1201bc0b7d9bc25ee65a25602362f", 16),  # noqa
@@ -225,7 +230,7 @@ EXTPROOF_BLS12_377_GROTH16 = ExtendedProof(
             "0x010bd3c06ed5aeb1a7b0653ba63f413b27ba7fd1b77cb4a403fb15f9fb8735abda93a3c78ad05afd111ea68d016cf99e",  # noqa
             "0x00255a73b1247dcfd62171b29ddbd271cdb7e98b78912ddf6bfe4723cd229f414f9a47cecd0fec7fb74bf13b22a7395b"  # noqa
         ],
-        "minus_b": [
+        "b": [
             [
                 "0x01ada9239a53b094ae15473baaa3649afb46d5330f36f8590df668167dd02aaf0a18602ce42654c3d857c4e5e454ca28",  # noqa
                 "0x00938ce5525864aa135674b048bb68adadfabca2a4cea43ea13b19cacec1ae171986009e916f729a085c04cbe22c4127"  # noqa
@@ -251,7 +256,7 @@ PROOF_BLS12_377_GROTH16_PARAMETERS = [
     int("27ba7fd1b77cb4a403fb15f9fb8735abda93a3c78ad05afd111ea68d016cf99e", 16),  # noqa
     int("0000000000000000000000000000000000255a73b1247dcfd62171b29ddbd271", 16),  # noqa
     int("cdb7e98b78912ddf6bfe4723cd229f414f9a47cecd0fec7fb74bf13b22a7395b", 16),  # noqa
-    # "minus_b":
+    # "b":
     int("0000000000000000000000000000000001ada9239a53b094ae15473baaa3649a", 16),  # noqa
     int("fb46d5330f36f8590df668167dd02aaf0a18602ce42654c3d857c4e5e454ca28", 16),  # noqa
     int("0000000000000000000000000000000000938ce5525864aa135674b048bb68ad", 16),  # noqa
@@ -273,7 +278,7 @@ EXTPROOF_BW6_761_GROTH16 = ExtendedProof(
             "0x00b42fc65c4178e23c5ea46791b63f13e01057d957d097d2a7b1b99b921b3db0b519b21bd21f9d5209420de0d39e6ceebcf40df23e8f3dfb3544e3f221687a254f935e7e4eafbded993af4464cf7ca8da374b2cbcc6003fb47bc590dd8eaadc2",  # noqa
             "0x001f63f85f5e96168363e1c3733094347b9d7d0cbb2b762c65c12b52fe92e126b1f884d331d7b8740dccb383d7565eeb625fc43598bd371801153e0a690e1881f84849653fce01034cb571b78232b5e7aab22f0b3ee089c0b907de8a52628a92"  # noqa
         ],
-        "minus_b": [
+        "b": [
             "0x00bfb5be9eb134d7118ab1f759b5a801dda03315108848082a6815dab0c88fe253429d65b7b03a7983a6ee353f0f9687de39888afe4fcb106900a10cee2c4c42d6efa2ee7cdc8d82b052fa8e0f79786d2a4847a25d9ca9026a106de6c73c8d18",  # noqa
             "0x00b9f29ad8d2107e760fa728a897b26b673e3b099e56e7c2bdfe0194cd02f8aff4b799f6f8d07f6e3b7dfc000e02eda978e1993a57337b5e2f2e9e3f024ef30367887ed23cca57cc33d8bfafdfb4c914e085870621cf02bb380b80387162fb40"  # noqa
         ],
@@ -298,7 +303,7 @@ PROOF_BW6_761_GROTH16_PARAMETERS = [
     int("001f63f85f5e96168363e1c3733094347b9d7d0cbb2b762c65c12b52fe92e126", 16),  # noqa
     int("b1f884d331d7b8740dccb383d7565eeb625fc43598bd371801153e0a690e1881", 16),  # noqa
     int("f84849653fce01034cb571b78232b5e7aab22f0b3ee089c0b907de8a52628a92", 16),  # noqa
-    # "minus_b":
+    # "b":
     int("00bfb5be9eb134d7118ab1f759b5a801dda03315108848082a6815dab0c88fe2", 16),  # noqa
     int("53429d65b7b03a7983a6ee353f0f9687de39888afe4fcb106900a10cee2c4c42", 16),  # noqa
     int("d6efa2ee7cdc8d82b052fa8e0f79786d2a4847a25d9ca9026a106de6c73c8d18", 16),  # noqa
@@ -320,7 +325,7 @@ EXTPROOF_ALT_BN128_GROTH16 = ExtendedProof(
             "0xbd3c06ed5aeb1a7b0653ba63f413b27ba7fd1b77cb4a403fb15f9fb8735abda9",  # noqa
             "0x55a73b1247dcfd62171b29ddbd271cdb7e98b78912ddf6bfe4723cd229f414f9"  # noqa
         ],
-        "minus_b": [
+        "b": [
             [
                 "0xda9239a53b094ae15473baaa3649afb46d5330f36f8590df668167dd02aaf0a1",  # noqa
                 "0x38ce5525864aa135674b048bb68adadfabca2a4cea43ea13b19cacec1ae17198"  # noqa
@@ -339,12 +344,12 @@ EXTPROOF_ALT_BN128_GROTH16 = ExtendedProof(
         "0x0000000000000000000000000000000000000000000000000000000000000007"  # noqa
     ])
 
-# Proof part of EXTPROOF_BLS12_377_GROTH16 encoded as uint256_t words
+# Proof part of EXTPROOF_ALT_BN128_GROTH16 encoded as uint256_t words
 PROOF_ALT_BN128_GROTH16_PARAMETERS = [
     # "a":
     int("0xbd3c06ed5aeb1a7b0653ba63f413b27ba7fd1b77cb4a403fb15f9fb8735abda9", 16),  # noqa
     int("0x55a73b1247dcfd62171b29ddbd271cdb7e98b78912ddf6bfe4723cd229f414f9", 16),  # noqa
-    # "minus_b":
+    # "b":
     int("0xda9239a53b094ae15473baaa3649afb46d5330f36f8590df668167dd02aaf0a1", 16),  # noqa
     int("0x38ce5525864aa135674b048bb68adadfabca2a4cea43ea13b19cacec1ae17198", 16),  # noqa
     int("0x15a4ea0daaaf8ef20b37c4bda03c2d381be797ae59b621b841d3e61495cf2aaf", 16),  # noqa
@@ -361,45 +366,51 @@ class TestZKSnark(TestCase):
     def test_bls12_377_groth16_verification_key_parameters(self) -> None:
         vk = VERIFICATION_KEY_BLS12_377_GROTH16
         vk_parameters_expect = VERIFICATION_KEY_BLS12_377_GROTH16_PARAMETERS
-        vk_parameters = Groth16.verification_key_to_contract_parameters(vk)
+        vk_parameters = Groth16.verification_key_to_contract_parameters(
+            vk, BLS12_377_PAIRING)
         self.assertEqual(vk_parameters_expect, vk_parameters)
 
     def test_bls12_377_groth16_proof_parameters(self) -> None:
         extproof = EXTPROOF_BLS12_377_GROTH16
-        proof_parameters = Groth16.proof_to_contract_parameters(extproof.proof)
+        proof_parameters = Groth16.proof_to_contract_parameters(
+            extproof.proof, BLS12_377_PAIRING)
         self.assertEqual(PROOF_BLS12_377_GROTH16_PARAMETERS, proof_parameters)
 
     def test_bw6_761_groth16_verification_key_parameters(self) -> None:
         vk = VERIFICATION_KEY_BW6_761_GROTH16
         vk_parameters_expect = VERIFICATION_KEY_BW6_761_GROTH16_PARAMETERS
-        vk_parameters = Groth16.verification_key_to_contract_parameters(vk)
+        vk_parameters = Groth16.verification_key_to_contract_parameters(
+            vk, BW6_761_PAIRING)
         self.assertEqual(vk_parameters_expect, vk_parameters)
 
     def test_bw6_761_groth16_proof_parameters(self) -> None:
         extproof = EXTPROOF_BW6_761_GROTH16
-        proof_parameters = Groth16.proof_to_contract_parameters(extproof.proof)
+        proof_parameters = Groth16.proof_to_contract_parameters(
+            extproof.proof, BW6_761_PAIRING)
         self.assertEqual(PROOF_BW6_761_GROTH16_PARAMETERS, proof_parameters)
 
     def test_alt_bn128_groth16_verification_key_parameters(self) -> None:
         vk = VERIFICATION_KEY_ALT_BN128_GROTH16
         vk_parameters_expect = VERIFICATION_KEY_ALT_BN128_GROTH16_PARAMETERS
-        vk_parameters = Groth16.verification_key_to_contract_parameters(vk)
+        vk_parameters = Groth16.verification_key_to_contract_parameters(
+            vk, ALT_BN128_PAIRING)
         self.assertEqual(vk_parameters_expect, vk_parameters)
 
     def test_alt_bn128_groth16_proof_parameters(self) -> None:
         extproof = EXTPROOF_ALT_BN128_GROTH16
-        proof_parameters = Groth16.proof_to_contract_parameters(extproof.proof)
+        proof_parameters = Groth16.proof_to_contract_parameters(
+            extproof.proof, ALT_BN128_PAIRING)
         self.assertEqual(PROOF_ALT_BN128_GROTH16_PARAMETERS, proof_parameters)
 
     def test_g1_proto_encode_decode(self) -> None:
         self._do_test_g1_proto_encode_decode(
-            GenericG1Point("0xaabbccdd", "0x11223344"))
+            G1Point("0xaabbccdd", "0x11223344"))
 
     def test_g2_proto_encode_decode(self) -> None:
         self._do_test_g2_proto_encode_decode(
-            GenericG2Point("0xaabbccdd", "0x11223344"))
+            G2Point(["0xaabbccdd"], ["0x11223344"]))
         self._do_test_g2_proto_encode_decode(
-            GenericG2Point(
+            G2Point(
                 ["0xcdeeff00", "0x11223344"], ["0x55667788", "0x99aabbcc"]))
 
     def test_verification_key_proto_encode_decode(self) -> None:
@@ -410,16 +421,16 @@ class TestZKSnark(TestCase):
         extproof_1 = EXTPROOF_BLS12_377_GROTH16
         self._do_test_ext_proof_proto_encode_decode(extproof_1, Groth16())
 
-    def _do_test_g1_proto_encode_decode(self, g1: GenericG1Point) -> None:
-        g1_proto = ec_group_messages_pb2.HexPointBaseGroup1Affine()
-        group_point_g1_to_proto(g1, g1_proto)
-        g1_decoded = group_point_g1_from_proto(g1_proto)
+    def _do_test_g1_proto_encode_decode(self, g1: G1Point) -> None:
+        g1_proto = ec_group_messages_pb2.Group1Point()
+        g1_point_to_proto(g1, g1_proto)
+        g1_decoded = g1_point_from_proto(g1_proto)
         self.assertEqual(g1.to_json_list(), g1_decoded.to_json_list())
 
-    def _do_test_g2_proto_encode_decode(self, g2: GenericG2Point) -> None:
-        g2_proto = ec_group_messages_pb2.HexPointBaseGroup2Affine()
-        group_point_g2_to_proto(g2, g2_proto)
-        g2_decoded = group_point_g2_from_proto(g2_proto)
+    def _do_test_g2_proto_encode_decode(self, g2: G2Point) -> None:
+        g2_proto = ec_group_messages_pb2.Group2Point()
+        g2_point_to_proto(g2, g2_proto)
+        g2_decoded = g2_point_from_proto(g2_proto)
         self.assertEqual(g2.to_json_list(), g2_decoded.to_json_list())
 
     def _do_test_verification_key_proto_encode_decode(

@@ -18,12 +18,9 @@ void groth16_api_handler<ppT>::verification_key_to_proto(
     const typename groth16_api_handler<ppT>::snark::verification_key &vk,
     zeth_proto::VerificationKey *message)
 {
-    zeth_proto::HexPointBaseGroup1Affine *alpha =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup2Affine *beta =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup2Affine *delta =
-        new zeth_proto::HexPointBaseGroup2Affine();
+    zeth_proto::Group1Point *alpha = new zeth_proto::Group1Point();
+    zeth_proto::Group2Point *beta = new zeth_proto::Group2Point();
+    zeth_proto::Group2Point *delta = new zeth_proto::Group2Point();
 
     alpha->CopyFrom(point_g1_affine_to_proto<ppT>(vk.alpha_g1));
     beta->CopyFrom(point_g2_affine_to_proto<ppT>(vk.beta_g2));
@@ -75,15 +72,12 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
     const libsnark::r1cs_gg_ppzksnark_proof<ppT> &proof_obj =
         ext_proof.get_proof();
 
-    zeth_proto::HexPointBaseGroup1Affine *a =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup2Affine *minus_b =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup1Affine *c =
-        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::Group1Point *a = new zeth_proto::Group1Point();
+    zeth_proto::Group2Point *b = new zeth_proto::Group2Point();
+    zeth_proto::Group1Point *c = new zeth_proto::Group1Point();
 
     a->CopyFrom(point_g1_affine_to_proto<ppT>(proof_obj.g_A));
-    minus_b->CopyFrom(point_g2_affine_to_proto<ppT>(-proof_obj.g_B));
+    b->CopyFrom(point_g2_affine_to_proto<ppT>(proof_obj.g_B));
     c->CopyFrom(point_g1_affine_to_proto<ppT>(proof_obj.g_C));
 
     std::stringstream ss;
@@ -96,7 +90,7 @@ void groth16_api_handler<ppT>::extended_proof_to_proto(
         message->mutable_groth16_extended_proof();
 
     grpc_extended_groth16_proof_obj->set_allocated_a(a);
-    grpc_extended_groth16_proof_obj->set_allocated_minus_b(minus_b);
+    grpc_extended_groth16_proof_obj->set_allocated_b(b);
     grpc_extended_groth16_proof_obj->set_allocated_c(c);
     grpc_extended_groth16_proof_obj->set_inputs(ss.str());
 }
@@ -108,7 +102,7 @@ libzeth::extended_proof<ppT, groth16_snark<ppT>> groth16_api_handler<
     const zeth_proto::ExtendedProofGROTH16 &e_proof =
         ext_proof.groth16_extended_proof();
     libff::G1<ppT> a = point_g1_affine_from_proto<ppT>(e_proof.a());
-    libff::G2<ppT> b = -point_g2_affine_from_proto<ppT>(e_proof.minus_b());
+    libff::G2<ppT> b = point_g2_affine_from_proto<ppT>(e_proof.b());
     libff::G1<ppT> c = point_g1_affine_from_proto<ppT>(e_proof.c());
 
     std::vector<libff::Fr<ppT>> inputs;

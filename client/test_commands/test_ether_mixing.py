@@ -9,6 +9,7 @@ import zeth.core.contracts
 import zeth.core.merkle_tree
 import zeth.core.utils
 import zeth.core.zksnark
+from zeth.core.prover_client import ProverClient
 from zeth.core.zeth_address import ZethAddressPriv
 from zeth.core.contracts import MixOutputEvents
 from zeth.core.mixer_client import MixerClient
@@ -31,8 +32,8 @@ def print_balances(
 
 
 def main() -> None:
-    zksnark = zeth.core.zksnark.get_zksnark_provider(
-        zeth.core.utils.parse_zksnark_arg())
+    zksnark_name = zeth.core.utils.parse_zksnark_arg()
+    zksnark = zeth.core.zksnark.get_zksnark_provider(zksnark_name)
 
     web3, eth = mock.open_test_web3()
 
@@ -44,16 +45,19 @@ def main() -> None:
     alice_eth_address = eth.accounts[2]
     charlie_eth_address = eth.accounts[3]
 
+    # ProverClient
+    prover_client = ProverClient(mock.TEST_PROVER_SERVER_ENDPOINT)
+    assert prover_client.get_configuration().zksnark_name == zksnark_name
+
     # Deploy Zeth contracts
     tree_depth = zeth.core.constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client, _contract_desc = MixerClient.deploy(
         web3,
-        mock.TEST_PROVER_SERVER_ENDPOINT,
+        prover_client,
         deployer_eth_address,
         None,
         None,
-        None,
-        zksnark)
+        None)
 
     # Set up Merkle tree and Wallets. Note that each wallet holds an internal
     # Merkle Tree, unused in this test. Instead, we keep an in-memory version

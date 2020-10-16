@@ -22,7 +22,7 @@ template<typename ppT> void point_g1_affine_encode_decode()
 
     G1 g1 = Fr(13) * G1::one();
     g1.to_affine_coordinates();
-    zeth_proto::HexPointBaseGroup1Affine g1_proto =
+    zeth_proto::Group1Point g1_proto =
         libzeth::point_g1_affine_to_proto<ppT>(g1);
     const G1 g1_decoded = libzeth::point_g1_affine_from_proto<ppT>(g1_proto);
 
@@ -36,7 +36,7 @@ template<typename ppT> void point_g2_affine_encode_decode_test()
 
     G2 g2 = Fr(13) * G2::one();
     g2.to_affine_coordinates();
-    zeth_proto::HexPointBaseGroup2Affine g2_proto =
+    zeth_proto::Group2Point g2_proto =
         libzeth::point_g2_affine_to_proto<ppT>(g2);
     const G2 g2_decoded = libzeth::point_g2_affine_from_proto<ppT>(g2_proto);
 

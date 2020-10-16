@@ -26,5 +26,7 @@ INSTANCE_FILE_DEFAULT = "zeth-instance"
 ETH_ADDRESS_DEFAULT = "eth-address"
 ETH_PRIVATE_KEY_FILE_DEFAULT = "eth-private-key"
 
+PROVER_CONFIGURATION_FILE_DEFAULT = "prover-config.cache"
+
 WALLET_DIR_DEFAULT = "./wallet"
 WALLET_USERNAME = "zeth"

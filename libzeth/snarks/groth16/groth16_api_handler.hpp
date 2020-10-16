@@ -14,10 +14,6 @@ namespace libzeth
 {
 
 /// Implementation of API-related functions for the Groth16 snark.
-///
-/// Note that for now the protobuf representation of Groth16 proofs holds
-/// `minus_b` instead of `b`. This is to faciliate simplified verification in
-/// contracts. This negation will eventually be performed by the client.
 template<typename ppT> class groth16_api_handler
 {
 public:
