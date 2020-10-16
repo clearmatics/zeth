@@ -18,7 +18,7 @@ namespace
 
 // Testing that (15212  + 98645 + 216319)**7 =
 // 427778066313557225181231220812180094976
-TEST(TestRound, TestTrueNoAddKToResult)
+TEST(TestMiMC, MiMC7RoundTrueNoAddKToResult)
 {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
@@ -36,10 +36,11 @@ TEST(TestRound, TestTrueNoAddKToResult)
     round_gadget.generate_r1cs_constraints();
 
     FieldT expected_out = FieldT("427778066313557225181231220812180094976");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
 }
 
-TEST(TestRound, TestFalseNoAddKToResult)
+TEST(TestMiMC, MiMC7RoundFalseNoAddKToResult)
 {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
@@ -58,12 +59,13 @@ TEST(TestRound, TestFalseNoAddKToResult)
 
     // The expected result is 5860470760135874487852644433920000000
     FieldT unexpected_out = FieldT("427778066313557225181231220812180094976");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(round_gadget.result()));
 }
 
 // Testing that (15212  + 98645 + 216319)**7 + 98645 =
 // 427778066313557225181231220812180193621
-TEST(TestRound, TestTrueAddKToResult)
+TEST(TestMiMC, MiMC7RoundTrueAddKToResult)
 {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
@@ -81,10 +83,11 @@ TEST(TestRound, TestTrueAddKToResult)
     round_gadget.generate_r1cs_constraints();
 
     FieldT expected_out = FieldT("427778066313557225181231220812180193621");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
 }
 
-TEST(TestRound, TestFalseAddKToResult)
+TEST(TestMiMC, MiMC7RoundFalseAddKToResult)
 {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
@@ -103,10 +106,11 @@ TEST(TestRound, TestFalseAddKToResult)
 
     // The expected result is 5860470760135874487852644433920098645
     FieldT unexpected_out = FieldT("427778066313557225181231220812180193621");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(round_gadget.result()));
 }
 
-TEST(TestMiMCPerm, TestTrue)
+TEST(TestMiMC, MiMC7PermTrue)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -127,10 +131,11 @@ TEST(TestMiMCPerm, TestTrue)
 
     FieldT expected_out = FieldT("192990723315478049773124691205698348115617480"
                                  "95378968014959488920239255590840");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(mimc_gadget.result()));
 }
 
-TEST(TestMiMCPerm, TestFalse)
+TEST(TestMiMC, MiMC7PermFalse)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -153,10 +158,11 @@ TEST(TestMiMCPerm, TestFalse)
     FieldT unexpected_out =
         FieldT("192990723315478049773124691205698348115617480"
                "95378968014959488920239255590840");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(mimc_gadget.result()));
 }
 
-TEST(TestMiMCMp, TestTrue)
+TEST(TestMiMC, MiMC7MpTrue)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -182,10 +188,11 @@ TEST(TestMiMCMp, TestTrue)
 
     FieldT expected_out = FieldT("167979224495559946840631042142333962005996937"
                                  "15764605878168345782964540311877");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(mimc_mp_gadget.result()));
 }
 
-TEST(TestMiMC7Mp, TestFalse)
+TEST(TestMiMC, MiMC7MpFalse)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -212,6 +219,7 @@ TEST(TestMiMC7Mp, TestFalse)
     FieldT unexpected_out =
         FieldT("167979224495559946840631042142333962005996937"
                "15764605878168345782964540311877");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(mimc_mp_gadget.result()));
 }
 
