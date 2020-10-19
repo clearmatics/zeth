@@ -9,8 +9,7 @@ import zeth.core.utils
 import zeth.core.constants as constants
 from zeth.core.prover_client import ProverClient
 from zeth.core.zeth_address import ZethAddressPriv
-from zeth.core.contracts import MixOutputEvents
-from zeth.core.mixer_client import MixerClient
+from zeth.core.mixer_client import MixOutputEvents, MixerClient
 from zeth.core.wallet import Wallet, ZethNoteDescription
 from zeth.core.utils import EtherValue
 import test_commands.mock as mock

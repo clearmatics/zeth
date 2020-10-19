@@ -9,9 +9,9 @@ from zeth.cli.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT, \
     ZETH_PUBLIC_ADDRESS_FILE_DEFAULT
 from zeth.core.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.core.contracts import \
-    InstanceDescription, get_block_number, get_mix_results, compile_files
+    InstanceDescription, get_block_number, compile_files
 from zeth.core.prover_client import ProverClient
-from zeth.core.mixer_client import MixerClient
+from zeth.core.mixer_client import MixerClient, get_mix_results
 from zeth.core.utils import \
     open_web3, short_commitment, EtherValue, get_zeth_dir, from_zeth_units
 from zeth.core.wallet import ZethNoteDescription, Wallet

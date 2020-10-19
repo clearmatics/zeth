@@ -2,10 +2,6 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-"""
-Tests for zeth.core.contracts module
-"""
-
 from zeth.core.zksnark import ExtendedProof, Groth16
 from zeth.core.mixer_client import MixParameters
 from zeth.core.encryption import generate_encryption_keypair, encrypt
@@ -15,7 +11,7 @@ from unittest import TestCase
 from secrets import token_bytes
 
 
-class TestContracts(TestCase):
+class TestMixerClient(TestCase):
 
     def test_mix_parameters(self) -> None:
         zksnark = Groth16()
