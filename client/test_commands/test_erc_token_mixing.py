@@ -71,6 +71,8 @@ def main() -> None:
 
     # ProverClient
     prover_client = ProverClient(mock.TEST_PROVER_SERVER_ENDPOINT)
+    prover_config = prover_client.get_configuration()
+    pp = prover_config.pairing_parameters
     assert prover_client.get_configuration().zksnark_name == zksnark_name
 
     # Deploy Zeth contracts
@@ -107,9 +109,9 @@ def main() -> None:
             -> Dict[str, List[ZethNoteDescription]]:
         nonlocal block_num
         notes = {
-            'alice': alice_wallet.receive_notes(out_ev),
-            'bob': bob_wallet.receive_notes(out_ev),
-            'charlie': charlie_wallet.receive_notes(out_ev),
+            'alice': alice_wallet.receive_notes(out_ev, pp),
+            'bob': bob_wallet.receive_notes(out_ev, pp),
+            'charlie': charlie_wallet.receive_notes(out_ev, pp),
         }
         alice_wallet.update_and_save_state(block_num)
         bob_wallet.update_and_save_state(block_num)

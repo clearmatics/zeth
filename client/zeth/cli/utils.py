@@ -11,6 +11,7 @@ from zeth.core.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.core.contracts import \
     InstanceDescription, get_block_number, compile_files
 from zeth.core.prover_client import ProverClient
+from zeth.core.pairing import PairingParameters
 from zeth.core.mixer_client import MixerClient, get_mix_results
 from zeth.core.utils import \
     open_web3, short_commitment, EtherValue, get_zeth_dir, from_zeth_units
@@ -253,6 +254,7 @@ def open_wallet(
 def do_sync(
         web3: Any,
         wallet: Wallet,
+        pp: PairingParameters,
         wait_tx: Optional[str],
         callback: Optional[Callable[[ZethNoteDescription], None]] = None,
         batch_size: Optional[int] = None) -> int:
@@ -276,7 +278,8 @@ def do_sync(
                     chain_block_number,
                     batch_size):
                 new_merkle_root = mix_result.new_merkle_root
-                for note_desc in wallet.receive_notes(mix_result.output_events):
+                for note_desc in wallet.receive_notes(
+                        mix_result.output_events, pp):
                     if callback:
                         callback(note_desc)
 

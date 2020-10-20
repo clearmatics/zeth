@@ -99,4 +99,7 @@ def mix(
 
     print(tx_hash)
     if wait:
-        do_sync(zeth_client.web3, wallet, tx_hash, zeth_note_short_print)
+        # TODO: fix this after client refactor
+        pp = zeth_client._prover_client.get_configuration().pairing_parameters \
+            # pylint: disable=protected-access
+        do_sync(zeth_client.web3, wallet, pp, tx_hash, zeth_note_short_print)

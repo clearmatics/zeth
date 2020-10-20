@@ -10,7 +10,6 @@ from zeth.core.mixer_client import MixCallDescription, MixParameters, MixResult,
     JoinsplitSigKeyPair, parse_mix_call, joinsplit_sign, encrypt_notes, \
     get_dummy_input_and_address, compute_h_sig
 from zeth.core.zksnark import IZKSnarkProvider, ExtendedProof
-from zeth.core.constants import ZETH_PRIME, FIELD_CAPACITY
 import zeth.core.signing as signing
 from zeth.core.merkle_tree import MerkleTree
 from zeth.core.utils import EtherValue
@@ -193,6 +192,9 @@ def charlie_double_withdraw(
     """
     prover_client = zeth_client._prover_client \
         # pylint: disable=protected-access
+    pp = prover_client.get_configuration().pairing_parameters
+    scalar_field_mod = pp.scalar_field_mod()
+    scalar_field_capacity = pp.scalar_field_capacity
 
     print(
         f" === Charlie attempts to withdraw {CHARLIE_WITHDRAW_ETH}ETH once " +
@@ -225,27 +227,27 @@ def charlie_double_withdraw(
         input_nullifier0 = nf0.hex()
         input_nullifier1 = nf1.hex()
         nf0_rev = "{0:0256b}".format(int(input_nullifier0, 16))
-        primary_input3_bits = nf0_rev[:FIELD_CAPACITY]
-        primary_input3_res_bits = nf0_rev[FIELD_CAPACITY:]
+        primary_input3_bits = nf0_rev[:scalar_field_capacity]
+        primary_input3_res_bits = nf0_rev[scalar_field_capacity:]
         nf1_rev = "{0:0256b}".format(int(input_nullifier1, 16))
-        primary_input4_bits = nf1_rev[:FIELD_CAPACITY]
-        primary_input4_res_bits = nf1_rev[FIELD_CAPACITY:]
+        primary_input4_bits = nf1_rev[:scalar_field_capacity]
+        primary_input4_res_bits = nf1_rev[scalar_field_capacity:]
 
         # We perform the attack, recoding the modified public input values
         nonlocal attack_primary_input3
         nonlocal attack_primary_input4
-        attack_primary_input3 = int(primary_input3_bits, 2) + ZETH_PRIME
-        attack_primary_input4 = int(primary_input4_bits, 2) + ZETH_PRIME
+        attack_primary_input3 = int(primary_input3_bits, 2) + scalar_field_mod
+        attack_primary_input4 = int(primary_input4_bits, 2) + scalar_field_mod
 
         # We reassemble the nfs
         attack_primary_input3_bits = "{0:0256b}".format(attack_primary_input3)
         attack_nf0_bits = attack_primary_input3_bits[
-            len(attack_primary_input3_bits) - FIELD_CAPACITY:] +\
+            len(attack_primary_input3_bits) - scalar_field_capacity:] +\
             primary_input3_res_bits
         attack_nf0 = "{0:064x}".format(int(attack_nf0_bits, 2))
         attack_primary_input4_bits = "{0:0256b}".format(attack_primary_input4)
         attack_nf1_bits = attack_primary_input4_bits[
-            len(attack_primary_input4_bits) - FIELD_CAPACITY:] +\
+            len(attack_primary_input4_bits) - scalar_field_capacity:] +\
             primary_input4_res_bits
         attack_nf1 = "{0:064x}".format(int(attack_nf1_bits, 2))
         return compute_h_sig(
@@ -286,7 +288,6 @@ def charlie_double_withdraw(
         (output_note2, pk_charlie)])
 
     # Compute the joinSplit signature
-    pp = prover_client.get_configuration().pairing_parameters
     joinsplit_sig_charlie = joinsplit_sign(
         zksnark,
         pp,

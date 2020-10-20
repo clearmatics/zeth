@@ -11,6 +11,7 @@ from ..api import ec_group_messages_pb2
 from .utils import hex_to_uint256_list, hex_list_to_uint256_list, \
     int_and_bytelen_from_hex, int_to_hex
 import json
+from math import log, floor
 from typing import Dict, List, Union, Any
 
 
@@ -122,7 +123,7 @@ def g2_point_to_contract_parameters(g2: G2Point) -> List[int]:
 
 class PairingParameters:
     """
-    The parameters for a specific pairing
+    The parameters for a specific pairing.
     """
     def __init__(
             self,
@@ -134,6 +135,13 @@ class PairingParameters:
         self.q = q
         self.generator_g1 = generator_g1
         self.generator_g2 = generator_g2
+        self.scalar_field_capacity: int = floor(log(int(self.r, 16), 2))
+
+    def scalar_field_mod(self) -> int:
+        return int(self.r, 16)
+
+    def base_field_mod(self) -> int:
+        return int(self.q, 16)
 
     def to_json_dict(self) -> Dict[str, Any]:
         return {

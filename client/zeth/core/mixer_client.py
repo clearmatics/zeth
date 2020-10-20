@@ -661,7 +661,7 @@ def joinsplit_sign(
     return signing.sign(signing_keypair.sk, message_digest)
 
 
-def compute_commitment(zeth_note: ZethNote) -> bytes:
+def compute_commitment(zeth_note: ZethNote, pp: PairingParameters) -> bytes:
     """
     Used by the recipient of a payment to recompute the commitment and check
     the membership in the tree to confirm the validity of a payment
@@ -674,7 +674,7 @@ def compute_commitment(zeth_note: ZethNote) -> bytes:
     blake.update(bytes.fromhex(zeth_note.value))
     cm = blake.digest()
 
-    cm_field = int.from_bytes(cm, byteorder="big") % constants.ZETH_PRIME
+    cm_field = int.from_bytes(cm, byteorder="big") % pp.scalar_field_mod()
     return cm_field.to_bytes(int(constants.DIGEST_LENGTH/8), byteorder="big")
 
 
