@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.cli.utils import create_zeth_client_and_mixer_desc, \
+from zeth.cli.utils import create_mixer_client_and_mixer_desc, \
     load_zeth_address, open_wallet, parse_output, do_sync, load_eth_address, \
-    load_eth_private_key, zeth_note_short_print
+    load_eth_private_key, zeth_note_short_print, create_prover_client
 from zeth.core.constants import JS_INPUTS, JS_OUTPUTS
 from zeth.core.mixer_client import ZethAddressPub
 from zeth.core.utils import EtherValue, from_zeth_units
@@ -53,7 +53,9 @@ def mix(
     vin_pub = EtherValue(vin)
     vout_pub = EtherValue(vout)
     client_ctx = ctx.obj
-    zeth_client, mixer_desc = create_zeth_client_and_mixer_desc(client_ctx)
+    prover_client = create_prover_client(client_ctx)
+    zeth_client, mixer_desc = create_mixer_client_and_mixer_desc(
+        client_ctx, prover_client)
     zeth_address = load_zeth_address(client_ctx)
     wallet = open_wallet(
         zeth_client.mixer_instance, zeth_address.addr_sk, client_ctx)
@@ -80,6 +82,7 @@ def mix(
     # Create the MixParameters object manually so they can be displayed.
     # TODO: support saving the generated MixParameters to be sent later.
     mix_params, _ = zeth_client.create_mix_parameters_and_signing_key(
+        prover_client,
         wallet.merkle_tree,
         zeth_address.ownership_keypair(),
         eth_address,
@@ -99,7 +102,5 @@ def mix(
 
     print(tx_hash)
     if wait:
-        # TODO: fix this after client refactor
-        pp = zeth_client._prover_client.get_configuration().pairing_parameters \
-            # pylint: disable=protected-access
+        pp = prover_client.get_configuration().pairing_parameters
         do_sync(zeth_client.web3, wallet, pp, tx_hash, zeth_note_short_print)

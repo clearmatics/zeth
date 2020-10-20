@@ -22,7 +22,7 @@ from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
 from zeth.core.utils import EtherValue, digest_to_binary_string, \
     int64_to_hex, message_to_bytes, eth_address_to_bytes32, to_zeth_units, \
     get_contracts_dir, hex_list_to_uint256_list
-from zeth.core.prover_client import ProverClient
+from zeth.core.prover_client import ProverConfiguration, ProverClient
 from zeth.api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
 
 import os
@@ -239,10 +239,10 @@ class MixerClient:
     def __init__(
             self,
             web3: Any,
-            prover_client: ProverClient,
+            prover_config: ProverConfiguration,
             mixer_instance: Any):
-        self._prover_client = prover_client
         self.web3 = web3
+        self.prover_config = prover_config
         self.mixer_instance = mixer_instance
 
     @staticmethod
@@ -287,11 +287,12 @@ class MixerClient:
             compiler_flags={},
             args=constructor_parameters)
         mixer_instance = mixer_description.instantiate(web3)
-        client = MixerClient(web3, prover_client, mixer_instance)
+        client = MixerClient(web3, prover_config, mixer_instance)
         return client, mixer_description
 
     def deposit(
             self,
+            prover_client: ProverClient,
             mk_tree: MerkleTree,
             zeth_address: ZethAddress,
             sender_eth_address: str,
@@ -303,6 +304,7 @@ class MixerClient:
         if not outputs or len(outputs) == 0:
             outputs = [(zeth_address.addr_pk, eth_amount)]
         return self.joinsplit(
+            prover_client,
             mk_tree,
             sender_ownership_keypair=zeth_address.ownership_keypair(),
             sender_eth_address=sender_eth_address,
@@ -315,6 +317,7 @@ class MixerClient:
 
     def joinsplit(
             self,
+            prover_client: ProverClient,
             mk_tree: MerkleTree,
             sender_ownership_keypair: OwnershipKeyPair,
             sender_eth_address: str,
@@ -327,9 +330,10 @@ class MixerClient:
             compute_h_sig_cb: Optional[ComputeHSigCB] = None) -> str:
         """
         Create and broadcast a transactions that calls the mixer with the given
-        parameters.
+        parameters. Requires a ProverClient for proof generation.
         """
         mix_params, _ = self.create_mix_parameters_and_signing_key(
+            prover_client,
             mk_tree,
             sender_ownership_keypair,
             sender_eth_address,
@@ -398,9 +402,8 @@ class MixerClient:
         Given a MixParameters object and other transaction properties, create a
         web3 call object, which can be used to create a transaction or a query.
         """
-        prover_config = self._prover_client.get_configuration()
-        zksnark = get_zksnark_provider(prover_config.zksnark_name)
-        pp = prover_config.pairing_parameters
+        zksnark = get_zksnark_provider(self.prover_config.zksnark_name)
+        pp = self.prover_config.pairing_parameters
         mix_params_eth = mix_parameters_to_contract_arguments(
             zksnark, pp, mix_parameters)
         return self.mixer_instance.functions.mix(*mix_params_eth)
@@ -501,11 +504,10 @@ class MixerClient:
         ciphertexts = encrypt_notes(output_notes_with_k_pk)
 
         # Sign
-        prover_config = self._prover_client.get_configuration()
-        zksnark = get_zksnark_provider(prover_config.zksnark_name)
+        zksnark = get_zksnark_provider(self.prover_config.zksnark_name)
         signature = joinsplit_sign(
             zksnark,
-            prover_config.pairing_parameters,
+            self.prover_config.pairing_parameters,
             signing_keypair,
             sender_eth_address,
             ciphertexts,
@@ -517,6 +519,7 @@ class MixerClient:
 
     def create_mix_parameters_and_signing_key(
             self,
+            prover_client: ProverClient,
             mk_tree: MerkleTree,
             sender_ownership_keypair: OwnershipKeyPair,
             sender_eth_address: str,
@@ -542,11 +545,10 @@ class MixerClient:
         prover_inputs, signing_keypair = MixerClient.create_prover_inputs(
             mix_call_desc)
 
-        prover_config = self._prover_client.get_configuration()
-        zksnark = get_zksnark_provider(prover_config.zksnark_name)
+        zksnark = get_zksnark_provider(self.prover_config.zksnark_name)
 
         # Query the prover_server for the related proof
-        ext_proof_proto = self._prover_client.get_proof(prover_inputs)
+        ext_proof_proto = prover_client.get_proof(prover_inputs)
         ext_proof = zksnark.extended_proof_from_proto(ext_proof_proto)
 
         # Create the final MixParameters object

@@ -141,6 +141,7 @@ def main() -> None:
     try:
         result_deposit_bob_to_bob = scenario.bob_deposit(
             zeth_client,
+            prover_client,
             mk_tree,
             bob_eth_address,
             keystore,
@@ -168,7 +169,7 @@ def main() -> None:
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
     # Bob deposits ETHToken, split in 2 notes on the mixer
     result_deposit_bob_to_bob = scenario.bob_deposit(
-        zeth_client, mk_tree, bob_eth_address, keystore)
+        zeth_client, prover_client, mk_tree, bob_eth_address, keystore)
 
     print("- Balances after Bob's deposit: ")
     print_token_balances(
@@ -199,6 +200,7 @@ def main() -> None:
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         zeth_client,
+        prover_client,
         mk_tree,
         input_bob_to_charlie,
         bob_eth_address,
@@ -209,6 +211,7 @@ def main() -> None:
     try:
         result_double_spending = scenario.bob_to_charlie(
             zeth_client,
+            prover_client,
             mk_tree,
             input_bob_to_charlie,
             bob_eth_address,
@@ -235,6 +238,7 @@ def main() -> None:
 
     _ = scenario.charlie_withdraw(
         zeth_client,
+        prover_client,
         mk_tree,
         note_descs_charlie[0].as_input(),
         charlie_eth_address,
@@ -256,8 +260,9 @@ def main() -> None:
         # New commitments are added in the tree at each withdraw so we
         # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
-            zksnark,
             zeth_client,
+            prover_client,
+            zksnark,
             mk_tree,
             note_descs_charlie[0].as_input(),
             charlie_eth_address,
@@ -292,8 +297,9 @@ def main() -> None:
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
 
     result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
-        zksnark,
         zeth_client,
+        prover_client,
+        zksnark,
         mk_tree,
         bob_eth_address,
         charlie_eth_address,

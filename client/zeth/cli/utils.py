@@ -339,28 +339,31 @@ def create_prover_client(ctx: ClientConfig) -> ProverClient:
         ctx.prover_server_endpoint, ctx.prover_config_file)
 
 
-def create_mixer_client(ctx: ClientConfig) -> MixerClient:
+def create_mixer_client(
+        ctx: ClientConfig,
+        prover_client: Optional[ProverClient] = None) -> MixerClient:
     """
     Create a MixerClient for an existing deployment.
     """
-    web3 = open_web3_from_ctx(ctx)
-    mixer_desc = load_mixer_description_from_ctx(ctx)
-    mixer_instance = mixer_desc.mixer.instantiate(web3)
-    prover_client = create_prover_client(ctx)
-    return MixerClient(web3, prover_client, mixer_instance)
+    mixer_client, _ = create_mixer_client_and_mixer_desc(ctx, prover_client)
+    return mixer_client
 
 
-def create_zeth_client_and_mixer_desc(
-        ctx: ClientConfig) -> Tuple[MixerClient, MixerDescription]:
+def create_mixer_client_and_mixer_desc(
+        ctx: ClientConfig,
+        prover_client: Optional[ProverClient] = None
+) -> Tuple[MixerClient, MixerDescription]:
     """
     Create a MixerClient and MixerDescription object, for an existing deployment.
     """
     web3 = open_web3_from_ctx(ctx)
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
-    prover_client = create_prover_client(ctx)
-    zeth_client = MixerClient(web3, prover_client, mixer_instance)
-    return (zeth_client, mixer_desc)
+    if prover_client is None:
+        prover_client = create_prover_client(ctx)
+    prover_config = prover_client.get_configuration()
+    mixer_client = MixerClient(web3, prover_config, mixer_instance)
+    return (mixer_client, mixer_desc)
 
 
 def zeth_note_short(note_desc: ZethNoteDescription) -> str:

@@ -9,6 +9,7 @@ from zeth.core.mixer_client import MixCallDescription, MixParameters, MixResult,
     MixerClient, OwnershipKeyPair, JoinsplitSigVerificationKey, ComputeHSigCB, \
     JoinsplitSigKeyPair, parse_mix_call, joinsplit_sign, encrypt_notes, \
     get_dummy_input_and_address, compute_h_sig
+from zeth.core.prover_client import ProverClient
 from zeth.core.zksnark import IZKSnarkProvider, ExtendedProof
 import zeth.core.signing as signing
 from zeth.core.merkle_tree import MerkleTree
@@ -54,6 +55,7 @@ def wait_for_tx_update_mk_tree(
 
 def get_mix_parameters_components(
         zeth_client: MixerClient,
+        prover_client: ProverClient,
         zksnark: IZKSnarkProvider,
         mk_tree: MerkleTree,
         sender_ownership_keypair: OwnershipKeyPair,
@@ -67,8 +69,6 @@ def get_mix_parameters_components(
     Manually create the components required for MixParameters. The tests below
     manipulate these to create custom MixParameters as part of attacks.
     """
-    prover_client = zeth_client._prover_client \
-        # pylint: disable=protected-access
     mix_call_desc = MixCallDescription(
         mk_tree,
         sender_ownership_keypair,
@@ -90,6 +90,7 @@ def get_mix_parameters_components(
 
 def bob_deposit(
         zeth_client: MixerClient,
+        prover_client: ProverClient,
         mk_tree: MerkleTree,
         bob_eth_address: str,
         keystore: mock.KeyStore,
@@ -107,6 +108,7 @@ def bob_deposit(
     ]
 
     tx_hash = zeth_client.deposit(
+        prover_client,
         mk_tree,
         bob_js_keypair,
         bob_eth_address,
@@ -119,6 +121,7 @@ def bob_deposit(
 
 def bob_to_charlie(
         zeth_client: MixerClient,
+        prover_client: ProverClient,
         mk_tree: MerkleTree,
         input1: Tuple[int, ZethNote],
         bob_eth_address: str,
@@ -138,6 +141,7 @@ def bob_to_charlie(
 
     # Send the tx
     tx_hash = zeth_client.joinsplit(
+        prover_client,
         mk_tree,
         OwnershipKeyPair(bob_ask, bob_addr.a_pk),
         bob_eth_address,
@@ -152,6 +156,7 @@ def bob_to_charlie(
 
 def charlie_withdraw(
         zeth_client: MixerClient,
+        prover_client: ProverClient,
         mk_tree: MerkleTree,
         input1: Tuple[int, ZethNote],
         charlie_eth_address: str,
@@ -167,6 +172,7 @@ def charlie_withdraw(
         OwnershipKeyPair(charlie_ask, charlie_apk)
 
     tx_hash = zeth_client.joinsplit(
+        prover_client,
         mk_tree,
         charlie_ownership_key,
         charlie_eth_address,
@@ -180,8 +186,9 @@ def charlie_withdraw(
 
 
 def charlie_double_withdraw(
-        zksnark: IZKSnarkProvider,
         zeth_client: MixerClient,
+        prover_client: ProverClient,
+        zksnark: IZKSnarkProvider,
         mk_tree: MerkleTree,
         input1: Tuple[int, ZethNote],
         charlie_eth_address: str,
@@ -190,9 +197,7 @@ def charlie_double_withdraw(
     Charlie tries to carry out a double spending by modifying the value of the
     nullifier of the previous payment
     """
-    prover_client = zeth_client._prover_client \
-        # pylint: disable=protected-access
-    pp = prover_client.get_configuration().pairing_parameters
+    pp = zeth_client.prover_config.pairing_parameters
     scalar_field_mod = pp.scalar_field_mod()
     scalar_field_capacity = pp.scalar_field_capacity
 
@@ -256,6 +261,7 @@ def charlie_double_withdraw(
     output_note1, output_note2, proof, signing_keypair = \
         get_mix_parameters_components(
             zeth_client,
+            prover_client,
             zksnark,
             mk_tree,
             keystore["Charlie"].ownership_keypair(),  # sender
@@ -313,8 +319,9 @@ def charlie_double_withdraw(
 
 
 def charlie_corrupt_bob_deposit(
-        zksnark: IZKSnarkProvider,
         zeth_client: MixerClient,
+        prover_client: ProverClient,
+        zksnark: IZKSnarkProvider,
         mk_tree: MerkleTree,
         bob_eth_address: str,
         charlie_eth_address: str,
@@ -348,8 +355,6 @@ def charlie_corrupt_bob_deposit(
     bob_apk = bob_addr_pk.addr_pk.a_pk
 
     # Get pairing parameters
-    prover_client = zeth_client._prover_client \
-        # pylint: disable=protected-access
     pp = prover_client.get_configuration().pairing_parameters
 
     # Create the JoinSplit dummy inputs for the deposit
@@ -364,6 +369,7 @@ def charlie_corrupt_bob_deposit(
     output_note1, output_note2, proof, joinsplit_keypair = \
         get_mix_parameters_components(
             zeth_client,
+            prover_client,
             zksnark,
             mk_tree,
             keystore["Bob"].ownership_keypair(),
