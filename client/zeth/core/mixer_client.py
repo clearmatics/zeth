@@ -16,11 +16,12 @@ from zeth.core.encryption import \
 from zeth.core.merkle_tree import MerkleTree, compute_merkle_path
 from zeth.core.pairing import PairingParameters
 import zeth.core.signing as signing
+import zeth.core.protoutils as protoutils
 from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
-    ExtendedProof, IVerificationKey
+    ExtendedProof
 from zeth.core.utils import EtherValue, digest_to_binary_string, \
-    int64_to_hex, message_to_bytes, eth_address_to_bytes32, eth_uint256_to_int, \
-    to_zeth_units, get_contracts_dir, hex_list_to_uint256_list
+    int64_to_hex, message_to_bytes, eth_address_to_bytes32, to_zeth_units, \
+    get_contracts_dir, hex_list_to_uint256_list
 from zeth.core.prover_client import ProverClient
 from zeth.api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
 
@@ -35,23 +36,10 @@ from typing import Tuple, Dict, List, Iterator, Callable, Optional, Any
 ZERO_UNITS_HEX = "0000000000000000"
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
-# ZethNote binary serialization format:
-#   [apk   : APK_LENGTH_BYTES]
-#   [value : PUBLIC_VALUE_LENGTH_BYTES]
-#   [rho   : RHO_LENGTH_BYTES]
-#   [trapr : TRAPR_LENGTH_BYTES]
-_APK_OFFSET_BYTES = 0
-_VALUE_OFFSET_BYTES = _APK_OFFSET_BYTES + constants.APK_LENGTH_BYTES
-_RHO_OFFSET_BYTES = _VALUE_OFFSET_BYTES + constants.PUBLIC_VALUE_LENGTH_BYTES
-_TRAPR_OFFSET_BYTES = _RHO_OFFSET_BYTES + constants.RHO_LENGTH_BYTES
-assert _TRAPR_OFFSET_BYTES + constants.TRAPR_LENGTH_BYTES \
-    == constants.NOTE_LENGTH_BYTES
-
 # JoinSplit Signature Keys definitions
 JoinsplitSigVerificationKey = signing.SigningVerificationKey
 JoinsplitSigSecretKey = signing.SigningSecretKey
 JoinsplitSigKeyPair = signing.SigningKeyPair
-
 
 ComputeHSigCB = Callable[[bytes, bytes, JoinsplitSigVerificationKey], bytes]
 
@@ -159,7 +147,7 @@ class MixParameters:
             ext_proof, signature_pk, signature, ciphertexts)
 
 
-def mix_parameters_as_contract_arguments(
+def mix_parameters_to_contract_arguments(
         zksnark: IZKSnarkProvider,
         pp: PairingParameters,
         mix_parameters: MixParameters) -> List[Any]:
@@ -203,124 +191,13 @@ class MixResult:
         self.output_events = output_events
 
 
-def _event_args_to_mix_result(event_args: Any) -> MixResult:
+def event_args_to_mix_result(event_args: Any) -> MixResult:
     mix_out_args = zip(event_args.commitments, event_args.ciphertexts)
     out_events = [MixOutputEvents(c, ciph) for (c, ciph) in mix_out_args]
     return MixResult(
         new_merkle_root=event_args.root,
         nullifiers=event_args.nullifiers,
         output_events=out_events)
-
-
-def create_zeth_notes(
-        phi: bytes,
-        hsig: bytes,
-        output0: Tuple[OwnershipPublicKey, int],
-        output1: Tuple[OwnershipPublicKey, int]
-) -> Tuple[ZethNote, ZethNote]:
-    """
-    Create two ordered ZethNotes. This function is used to generate new output
-    notes.
-    """
-    (recipient0, value0) = output0
-    (recipient1, value1) = output1
-
-    rho0 = _compute_rho_i(phi, hsig, 0)
-    trap_r0 = trap_r_randomness()
-    note0 = ZethNote(
-        apk=ownership_key_as_hex(recipient0),
-        value=int64_to_hex(value0),
-        rho=rho0.hex(),
-        trap_r=trap_r0)
-
-    rho1 = _compute_rho_i(phi, hsig, 1)
-    trap_r1 = trap_r_randomness()
-    note1 = ZethNote(
-        apk=ownership_key_as_hex(recipient1),
-        value=int64_to_hex(value1),
-        rho=rho1.hex(),
-        trap_r=trap_r1)
-
-    return note0, note1
-
-
-def zeth_note_to_json_dict(zeth_note_grpc_obj: ZethNote) -> Dict[str, str]:
-    return {
-        "a_pk": zeth_note_grpc_obj.apk,
-        "value": zeth_note_grpc_obj.value,
-        "rho": zeth_note_grpc_obj.rho,
-        "trap_r": zeth_note_grpc_obj.trap_r,
-    }
-
-
-def zeth_note_from_json_dict(parsed_zeth_note: Dict[str, str]) -> ZethNote:
-    note = ZethNote(
-        apk=parsed_zeth_note["a_pk"],
-        value=parsed_zeth_note["value"],
-        rho=parsed_zeth_note["rho"],
-        trap_r=parsed_zeth_note["trap_r"]
-    )
-    return note
-
-
-def zeth_note_to_bytes(zeth_note_grpc_obj: ZethNote) -> bytes:
-    apk_bytes = bytes.fromhex(zeth_note_grpc_obj.apk)
-    value_bytes = bytes.fromhex(zeth_note_grpc_obj.value)
-    rho_bytes = bytes.fromhex(zeth_note_grpc_obj.rho)
-    trap_r_bytes = bytes.fromhex(zeth_note_grpc_obj.trap_r)
-    note_bytes = apk_bytes + value_bytes + rho_bytes + trap_r_bytes
-    assert len(note_bytes) == (constants.NOTE_LENGTH_BYTES)
-    return note_bytes
-
-
-def zeth_note_from_bytes(note_bytes: bytes) -> ZethNote:
-    if len(note_bytes) != (constants.NOTE_LENGTH_BYTES):
-        raise ValueError(
-            f"note_bytes len {len(note_bytes)}, "
-            f"(expected {constants.NOTE_LENGTH_BYTES})")
-    apk = note_bytes[
-        _APK_OFFSET_BYTES:_APK_OFFSET_BYTES + constants.APK_LENGTH_BYTES]
-    value = note_bytes[
-        _VALUE_OFFSET_BYTES:
-        _VALUE_OFFSET_BYTES + constants.PUBLIC_VALUE_LENGTH_BYTES]
-    rho = note_bytes[
-        _RHO_OFFSET_BYTES:_RHO_OFFSET_BYTES + constants.RHO_LENGTH_BYTES]
-    trap_r = note_bytes[_TRAPR_OFFSET_BYTES:]
-    return ZethNote(
-        apk=apk.hex(), value=value.hex(), rho=rho.hex(), trap_r=trap_r.hex())
-
-
-def compute_commitment(zeth_note: ZethNote) -> bytes:
-    """
-    Used by the recipient of a payment to recompute the commitment and check
-    the membership in the tree to confirm the validity of a payment
-    """
-    # inner_k = blake2s(r || a_pk || rho || v)
-    blake = blake2s()
-    blake.update(bytes.fromhex(zeth_note.trap_r))
-    blake.update(bytes.fromhex(zeth_note.apk))
-    blake.update(bytes.fromhex(zeth_note.rho))
-    blake.update(bytes.fromhex(zeth_note.value))
-    cm = blake.digest()
-
-    cm_field = int.from_bytes(cm, byteorder="big") % constants.ZETH_PRIME
-    return cm_field.to_bytes(int(constants.DIGEST_LENGTH/8), byteorder="big")
-
-
-def compute_nullifier(
-        zeth_note: ZethNote,
-        spending_authority_ask: OwnershipSecretKey) -> bytes:
-    """
-    Returns nf = blake2s(1110 || [a_sk]_252 || rho)
-    """
-    binary_ask = digest_to_binary_string(spending_authority_ask)
-    first_252bits_ask = binary_ask[:252]
-    left_leg_bin = "1110" + first_252bits_ask
-    left_leg = int(left_leg_bin, 2).to_bytes(32, byteorder='big')
-    blake_hash = blake2s()
-    blake_hash.update(left_leg)
-    blake_hash.update(bytes.fromhex(zeth_note.rho))
-    return blake_hash.digest()
 
 
 def create_joinsplit_input(
@@ -337,19 +214,6 @@ def create_joinsplit_input(
         nullifier=nullifier.hex())
 
 
-def write_verification_key(vk: IVerificationKey, filename: str) -> None:
-    """
-    Writes the verification key (object) in a json file
-    """
-    with open(filename, 'w') as outfile:
-        json.dump(vk.to_json_dict(), outfile)
-
-
-def get_dummy_rho() -> str:
-    assert (constants.RHO_LENGTH_BYTES << 3) == constants.RHO_LENGTH
-    return bytes(Random.get_random_bytes(constants.RHO_LENGTH_BYTES)).hex()
-
-
 def get_dummy_input_and_address(
         a_pk: OwnershipPublicKey) -> Tuple[int, ZethNote]:
     """
@@ -359,8 +223,8 @@ def get_dummy_input_and_address(
     dummy_note = ZethNote(
         apk=ownership_key_as_hex(a_pk),
         value=ZERO_UNITS_HEX,
-        rho=get_dummy_rho(),
-        trap_r=trap_r_randomness())
+        rho=_get_dummy_rho(),
+        trap_r=_trap_r_randomness())
     # Note that the Merkle path is not fully checked against the root by the
     # circuit since the note value is 0. Hence the address used here is
     # arbitrary.
@@ -399,9 +263,6 @@ class MixerClient:
         pp = prover_config.pairing_parameters
         vk = zksnark.verification_key_from_proto(vk_proto)
         deploy_gas = deploy_gas or constants.DEPLOYMENT_GAS_WEI
-
-        print("[INFO] writing verification key...")
-        write_verification_key(vk, "vk.json")
 
         contracts_dir = get_contracts_dir()
         mixer_name = zksnark.get_contract_name()
@@ -464,6 +325,10 @@ class MixerClient:
             v_out: EtherValue,
             tx_value: Optional[EtherValue] = None,
             compute_h_sig_cb: Optional[ComputeHSigCB] = None) -> str:
+        """
+        Create and broadcast a transactions that calls the mixer with the given
+        parameters.
+        """
         mix_params, _ = self.create_mix_parameters_and_signing_key(
             mk_tree,
             sender_ownership_keypair,
@@ -473,23 +338,72 @@ class MixerClient:
             v_in,
             v_out,
             compute_h_sig_cb)
-
-        # By default transfer exactly v_in, otherwise allow caller to manually
-        # specify.
-        tx_value = tx_value or v_in
-        prover_config = self._prover_client.get_configuration()
-        zksnark = get_zksnark_provider(prover_config.zksnark_name)
-        pp = prover_config.pairing_parameters
-        return mix(
-            self.web3,
-            zksnark,
-            pp,
-            self.mixer_instance,
+        return self.mix(
             mix_params,
             sender_eth_address,
             sender_eth_private_key,
-            tx_value,
+            tx_value or v_in,
             constants.DEFAULT_MIX_GAS_WEI)
+
+    def mix(
+            self,
+            mix_params: MixParameters,
+            sender_eth_address: str,
+            sender_eth_private_key: Optional[bytes],
+            tx_value: EtherValue,
+            call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> str:
+        """
+        Given a MixParameters object, create and broadcast a transaction
+        performing the appropriate mix call.
+        """
+        mixer_call = self._create_mix_call(mix_params)
+        tx_hash = contracts.send_contract_call(
+            self.web3,
+            mixer_call,
+            sender_eth_address,
+            sender_eth_private_key,
+            tx_value,
+            call_gas)
+        return tx_hash.hex()
+
+    def mix_call(
+            self,
+            mix_params: MixParameters,
+            sender_eth_address: str,
+            tx_value: EtherValue,
+            call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> bool:
+        """
+        Call the mix method (executes on the RPC host without creating a
+        transaction). Returns True if the call succeeds. False, otherwise.
+        """
+        mixer_call = self._create_mix_call(mix_params)
+        try:
+            contracts.local_contract_call(
+                mixer_call,
+                sender_eth_address,
+                tx_value,
+                call_gas)
+            return True
+
+        except ValueError:
+            print("error executing mix call:")
+            traceback.print_exc()
+
+        return False
+
+    def _create_mix_call(
+            self,
+            mix_parameters: MixParameters) -> Any:
+        """
+        Given a MixParameters object and other transaction properties, create a
+        web3 call object, which can be used to create a transaction or a query.
+        """
+        prover_config = self._prover_client.get_configuration()
+        zksnark = get_zksnark_provider(prover_config.zksnark_name)
+        pp = prover_config.pairing_parameters
+        mix_params_eth = mix_parameters_to_contract_arguments(
+            zksnark, pp, mix_parameters)
+        return self.mixer_instance.functions.mix(*mix_params_eth)
 
     @staticmethod
     def create_prover_inputs(
@@ -552,7 +466,7 @@ class MixerClient:
         phi = _phi_randomness()
 
         # Joinsplit Output Notes
-        output_note0, output_note1 = create_zeth_notes(
+        output_note0, output_note1 = _create_zeth_notes(
             phi, h_sig, output0, output1)
         js_outputs = [
             output_note0,
@@ -613,8 +527,8 @@ class MixerClient:
             compute_h_sig_cb: Optional[ComputeHSigCB] = None
     ) -> Tuple[MixParameters, JoinsplitSigKeyPair]:
         """
-        Convenient around creation of MixCallDescription, ProofInputs, Proof and
-        MixParameters.
+        Convenience function around creation of MixCallDescription, ProofInputs,
+        Proof and MixParameters.
         """
         # Generate prover inputs and signing key
         mix_call_desc = MixCallDescription(
@@ -645,54 +559,16 @@ class MixerClient:
 
         return mix_params, signing_keypair
 
-    def mix(
-            self,
-            mix_params: MixParameters,
-            sender_eth_address: str,
-            sender_eth_private_key: Optional[bytes],
-            tx_value: Optional[EtherValue] = None,
-            call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> str:
-        prover_config = self._prover_client.get_configuration()
-        zksnark = get_zksnark_provider(prover_config.zksnark_name)
-        return mix(
-            self.web3,
-            zksnark,
-            prover_config.pairing_parameters,
-            self.mixer_instance,
-            mix_params,
-            sender_eth_address,
-            sender_eth_private_key,
-            tx_value,
-            call_gas)
-
-    def mix_call(
-            self,
-            mix_params: MixParameters,
-            sender_eth_address: str,
-            wei_pub_value: int,
-            call_gas: int) -> bool:
-        prover_config = self._prover_client.get_configuration()
-        zksnark = get_zksnark_provider(prover_config.zksnark_name)
-        return mix_call(
-            zksnark,
-            prover_config.pairing_parameters,
-            self.mixer_instance,
-            mix_params,
-            sender_eth_address,
-            wei_pub_value,
-            call_gas)
-
 
 def encrypt_notes(
-        notes: List[Tuple[ZethNote, EncryptionPublicKey]]
-) -> List[bytes]:
+        notes: List[Tuple[ZethNote, EncryptionPublicKey]]) -> List[bytes]:
     """
     Encrypts a set of output notes to be decrypted by the respective receivers.
     Returns the ciphertexts corresponding to each note.
     """
 
     def _encrypt_note(out_note: ZethNote, pub_key: EncryptionPublicKey) -> bytes:
-        out_note_bytes = zeth_note_to_bytes(out_note)
+        out_note_bytes = protoutils.zeth_note_to_bytes(out_note)
 
         return encrypt(out_note_bytes, pub_key)
 
@@ -715,26 +591,40 @@ def receive_note(
         plaintext = decrypt(out_ev.ciphertext, receiver_k_sk)
         return (
             out_ev.commitment,
-            zeth_note_from_bytes(plaintext))
+            protoutils.zeth_note_from_bytes(plaintext))
     except InvalidSignature:
         return None
     except ValueError:
         return None
 
 
-def _proof_and_inputs_to_bytes(
-        snark: IZKSnarkProvider,
-        pp: PairingParameters,
-        extproof: ExtendedProof) -> Tuple[bytes, bytes]:
+def parse_mix_call(
+        mixer_instance: Any,
+        _tx_receipt: str) -> MixResult:
     """
-    Given a proof object, compute the hash of the properties excluding "inputs",
-    and the hash of the "inputs".
+    Get the logs data associated with this mixing
     """
-    # TODO: avoid duplicating this encoding to evm parameters
-    proof = extproof.proof
-    return \
-        message_to_bytes(snark.proof_to_contract_parameters(proof, pp)), \
-        message_to_bytes(hex_list_to_uint256_list(extproof.inputs))
+    log_mix_filter = mixer_instance.eventFilter("LogMix", {'fromBlock': 'latest'})
+    log_mix_events = log_mix_filter.get_all_entries()
+    mix_results = [event_args_to_mix_result(ev.args) for ev in log_mix_events]
+    return mix_results[0]
+
+
+def get_mix_results(
+        web3: Any,
+        mixer_instance: Any,
+        start_block: int,
+        end_block: int,
+        batch_size: Optional[int] = None) -> Iterator[MixResult]:
+    """
+    Iterator for all events generated by 'mix' executions, over some block
+    range (inclusive of `end_block`). Batch eth RPC calls to avoid too many
+    calls, and holding huge lists of events in memory.
+    """
+    logs = contracts.get_event_logs(
+        web3, mixer_instance, "LogMix", start_block, end_block, batch_size)
+    for event_data in logs:
+        yield event_args_to_mix_result(event_data.args)
 
 
 def joinsplit_sign(
@@ -771,6 +661,39 @@ def joinsplit_sign(
     return signing.sign(signing_keypair.sk, message_digest)
 
 
+def compute_commitment(zeth_note: ZethNote) -> bytes:
+    """
+    Used by the recipient of a payment to recompute the commitment and check
+    the membership in the tree to confirm the validity of a payment
+    """
+    # inner_k = blake2s(r || a_pk || rho || v)
+    blake = blake2s()
+    blake.update(bytes.fromhex(zeth_note.trap_r))
+    blake.update(bytes.fromhex(zeth_note.apk))
+    blake.update(bytes.fromhex(zeth_note.rho))
+    blake.update(bytes.fromhex(zeth_note.value))
+    cm = blake.digest()
+
+    cm_field = int.from_bytes(cm, byteorder="big") % constants.ZETH_PRIME
+    return cm_field.to_bytes(int(constants.DIGEST_LENGTH/8), byteorder="big")
+
+
+def compute_nullifier(
+        zeth_note: ZethNote,
+        spending_authority_ask: OwnershipSecretKey) -> bytes:
+    """
+    Returns nf = blake2s(1110 || [a_sk]_252 || rho)
+    """
+    binary_ask = digest_to_binary_string(spending_authority_ask)
+    first_252bits_ask = binary_ask[:252]
+    left_leg_bin = "1110" + first_252bits_ask
+    left_leg = int(left_leg_bin, 2).to_bytes(32, byteorder='big')
+    blake_hash = blake2s()
+    blake_hash.update(left_leg)
+    blake_hash.update(bytes.fromhex(zeth_note.rho))
+    return blake_hash.digest()
+
+
 def compute_h_sig(
         nf0: bytes,
         nf1: bytes,
@@ -786,27 +709,61 @@ def compute_h_sig(
     return h.digest()
 
 
-def trap_r_randomness() -> str:
+def _create_zeth_notes(
+        phi: bytes,
+        hsig: bytes,
+        output0: Tuple[OwnershipPublicKey, int],
+        output1: Tuple[OwnershipPublicKey, int]
+) -> Tuple[ZethNote, ZethNote]:
+    """
+    Create two ordered ZethNotes. Used to generate new output
+    notes to be passed to the prover server.
+    """
+    (recipient0, value0) = output0
+    (recipient1, value1) = output1
+
+    rho0 = _compute_rho_i(phi, hsig, 0)
+    trap_r0 = _trap_r_randomness()
+    note0 = ZethNote(
+        apk=ownership_key_as_hex(recipient0),
+        value=int64_to_hex(value0),
+        rho=rho0.hex(),
+        trap_r=trap_r0)
+
+    rho1 = _compute_rho_i(phi, hsig, 1)
+    trap_r1 = _trap_r_randomness()
+    note1 = ZethNote(
+        apk=ownership_key_as_hex(recipient1),
+        value=int64_to_hex(value1),
+        rho=rho1.hex(),
+        trap_r=trap_r1)
+
+    return note0, note1
+
+
+def _proof_and_inputs_to_bytes(
+        snark: IZKSnarkProvider,
+        pp: PairingParameters,
+        extproof: ExtendedProof) -> Tuple[bytes, bytes]:
+    """
+    Given a proof object, compute the byte encodings of the properties
+    excluding "inputs", and the byte encoding of the "inputs". These are used
+    when hashing the mixer call parameters for signing, so must match what
+    happens in the mixer contract.
+    """
+    # TODO: avoid duplicating this encoding to evm parameters
+    proof = extproof.proof
+    return \
+        message_to_bytes(snark.proof_to_contract_parameters(proof, pp)), \
+        message_to_bytes(hex_list_to_uint256_list(extproof.inputs))
+
+
+def _trap_r_randomness() -> str:
     """
     Compute randomness `r`
     """
     assert (constants.TRAPR_LENGTH_BYTES << 3) == constants.TRAPR_LENGTH
     return bytes(Random.get_random_bytes(constants.TRAPR_LENGTH_BYTES)).hex()
-
-
-def public_inputs_extract_public_values(
-        public_inputs: List[str]) -> Tuple[int, int]:
-    """
-    Extract (v_in, v_out) from encoded public inputs. Allows client code to
-    check these properties of MixParameters without needing to know the details
-    of the structure / packing policy.
-    """
-    residual = eth_uint256_to_int(public_inputs[constants.RESIDUAL_BITS_INDEX])
-    residual = residual >> constants.TOTAL_DIGEST_RESIDUAL_BITS
-    v_out = (residual & constants.PUBLIC_VALUE_MASK)
-    v_in = \
-        (residual >> constants.PUBLIC_VALUE_LENGTH) & constants.PUBLIC_VALUE_MASK
-    return (v_in, v_out)
 
 
 def _compute_rho_i(phi: bytes, hsig: bytes, i: int) -> bytes:
@@ -831,103 +788,13 @@ def _compute_rho_i(phi: bytes, hsig: bytes, i: int) -> bytes:
     return blake_hash.digest()
 
 
+def _get_dummy_rho() -> str:
+    assert (constants.RHO_LENGTH_BYTES << 3) == constants.RHO_LENGTH
+    return bytes(Random.get_random_bytes(constants.RHO_LENGTH_BYTES)).hex()
+
+
 def _phi_randomness() -> bytes:
     """
     Compute the transaction randomness "phi", used for computing the new rhoS
     """
     return bytes(Random.get_random_bytes(constants.PHI_LENGTH_BYTES))
-
-
-def _create_web3_mixer_call(
-        zksnark: IZKSnarkProvider,
-        pp: PairingParameters,
-        mixer_instance: Any,
-        mix_parameters: MixParameters) -> Any:
-    mix_params_eth = mix_parameters_as_contract_arguments(
-        zksnark, pp, mix_parameters)
-    return mixer_instance.functions.mix(*mix_params_eth)
-
-
-def mix_call(
-        zksnark: IZKSnarkProvider,
-        pp: PairingParameters,
-        mixer_instance: Any,
-        mix_parameters: MixParameters,
-        sender_address: str,
-        wei_pub_value: int,
-        call_gas: int) -> bool:
-    """
-    Call the mix method (executes on the RPC host, without creating a
-    transaction). Returns True if the call succeeds.  False, otherwise.
-    """
-    mixer_call = _create_web3_mixer_call(
-        zksnark, pp, mixer_instance, mix_parameters)
-    try:
-        mixer_call.call({
-            'from': sender_address,
-            'value': wei_pub_value,
-            'gas': call_gas
-        })
-        return True
-
-    except ValueError:
-        print("error executing mix call:")
-        traceback.print_exc()
-
-    return False
-
-
-def mix(
-        web3: Any,
-        zksnark: IZKSnarkProvider,
-        pp: PairingParameters,
-        mixer_instance: Any,
-        mix_parameters: MixParameters,
-        sender_address: str,
-        sender_private_key: Optional[bytes],
-        pub_value: Optional[EtherValue],
-        call_gas: Optional[int]) -> str:
-    """
-    Create and broadcast a transaction that calls the mix method of the Mixer
-    """
-    mixer_call = _create_web3_mixer_call(
-        zksnark, pp, mixer_instance, mix_parameters)
-    tx_hash = contracts.send_contract_call(
-        web3, mixer_call, sender_address, sender_private_key, pub_value, call_gas)
-    return tx_hash.hex()
-
-
-def parse_mix_call(
-        mixer_instance: Any,
-        _tx_receipt: str) -> MixResult:
-    """
-    Get the logs data associated with this mixing
-    """
-    log_mix_filter = mixer_instance.eventFilter("LogMix", {'fromBlock': 'latest'})
-    log_mix_events = log_mix_filter.get_all_entries()
-    mix_results = [_event_args_to_mix_result(ev.args) for ev in log_mix_events]
-    return mix_results[0]
-
-
-def _next_nullifier_or_none(nullifier_iter: Iterator[bytes]) -> Optional[Any]:
-    try:
-        return next(nullifier_iter)
-    except StopIteration:
-        return None
-
-
-def get_mix_results(
-        web3: Any,
-        mixer_instance: Any,
-        start_block: int,
-        end_block: int,
-        batch_size: Optional[int] = None) -> Iterator[MixResult]:
-    """
-    Iterator for all events generated by 'mix' executions, over some block
-    range (inclusive of `end_block`). Batch eth RPC calls to avoid too many
-    calls, and holding huge lists of events in memory.
-    """
-    logs = contracts.get_event_logs(
-        web3, mixer_instance, "LogMix", start_block, end_block, batch_size)
-    for event_data in logs:
-        yield _event_args_to_mix_result(event_data.args)

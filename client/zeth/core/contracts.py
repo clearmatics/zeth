@@ -159,6 +159,23 @@ def send_contract_call(
     return call.transact(tx_desc)
 
 
+def local_contract_call(
+        call: Any,
+        sender_eth_addr: str,
+        value: Optional[EtherValue] = None,
+        gas: Optional[int] = None) -> Any:
+    """
+    Make a contract call locally on the RPC host and return the result. Does
+    not create a transaction.
+    """
+    tx_desc: Dict[str, Union[str, int]] = {'from': sender_eth_addr}
+    if value:
+        tx_desc["value"] = value.wei
+    if gas:
+        tx_desc["gas"] = gas
+    return call.call(tx_desc)
+
+
 def get_event_logs(
         web3: Any,
         instance: Any,
