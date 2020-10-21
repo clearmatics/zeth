@@ -158,8 +158,8 @@ public:
     void generate_r1cs_constraints(const bool ensure_output_bitness = true);
     void generate_r1cs_witness();
 
-    static size_t get_block_len();
-    static size_t get_digest_len();
+    static constexpr size_t get_block_len();
+    static constexpr size_t get_digest_len();
     static libff::bit_vector get_hash(const libff::bit_vector &input);
 
     static size_t expected_constraints(const bool ensure_output_bitness);

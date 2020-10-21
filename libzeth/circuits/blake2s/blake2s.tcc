@@ -114,12 +114,12 @@ template<typename FieldT> void BLAKE2s_256<FieldT>::generate_r1cs_witness()
         libff::div_ceil(input_size, BYTE_LEN), true);
 };
 
-template<typename FieldT> size_t BLAKE2s_256<FieldT>::get_digest_len()
+template<typename FieldT> constexpr size_t BLAKE2s_256<FieldT>::get_digest_len()
 {
     return BLAKE2s_digest_size;
 }
 
-template<typename FieldT> size_t BLAKE2s_256<FieldT>::get_block_len()
+template<typename FieldT> constexpr size_t BLAKE2s_256<FieldT>::get_block_len()
 {
     return BLAKE2s_block_size;
 }
