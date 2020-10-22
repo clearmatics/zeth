@@ -236,15 +236,21 @@ public:
             // Note that the order here dictates the layout of residual bits
             // (from lowest order to highest order):
             //
+            //   vpub_out,
+            //   vpub_in
             //   h_0, ..., h_{num_inputs},
             //   nf_0, ..., nf_{num_inputs},
             //   h_sig,
-            //   vpub_out,
-            //   vpub_in
             //
             // where vpub_out and vpub_in are each 64 bits.
             libsnark::pb_variable_array<FieldT> &residual_bits =
                 unpacked_inputs[NumInputs + 1 + NumInputs];
+
+            // Assign the public output and input values to the first residual
+            // bits (in this way, they will always appear in the same place in
+            // the field element).
+            assign_public_value_to_residual_bits(zk_vpub_out, residual_bits);
+            assign_public_value_to_residual_bits(zk_vpub_in, residual_bits);
 
             // Initialize the unpacked input corresponding to the h_is
             for (size_t i = NumInputs + 1, j = 0;
@@ -264,15 +270,6 @@ public:
             // Initialize the unpacked input corresponding to the h_sig
             digest_variable_assign_to_field_element_and_residual(
                 *h_sig, unpacked_inputs[NumInputs], residual_bits);
-
-            // Assign the public output and input values to remaining residual
-            // bits.
-            assign_public_value_to_residual_bits(zk_vpub_out, residual_bits);
-            assign_public_value_to_residual_bits(zk_vpub_in, residual_bits);
-
-            // TODO: Pad the residual bits field with zeroes so that the public
-            // values always appear in the same place, independent of the
-            // pairing (the number of residual_bits).
 
             // [SANITY CHECK]
             // The root is a FieldT, hence is not packed, likewise for the cms.

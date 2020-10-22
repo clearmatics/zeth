@@ -67,6 +67,13 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // Size of the public values in bits
     uint256 constant public_value_bits = 64;
 
+    // Public values mask
+    uint256 constant public_value_mask = (1 << public_value_bits) - 1;
+
+    // Total number of bits for public values. Digest residual bits appear
+    // after these.
+    uint256 constant total_public_value_bits = 2 * public_value_bits;
+
     // Constants regarding the hash digest length, the prime number used and
     // its associated length in bits and the max values (v_in and v_out)
     // field_capacity = floor( log_2(r) )
@@ -105,7 +112,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // definition of the constant, so this must be set explicitly.)
     uint256 constant nb_field_residual = 1;
 
-    // The number of public inputs is:
+    // The number of public inputs are:
     // - 1 (the root)
     // - jsIn (the nullifiers)
     // - jsOut (the commitments)
@@ -190,18 +197,18 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     //   [1 + NumOutputs + NumInputs + 1 + NumInputs,
     //    1 + NumOutputs + NumInputs + 1 + NumInputs + nb_field_residual[
     //
-    // The Residual field elements are structured as follows:
-    // - v_pub_in [0, public_value_bits[
+    // The Residual field elements are structured as follows (low to high order):
     // - v_pub_out [public_value_bits, 2*public_value_bits[
-    // - h_sig remaining bits
-    //   [2*public_value_bits,
-    //    2*public_value_bits + (digest_length-field_capacity)[
-    // - nullifierS remaining bits:
-    //   [2*public_value_bits + (digest_length-field_capacity),
-    //    2*public_value_bits + (1+NumInputs)*(digest_length-field_capacity)[
+    // - v_pub_in [0, public_value_bits[
     // - message authentication tagS remaining bits:
     //   [2*public_value_bits + (1+NumInputs)*(digest_length-field_capacity),
     //    2*public_value_bits + (1+2*NumInputs)*(digest_length-field_capacity)]
+    // - nullifierS remaining bits:
+    //   [2*public_value_bits + (digest_length-field_capacity),
+    //    2*public_value_bits + (1+NumInputs)*(digest_length-field_capacity)[
+    // - h_sig remaining bits
+    //   [2*public_value_bits,
+    //    2*public_value_bits + (digest_length-field_capacity)[
     // ============================================================================================
     // //
 
@@ -216,37 +223,32 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         returns(bytes32)
     {
         // The residual bits are located at:
-        //   (2 * public_value_bits) +
-        //   (residual_bits_set_idx*num_residual_bits)
+        //   (2 * public_value_bits) + (residual_bits_set_idx*num_residual_bits)
         //
         // Shift to occupy the highest order bits:
-        //
-        // 255                        residual_bits_idx    0
-        //  |   bits_to_shift     | xxxxxx |               |
-        //  |<--------------------                         |
-        //  | xxxxxx |                                     |
-        //
+        // 255                                                                  0
+        //  | bits_to_shift | xxx | residual_bits_idx | total_public_value_bits |
+        //  | <------------ | xxx |                                             |
+        //  | xxx | <------------------- residual_bits_shift -----------------> |
 
+        // Number of bits AFTER public values
         uint256 residual_bits_idx = residual_bits_set_idx * num_residual_bits;
-        uint256 bits_to_shift = residual_bits_shift - residual_bits_idx;
+        uint256 bits_to_shift =
+        residual_bits_shift - total_public_value_bits - residual_bits_idx;
         uint256 residual_bits = (residual << bits_to_shift) & residual_bits_mask;
         return bytes32(field_element | residual_bits);
     }
 
     // This function is used to extract the public values (vpub_in, vpub_out)
     // from the residual field element(S)
-    function assemble_public_values(uint256[nbInputs] memory primary_inputs)
+    function assemble_public_values(uint256 residual_bits)
         public pure
-        returns (uint256 vpub_in, uint256 vpub_out){
-        // We know vpub_in corresponds to the first 64 bits of the first
-        // residual field element after padding. We retrieve the public value
-        // in and remove any extra bits (due to the padding)
-
-        uint256 residual_bits = primary_inputs[1 + jsOut + nb_hash_digests];
-        residual_bits = residual_bits >> residual_hash_bits;
-        vpub_out = uint256(uint64(residual_bits)) * public_unit_value_wei;
-        vpub_in = uint256(uint64(residual_bits >> public_value_bits)) *
-                  public_unit_value_wei;
+        returns (uint256 vpub_in, uint256 vpub_out)
+    {
+        // vpub_out and vpub_in occupy the first and second public_value_bits
+        vpub_out = (residual_bits & public_value_mask) * public_unit_value_wei;
+        vpub_in = ((residual_bits >> public_value_bits) & public_value_mask)
+        * public_unit_value_wei;
     }
 
     // This function is used to reassemble hsig given the the primary_inputs To
@@ -336,7 +338,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         internal {
         // We get vpub_in and vpub_out in wei
         (uint256 vpub_in, uint256 vpub_out) =
-            assemble_public_values(primary_inputs);
+            assemble_public_values(primary_inputs[1 + jsOut + nb_hash_digests]);
 
         // If the vpub_in is > 0, we need to make sure the right amount is paid
         if (vpub_in > 0) {
