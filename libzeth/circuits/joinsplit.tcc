@@ -528,22 +528,24 @@ public:
         libsnark::pb_variable_array<FieldT> &unpacked_element,
         libsnark::pb_variable_array<FieldT> &unpacked_residual_bits)
     {
-        // Digest_var holds bits high-order first. pb_variable_array will be
-        // packed with low-order bit first.
+        const size_t field_capacity = FieldT::capacity();
 
-        // The field element holds the highest order bits ordered 256 -
+        // Digest_var holds bits high-order first. pb_variable_array will be
+        // packed with low-order bit first to match the evm.
+
+        // The field element holds the lowest order bits ordered 256 -
         // digest_len_minus_field_cap bits.
         unpacked_element.insert(
             unpacked_element.end(),
-            digest_var.bits.rbegin() + digest_len_minus_field_cap,
-            digest_var.bits.rend());
+            digest_var.bits.rbegin(),
+            digest_var.bits.rbegin() + field_capacity);
 
-        // The low order digest_len_minus_field_cap bits are appended to
+        // The remaining high order bits are appended to
         // unpacked_residual_bits.
         unpacked_residual_bits.insert(
             unpacked_residual_bits.end(),
-            digest_var.bits.rbegin(),
-            digest_var.bits.rbegin() + digest_len_minus_field_cap);
+            digest_var.bits.rbegin() + field_capacity,
+            digest_var.bits.rend());
     }
 
     static void assign_public_value_to_residual_bits(

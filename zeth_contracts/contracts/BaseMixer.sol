@@ -77,8 +77,12 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // Number of residual bits per bytes32
     uint256 constant num_residual_bits = digest_length - field_capacity;
 
-    // Mask to extract the residual bits
-    uint256 constant residual_bits_mask = (1 << num_residual_bits) - 1;
+    // Shift to move residual bits from lowest order to highest order
+    uint256 constant residual_bits_shift = 256 - num_residual_bits;
+
+    // Mask to extract the residual bits in the high-order position
+    uint256 constant residual_bits_mask =
+    ((1 << num_residual_bits) - 1) << residual_bits_shift;
 
     // Number of hash digests in the primary inputs:
     //   1 (the root)
@@ -214,10 +218,19 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // The residual bits are located at:
         //   (2 * public_value_bits) +
         //   (residual_bits_set_idx*num_residual_bits)
-        // Shift down and mask.
+        //
+        // Shift to occupy the highest order bits:
+        //
+        // 255                        residual_bits_idx    0
+        //  |   bits_to_shift     | xxxxxx |               |
+        //  |<--------------------                         |
+        //  | xxxxxx |                                     |
+        //
+
         uint256 residual_bits_idx = residual_bits_set_idx * num_residual_bits;
-        uint256 residual_bits = (residual >> residual_bits_idx) & residual_bits_mask;
-        return bytes32((field_element << num_residual_bits) | residual_bits);
+        uint256 bits_to_shift = residual_bits_shift - residual_bits_idx;
+        uint256 residual_bits = (residual << bits_to_shift) & residual_bits_mask;
+        return bytes32(field_element | residual_bits);
     }
 
     // This function is used to extract the public values (vpub_in, vpub_out)
