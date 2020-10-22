@@ -43,9 +43,11 @@ library Groth16AltBN128
 
     function verify(
         uint256[] storage vk,
-        uint256[8] memory proof,
+        uint256[] memory proof,
         uint256[] memory input) internal returns (bool)
     {
+        require(proof.length == 8, "Proof size invalid (ALT-BN128)");
+
         // Compute the number of inputs expected, based on the verification key
         // size. (-1 because the VK contains the base point corresponding to a
         // virtual first input of value 1).
@@ -182,7 +184,7 @@ library Groth16AltBN128
         //   0x0280 - verifyKey.Minus_Delta in G2
         //   0x0240 - proof.C in G1
         //   0x01c0 - Proof.B in G2
-        //   0x0180 - negate(Proof.A) in G1
+        //   0x0180 - Proof.A in G1
         //   0x0100 - vk.Minus_Beta in G2
         //   0x00c0 - vk.Alpha in G1
         //   0x0040 - -g2 in G2
@@ -215,6 +217,7 @@ library Groth16AltBN128
             mstore(add(pad, 0x160), sload(add(vk_slot_num, 5)))
 
             // Write Proof.A and Proof.B from offset 0x180.
+            proof := add(proof, 0x20)
             mstore(add(pad, 0x180), mload(proof))
             mstore(add(pad, 0x1a0), mload(add(proof, 0x20)))
             mstore(add(pad, 0x1c0), mload(add(proof, 0x40)))

@@ -12,7 +12,7 @@ contract Groth16BLS12_377_test
 
     function test_verify(
         uint256[] memory vk,
-        uint256[0x10] memory proof,
+        uint256[] memory proof,
         uint256[] memory inputs)
         public
         returns(bool)

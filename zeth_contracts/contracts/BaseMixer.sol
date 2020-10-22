@@ -61,8 +61,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // IMPORTANT NOTE: We need to employ the same JS configuration than the one
     // used in the cpp prover. Here we use 2 inputs and 2 outputs (it is a 2-2
     // JS).
-    uint256 constant jsIn = 2; // Nb of nullifiers
-    uint256 constant jsOut = 2; // Nb of commitments/ciphertexts
+    uint256 constant jsIn = 2; // Number of nullifiers
+    uint256 constant jsOut = 2; // Number of commitments/ciphertexts
 
     // Size of the public values in bits
     uint256 constant public_value_bits = 64;
@@ -74,43 +74,17 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // after these.
     uint256 constant total_public_value_bits = 2 * public_value_bits;
 
-    // Constants regarding the hash digest length, the prime number used and
-    // its associated length in bits and the max values (v_in and v_out)
-    // field_capacity = floor( log_2(r) )
-    uint256 constant field_capacity = 253;
-
     uint256 constant digest_length = 256;
-
-    // Number of residual bits per bytes32
-    uint256 constant num_residual_bits = digest_length - field_capacity;
-
-    // Shift to move residual bits from lowest order to highest order
-    uint256 constant residual_bits_shift = 256 - num_residual_bits;
-
-    // Mask to extract the residual bits in the high-order position
-    uint256 constant residual_bits_mask =
-    ((1 << num_residual_bits) - 1) << residual_bits_shift;
 
     // Number of hash digests in the primary inputs:
     //   1 (the root)
     //   2 * jsIn (nullifier and message auth tag per JS input)
     //   jsOut (commitment per JS output)
-    uint256 constant nb_hash_digests = 1 + 2 * jsIn;
+    uint256 constant num_hash_digests = 1 + 2 * jsIn;
 
-    // Bit offset of v_out in residual_bits
-    uint256 constant residual_hash_bits = num_residual_bits * nb_hash_digests;
-
-    // Total number of residual bits from packing of 256-bit long string into
-    // 253-bit long field elements to which are added the public value of size
-    // 64 bits
-    uint256 constant total_num_residual_bits =
-    2 * public_value_bits + num_residual_bits * nb_hash_digests;
-
-    // Number of field elements required to hold residual bits.
-    //   (total_num_residual_bits + field_capacity - 1) / field_capacity
-    // (Note, compiler complains if we use the above expression in the
-    // definition of the constant, so this must be set explicitly.)
-    uint256 constant nb_field_residual = 1;
+    // All code assumes that public values and residual bits can be encoded in
+    // a single field element.
+    uint256 constant num_field_residual = 1;
 
     // The number of public inputs are:
     // - 1 (the root)
@@ -118,9 +92,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // - jsOut (the commitments)
     // - 1 (hsig)
     // - JsIn (the message auth. tags)
-    // - nb_field_residual (the residual bits not fitting in a single field
+    // - num_field_residual (the residual bits not fitting in a single field
     //   element and the in and out public values)
-    uint256 constant nbInputs = 1 + jsOut + nb_hash_digests + nb_field_residual;
+    uint256 constant num_inputs = 1 + jsOut + num_hash_digests + num_field_residual;
 
     // Contract variable that indicates the address of the token contract
     // If token = address(0) then the mixer works with ether
@@ -148,16 +122,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         roots[initialRoot] = true;
 
         token = token_address;
-
-        // We require the need of a single residual field elements
-        require(
-            field_capacity < digest_length,
-            "A hash digest fits in a single field element."
-        );
-        require(
-            total_num_residual_bits < field_capacity,
-            "Too many input and output notes considered."
-        );
     }
 
     // Function allowing external users of the contract to retrieve some of the
@@ -170,11 +134,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // total number of
     function get_constants()
         external pure
-        returns (uint256 js_in, uint256 js_out, uint256 num_inputs)
+        returns (uint256 js_in_out, uint256 js_out_out, uint256 num_inputs_out)
     {
-        js_in = jsIn;
-        js_out = jsOut;
-        num_inputs = nbInputs;
+        js_in_out = jsIn;
+        js_out_out = jsOut;
+        num_inputs_out = num_inputs;
     }
 
     // ====================================================================== //
@@ -185,59 +149,35 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // ie, below is the index mapping of the primary input elements on the
     // protoboard:
     //
-    // - Index of the "Root" field elements: {0}
-    // - Index of the "CommitmentS" field elements: [1, 1 + NumOutputs[
-    // - Index of the "NullifierS" field elements:
-    //   [1 + NumOutputs, 1 + NumOutputs + NumInputs[
-    // - Index of the "h_sig" field element: {1 + NumOutputs + NumInputs}
-    // - Index of the "Message Authentication TagS" (h_i) field elements:
-    //   [1 + NumOutputs + NumInputs + 1,
-    //    1 + NumOutputs + NumInputs + 1 + NumInputs[
-    // - Index of the "Residual Field Element(s)" field elements:
-    //   [1 + NumOutputs + NumInputs + 1 + NumInputs,
-    //    1 + NumOutputs + NumInputs + 1 + NumInputs + nb_field_residual[
+    //   <Merkle Root>               0
+    //   <Commitment[0]>             1
+    //   ...
+    //   <Commitment[jsOut - 1]>     jsOut
+    //   <Nullifier[0]>              jsOut + 1
+    //   ...
+    //   <Nullifier[jsIn]>           jsOut + jsIn
+    //   <h_sig>                     jsOut + jsIn + 1
+    //   <Message Auth Tag[0]>       jsOut + jsIn + 2
+    //   ...
+    //   <Message Auth Tag[jsIn]>    jsOut + 2*jsIn + 1
+    //   <Residual Field Elements>   jsOut + 2*jsIn + 2
     //
-    // The Residual field elements are structured as follows (low to high order):
-    // - v_pub_out [public_value_bits, 2*public_value_bits[
-    // - v_pub_in [0, public_value_bits[
-    // - message authentication tagS remaining bits:
-    //   [2*public_value_bits + (1+NumInputs)*(digest_length-field_capacity),
-    //    2*public_value_bits + (1+2*NumInputs)*(digest_length-field_capacity)]
-    // - nullifierS remaining bits:
-    //   [2*public_value_bits + (digest_length-field_capacity),
-    //    2*public_value_bits + (1+NumInputs)*(digest_length-field_capacity)[
-    // - h_sig remaining bits
-    //   [2*public_value_bits,
-    //    2*public_value_bits + (digest_length-field_capacity)[
-    // ============================================================================================
-    // //
-
-    // TODO: If residual bits contained the high-order bits, reassembly could
-    // be done with a single (dynamic) shift, mask with constant, and bitwise OR
+    // The Residual field elements are structured as follows:
+    //
+    //   255                                         128         64           0
+    //   |<empty>|<h_sig>|<nullifiers>|<msg_auth_tags>|<v_pub_in>)|<v_pub_out>|
+    //
+    // where each entry entry after public output and input holds the
+    // (curve-specific) number residual bits for the corresponding 256 bit
+    // value.
 
     // Utility function to extract a full uint256 from a field element and the
-    // n-th set of residual bits from `residual`.
+    // n-th set of residual bits from `residual`. This function is
+    // curve-dependent.
     function extract_bytes32(
         uint256 field_element, uint256 residual, uint256 residual_bits_set_idx)
         internal pure
-        returns(bytes32)
-    {
-        // The residual bits are located at:
-        //   (2 * public_value_bits) + (residual_bits_set_idx*num_residual_bits)
-        //
-        // Shift to occupy the highest order bits:
-        // 255                                                                  0
-        //  | bits_to_shift | xxx | residual_bits_idx | total_public_value_bits |
-        //  | <------------ | xxx |                                             |
-        //  | xxx | <------------------- residual_bits_shift -----------------> |
-
-        // Number of bits AFTER public values
-        uint256 residual_bits_idx = residual_bits_set_idx * num_residual_bits;
-        uint256 bits_to_shift =
-        residual_bits_shift - total_public_value_bits - residual_bits_idx;
-        uint256 residual_bits = (residual << bits_to_shift) & residual_bits_mask;
-        return bytes32(field_element | residual_bits);
-    }
+        returns(bytes32);
 
     // This function is used to extract the public values (vpub_in, vpub_out)
     // from the residual field element(S)
@@ -254,14 +194,14 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // This function is used to reassemble hsig given the the primary_inputs To
     // do so, we extract the remaining bits of hsig from the residual field
     // element(S) and combine them with the hsig field element
-    function assemble_hsig(uint256[nbInputs] memory primary_inputs) public pure
+    function assemble_hsig(uint256[num_inputs] memory primary_inputs) public pure
     returns(bytes32 hsig)
     {
         // The h_sig residual bits are after the jsIn authentication tags and
         // jsIn nullifier bits.
         return extract_bytes32(
             primary_inputs[1 + jsIn + jsOut],
-            primary_inputs[1 + jsOut + nb_hash_digests],
+            primary_inputs[1 + jsOut + num_hash_digests],
             2 * jsIn);
     }
 
@@ -270,7 +210,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // remaining bits of the nullifier from the residual field element(S) and
     // combine them with the nullifier field element
     function assemble_nullifier(
-        uint256 index, uint256[nbInputs] memory primary_inputs) public pure
+        uint256 index, uint256[num_inputs] memory primary_inputs) public pure
     returns(bytes32 nf)
     {
         // We first check that the nullifier we want to retrieve exists
@@ -279,7 +219,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         // Nullifier residual bits follow the jsIn message authentication tags.
         return extract_bytes32(
             primary_inputs[1 + jsOut + index],
-            primary_inputs[1 + jsOut + nb_hash_digests],
+            primary_inputs[1 + jsOut + num_hash_digests],
             jsIn + index);
     }
 
@@ -289,7 +229,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // tree, appends the nullifiers to the list and so on).
     function check_mkroot_nullifiers_hsig_append_nullifiers_state(
         uint256[4] memory vk,
-        uint256[nbInputs] memory primary_inputs,
+        uint256[num_inputs] memory primary_inputs,
         bytes32[jsIn] memory nfs)
         internal {
         // 1. We re-assemble the full root digest and check it is in the tree
@@ -323,7 +263,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     }
 
     function assemble_commitments_and_append_to_state(
-        uint256[nbInputs] memory primary_inputs,
+        uint256[num_inputs] memory primary_inputs,
         bytes32[jsOut] memory comms)
         internal {
         // We re-assemble the commitments (JSOutputs)
@@ -334,11 +274,11 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
     }
 
-    function process_public_values(uint256[nbInputs] memory primary_inputs)
+    function process_public_values(uint256[num_inputs] memory primary_inputs)
         internal {
         // We get vpub_in and vpub_out in wei
         (uint256 vpub_in, uint256 vpub_out) =
-            assemble_public_values(primary_inputs[1 + jsOut + nb_hash_digests]);
+            assemble_public_values(primary_inputs[1 + jsOut + num_hash_digests]);
 
         // If the vpub_in is > 0, we need to make sure the right amount is paid
         if (vpub_in > 0) {
