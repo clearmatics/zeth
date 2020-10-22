@@ -65,44 +65,41 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     uint256 constant jsOut = 2; // Nb of commitments/ciphertexts
 
     // Size of the public values in bits
-    uint256 constant public_value_length = 64;
+    uint256 constant public_value_bits = 64;
 
     // Constants regarding the hash digest length, the prime number used and
     // its associated length in bits and the max values (v_in and v_out)
-    // uint r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     // field_capacity = floor( log_2(r) )
-    uint256 constant digest_length = 256;
     uint256 constant field_capacity = 253;
 
-    // Variable representing the number of "residual" bits we can expect from
-    // converting a hash digest into a field element see primary input
-    // `residual_bits` in Reminder below
-    uint256 constant packing_residue_length = digest_length - field_capacity;
+    uint256 constant digest_length = 256;
+
+    // Number of residual bits per bytes32
+    uint256 constant num_residual_bits = digest_length - field_capacity;
+
+    // Mask to extract the residual bits
+    uint256 constant residual_bits_mask = (1 << num_residual_bits) - 1;
 
     // Number of hash digests in the primary inputs:
     //   1 (the root)
     //   2 * jsIn (nullifier and message auth tag per JS input)
     //   jsOut (commitment per JS output)
-    uint256 constant nb_hash_digests = 1 + 2*jsIn;
+    uint256 constant nb_hash_digests = 1 + 2 * jsIn;
 
     // Bit offset of v_out in residual_bits
-    uint256 constant residual_hash_bits = packing_residue_length*nb_hash_digests;
+    uint256 constant residual_hash_bits = num_residual_bits * nb_hash_digests;
 
     // Total number of residual bits from packing of 256-bit long string into
     // 253-bit long field elements to which are added the public value of size
     // 64 bits
-    uint256 constant length_bit_residual = 2 * public_value_length +
-    packing_residue_length * nb_hash_digests;
+    uint256 constant total_num_residual_bits =
+    2 * public_value_bits + num_residual_bits * nb_hash_digests;
 
     // Number of field elements required to hold residual bits.
-    //   (length_bit_residual + field_capacity - 1) / field_capacity
+    //   (total_num_residual_bits + field_capacity - 1) / field_capacity
     // (Note, compiler complains if we use the above expression in the
     // definition of the constant, so this must be set explicitly.)
     uint256 constant nb_field_residual = 1;
-
-    // Padding size in the residual field element (we require a single residual
-    // f.e. (c.f. constructor))
-    uint256 constant padding_size = digest_length - length_bit_residual;
 
     // The number of public inputs is:
     // - 1 (the root)
@@ -133,8 +130,9 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     event LogDebug(string message);
 
     // Constructor
-    constructor(uint256 depth, address token_address) MerkleTreeMiMC7(depth)
-        public {
+    constructor(uint256 depth, address token_address)
+        MerkleTreeMiMC7(depth) public
+    {
         bytes32 initialRoot = nodes[0];
         roots[initialRoot] = true;
 
@@ -146,7 +144,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
             "A hash digest fits in a single field element."
         );
         require(
-            length_bit_residual < field_capacity,
+            total_num_residual_bits < field_capacity,
             "Too many input and output notes considered."
         );
     }
@@ -189,18 +187,38 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     //    1 + NumOutputs + NumInputs + 1 + NumInputs + nb_field_residual[
     //
     // The Residual field elements are structured as follows:
-    // - v_pub_in [0, public_value_length[
-    // - v_pub_out [public_value_length, 2*public_value_length[
+    // - v_pub_in [0, public_value_bits[
+    // - v_pub_out [public_value_bits, 2*public_value_bits[
     // - h_sig remaining bits
-    //   [2*public_value_length,
-    //    2*public_value_length + (digest_length-field_capacity)[
+    //   [2*public_value_bits,
+    //    2*public_value_bits + (digest_length-field_capacity)[
     // - nullifierS remaining bits:
-    //   [2*public_value_length + (digest_length-field_capacity),
-    //    2*public_value_length + (1+NumInputs)*(digest_length-field_capacity)[
+    //   [2*public_value_bits + (digest_length-field_capacity),
+    //    2*public_value_bits + (1+NumInputs)*(digest_length-field_capacity)[
     // - message authentication tagS remaining bits:
-    //   [2*public_value_length + (1+NumInputs)*(digest_length-field_capacity),
-    //    2*public_value_length + (1+2*NumInputs)*(digest_length-field_capacity)]
-    // ============================================================================================ //
+    //   [2*public_value_bits + (1+NumInputs)*(digest_length-field_capacity),
+    //    2*public_value_bits + (1+2*NumInputs)*(digest_length-field_capacity)]
+    // ============================================================================================
+    // //
+
+    // TODO: If residual bits contained the high-order bits, reassembly could
+    // be done with a single (dynamic) shift, mask with constant, and bitwise OR
+
+    // Utility function to extract a full uint256 from a field element and the
+    // n-th set of residual bits from `residual`.
+    function extract_bytes32(
+        uint256 field_element, uint256 residual, uint256 residual_bits_set_idx)
+        internal pure
+        returns(bytes32)
+    {
+        // The residual bits are located at:
+        //   (2 * public_value_bits) +
+        //   (residual_bits_set_idx*num_residual_bits)
+        // Shift down and mask.
+        uint256 residual_bits_idx = residual_bits_set_idx * num_residual_bits;
+        uint256 residual_bits = (residual >> residual_bits_idx) & residual_bits_mask;
+        return bytes32((field_element << num_residual_bits) | residual_bits);
+    }
 
     // This function is used to extract the public values (vpub_in, vpub_out)
     // from the residual field element(S)
@@ -214,33 +232,22 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         uint256 residual_bits = primary_inputs[1 + jsOut + nb_hash_digests];
         residual_bits = residual_bits >> residual_hash_bits;
         vpub_out = uint256(uint64(residual_bits)) * public_unit_value_wei;
-        vpub_in = uint256(uint64(residual_bits >> public_value_length)) *
-            public_unit_value_wei;
+        vpub_in = uint256(uint64(residual_bits >> public_value_bits)) *
+                  public_unit_value_wei;
     }
 
     // This function is used to reassemble hsig given the the primary_inputs To
     // do so, we extract the remaining bits of hsig from the residual field
     // element(S) and combine them with the hsig field element
-    function assemble_hsig(uint256[nbInputs] memory primary_inputs)
-        public pure
-        returns (bytes32 hsig) {
-
-        // We know hsig residual bits correspond to the 128th to 130st bits of
-        // the first residual field element after padding. We retrieve hsig's
-        // residual bits and remove any extra bits (due to the padding) They
-        // correspond to the (digest_length - field_capacity) least significant
-        // bits of hsig in big endian
-        bytes32 hsig_bytes =
-        (bytes32(primary_inputs[1 + jsOut + nb_hash_digests]) << padding_size +
-        2*public_value_length) >> field_capacity;
-
-        // We retrieve the field element corresponding to the `field_capacity`
-        // most significant bits of hsig We remove the left padding due to
-        // casting `field_capacity` bits into a bytes32 We reassemble hsig by
-        // adding the values
-        uint256 high_bits = uint(
-            primary_inputs[1 + jsIn + jsOut] << (digest_length - field_capacity));
-        hsig = bytes32(high_bits + uint(hsig_bytes));
+    function assemble_hsig(uint256[nbInputs] memory primary_inputs) public pure
+    returns(bytes32 hsig)
+    {
+        // The h_sig residual bits are after the jsIn authentication tags and
+        // jsIn nullifier bits.
+        return extract_bytes32(
+            primary_inputs[1 + jsIn + jsOut],
+            primary_inputs[1 + jsOut + nb_hash_digests],
+            2 * jsIn);
     }
 
     // This function is used to reassemble the nullifiers given the nullifier
@@ -248,42 +255,17 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // remaining bits of the nullifier from the residual field element(S) and
     // combine them with the nullifier field element
     function assemble_nullifier(
-        uint256 index, uint256[nbInputs] memory primary_inputs)
-        public pure
-        returns (bytes32 nf) {
-
+        uint256 index, uint256[nbInputs] memory primary_inputs) public pure
+    returns(bytes32 nf)
+    {
         // We first check that the nullifier we want to retrieve exists
-        require(
-            index < jsIn,
-            "nullifier index overflow"
-        );
+        require(index < jsIn, "nullifier index overflow");
 
-        // We compute the nullifier's residual bits index and check the 1st
-        // f.e. indeed comprises it. See the way the residual bits are ordered
-        // in the extended proof
-        uint256 nf_bit_index =
-        2*public_value_length + (1 + index) * packing_residue_length;
-        require(
-            field_capacity >= nf_bit_index + packing_residue_length,
-            "nullifier written in different residual bit f.e."
-        );
-
-        // We retrieve nf's residual bits and remove any extra bits (due to the
-        // padding). They correspond to the (digest_length - field_capacity)
-        // least significant bits of nf in big endian
-        bytes32 nf_bytes = (
-            bytes32(primary_inputs[1 + jsOut + nb_hash_digests])
-            << (padding_size + nf_bit_index)) >> field_capacity;
-
-        // We offset the nullifier index by the number of values preceding the
-        // nullifiers in the primary inputs: the root (1) and the cms (jsOut)
-        // We retrieve the field element corresponding to the `field_capacity`
-        // most significant bits of nf. We remove the left padding due to
-        // casting `field_capacity` bits into a bytes32. We reassemble nf by
-        // adding the values.
-        uint256 high_bits = uint(
-            primary_inputs[1 + jsOut + index] << (digest_length - field_capacity));
-        nf = bytes32(high_bits + uint(nf_bytes));
+        // Nullifier residual bits follow the jsIn message authentication tags.
+        return extract_bytes32(
+            primary_inputs[1 + jsOut + index],
+            primary_inputs[1 + jsOut + nb_hash_digests],
+            jsIn + index);
     }
 
     // This function processes the primary inputs to append and check the root

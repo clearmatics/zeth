@@ -232,76 +232,47 @@ public:
             zk_vpub_out.allocate(
                 pb, ZETH_V_SIZE, FMT(this->annotation_prefix, " zk_vpub_out"));
 
-            // Initialize the unpacked input corresponding to the input
-            // NullifierS
-            for (size_t i = 0; i < NumInputs; i++) {
-                unpacked_inputs[i].insert(
-                    unpacked_inputs[i].end(),
-                    input_nullifiers[i]->bits.rbegin() +
-                        digest_len_minus_field_cap,
-                    input_nullifiers[i]->bits.rend());
-            }
-
-            // Initialize the unpacked input corresponding to the h_sig
-            unpacked_inputs[NumInputs].insert(
-                unpacked_inputs[NumInputs].end(),
-                h_sig->bits.rbegin() + digest_len_minus_field_cap,
-                h_sig->bits.rend());
+            // Assign digests to unpacked field elements and residual bits.
+            // Note that the order here dictates the layout of residual bits
+            // (from lowest order to highest order):
+            //
+            //   h_0, ..., h_{num_inputs},
+            //   nf_0, ..., nf_{num_inputs},
+            //   h_sig,
+            //   vpub_out,
+            //   vpub_in
+            //
+            // where vpub_out and vpub_in are each 64 bits.
+            libsnark::pb_variable_array<FieldT> &residual_bits =
+                unpacked_inputs[NumInputs + 1 + NumInputs];
 
             // Initialize the unpacked input corresponding to the h_is
             for (size_t i = NumInputs + 1, j = 0;
                  i < NumInputs + 1 + NumInputs && j < NumInputs;
                  i++, j++) {
-                unpacked_inputs[i].insert(
-                    unpacked_inputs[i].end(),
-                    h_is[j]->bits.rbegin() + digest_len_minus_field_cap,
-                    h_is[j]->bits.rend());
+                digest_variable_assign_to_field_element_and_residual(
+                    *h_is[j], unpacked_inputs[i], residual_bits);
             }
 
-            // Initialize the unpacked input corresponding to the variables of
-            // size different to 253 (FieldT::capacity()) bits (smaller inputs
-            // and residual bits). We obtain an unpacked value equal to v_in ||
-            // v_out || h_sig || nf_{1..NumInputs} || h_i_{1..NumInput}.
-            // We fill them here in reverse order because of the use of
-            // the .insert() function which adds a variable before a
-            // given position
-            {
-                // Filling with the residual bits of the h_is
-                for (size_t i = 0; i < NumInputs; i++) {
-                    unpacked_inputs[NumInputs + 1 + NumInputs].insert(
-                        unpacked_inputs[NumInputs + 1 + NumInputs].end(),
-                        h_is[NumInputs - i - 1]->bits.rbegin(),
-                        h_is[NumInputs - i - 1]->bits.rbegin() +
-                            digest_len_minus_field_cap);
-                }
-
-                // Filling with the residual bits of the input NullifierS
-                for (size_t i = 0; i < NumInputs; i++) {
-                    unpacked_inputs[NumInputs + 1 + NumInputs].insert(
-                        unpacked_inputs[NumInputs + 1 + NumInputs].end(),
-                        input_nullifiers[NumInputs - i - 1]->bits.rbegin(),
-                        input_nullifiers[NumInputs - i - 1]->bits.rbegin() +
-                            digest_len_minus_field_cap);
-                }
-
-                // Filling with the residual bits of the h_sig
-                unpacked_inputs[NumInputs + 1 + NumInputs].insert(
-                    unpacked_inputs[NumInputs + 1 + NumInputs].end(),
-                    h_sig->bits.rbegin(),
-                    h_sig->bits.rbegin() + digest_len_minus_field_cap);
-
-                // Filling with the vpub_out (public value taken out of the mix)
-                unpacked_inputs[NumInputs + 1 + NumInputs].insert(
-                    unpacked_inputs[NumInputs + 1 + NumInputs].end(),
-                    zk_vpub_out.rbegin(),
-                    zk_vpub_out.rend());
-
-                // Filling with the vpub_in (public value added to the mix)
-                unpacked_inputs[NumInputs + 1 + NumInputs].insert(
-                    unpacked_inputs[NumInputs + 1 + NumInputs].end(),
-                    zk_vpub_in.rbegin(),
-                    zk_vpub_in.rend());
+            // Initialize the unpacked input corresponding to the input
+            // NullifierS
+            for (size_t i = 0; i < NumInputs; i++) {
+                digest_variable_assign_to_field_element_and_residual(
+                    *input_nullifiers[i], unpacked_inputs[i], residual_bits);
             }
+
+            // Initialize the unpacked input corresponding to the h_sig
+            digest_variable_assign_to_field_element_and_residual(
+                *h_sig, unpacked_inputs[NumInputs], residual_bits);
+
+            // Assign the public output and input values to remaining residual
+            // bits.
+            assign_public_value_to_residual_bits(zk_vpub_out, residual_bits);
+            assign_public_value_to_residual_bits(zk_vpub_in, residual_bits);
+
+            // TODO: Pad the residual bits field with zeroes so that the public
+            // values always appear in the same place, independent of the
+            // pairing (the number of residual_bits).
 
             // [SANITY CHECK]
             // The root is a FieldT, hence is not packed, likewise for the cms.
@@ -364,7 +335,7 @@ public:
             packers[NumInputs + 1 + NumInputs].reset(
                 new libsnark::multipacking_gadget<FieldT>(
                     pb,
-                    unpacked_inputs[NumInputs + 1 + NumInputs],
+                    residual_bits,
                     packed_inputs[NumInputs + 1 + NumInputs],
                     FieldT::capacity(),
                     FMT(this->annotation_prefix, " packer_residual_bits")));
@@ -548,6 +519,41 @@ public:
         for (size_t i = 0; i < packers.size(); i++) {
             packers[i]->generate_r1cs_witness_from_bits();
         }
+    }
+
+    // Given a digest variable, assign to an unpacked field element
+    // `unpacked_element` and unpacked element holding residual bits.
+    void digest_variable_assign_to_field_element_and_residual(
+        const libsnark::digest_variable<FieldT> &digest_var,
+        libsnark::pb_variable_array<FieldT> &unpacked_element,
+        libsnark::pb_variable_array<FieldT> &unpacked_residual_bits)
+    {
+        // Digest_var holds bits high-order first. pb_variable_array will be
+        // packed with low-order bit first.
+
+        // The field element holds the highest order bits ordered 256 -
+        // digest_len_minus_field_cap bits.
+        unpacked_element.insert(
+            unpacked_element.end(),
+            digest_var.bits.rbegin() + digest_len_minus_field_cap,
+            digest_var.bits.rend());
+
+        // The low order digest_len_minus_field_cap bits are appended to
+        // unpacked_residual_bits.
+        unpacked_residual_bits.insert(
+            unpacked_residual_bits.end(),
+            digest_var.bits.rbegin(),
+            digest_var.bits.rbegin() + digest_len_minus_field_cap);
+    }
+
+    static void assign_public_value_to_residual_bits(
+        const libsnark::pb_variable_array<FieldT> &unpacked_public_value,
+        libsnark::pb_variable_array<FieldT> &unpacked_residual_bits)
+    {
+        unpacked_residual_bits.insert(
+            unpacked_residual_bits.end(),
+            unpacked_public_value.rbegin(),
+            unpacked_public_value.rend());
     }
 
     // Computes the total bit-length of the primary inputs
