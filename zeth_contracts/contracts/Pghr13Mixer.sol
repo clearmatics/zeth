@@ -5,12 +5,11 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-import "./OTSchnorrVerifier.sol";
 import "./Pairing.sol";
-import "./BaseMixer.sol";
+import "./AltBN128MixerBase.sol";
 
-contract Pghr13Mixer is BaseMixer {
-
+contract Pghr13Mixer is AltBN128MixerBase
+{
     struct VerifyingKey {
         Pairing.G2Point A;
         Pairing.G1Point B;
@@ -33,98 +32,13 @@ contract Pghr13Mixer is BaseMixer {
         Pairing.G1Point H;
     }
 
-    // Constructor.  For of vk is:
-    //    uint256[4] A,               (offset 00 - 0x00)
-    //    uint256[2] B,               (offset 04 - 0x04)
-    //    uint256[4] C,               (offset 06 - 0x06)
-    //    uint256[4] gamma,           (offset 10 - 0x0a)
-    //    uint256[2] gammaBeta1,      (offset 14 - 0x0e)
-    //    uint256[4] gammaBeta2,      (offset 16 - 0x10)
-    //    uint256[4] Z,               (offset 20 - 0x14)
-    //    uint256[] IC_coefficients)  (offset 24 - 0x18) (2 words each)
     constructor(
         uint256 mk_depth,
         address token,
         uint256[] memory vk)
-        BaseMixer(mk_depth, token, vk) public {
+        AltBN128MixerBase(mk_depth, token, vk) public {
         uint256 vk_words = vk.length;
         require(vk_words >= 26, "invalid vk length");
-    }
-
-    // This function allows to mix coins and execute payments in zero
-    // knowledge. Nb of ciphertexts depends on the JS description (Here 2
-    // inputs). Format of proof is:
-    //
-    //   uint256[2] a,                (offset 00 - 0x00)
-    //   uint256[2] a_p,              (offset 02 - 0x02)
-    //   uint256[4] b,                (offset 04 - 0x04)
-    //   uint256[2] b_p,              (offset 08 - 0x08)
-    //   uint256[2] c,                (offset 10 - 0x0a)
-    //   uint256[2] c_p,              (offset 12 - 0x0c)
-    //   uint256[2] h,                (offset 14 - 0x0e)
-    //   uint256[2] k,                (offset 16 - 0x10)
-    //   <end>                        (offset 18 - 0x12)
-    function mix(
-        uint256[] memory proof,
-        uint256[4] memory vk,
-        uint256 sigma,
-        uint256[num_inputs] memory input,
-        bytes32 pk_sender,
-        bytes[jsOut] memory ciphertexts)
-        public payable {
-
-        // 1. Check the root and the nullifiers
-        bytes32[jsIn] memory nullifiers;
-        check_mkroot_nullifiers_hsig_append_nullifiers_state(
-            vk, input, nullifiers);
-
-        // 2.a Verify the signature on the hash of data_to_be_signed
-        bytes32 hash_to_be_signed = sha256(
-            abi.encodePacked(
-                pk_sender,
-                // Must be unrolled for now.
-                ciphertexts[0],
-                ciphertexts[1],
-                proof,
-                input
-            )
-        );
-        require(
-            OTSchnorrVerifier.verify(
-                vk[0],
-                vk[1],
-                vk[2],
-                vk[3],
-                sigma,
-                hash_to_be_signed
-            ),
-            "Invalid signature: Unable to verify the signature correctly"
-        );
-
-        // 2.b Verify the proof
-        require(
-            verifyTx(proof, input),
-            "Invalid proof: Unable to verify the proof correctly"
-        );
-
-        // 3. Append the commitments to the tree
-        bytes32[jsOut] memory commitments;
-        assemble_commitments_and_append_to_state(input, commitments);
-
-        // 4. get the public values in Wei and modify the state depending on
-        // their values
-        process_public_values(input);
-
-        // 5. Add the new root to the list of existing roots and emit it
-        bytes32 new_merkle_root = recomputeRoot(jsOut);
-        add_merkle_root(new_merkle_root);
-
-        // Emit the all Mix data
-        emit LogMix(
-            new_merkle_root,
-            nullifiers,
-            commitments,
-            ciphertexts);
     }
 
     function verify(
@@ -219,10 +133,10 @@ contract Pghr13Mixer is BaseMixer {
         return 0;
     }
 
-    function verifyTx(
+    function verify_zk_proof(
         uint256[] memory proof_data,
-        uint256[num_inputs] memory primaryInputs)
-        public
+        uint256[num_inputs] memory inputs)
+        internal
         returns (bool) {
         // Scalar field characteristic
         // solium-disable-next-line
@@ -240,15 +154,15 @@ contract Pghr13Mixer is BaseMixer {
         proof.H = Pairing.G1Point(proof_data[14], proof_data[15]);
         proof.K = Pairing.G1Point(proof_data[16], proof_data[17]);
 
-        for(uint256 i = 0; i < primaryInputs.length; i++){
+        for(uint256 i = 0; i < inputs.length; i++){
             // Make sure that all primary inputs lie in the scalar field
             require(
-                primaryInputs[i] < r,
+                inputs[i] < r,
                 "Input is not is scalar field"
             );
         }
 
-        uint256 verification_result = verify(primaryInputs, proof);
+        uint256 verification_result = verify(inputs, proof);
         if (verification_result != 0) {
             return false;
         }
