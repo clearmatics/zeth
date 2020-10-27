@@ -127,10 +127,12 @@ class PairingParameters:
     """
     def __init__(
             self,
+            name: str,
             r: str,
             q: str,
             generator_g1: G1Point,
             generator_g2: G2Point):
+        self.name = name
         self.r = r
         self.q = q
         self.generator_g1 = generator_g1
@@ -145,6 +147,7 @@ class PairingParameters:
 
     def to_json_dict(self) -> Dict[str, Any]:
         return {
+            "name": self.name,
             "r": self.r,
             "q": self.q,
             "generator_g1": self.generator_g1.to_json_list(),
@@ -154,6 +157,7 @@ class PairingParameters:
     @staticmethod
     def from_json_dict(json_dict: Dict[str, Any]) -> PairingParameters:
         return PairingParameters(
+            name=json_dict["name"],
             r=json_dict["r"],
             q=json_dict["q"],
             generator_g1=G1Point.from_json_list(json_dict["generator_g1"]),
@@ -164,6 +168,7 @@ def pairing_parameters_from_proto(
         pairing_params_proto: ec_group_messages_pb2.PairingParameters
 ) -> PairingParameters:
     return PairingParameters(
+        name=pairing_params_proto.name,
         r=pairing_params_proto.r,
         q=pairing_params_proto.q,
         generator_g1=g1_point_from_proto(pairing_params_proto.generator_g1),
