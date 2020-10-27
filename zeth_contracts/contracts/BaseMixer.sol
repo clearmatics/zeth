@@ -5,6 +5,7 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
+import "./OTSchnorrVerifier.sol";
 import "./MerkleTreeMiMC7.sol";
 
 // Declare the ERC20 interface in order to handle ERC20 tokens transfers to and
@@ -53,7 +54,7 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     mapping(bytes32 => bool) roots;
 
     // The public list of nullifiers (prevents double spend)
-    mapping(bytes32 => bool) nullifiers;
+    mapping(bytes32 => bool) _nullifiers;
 
     // Structure of the verification key and proofs is opaque, determined by
     // zk-snark verification library.
@@ -129,6 +130,67 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         token = token_address;
     }
 
+    // This function mixes coins and executes payments in zero knowledge.
+    // Format of proof is internal to the zk-snark library. "input" array is
+    // the set of scalar inputs to the proof. We assume that each input
+    // occupies a single uint256.
+    function mix(
+        uint256[] memory proof,
+        uint256[4] memory vk,
+        uint256 sigma,
+        uint256[num_inputs] memory inputs,
+        bytes[jsOut] memory ciphertexts)
+        public payable
+    {
+        // 1. Check the root and the nullifiers
+        bytes32[jsIn] memory nullifiers;
+        check_mkroot_nullifiers_hsig_append_nullifiers_state(
+            vk, inputs, nullifiers);
+
+        // 2.a Verify the signature on the hash of data_to_be_signed
+        bytes32 hash_to_be_signed = sha256(
+            abi.encodePacked(
+                uint256(msg.sender),
+                // Unfortunately, we have to unroll this for now. We could
+                // replace encodePacked with a custom function but this would
+                // increase complexity and possibly gas usage.
+                ciphertexts[0],
+                ciphertexts[1],
+                proof,
+                inputs
+            ));
+        require(
+            OTSchnorrVerifier.verify(
+                vk[0], vk[1], vk[2], vk[3], sigma, hash_to_be_signed),
+            "Invalid signature: Unable to verify the signature correctly"
+        );
+
+        // 2.b Verify the proof
+        require(
+            verify_zk_proof(proof, inputs),
+            "Invalid proof: Unable to verify the proof correctly"
+        );
+
+        // 3. Append the commitments to the tree
+        bytes32[jsOut] memory commitments;
+        assemble_commitments_and_append_to_state(inputs, commitments);
+
+        // 4. Add the new root to the list of existing roots
+        bytes32 new_merkle_root = recomputeRoot(jsOut);
+        add_merkle_root(new_merkle_root);
+
+        // 5. Emit the all Mix data
+        emit LogMix(
+            new_merkle_root,
+            nullifiers,
+            commitments,
+            ciphertexts);
+
+        // 6. Get the public values in Wei and modify the state depending on
+        // their values
+        process_public_values(inputs);
+    }
+
     // Function allowing external users of the contract to retrieve some of the
     // constants used in the mixer (since the solidity interfaces do not export
     // this information as-of the current version). The intention is that
@@ -183,6 +245,13 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         uint256 field_element, uint256 residual, uint256 residual_bits_set_idx)
         internal pure
         returns(bytes32);
+
+    // Implementations must provide this
+    function verify_zk_proof(
+        uint256[] memory proof,
+        uint256[num_inputs] memory inputs)
+        internal
+        returns (bool);
 
     // This function is used to extract the public values (vpub_in, vpub_out)
     // from the residual field element(S)
@@ -248,10 +317,10 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         for (uint256 i = 0; i < jsIn; i++) {
             bytes32 nullifier = assemble_nullifier(i, primary_inputs);
             require(
-                !nullifiers[nullifier],
+                !_nullifiers[nullifier],
                 "Invalid nullifier: This nullifier has already been used"
             );
-            nullifiers[nullifier] = true;
+            _nullifiers[nullifier] = true;
 
             nfs[i] = nullifier;
         }
