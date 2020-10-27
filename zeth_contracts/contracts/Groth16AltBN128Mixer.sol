@@ -10,7 +10,7 @@ import "./Groth16AltBN128.sol";
 
 // Instance of AltBN128MixerBase implementing the Groth16 verifier for the
 // alt-bn128 pairing.
-contract Groth16Mixer is AltBN128MixerBase
+contract Groth16AltBN128Mixer is AltBN128MixerBase
 {
     constructor(
         uint256 mk_depth,
@@ -28,7 +28,7 @@ contract Groth16Mixer is AltBN128MixerBase
         returns (bool)
     {
         // Convert the statically sized primaryInputs to a dynamic array
-        // expected by the verifyer.
+        // expected by the verifier.
 
         // TODO: mechanism to pass static-sized input arrays to generic
         // verifier functions to avoid this copy.

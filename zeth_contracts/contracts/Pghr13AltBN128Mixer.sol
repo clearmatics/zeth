@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 import "./Pairing.sol";
 import "./AltBN128MixerBase.sol";
 
-contract Pghr13Mixer is AltBN128MixerBase
+contract Pghr13AltBN128Mixer is AltBN128MixerBase
 {
     struct VerifyingKey {
         Pairing.G2Point A;

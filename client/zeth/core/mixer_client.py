@@ -265,7 +265,7 @@ class MixerClient:
         deploy_gas = deploy_gas or constants.DEPLOYMENT_GAS_WEI
 
         contracts_dir = get_contracts_dir()
-        mixer_name = zksnark.get_contract_name()
+        mixer_name = zksnark.get_contract_name(pp)
         mixer_src = os.path.join(contracts_dir, mixer_name + ".sol")
 
         # Constructor parameters have the form:
