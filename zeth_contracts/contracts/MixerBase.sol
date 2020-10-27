@@ -5,50 +5,14 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
+import "./Tokens.sol";
 import "./OTSchnorrVerifier.sol";
 import "./MerkleTreeMiMC7.sol";
 
-// Declare the ERC20 interface in order to handle ERC20 tokens transfers to and
-// from the Mixer. Note that we only declare the functions we are interested in,
-// namely, transferFrom() (used to do a Deposit), and transfer() (used to do a
-// withdrawal)
-contract ERC20 {
-    function transferFrom(address from, address to, uint256 value) public;
-    function transfer(address to, uint256 value) public;
-}
-
-// ERC223 token compatible contract
-contract ERC223ReceivingContract {
-    // See:
-    //   https://github.com/Dexaran/ERC223-token-standard/blob/Recommended/Receiver_Interface.sol
-    struct Token {
-        address sender;
-        uint256 value;
-        bytes data;
-        bytes4 sig;
-    }
-
-    function tokenFallback(address from, uint256 value, bytes memory data)
-        public pure {
-        Token memory tkn;
-        tkn.sender = from;
-        tkn.value = value;
-        tkn.data = data;
-
-         // See:
-         //   https://solidity.readthedocs.io/en/v0.5.5/types.html#conversions-between-elementary-types
-        uint32 u =
-            uint32(bytes4(data[0])) +
-            uint32(bytes4(data[1]) >> 8) +
-            uint32(bytes4(data[2]) >> 16) +
-            uint32(bytes4(data[3]) >> 24);
-        tkn.sig = bytes4(u);
-    }
-}
-
-// BaseMixer implements the functions shared across all Mixers (regardless which
-// zkSNARK is used)
-contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
+// MixerBase implements the functions shared across all Mixers (regardless
+// which zkSNARK is used)
+contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
+{
 
     // The roots of the different updated trees
     mapping(bytes32 => bool) roots;
@@ -265,8 +229,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         * public_unit_value_wei;
     }
 
-    // This function is used to reassemble hsig given the the primary_inputs To
-    // do so, we extract the remaining bits of hsig from the residual field
+    // This function is used to reassemble hsig given the primary_inputs. To do
+    // so, we extract the remaining bits of hsig from the residual field
     // element(S) and combine them with the hsig field element
     function assemble_hsig(uint256[num_inputs] memory primary_inputs) public pure
     returns(bytes32 hsig)
@@ -305,7 +269,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         uint256[4] memory vk,
         uint256[num_inputs] memory primary_inputs,
         bytes32[jsIn] memory nfs)
-        internal {
+        internal
+    {
         // 1. We re-assemble the full root digest and check it is in the tree
         require(
             roots[bytes32(primary_inputs[0])],
@@ -339,7 +304,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     function assemble_commitments_and_append_to_state(
         uint256[num_inputs] memory primary_inputs,
         bytes32[jsOut] memory comms)
-        internal {
+        internal
+    {
         // We re-assemble the commitments (JSOutputs)
         for (uint256 i = 0; i < jsOut; i++) {
             bytes32 current_commitment = bytes32(primary_inputs[1 + i]);
@@ -349,7 +315,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     }
 
     function process_public_values(uint256[num_inputs] memory primary_inputs)
-        internal {
+        internal
+    {
         // We get vpub_in and vpub_out in wei
         (uint256 vpub_in, uint256 vpub_out) =
             assemble_public_values(primary_inputs[1 + jsOut + num_hash_digests]);
@@ -386,7 +353,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
         }
     }
 
-    function add_merkle_root(bytes32 root) internal {
+    function add_merkle_root(bytes32 root) internal
+    {
         roots[root] = true;
     }
 }

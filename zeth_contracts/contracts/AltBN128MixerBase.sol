@@ -5,11 +5,11 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-import "./BaseMixer.sol";
+import "./MixerBase.sol";
 
 // Partial implementation of abstract MixerBase which implements the
 // curve-specific methods to use the ALT-BN128 pairing.
-contract AltBN128MixerBase is BaseMixer
+contract AltBN128MixerBase is MixerBase
 {
     // Constants regarding the hash digest length, the prime number used and
     // its associated length in bits and the max values (v_in and v_out)
@@ -36,7 +36,7 @@ contract AltBN128MixerBase is BaseMixer
         uint256 mk_depth,
         address token,
         uint256[] memory vk)
-        BaseMixer(mk_depth, token, vk)
+        MixerBase(mk_depth, token, vk)
         public
     {
     }
