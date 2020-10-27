@@ -13,9 +13,8 @@ import "./MerkleTreeMiMC7.sol";
 // which zkSNARK is used)
 contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
 {
-
     // The roots of the different updated trees
-    mapping(bytes32 => bool) roots;
+    mapping(bytes32 => bool) _roots;
 
     // The public list of nullifiers (prevents double spend)
     mapping(bytes32 => bool) _nullifiers;
@@ -26,7 +25,7 @@ contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
 
     // Contract variable that indicates the address of the token contract
     // If token = address(0) then the mixer works with ether
-    address public token;
+    address _token;
 
     // JoinSplit description, gives the number of inputs (nullifiers) and
     // outputs (commitments/ciphertexts) to receive and process.
@@ -89,9 +88,9 @@ contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
         MerkleTreeMiMC7(depth) public
     {
         bytes32 initialRoot = nodes[0];
-        roots[initialRoot] = true;
+        _roots[initialRoot] = true;
         _vk = vk;
-        token = token_address;
+        _token = token_address;
     }
 
     // This function mixes coins and executes payments in zero knowledge.
@@ -273,7 +272,7 @@ contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
     {
         // 1. We re-assemble the full root digest and check it is in the tree
         require(
-            roots[bytes32(primary_inputs[0])],
+            _roots[bytes32(primary_inputs[0])],
             "Invalid root: This root doesn't exist"
         );
 
@@ -323,8 +322,8 @@ contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
 
         // If the vpub_in is > 0, we need to make sure the right amount is paid
         if (vpub_in > 0) {
-            if (token != address(0)) {
-                ERC20 erc20Token = ERC20(token);
+            if (_token != address(0)) {
+                ERC20 erc20Token = ERC20(_token);
                 erc20Token.transferFrom(msg.sender, address(this), vpub_in);
             } else {
                 require(
@@ -343,8 +342,8 @@ contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
         // If value_pub_out > 0 then we do a withdraw.  We retrieve the
         // msg.sender and send him the appropriate value IF proof is valid
         if (vpub_out > 0) {
-            if (token != address(0)) {
-                ERC20 erc20Token = ERC20(token);
+            if (_token != address(0)) {
+                ERC20 erc20Token = ERC20(_token);
                 erc20Token.transfer(msg.sender, vpub_out);
             } else {
                 (bool success, ) = msg.sender.call.value(vpub_out)("");
@@ -355,6 +354,6 @@ contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
 
     function add_merkle_root(bytes32 root) internal
     {
-        roots[root] = true;
+        _roots[root] = true;
     }
 }
