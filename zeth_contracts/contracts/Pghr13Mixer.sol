@@ -33,7 +33,7 @@ contract Pghr13Mixer is BaseMixer {
         Pairing.G1Point H;
     }
 
-    VerifyingKey verifyKey;
+    uint256[] _vk;
 
     // Constructor.  For of vk is:
     //    uint256[4] A,               (offset 00 - 0x00)
@@ -51,18 +51,7 @@ contract Pghr13Mixer is BaseMixer {
         BaseMixer(mk_depth, token) public {
         uint256 vk_words = vk.length;
         require(vk_words >= 26, "invalid vk length");
-
-        verifyKey.A = Pairing.G2Point(vk[0], vk[1], vk[2], vk[3]);
-        verifyKey.B = Pairing.G1Point(vk[4], vk[5]);
-        verifyKey.C = Pairing.G2Point(vk[6], vk[7], vk[8], vk[9]);
-        verifyKey.gamma = Pairing.G2Point(vk[10], vk[11], vk[12], vk[13]);
-        verifyKey.gammaBeta1 = Pairing.G1Point(vk[14], vk[15]);
-        verifyKey.gammaBeta2 = Pairing.G2Point(vk[16], vk[17], vk[18], vk[19]);
-        verifyKey.Z = Pairing.G2Point(vk[20], vk[21], vk[22], vk[23]);
-
-        for (uint256 i = 24; i < vk_words ; i += 2) {
-            verifyKey.IC.push(Pairing.G1Point(vk[i], vk[i+1]));
-        }
+        _vk = vk;
     }
 
     // This function allows to mix coins and execute payments in zero
@@ -78,11 +67,11 @@ contract Pghr13Mixer is BaseMixer {
     //   uint256[2] h,                (offset 14 - 0x0e)
     //   uint256[2] k,                (offset 16 - 0x10)
     //   <end>                        (offset 18 - 0x12)
-    function mix (
-        uint256[18] memory proof,
+    function mix(
+        uint256[] memory proof,
         uint256[4] memory vk,
         uint256 sigma,
-        uint256[nbInputs] memory input,
+        uint256[num_inputs] memory input,
         bytes32 pk_sender,
         bytes[jsOut] memory ciphertexts)
         public payable {
@@ -137,25 +126,34 @@ contract Pghr13Mixer is BaseMixer {
         emit LogMix(
             new_merkle_root,
             nullifiers,
-            pk_sender,
             commitments,
             ciphertexts);
     }
 
-    function getIC(uint256 i) public view returns (uint) {
-        return(verifyKey.IC[i].X);
-    }
-
-    function getICLen() public view returns (uint) {
-        return(verifyKey.IC.length);
-    }
-
     function verify(
-        uint256[nbInputs] memory input,
+        uint256[num_inputs] memory input,
         Proof memory proof)
         internal
         returns (uint) {
-        VerifyingKey memory vk = verifyKey;
+
+        // Decode _vk into a VerifyKey struct
+        uint256 vk_words = _vk.length;
+        require(vk_words >= 26, "invalid vk length");
+        uint256 ic_length = (vk_words - 24) / 2;
+
+        VerifyingKey memory vk;
+        vk.IC = new Pairing.G1Point[](ic_length);
+        vk.A = Pairing.G2Point(_vk[0], _vk[1], _vk[2], _vk[3]);
+        vk.B = Pairing.G1Point(_vk[4], _vk[5]);
+        vk.C = Pairing.G2Point(_vk[6], _vk[7], _vk[8], _vk[9]);
+        vk.gamma = Pairing.G2Point(_vk[10], _vk[11], _vk[12], _vk[13]);
+        vk.gammaBeta1 = Pairing.G1Point(_vk[14], _vk[15]);
+        vk.gammaBeta2 = Pairing.G2Point(_vk[16], _vk[17], _vk[18], _vk[19]);
+        vk.Z = Pairing.G2Point(_vk[20], _vk[21], _vk[22], _vk[23]);
+        for (uint256 i = 24; i < vk_words ; i += 2) {
+            vk.IC[(i-24)/2] = Pairing.G1Point(_vk[i], _vk[i+1]);
+        }
+
         // |I_{in}| == input.length, and vk.IC also contains A_0(s). Thus
         // ||vk.IC| == input.length + 1
         require(
@@ -225,8 +223,8 @@ contract Pghr13Mixer is BaseMixer {
     }
 
     function verifyTx(
-        uint256[18] memory proof_data,
-        uint256[nbInputs] memory primaryInputs)
+        uint256[] memory proof_data,
+        uint256[num_inputs] memory primaryInputs)
         public
         returns (bool) {
         // Scalar field characteristic
@@ -243,7 +241,7 @@ contract Pghr13Mixer is BaseMixer {
         proof.C = Pairing.G1Point(proof_data[10], proof_data[11]);
         proof.C_p = Pairing.G1Point(proof_data[12], proof_data[13]);
         proof.H = Pairing.G1Point(proof_data[14], proof_data[15]);
-        proof.K = Pairing.G1Point(proof_data[16], proof_data[18]);
+        proof.K = Pairing.G1Point(proof_data[16], proof_data[17]);
 
         for(uint256 i = 0; i < primaryInputs.length; i++){
             // Make sure that all primary inputs lie in the scalar field

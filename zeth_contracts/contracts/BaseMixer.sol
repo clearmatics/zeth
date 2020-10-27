@@ -94,7 +94,8 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // - JsIn (the message auth. tags)
     // - num_field_residual (the residual bits not fitting in a single field
     //   element and the in and out public values)
-    uint256 constant num_inputs = 1 + jsOut + num_hash_digests + num_field_residual;
+    uint256 constant num_inputs =
+    1 + jsOut + num_hash_digests + num_field_residual;
 
     // Contract variable that indicates the address of the token contract
     // If token = address(0) then the mixer works with ether
