@@ -55,6 +55,14 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     // The public list of nullifiers (prevents double spend)
     mapping(bytes32 => bool) nullifiers;
 
+    // Structure of the verification key and proofs is opaque, determined by
+    // zk-snark verification library.
+    uint256[] _vk;
+
+    // Contract variable that indicates the address of the token contract
+    // If token = address(0) then the mixer works with ether
+    address public token;
+
     // JoinSplit description, gives the number of inputs (nullifiers) and
     // outputs (commitments/ciphertexts) to receive and process.
     //
@@ -97,10 +105,6 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     uint256 constant num_inputs =
     1 + jsOut + num_hash_digests + num_field_residual;
 
-    // Contract variable that indicates the address of the token contract
-    // If token = address(0) then the mixer works with ether
-    address public token;
-
     // The unit used for public values (ether in and out), in Wei. Must match
     // the python wrappers. Use Szabos (10^12 Wei).
     uint64 constant public_unit_value_wei = 1 szabo;
@@ -116,12 +120,12 @@ contract BaseMixer is MerkleTreeMiMC7, ERC223ReceivingContract {
     event LogDebug(string message);
 
     // Constructor
-    constructor(uint256 depth, address token_address)
+    constructor(uint256 depth, address token_address, uint256[] memory vk)
         MerkleTreeMiMC7(depth) public
     {
         bytes32 initialRoot = nodes[0];
         roots[initialRoot] = true;
-
+        _vk = vk;
         token = token_address;
     }
 

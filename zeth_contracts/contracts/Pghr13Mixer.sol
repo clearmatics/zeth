@@ -33,8 +33,6 @@ contract Pghr13Mixer is BaseMixer {
         Pairing.G1Point H;
     }
 
-    uint256[] _vk;
-
     // Constructor.  For of vk is:
     //    uint256[4] A,               (offset 00 - 0x00)
     //    uint256[2] B,               (offset 04 - 0x04)
@@ -48,10 +46,9 @@ contract Pghr13Mixer is BaseMixer {
         uint256 mk_depth,
         address token,
         uint256[] memory vk)
-        BaseMixer(mk_depth, token) public {
+        BaseMixer(mk_depth, token, vk) public {
         uint256 vk_words = vk.length;
         require(vk_words >= 26, "invalid vk length");
-        _vk = vk;
     }
 
     // This function allows to mix coins and execute payments in zero

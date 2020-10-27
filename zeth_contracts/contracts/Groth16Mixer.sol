@@ -20,18 +20,13 @@ contract Groth16MixerBase is BaseMixer
         internal
         returns (bool);
 
-    // Structure of the verification key and proofs is opaque, determined by
-    // zk-snark verification library.
-    uint256[] _vk;
-
     constructor(
         uint256 mk_depth,
         address token,
         uint256[] memory vk)
-        BaseMixer(mk_depth, token)
+        BaseMixer(mk_depth, token, vk)
         public
     {
-        _vk = vk;
     }
 
     // This function mixes coins and executes payments in zero knowledge.
