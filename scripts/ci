@@ -134,7 +134,6 @@ function ci_setup() {
              libtool \
              autoconf \
              automake \
-             python \
              || echo
     fi
 

@@ -15,6 +15,9 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
     - uses: actions/setup-node@v1
       with:
         node-version: 10
@@ -27,6 +30,9 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
     - name: Execute
       run: scripts/ci check_client
 
@@ -39,6 +45,9 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
     - name: Install Dependencies
       run: brew install ${MACOS_BREW_PACKAGES}
     - name: Execute
@@ -53,6 +62,9 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
     - name: Execute
       run: CI_CHECK_FORMAT=1 CI_USE_DOCKER=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
 
@@ -62,6 +74,9 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
     - name: Execute
       run: CI_USE_DOCKER=1 CI_CONFIG=Release CI_ZKSNARK=PGHR13 scripts/ci build
 
@@ -71,5 +86,8 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
     - name: Execute
       run: CI_CHECK_FORMAT=1 CI_USE_DOCKER=1 scripts/ci check_cpp
