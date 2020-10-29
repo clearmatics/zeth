@@ -5,7 +5,7 @@
   "main": "truffle.js",
   "scripts": {
     "install": "ln -s ../../depends/ganache-cli node_modules/ganache-cli && cd node_modules/ganache-cli && npm install",
-    "testrpc": "ganache-cli --hardfork istanbul --port 8545 --gasLimit 0x3FFFFFFFFFFFF --gasPrice 1 --defaultBalanceEther 90000000000 --networkId 1234",
+    "testrpc": "node node_modules/ganache-cli/cli.js --hardfork istanbul --port 8545 --gasLimit 0x3FFFFFFFFFFFF --gasPrice 1 --defaultBalanceEther 90000000000 --networkId 1234",
     "compile": "truffle compile",
     "deploy": "truffle deploy",
     "test": "truffle test",

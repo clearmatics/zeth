@@ -15,8 +15,8 @@ It follows and extends the design presented in [zerocash-ethereum](https://githu
 
 In order to follow the README below, you will need:
 - [Docker](https://www.docker.com/get-started)
-- [Npm](https://www.npmjs.com/get-npm) (at least version `6.4.1`)
-- [Node](https://nodejs.org/en/) (at least version `v9.5.0`)
+- [Npm](https://www.npmjs.com/get-npm) (at least version `6.9.0`)
+- [Node](https://nodejs.org/en/) (recommended version `v10` to be able to build and use the custom `ganache-cli`)
 - [Python3](https://www.python.org/downloads/) (at least version `3.7`)
 - [Pip](https://pip.pypa.io/en/stable/) (at least version `19.0.2`)
 
