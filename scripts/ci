@@ -122,7 +122,6 @@ function ci_setup() {
     if [ "${platform}" == "Darwin" ] ; then
         # Some of these commands can fail (if packages are already installed,
         # etc), hence the `|| echo`.
-        brew unlink python@2 || echo
         brew update || echo
         brew install \
              gmp \
