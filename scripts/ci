@@ -24,7 +24,7 @@ function check_format() {
 function check_contracts() {
     pushd zeth_contracts
     npm config set python python2.7
-    npm install
+    npm install --unsafe-perm
     npm run check
     popd
 }

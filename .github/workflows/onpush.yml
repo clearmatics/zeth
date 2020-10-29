@@ -12,9 +12,14 @@ jobs:
   check-contracts:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 10
     - name: Check Contracts
-      run: CI_USE_DOCKER=1 scripts/ci check_contracts
+      run: scripts/ci check_contracts
 
   check-client:
     runs-on: ubuntu-20.04
