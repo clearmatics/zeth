@@ -24,7 +24,7 @@ function check_format() {
 function check_contracts() {
     pushd zeth_contracts
     npm config set python python2.7
-    npm install
+    npm install --unsafe-perm
     npm run check
     popd
 }
@@ -122,7 +122,6 @@ function ci_setup() {
     if [ "${platform}" == "Darwin" ] ; then
         # Some of these commands can fail (if packages are already installed,
         # etc), hence the `|| echo`.
-        brew unlink python@2 || echo
         brew update || echo
         brew install \
              gmp \
@@ -134,7 +133,6 @@ function ci_setup() {
              libtool \
              autoconf \
              automake \
-             python \
              || echo
     fi
 
