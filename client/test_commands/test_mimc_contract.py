@@ -12,25 +12,25 @@ from typing import Any
 
 
 def test_mimc7(instance: Any) -> None:
-    x = int(28948022309329048855892746252171976963317496166410141009864396001978282409983)  # noqa
-    y = int(14220067918847996031108144435763672811050758065945364308986253046354060608451)  # noqa
-    h = MiMC7().hash(x, y).to_bytes(32, 'big')
+    # pylint: disable=line-too-long
+    x = int(28948022309329048855892746252171976963317496166410141009864396001978282409983).to_bytes(32, 'big')  # noqa
+    y = int(14220067918847996031108144435763672811050758065945364308986253046354060608451).to_bytes(32, 'big')  # noqa
+    # pylint: enable=line-too-long
+    h = MiMC7().hash(x, y)
 
-    result = instance.functions.test_mimc7(
-        x.to_bytes(32, 'big'), y.to_bytes(32, 'big')).call()
+    result = instance.functions.test_mimc7(x, y).call()
     assert result == h
 
 
 def test_mimc31(instance: Any) -> None:
-    x = int(28948022309329048855892746252171976963317496166410141009864396001978282409983)  # noqa
-    y = int(14220067918847996031108144435763672811050758065945364308986253046354060608451)  # noqa
-    h = MiMC31().hash(x, y).to_bytes(32, 'big')
+    # pylint: disable=line-too-long
+    x = int(28948022309329048855892746252171976963317496166410141009864396001978282409983).to_bytes(32, 'big')  # noqa
+    y = int(14220067918847996031108144435763672811050758065945364308986253046354060608451).to_bytes(32, 'big')  # noqa
+    # pylint: enable=line-too-long
+    h = MiMC31().hash(x, y)
 
-    result = instance.functions.test_mimc31(
-        x.to_bytes(32, 'big'), y.to_bytes(32, 'big')).call()
+    result = instance.functions.test_mimc31(x, y).call()
 
-    print(f"h={int.from_bytes(h, byteorder='big')}")
-    print(f"result={int.from_bytes(result, byteorder='big')}")
     assert result == h
 
 

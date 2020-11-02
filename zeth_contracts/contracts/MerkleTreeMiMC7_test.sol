@@ -12,7 +12,7 @@ import "./MerkleTreeMiMC7.sol";
 // This implementation stores all leaves and nodes, skipping those that have
 // not been populated yet. The final entry in each layer stores that layer's
 // default value.
-contract MerkleTreeMiMC7_test is MerkleTreeMiMC7
+contract MerkleTreeMiMC7_test is BaseMerkleTree
 {
     constructor(uint treeDepth) MerkleTreeMiMC7(treeDepth) public
     {
@@ -38,5 +38,11 @@ contract MerkleTreeMiMC7_test is MerkleTreeMiMC7
         }
         root = recomputeRoot(second.length);
         return root;
+    }
+
+    // Use MiMC7 as the Merkle tree hash function.
+    function hash(bytes32 left, bytes32 right) internal returns(bytes32)
+    {
+        return MiMC7.hash(left, right);
     }
 }

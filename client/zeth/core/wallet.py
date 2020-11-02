@@ -11,7 +11,7 @@ from zeth.core.mixer_client import \
 from zeth.core.protoutils import zeth_note_from_json_dict, zeth_note_to_json_dict
 from zeth.core.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.core.pairing import PairingParameters
-from zeth.core.merkle_tree import PersistentMerkleTree
+from zeth.core.merkle_tree import ITreeHash, PersistentMerkleTree
 from zeth.core.utils import EtherValue, short_commitment, from_zeth_units
 from zeth.api.zeth_messages_pb2 import ZethNote
 from os.path import join, basename, exists
@@ -123,7 +123,8 @@ class Wallet:
             mixer_instance: Any,
             username: str,
             wallet_dir: str,
-            secret_address: ZethAddressPriv):
+            secret_address: ZethAddressPriv,
+            tree_hash: ITreeHash):
         # k_sk_receiver: EncryptionSecretKey):
         assert "_" not in username
         self.mixer_instance = mixer_instance
@@ -136,7 +137,8 @@ class Wallet:
         _ensure_dir(join(self.wallet_dir, SPENT_SUBDIRECTORY))
         self.merkle_tree = PersistentMerkleTree.open(
             join(wallet_dir, MERKLE_TREE_FILE),
-            int(math.pow(2, ZETH_MERKLE_TREE_DEPTH)))
+            int(math.pow(2, ZETH_MERKLE_TREE_DEPTH)),
+            tree_hash)
         self.merkle_tree_changed = False
         self.next_addr = self.merkle_tree.get_num_entries()
 

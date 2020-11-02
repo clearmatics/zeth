@@ -9,6 +9,7 @@ import zeth.core.contracts
 import zeth.core.merkle_tree
 import zeth.core.utils
 import zeth.core.zksnark
+from zeth.core.mimc import get_tree_hash_for_pairing
 from zeth.core.prover_client import ProverClient
 from zeth.core.zeth_address import ZethAddressPriv
 from zeth.core.mixer_client import MixOutputEvents, MixerClient
@@ -65,7 +66,9 @@ def main() -> None:
     # shared by all virtual users. This avoids having to pass all mix results
     # to all wallets, and allows some of the methods in the scenario module,
     # which must update the tree directly.
-    mk_tree = zeth.core.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
+    tree_hash = get_tree_hash_for_pairing(pp.name)
+    mk_tree = zeth.core.merkle_tree.MerkleTree.empty_with_depth(
+        tree_depth, tree_hash)
     mixer_instance = zeth_client.mixer_instance
 
     # Keys and wallets
@@ -75,7 +78,7 @@ def main() -> None:
             # Note: symlink-attack resistance
             #   https://docs.python.org/3/library/shutil.html#shutil.rmtree.avoids_symlink_attacks
             shutil.rmtree(wallet_dir)
-        return Wallet(mixer_instance, name, wallet_dir, sk)
+        return Wallet(mixer_instance, name, wallet_dir, sk, tree_hash)
 
     sk_alice = keystore['Alice'].addr_sk
     sk_bob = keystore['Bob'].addr_sk

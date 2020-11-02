@@ -7,6 +7,7 @@
 from zeth.core.constants import ZETH_MERKLE_TREE_DEPTH
 from zeth.core.merkle_tree import MerkleTree
 from zeth.core.utils import extend_32bytes
+from zeth.core.mimc import MiMC7
 from typing import Any
 import test_commands.mock as mock
 
@@ -39,7 +40,7 @@ def assert_root(expected_root: bytes, actual_root: bytes, msg: str) -> None:
 
 
 def test_tree_empty(contract: Any) -> None:
-    mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH)
+    mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH, MiMC7())
     expected_root = mktree.recompute_root()
     root = contract.functions.testAddLeaves([], []).call()
     assert_root(expected_root, root, "test_tree_empty")
@@ -60,7 +61,7 @@ def test_tree_partial(contract: Any) -> None:
         """
         leaves = TEST_VALUES[:num_entries]
 
-        mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH)
+        mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH, MiMC7())
         for leaf in leaves:
             mktree.insert(leaf)
         expected_root = mktree.recompute_root()

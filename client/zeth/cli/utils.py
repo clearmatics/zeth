@@ -10,6 +10,7 @@ from zeth.cli.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT, \
 from zeth.core.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.core.contracts import \
     InstanceDescription, get_block_number, compile_files
+from zeth.core.mimc import get_tree_hash_for_pairing
 from zeth.core.prover_client import ProverClient
 from zeth.core.pairing import PairingParameters
 from zeth.core.mixer_client import MixerClient, get_mix_results
@@ -248,7 +249,10 @@ def open_wallet(
     Load a wallet using a secret key.
     """
     wallet_dir = ctx.wallet_dir
-    return Wallet(mixer_instance, WALLET_USERNAME, wallet_dir, js_secret)
+    prover_config = create_prover_client(ctx).get_configuration()
+    tree_hash = get_tree_hash_for_pairing(prover_config.pairing_parameters.name)
+    return Wallet(
+        mixer_instance, WALLET_USERNAME, wallet_dir, js_secret, tree_hash)
 
 
 def do_sync(
