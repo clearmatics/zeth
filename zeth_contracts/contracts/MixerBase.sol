@@ -7,11 +7,11 @@ pragma experimental ABIEncoderV2;
 
 import "./Tokens.sol";
 import "./OTSchnorrVerifier.sol";
-import "./MerkleTreeMiMC7.sol";
+import "./BaseMerkleTree.sol";
 
 // MixerBase implements the functions shared across all Mixers (regardless
 // which zkSNARK is used)
-contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
+contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
 {
     // The roots of the different updated trees
     mapping(bytes32 => bool) _roots;
@@ -85,7 +85,7 @@ contract MixerBase is MerkleTreeMiMC7, ERC223ReceivingContract
 
     // Constructor
     constructor(uint256 depth, address token_address, uint256[] memory vk)
-        MerkleTreeMiMC7(depth) public
+        BaseMerkleTree(depth) public
     {
         bytes32 initialRoot = nodes[0];
         _roots[initialRoot] = true;

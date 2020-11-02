@@ -6,6 +6,7 @@ pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
 import "./MixerBase.sol";
+import "./MiMC7.sol";
 
 // Partial implementation of abstract MixerBase which implements the
 // curve-specific methods to use the ALT-BN128 pairing.
@@ -63,5 +64,11 @@ contract AltBN128MixerBase is MixerBase
         residual_bits_shift - total_public_value_bits - residual_bits_idx;
         uint256 residual_bits = (residual << bits_to_shift) & residual_bits_mask;
         return bytes32(field_element | residual_bits);
+    }
+
+    // Use MiMC7 as the Merkle tree hash function.
+    function hash(bytes32 left, bytes32 right) internal returns(bytes32)
+    {
+        return MiMC7.hash(left, right);
     }
 }
