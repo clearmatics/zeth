@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 
 using namespace libzeth;
 
@@ -223,6 +224,45 @@ TEST(TestMiMC, MiMC7MpFalse)
     ASSERT_FALSE(unexpected_out == pb.val(mimc_mp_gadget.result()));
 }
 
+TEST(TestMiMC, TestMiMC31)
+{
+    using Field = libff::bls12_377_Fr;
+
+    // Test data from client test
+    const Field m_val(
+        "361463706104393758314627143582733736918979816094794952605869"
+        "5634226054692860");
+    const Field k_val(
+        "577560616941962560685931949698212627967485873079130048105101"
+        "9590436651369410");
+    const Field h_val(
+        "757520454940410747883073955769867933053765668805066446289274"
+        "1835534561279075");
+
+    libsnark::protoboard<Field> pb;
+
+    // Public input
+    libsnark::pb_variable<Field> k;
+    k.allocate(pb, "k");
+    pb.set_input_sizes(1);
+    pb.val(k) = k_val;
+
+    // Private inputs
+    libsnark::pb_variable<Field> m;
+    m.allocate(pb, "m");
+    pb.val(m) = m_val;
+
+    MiMC_mp_gadget<Field, MiMCe31_permutation_gadget<Field>> mimc_mp_gadget(
+        pb, m, k, "mimc_mp");
+    mimc_mp_gadget.generate_r1cs_witness();
+    mimc_mp_gadget.generate_r1cs_constraints();
+
+    // Check that the circuit is satisfied, and that the expected result is
+    // generated.
+    ASSERT_TRUE(pb.is_satisfied());
+    ASSERT_EQ(h_val, pb.val(mimc_mp_gadget.result()));
+}
+
 } // namespace
 
 int main(int argc, char **argv)
@@ -230,6 +270,7 @@ int main(int argc, char **argv)
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
     ppT::init_public_params();
+    libff::bls12_377_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
