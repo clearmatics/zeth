@@ -90,6 +90,30 @@ class MiMC7(MiMCBase):
         return xored ** 7 % self.prime
 
 
+class MiMC31(MiMCBase):
+    """
+    MiMC implementation using exponent of 11 and 51 rounds. Note that this is
+    suitable for BLS12-377, since 31=2^5-1, and 1 == gcd(31, r-1). See
+    [AGRRT16] for details.
+    """
+    def __init__(
+            self,
+            seed_str: str = MIMC_MT_SEED):
+        MiMCBase.__init__(
+            self,
+            seed_str,
+            8444461749428370424248824938781546531375899335154063827935233455917409239041,  # noqa
+            51)
+
+    def mimc_round(self, message: int, key: int, rc: int) -> int:
+        a = (message + key + rc) % self.prime
+        a2 = (a * a) % self.prime
+        a4 = (a2 * a2) % self.prime
+        a8 = (a4 * a4) % self.prime
+        a16 = (a8 * a8) % self.prime
+        return (a16 * a8 * a4 * a2 * a) % self.prime
+
+
 def _str_to_bytes(value: str) -> bytes:
     return value.encode('ascii')
 
