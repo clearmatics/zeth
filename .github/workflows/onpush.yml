@@ -65,6 +65,15 @@ jobs:
     - name: Execute
       run: CI_USE_DOCKER=1 CI_CONFIG=Release CI_ZKSNARK=PGHR13 scripts/ci build
 
+  build-linux-bls12-377:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: Execute
+      run: CI_USE_DOCKER=1 CI_CONFIG=Release CI_CURVE=BLS12_377 scripts/ci build
+
   check-cpp-linux:
     runs-on: ubuntu-20.04
     steps:
