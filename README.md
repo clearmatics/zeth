@@ -7,6 +7,8 @@ It follows and extends the design presented in [zerocash-ethereum](https://githu
 
 :point_right: Check our [paper](https://arxiv.org/pdf/1904.00905.pdf), and the [protocol specifications](https://github.com/clearmatics/zeth-specifications) for more information about Zeth.
 
+:raising_hand: Want to propose a protocol change? Amazing! Please consider writing a [Zeth Protocol Improvement Proposal (ZPIP)](https://github.com/clearmatics/zpips).
+
 ## Building and running the project:
 
 :computer: **Warning** This project primarily targets x86_64 Linux and macOS platforms.
