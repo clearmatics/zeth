@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Copyright (c) 2015-2020 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
@@ -8,21 +10,24 @@ try:
 except ImportError:
     # pycryptodome
     from Crypto.Hash import keccak
-    keccak_256 = lambda *args: keccak.new(digest_bits=256)
+    def keccak_256(data):
+        h = keccak.new(digest_bits=256)
+        h.update(data)
+        return h
 
-# Functions taken from zeth/client/zethMimc.py
 def to_bytes(*args):
-    for i, _ in enumerate(args):
-        if isinstance(_, str):
-            yield _.encode('ascii')
-        elif not isinstance(_, int) and hasattr(_, 'to_bytes'):
+    for idx, value in enumerate(args):
+        print(f"idx={idx}, v={value}")
+        if isinstance(value, str):
+            yield value.encode('ascii')
+        elif not isinstance(value, int) and hasattr(value, 'to_bytes'):
             # for 'F_p' or 'FQ' class etc.
-            yield _.to_bytes('big')
-        elif isinstance(_, bytes):
-            yield _
+            yield value.to_bytes('big')
+        elif isinstance(value, bytes):
+            yield value
         else:
             # Try conversion to integer first?
-            yield int(_).to_bytes(32, 'big')
+            yield int(value).to_bytes(32, 'big')
 
 def sha3_256(*args):
     data = b''.join(to_bytes(*args))
