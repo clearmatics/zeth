@@ -12,7 +12,12 @@ disable=
     broad-except,
     too-many-function-args,
     duplicate-code,
-    fixme
+    fixme,
+    unsubscriptable-object,
+
+# TODO: `unsubscriptable-object` generates false positives for python 3.9 and pylint==2.6.
+#   https://github.com/PyCQA/pylint/issues/3882
+# Re-enable it when the issue is fixed.
 
 good-names=a,b,c,e,g,h,i,k,m,q,r,x,y,z,cm,ic,rc,ek,ex,ct,vk,sk,pk,pp,X,Y,r,el,nf,g1,g2
 
