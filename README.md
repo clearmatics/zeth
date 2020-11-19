@@ -165,6 +165,16 @@ cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -D
 make check
 ```
 
+## Docker images
+| Docker files | Image | Tags | Description |
+|---------------|------|-----|--|
+| [./Dockerfile-prover](./Dockerfile-prover) | [clearmatics/zeth-prover](https://hub.docker.com/r/clearmatics/zeth-prover) | `latest`, `vX.Y.Z` - Release of zeth, `git-%HASH%` - developers build by git-commit  | [Zeth Prover Server](./prover_server/README.md). Image use `zeth-base` for building |
+| [./Dockerfile-client](./Dockerfile-client) | [clearmatics/zeth-client](https://hub.docker.com/r/clearmatics/zeth-client) | `latest`, `vX.Y.Z` - Release of zeth, `git-%HASH%` - developers build by git-commit  | [Python client to interact with the prover](./client/README.md) |
+| [./Dockerfile-mpc](./Dockerfile-mpc) | [clearmatics/zeth-mpc](https://hub.docker.com/r/clearmatics/zeth-mpc) | `latest`, `vX.Y.Z` - Release of zeth, `git-%HASH%` - developers build by git-commit  | [Tools for Multi-Party Computation](./mpc/README.md). Image use `zeth-base` for building |
+| [./Dockerfile-base](./Dockerfile-base) | [clearmatics/zeth-base](https://hub.docker.com/r/clearmatics/zeth-base) | `latest`, `vA.B.C` - Release of zeth-base | Base image for building other containers |
+
+
+
 ## Run analysis tools on the code
 
 Several tools can be ran on the code. These can be enabled via a set of compilation options.
