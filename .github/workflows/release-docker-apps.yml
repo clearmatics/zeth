@@ -1,0 +1,53 @@
+name: "Release. Docker build apps"
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+             # Triggered by git tags like: v0.2.12
+
+env:
+  REPO_OWNER: "clearmatics"
+
+jobs:
+
+  docker-build:
+    name: "Docker build"
+    runs-on: ubuntu-20.04
+    timeout-minutes: 360
+
+    strategy:
+      fail-fast: true
+      matrix:
+        app: ['mpc', 'client', 'prover']
+      max-parallel: 3
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+
+      - name: "Get vars from git"
+        id: git_vars
+        run: echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
+
+      - name: "Login to DockerHub"
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: "Docker build"
+        run: docker build -f ./Dockerfile-${{ matrix.app }} -t $REPO_OWNER/zeth-${{ matrix.app }}:${{ steps.git_vars.outputs.TAG }} .
+
+      - name: "Docker push"
+        run: |
+          docker push $REPO_OWNER/zeth-${{ matrix.app }}:${{ steps.git_vars.outputs.TAG }}
+          docker tag $REPO_OWNER/zeth-${{ matrix.app }}:${{ steps.git_vars.outputs.TAG }} $REPO_OWNER/zeth-${{ matrix.app }}:latest
+          docker push $REPO_OWNER/zeth-${{ matrix.app }}:latest
+
+      - name: "Docker Info"
+        run: |
+          docker inspect $REPO_OWNER/zeth-${{ matrix.app }}:${{ steps.git_vars.outputs.TAG }}
+          docker history $REPO_OWNER/zeth-${{ matrix.app }}:${{ steps.git_vars.outputs.TAG }} --no-trunc
+          docker version
+          docker info
+          uname -a
