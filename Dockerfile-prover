@@ -1,4 +1,4 @@
-FROM clearmatics/zeth-base:latest AS stage1
+FROM clearmatics/zeth-base:v0.0.0 AS stage1
 
 ENV ZETH_PATH=/home/zeth
 # Copy necessary files in the docker container
