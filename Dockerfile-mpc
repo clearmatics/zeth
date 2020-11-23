@@ -1,4 +1,4 @@
-FROM clearmatics/zeth-base:latest AS stage1
+FROM clearmatics/zeth-base:v0.0.0 AS stage1
 
 # 1. Build phase 1: powers of tau rust binaries
 ENV POT_PATH=/home/powersoftau
