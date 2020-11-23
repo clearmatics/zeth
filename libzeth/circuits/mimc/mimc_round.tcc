@@ -5,6 +5,8 @@
 #ifndef __ZETH_CIRCUITS_MIMC_ROUND_TCC__
 #define __ZETH_CIRCUITS_MIMC_ROUND_TCC__
 
+#include "libzeth/circuits/mimc/mimc_round.hpp"
+
 namespace libzeth
 {
 
@@ -27,7 +29,7 @@ MiMCe7_round_gadget<FieldT>::MiMCe7_round_gadget(
     t4.allocate(pb, FMT(this->annotation_prefix, " t4"));
     t6.allocate(pb, FMT(this->annotation_prefix, " t6"));
     t7.allocate(pb, FMT(this->annotation_prefix, " out"));
-};
+}
 
 template<typename FieldT>
 void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints()
@@ -63,7 +65,7 @@ void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints()
             libsnark::r1cs_constraint<FieldT>(t, t6, t7),
             FMT(this->annotation_prefix, " round_constraint_t7"));
     }
-};
+}
 
 template<typename FieldT>
 void MiMCe7_round_gadget<FieldT>::generate_r1cs_witness() const
@@ -85,13 +87,128 @@ void MiMCe7_round_gadget<FieldT>::generate_r1cs_witness() const
     const FieldT result =
         (val_t6 * t) + (add_k_to_result ? val_k : FieldT::zero());
     this->pb.val(t7) = result;
-};
+}
 
 template<typename FieldT>
 const libsnark::pb_variable<FieldT> &MiMCe7_round_gadget<FieldT>::result() const
 {
     return t7;
-};
+}
+
+template<typename FieldT>
+MiMCe31_round_gadget<FieldT>::MiMCe31_round_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_variable<FieldT> &x,
+    const libsnark::pb_variable<FieldT> &k,
+    const FieldT &c,
+    const bool add_k_to_result,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , x(x)
+    , k(k)
+    , c(c)
+    , add_k_to_result(add_k_to_result)
+{
+    // Allocate the intermediate variables
+    t2.allocate(pb, FMT(annotation_prefix, " t2"));
+    t4.allocate(pb, FMT(annotation_prefix, " t4"));
+    t8.allocate(pb, FMT(annotation_prefix, " t8"));
+    t16.allocate(pb, FMT(annotation_prefix, " t16"));
+    t24.allocate(pb, FMT(annotation_prefix, " t24"));
+    t28.allocate(pb, FMT(annotation_prefix, " t28"));
+    t30.allocate(pb, FMT(annotation_prefix, " t30"));
+    t31.allocate(pb, FMT(annotation_prefix, " t31"));
+}
+
+template<typename FieldT>
+void MiMCe31_round_gadget<FieldT>::generate_r1cs_constraints()
+{
+    // t = x + k + c (linear combination)
+    libsnark::linear_combination<FieldT> t = x + k + c;
+
+    // t2 = t * t
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(t, t, t2),
+        FMT(this->annotation_prefix, " round_constraint_t2"));
+    // t4 = t2 * t2
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(t2, t2, t4),
+        FMT(this->annotation_prefix, " round_constraint_t4"));
+    // t8 = t4 * t4
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(t4, t4, t8),
+        FMT(this->annotation_prefix, " round_constraint_t8"));
+    // t16 = t8 * t8
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(t8, t8, t16),
+        FMT(this->annotation_prefix, " round_constraint_t16"));
+    // t24 = t16 * t8
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(t16, t8, t24),
+        FMT(this->annotation_prefix, " round_constraint_t24"));
+    // t28 = t24 * t4
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(t24, t4, t28),
+        FMT(this->annotation_prefix, " round_constraint_t28"));
+    // t30 = t28 * t2
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(t28, t2, t30),
+        FMT(this->annotation_prefix, " round_constraint_t30"));
+    // If `add_k_to_result`, then:
+    //   (t * t30) + k = result <=> t * t30 = result - k
+    // else:
+    //   t30 * t1 = result
+    if (add_k_to_result) {
+        this->pb.add_r1cs_constraint(
+            libsnark::r1cs_constraint<FieldT>(t, t30, t31 - k),
+            FMT(this->annotation_prefix, " round_constraint_t31+k"));
+    } else {
+        this->pb.add_r1cs_constraint(
+            libsnark::r1cs_constraint<FieldT>(t, t30, t31),
+            FMT(this->annotation_prefix, " round_constraint_t31"));
+    }
+}
+
+template<typename FieldT>
+void MiMCe31_round_gadget<FieldT>::generate_r1cs_witness() const
+{
+    // First, fill the values of key and t
+    const FieldT val_k = this->pb.val(k);
+    const FieldT t = this->pb.val(x) + val_k + c;
+
+    // Compute the intermediary values and fill intermediate variables
+    const FieldT val_t2 = t * t;
+    this->pb.val(t2) = val_t2;
+
+    const FieldT val_t4 = val_t2 * val_t2;
+    this->pb.val(t4) = val_t4;
+
+    const FieldT val_t8 = val_t4 * val_t4;
+    this->pb.val(t8) = val_t8;
+
+    const FieldT val_t16 = val_t8 * val_t8;
+    this->pb.val(t16) = val_t16;
+
+    const FieldT val_t24 = val_t16 * val_t8;
+    this->pb.val(t24) = val_t24;
+
+    const FieldT val_t28 = val_t24 * val_t4;
+    this->pb.val(t28) = val_t28;
+
+    const FieldT val_t30 = val_t28 * val_t2;
+    this->pb.val(t30) = val_t30;
+
+    const FieldT val_t31 =
+        (t * val_t30) + (add_k_to_result ? val_k : FieldT::zero());
+    this->pb.val(t31) = val_t31;
+}
+
+template<typename FieldT>
+const libsnark::pb_variable<FieldT> &MiMCe31_round_gadget<FieldT>::result()
+    const
+{
+    return t31;
+}
 
 } // namespace libzeth
 

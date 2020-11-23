@@ -21,7 +21,8 @@ namespace libzeth
 template<typename FieldT> using HashT = BLAKE2s_256<FieldT>;
 
 // Hash function to be used in the Merkle Tree
-template<typename FieldT> using HashTreeT = MiMC_mp_gadget<FieldT>;
+template<typename FieldT>
+using HashTreeT = MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>>;
 
 } // namespace libzeth
 

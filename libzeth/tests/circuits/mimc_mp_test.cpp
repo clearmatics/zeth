@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 
 using namespace libzeth;
 
@@ -18,7 +19,7 @@ namespace
 
 // Testing that (15212  + 98645 + 216319)**7 =
 // 427778066313557225181231220812180094976
-TEST(TestRound, TestTrueNoAddKToResult)
+TEST(TestMiMC, MiMC7RoundTrueNoAddKToResult)
 {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
@@ -36,10 +37,11 @@ TEST(TestRound, TestTrueNoAddKToResult)
     round_gadget.generate_r1cs_constraints();
 
     FieldT expected_out = FieldT("427778066313557225181231220812180094976");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
 }
 
-TEST(TestRound, TestFalseNoAddKToResult)
+TEST(TestMiMC, MiMC7RoundFalseNoAddKToResult)
 {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
@@ -58,12 +60,13 @@ TEST(TestRound, TestFalseNoAddKToResult)
 
     // The expected result is 5860470760135874487852644433920000000
     FieldT unexpected_out = FieldT("427778066313557225181231220812180094976");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(round_gadget.result()));
 }
 
 // Testing that (15212  + 98645 + 216319)**7 + 98645 =
 // 427778066313557225181231220812180193621
-TEST(TestRound, TestTrueAddKToResult)
+TEST(TestMiMC, MiMC7RoundTrueAddKToResult)
 {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
@@ -81,10 +84,11 @@ TEST(TestRound, TestTrueAddKToResult)
     round_gadget.generate_r1cs_constraints();
 
     FieldT expected_out = FieldT("427778066313557225181231220812180193621");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
 }
 
-TEST(TestRound, TestFalseAddKToResult)
+TEST(TestMiMC, MiMC7RoundFalseAddKToResult)
 {
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable<FieldT> in_x;
@@ -103,10 +107,11 @@ TEST(TestRound, TestFalseAddKToResult)
 
     // The expected result is 5860470760135874487852644433920098645
     FieldT unexpected_out = FieldT("427778066313557225181231220812180193621");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(round_gadget.result()));
 }
 
-TEST(TestMiMCPerm, TestTrue)
+TEST(TestMiMC, MiMC7PermTrue)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -127,10 +132,11 @@ TEST(TestMiMCPerm, TestTrue)
 
     FieldT expected_out = FieldT("192990723315478049773124691205698348115617480"
                                  "95378968014959488920239255590840");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(mimc_gadget.result()));
 }
 
-TEST(TestMiMCPerm, TestFalse)
+TEST(TestMiMC, MiMC7PermFalse)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -153,10 +159,11 @@ TEST(TestMiMCPerm, TestFalse)
     FieldT unexpected_out =
         FieldT("192990723315478049773124691205698348115617480"
                "95378968014959488920239255590840");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(mimc_gadget.result()));
 }
 
-TEST(TestMiMCMp, TestTrue)
+TEST(TestMiMC, MiMC7MpTrue)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -175,16 +182,18 @@ TEST(TestMiMCMp, TestTrue)
     pb.val(x) = FieldT("3703141493535563179657531719960160174296085208671919316"
                        "200479060314459804651");
 
-    MiMC_mp_gadget<FieldT> mimc_mp_gadget(pb, x, y, "gadget");
+    MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>> mimc_mp_gadget(
+        pb, x, y, "gadget");
     mimc_mp_gadget.generate_r1cs_witness();
     mimc_mp_gadget.generate_r1cs_constraints();
 
     FieldT expected_out = FieldT("167979224495559946840631042142333962005996937"
                                  "15764605878168345782964540311877");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(mimc_mp_gadget.result()));
 }
 
-TEST(TestMiMCMp, TestFalse)
+TEST(TestMiMC, MiMC7MpFalse)
 {
     libsnark::protoboard<FieldT> pb;
 
@@ -201,7 +210,8 @@ TEST(TestMiMCMp, TestFalse)
     pb.val(x) = FieldT("3703141493535563179657531719960160174296085208671919316"
                        "200479060314459804651");
 
-    MiMC_mp_gadget<FieldT> mimc_mp_gadget(pb, x, y, "gadget");
+    MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>> mimc_mp_gadget(
+        pb, x, y, "gadget");
     mimc_mp_gadget.generate_r1cs_witness();
     mimc_mp_gadget.generate_r1cs_constraints();
 
@@ -210,7 +220,47 @@ TEST(TestMiMCMp, TestFalse)
     FieldT unexpected_out =
         FieldT("167979224495559946840631042142333962005996937"
                "15764605878168345782964540311877");
+    ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(mimc_mp_gadget.result()));
+}
+
+TEST(TestMiMC, TestMiMC31)
+{
+    using Field = libff::bls12_377_Fr;
+
+    // Test data from client test
+    const Field m_val(
+        "361463706104393758314627143582733736918979816094794952605869"
+        "5634226054692860");
+    const Field k_val(
+        "577560616941962560685931949698212627967485873079130048105101"
+        "9590436651369410");
+    const Field h_val(
+        "757520454940410747883073955769867933053765668805066446289274"
+        "1835534561279075");
+
+    libsnark::protoboard<Field> pb;
+
+    // Public input
+    libsnark::pb_variable<Field> k;
+    k.allocate(pb, "k");
+    pb.set_input_sizes(1);
+    pb.val(k) = k_val;
+
+    // Private inputs
+    libsnark::pb_variable<Field> m;
+    m.allocate(pb, "m");
+    pb.val(m) = m_val;
+
+    MiMC_mp_gadget<Field, MiMCe31_permutation_gadget<Field>> mimc_mp_gadget(
+        pb, m, k, "mimc_mp");
+    mimc_mp_gadget.generate_r1cs_witness();
+    mimc_mp_gadget.generate_r1cs_constraints();
+
+    // Check that the circuit is satisfied, and that the expected result is
+    // generated.
+    ASSERT_TRUE(pb.is_satisfied());
+    ASSERT_EQ(h_val, pb.val(mimc_mp_gadget.result()));
 }
 
 } // namespace
@@ -220,6 +270,7 @@ int main(int argc, char **argv)
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
     ppT::init_public_params();
+    libff::bls12_377_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

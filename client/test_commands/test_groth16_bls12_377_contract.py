@@ -11,7 +11,6 @@ from os.path import join
 import sys
 from typing import List, Any
 
-
 # pylint: disable=line-too-long
 VERIFICATION_KEY = Groth16.VerificationKey.from_json_dict({
     "alpha": [

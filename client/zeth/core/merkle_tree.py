@@ -87,7 +87,7 @@ class MerkleTree:
 
     @staticmethod
     def combine(left: bytes, right: bytes) -> bytes:
-        result_i = HASH.mimc_mp(
+        result_i = HASH.hash(
             int.from_bytes(left, byteorder='big'),
             int.from_bytes(right, byteorder='big'))
         return result_i.to_bytes(32, byteorder='big')
