@@ -15,7 +15,7 @@ We adhere to the `pep8` standard, using `flake8`, `pylint` and `mypy` to catch f
 
 ## C++
 
-The [.clang-format] file describes the C++ code formatting used in the project. The script
+The [.clang-format](./.clang-format) file describes the C++ code formatting used in the project. The script
 ```console
 $ scripts/format
 ```
@@ -67,7 +67,7 @@ As well as the above formatting, the following conventions are also used in the 
 - Variables, functions and concrete types (including classes and type aliases) use `snake_case_names`.
 - Macros are `ALL_CAPS`.
 - Functions operating on some type `my_type` should be named `my_type_operation`, where the `my_type` argument appears first.
-- Type parameters are Pascal or Camel-case with a trailing `T` (e.g. `typeT` or `MyTypeT`)
+- Type parameters are [PascalCase or camelCase](https://docs.microsoft.com/en-us/archive/blogs/brada/history-around-pascal-casing-and-camel-casing) with a trailing `T` (e.g. `MyTypeT` or `myTypeT`)
 - Each source file should be concerned with a single "concept" (often single class or type + methods)
 - Encodings are named:
   - `json`
@@ -85,5 +85,5 @@ As well as the above formatting, the following conventions are also used in the 
 
 - Avoid `auto` except when strictly necessary.
 - Use `const` (including for local variables) where possible.
-- Implement streaming and/or encoding methods based on what is sensible for the underlying type. There is no need to for all types to be serializable to all encodings if the rest of the code does not use them.
+- Implement streaming and/or encoding methods based on what is sensible for the underlying type. There is no need for all types to be serializable to all encodings if the rest of the code does not use them.
 - In general, pass inputs by (const) reference, and return by value. Implement sensible move operators.
