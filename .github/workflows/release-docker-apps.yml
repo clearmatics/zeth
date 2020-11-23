@@ -16,7 +16,6 @@ jobs:
     timeout-minutes: 360
 
     strategy:
-      fail-fast: true
       matrix:
         app: ['mpc', 'client', 'prover']
       max-parallel: 3
