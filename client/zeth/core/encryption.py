@@ -254,13 +254,13 @@ def _kdf(eph_pk: bytes, shared_key: bytes) -> Tuple[bytes, bytes]:
     """
     # Hashing
     key_material = hashes.Hash(
-        hashes.BLAKE2b(64),
+        hashes.BLAKE2b(64),  # type: ignore
         backend=default_backend())
     key_material.update(_KDF_TAG)
     key_material.update(eph_pk)
     key_material.update(shared_key)
-    key_material = key_material.finalize()
-    assert len(key_material) == _KEY_MATERIAL_LENGTH_BYTES
+    key_material_bytes = key_material.finalize()
+    assert len(key_material_bytes) == _KEY_MATERIAL_LENGTH_BYTES
     return \
-        key_material[:_SYM_KEY_LENGTH_BYTES], \
-        key_material[_SYM_KEY_LENGTH_BYTES:]
+        key_material_bytes[:_SYM_KEY_LENGTH_BYTES], \
+        key_material_bytes[_SYM_KEY_LENGTH_BYTES:]

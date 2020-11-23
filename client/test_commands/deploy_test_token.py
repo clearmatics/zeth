@@ -52,7 +52,8 @@ def deploy_test_token(
         eth_addr,
         eth_private_key_data,
         EtherValue(mint_amount, 'ether'))
-    web3.eth.waitForTransactionReceipt(mint_tx_hash)
+    web3.eth.waitForTransactionReceipt(mint_tx_hash)  # pylint: disable=no-member
+
     print(token_instance.address)
 
 
