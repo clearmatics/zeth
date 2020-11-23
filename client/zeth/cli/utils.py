@@ -105,8 +105,8 @@ def get_eth_network(eth_network: Optional[str]) -> NetworkConfig:
     try:
         endpoint = ETH_RPC_ENDPOINT_DEFAULTS[eth_network]
         return NetworkConfig(eth_network, endpoint)
-    except KeyError:
-        raise ClickException(f"invalid network name / url: {eth_network}")
+    except KeyError as ex:
+        raise ClickException(f"invalid network name / url: {eth_network}") from ex
 
 
 def open_web3_from_network(eth_net: NetworkConfig) -> Any:
