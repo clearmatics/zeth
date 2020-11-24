@@ -7,9 +7,13 @@ on:
   #schedule:
   #  - cron: '0 1 * * 0'
 
+env:
+  MACOS_BREW_PACKAGES: "pkg-config libomp"
+
 jobs:
   CodeQL-Build:
-    runs-on: ubuntu-20.04
+    # Run on macOS only for ease of grpc installation for now
+    runs-on: macos-latest
 
     steps:
       - name: Checkout repository and install submodules
@@ -17,16 +21,19 @@ jobs:
         with:
           submodules: recursive
 
-      # Initialize the CodeQL tools for scanning.
+      - name: Install Dependencies
+        run: brew install ${MACOS_BREW_PACKAGES}
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:
           languages: cpp
 
       # Autobuild for compiled languages.
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v1
+      #- name: Autobuild
+      #  uses: github/codeql-action/autobuild@v1
+      - name: Custom build
+        run: CI_CONFIG=Release scripts/ci build
 
-      # Analyze the code.
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
