@@ -1,0 +1,30 @@
+name: "code-scanning"
+
+on:
+  push:
+  pull_request:
+  # Schedule code scanning
+  #schedule:
+  #  - cron: '0 1 * * 0'
+
+jobs:
+  CodeQL-Build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Initialize the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: cpp
+
+      # Autobuild for compiled languages.
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v1
+
+      # Analyze the code.
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
