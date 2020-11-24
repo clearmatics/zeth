@@ -13,6 +13,19 @@ New code should follow these rules, and old code should be changed over time to 
 
 We adhere to the `pep8` standard, using `flake8`, `pylint` and `mypy` to catch further programming errors or standard violations. Type hints must be used everywhere.
 
+## Solidity
+
+The Solidity code follows the following conventions:
+
+- Contracts are named following `PascalCase`. Contract names and contract files have the same name (e.g. the contract `MyContract` is implemented in `MyContract.sol`). Same applies for libraries.
+- Testing contract names end with `_test`.
+- Documentation code comments follow [NatSpec](https://docs.soliditylang.org/en/v0.7.1/natspec-format.html#natspec).
+- Variable names and argument names are in `snake_case` (e.g. `my_variable`) except *state variables* which are prefixed with `_` (e.g. `_my_state_var`).
+- Constant names are in `UPPER_SNAKE_CASE`.
+- Function names are in `snake_case`.
+- Structure names are in `PascalCase`.
+- Solidity events are in `PascalCase`.
+
 ## C++
 
 The [.clang-format](./.clang-format) file describes the C++ code formatting used in the project. The script
