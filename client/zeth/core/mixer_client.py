@@ -16,7 +16,7 @@ from zeth.core.encryption import \
 from zeth.core.merkle_tree import MerkleTree, compute_merkle_path
 from zeth.core.pairing import PairingParameters
 import zeth.core.signing as signing
-import zeth.core.protoutils as protoutils
+import zeth.core.proto_utils as proto_utils
 from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
     ExtendedProof
 from zeth.core.utils import EtherValue, digest_to_binary_string, \
@@ -570,7 +570,7 @@ def encrypt_notes(
     """
 
     def _encrypt_note(out_note: ZethNote, pub_key: EncryptionPublicKey) -> bytes:
-        out_note_bytes = protoutils.zeth_note_to_bytes(out_note)
+        out_note_bytes = proto_utils.zeth_note_to_bytes(out_note)
 
         return encrypt(out_note_bytes, pub_key)
 
@@ -593,7 +593,7 @@ def receive_note(
         plaintext = decrypt(out_ev.ciphertext, receiver_k_sk)
         return (
             out_ev.commitment,
-            protoutils.zeth_note_from_bytes(plaintext))
+            proto_utils.zeth_note_from_bytes(plaintext))
     except InvalidSignature:
         return None
     except ValueError:
