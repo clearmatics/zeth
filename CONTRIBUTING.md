@@ -22,7 +22,7 @@ Coding standards are described in full [here](CODING_STANDARDS.md).
    her branch on top of the targetted "base" branch. If so, please be sure to *rebase* on top of the base branch (and *not merge*
    the base branch in your branch), as we strive to avoid duplicated merge commits in the git history (merging is a unidirectional
    process e.g. `master < develop < feature` or `master < hotfix`).
-5. Once approved, the Pull Request is merged by one of the code owner.
+5. Once approved, the Pull Request is merged by one of the code owners.
 
 ## Code of Conduct
 
