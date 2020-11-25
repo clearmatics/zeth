@@ -44,9 +44,11 @@ library Groth16BLS12_377
 
     function verify(
         uint256[] storage vk,
-        uint256[0x10] memory proof,
+        uint256[] memory proof,
         uint256[] memory inputs) internal returns (bool)
     {
+        require(proof.length == 0x10, "Proof size invalid (BLS12-377)");
+
         // Compute expected number of inputs.
         uint256 num_inputs = ((vk.length - 0x14) / 4) - 1;
         require(
@@ -98,7 +100,7 @@ library Groth16BLS12_377
             let input_i := add(inputs, 0x20)
             let input_end := add(input_i, mul(num_inputs, 0x20))
 
-            // Initialize 4 words of (accum_x, accum_y), as first element of proof.abc
+            // Initialize 4 words of (accum_x, accum_y), as first element of vk.abc
             mstore(pad, sload(abc_slot_num))
             abc_slot_num := add(abc_slot_num, 1)
             mstore(add(pad, 0x20), sload(abc_slot_num))
@@ -117,7 +119,7 @@ library Groth16BLS12_377
                 lt(input_i, input_end)
                 {}
             {
-                // Copy proof.abc from storage into the pad
+                // Copy vk.abc from storage into the pad
                 mstore(mul_in, sload(abc_slot_num))
                 abc_slot_num := add(abc_slot_num, 1)
                 mstore(add(mul_in, 0x20), sload(abc_slot_num))
@@ -207,7 +209,9 @@ library Groth16BLS12_377
             mstore(add(pad, 0x2c0), sload(add(vk_slot_num, 10)))
             mstore(add(pad, 0x2e0), sload(add(vk_slot_num, 11)))
 
-            // write proof.a and proof.b to offset 0x300~
+            // write proof.a and proof.b to offset 0x300~ (skip first word of
+            // proof which holds the length)
+            proof := add(proof, 0x20)
             mstore(add(pad, 0x300), mload(proof))
             mstore(add(pad, 0x320), mload(add(proof, 0x020)))
             mstore(add(pad, 0x340), mload(add(proof, 0x040)))

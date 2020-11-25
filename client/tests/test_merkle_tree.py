@@ -6,6 +6,7 @@
 from zeth.core.merkle_tree import MerkleTree, PersistentMerkleTree, ZERO_ENTRY, \
     compute_merkle_path
 from zeth.core.utils import extend_32bytes
+from zeth.core.mimc import MiMC7
 from os.path import exists, join
 from os import makedirs
 from shutil import rmtree
@@ -15,6 +16,7 @@ from typing import List
 MERKLE_TREE_TEST_DIR = "_merkle_tests"
 MERKLE_TREE_TEST_DEPTH = 4
 MERKLE_TREE_TEST_NUM_LEAVES = pow(2, MERKLE_TREE_TEST_DEPTH)
+MERKLE_TREE_HASH = MiMC7()
 TEST_VALUES = [
     extend_32bytes(i.to_bytes(1, 'big'))
     for i in range(1, MERKLE_TREE_TEST_NUM_LEAVES)]
@@ -43,11 +45,12 @@ class TestMerkleTree(TestCase):
         expect = self._test_vector_to_bytes32(
             16797922449555994684063104214233396200599693715764605878168345782964540311877)  # noqa
 
-        result = MerkleTree.combine(left, right)
+        result = MERKLE_TREE_HASH.hash(left, right)
         self.assertEqual(expect, result)
 
     def test_empty(self) -> None:
-        mktree = MerkleTree.empty_with_size(MERKLE_TREE_TEST_NUM_LEAVES)
+        mktree = MerkleTree.empty_with_size(
+            MERKLE_TREE_TEST_NUM_LEAVES, MERKLE_TREE_HASH)
         root = mktree.recompute_root()
         num_entries = mktree.get_num_entries()
 
@@ -57,11 +60,11 @@ class TestMerkleTree(TestCase):
     def test_empty_save_load(self) -> None:
         mktree_file = join(MERKLE_TREE_TEST_DIR, "empty_save_load")
         mktree = PersistentMerkleTree.open(
-            mktree_file, MERKLE_TREE_TEST_NUM_LEAVES)
+            mktree_file, MERKLE_TREE_TEST_NUM_LEAVES, MERKLE_TREE_HASH)
         mktree.save()
 
         mktree = PersistentMerkleTree.open(
-            mktree_file, MERKLE_TREE_TEST_NUM_LEAVES)
+            mktree_file, MERKLE_TREE_TEST_NUM_LEAVES, MERKLE_TREE_HASH)
         root = mktree.recompute_root()
         mktree.save()
 
@@ -72,19 +75,19 @@ class TestMerkleTree(TestCase):
         data = TEST_VALUES[0]
 
         mktree = PersistentMerkleTree.open(
-            mktree_file, MERKLE_TREE_TEST_NUM_LEAVES)
+            mktree_file, MERKLE_TREE_TEST_NUM_LEAVES, MERKLE_TREE_HASH)
         mktree.insert(data)
         self.assertEqual(1, mktree.get_num_entries())
         self.assertEqual(data, mktree.get_leaf(0))
         self.assertEqual(ZERO_ENTRY, mktree.get_leaf(1))
         root_1 = mktree.recompute_root()
         self.assertEqual(
-            MerkleTree.combine(data, ZERO_ENTRY), mktree.get_node(1, 0))
+            MERKLE_TREE_HASH.hash(data, ZERO_ENTRY), mktree.get_node(1, 0))
         self.assertNotEqual(self._expected_empty(), root_1)
         mktree.save()
 
         mktree = PersistentMerkleTree.open(
-            mktree_file, MERKLE_TREE_TEST_NUM_LEAVES)
+            mktree_file, MERKLE_TREE_TEST_NUM_LEAVES, MERKLE_TREE_HASH)
         self.assertEqual(1, mktree.get_num_entries())
         self.assertEqual(data, mktree.get_leaf(0))
         self.assertEqual(ZERO_ENTRY, mktree.get_leaf(1))
@@ -92,7 +95,8 @@ class TestMerkleTree(TestCase):
         self.assertEqual(root_1, root_2)
 
     def test_single_entry_all_nodes(self) -> None:
-        mktree = MerkleTree.empty_with_size(MERKLE_TREE_TEST_NUM_LEAVES)
+        mktree = MerkleTree.empty_with_size(
+            MERKLE_TREE_TEST_NUM_LEAVES, MERKLE_TREE_HASH)
         mktree.insert(TEST_VALUES[0])
         _ = mktree.recompute_root()
         self._check_tree_nodes([TEST_VALUES[0]], mktree)
@@ -102,7 +106,8 @@ class TestMerkleTree(TestCase):
             mktree.get_node(MERKLE_TREE_TEST_DEPTH, 0))
 
     def test_multiple_entries_all_nodes(self) -> None:
-        mktree = MerkleTree.empty_with_size(MERKLE_TREE_TEST_NUM_LEAVES)
+        mktree = MerkleTree.empty_with_size(
+            MERKLE_TREE_TEST_NUM_LEAVES, MERKLE_TREE_HASH)
         mktree.insert(TEST_VALUES[0])
         mktree.insert(TEST_VALUES[1])
         mktree.insert(TEST_VALUES[2])
@@ -114,7 +119,7 @@ class TestMerkleTree(TestCase):
         tree_size = MERKLE_TREE_TEST_NUM_LEAVES
 
         def _check_path_for_num_entries(num_entries: int, address: int) -> None:
-            mktree = MerkleTree.empty_with_size(tree_size)
+            mktree = MerkleTree.empty_with_size(tree_size, MERKLE_TREE_HASH)
             for val in TEST_VALUES[0:num_entries]:
                 mktree.insert(val)
             _ = mktree.recompute_root()
@@ -150,9 +155,9 @@ class TestMerkleTree(TestCase):
         current = mktree.get_node(0, address)
         for i in range(mktree.depth):
             if address & 1:
-                current = MerkleTree.combine(bytes.fromhex(mkpath[i]), current)
+                current = MERKLE_TREE_HASH.hash(bytes.fromhex(mkpath[i]), current)
             else:
-                current = MerkleTree.combine(current, bytes.fromhex(mkpath[i]))
+                current = MERKLE_TREE_HASH.hash(current, bytes.fromhex(mkpath[i]))
             address = address >> 1
 
         self.assertEqual(mktree.get_root(), current)
@@ -169,7 +174,7 @@ class TestMerkleTree(TestCase):
         for layer in range(1, MERKLE_TREE_TEST_DEPTH):
             for i in range(layer_size(layer)):
                 self.assertEqual(
-                    MerkleTree.combine(
+                    MERKLE_TREE_HASH.hash(
                         mktree.get_node(layer - 1, 2 * i),
                         mktree.get_node(layer - 1, 2 * i + 1)),
                     mktree.get_node(layer, i),

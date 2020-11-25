@@ -9,6 +9,7 @@ from unittest import TestCase
 
 # pylint: disable=line-too-long
 ALT_BN128_PAIRING = PairingParameters.from_json_dict({
+    "name": "alt-bn128",
     "r": "30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
     "q": "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47",
     "generator_g1": [
@@ -55,6 +56,7 @@ ALT_BN128_G2_MINUS_8 = G2Point.from_json_list([
 
 
 BW6_761_PAIRING = PairingParameters.from_json_dict({
+    "name": "bw6-761",
     "r": "0x01ae3a4617c510eac63b05c06ca1493b1a22d9f300f5138f1ef3622fba094800170b5d44300000008508c00000000001",  # noqa
     "q": "0x0122e824fb83ce0ad187c94004faff3eb926186a81d14688528275ef8087be41707ba638e584e91903cebaff25b423048689c8ed12f9fd9071dcd3dc73ebff2e98a116c25667a8f8160cf8aeeaf0a437e6913e6870000082f49d00000000008b",  # noqa
     "generator_g1": [
@@ -93,6 +95,7 @@ BW6_761_G2_MINUS_8 = G2Point.from_json_list([
 
 
 BLS12_377_PAIRING = PairingParameters.from_json_dict({
+    "name": "bls12-377",
     "r": "0x12ab655e9a2ca55660b44d1e5c37b00159aa76fed00000010a11800000000001",
     "q": "0x01ae3a4617c510eac63b05c06ca1493b1a22d9f300f5138f1ef3622fba094800170b5d44300000008508c00000000001",  # noqa
     "generator_g1": [

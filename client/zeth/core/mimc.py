@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zeth.core.constants import MIMC_MT_SEED
+from zeth.core.merkle_tree import ITreeHash
 from Crypto.Hash import keccak \
     # pylint: disable=import-error,no-name-in-module,line-too-long  #type: ignore
-from abc import (ABC, abstractmethod)
+from abc import abstractmethod
 
 # Reference papers:
 #
@@ -18,9 +19,12 @@ from abc import (ABC, abstractmethod)
 # "One-way compression function"
 # Section: "Miyaguchi–Preneel"
 # <https://en.wikipedia.org/wiki/One-way_compression_function#Miyaguchi%E2%80%93Preneel>
+#
+# MiMC algorithms are exposed as ITreeHash objects for use in MerkleTree
+# structures.
 
 
-class MiMCBase(ABC):
+class MiMCBase(ITreeHash):
     """
     Base class of MiMC implmentations.
     """
@@ -51,13 +55,14 @@ class MiMCBase(ABC):
         # Add key to the final result (see [AGRRT16])
         return (result + key) % self.prime
 
-    def hash(self, x: int, y: int) -> int:
+    def hash(self, left: bytes, right: bytes) -> bytes:
         """
         Apply Miyaguchi-Preneel to the output of the encrypt function.
         """
-        x = x % self.prime
-        y = y % self.prime
-        return (self.encrypt(x, y) + x + y) % self.prime
+        x = int.from_bytes(left, byteorder='big') % self.prime
+        y = int.from_bytes(right, byteorder='big') % self.prime
+        result = (self.encrypt(x, y) + x + y) % self.prime
+        return result.to_bytes(32, byteorder='big')
 
     @abstractmethod
     def mimc_round(self, message: int, key: int, rc: int) -> int:
@@ -102,6 +107,18 @@ class MiMC31(MiMCBase):
         a_8 = (a_4 * a_4) % self.prime
         a_16 = (a_8 * a_8) % self.prime
         return (a_16 * a_8 * a_4 * a_2 * a) % self.prime
+
+
+def get_tree_hash_for_pairing(pairing_name: str) -> ITreeHash:
+    """
+    Select an appropriate hash for a given pairing. Note that these must match
+    the selection logic in `libzeth/circuits/circuit_types.hpp`.
+    """
+    if pairing_name == "alt-bn128":
+        return MiMC7()
+    if pairing_name == "bls12-377":
+        return MiMC31()
+    raise Exception(f"no tree hash for pairing: {pairing_name}")
 
 
 def _str_to_bytes(value: str) -> bytes:

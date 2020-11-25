@@ -42,6 +42,8 @@ template<typename FieldT, size_t TreeDepth>
 joinsplit_input<FieldT, TreeDepth> joinsplit_input_from_proto(
     const zeth_proto::JoinsplitInput &input);
 
+template<typename ppT> std::string pp_name();
+
 /// Populate a protobuf description of some pairing parameters
 template<typename ppT>
 void pp_to_proto(zeth_proto::PairingParameters &pp_proto);

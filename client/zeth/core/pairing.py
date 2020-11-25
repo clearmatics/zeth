@@ -11,6 +11,7 @@ from ..api import ec_group_messages_pb2
 from .utils import hex_to_uint256_list, hex_list_to_uint256_list, \
     int_and_bytelen_from_hex, int_to_hex
 import json
+from math import log, floor
 from typing import Dict, List, Union, Any
 
 
@@ -122,21 +123,31 @@ def g2_point_to_contract_parameters(g2: G2Point) -> List[int]:
 
 class PairingParameters:
     """
-    The parameters for a specific pairing
+    The parameters for a specific pairing.
     """
     def __init__(
             self,
+            name: str,
             r: str,
             q: str,
             generator_g1: G1Point,
             generator_g2: G2Point):
+        self.name = name
         self.r = r
         self.q = q
         self.generator_g1 = generator_g1
         self.generator_g2 = generator_g2
+        self.scalar_field_capacity: int = floor(log(int(self.r, 16), 2))
+
+    def scalar_field_mod(self) -> int:
+        return int(self.r, 16)
+
+    def base_field_mod(self) -> int:
+        return int(self.q, 16)
 
     def to_json_dict(self) -> Dict[str, Any]:
         return {
+            "name": self.name,
             "r": self.r,
             "q": self.q,
             "generator_g1": self.generator_g1.to_json_list(),
@@ -146,6 +157,7 @@ class PairingParameters:
     @staticmethod
     def from_json_dict(json_dict: Dict[str, Any]) -> PairingParameters:
         return PairingParameters(
+            name=json_dict["name"],
             r=json_dict["r"],
             q=json_dict["q"],
             generator_g1=G1Point.from_json_list(json_dict["generator_g1"]),
@@ -156,6 +168,7 @@ def pairing_parameters_from_proto(
         pairing_params_proto: ec_group_messages_pb2.PairingParameters
 ) -> PairingParameters:
     return PairingParameters(
+        name=pairing_params_proto.name,
         r=pairing_params_proto.r,
         q=pairing_params_proto.q,
         generator_g1=g1_point_from_proto(pairing_params_proto.generator_g1),

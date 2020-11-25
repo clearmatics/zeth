@@ -4,8 +4,7 @@
 
 from zeth.core.mixer_client import compute_commitment
 from zeth.api.zeth_messages_pb2 import ZethNote
-import zeth.core.constants as constants
-
+from tests.test_pairing import ALT_BN128_PAIRING
 from unittest import TestCase
 
 
@@ -15,6 +14,7 @@ class TestJoinsplit(TestCase):
         """
         Test the commitment value for a note, as computed by the circuit.
         """
+        scalar_field_mod = ALT_BN128_PAIRING.scalar_field_mod()
         apk = "44810c8d62784f5e9ce862925ebb889d1076a453677a5d73567387cd5717a402"
         value = "0000000005f5e100"
         rho = "0b0bb358233326ce4d346d86f9a0c3778ed8ce15efbf7640aad6e9359145659f"
@@ -22,9 +22,11 @@ class TestJoinsplit(TestCase):
         cm_expect = int(
             "fdf5279335a2fa36fb0d664509808db8d02b6f05f9e5639960952a7038363cfc",
             16)
-        cm_expect_field = cm_expect % constants.ZETH_PRIME
+        cm_expect_field = cm_expect % scalar_field_mod
 
         note = ZethNote(apk=apk, value=value, rho=rho, trap_r=r)
-        cm = int.from_bytes(compute_commitment(note), byteorder="big")
+        cm = int.from_bytes(
+            compute_commitment(note, ALT_BN128_PAIRING),
+            byteorder="big")
 
         self.assertEqual(cm_expect_field, cm)

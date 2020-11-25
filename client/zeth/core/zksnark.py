@@ -22,6 +22,14 @@ from typing import Dict, List, Any, cast
 # pylint: disable=unnecessary-pass
 
 
+# Map from the pairing name (on PairingParameters) to contract name fragment,
+# used in contract naming conventions.
+PAIRING_NAME_TO_CONTRACT_NAME = {
+    "alt-bn128": "AltBN128",
+    "bls12-377": "BLS12_377",
+}
+
+
 class IVerificationKey(ABC):
     """
     Abstract base class of verification keys
@@ -82,7 +90,7 @@ class IZKSnarkProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def get_contract_name() -> str:
+    def get_contract_name(pp: PairingParameters) -> str:
         """
         Get the verifier and mixer contracts for this SNARK.
         """
@@ -198,8 +206,8 @@ class Groth16(IZKSnarkProvider):
                 c=G1Point.from_json_list(json_dict["c"]))
 
     @staticmethod
-    def get_contract_name() -> str:
-        return constants.GROTH16_MIXER_CONTRACT
+    def get_contract_name(pp: PairingParameters) -> str:
+        return _contract_name("Groth16", pp)
 
     @staticmethod
     def verification_key_to_contract_parameters(
@@ -377,8 +385,8 @@ class PGHR13(IZKSnarkProvider):
                 k=G1Point.from_json_list(json_dict["k"]))
 
     @staticmethod
-    def get_contract_name() -> str:
-        return constants.PGHR13_MIXER_CONTRACT
+    def get_contract_name(pp: PairingParameters) -> str:
+        return _contract_name("Pghr13", pp)
 
     @staticmethod
     def verification_key_to_contract_parameters(
@@ -481,3 +489,11 @@ def get_zksnark_provider(zksnark_name: str) -> IZKSnarkProvider:
     if zksnark_name == constants.GROTH16_ZKSNARK:
         return Groth16()
     raise Exception(f"unknown zk-SNARK name: {zksnark_name}")
+
+
+def _contract_name(zksnark_name: str, pp: PairingParameters) -> str:
+    """
+    Given a snark name fragment (as used in contract naming conventions) and
+    pairing parameters, determine the full contract name.
+    """
+    return zksnark_name + PAIRING_NAME_TO_CONTRACT_NAME[pp.name] + "Mixer"

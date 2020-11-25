@@ -121,7 +121,7 @@ def test_assemble_vpub(mixer_instance: Any) -> int:
 
 
 def main() -> None:
-    print("-------------------- Evaluating BaseMixer.sol --------------------")
+    print("-------------------- Evaluating MixerBase.sol --------------------")
 
     web3, eth = mock.open_test_web3()
 

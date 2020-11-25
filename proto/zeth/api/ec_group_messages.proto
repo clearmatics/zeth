@@ -41,15 +41,18 @@ message Group2Point {
 // A set of useful attributes of a pairing. Expand this as clients are required
 // to perform more operations.
 message PairingParameters {
+    // Name of the pairing
+    string name = 1;
+
     // Order of the G1 and G2 subgroups as a hex string.
-    string r = 1;
+    string r = 2;
 
     // Modulus of the base field as a hex string.
-    string q = 2;
+    string q = 3;
 
     // Generator of G1
-    Group1Point generator_g1 = 3;
+    Group1Point generator_g1 = 4;
 
     // Generator of G2
-    Group2Point generator_g2 = 4;
+    Group2Point generator_g2 = 5;
 }

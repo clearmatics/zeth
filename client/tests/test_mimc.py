@@ -22,7 +22,8 @@ class TestMiMC(TestCase):
         left = 28948022309329048855892746252171976963317496166410141009864396001978282409983  # noqa
         right = 14220067918847996031108144435763672811050758065945364308986253046354060608451  # noqa
         expect_result = 14404914332179247771191118015445305957789480573634910846417052002923707343766  # noqa
-        self.assertEqual(expect_result, MiMC7().hash(left, right))
+        result = MiMC7().hash(_int_to_bytes(left), _int_to_bytes(right))
+        self.assertEqual(_int_to_bytes(expect_result), result)
 
     def test_mimc31_round(self) -> None:
         msg = 340282366920938463463374607431768211456
@@ -36,7 +37,10 @@ class TestMiMC(TestCase):
         left = 3614637061043937583146271435827337369189798160947949526058695634226054692860  # noqa
         right = 5775606169419625606859319496982126279674858730791300481051019590436651369410  # noqa
         expect_result = 7575204549404107478830739557698679330537656688050664462892741835534561279075  # noqa
-        self.assertEqual(expect_result, MiMC31().hash(left, right))
+        result = MiMC31().hash(_int_to_bytes(left), _int_to_bytes(right))
+        self.assertEqual(_int_to_bytes(expect_result), result)
 
 
 # pylint: enable=line-too-long
+def _int_to_bytes(value: int) -> bytes:
+    return value.to_bytes(32, byteorder='big')
