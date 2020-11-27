@@ -51,7 +51,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade setuptools wheel
           make setup
-          echo "::set-env name=CODEQL_PYTHON::$(which python)"
+          # See: https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files
+          echo "CODEQL_PYTHON=$(which python)" >> $GITHUB_ENV
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:
