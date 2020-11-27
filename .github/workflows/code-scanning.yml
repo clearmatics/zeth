@@ -11,7 +11,7 @@ env:
   MACOS_BREW_PACKAGES: "pkg-config libomp"
 
 jobs:
-  CodeQL-Build:
+  codeql-cpp-build-macos:
     # Run on macOS only for ease of grpc installation for now
     runs-on: macos-latest
 
@@ -37,3 +37,35 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
+
+  codeql-py-build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          cd client
+          python -m pip install --upgrade pip
+          pip install --upgrade setuptools wheel
+          make setup
+        # Set the `CODEQL_PYTHON` environment variable to the Python executable
+        # that includes the dependencies
+        echo "::set-env name=CODEQL_PYTHON::$(which python)"
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+            languages: python
+            # Override default behavior for custom python deps installation
+            setup-python-dependencies: false
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+
