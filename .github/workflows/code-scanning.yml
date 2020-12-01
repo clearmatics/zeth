@@ -3,7 +3,7 @@ name: "code-scanning"
 on:
   push:
   pull_request:
-  # Schedule code scanning
+  # TODO: Consider scheduling code scanning
   #schedule:
   #  - cron: '0 1 * * 0'
 
@@ -26,9 +26,6 @@ jobs:
         uses: github/codeql-action/init@v1
         with:
           languages: cpp
-        # Autobuild for compiled languages.
-        #- name: Autobuild
-        #  uses: github/codeql-action/autobuild@v1
       - name: Custom build
         run: CI_CONFIG=Release scripts/ci build
       - name: Perform CodeQL Analysis
@@ -51,7 +48,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade setuptools wheel
           make setup
-          # See: https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files
           echo "CODEQL_PYTHON=$(which python)" >> $GITHUB_ENV
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
