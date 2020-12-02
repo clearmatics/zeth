@@ -46,8 +46,8 @@ bool test_merkle_path_selector(int is_right)
     merkle_path_selector<FieldT> selector(
         pb, var_A, var_B, var_is_right, "test_merkle_path_selector");
 
-    selector.generate_r1cs_witness();
     selector.generate_r1cs_constraints();
+    selector.generate_r1cs_witness();
 
     if (is_right) {
         if ((pb.val(selector.get_left()) != value_B) &&

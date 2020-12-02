@@ -33,8 +33,8 @@ TEST(TestMiMC, MiMC7RoundTrueNoAddKToResult)
 
     MiMCe7_round_gadget<FieldT> round_gadget(
         pb, in_x, in_k, in_C, false, "round_gadget");
-    round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
+    round_gadget.generate_r1cs_witness();
 
     FieldT expected_out = FieldT("427778066313557225181231220812180094976");
     ASSERT_TRUE(pb.is_satisfied());
@@ -55,10 +55,9 @@ TEST(TestMiMC, MiMC7RoundFalseNoAddKToResult)
 
     MiMCe7_round_gadget<FieldT> round_gadget(
         pb, in_x, in_k, in_C, false, "round_gadget");
-    round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
+    round_gadget.generate_r1cs_witness();
 
-    // The expected result is 5860470760135874487852644433920000000
     FieldT unexpected_out = FieldT("427778066313557225181231220812180094976");
     ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(round_gadget.result()));
@@ -80,8 +79,8 @@ TEST(TestMiMC, MiMC7RoundTrueAddKToResult)
 
     MiMCe7_round_gadget<FieldT> round_gadget(
         pb, in_x, in_k, in_C, true, "round_gadget");
-    round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
+    round_gadget.generate_r1cs_witness();
 
     FieldT expected_out = FieldT("427778066313557225181231220812180193621");
     ASSERT_TRUE(pb.is_satisfied());
@@ -102,10 +101,9 @@ TEST(TestMiMC, MiMC7RoundFalseAddKToResult)
 
     MiMCe7_round_gadget<FieldT> round_gadget(
         pb, in_x, in_k, in_C, true, "round_gadget");
-    round_gadget.generate_r1cs_witness();
     round_gadget.generate_r1cs_constraints();
+    round_gadget.generate_r1cs_witness();
 
-    // The expected result is 5860470760135874487852644433920098645
     FieldT unexpected_out = FieldT("427778066313557225181231220812180193621");
     ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(round_gadget.result()));
@@ -151,14 +149,11 @@ TEST(TestMiMC, MiMC7PermFalse)
 
     MiMCe7_permutation_gadget<FieldT> mimc_gadget(
         pb, in_x, in_k, "mimc_gadget");
-    mimc_gadget.generate_r1cs_witness();
     mimc_gadget.generate_r1cs_constraints();
+    mimc_gadget.generate_r1cs_witness();
 
-    // The expected result is
-    // 20244553093364853409529130494302294324388714964661285862293421948544829732374
-    FieldT unexpected_out =
-        FieldT("192990723315478049773124691205698348115617480"
-               "95378968014959488920239255590840");
+    FieldT unexpected_out = FieldT("1929907233154780497731246912056983481156174"
+                                   "8095378968014959488920239255590840");
     ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(mimc_gadget.result()));
 }
@@ -184,8 +179,8 @@ TEST(TestMiMC, MiMC7MpTrue)
 
     MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>> mimc_mp_gadget(
         pb, x, y, "gadget");
-    mimc_mp_gadget.generate_r1cs_witness();
     mimc_mp_gadget.generate_r1cs_constraints();
+    mimc_mp_gadget.generate_r1cs_witness();
 
     FieldT expected_out = FieldT("167979224495559946840631042142333962005996937"
                                  "15764605878168345782964540311877");
@@ -212,14 +207,11 @@ TEST(TestMiMC, MiMC7MpFalse)
 
     MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>> mimc_mp_gadget(
         pb, x, y, "gadget");
-    mimc_mp_gadget.generate_r1cs_witness();
     mimc_mp_gadget.generate_r1cs_constraints();
+    mimc_mp_gadget.generate_r1cs_witness();
 
-    // The expected result is
-    // 5112273298838179316278619287286725360759332011395674677782848093455126184244
-    FieldT unexpected_out =
-        FieldT("167979224495559946840631042142333962005996937"
-               "15764605878168345782964540311877");
+    FieldT unexpected_out = FieldT("1679792244955599468406310421423339620059969"
+                                   "3715764605878168345782964540311877");
     ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(mimc_mp_gadget.result()));
 }
@@ -254,8 +246,8 @@ TEST(TestMiMC, TestMiMC31)
 
     MiMC_mp_gadget<Field, MiMCe31_permutation_gadget<Field>> mimc_mp_gadget(
         pb, m, k, "mimc_mp");
-    mimc_mp_gadget.generate_r1cs_witness();
     mimc_mp_gadget.generate_r1cs_constraints();
+    mimc_mp_gadget.generate_r1cs_witness();
 
     // Check that the circuit is satisfied, and that the expected result is
     // generated.
