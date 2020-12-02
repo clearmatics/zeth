@@ -5,7 +5,7 @@
 #ifndef __ZETH_CIRCUITS_MIMC_MP_HPP__
 #define __ZETH_CIRCUITS_MIMC_MP_HPP__
 
-#include "libzeth/circuits/mimc/mimc.hpp"
+#include "libzeth/circuits/mimc/mimc_permutation_gadget.hpp"
 
 namespace libzeth
 {

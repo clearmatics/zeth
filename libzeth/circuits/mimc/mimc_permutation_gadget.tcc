@@ -2,10 +2,10 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_CIRCUITS_MIMC_TCC__
-#define __ZETH_CIRCUITS_MIMC_TCC__
+#ifndef __ZETH_CIRCUITS_MIMC_PERMUTATION_GADGET_TCC__
+#define __ZETH_CIRCUITS_MIMC_PERMUTATION_GADGET_TCC__
 
-#include "libzeth/circuits/mimc/mimc.hpp"
+#include "libzeth/circuits/mimc/mimc_permutation_gadget.hpp"
 
 namespace libzeth
 {
@@ -287,4 +287,4 @@ void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUITS_MIMC_TCC__
+#endif // __ZETH_CIRCUITS_MIMC_PERMUTATION_GADGET_TCC__
