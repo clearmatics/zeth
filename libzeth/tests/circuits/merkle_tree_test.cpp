@@ -4,7 +4,7 @@
 
 #include "libzeth/circuits/merkle_tree/merkle_path_authenticator.hpp"
 #include "libzeth/circuits/merkle_tree/merkle_path_selector.hpp"
-#include "libzeth/circuits/mimc/mimc_mp.hpp"
+#include "libzeth/circuits/mimc/mimc_mp_gadget.hpp"
 
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>

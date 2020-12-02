@@ -2,8 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_CIRCUITS_MIMC_MP_HPP__
-#define __ZETH_CIRCUITS_MIMC_MP_HPP__
+#ifndef __ZETH_CIRCUITS_MIMC_MP_GADGET_HPP__
+#define __ZETH_CIRCUITS_MIMC_MP_GADGET_HPP__
 
 #include "libzeth/circuits/mimc/mimc_permutation_gadget.hpp"
 
@@ -48,6 +48,6 @@ public:
 
 } // namespace libzeth
 
-#include "libzeth/circuits/mimc/mimc_mp.tcc"
+#include "libzeth/circuits/mimc/mimc_mp_gadget.tcc"
 
-#endif // __ZETH_CIRCUITS_MIMC_MP_HPP__
+#endif // __ZETH_CIRCUITS_MIMC_MP_GADGET_HPP__

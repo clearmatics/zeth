@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzeth/circuits/mimc/mimc_mp.hpp"
+#include "libzeth/circuits/mimc/mimc_mp_gadget.hpp"
 
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
