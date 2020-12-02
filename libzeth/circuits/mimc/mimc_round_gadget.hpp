@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUITS_MIMC_ROUND_HPP__
-#define __ZETH_CIRCUITS_MIMC_ROUND_HPP__
+#ifndef __ZETH_CIRCUITS_MIMC_ROUND_GADGET_HPP__
+#define __ZETH_CIRCUITS_MIMC_ROUND_GADGET_HPP__
 
 #include "libzeth/circuits/circuit_utils.hpp"
 #include "libzeth/core/utils.hpp"
@@ -58,6 +58,6 @@ public:
 
 } // namespace libzeth
 
-#include "libzeth/circuits/mimc/mimc_round.tcc"
+#include "libzeth/circuits/mimc/mimc_round_gadget.tcc"
 
-#endif // __ZETH_CIRCUITS_MIMC_ROUND_HPP__
+#endif // __ZETH_CIRCUITS_MIMC_ROUND_GADGET_HPP__

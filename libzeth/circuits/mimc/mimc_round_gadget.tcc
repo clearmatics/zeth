@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUITS_MIMC_ROUND_TCC__
-#define __ZETH_CIRCUITS_MIMC_ROUND_TCC__
+#ifndef __ZETH_CIRCUITS_MIMC_ROUND_GADGET_TCC__
+#define __ZETH_CIRCUITS_MIMC_ROUND_GADGET_TCC__
 
-#include "libzeth/circuits/mimc/mimc_round.hpp"
+#include "libzeth/circuits/mimc/mimc_round_gadget.hpp"
 
 namespace libzeth
 {
@@ -34,7 +34,8 @@ MiMC_round_gadget<FieldT, Exponent>::MiMC_round_gadget(
 template<typename FieldT, size_t Exponent>
 void MiMC_round_gadget<FieldT, Exponent>::generate_r1cs_constraints()
 {
-    // Mask to capture the last bit
+    // Mask to capture the most significant bit (the "current" bit when
+    // iterating from most to least significant).
     constexpr size_t mask = 1 << (EXPONENT_NUM_BITS - 1);
     // t = x + k + c
     libsnark::pb_linear_combination<FieldT> t;
@@ -132,4 +133,4 @@ void MiMC_round_gadget<FieldT, Exponent>::generate_r1cs_witness() const
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUITS_MIMC_ROUND_TCC__
+#endif // __ZETH_CIRCUITS_MIMC_ROUND_GADGET_TCC__
