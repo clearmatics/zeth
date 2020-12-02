@@ -139,17 +139,44 @@ function ci_setup() {
         # Some of these commands can fail (if packages are already installed,
         # etc), hence the `|| echo`.
         brew update || echo
-        brew install \
-             gmp \
-             grpc \
-             protobuf \
-             boost \
-             openssl \
-             cmake \
-             libtool \
-             autoconf \
-             automake \
-             || echo
+        echo ci: ci_setup: brew updated
+        date
+
+        brew install gmp
+        echo ci: ci_setup: installed gmp
+        date
+
+        brew install grpc
+        echo ci: ci_setup: installed grpc
+        date
+
+        brew install protobuf
+        echo ci: ci_setup: installed protobuf
+        date
+
+        brew install boost
+        echo ci: ci_setup: installed boost
+        date
+
+        brew install openssl
+        echo ci: ci_setup: installed openssl
+        date
+
+        brew install cmake
+        echo ci: ci_setup: installed cmake
+        date
+
+        brew install libtool
+        echo ci: ci_setup: installed libtool
+        date
+
+        brew install autoconf
+        echo ci: ci_setup: installed autoconf
+        date
+
+        brew install automake
+        echo ci: ci_setup: installed automake
+        date
     fi
 
     # The base docker image we use is Alpine
