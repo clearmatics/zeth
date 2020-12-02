@@ -40,9 +40,16 @@ jobs:
       with:
         submodules: recursive
     - name: Install Dependencies
-      run: brew install ${MACOS_BREW_PACKAGES}
+      run: |
+        date
+        brew install ${MACOS_BREW_PACKAGES}
+        date
+
     - name: Execute
-      run: CI_CONFIG=${{ matrix.config }} scripts/ci build
+      run: |
+        date
+        CI_CONFIG=${{ matrix.config }} scripts/ci build
+        date
 
   build-linux:
     runs-on: ubuntu-20.04

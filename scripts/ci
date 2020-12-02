@@ -81,6 +81,10 @@ function command_tests() {
 }
 
 function build() {
+
+    echo ci: build: start
+    date
+
     # Additional compilation flags
     cxx_flags="-Werror"
 
@@ -110,14 +114,26 @@ function build() {
         -DCMAKE_CXX_FLAGS="${cxx_flags}"     \
         ..
 
+    echo ci: build: after cmake
+    date
+
     make -j 2 VERBOSE=1 all build_tests
     CTEST_OUTPUT_ON_FAILURE=1 make -j 2 check
     cd ..
 
+    echo ci: build: after make
+    date
+
     command_tests
+
+    echo ci: build: after command_tests
+    date
 }
 
 function ci_setup() {
+
+    echo ci: ci_setup: start
+    date
 
     if [ "${platform}" == "Darwin" ] ; then
         # Some of these commands can fail (if packages are already installed,
@@ -160,8 +176,13 @@ function ci_setup() {
         fi
 
     fi
+
+    echo ci: ci_setup: end
+    date
 }
 
+echo ci
+date
 
 ci_task=$1
 full_build=$2
