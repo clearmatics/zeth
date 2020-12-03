@@ -27,7 +27,7 @@ private:
     static bool _round_constants_initialized;
 
     // Vector of intermediate result values
-    std::vector<libsnark::pb_variable<FieldT>> _round_results;
+    std::array<libsnark::pb_variable<FieldT>, NumRounds> _round_results;
     // Vector of MiMC round_gadgets
     std::vector<RoundT> _round_gadgets;
     // Permutation key

@@ -67,7 +67,6 @@ void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::setup_gadgets(
     const libsnark::pb_variable<FieldT> &msg,
     const libsnark::pb_variable<FieldT> &key)
 {
-    _round_results.resize(NumRounds);
     _round_gadgets.reserve(NumRounds);
     const libsnark::pb_variable<FieldT> *round_x = &msg;
     for (size_t i = 0; i < NumRounds; i++) {
