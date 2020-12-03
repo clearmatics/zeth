@@ -28,22 +28,22 @@ template<typename FieldT> class tree_hash_selector
 {
 };
 
-// For alt-bn128, use MiMC7
+// For alt-bn128, use MiMC7 with 91 rounds
 template<> class tree_hash_selector<libff::alt_bn128_Fr>
 {
 public:
     using tree_hash = MiMC_mp_gadget<
         libff::alt_bn128_Fr,
-        MiMCe7_permutation_gadget<libff::alt_bn128_Fr>>;
+        MiMC_permutation_gadget<libff::alt_bn128_Fr, 7, 91>>;
 };
 
-// For bls12-377, use MiMC31
+// For bls12-377, use MiMC31 with 51 rounds
 template<> class tree_hash_selector<libff::bls12_377_Fr>
 {
 public:
     using tree_hash = MiMC_mp_gadget<
         libff::bls12_377_Fr,
-        MiMCe31_permutation_gadget<libff::bls12_377_Fr>>;
+        MiMC_permutation_gadget<libff::bls12_377_Fr, 31, 51>>;
 };
 
 // Hash function to be used in the Merkle Tree

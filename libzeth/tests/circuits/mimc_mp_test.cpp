@@ -10,9 +10,18 @@
 
 using namespace libzeth;
 
+template<typename FieldT>
+using MiMCe7_round_gadget = MiMC_round_gadget<FieldT, 7>;
+template<typename FieldT>
+using MiMCe31_round_gadget = MiMC_round_gadget<FieldT, 31>;
+template<typename FieldT>
+using MiMCe7_permutation_gadget = MiMC_permutation_gadget<FieldT, 7, 91>;
+template<typename FieldT>
+using MiMCe31_permutation_gadget = MiMC_permutation_gadget<FieldT, 31, 51>;
+
 // Test data here specialized for alt_bn128
-using ppT = libff::alt_bn128_pp;
-using FieldT = libff::Fr<ppT>;
+using pp = libff::alt_bn128_pp;
+using Field = libff::Fr<pp>;
 
 namespace
 {
@@ -21,197 +30,204 @@ namespace
 // 427778066313557225181231220812180094976
 TEST(TestMiMC, MiMC7RoundTrueNoAddKToResult)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> in_x;
-    libsnark::pb_variable<FieldT> in_k;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> in_x;
+    libsnark::pb_variable<Field> in_k;
+    libsnark::pb_variable<Field> result;
 
-    FieldT in_C = FieldT("216319");
+    Field in_C = Field("216319");
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
-    pb.val(in_x) = FieldT("15212");
-    pb.val(in_k) = FieldT("98645");
+    pb.val(in_x) = Field("15212");
+    pb.val(in_k) = Field("98645");
 
-    MiMCe7_round_gadget<FieldT> round_gadget(
-        pb, in_x, in_k, in_C, false, "round_gadget");
+    result.allocate(pb, "result");
+    MiMCe7_round_gadget<Field> round_gadget(
+        pb, in_x, in_k, in_C, result, false, "round_gadget");
     round_gadget.generate_r1cs_constraints();
     round_gadget.generate_r1cs_witness();
 
-    FieldT expected_out = FieldT("427778066313557225181231220812180094976");
+    Field expected_out = Field("427778066313557225181231220812180094976");
     ASSERT_TRUE(pb.is_satisfied());
-    ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
+    ASSERT_TRUE(expected_out == pb.val(result));
 }
 
 TEST(TestMiMC, MiMC7RoundFalseNoAddKToResult)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> in_x;
-    libsnark::pb_variable<FieldT> in_k;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> in_x;
+    libsnark::pb_variable<Field> in_k;
+    libsnark::pb_variable<Field> result;
 
-    FieldT in_C = FieldT("12345");
+    Field in_C = Field("12345");
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
-    pb.val(in_x) = FieldT("67890");
-    pb.val(in_k) = FieldT("98645");
+    pb.val(in_x) = Field("67890");
+    pb.val(in_k) = Field("98645");
 
-    MiMCe7_round_gadget<FieldT> round_gadget(
-        pb, in_x, in_k, in_C, false, "round_gadget");
+    result.allocate(pb, "result");
+    MiMCe7_round_gadget<Field> round_gadget(
+        pb, in_x, in_k, in_C, result, false, "round_gadget");
     round_gadget.generate_r1cs_constraints();
     round_gadget.generate_r1cs_witness();
 
-    FieldT unexpected_out = FieldT("427778066313557225181231220812180094976");
+    Field unexpected_out = Field("427778066313557225181231220812180094976");
     ASSERT_TRUE(pb.is_satisfied());
-    ASSERT_FALSE(unexpected_out == pb.val(round_gadget.result()));
+    ASSERT_FALSE(unexpected_out == pb.val(result));
 }
 
 // Testing that (15212  + 98645 + 216319)**7 + 98645 =
 // 427778066313557225181231220812180193621
 TEST(TestMiMC, MiMC7RoundTrueAddKToResult)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> in_x;
-    libsnark::pb_variable<FieldT> in_k;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> in_x;
+    libsnark::pb_variable<Field> in_k;
+    libsnark::pb_variable<Field> result;
 
-    FieldT in_C = FieldT("216319");
+    Field in_C = Field("216319");
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
-    pb.val(in_x) = FieldT("15212");
-    pb.val(in_k) = FieldT("98645");
+    pb.val(in_x) = Field("15212");
+    pb.val(in_k) = Field("98645");
 
-    MiMCe7_round_gadget<FieldT> round_gadget(
-        pb, in_x, in_k, in_C, true, "round_gadget");
+    result.allocate(pb, "result");
+    MiMCe7_round_gadget<Field> round_gadget(
+        pb, in_x, in_k, in_C, result, true, "round_gadget");
     round_gadget.generate_r1cs_constraints();
     round_gadget.generate_r1cs_witness();
 
-    FieldT expected_out = FieldT("427778066313557225181231220812180193621");
+    Field expected_out = Field("427778066313557225181231220812180193621");
     ASSERT_TRUE(pb.is_satisfied());
-    ASSERT_TRUE(expected_out == pb.val(round_gadget.result()));
+    ASSERT_TRUE(expected_out == pb.val(result));
 }
 
 TEST(TestMiMC, MiMC7RoundFalseAddKToResult)
 {
-    libsnark::protoboard<FieldT> pb;
-    libsnark::pb_variable<FieldT> in_x;
-    libsnark::pb_variable<FieldT> in_k;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> in_x;
+    libsnark::pb_variable<Field> in_k;
+    libsnark::pb_variable<Field> result;
 
-    FieldT in_C = FieldT("12345");
+    Field in_C = Field("12345");
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
-    pb.val(in_x) = FieldT("67890");
-    pb.val(in_k) = FieldT("98645");
+    pb.val(in_x) = Field("67890");
+    pb.val(in_k) = Field("98645");
 
-    MiMCe7_round_gadget<FieldT> round_gadget(
-        pb, in_x, in_k, in_C, true, "round_gadget");
+    result.allocate(pb, "result");
+    MiMCe7_round_gadget<Field> round_gadget(
+        pb, in_x, in_k, in_C, result, true, "round_gadget");
     round_gadget.generate_r1cs_constraints();
     round_gadget.generate_r1cs_witness();
 
-    FieldT unexpected_out = FieldT("427778066313557225181231220812180193621");
+    Field unexpected_out = Field("427778066313557225181231220812180193621");
     ASSERT_TRUE(pb.is_satisfied());
-    ASSERT_FALSE(unexpected_out == pb.val(round_gadget.result()));
+    ASSERT_FALSE(unexpected_out == pb.val(result));
 }
 
 TEST(TestMiMC, MiMC7PermTrue)
 {
-    libsnark::protoboard<FieldT> pb;
+    libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable<FieldT> in_x;
-    libsnark::pb_variable<FieldT> in_k;
+    libsnark::pb_variable<Field> in_x;
+    libsnark::pb_variable<Field> in_k;
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
 
-    pb.val(in_x) = FieldT("3703141493535563179657531719960160174296085208671919"
-                          "316200479060314459804651");
-    pb.val(in_k) = FieldT("1568395149631190174933950911896067630329022481212975"
-                          "2890706581988986633412003");
+    pb.val(in_x) = Field("3703141493535563179657531719960160174296085208671919"
+                         "316200479060314459804651");
+    pb.val(in_k) = Field("1568395149631190174933950911896067630329022481212975"
+                         "2890706581988986633412003");
 
-    MiMCe7_permutation_gadget<FieldT> mimc_gadget(
+    MiMC_permutation_gadget<Field, 7, 91> mimc_gadget(
         pb, in_x, in_k, "mimc_gadget");
     mimc_gadget.generate_r1cs_constraints();
     mimc_gadget.generate_r1cs_witness();
 
-    FieldT expected_out = FieldT("192990723315478049773124691205698348115617480"
-                                 "95378968014959488920239255590840");
+    Field expected_out = Field("192990723315478049773124691205698348115617480"
+                               "95378968014959488920239255590840");
     ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(mimc_gadget.result()));
 }
 
 TEST(TestMiMC, MiMC7PermFalse)
 {
-    libsnark::protoboard<FieldT> pb;
+    libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable<FieldT> in_x;
-    libsnark::pb_variable<FieldT> in_k;
+    libsnark::pb_variable<Field> in_x;
+    libsnark::pb_variable<Field> in_k;
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
 
-    pb.val(in_x) = FieldT("3703141493535563179657531719960160174296085208671919"
-                          "316200479060314459804651");
-    pb.val(in_k) = FieldT("13455131405143248756924738814405142");
+    pb.val(in_x) = Field("3703141493535563179657531719960160174296085208671919"
+                         "316200479060314459804651");
+    pb.val(in_k) = Field("13455131405143248756924738814405142");
 
-    MiMCe7_permutation_gadget<FieldT> mimc_gadget(
-        pb, in_x, in_k, "mimc_gadget");
+    MiMCe7_permutation_gadget<Field> mimc_gadget(pb, in_x, in_k, "mimc_gadget");
     mimc_gadget.generate_r1cs_constraints();
     mimc_gadget.generate_r1cs_witness();
 
-    FieldT unexpected_out = FieldT("1929907233154780497731246912056983481156174"
-                                   "8095378968014959488920239255590840");
+    Field unexpected_out = Field("1929907233154780497731246912056983481156174"
+                                 "8095378968014959488920239255590840");
     ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(mimc_gadget.result()));
 }
 
 TEST(TestMiMC, MiMC7MpTrue)
 {
-    libsnark::protoboard<FieldT> pb;
+    libsnark::protoboard<Field> pb;
 
     // Public input
-    libsnark::pb_variable<FieldT> y;
+    libsnark::pb_variable<Field> y;
     y.allocate(pb, "y");
     pb.set_input_sizes(1);
 
     // y = sha3_256("mimc")
-    pb.val(y) = FieldT("1568395149631190174933950911896067630329022481212975289"
-                       "0706581988986633412003");
+    pb.val(y) = Field("1568395149631190174933950911896067630329022481212975289"
+                      "0706581988986633412003");
 
     // Private inputs
-    libsnark::pb_variable<FieldT> x;
+    libsnark::pb_variable<Field> x;
     x.allocate(pb, "x");
-    pb.val(x) = FieldT("3703141493535563179657531719960160174296085208671919316"
-                       "200479060314459804651");
+    pb.val(x) = Field("3703141493535563179657531719960160174296085208671919316"
+                      "200479060314459804651");
 
-    MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>> mimc_mp_gadget(
+    MiMC_mp_gadget<Field, MiMCe7_permutation_gadget<Field>> mimc_mp_gadget(
         pb, x, y, "gadget");
     mimc_mp_gadget.generate_r1cs_constraints();
     mimc_mp_gadget.generate_r1cs_witness();
 
-    FieldT expected_out = FieldT("167979224495559946840631042142333962005996937"
-                                 "15764605878168345782964540311877");
+    Field expected_out = Field("167979224495559946840631042142333962005996937"
+                               "15764605878168345782964540311877");
     ASSERT_TRUE(pb.is_satisfied());
     ASSERT_TRUE(expected_out == pb.val(mimc_mp_gadget.result()));
 }
 
 TEST(TestMiMC, MiMC7MpFalse)
 {
-    libsnark::protoboard<FieldT> pb;
+    libsnark::protoboard<Field> pb;
 
     // Public input
-    libsnark::pb_variable<FieldT> y;
+    libsnark::pb_variable<Field> y;
     y.allocate(pb, "y");
     pb.set_input_sizes(1);
-    pb.val(y) = FieldT("8272473133185905403731511349671041314111289765433456653"
-                       "2528783843265082629790");
+    pb.val(y) = Field("8272473133185905403731511349671041314111289765433456653"
+                      "2528783843265082629790");
 
     // Private inputs
-    libsnark::pb_variable<FieldT> x;
+    libsnark::pb_variable<Field> x;
     x.allocate(pb, "x");
-    pb.val(x) = FieldT("3703141493535563179657531719960160174296085208671919316"
-                       "200479060314459804651");
+    pb.val(x) = Field("3703141493535563179657531719960160174296085208671919316"
+                      "200479060314459804651");
 
-    MiMC_mp_gadget<FieldT, MiMCe7_permutation_gadget<FieldT>> mimc_mp_gadget(
+    MiMC_mp_gadget<Field, MiMCe7_permutation_gadget<Field>> mimc_mp_gadget(
         pb, x, y, "gadget");
     mimc_mp_gadget.generate_r1cs_constraints();
     mimc_mp_gadget.generate_r1cs_witness();
 
-    FieldT unexpected_out = FieldT("1679792244955599468406310421423339620059969"
-                                   "3715764605878168345782964540311877");
+    Field unexpected_out = Field("1679792244955599468406310421423339620059969"
+                                 "3715764605878168345782964540311877");
     ASSERT_TRUE(pb.is_satisfied());
     ASSERT_FALSE(unexpected_out == pb.val(mimc_mp_gadget.result()));
 }
@@ -261,7 +277,7 @@ int main(int argc, char **argv)
 {
     // /!\ WARNING: Do once for all tests. Do not
     // forget to do this !!!!
-    ppT::init_public_params();
+    pp::init_public_params();
     libff::bls12_377_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
