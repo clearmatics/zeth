@@ -13,6 +13,20 @@
 namespace libzeth
 {
 
+template<> constexpr size_t bit_utils<0>::bit_size() { return 0; }
+
+template<> constexpr size_t bit_utils<0>::num_true_bits() { return 0; }
+
+template<size_t X> constexpr size_t bit_utils<X>::bit_size()
+{
+    return 1 + bit_utils<(X >> 1)>::bit_size();
+}
+
+template<size_t X> constexpr size_t bit_utils<X>::num_true_bits()
+{
+    return (X & 1) + bit_utils<(X >> 1)>::bit_size();
+}
+
 template<typename T> T swap_byte_endianness(T v)
 {
     size_t len = v.size();

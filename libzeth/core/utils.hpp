@@ -15,6 +15,23 @@
 namespace libzeth
 {
 
+/// Compile-time computations related to bit representations of size_t values.
+template<size_t X> class bit_utils
+{
+public:
+    /// Minimum number of bits required to represent this number.
+    ///   bit_size(7) == 3
+    ///   bit_size(4) == 3
+    ///   bit_size(0) == 0
+    static constexpr size_t bit_size();
+
+    /// Count number of 1 bits.
+    ///   num_true_bits(7) == 3
+    ///   num_true_bits(4) == 1
+    ///   num_true_bits(0) == 0
+    static constexpr size_t num_true_bits();
+};
+
 /// Takes a container with a `size()` method containing a multiple of 8
 /// elements. The elements (considered to be bit-like) are divided into "bytes"
 /// (groups of 8), and the order of these "bytes" is reversed. The order of
