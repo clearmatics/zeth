@@ -11,6 +11,14 @@ namespace libzeth
 {
 
 template<typename FieldT, size_t Exponent, size_t NumRounds>
+std::vector<FieldT>
+    MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::_round_constants;
+
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+bool MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
+    _round_constants_initialized = false;
+
+template<typename FieldT, size_t Exponent, size_t NumRounds>
 MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> &msg,
@@ -92,6 +100,10 @@ template<typename FieldT, size_t Exponent, size_t NumRounds>
 void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
     setup_sha3_constants()
 {
+    if (_round_constants_initialized) {
+        return;
+    }
+
     _round_constants.reserve(NumRounds);
 
     // The constant is set to "0" in the first round of MiMC permutation (see:
@@ -283,6 +295,8 @@ void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
     _round_constants.push_back(FieldT(
         "50507769484714413215987736701379019852081133212073163694059431350432441698257"));
     // clang-format on
+
+    _round_constants_initialized = true;
 }
 
 } // namespace libzeth

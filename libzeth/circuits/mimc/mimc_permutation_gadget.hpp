@@ -22,12 +22,14 @@ private:
     // Instantiate round gadget with exponent = Exponent
     using RoundT = MiMC_round_gadget<FieldT, Exponent>;
 
+    // Vector of round constants
+    static std::vector<FieldT> _round_constants;
+    static bool _round_constants_initialized;
+
     // Vector of intermediate result values
     std::vector<libsnark::pb_variable<FieldT>> _round_results;
     // Vector of MiMC round_gadgets
     std::vector<RoundT> _round_gadgets;
-    // Vector of round constants
-    std::vector<FieldT> _round_constants;
     // Permutation key
     const libsnark::pb_variable<FieldT> _key;
 
