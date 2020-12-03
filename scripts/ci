@@ -56,10 +56,13 @@ function check_cpp() {
     popd
 }
 
-function command_tests() {
+function mpc_tests() {
 
     # These commands are only for the GROTH16 config
     if ! [ "${CI_ZKSNARK}" == "GROTH16" ] ; then
+        return
+    fi
+    if ! [ "${CI_CURVE}" == "ALT_BN128" ] ; then
         return
     fi
 
@@ -97,6 +100,7 @@ function build() {
     fi
 
     cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG} -DZETH_SNARK=${CI_ZKSNARK}"
+    cmake_flags="${cmake_flags} -DZETH_CURVE=${CI_CURVE}"
     if ! [ "${full_build}" == "1" ] ; then
         cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
     fi
@@ -114,7 +118,7 @@ function build() {
     CTEST_OUTPUT_ON_FAILURE=1 make -j 2 check
     cd ..
 
-    command_tests
+    mpc_tests
 }
 
 function ci_setup() {
@@ -175,6 +179,7 @@ echo ci_task = ${ci_task}
 echo full_build=${full_build}
 echo CI_CONFIG=${CI_CONFIG}
 echo CI_ZKSNARK=${CI_ZKSNARK}
+echo CI_CURVE=${CI_CURVE}
 echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
 echo CI_EVENT_NAME=${CI_EVENT_NAME}
 
@@ -184,6 +189,10 @@ fi
 
 if [ "${CI_ZKSNARK}" == "" ] ; then
     CI_ZKSNARK="GROTH16"
+fi
+
+if [ "${CI_CURVE}" == "" ] ; then
+   CI_CURVE="ALT_BN128"
 fi
 
 # The CI_USE_DOCKER variable determines whether we should
@@ -197,6 +206,7 @@ if [ "${CI_USE_DOCKER}" == "1" ] ; then
            --name zeth \
            --env CI_CONFIG=${CI_CONFIG} \
            --env CI_ZKSNARK=${CI_ZKSNARK} \
+           --env CI_CURVE=${CI_CURVE} \
            zeth-dev:latest $0 ${ci_task} ${full_build}
 else
     ci_setup
