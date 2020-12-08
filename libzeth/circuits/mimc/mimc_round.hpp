@@ -21,33 +21,33 @@ private:
 
     static constexpr size_t EXPONENT_NUM_BITS = bit_utils<Exponent>::bit_size();
     static constexpr size_t NUM_CONDITIONS =
-        bit_utils<Exponent>::bit_size() + bit_utils<Exponent>::hamming_weight() -
-        2;
+        bit_utils<Exponent>::bit_size() +
+        bit_utils<Exponent>::hamming_weight() - 2;
 
     // Message of the current round
-    const libsnark::pb_variable<FieldT> _x;
+    const libsnark::pb_variable<FieldT> msg;
 
     // Key of the current round
-    const libsnark::pb_variable<FieldT> _k;
+    const libsnark::pb_variable<FieldT> key;
 
     // Round constant of the current round
-    const FieldT _c;
+    const FieldT round_const;
 
     // Result variable
-    const libsnark::pb_variable<FieldT> _result;
+    const libsnark::pb_variable<FieldT> result;
 
     // Boolean variable to add the key after the round
-    const bool _add_k_to_result;
+    const bool add_key_to_result;
 
     // Intermediate values
-    std::vector<libsnark::pb_variable<FieldT>> _exponents;
+    std::vector<libsnark::pb_variable<FieldT>> exponents;
 
 public:
     MiMC_round_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> &x,
-        const libsnark::pb_variable<FieldT> &k,
-        const FieldT &c,
+        const libsnark::pb_variable<FieldT> &msg,
+        const libsnark::pb_variable<FieldT> &key,
+        const FieldT &round_const,
         libsnark::pb_variable<FieldT> &result,
         const bool add_k_to_result,
         const std::string &annotation_prefix = "MiMC_round_gadget");
