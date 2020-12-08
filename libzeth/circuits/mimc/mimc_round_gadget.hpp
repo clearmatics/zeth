@@ -21,7 +21,7 @@ private:
 
     static constexpr size_t EXPONENT_NUM_BITS = bit_utils<Exponent>::bit_size();
     static constexpr size_t NUM_CONDITIONS =
-        bit_utils<Exponent>::bit_size() + bit_utils<Exponent>::num_true_bits() -
+        bit_utils<Exponent>::bit_size() + bit_utils<Exponent>::hamming_weight() -
         2;
 
     // Message of the current round

@@ -26,10 +26,10 @@ public:
     static constexpr size_t bit_size();
 
     /// Count number of 1 bits.
-    ///   num_true_bits(7) == 3
-    ///   num_true_bits(4) == 1
-    ///   num_true_bits(0) == 0
-    static constexpr size_t num_true_bits();
+    ///   hamming_weight(7) == 3
+    ///   hamming_weight(4) == 1
+    ///   hamming_weight(0) == 0
+    static constexpr size_t hamming_weight();
 };
 
 /// Takes a container with a `size()` method containing a multiple of 8
