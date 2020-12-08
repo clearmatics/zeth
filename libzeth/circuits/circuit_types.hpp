@@ -7,7 +7,7 @@
 
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/circuit_wrapper.hpp"
-#include "libzeth/circuits/mimc/mimc_mp_gadget.hpp"
+#include "libzeth/circuits/mimc/mimc_mp.hpp"
 #include "libzeth/core/include_libsnark.hpp"
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>

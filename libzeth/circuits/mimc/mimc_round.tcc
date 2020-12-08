@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZETH_CIRCUITS_MIMC_ROUND_GADGET_TCC__
-#define __ZETH_CIRCUITS_MIMC_ROUND_GADGET_TCC__
+#ifndef __ZETH_CIRCUITS_MIMC_ROUND_TCC__
+#define __ZETH_CIRCUITS_MIMC_ROUND_TCC__
 
-#include "libzeth/circuits/mimc/mimc_round_gadget.hpp"
+#include "libzeth/circuits/mimc/mimc_round.hpp"
 
 namespace libzeth
 {
@@ -133,4 +133,4 @@ void MiMC_round_gadget<FieldT, Exponent>::generate_r1cs_witness() const
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUITS_MIMC_ROUND_GADGET_TCC__
+#endif // __ZETH_CIRCUITS_MIMC_ROUND_TCC__

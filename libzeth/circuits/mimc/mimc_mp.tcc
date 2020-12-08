@@ -2,10 +2,8 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_CIRCUITS_MIMC_MP_GADGET_TCC__
-#define __ZETH_CIRCUITS_MIMC_MP_GADGET_TCC__
-
-#include "mimc_mp_gadget.hpp"
+#ifndef __ZETH_CIRCUITS_MIMC_MP_TCC__
+#define __ZETH_CIRCUITS_MIMC_MP_TCC__
 
 namespace libzeth
 {
@@ -91,4 +89,4 @@ FieldT MiMC_mp_gadget<FieldT, PermutationT>::get_hash(const FieldT x, FieldT y)
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUITS_MIMC_MP_GADGET_TCC__
+#endif // __ZETH_CIRCUITS_MIMC_MP_TCC__
