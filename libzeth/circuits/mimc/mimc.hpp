@@ -23,15 +23,13 @@ private:
     using RoundT = MiMC_round_gadget<FieldT, Exponent>;
 
     // Vector of round constants
-    static std::vector<FieldT> _round_constants;
-    static bool _round_constants_initialized;
+    static std::vector<FieldT> round_constants;
+    static bool round_constants_initialized;
 
     // Vector of intermediate result values
-    std::array<libsnark::pb_variable<FieldT>, NumRounds> _round_results;
+    std::array<libsnark::pb_variable<FieldT>, NumRounds> round_results;
     // Vector of MiMC round_gadgets
-    std::vector<RoundT> _round_gadgets;
-    // Permutation key
-    const libsnark::pb_variable<FieldT> _key;
+    std::vector<RoundT> round_gadgets;
 
 public:
     MiMC_permutation_gadget(
@@ -45,12 +43,6 @@ public:
 
     const libsnark::pb_variable<FieldT> &result() const;
 
-    // Utils functions
-    //
-    // MiMC round gadgets initialization
-    void setup_gadgets(
-        const libsnark::pb_variable<FieldT> &x,
-        const libsnark::pb_variable<FieldT> &k);
     // Constants vector initialization
     void setup_sha3_constants();
 };
