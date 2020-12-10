@@ -36,6 +36,16 @@ const std::string dummy_hex_reversed = "ffeeddccbbaa99887766554433221100";
 const std::string dummy_hex_reversed_prefixed =
     "0xffeeddccbbaa99887766554433221100";
 
+TEST(UtilsTest, BitUtilsTests)
+{
+    ASSERT_EQ(3, libzeth::bit_utils<7>::bit_size());
+    ASSERT_EQ(3, libzeth::bit_utils<4>::bit_size());
+    ASSERT_EQ(0, libzeth::bit_utils<0>::bit_size());
+    ASSERT_EQ(3, libzeth::bit_utils<7>::hamming_weight());
+    ASSERT_EQ(1, libzeth::bit_utils<4>::hamming_weight());
+    ASSERT_EQ(0, libzeth::bit_utils<0>::hamming_weight());
+}
+
 TEST(UtilsTest, HexToBytes)
 {
     uint8_t buffer[DUMMY_BUFFER_SIZE];
