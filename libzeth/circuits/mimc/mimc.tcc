@@ -10,23 +10,53 @@
 namespace libzeth
 {
 
-template<typename FieldT, typename RoundT, size_t NumRounds>
-MiMC_permutation_gadget<FieldT, RoundT, NumRounds>::MiMC_permutation_gadget(
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+std::vector<FieldT>
+    MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::round_constants;
+
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+bool MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
+    round_constants_initialized = false;
+
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> &x,
-    const libsnark::pb_variable<FieldT> &k,
+    const libsnark::pb_variable<FieldT> &msg,
+    const libsnark::pb_variable<FieldT> &key,
     const std::string &annotation_prefix)
-    : libsnark::gadget<FieldT>(pb, annotation_prefix), k(k)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
-    // First we initialize the round constants
+    // Ensure round constants are initialized.
     setup_sha3_constants();
 
-    // Then we initialize the round gadgets
-    setup_gadgets(x, k);
+    // Initialize the round gadgets
+    round_gadgets.reserve(NumRounds);
+    const libsnark::pb_variable<FieldT> *round_msg = &msg;
+    for (size_t i = 0; i < NumRounds; i++) {
+        // Set the input of the next round with the output variable of the
+        // previous round (except for round 0)
+        round_results[i].allocate(
+            this->pb, FMT(this->annotation_prefix, " round_result[%zu]", i));
+
+        const bool is_last = (i == (NumRounds - 1));
+
+        // Initialize and add the current round gadget into the rounds gadget
+        // vector, picking the relative constant
+        round_gadgets.emplace_back(
+            this->pb,
+            *round_msg,
+            key,
+            round_constants[i],
+            round_results[i],
+            is_last,
+            FMT(this->annotation_prefix, " round[%zu]", i));
+
+        round_msg = &round_results[i];
+    }
 }
 
-template<typename FieldT, typename RoundT, size_t NumRounds>
-void MiMC_permutation_gadget<FieldT, RoundT, NumRounds>::
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
     generate_r1cs_constraints()
 {
     // For each round, generates the constraints for the corresponding round
@@ -36,9 +66,9 @@ void MiMC_permutation_gadget<FieldT, RoundT, NumRounds>::
     }
 }
 
-template<typename FieldT, typename RoundT, size_t NumRounds>
-void MiMC_permutation_gadget<FieldT, RoundT, NumRounds>::generate_r1cs_witness()
-    const
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
+    generate_r1cs_witness() const
 {
     // For each round, generates the witness for the corresponding round gadget
     for (auto &gadget : round_gadgets) {
@@ -46,43 +76,25 @@ void MiMC_permutation_gadget<FieldT, RoundT, NumRounds>::generate_r1cs_witness()
     }
 }
 
-template<typename FieldT, typename RoundT, size_t NumRounds>
+template<typename FieldT, size_t Exponent, size_t NumRounds>
 const libsnark::pb_variable<FieldT>
-    &MiMC_permutation_gadget<FieldT, RoundT, NumRounds>::result() const
+    &MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::result() const
 {
     // Returns the result of the last encryption/permutation
-    return round_gadgets.back().result();
-}
-
-template<typename FieldT, typename RoundT, size_t NumRounds>
-void MiMC_permutation_gadget<FieldT, RoundT, NumRounds>::setup_gadgets(
-    const libsnark::pb_variable<FieldT> &x,
-    const libsnark::pb_variable<FieldT> &k)
-{
-    for (size_t i = 0; i < NumRounds; i++) {
-        // Set the input of the next round with the output variable of the
-        // previous round (except for round 0)
-        const auto &round_x = (i == 0 ? x : round_gadgets.back().result());
-        bool is_last = (i == (NumRounds - 1));
-
-        // Initialize and add the current round gadget into the rounds gadget
-        // vector, picking the relative constant
-        round_gadgets.emplace_back(
-            this->pb,
-            round_x,
-            k,
-            round_constants[i],
-            is_last,
-            FMT(this->annotation_prefix, " round[%zu]", i));
-    }
+    return round_results.back();
 }
 
 // The following constants correspond to the iterative computation of sha3_256
 // hash function over the initial seed "clearmatics_mt_seed". See:
 // client/zethCodeConstantsGeneration.py for more details
-template<typename FieldT, typename RoundT, size_t NumRounds>
-void MiMC_permutation_gadget<FieldT, RoundT, NumRounds>::setup_sha3_constants()
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
+    setup_sha3_constants()
 {
+    if (round_constants_initialized) {
+        return;
+    }
+
     round_constants.reserve(NumRounds);
 
     // The constant is set to "0" in the first round of MiMC permutation (see:
@@ -274,6 +286,8 @@ void MiMC_permutation_gadget<FieldT, RoundT, NumRounds>::setup_sha3_constants()
     round_constants.push_back(FieldT(
         "50507769484714413215987736701379019852081133212073163694059431350432441698257"));
     // clang-format on
+
+    round_constants_initialized = true;
 }
 
 } // namespace libzeth
