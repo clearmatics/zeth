@@ -1,11 +1,8 @@
-# Actions for every push
-name: zeth-ci-push
+# Actions for every push on ubuntu
+name: zeth-ci-push-ubuntu
 
 on:
   push:
-
-env:
-  MACOS_BREW_PACKAGES: "pkg-config libomp"
 
 jobs:
 
@@ -29,20 +26,6 @@ jobs:
         submodules: recursive
     - name: Execute
       run: scripts/ci check_client
-
-  build-macos:
-    runs-on: macos-10.15
-    strategy:
-      matrix:
-        config: [ Debug, Release ]
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: Install Dependencies
-      run: brew install ${MACOS_BREW_PACKAGES}
-    - name: Execute
-      run: CI_CONFIG=${{ matrix.config }} scripts/ci build
 
   build-linux:
     runs-on: ubuntu-20.04
