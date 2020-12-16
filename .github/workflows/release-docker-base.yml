@@ -1,9 +1,9 @@
-name: "Release. Docker build zeth-base"
+name: release-docker-build-zeth-base
 
 on:
   push:
     tags:
-      - docker-base-v[0-9]+.[0-9]+.[0-9]+             # Triggered by git tags like: docker-base-v0.2.12
+      - docker-base-v[0-9]+.[0-9]+.[0-9]+ # Triggered by git tags like: docker-base-v0.2.12
 
 env:
   REPO_OWNER: "clearmatics"
@@ -16,7 +16,6 @@ jobs:
     timeout-minutes: 360
 
     steps:
-
       - name: "Checkout"
         uses: actions/checkout@v2
 

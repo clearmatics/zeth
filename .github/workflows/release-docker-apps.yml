@@ -1,9 +1,9 @@
-name: "Release. Docker build apps"
+name: release-docker-build-zeth-apps
 
 on:
   push:
     tags:
-      - v[0-9]+.[0-9]+.[0-9]+             # Triggered by git tags like: v0.2.12
+      - v[0-9]+.[0-9]+.[0-9]+ # Triggered by git tags like: v0.2.12
 
 env:
   REPO_OWNER: "clearmatics"
