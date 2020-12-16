@@ -1,8 +1,12 @@
-name: "code-scanning"
+name: zeth-ci-code-scanning
 
 on:
   push:
+    branches:
+      - develop
   pull_request:
+    branches:
+      - master
   # TODO: Consider scheduling code scanning
   #schedule:
   #  - cron: '0 1 * * 0'
