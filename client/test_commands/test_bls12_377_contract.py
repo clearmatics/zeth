@@ -117,6 +117,10 @@ def main() -> None:
     test_bls12_ecmul(bls12_instance)
     test_bls12_ecpairing(bls12_instance)
 
+    print("========================================")
+    print("==              PASSED                ==")
+    print("========================================")
+
 
 if __name__ == "__main__":
     main()
