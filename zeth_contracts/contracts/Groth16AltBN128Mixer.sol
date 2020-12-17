@@ -20,7 +20,6 @@ contract Groth16AltBN128Mixer is AltBN128MixerBase
         public
         AltBN128MixerBase(mk_depth, token, vk)
     {
-        // Nothing
     }
 
     function verify_zk_proof(

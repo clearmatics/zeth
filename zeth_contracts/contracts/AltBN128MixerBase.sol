@@ -42,7 +42,6 @@ contract AltBN128MixerBase is MixerBase
         public
         MixerBase(mk_depth, token, vk)
     {
-        // Nothing
     }
 
     /// Use MiMC7 as the Merkle tree hash function.
