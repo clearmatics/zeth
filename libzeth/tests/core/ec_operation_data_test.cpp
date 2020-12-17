@@ -9,6 +9,7 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 #include <libff/algebra/curves/bw6_761/bw6_761_pp.hpp>
+#include <libff/algebra/curves/curve_utils.hpp>
 
 using namespace libzeth;
 
@@ -106,14 +107,81 @@ TEST(ECOperationDataTest, ALT_BN128)
 
 TEST(ECOperationDataTest, BW6_761)
 {
+    using G1 = libff::bw6_761_G1;
+    using G2 = libff::bw6_761_G2;
+    using Fq = typename G1::base_field;
+    using Fqe = typename G2::twist_field;
+
     std::cout << "BW6-761:\n";
     operation_test_data<libff::bw6_761_pp>();
+
+    // Print some invalid points for use in tests that require them. Points
+    // outside safe subgroup are from the libff unit tests
+    // (libff/algebra/curves/tests/test_groups.cpp)
+
+    const G1 g1_not_well_formed(Fq::one(), Fq::one(), Fq::one());
+    ASSERT_FALSE(g1_not_well_formed.is_well_formed());
+
+    const G1 g1_not_in_subgroup = libff::g1_curve_point_at_x<G1>(Fq("6"));
+    ASSERT_TRUE(g1_not_in_subgroup.is_well_formed());
+    ASSERT_FALSE(g1_not_in_subgroup.is_in_safe_subgroup());
+
+    const G2 g2_not_well_formed(Fqe::one(), Fqe::one(), Fqe::one());
+    ASSERT_FALSE(g2_not_well_formed.is_well_formed());
+
+    const G2 g2_not_in_subgroup = libff::g2_curve_point_at_x<G2>(Fqe::zero());
+    ASSERT_TRUE(g2_not_in_subgroup.is_well_formed());
+    ASSERT_FALSE(g2_not_in_subgroup.is_in_safe_subgroup());
+
+    std::cout << "   g1_not_well_formed: ";
+    point_affine_write_json(g1_not_well_formed, std::cout);
+    std::cout << "\n   g1_not_in_subgroup: ";
+    point_affine_write_json(g1_not_in_subgroup, std::cout);
+    std::cout << "\n   g2_not_well_formed: ";
+    point_affine_write_json(g2_not_well_formed, std::cout);
+    std::cout << "\n   g2_not_in_subgroup: ";
+    point_affine_write_json(g2_not_in_subgroup, std::cout);
+    std::cout << "\n";
 }
 
 TEST(ECOperationDataTest, BLS12_377)
 {
+    using G1 = libff::bls12_377_G1;
+    using G2 = libff::bls12_377_G2;
+    using Fq = typename G1::base_field;
+    using Fqe = typename G2::twist_field;
+
     std::cout << "BLS12-377:\n";
     operation_test_data<libff::bls12_377_pp>();
+
+    // Print some invalid points for use in tests that require them. Points
+    // outside safe subgroup are from the libff unit tests
+    // (libff/algebra/curves/tests/test_groups.cpp)
+
+    const G1 g1_not_well_formed(Fq::one(), Fq::one(), Fq::one());
+    ASSERT_FALSE(g1_not_well_formed.is_well_formed());
+
+    const G1 g1_not_in_subgroup = libff::g1_curve_point_at_x<G1>(Fq("3"));
+    ASSERT_TRUE(g1_not_in_subgroup.is_well_formed());
+    ASSERT_FALSE(g1_not_in_subgroup.is_in_safe_subgroup());
+
+    const G2 g2_not_well_formed(Fqe::one(), Fqe::one(), Fqe::one());
+    ASSERT_FALSE(g2_not_well_formed.is_well_formed());
+
+    const G2 g2_not_in_subgroup =
+        libff::g2_curve_point_at_x<G2>(Fq(3) * Fqe::one());
+    ASSERT_TRUE(g2_not_in_subgroup.is_well_formed());
+    ASSERT_FALSE(g2_not_in_subgroup.is_in_safe_subgroup());
+
+    std::cout << "   g1_not_well_formed: ";
+    point_affine_write_json(g1_not_well_formed, std::cout);
+    std::cout << "\n   g1_not_in_subgroup: ";
+    point_affine_write_json(g1_not_in_subgroup, std::cout);
+    std::cout << "\n   g2_not_well_formed: ";
+    point_affine_write_json(g2_not_well_formed, std::cout);
+    std::cout << "\n   g2_not_in_subgroup: ";
+    point_affine_write_json(g2_not_in_subgroup, std::cout);
+    std::cout << "\n";
 }
 
 } // namespace
