@@ -1,4 +1,4 @@
-name: "Develop. Docker build apps"
+name: dev-docker-build-zeth-apps
 
 on:
   push:
