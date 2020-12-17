@@ -1,5 +1,5 @@
 {
-  "name": "zeth-truffle",
+  "name": "zeth-contracts",
   "version": "1.0.0",
   "description": "zerocash on Ethereum",
   "main": "truffle.js",

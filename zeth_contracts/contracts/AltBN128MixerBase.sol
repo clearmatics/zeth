@@ -31,7 +31,7 @@ contract AltBN128MixerBase is MixerBase
     // 253-bit long field elements to which are added the public value of size
     // 64 bits
     uint256 internal constant TOTAL_NUM_RESIDUAL_BITS =
-    2 * public_value_bits + NUM_RESIDUAL_BITS * num_hash_digests;
+    2 * PUBLIC_VALUE_BITS + NUM_RESIDUAL_BITS * NUM_HASH_DIGESTS;
 
     /// Constructor of the contract
     constructor(
@@ -74,7 +74,7 @@ contract AltBN128MixerBase is MixerBase
         // Number of bits AFTER public values
         uint256 residual_bits_idx = residual_bits_set_idx * NUM_RESIDUAL_BITS;
         uint256 bits_to_shift =
-        RESIDUAL_BITS_SHIFT - total_public_value_bits - residual_bits_idx;
+        RESIDUAL_BITS_SHIFT - TOTAL_PUBLIC_VALUE_BITS - residual_bits_idx;
         uint256 residual_bits = (residual << bits_to_shift) & RESIDUAL_BITS_MASK;
         return bytes32(field_element | residual_bits);
     }
