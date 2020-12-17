@@ -21,7 +21,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
 
     // Structure of the verification key and proofs is opaque, determined by
     // zk-snark verification library.
-    uint256[] private _vk;
+    uint256[] internal _vk;
 
     // Contract variable that indicates the address of the token contract
     // If token = address(0) then the mixer works with ether

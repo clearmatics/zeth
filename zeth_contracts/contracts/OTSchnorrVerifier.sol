@@ -10,7 +10,6 @@ pragma solidity ^0.5.0;
 ///  Mihir Bellare, Sarah Shoup,
 ///  International Workshop on Public Key Cryptography, 2007,
 ///  <https://eprint.iacr.org/2007/273.pdf>
-
 library OTSchnorrVerifier {
 
     function verify(
