@@ -28,6 +28,6 @@ include(ExternalProject)
 ExternalProject_Add(
   libsodium
   SOURCE_DIR ${LIBSODIUM_SOURCE_DIR}
-  CONFIGURE_COMMAND cd ${LIBSODIUM_SOURCE_DIR} && ./autogen.sh && ./configure --prefix=<INSTALL_DIR> --enable-minimal --disable-shared --enable-static
+  CONFIGURE_COMMAND cd ${LIBSODIUM_SOURCE_DIR} && DO_NOT_UPDATE_CONFIG_SCRIPTS=1 ./autogen.sh && ./configure --prefix=<INSTALL_DIR> --enable-minimal --disable-shared --enable-static
   BUILD_COMMAND cd ${LIBSODIUM_SOURCE_DIR} && make ${MAKE_BUILD_FLAGS}
   INSTALL_COMMAND cd ${LIBSODIUM_SOURCE_DIR} && make install)
