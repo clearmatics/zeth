@@ -35,17 +35,22 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
     constructor(
         uint256 mk_depth,
         address token,
-        uint256[] memory vk)
-        AltBN128MixerBase(mk_depth, token, vk) public {
+        uint256[] memory vk
+    )
+        public
+        AltBN128MixerBase(mk_depth, token, vk)
+    {
         uint256 vk_words = vk.length;
         require(vk_words >= 26, "invalid vk length");
     }
 
     function verify(
         uint256[num_inputs] memory input,
-        Proof memory proof)
+        Proof memory proof
+    )
         internal
-        returns (uint) {
+        returns (uint)
+    {
 
         // Decode _vk into a VerifyKey struct
         uint256 vk_words = _vk.length;
@@ -135,9 +140,11 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
 
     function verify_zk_proof(
         uint256[] memory proof_data,
-        uint256[num_inputs] memory inputs)
+        uint256[num_inputs] memory inputs
+    )
         internal
-        returns (bool) {
+        returns (bool)
+    {
         // Scalar field characteristic
         // solium-disable-next-line
         uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;

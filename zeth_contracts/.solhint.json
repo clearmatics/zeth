@@ -1,0 +1,16 @@
+{
+    "extends": "solhint:recommended",
+    "plugins": [],
+    "rules": {
+        "var-name-mixedcase": "off",
+        "func-name-mixedcase": "off",
+        "contract-name-camelcase": "off",
+        "no-empty-blocks": "off",
+        "compiler-version": "off",
+        "reason-string": "off",
+        "avoid-suicide": "error",
+        "no-inline-assembly": "off",
+        "avoid-sha3": "warn",
+        "func-visibility": "error"
+    }
+}

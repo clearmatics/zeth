@@ -15,12 +15,12 @@ library Groth16AltBN128
 
     // Used by client code to verify that inputs are in the correct field.
     // solium-disable-next-line
-    uint256 internal constant r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 internal constant PRIME_R = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
-    // Return the value r, the characteristic of the scalar field.
+    // Return the value PRIME_R, the characteristic of the scalar field.
     function scalar_r() internal pure returns (uint256)
     {
-        return r;
+        return PRIME_R;
     }
 
     // Fr elements and Fq elements can be held in a single uint256. Therefore
@@ -44,7 +44,10 @@ library Groth16AltBN128
     function verify(
         uint256[] storage vk,
         uint256[] memory proof,
-        uint256[] memory input) internal returns (bool)
+        uint256[] memory input
+    )
+        internal
+        returns (bool)
     {
         require(proof.length == 8, "Proof size invalid (ALT-BN128)");
 
@@ -58,7 +61,7 @@ library Groth16AltBN128
 
         // Ensure that all inputs belong to the scalar field.
         for (uint256 i = 0 ; i < numInputs; i++) {
-            require(input[i] < r, "Input is not in scalar field");
+            require(input[i] < PRIME_R, "Input is not in scalar field");
         }
 
         // 1. Compute the linear combination
@@ -115,7 +118,6 @@ library Groth16AltBN128
             mstore(pad, vk_slot)
             vk_slot_num := keccak256(pad, 0x20)
             let abc_slot_num := add(vk_slot_num, 0x0a)
-
 
             // // Compute slot of ABC[0]. Solidity memory array layout defines the
             // // first entry of verifyKey.ABC as the keccak256 hash of the slot
