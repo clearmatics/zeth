@@ -9,11 +9,11 @@ contract BLS12_377_test
     // In many cases, these numbers must be used as literals in the assembly
     // code.
 
-    uint256 internal constant SCALAR_WORDS = 1;
-    uint256 internal constant G1_COORD_WORDS = 2;
-    uint256 internal constant G1_POINT_WORDS = 2 * G1_COORD_WORDS;
-    uint256 internal constant G2_COORD_WORDS = 4;
-    uint256 internal constant G2_POINT_WORDS = 2 * G2_COORD_WORDS;
+    uint256 private constant SCALAR_WORDS = 1;
+    uint256 private constant G1_COORD_WORDS = 2;
+    uint256 private constant G1_POINT_WORDS = 2 * G1_COORD_WORDS;
+    uint256 private constant G2_COORD_WORDS = 4;
+    uint256 private constant G2_POINT_WORDS = 2 * G2_COORD_WORDS;
 
     /// `input` is the concatenation of 2 encoded points in G1
     function testECAdd(bytes32[2 * G1_POINT_WORDS] memory input) public returns(
