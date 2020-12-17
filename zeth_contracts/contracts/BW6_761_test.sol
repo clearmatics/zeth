@@ -10,11 +10,8 @@ contract BW6_761_test
     // code.
 
     uint256 internal constant SCALAR_WORDS = 2;
-    uint256 internal constant SCALAR_BYTES = SCALAR_WORDS * 32; // 64 (0x40)
     uint256 internal constant COORD_WORDS = 3;
-    uint256 internal constant COORD_BYTES = 3 * 32; // 96 (0x60)
     uint256 internal constant POINT_WORDS = 2 * COORD_WORDS;
-    uint256 internal constant POINT_BYTES = POINT_WORDS * 32; // 192 (0xc0)
 
     // `points` should be the concatenation of 2 encoded points
     function testECAdd(bytes32[2 * POINT_WORDS] memory points)
