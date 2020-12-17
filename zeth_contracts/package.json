@@ -10,16 +10,16 @@
     "deploy": "truffle deploy",
     "test": "truffle test",
     "debug": "truffle debug",
-    "check": "node_modules/solium/bin/solium.js --dir contracts"
+    "check": "node_modules/solhint/solhint.js 'contracts/**/*.sol'"
   },
   "author": "Clearmatics Technologies LTD: Cryptography R&D Department",
   "license": "LGPL-3.0+",
   "dependencies": {
-    "openzeppelin-solidity": "^2.4.0",
-    "solium": "^1.2.5",
     "add": "^2.0.6",
     "ethereumjs-abi": "^0.6.8",
+    "openzeppelin-solidity": "^2.4.0",
     "shell-escape": "^0.2.0",
+    "solhint": "^3.3.2",
     "strip-hex-prefix": "^1.0.0",
     "web3": "^1.2.4"
   }

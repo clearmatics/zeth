@@ -8,7 +8,7 @@ import "./Groth16BLS12_377.sol";
 
 contract Groth16BLS12_377_test
 {
-    uint256[] _vk;
+    uint256[] private _vk;
 
     function test_verify(
         uint256[] memory vk,

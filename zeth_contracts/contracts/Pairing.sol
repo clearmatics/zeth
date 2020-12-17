@@ -4,14 +4,14 @@
 
 pragma solidity ^0.5.0;
 
-// Several pairing-related utility functions.
-//
-// Precompiled contract details (bn256Add, bn256ScalarMul, bn256Pairing) can be
-// found at the following links. Implementations:
-//   https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go gas
-// and costs:
-//   https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go
-
+/// Several pairing-related utility functions.
+///
+/// Precompiled contract details (bn256Add, bn256ScalarMul, bn256Pairing) can be
+/// found at the following links:
+/// implementations:
+///   https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go gas
+/// and costs:
+///   https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go
 library Pairing {
 
     struct G1Point {
@@ -58,7 +58,8 @@ library Pairing {
     // Return the sum of two points of G1
     function add(G1Point memory p1, G1Point memory p2)
         internal
-        returns (G1Point memory r) {
+        returns (G1Point memory r)
+    {
         uint256[4] memory input;
         input[0] = p1.X;
         input[1] = p1.Y;
@@ -81,7 +82,8 @@ library Pairing {
     // p == p.mul(1) and p.add(p) == p.mul(2) for all points p.
     function mul(G1Point memory p, uint256 s)
         internal
-        returns (G1Point memory r) {
+        returns (G1Point memory r)
+    {
         uint256[3] memory input;
         input[0] = p.X;
         input[1] = p.Y;
@@ -102,7 +104,8 @@ library Pairing {
     // Return the result of computing the pairing check
     function pairing(G1Point[] memory p1, G2Point[] memory p2)
         internal
-        returns (bool) {
+        returns (bool)
+    {
         require(
             p1.length == p2.length,
             "Mismatch between the number of elements in G1 and elements in G2"
@@ -127,7 +130,7 @@ library Pairing {
         bool success;
         assembly {
             // bn256Pairing precompiled:
-            //   https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L59
+            //   https://github.com/ethereum/go-ethereum/blob/v1.7.0/core/vm/contracts.go#L59
             //
             // The bn256Pairing precompiled takes an input of size N * 192 (a
             // set of pairs of elements (g1, g2) \in G1 x G2 has a size of

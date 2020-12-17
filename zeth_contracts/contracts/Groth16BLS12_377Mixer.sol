@@ -15,15 +15,17 @@ contract Groth16BLS12_377Mixer is BLS12_377MixerBase
     constructor(
         uint256 mk_depth,
         address token,
-        uint256[] memory vk)
-        BLS12_377MixerBase(mk_depth, token, vk)
+        uint256[] memory vk
+    )
         public
+        BLS12_377MixerBase(mk_depth, token, vk)
     {
     }
 
     function verify_zk_proof(
         uint256[] memory proof,
-        uint256[num_inputs] memory inputs)
+        uint256[NUM_INPUTS] memory inputs
+    )
         internal
         returns (bool)
     {
@@ -34,8 +36,8 @@ contract Groth16BLS12_377Mixer is BLS12_377MixerBase
         // verifier functions to avoid this copy.
 
         // solium-disable-next-line
-        uint256[] memory input_values = new uint256[](num_inputs);
-        for (uint256 i = 0 ; i < num_inputs; i++) {
+        uint256[] memory input_values = new uint256[](NUM_INPUTS);
+        for (uint256 i = 0 ; i < NUM_INPUTS; i++) {
             input_values[i] = inputs[i];
         }
         return Groth16BLS12_377.verify(_vk, proof, input_values);

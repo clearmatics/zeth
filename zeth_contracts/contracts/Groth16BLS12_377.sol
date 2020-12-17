@@ -45,7 +45,10 @@ library Groth16BLS12_377
     function verify(
         uint256[] storage vk,
         uint256[] memory proof,
-        uint256[] memory inputs) internal returns (bool)
+        uint256[] memory inputs
+    )
+        internal
+        returns (bool)
     {
         require(proof.length == 0x10, "Proof size invalid (BLS12-377)");
 
@@ -100,7 +103,8 @@ library Groth16BLS12_377
             let input_i := add(inputs, 0x20)
             let input_end := add(input_i, mul(num_inputs, 0x20))
 
-            // Initialize 4 words of (accum_x, accum_y), as first element of vk.abc
+            // Initialize 4 words of (accum_x, accum_y) as first element of
+            // vk.abc
             mstore(pad, sload(abc_slot_num))
             abc_slot_num := add(abc_slot_num, 1)
             mstore(add(pad, 0x20), sload(abc_slot_num))

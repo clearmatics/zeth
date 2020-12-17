@@ -4,28 +4,27 @@
 
 pragma solidity ^0.5.0;
 
-// Reference papers:
-//
-// \[AGRRT16]:
-// "MiMC: Efficient Encryption and Cryptographic Hashing with Minimal
-// Multiplicative Complexity", Martin Albrecht, Lorenzo Grassi, Christian
-// Rechberger, Arnab Roy, and Tyge Tiessen, ASIACRYPT 2016,
-// <https://eprint.iacr.org/2016/492.pdf>
-//
-// "One-way compression function"
-// Section: "Miyaguchi–Preneel"
-// <https://en.wikipedia.org/wiki/One-way_compression_function#Miyaguchi%E2%80%93Preneel>
-
-// Implementation of MiMC hash targetting BLS12-377 Fr. This means:
-//   r = 8444461749428370424248824938781546531375899335154063827935233455917409239041
-//   e (exponent) = 31, so that e=2^t-1 (t=5) and 1 == gcd(e, r-1)
-//   rounds = 51
-//
-// See MiMC7.sol for details.
+/// Reference papers:
+///
+/// \[AGRRT16]:
+/// "MiMC: Efficient Encryption and Cryptographic Hashing with Minimal
+/// Multiplicative Complexity", Martin Albrecht, Lorenzo Grassi, Christian
+/// Rechberger, Arnab Roy, and Tyge Tiessen, ASIACRYPT 2016,
+/// <https://eprint.iacr.org/2016/492.pdf>
+///
+/// "One-way compression function"
+/// Section: "Miyaguchi–Preneel"
+/// <https://en.wikipedia.org/wiki/One-way_compression_function#Miyaguchi%E2%80%93Preneel>
+///
+/// Implementation of MiMC hash targeting BLS12-377 Fr. This means:
+///   r = 8444461749428370424248824938781546531375899335154063827935233455917409239041
+///   e (exponent) = 31, so that e=2^t-1 (t=5) and 1 == gcd(e, r-1)
+///   rounds = 51
+///
+/// See MiMC7.sol for details.
 library MiMC31
 {
-    function hash(bytes32 x, bytes32 y) internal pure returns(bytes32 out)
-    {
+    function hash(bytes32 x, bytes32 y) internal pure returns(bytes32 out) {
         // Round function (see [AGRRT16]):
         //   F_i(a, key, rc_i) -> (a + key + rc)^31
         //
