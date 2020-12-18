@@ -357,6 +357,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         } else {
             // If vpub_in = 0, return incoming Ether to the caller
             if (msg.value > 0) {
+                // solhint-disable-next-line
                 (bool success, ) = msg.sender.call.value(msg.value)("");
                 require(success, "vpub_in return transfer failed");
             }
@@ -369,6 +370,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
                 ERC20 erc20Token = ERC20(_token);
                 erc20Token.transfer(msg.sender, vpub_out);
             } else {
+                // solhint-disable-next-line
                 (bool success, ) = msg.sender.call.value(vpub_out)("");
                 require(success, "vpub_out transfer failed");
             }
