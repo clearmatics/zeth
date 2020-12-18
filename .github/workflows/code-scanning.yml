@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - develop
+      - master
   pull_request:
     branches:
+      - develop
       - master
   # TODO: Consider scheduling code scanning
   #schedule:
