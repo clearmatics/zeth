@@ -1,31 +1,10 @@
-# Actions for every push on ubuntu
-name: zeth-ci-push-ubuntu
+# Build actions for every push on ubuntu
+name: zeth-ci-push-build-ubuntu
 
 on:
   push:
 
 jobs:
-
-  check-contracts:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - uses: actions/setup-node@v1
-      with:
-        node-version: 10
-    - name: Check Contracts
-      run: scripts/ci check_contracts
-
-  check-client:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: Execute
-      run: scripts/ci check_client
 
   build-linux:
     runs-on: ubuntu-20.04
@@ -57,11 +36,3 @@ jobs:
     - name: Execute
       run: CI_USE_DOCKER=1 CI_CONFIG=Release CI_CURVE=BLS12_377 scripts/ci build
 
-  check-cpp-linux:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: Execute
-      run: CI_CHECK_FORMAT=1 CI_USE_DOCKER=1 scripts/ci check_cpp

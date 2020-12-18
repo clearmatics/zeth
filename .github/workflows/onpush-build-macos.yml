@@ -1,5 +1,5 @@
-# Actions for every push on macOS
-name: zeth-ci-push-macos
+# Build actions for every push on macOS
+name: zeth-ci-push-build-macos
 
 on:
   push:
