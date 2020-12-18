@@ -35,7 +35,6 @@ contract Groth16AltBN128Mixer is AltBN128MixerBase
         // TODO: mechanism to pass static-sized input arrays to generic
         // verifier functions to avoid this copy.
 
-        // solium-disable-next-line
         uint256[] memory input_values = new uint256[](NUM_INPUTS);
         for (uint256 i = 0 ; i < NUM_INPUTS; i++) {
             input_values[i] = inputs[i];
