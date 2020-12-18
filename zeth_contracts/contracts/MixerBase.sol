@@ -173,7 +173,8 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
             new_merkle_root,
             nullifiers,
             commitments,
-            ciphertexts);
+            ciphertexts
+        );
 
         // 6. Get the public values in Wei and modify the state depending on
         // their values
@@ -183,13 +184,17 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     /// This function is used to extract the public values (vpub_in, vpub_out)
     /// from the residual field element(S)
     function assemble_public_values(uint256 residual_bits)
-        internal pure
-        returns (uint256 vpub_in, uint256 vpub_out)
+        internal
+        pure
+        returns (
+            uint256 vpub_in,
+            uint256 vpub_out
+        )
     {
         // vpub_out and vpub_in occupy the first and second PUBLIC_VALUE_BITS
         vpub_out = (residual_bits & PUBLIC_VALUE_MASK) * PUBLIC_UNIT_VALUE_WEI;
         vpub_in = ((residual_bits >> PUBLIC_VALUE_BITS) & PUBLIC_VALUE_MASK)
-        * PUBLIC_UNIT_VALUE_WEI;
+            * PUBLIC_UNIT_VALUE_WEI;
     }
 
     /// This function is used to reassemble hsig given the primary_inputs.
@@ -198,7 +203,8 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     function assemble_hsig(
         uint256[NUM_INPUTS] memory primary_inputs
     )
-        internal pure
+        internal
+        pure
         returns(bytes32 hsig)
     {
         // The h_sig residual bits are after the JSIN authentication tags and
@@ -206,7 +212,8 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         return extract_bytes32(
             primary_inputs[1 + JSIN + JSOUT],
             primary_inputs[1 + JSOUT + NUM_HASH_DIGESTS],
-            2 * JSIN);
+            2 * JSIN
+        );
     }
 
     /// This function is used to reassemble the nullifiers given the nullifier
@@ -217,7 +224,8 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         uint256 index,
         uint256[NUM_INPUTS] memory primary_inputs
     )
-        internal pure
+        internal
+        pure
         returns(bytes32 nf)
     {
         // We first check that the nullifier we want to retrieve exists
@@ -227,7 +235,8 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         return extract_bytes32(
             primary_inputs[1 + JSOUT + index],
             primary_inputs[1 + JSOUT + NUM_HASH_DIGESTS],
-            JSIN + index);
+            JSIN + index
+        );
     }
 
     // ======================================================================
