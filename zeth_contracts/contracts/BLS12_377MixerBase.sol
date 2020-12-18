@@ -52,8 +52,7 @@ contract BLS12_377MixerBase is MixerBase
     {
     }
 
-    function hash(bytes32 left, bytes32 right) internal returns(bytes32)
-    {
+    function hash(bytes32 left, bytes32 right) internal returns(bytes32) {
         return MiMC31.hash(left, right);
     }
 

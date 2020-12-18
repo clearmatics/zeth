@@ -19,8 +19,7 @@ library Groth16AltBN128
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     // Return the value PRIME_R, the characteristic of the scalar field.
-    function scalar_r() internal pure returns (uint256)
-    {
+    function scalar_r() internal pure returns (uint256) {
         return PRIME_R;
     }
 
