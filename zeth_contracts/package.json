@@ -10,7 +10,7 @@
     "deploy": "truffle deploy",
     "test": "truffle test",
     "debug": "truffle debug",
-    "check": "node_modules/solhint/solhint.js 'contracts/**/*.sol'"
+    "check": "node_modules/solhint/solhint.js --max-warnings 0 'contracts/**/*.sol'"
   },
   "author": "Clearmatics Technologies LTD: Cryptography R&D Department",
   "license": "LGPL-3.0+",
