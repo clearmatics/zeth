@@ -114,7 +114,8 @@ library Groth16BLS12_377
             mstore(add(pad, 0x60), sload(abc_slot_num))
             abc_slot_num := add(abc_slot_num, 1)
 
-            // Note the location of abc (the area used for scalar multiplication)
+            // Note the location of abc (the area used for scalar
+            // multiplication)
             let mul_in := add(pad, 0x080)
 
             // For each input ...
@@ -175,27 +176,35 @@ library Groth16BLS12_377
             // Write g_2 to offset 0x080~
             mstore(
                 add(pad, 0x080),
+                // solhint-disable-next-line max-line-length
                 0x0000000000000000000000000000000000d6ac33b84947d9845f81a57a136bfa)
             mstore(
                 add(pad, 0x0a0),
+                // solhint-disable-next-line max-line-length
                 0x326e915fabc8cd6a57ff133b42d00f62e4e1af460228cd5184deae976fa62596)
             mstore(
                 add(pad, 0x0c0),
+                // solhint-disable-next-line max-line-length
                 0x0000000000000000000000000000000000b997fef930828fe1b9e6a1707b8aa5)
             mstore(
                 add(pad, 0x0e0),
+                // solhint-disable-next-line max-line-length
                 0x08a3dbfd7fe2246499c709226a0a6fef49f85b3a375363f4f8f6ea3fbd159f8a)
             mstore(
                 add(pad, 0x100),
+                // solhint-disable-next-line max-line-length
                 0x00000000000000000000000000000000002933c9ab1da3519734bb7d40c74f7c)
             mstore(
                 add(pad, 0x120),
+                // solhint-disable-next-line max-line-length
                 0x96f7cd46d372c68a05fbe4f5d29d09ebac0fdae50f6dde73818058280cc85ff1)
             mstore(
                 add(pad, 0x140),
+                // solhint-disable-next-line max-line-length
                 0x0000000000000000000000000000000000955cf57c9676d751f0b5431b46efdd)
             mstore(
                 add(pad, 0x160),
+                // solhint-disable-next-line max-line-length
                 0x5ea49e8f219e8b28d7bbd2176e29c49caa767e18b569d34dd5c5880f834819df)
 
             // write vk.alpha and vk.minus_beta to offset 0x180~

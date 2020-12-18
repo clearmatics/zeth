@@ -74,7 +74,8 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         // ||vk.IC| == input.length + 1
         require(
             input.length + 1 == vk.IC.length,
-            "Using strong input consistency, and the input length differs from expected"
+            "Using strong input consistency, and the input length differs from"
+            " expected"
         );
 
         // 1. Compute the linear combination
@@ -117,21 +118,28 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
 
         // 3. Check same coefficients were used
         // e(π_K, vk_γ) = e(vk_x + π_A + π_C, vk_{γβ2}) · e(vk_{γβ1}, π_B)
-        if (!Pairing.pairingProd3(
-                proof.K, vk.gamma,
-                Pairing.negate(Pairing.add(vk_x, Pairing.add(proof.A, proof.C))), vk.gammaBeta2,
-                Pairing.negate(vk.gammaBeta1), proof.B)
-        ) {
+
+        bool pairing_check = Pairing.pairingProd3(
+            proof.K,
+            vk.gamma,
+            Pairing.negate(Pairing.add(vk_x, Pairing.add(proof.A, proof.C))),
+            vk.gammaBeta2,
+            Pairing.negate(vk.gammaBeta1),
+            proof.B);
+        if (!pairing_check) {
             return 4;
         }
 
         // 4. Check QAP divisibility
         // e(vk_x + π_A, π_B) = e(π_H, vk_Z) · e(π_C, P2)
-        if (!Pairing.pairingProd3(
-                Pairing.add(vk_x, proof.A), proof.B,
-                Pairing.negate(proof.H), vk.Z,
-                Pairing.negate(proof.C), Pairing.P2())
-        ) {
+        pairing_check = Pairing.pairingProd3(
+            Pairing.add(vk_x, proof.A),
+            proof.B,
+            Pairing.negate(proof.H),
+            vk.Z,
+            Pairing.negate(proof.C),
+            Pairing.P2());
+        if (!pairing_check) {
             return 5;
         }
 
@@ -146,7 +154,7 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         returns (bool)
     {
         // Scalar field characteristic
-        // solium-disable-next-line
+        // solhint-disable-next-line
         uint256 r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
         // Slightly redundant

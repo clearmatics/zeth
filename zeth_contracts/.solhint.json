@@ -11,6 +11,7 @@
         "avoid-suicide": "error",
         "no-inline-assembly": "off",
         "avoid-sha3": "warn",
-        "func-visibility": "error"
+        "func-visibility": "error",
+        "max-line-length": ["error", 79]
     }
 }

@@ -94,11 +94,11 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         _token = token_address;
     }
 
-    /// Function allowing external users of the contract to retrieve some of the
-    /// constants used in the mixer (since the solidity interfaces do not export
-    /// this information as-of the current version). The intention is that
-    /// external users and contraacts can query this function and ensure that
-    /// they are compatible with the mixer configurations.
+    /// Function allowing external users of the contract to retrieve some of
+    /// the constants used in the mixer (since the solidity interfaces do not
+    /// export this information as-of the current version). The intention is
+    /// that external users and contraacts can query this function and ensure
+    /// that they are compatible with the mixer configurations.
     ///
     /// Returns the number of input notes, the number of output notes and the
     /// total number of primary inputs.
@@ -230,10 +230,10 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
             JSIN + index);
     }
 
-    // ====================================================================== //
+    // ======================================================================
     // Reminder: Remember that the primary inputs are ordered as follows:
     //
-    //   [Root, CommitmentS, NullifierS, h_sig, h_iS, Residual Field Element(S)]
+    //   [Root, CommitmentS, NullifierS, h_sig, h_iS, Residual Element(s)]
     //
     // ie, below is the index mapping of the primary input elements on the
     // protoboard:
@@ -259,7 +259,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     // where each entry entry after public output and input holds the
     // (curve-specific) number residual bits for the corresponding 256 bit
     // value.
-    // ====================================================================== //
+    // ======================================================================
     //
     // Utility function to extract a full uint256 from a field element and the
     // n-th set of residual bits from `residual`. This function is
@@ -318,7 +318,8 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         bytes32 hsig = assemble_hsig(primary_inputs);
         require(
             expected_hsig == hsig,
-            "Invalid hsig: This hsig does not correspond to the hash of vk and the nfs"
+            "Invalid hsig: This hsig does not correspond to the hash of vk and"
+            " the nfs"
         );
     }
 
@@ -340,8 +341,8 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         internal
     {
         // We get vpub_in and vpub_out in wei
-        (uint256 vpub_in, uint256 vpub_out) =
-            assemble_public_values(primary_inputs[1 + JSOUT + NUM_HASH_DIGESTS]);
+        (uint256 vpub_in, uint256 vpub_out) = assemble_public_values(
+            primary_inputs[1 + JSOUT + NUM_HASH_DIGESTS]);
 
         // If the vpub_in is > 0, we need to make sure the right amount is paid
         if (vpub_in > 0) {
@@ -357,6 +358,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         } else {
             // If vpub_in = 0, return incoming Ether to the caller
             if (msg.value > 0) {
+                // solhint-disable-next-line
                 (bool success, ) = msg.sender.call.value(msg.value)("");
                 require(success, "vpub_in return transfer failed");
             }
@@ -369,6 +371,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
                 ERC20 erc20Token = ERC20(_token);
                 erc20Token.transfer(msg.sender, vpub_out);
             } else {
+                // solhint-disable-next-line
                 (bool success, ) = msg.sender.call.value(vpub_out)("");
                 require(success, "vpub_out transfer failed");
             }
