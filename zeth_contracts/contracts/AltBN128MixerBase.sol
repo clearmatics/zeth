@@ -26,7 +26,7 @@ contract AltBN128MixerBase is MixerBase
 
     // Mask to extract the residual bits in the high-order position
     uint256 internal constant RESIDUAL_BITS_MASK =
-    ((1 << NUM_RESIDUAL_BITS) - 1) << RESIDUAL_BITS_SHIFT;
+        ((1 << NUM_RESIDUAL_BITS) - 1) << RESIDUAL_BITS_SHIFT;
 
     // Total number of residual bits from packing of 256-bit long string into
     // 253-bit long field elements to which are added the public value of size
@@ -46,8 +46,7 @@ contract AltBN128MixerBase is MixerBase
     }
 
     /// Use MiMC7 as the Merkle tree hash function.
-    function hash(bytes32 left, bytes32 right) internal returns(bytes32)
-    {
+    function hash(bytes32 left, bytes32 right) internal returns(bytes32) {
         return MiMC7.hash(left, right);
     }
 
@@ -63,7 +62,7 @@ contract AltBN128MixerBase is MixerBase
         returns(bytes32)
     {
         // The residual bits are located at:
-        //  (2 * public_value_bits) + (residual_bits_set_idx*NUM_RESIDUAL_BITS)
+        //  (2*public_value_bits) + (residual_bits_set_idx*NUM_RESIDUAL_BITS)
         //
         // Shift to occupy the highest order bits:
         // 255                                       128         64           0

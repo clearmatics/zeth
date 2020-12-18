@@ -40,8 +40,7 @@ contract BaseMerkleTree
     event LogDebug(bytes32 message);
 
     /// Constructor
-    constructor(uint256 treeDepth) public
-    {
+    constructor(uint256 treeDepth) public {
         require (
             treeDepth == DEPTH,
             "Invalid depth in BaseMerkleTree"
@@ -50,9 +49,7 @@ contract BaseMerkleTree
     }
 
     /// Appends a commitment to the tree, and returns its address
-    function insert(bytes32 commitment) public
-    {
-
+    function insert(bytes32 commitment) public {
         // If this require fails => the merkle tree is full, we can't append
         // leaves anymore.
         require(
@@ -73,8 +70,7 @@ contract BaseMerkleTree
     /// this class.
     function hash(bytes32 left, bytes32 right) internal returns (bytes32);
 
-    function recomputeRoot(uint num_new_leaves) internal returns (bytes32)
-    {
+    function recomputeRoot(uint num_new_leaves) internal returns (bytes32) {
         // Assume `num_new_leaves` have been written into the leaf slots.
         // Update any affected nodes in the tree, up to the root, using the
         // default values for any missing nodes.
@@ -92,8 +88,7 @@ contract BaseMerkleTree
         return nodes[0];
     }
 
-    function initializeTree() private
-    {
+    function initializeTree() private {
         // First layer
         bytes32 default_value = DEFAULT_LEAF_VALUE;
         nodes[2 * MAX_NUM_LEAVES - 2] = default_value;
@@ -141,9 +136,10 @@ contract BaseMerkleTree
         uint256 child_left_idx_rend =
             child_layer_start + (child_start_idx & MASK_LS_BIT);
 
-        // If child_end_idx is odd, it is the RIGHT of a computation we need to
-        // make.  Do the computation using the default value, and move to the
-        // next pair (on the left).  Otherwise, we have a fully populated pair.
+        // If child_end_idx is odd, it is the RIGHT of a computation we need
+        // to make. Do the computation using the default value, and move to
+        // the next pair (on the left).
+        // Otherwise, we have a fully populated pair.
 
         uint256 child_left_idx;
         if ((child_end_idx & 1) != 0) {
@@ -154,7 +150,7 @@ contract BaseMerkleTree
             child_left_idx = child_layer_start + child_end_idx;
         }
 
-        // At this stage, pairs are all populated.  Compute until we reach
+        // At this stage, pairs are all populated. Compute until we reach
         // child_left_idx_rend.
 
         while (child_left_idx > child_left_idx_rend) {

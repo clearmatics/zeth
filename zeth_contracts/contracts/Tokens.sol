@@ -31,7 +31,8 @@ contract ERC223ReceivingContract {
         uint256 value,
         bytes memory data
     )
-        public pure
+        public
+        pure
     {
         Token memory tkn;
         tkn.sender = from;
