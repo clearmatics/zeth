@@ -48,7 +48,7 @@ library MiMC7
             for {let j := 0} slt(j, 90) {j := add(j,1)} {
 
                 // roundConstant = H(roundConstant);
-                // we derive the (round) constants by iterative hash on the seed
+                // Derive the (round) constants by iterative hash on the seed
                 let roundConstant := keccak256(0x0, 32)
                 mstore(0x0, roundConstant)
 

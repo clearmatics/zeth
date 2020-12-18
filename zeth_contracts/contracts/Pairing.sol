@@ -6,11 +6,11 @@ pragma solidity ^0.5.0;
 
 /// Several pairing-related utility functions.
 ///
-/// Precompiled contract details (bn256Add, bn256ScalarMul, bn256Pairing) can be
-/// found at the following links:
+/// Precompiled contract details (bn256Add, bn256ScalarMul, bn256Pairing) can
+/// be found at the following links:
 /// implementations:
-///   https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go gas
-/// and costs:
+///   https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go
+/// gas and costs:
 // solhint-disable-next-line
 ///   https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go
 library Pairing {
@@ -137,29 +137,30 @@ library Pairing {
             //
             // The bn256Pairing precompiled takes an input of size N * 192 (a
             // set of pairs of elements (g1, g2) \in G1 x G2 has a size of
-            // 192bytes), and carries out a pairing check (not a pairing!)  (ie:
+            // 192bytes), and carries out a pairing check (not a pairing!) (ie:
             // the result is a boolean, not an element in G_T).
             //
             // As a consequence, and looking in the Cloudflare bn256 library
-            // used in Geth, we see that the PairingCheck function runs a Miller
-            // loop on every given pair of elements (g1, g2) \in G1 x G2,
-            // multiplies the result of the miller loops and runs
+            // used in Geth, we see that the PairingCheck function runs a
+            // Miller loop on every given pair of elements (g1, g2) \in G1 x
+            // G2, multiplies the result of the miller loops and runs
             // finalExponentiation to get a result is G_T. If the result
             // obtained is ONE then the result of the pairing check is True,
             // else False.
             //
-            // Looking at the comments above, we see we can run PairingChecks on
-            // any number of pairs (g1, g2) \in G1 x G2.  To check something in
-            // the form: e(g1, g2) = e(g'1, g'2), we need to call the
+            // Looking at the comments above, we see we can run PairingChecks
+            // on any number of pairs (g1, g2) \in G1 x G2. To check something
+            // in the form: e(g1, g2) = e(g'1, g'2), we need to call the
             // precompiled bn256Pairing on input [(g1, g2), (neg(g'1), g'2)]
             success := call(
-              sub(gas, 2000),
-              8,
-              0,
-              add(input, 0x20),
-              mul(inputSize, 0x20),
-              out,
-              0x20)
+                sub(gas, 2000),
+                8,
+                0,
+                add(input, 0x20),
+                mul(inputSize, 0x20),
+                out,
+                0x20
+            )
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
         }

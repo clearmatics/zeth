@@ -114,7 +114,8 @@ library Groth16BLS12_377
             mstore(add(pad, 0x60), sload(abc_slot_num))
             abc_slot_num := add(abc_slot_num, 1)
 
-            // Note the location of abc (the area used for scalar multiplication)
+            // Note the location of abc (the area used for scalar
+            // multiplication)
             let mul_in := add(pad, 0x080)
 
             // For each input ...
