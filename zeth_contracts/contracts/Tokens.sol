@@ -17,6 +17,7 @@ contract ERC20 {
 /// ERC223 token compatible contract
 contract ERC223ReceivingContract {
     // See:
+    // solhint-disable-next-line max-line-length
     //   https://github.com/Dexaran/ERC223-token-standard/blob/Recommended/Receiver_Interface.sol
     struct Token {
         address sender;
@@ -25,9 +26,12 @@ contract ERC223ReceivingContract {
         bytes4 sig;
     }
 
-    function tokenFallback(address from, uint256 value, bytes memory data)
-        public
-        pure
+    function tokenFallback(
+        address from,
+        uint256 value,
+        bytes memory data
+    )
+        public pure
     {
         Token memory tkn;
         tkn.sender = from;
@@ -35,6 +39,7 @@ contract ERC223ReceivingContract {
         tkn.data = data;
 
         // See:
+        // solhint-disable-next-line max-line-length
         //   https://solidity.readthedocs.io/en/v0.5.5/types.html#conversions-between-elementary-types
         uint32 u =
             uint32(bytes4(data[0])) +
