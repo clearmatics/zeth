@@ -6,7 +6,8 @@ pragma solidity ^0.5.0;
 
 /// Reference paper:
 ///  \[Bel07]:
-///  "Two-Tier Signatures, Strongly Unforgeable Signatures and Fiat-Shamir without Random Oracles",
+///  "Two-Tier Signatures, Strongly Unforgeable Signatures and Fiat-Shamir
+///   without Random Oracles",
 ///  Mihir Bellare, Sarah Shoup,
 ///  International Workshop on Public Key Cryptography, 2007,
 ///  <https://eprint.iacr.org/2007/273.pdf>

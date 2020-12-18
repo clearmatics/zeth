@@ -14,8 +14,9 @@ library Groth16AltBN128
     // contract code.
 
     // Used by client code to verify that inputs are in the correct field.
-    // solium-disable-next-line
-    uint256 internal constant PRIME_R = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 internal constant PRIME_R =
+        // solhint-disable-next-line max-line-length
+        21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     // Return the value PRIME_R, the characteristic of the scalar field.
     function scalar_r() internal pure returns (uint256)
@@ -198,15 +199,19 @@ library Groth16AltBN128
             // computed by the ec_operations_data_test).
             mstore(
                 add(pad, 0x040),
+                // solhint-disable-next-line max-line-length
                 0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2)
             mstore(
                 add(pad, 0x060),
+                // solhint-disable-next-line max-line-length
                 0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed)
             mstore(
                 add(pad, 0x080),
+                // solhint-disable-next-line max-line-length
                 0x275dc4a288d1afb3cbb1ac09187524c7db36395df7be3b99e673b13a075a65ec)
             mstore(
                 add(pad, 0x0a0),
+                // solhint-disable-next-line max-line-length
                 0x1d9befcd05a5323e6da4d435f3b617cdb3af83285c2df711ef39c01571827f9d)
 
             // Write vk.Alpha, vk.Minus_Beta (first 6 uints from verifyKey) from

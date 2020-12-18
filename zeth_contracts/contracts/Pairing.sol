@@ -11,6 +11,7 @@ pragma solidity ^0.5.0;
 /// implementations:
 ///   https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go gas
 /// and costs:
+// solhint-disable-next-line
 ///   https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go
 library Pairing {
 
@@ -35,20 +36,20 @@ library Pairing {
     // Return the generator of G2
     function P2() internal pure returns (G2Point memory) {
         return G2Point(
-            // solium-disable-next-line
+            // solhint-disable-next-line
             11559732032986387107991004021392285783925812861821192530917403151452391805634,
-            // solium-disable-next-line
+            // solhint-disable-next-line
             10857046999023057135944570762232829481370756359578518086990519993285655852781,
-            // solium-disable-next-line
+            // solhint-disable-next-line
             4082367875863433681332203403145435568316851327593401208105741076214120093531,
-            // solium-disable-next-line
+            // solhint-disable-next-line
             8495653923123431417604973247489272438418190587263600148770280649306958101930);
     }
 
     // Return the negation of p, i.e. p.add(p.negate()) should be zero.
     function negate(G1Point memory p) internal pure returns (G1Point memory) {
         // The prime q in the base field F_q for G1
-        // solium-disable-next-line
+        // solhint-disable-next-line
         uint256 q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
         if (p.X == 0 && p.Y == 0)
             return G1Point(0, 0);
@@ -74,7 +75,8 @@ library Pairing {
         }
         require(
             success,
-            "Call to the bn256Add precompiled failed (probably an out of gas error?)"
+            "Call to the bn256Add precompiled failed (probably an out of gas "
+            "error?)"
         );
     }
 
@@ -130,6 +132,7 @@ library Pairing {
         bool success;
         assembly {
             // bn256Pairing precompiled:
+            // solhint-disable-next-line
             //   https://github.com/ethereum/go-ethereum/blob/v1.7.0/core/vm/contracts.go#L59
             //
             // The bn256Pairing precompiled takes an input of size N * 192 (a
@@ -149,13 +152,21 @@ library Pairing {
             // any number of pairs (g1, g2) \in G1 x G2.  To check something in
             // the form: e(g1, g2) = e(g'1, g'2), we need to call the
             // precompiled bn256Pairing on input [(g1, g2), (neg(g'1), g'2)]
-            success := call(sub(gas, 2000), 8, 0, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
+            success := call(
+              sub(gas, 2000),
+              8,
+              0,
+              add(input, 0x20),
+              mul(inputSize, 0x20),
+              out,
+              0x20)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
         }
         require(
             success,
-            "Call to the bn256Pairing precompiled failed (probably an out of gas error?)"
+            "Call to the bn256Pairing precompiled failed (probably an out of "
+            "gas error?)"
         );
 
         return out[0] != 0;

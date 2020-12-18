@@ -14,9 +14,11 @@ pragma solidity ^0.5.0;
 ///
 /// "One-way compression function"
 /// Section: "Miyaguchi–Preneel"
+// solhint-disable-next-line max-line-length
 /// <https://en.wikipedia.org/wiki/One-way_compression_function#Miyaguchi%E2%80%93Preneel>
 ///
 /// Implementation of MiMC hash targeting BLS12-377 Fr. This means:
+// solhint-disable-next-line max-line-length
 ///   r = 8444461749428370424248824938781546531375899335154063827935233455917409239041
 ///   e (exponent) = 31, so that e=2^t-1 (t=5) and 1 == gcd(e, r-1)
 ///   rounds = 51
@@ -35,6 +37,7 @@ library MiMC31
 
         assembly
         {
+            // solhint-disable-next-line max-line-length
             let r := 8444461749428370424248824938781546531375899335154063827935233455917409239041
 
             // Perform round 0, in which rc = 0
@@ -47,6 +50,7 @@ library MiMC31
 
             // Write round constant seed to pad at 0x00, where keccak256 will
             // be applied iteratively
+            // solhint-disable-next-line max-line-length
             mstore(0x0, 0xdec937b7fa8db3de380427a8cc947bfab68514522c3439cfa2e9965509836814)
 
             for {let i := 0} slt(i, 50) {i := add(i,1)} {

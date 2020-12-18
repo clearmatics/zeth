@@ -318,7 +318,8 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         bytes32 hsig = assemble_hsig(primary_inputs);
         require(
             expected_hsig == hsig,
-            "Invalid hsig: This hsig does not correspond to the hash of vk and the nfs"
+            "Invalid hsig: This hsig does not correspond to the hash of vk and "
+            "the nfs"
         );
     }
 
