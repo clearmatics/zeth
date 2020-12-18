@@ -1,5 +1,8 @@
 # Zeth - Zerocash on Ethereum
 
+![macOS build](https://github.com/clearmatics/zeth/workflows/zeth-ci-push-build-macos/badge.svg)
+![ubuntu build](https://github.com/clearmatics/zeth/workflows/zeth-ci-push-build-ubuntu/badge.svg)
+
 :rotating_light: **WARNING** This project is a Proof of Concept. It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
 
 **Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git).
