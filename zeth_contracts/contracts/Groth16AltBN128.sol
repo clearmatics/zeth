@@ -71,13 +71,14 @@ library Groth16AltBN128
         // ORIGINAL CODE:
         //   Pairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
         //   for (uint256 i = 0; i < input.length; i++) {
-        //       vk_x = Pairing.add(vk_x, Pairing.mul(vk.ABC[i + 1], input[i]));
+        //       vk_x =
+        //           Pairing.add(vk_x, Pairing.mul(vk.ABC[i + 1], input[i]));
         //   }
         //
         // The linear combination loop was the biggest cost center of the mixer
-        // contract.  The following assembly block removes a lot of unnecessary
-        // memory usage and data copying, but relies on the structure of storage
-        // data.
+        // contract. The following assembly block removes a lot of unnecessary
+        // memory usage and data copying, but relies on the structure of
+        // storage data.
         //
         // `pad` is layed out as follows, (so that calls to precompiled
         // contracts can be done with minimal data copying)
@@ -95,7 +96,7 @@ library Groth16AltBN128
         //   0x20    accum_y
         //   0x00    accum_x
         //
-        //  ready to call bn256ScalarMul(in: 0x40, out: 0x40).  This results in:
+        //  ready to call bn256ScalarMul(in: 0x40, out: 0x40). This gives:
         //
         //  OFFSET  USAGE
         //   0x80
@@ -119,13 +120,6 @@ library Groth16AltBN128
             mstore(pad, vk_slot)
             vk_slot_num := keccak256(pad, 0x20)
             let abc_slot_num := add(vk_slot_num, 0x0a)
-
-            // // Compute slot of ABC[0]. Solidity memory array layout defines the
-            // // first entry of verifyKey.ABC as the keccak256 hash of the slot
-            // // of verifyKey.ABC. The slot of verifyKey.ABC is computed using
-            // // Solidity implicit `_slot` notation.
-            // mstore(pad, add(verifyKey_slot, 10))
-            // let abc_slot := keccak256(pad, 32)
 
             // Compute input array bounds (layout: <len>,elem_0,elem_1...)
             let input_i := add(input, 0x20)
@@ -180,8 +174,8 @@ library Groth16AltBN128
         //   e(vk_x, -g2) * e(vk.Alpha, vk.Minus_Beta) *
         //       e(negate(Proof.A), Proof.B) * e(Proof.C, vk.Minus_Delta) == 1
         //
-        // See Pairing.pairing().  Note terms have been re-ordered since vk_x is
-        // already at offset 0x00.  Memory is laid out:
+        // See Pairing.pairing(). Note terms have been re-ordered since vk_x is
+        // already at offset 0x00. Memory is laid out:
         //
         //   0x0300
         //   0x0280 - verifyKey.Minus_Delta in G2
@@ -214,8 +208,8 @@ library Groth16AltBN128
                 // solhint-disable-next-line max-line-length
                 0x1d9befcd05a5323e6da4d435f3b617cdb3af83285c2df711ef39c01571827f9d)
 
-            // Write vk.Alpha, vk.Minus_Beta (first 6 uints from verifyKey) from
-            // offset 0x0c0.
+            // Write vk.Alpha, vk.Minus_Beta (first 6 uints from verifyKey)
+            // from offset 0x0c0.
             mstore(add(pad, 0x0c0), sload(vk_slot_num))
             mstore(add(pad, 0x0e0), sload(add(vk_slot_num, 1)))
             mstore(add(pad, 0x100), sload(add(vk_slot_num, 2)))

@@ -16,8 +16,9 @@ contract BLS12_377_test
     uint256 private constant G2_POINT_WORDS = 2 * G2_COORD_WORDS;
 
     /// `input` is the concatenation of 2 encoded points in G1
-    function testECAdd(bytes32[2 * G1_POINT_WORDS] memory input) public returns(
-        bytes32[G1_POINT_WORDS] memory)
+    function testECAdd(bytes32[2 * G1_POINT_WORDS] memory input)
+        public
+        returns(bytes32[G1_POINT_WORDS] memory)
     {
         bytes32[G1_POINT_WORDS] memory output;
         bool success = true;
@@ -32,7 +33,8 @@ contract BLS12_377_test
 
     /// `input` is an encoded point in G1, followed by an encoded scalar.
     function testECMul(bytes32[G1_POINT_WORDS + SCALAR_WORDS] memory input)
-        public returns(bytes32[G1_POINT_WORDS] memory)
+        public
+        returns(bytes32[G1_POINT_WORDS] memory)
     {
         bytes32[G1_POINT_WORDS] memory output;
         bool success = true;

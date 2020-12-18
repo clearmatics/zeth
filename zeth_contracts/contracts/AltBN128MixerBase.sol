@@ -18,7 +18,8 @@ contract AltBN128MixerBase is MixerBase
     uint256 internal constant FIELD_CAPACITY = 253;
 
     // Number of residual bits per bytes32
-    uint256 internal constant NUM_RESIDUAL_BITS = DIGEST_LENGTH - FIELD_CAPACITY;
+    uint256 internal constant NUM_RESIDUAL_BITS =
+        DIGEST_LENGTH - FIELD_CAPACITY;
 
     // Shift to move residual bits from lowest order to highest order
     uint256 internal constant RESIDUAL_BITS_SHIFT = 256 - NUM_RESIDUAL_BITS;
@@ -62,7 +63,7 @@ contract AltBN128MixerBase is MixerBase
         returns(bytes32)
     {
         // The residual bits are located at:
-        //   (2 * public_value_bits) + (residual_bits_set_idx*NUM_RESIDUAL_BITS)
+        //  (2 * public_value_bits) + (residual_bits_set_idx*NUM_RESIDUAL_BITS)
         //
         // Shift to occupy the highest order bits:
         // 255                                       128         64           0
@@ -73,8 +74,9 @@ contract AltBN128MixerBase is MixerBase
         // Number of bits AFTER public values
         uint256 residual_bits_idx = residual_bits_set_idx * NUM_RESIDUAL_BITS;
         uint256 bits_to_shift =
-        RESIDUAL_BITS_SHIFT - TOTAL_PUBLIC_VALUE_BITS - residual_bits_idx;
-        uint256 residual_bits = (residual << bits_to_shift) & RESIDUAL_BITS_MASK;
+            RESIDUAL_BITS_SHIFT - TOTAL_PUBLIC_VALUE_BITS - residual_bits_idx;
+        uint256 residual_bits =
+            (residual << bits_to_shift) & RESIDUAL_BITS_MASK;
         return bytes32(field_element | residual_bits);
     }
 }
