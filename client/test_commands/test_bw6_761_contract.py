@@ -124,6 +124,10 @@ def main() -> None:
     test_bw6_ecmul(bw6_instance)
     test_bw6_ecpairing(bw6_instance)
 
+    print("========================================")
+    print("==              PASSED                ==")
+    print("========================================")
+
 
 if __name__ == "__main__":
     main()
