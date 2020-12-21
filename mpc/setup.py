@@ -20,13 +20,13 @@ if sys.version_info < (3, 7):
 
 setup(
     name='coordinator',
-    version='0.5',
+    version='0.6',
     description='MPC Coordinator for Zeth SRS',
     packages=find_packages(),
     install_requires=[
-        "mypy==0.720",
+        "mypy==0.790",
         "flake8==3.7.8",
-        "pylint==2.4.3",
+        "pylint==2.6",
         "flask==1.1.1",
         "cheroot==7.0.0",
         "pycryptodome==3.9.0",

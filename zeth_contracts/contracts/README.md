@@ -1,11 +1,6 @@
-# On-chain verification contracts
+# Zeth smart contracts
 
-The Byzantium hard fork of Ethereum has introduced [pre-compiled contracts for elliptic curves operations](https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go#L56-L59).
+The Byzantium hard fork of Ethereum has introduced [precompiled contracts for elliptic curves operations (on bn256)](https://github.com/ethereum/go-ethereum/blob/v1.7.1/core/vm/contracts.go#L57-L59). When configured with `ALT_BN128`, Zeth will use these precompiled contracts (in the client) as part of the transition to new blockchain states.
 
-As we know that a SNARK proof is composed of a few (bilinear) group elements, and that the verification mainly consists
-in doing pairing operations to check quadratic equality, one can see that it is now possible to verify SNARK proofs on-chain
-(**Assuming that the encoding scheme is compatible with the publicly verifiable setting**, here this is the case because
-the SNARK we use, uses exponentiation in a bilinear group as encoding).
-
-This repository contains all the smart-contracts that are used to carry-out the on-chain verification, and to maintain the
-merkle tree of commitments as described in the zerocash paper.
+However, when using other curves such as `BLS12_377` or `BW6_761` for instance (which, at the time of writing, are not supported by the [go-ethereum client](https://github.com/ethereum/go-ethereum/tree/v1.9.25)), one needs to make sure that the underlying client will support precompiled for arithmetic over these curves.
+Such extension to the execution environment is supported in [our fork of ganache-cli](https://github.com/clearmatics/ganache-cli/tree/v6.10.1-clearmatics) for testing purposes (check [here](https://github.com/clearmatics/ethereumjs-vm/blob/v4.1.3-clearmatics/lib/evm/precompiles/index.ts#L30-L36) for the addresses of these instructions). Some of the Zeth contracts use these additional precompiled contracts to specify state transitions.

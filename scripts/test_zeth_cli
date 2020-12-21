@@ -67,6 +67,7 @@ zeth sync
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
 ! [ "" == ${note_id} ]
 charlie_pk=`cat ../charlie/zeth-address.pub`
+
 zeth mix \
      --wait \
      --in ${note_id} \

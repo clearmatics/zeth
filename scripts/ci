@@ -24,7 +24,7 @@ function check_format() {
 function check_contracts() {
     pushd zeth_contracts
     npm config set python python2.7
-    npm install
+    npm install --unsafe-perm
     npm run check
     popd
 }
@@ -36,7 +36,7 @@ function check_client() {
     pip install --upgrade pip --progress-bar off
     pip install --upgrade setuptools wheel
     make setup
-    make syntax
+    make check
 
     deactivate
     popd
@@ -56,22 +56,13 @@ function check_cpp() {
     popd
 }
 
-function test_client() {
-    pushd client
-    python3 -m venv env
-    . env/bin/activate
-    pip install --upgrade pip --progress-bar off
-    make setup
-    make test
-
-    deactivate
-    popd
-}
-
-function command_tests() {
+function mpc_tests() {
 
     # These commands are only for the GROTH16 config
     if ! [ "${CI_ZKSNARK}" == "GROTH16" ] ; then
+        return
+    fi
+    if ! [ "${CI_CURVE}" == "ALT_BN128" ] ; then
         return
     fi
 
@@ -109,6 +100,7 @@ function build() {
     fi
 
     cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG} -DZETH_SNARK=${CI_ZKSNARK}"
+    cmake_flags="${cmake_flags} -DZETH_CURVE=${CI_CURVE}"
     if ! [ "${full_build}" == "1" ] ; then
         cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
     fi
@@ -126,7 +118,7 @@ function build() {
     CTEST_OUTPUT_ON_FAILURE=1 make -j 2 check
     cd ..
 
-    command_tests
+    mpc_tests
 }
 
 function ci_setup() {
@@ -134,7 +126,6 @@ function ci_setup() {
     if [ "${platform}" == "Darwin" ] ; then
         # Some of these commands can fail (if packages are already installed,
         # etc), hence the `|| echo`.
-        brew unlink python@2
         brew update || echo
         brew install \
              gmp \
@@ -146,26 +137,32 @@ function ci_setup() {
              libtool \
              autoconf \
              automake \
-             python \
              || echo
     fi
 
     # The base docker image we use is Alpine
     # See: https://www.alpinelinux.org/
     if [ "${platform}" == "Linux" ] ; then
-        apk add --update npm
 
-        # `py3-virtualenv` depends on `python3`
-        # which installs the latest version of python3
-        # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
-        # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
-        apk add \
-            py3-virtualenv \
-            libffi-dev \
-            python3-dev
+        if (which apk) ; then
+            apk add --update npm
 
-        # Install openssl for the mpc tests
-        apk add openssl
+            # `py3-virtualenv` depends on `python3`
+            # which installs the latest version of python3
+            # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
+            # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
+            apk add \
+                py3-virtualenv \
+                libffi-dev \
+                python3-dev
+
+            # Install openssl for the mpc tests
+            apk add openssl
+        else
+            sudo apt update
+            sudo apt install python3-venv
+        fi
+
     fi
 }
 
@@ -182,6 +179,7 @@ echo ci_task = ${ci_task}
 echo full_build=${full_build}
 echo CI_CONFIG=${CI_CONFIG}
 echo CI_ZKSNARK=${CI_ZKSNARK}
+echo CI_CURVE=${CI_CURVE}
 echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
 echo CI_EVENT_NAME=${CI_EVENT_NAME}
 
@@ -191,6 +189,10 @@ fi
 
 if [ "${CI_ZKSNARK}" == "" ] ; then
     CI_ZKSNARK="GROTH16"
+fi
+
+if [ "${CI_CURVE}" == "" ] ; then
+   CI_CURVE="ALT_BN128"
 fi
 
 # The CI_USE_DOCKER variable determines whether we should
@@ -204,6 +206,7 @@ if [ "${CI_USE_DOCKER}" == "1" ] ; then
            --name zeth \
            --env CI_CONFIG=${CI_CONFIG} \
            --env CI_ZKSNARK=${CI_ZKSNARK} \
+           --env CI_CURVE=${CI_CURVE} \
            zeth-dev:latest $0 ${ci_task} ${full_build}
 else
     ci_setup

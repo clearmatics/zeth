@@ -4,29 +4,30 @@
 
 pragma solidity ^0.5.0;
 
-import "./MerkleTreeMiMC7.sol";
+import "./BaseMerkleTree.sol";
+import "./MiMC7.sol";
 
-// The Merkle tree implementation must trade-off complexity, storage,
-// initialization cost, and update & root computation cost.
-//
-// This implementation stores all leaves and nodes, skipping those that have
-// not been populated yet. The final entry in each layer stores that layer's
-// default value.
-contract MerkleTreeMiMC7_test is MerkleTreeMiMC7
+/// The Merkle tree implementation must trade-off complexity, storage,
+/// initialization cost, and update & root computation cost.
+///
+/// This implementation stores all leaves and nodes, skipping those that have
+/// not been populated yet. The final entry in each layer stores that layer's
+/// default value.
+contract MerkleTreeMiMC7_test is BaseMerkleTree
 {
-    constructor(uint treeDepth) MerkleTreeMiMC7(treeDepth) public
-    {
-        // Nothing
+    constructor(uint treeDepth) public BaseMerkleTree(treeDepth) {
     }
 
-    // Add some leaves, computing the root, then adding more leaves and
-    // recomputing the root.  Returns the full set of nodes at the end.  This
-    // allows testing of the update code paths for any starting / finishing
-    // state combination.
+    /// Add some leaves, computing the root, then adding more leaves and
+    /// recomputing the root.  Returns the full set of nodes at the end.  This
+    /// allows testing of the update code paths for any starting / finishing
+    /// state combination.
     function testAddLeaves(
         bytes32[] memory first,
-        bytes32[] memory second)
-        public returns (bytes32)
+        bytes32[] memory second
+    )
+        public
+        returns (bytes32)
     {
         for (uint i = 0 ; i < first.length ; ++i) {
             insert(first[i]);
@@ -38,5 +39,10 @@ contract MerkleTreeMiMC7_test is MerkleTreeMiMC7
         }
         root = recomputeRoot(second.length);
         return root;
+    }
+
+    /// Use MiMC7 as the Merkle tree hash function.
+    function hash(bytes32 left, bytes32 right) internal returns(bytes32) {
+        return MiMC7.hash(left, right);
     }
 }

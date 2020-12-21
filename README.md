@@ -1,11 +1,16 @@
 # Zeth - Zerocash on Ethereum
 
+![macOS build](https://github.com/clearmatics/zeth/workflows/zeth-ci-push-build-macos/badge.svg)
+![ubuntu build](https://github.com/clearmatics/zeth/workflows/zeth-ci-push-build-ubuntu/badge.svg)
+
 :rotating_light: **WARNING** This project is a Proof of Concept. It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
 
 **Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git).
 It follows and extends the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by [Zcash](https://github.com/zcash/zcash).
 
 :point_right: Check our [paper](https://arxiv.org/pdf/1904.00905.pdf), and the [protocol specifications](https://github.com/clearmatics/zeth-specifications) for more information about Zeth.
+
+:raising_hand: Want to propose a protocol change? Amazing! Please consider writing a [Zeth Protocol Improvement Proposal (ZPIP)](https://github.com/clearmatics/zpips).
 
 ## Building and running the project:
 
@@ -15,8 +20,8 @@ It follows and extends the design presented in [zerocash-ethereum](https://githu
 
 In order to follow the README below, you will need:
 - [Docker](https://www.docker.com/get-started)
-- [Npm](https://www.npmjs.com/get-npm) (at least version `6.4.1`)
-- [Node](https://nodejs.org/en/) (at least version `v9.5.0`)
+- [Npm](https://www.npmjs.com/get-npm) (at least version `6.9.0`)
+- [Node](https://nodejs.org/en/) (recommended version `v10` to be able to build and use the custom `ganache-cli`)
 - [Python3](https://www.python.org/downloads/) (at least version `3.7`)
 - [Pip](https://pip.pypa.io/en/stable/) (at least version `19.0.2`)
 
@@ -58,8 +63,6 @@ docker run -ti -p 50051:50051 --name prover zeth-prover:latest prover_server
 git clone git@github.com:clearmatics/zeth.git
 cd zeth
 
-# Pull the zeth-base image (built from `Dockerfile-base`)
-docker pull clearmatics/zeth-base:latest
 # Build the zeth-dev image
 docker build -f Dockerfile-dev -t zeth-dev .
 # Start the zeth development container
@@ -162,6 +165,16 @@ cd build
 cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address -DCMAKE_BUILD_TYPE=Debug ..
 make check
 ```
+
+## Docker images
+| Docker files | Image | Tags | Description |
+|---------------|------|-----|--|
+| [./Dockerfile-prover](./Dockerfile-prover) | [clearmatics/zeth-prover](https://hub.docker.com/r/clearmatics/zeth-prover) | `latest`, `vX.Y.Z` - Release of zeth, `git-%HASH%` - developers build by git-commit  | [Zeth Prover Server](./prover_server/README.md). Image use `zeth-base` for building |
+| [./Dockerfile-client](./Dockerfile-client) | [clearmatics/zeth-client](https://hub.docker.com/r/clearmatics/zeth-client) | `latest`, `vX.Y.Z` - Release of zeth, `git-%HASH%` - developers build by git-commit  | [Python client to interact with the prover](./client/README.md) |
+| [./Dockerfile-mpc](./Dockerfile-mpc) | [clearmatics/zeth-mpc](https://hub.docker.com/r/clearmatics/zeth-mpc) | `latest`, `vX.Y.Z` - Release of zeth, `git-%HASH%` - developers build by git-commit  | [Tools for Multi-Party Computation](./mpc/README.md). Image use `zeth-base` for building |
+| [./Dockerfile-base](./Dockerfile-base) | [clearmatics/zeth-base](https://hub.docker.com/r/clearmatics/zeth-base) | `latest`, `vA.B.C` - Release of zeth-base | Base image for building other containers |
+
+
 
 ## Run analysis tools on the code
 

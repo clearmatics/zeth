@@ -1,97 +1,134 @@
-// DISCLAIMER:
-// Content taken and adapted from:
-// https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
 
 #ifndef __ZETH_CIRCUITS_MIMC_ROUND_TCC__
 #define __ZETH_CIRCUITS_MIMC_ROUND_TCC__
 
+#include "libzeth/circuits/mimc/mimc_round.hpp"
+
 namespace libzeth
 {
 
-template<typename FieldT>
-MiMCe7_round_gadget<FieldT>::MiMCe7_round_gadget(
+template<typename FieldT, size_t Exponent>
+MiMC_round_gadget<FieldT, Exponent>::MiMC_round_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> &x,
-    const libsnark::pb_variable<FieldT> &k,
-    const FieldT &c,
-    const bool add_k_to_result,
+    const libsnark::pb_variable<FieldT> &msg,
+    const libsnark::pb_variable<FieldT> &key,
+    const FieldT &round_const,
+    libsnark::pb_variable<FieldT> &result,
+    const bool add_key_to_result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
-    , x(x)
-    , k(k)
-    , c(c)
-    , add_k_to_result(add_k_to_result)
+    , msg(msg)
+    , key(key)
+    , round_const(round_const)
+    , result(result)
+    , add_key_to_result(add_key_to_result)
 {
-    // Allocate the intermediary variables
-    t2.allocate(pb, FMT(this->annotation_prefix, " t2"));
-    t4.allocate(pb, FMT(this->annotation_prefix, " t4"));
-    t6.allocate(pb, FMT(this->annotation_prefix, " t6"));
-    t7.allocate(pb, FMT(this->annotation_prefix, " out"));
-};
+    // Each condition requires an intermediate variable, except the final one,
+    // which uses _result (and optionally _k).
+    exponents.resize(NUM_CONDITIONS - 1);
+}
 
-template<typename FieldT>
-void MiMCe7_round_gadget<FieldT>::generate_r1cs_constraints()
+template<typename FieldT, size_t Exponent>
+void MiMC_round_gadget<FieldT, Exponent>::generate_r1cs_constraints()
 {
-    // First define the temporary variable t as a linear combination of x, k and
-    // c
-    libsnark::linear_combination<FieldT> t = x + k + c;
+    // Mask to capture the most significant bit (the "current" bit when
+    // iterating from most to least significant).
+    constexpr size_t mask = 1 << (EXPONENT_NUM_BITS - 1);
+    // t = x + k + c
+    libsnark::pb_linear_combination<FieldT> t;
+    t.assign(this->pb, msg + key + round_const);
 
-    // Constrain the intermediary variables t2 t4 and t6
-    //
-    // Add contraint `a = t^2`
+    // For first bit (1 by definition) compute t^2
+    size_t exp = Exponent << 1;
+    exponents[0].allocate(
+        this->pb, FMT(this->annotation_prefix, " exponents[0]"));
     this->pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(t, t, t2),
-        FMT(this->annotation_prefix, " round_constraint_t2"));
-    // Add contraint `b = a^2 = t^4`
-    this->pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(t2, t2, t4),
-        FMT(this->annotation_prefix, " round_constraint_t4"));
-    // Add contraint `c = a*b = t^6`
-    this->pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(t2, t4, t6),
-        FMT(this->annotation_prefix, " round_constraint_t6"));
+        libsnark::r1cs_constraint<FieldT>(t, t, exponents[0]),
+        FMT(this->annotation_prefix, " calc_t^2"));
 
-    // Constrain t7 depending on the value of `add_k_to_result`
-    if (add_k_to_result) {
-        // Add constraint d = t*c + k = t^7 + k (key included)
+    size_t exp_idx = 1;
+    libsnark::pb_variable<FieldT> *last = &exponents[0];
+
+    // Square-and-multiply based on all bits up to the final (lowest-order) bit.
+    for (size_t i = 1; i < EXPONENT_NUM_BITS - 1; ++i) {
+        if (exp & mask) {
+            // last = last * t
+            const size_t new_exp = exp >> (EXPONENT_NUM_BITS - 1);
+            exponents[exp_idx].allocate(
+                this->pb,
+                FMT(this->annotation_prefix, " exponents[%zu]", exp_idx));
+            this->pb.add_r1cs_constraint(
+                libsnark::r1cs_constraint<FieldT>(t, *last, exponents[exp_idx]),
+                FMT(this->annotation_prefix, " calc_t^%zu", new_exp));
+            last = &exponents[exp_idx];
+            ++exp_idx;
+        }
+
+        // last = last * last
+        const size_t new_exp = 2 * (exp >> (EXPONENT_NUM_BITS - 1));
+        exponents[exp_idx].allocate(
+            this->pb, FMT(this->annotation_prefix, " exponents[%zu]", exp_idx));
         this->pb.add_r1cs_constraint(
-            libsnark::r1cs_constraint<FieldT>(t, t6, t7 - k),
-            FMT(this->annotation_prefix, " round_constraint_t7+k"));
-    } else {
-        // Add constraint d = t*c = t^7
-        this->pb.add_r1cs_constraint(
-            libsnark::r1cs_constraint<FieldT>(t, t6, t7),
-            FMT(this->annotation_prefix, " round_constraint_t7"));
+            libsnark::r1cs_constraint<FieldT>(*last, *last, exponents[exp_idx]),
+            FMT(this->annotation_prefix, " calc_t^%zu", new_exp));
+        last = &exponents[exp_idx];
+        ++exp_idx;
+
+        // Shift to capture the next bit by mask.
+        exp = exp << 1;
     }
-};
+    assert(exp_idx == exponents.size());
 
-template<typename FieldT>
-void MiMCe7_round_gadget<FieldT>::generate_r1cs_witness() const
+    // Final multiply (lowest-order bit is known to be 1):
+    //   result = last * t (+ k)
+    // such that:
+    //   result (- k) = last * t
+    if (add_key_to_result) {
+        this->pb.add_r1cs_constraint(
+            libsnark::r1cs_constraint<FieldT>(*last, t, result - key),
+            FMT(this->annotation_prefix, " calc_t^%zu_add_key", Exponent));
+    } else {
+        this->pb.add_r1cs_constraint(
+            libsnark::r1cs_constraint<FieldT>(*last, t, result),
+            FMT(this->annotation_prefix, " calc_t^%zu", Exponent));
+    }
+}
+
+template<typename FieldT, size_t Exponent>
+void MiMC_round_gadget<FieldT, Exponent>::generate_r1cs_witness() const
 {
-    // First, fill the values of key and t
-    const FieldT val_k = this->pb.val(k);
-    const FieldT t = this->pb.val(x) + val_k + c;
+    constexpr size_t mask = 1 << (EXPONENT_NUM_BITS - 1);
+    const FieldT k_val = this->pb.val(key);
+    const FieldT t = this->pb.val(msg) + k_val + round_const;
 
-    // Compute the intermediary values and fill intermediary variables with them
-    const FieldT val_t2 = t * t;
-    this->pb.val(t2) = val_t2;
+    // First intermediate variable has value t^2
+    size_t exp = Exponent << 1;
+    FieldT v = t * t;
+    this->pb.val(exponents[0]) = v;
 
-    const FieldT val_t4 = val_t2 * val_t2;
-    this->pb.val(t4) = val_t4;
+    // Square-and-multiply remaining bits, except final one.
+    size_t var_idx = 1;
+    for (size_t i = 1; i < EXPONENT_NUM_BITS - 1; ++i) {
+        if (exp & mask) {
+            // v <- v * t
+            v = v * t;
+            this->pb.val(exponents[var_idx++]) = v;
+        }
 
-    const FieldT val_t6 = val_t2 * val_t4;
-    this->pb.val(t6) = val_t6;
+        v = v * v;
+        this->pb.val(exponents[var_idx++]) = v;
+    }
 
-    const FieldT result =
-        (val_t6 * t) + (add_k_to_result ? val_k : FieldT::zero());
-    this->pb.val(t7) = result;
-};
-
-template<typename FieldT>
-const libsnark::pb_variable<FieldT> &MiMCe7_round_gadget<FieldT>::result() const
-{
-    return t7;
-};
+    // v = v * t (+ k)
+    v = v * t;
+    if (add_key_to_result) {
+        v = v + k_val;
+    }
+    this->pb.val(result) = v;
+}
 
 } // namespace libzeth
 

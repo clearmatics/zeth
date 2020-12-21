@@ -20,6 +20,10 @@ public:
     using keypair = libsnark::r1cs_gg_ppzksnark_keypair<ppT>;
     using proof = libsnark::r1cs_gg_ppzksnark_proof<ppT>;
 
+    /// String name of this snark, corresponding to <SNARK> in the
+    /// ZETH_SNARK_<SNARK> configuration variable.
+    static const std::string name;
+
     /// Run the trusted setup and return the keypair for the circuit
     static keypair generate_setup(
         const libsnark::protoboard<libff::Fr<ppT>> &pb);
@@ -53,7 +57,7 @@ public:
     /// Read proving key as bytes
     static proving_key proving_key_read_bytes(std::istream &);
 
-    /// Write proof as json
+    /// Write proof as json.
     static std::ostream &proof_write_json(
         const proof &proof, std::ostream &out_s);
 

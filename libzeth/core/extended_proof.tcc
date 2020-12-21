@@ -16,9 +16,8 @@ template<typename ppT, typename snarkT>
 extended_proof<ppT, snarkT>::extended_proof(
     typename snarkT::proof &&in_proof,
     libsnark::r1cs_primary_input<libff::Fr<ppT>> &&in_primary_inputs)
+    : proof(in_proof), primary_inputs(in_primary_inputs)
 {
-    proof = in_proof;
-    primary_inputs = in_primary_inputs;
 }
 
 template<typename ppT, typename snarkT>

@@ -4,16 +4,14 @@
 
 pragma solidity ^0.5.0;
 
-// Adapted from: https://github.com/zcash-hackworks/babyzoe
 import "./BaseMerkleTree.sol";
 
 contract MerkleTreeSha256 is BaseMerkleTree {
 
-    constructor(uint256 treeDepth) BaseMerkleTree(treeDepth) public {
-        // Nothing
+    constructor(uint256 treeDepth) public BaseMerkleTree(treeDepth) {
     }
 
-    // Returns the current merkle tree
+    /// Returns the current merkle tree
     function getTree() internal view returns (bytes32[] memory) {
         uint256 nbNodes = 2**(depth + 1) - 1;
         bytes32[] memory tmpTree = new bytes32[](nbNodes);
@@ -35,7 +33,7 @@ contract MerkleTreeSha256 is BaseMerkleTree {
         return tmpTree;
     }
 
-    // Returns the root of the merkle tree
+    /// Returns the root of the merkle tree
     function getRoot() internal view returns(bytes32) {
         return getTree()[0];
     }

@@ -16,6 +16,11 @@ disable=
     protected-access,
     fixme,
     import-outside-toplevel,
+    unsubscriptable-object,
+
+# TODO: `unsubscriptable-object` generates false positives for python 3.9 and pylint==2.6.
+#   https://github.com/PyCQA/pylint/issues/3882
+# Re-enable it when the issue is fixed.
 
 good-names=c,e,h,i,k,m,r,y,x,cm,ct,el,ek,ex,rc,sk,vk,X,Y,nf
 

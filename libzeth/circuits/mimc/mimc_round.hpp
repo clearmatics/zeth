@@ -1,63 +1,59 @@
-// DISCLAIMER:
-// Content taken and adapted from:
-// https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
 
 #ifndef __ZETH_CIRCUITS_MIMC_ROUND_HPP__
 #define __ZETH_CIRCUITS_MIMC_ROUND_HPP__
 
 #include "libzeth/circuits/circuit_utils.hpp"
+#include "libzeth/core/utils.hpp"
 
 #include <libsnark/gadgetlib1/gadget.hpp>
 
 namespace libzeth
 {
 
-/// MiMCe7_round_gadget enforces correct computation of a MiMC permutation round
-/// with exponent 7. In MiMC permutation last round differs from the others
-/// since the key is added again. We use a boolean variable `add_k_to_result` to
-/// manage this case.
-template<typename FieldT>
-class MiMCe7_round_gadget : public libsnark::gadget<FieldT>
+template<typename FieldT, size_t Exponent>
+class MiMC_round_gadget : public libsnark::gadget<FieldT>
 {
 private:
-    // Message of the current round
-    const libsnark::pb_variable<FieldT> x;
-    // Key of the current round
-    const libsnark::pb_variable<FieldT> k;
-    // Round constant of the current round
-    const FieldT c;
-    // Boolean variable to add the key after the round
-    const bool add_k_to_result;
+    static_assert((Exponent & 1) == 1, "MiMC Exponent must be odd");
 
-    // Intermediary var for computing t**2
-    libsnark::pb_variable<FieldT> t2;
-    // Intermediary var for computing t**4
-    libsnark::pb_variable<FieldT> t4;
-    // Intermediary var for computing t**6
-    libsnark::pb_variable<FieldT> t6;
-    // Intermediary result for computing t**7 (or t ** 7 + k depending on
-    // add_k_to_result)
-    libsnark::pb_variable<FieldT> t7;
+    static constexpr size_t EXPONENT_NUM_BITS = bit_utils<Exponent>::bit_size();
+    static constexpr size_t NUM_CONDITIONS =
+        bit_utils<Exponent>::bit_size() +
+        bit_utils<Exponent>::hamming_weight() - 2;
+
+    // Message of the current round
+    const libsnark::pb_variable<FieldT> msg;
+
+    // Key of the current round
+    const libsnark::pb_variable<FieldT> key;
+
+    // Round constant of the current round
+    const FieldT round_const;
+
+    // Result variable
+    const libsnark::pb_variable<FieldT> result;
+
+    // Boolean variable to add the key after the round
+    const bool add_key_to_result;
+
+    // Intermediate values
+    std::vector<libsnark::pb_variable<FieldT>> exponents;
 
 public:
-    MiMCe7_round_gadget(
+    MiMC_round_gadget(
         libsnark::protoboard<FieldT> &pb,
-        // Message of the current round
-        const libsnark::pb_variable<FieldT> &x,
-        // Key of the current round
-        const libsnark::pb_variable<FieldT> &k,
-        // Round constant of the current round
-        const FieldT &c,
-        // Boolean variable to add the key after the round
+        const libsnark::pb_variable<FieldT> &msg,
+        const libsnark::pb_variable<FieldT> &key,
+        const FieldT &round_const,
+        libsnark::pb_variable<FieldT> &result,
         const bool add_k_to_result,
-        const std::string &annotation_prefix = "MiMCe7_round_gadget");
+        const std::string &annotation_prefix = "MiMC_round_gadget");
 
     void generate_r1cs_constraints();
     void generate_r1cs_witness() const;
-
-    // Returns round result t ** 7 + add_k_to_result * k
-    // where t = (x + k + c)
-    const libsnark::pb_variable<FieldT> &result() const;
 };
 
 } // namespace libzeth

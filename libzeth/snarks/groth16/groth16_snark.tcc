@@ -12,6 +12,8 @@
 namespace libzeth
 {
 
+template<typename ppT> const std::string groth16_snark<ppT>::name("GROTH16");
+
 template<typename ppT>
 typename groth16_snark<ppT>::keypair groth16_snark<ppT>::generate_setup(
     const libsnark::protoboard<libff::Fr<ppT>> &pb)

@@ -17,8 +17,7 @@ from os.path import join, dirname, normpath, exists
 import eth_abi
 import eth_keys  # type: ignore
 from web3 import Web3, HTTPProvider  # type: ignore
-from py_ecc import bn128 as ec
-from typing import List, Tuple, Union, Any, Optional, cast
+from typing import Sequence, List, Tuple, Union, Iterable, Any, Optional, cast
 
 # Some Ethereum node implementations can cause a timeout if the contract
 # execution takes too long. We expect the contract to complete in under 30s on
@@ -42,10 +41,6 @@ def open_web3(
         'verify': request_verify,
     }
     return Web3(HTTPProvider(url, request_kwargs=request_kwargs))
-
-
-FQ = ec.FQ
-G1 = Tuple[ec.FQ, ec.FQ]
 
 
 class EtherValue:
@@ -92,14 +87,14 @@ class EtherValue:
         return str(Web3.fromWei(self.wei, 'ether'))
 
 
-def encode_single(type_name: str, data: bytes) -> bytes:
+def encode_single(type_name: str, data: Any) -> bytes:
     """
     Typed wrapper around eth_abi.encode_single
     """
     return eth_abi.encode_single(type_name, data)  # type: ignore
 
 
-def encode_abi(type_names: List[str], data: List[bytes]) -> bytes:
+def encode_abi(type_names: List[str], data: List[Any]) -> bytes:
     """
     Typed wrapper around eth_abi.encode_abi
     """
@@ -136,15 +131,24 @@ def eth_address_from_private_key(eth_private_key: bytes) -> str:
     return pk.public_key.to_address()
 
 
-def g1_to_bytes(group_el: G1) -> bytes:
+def int_and_bytelen_from_hex(value_hex: str) -> Tuple[int, int]:
     """
-    Encode a group element into a byte string
-    We assume here the group prime $p$ is written in less than 256 bits
-    to conform with Ethereum bytes32 type.
+    Decode prefixed / non-prefixed hex string and extract the length in bytes
+    as well as the value.
     """
-    return \
-        int(group_el[0]).to_bytes(32, byteorder='big') + \
-        int(group_el[1]).to_bytes(32, byteorder='big')
+    assert len(value_hex) % 2 == 0
+    if value_hex.startswith("0x"):
+        num_bytes = int((len(value_hex) - 2) / 2)
+    else:
+        num_bytes = int(len(value_hex) / 2)
+    return (int(value_hex, 16), num_bytes)
+
+
+def int_to_hex(value: int, num_bytes: int) -> str:
+    """
+    Create prefixed hex string enforcing a specific byte-length.
+    """
+    return "0x" + value.to_bytes(num_bytes, byteorder='big').hex()
 
 
 def int64_to_bytes(number: int) -> bytes:
@@ -165,11 +169,34 @@ def digest_to_binary_string(digest: bytes) -> str:
     return "".join(["{0:08b}".format(b) for b in digest])
 
 
-def hex_to_int(elements: List[str]) -> List[int]:
+def hex_to_uint256_list(hex_str: str) -> Iterable[int]:
     """
-    Given an array of hex strings, return an array of int values
+    Given a hex string of arbitrary size, split into uint256 ints, left padding
+    with 0s.
     """
-    return [int(x, 16) for x in elements]
+    if hex_str.startswith("0x"):
+        hex_str = hex_str[2:]
+    assert len(hex_str) % 2 == 0
+    start_idx = 0
+    next_idx = len(hex_str) - int((len(hex_str) - 1) / 64) * 64
+    while next_idx <= len(hex_str):
+        sub_str = hex_str[start_idx:next_idx]
+        yield int(sub_str, 16)
+        start_idx = next_idx
+        next_idx = next_idx + 64
+
+
+def hex_list_to_uint256_list(
+        elements: Sequence[Union[str, List[str]]]) -> List[int]:
+    """
+    Given an array of hex strings, return an array of int values by converting
+    each hex string to evm uint256 words, and flattening the final list.
+    """
+    # In reality, we need to cope with lists of lists, to handle all
+    # field extension degrees for all curve coordinate types.
+    # TODO: Create a new type to describe this safely.
+    flat_elements = string_list_flatten(elements)
+    return [i for hex_str in flat_elements for i in hex_to_uint256_list(hex_str)]
 
 
 def extend_32bytes(value: bytes) -> bytes:
@@ -231,21 +258,20 @@ def get_contracts_dir() -> str:
         join(get_zeth_dir(), "zeth_contracts", "contracts"))
 
 
-def string_list_flatten(
-        strs_list: Union[List[str], List[Union[str, List[str]]]]) -> List[str]:
+def string_list_flatten(str_list: Sequence[Union[str, List[str]]]) -> List[str]:
     """
     Flatten a list containing strings or lists of strings.
     """
-    if any(isinstance(el, (list, tuple)) for el in strs_list):
+    if any(isinstance(el, (list, tuple)) for el in str_list):
         strs: List[str] = []
-        for el in strs_list:
+        for el in str_list:
             if isinstance(el, (list, tuple)):
                 strs.extend(el)
             else:
                 strs.append(cast(str, el))
         return strs
 
-    return cast(List[str], strs_list)
+    return cast(List[str], str_list)
 
 
 def message_to_bytes(message_list: Any) -> bytes:

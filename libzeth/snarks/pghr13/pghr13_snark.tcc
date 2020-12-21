@@ -12,6 +12,8 @@
 namespace libzeth
 {
 
+template<typename ppT> const std::string pghr13_snark<ppT>::name("PGHR13");
+
 template<typename ppT>
 typename pghr13_snark<ppT>::keypair pghr13_snark<ppT>::generate_setup(
     const libsnark::protoboard<libff::Fr<ppT>> &pb)

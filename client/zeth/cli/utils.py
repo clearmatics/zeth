@@ -9,8 +9,11 @@ from zeth.cli.constants import WALLET_USERNAME, ETH_ADDRESS_DEFAULT, \
     ZETH_PUBLIC_ADDRESS_FILE_DEFAULT
 from zeth.core.zeth_address import ZethAddressPub, ZethAddressPriv, ZethAddress
 from zeth.core.contracts import \
-    InstanceDescription, get_block_number, get_mix_results, compile_files
-from zeth.core.mixer_client import MixerClient
+    InstanceDescription, get_block_number, compile_files
+from zeth.core.mimc import get_tree_hash_for_pairing
+from zeth.core.prover_client import ProverClient
+from zeth.core.pairing import PairingParameters
+from zeth.core.mixer_client import MixerClient, get_mix_results
 from zeth.core.utils import \
     open_web3, short_commitment, EtherValue, get_zeth_dir, from_zeth_units
 from zeth.core.wallet import ZethNoteDescription, Wallet
@@ -66,11 +69,13 @@ class ClientConfig:
             self,
             eth_network: Optional[str],
             prover_server_endpoint: str,
+            prover_config_file: str,
             instance_file: str,
             address_file: str,
             wallet_dir: str):
         self.eth_network = eth_network
         self.prover_server_endpoint = prover_server_endpoint
+        self.prover_config_file = prover_config_file
         self.instance_file = instance_file
         self.address_file = address_file
         self.wallet_dir = wallet_dir
@@ -102,8 +107,8 @@ def get_eth_network(eth_network: Optional[str]) -> NetworkConfig:
     try:
         endpoint = ETH_RPC_ENDPOINT_DEFAULTS[eth_network]
         return NetworkConfig(eth_network, endpoint)
-    except KeyError:
-        raise ClickException(f"invalid network name / url: {eth_network}")
+    except KeyError as ex:
+        raise ClickException(f"invalid network name / url: {eth_network}") from ex
 
 
 def open_web3_from_network(eth_net: NetworkConfig) -> Any:
@@ -244,12 +249,16 @@ def open_wallet(
     Load a wallet using a secret key.
     """
     wallet_dir = ctx.wallet_dir
-    return Wallet(mixer_instance, WALLET_USERNAME, wallet_dir, js_secret)
+    prover_config = create_prover_client(ctx).get_configuration()
+    tree_hash = get_tree_hash_for_pairing(prover_config.pairing_parameters.name)
+    return Wallet(
+        mixer_instance, WALLET_USERNAME, wallet_dir, js_secret, tree_hash)
 
 
 def do_sync(
         web3: Any,
         wallet: Wallet,
+        pp: PairingParameters,
         wait_tx: Optional[str],
         callback: Optional[Callable[[ZethNoteDescription], None]] = None,
         batch_size: Optional[int] = None) -> int:
@@ -273,7 +282,8 @@ def do_sync(
                     chain_block_number,
                     batch_size):
                 new_merkle_root = mix_result.new_merkle_root
-                for note_desc in wallet.receive_notes(mix_result.output_events):
+                for note_desc in wallet.receive_notes(
+                        mix_result.output_events, pp):
                     if callback:
                         callback(note_desc)
 
@@ -325,27 +335,39 @@ def find_pub_address_file(base_file: str) -> str:
     raise ClickException(f"No public key file {pub_addr_file} or {base_file}")
 
 
-def create_mixer_client(ctx: ClientConfig) -> MixerClient:
+def create_prover_client(ctx: ClientConfig) -> ProverClient:
+    """
+    Create a prover client using the settings from the commands context.
+    """
+    return ProverClient(
+        ctx.prover_server_endpoint, ctx.prover_config_file)
+
+
+def create_mixer_client(
+        ctx: ClientConfig,
+        prover_client: Optional[ProverClient] = None) -> MixerClient:
     """
     Create a MixerClient for an existing deployment.
     """
-    web3 = open_web3_from_ctx(ctx)
-    mixer_desc = load_mixer_description_from_ctx(ctx)
-    mixer_instance = mixer_desc.mixer.instantiate(web3)
-    return MixerClient.open(web3, ctx.prover_server_endpoint, mixer_instance)
+    mixer_client, _ = create_mixer_client_and_mixer_desc(ctx, prover_client)
+    return mixer_client
 
 
-def create_zeth_client_and_mixer_desc(
-        ctx: ClientConfig) -> Tuple[MixerClient, MixerDescription]:
+def create_mixer_client_and_mixer_desc(
+        ctx: ClientConfig,
+        prover_client: Optional[ProverClient] = None
+) -> Tuple[MixerClient, MixerDescription]:
     """
     Create a MixerClient and MixerDescription object, for an existing deployment.
     """
     web3 = open_web3_from_ctx(ctx)
     mixer_desc = load_mixer_description_from_ctx(ctx)
     mixer_instance = mixer_desc.mixer.instantiate(web3)
-    zeth_client = MixerClient.open(
-        web3, ctx.prover_server_endpoint, mixer_instance)
-    return (zeth_client, mixer_desc)
+    if prover_client is None:
+        prover_client = create_prover_client(ctx)
+    prover_config = prover_client.get_configuration()
+    mixer_client = MixerClient(web3, prover_config, mixer_instance)
+    return (mixer_client, mixer_desc)
 
 
 def zeth_note_short(note_desc: ZethNoteDescription) -> str:

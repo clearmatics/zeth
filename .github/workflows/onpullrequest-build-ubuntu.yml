@@ -1,0 +1,19 @@
+# Actions for pull requests only
+name: zeth-ci-pull-request
+
+on:
+  pull_request:
+
+jobs:
+
+  build-linux-full:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        curve: [ BLS12_377, ALT_BN128 ]
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: Execute
+      run: CI_EVENT_NAME=pull_request CI_USE_DOCKER=1 CI_CONFIG=Release CI_CURVE=${{ matrix.curve }} scripts/ci build

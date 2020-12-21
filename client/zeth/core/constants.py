@@ -36,9 +36,6 @@ PGHR13_MIXER_CONTRACT: str = "Pghr13Mixer"
 # Set of valid snarks
 VALID_ZKSNARKS: List[str] = [GROTH16_ZKSNARK, PGHR13_ZKSNARK]
 
-# Default zk-snark
-ZKSNARK_DEFAULT: str = GROTH16_ZKSNARK
-
 # Merkle tree depth
 ZETH_MERKLE_TREE_DEPTH: int = 32
 
@@ -53,15 +50,6 @@ DEPLOYMENT_GAS_WEI: int = ZETH_MERKLE_TREE_DEPTH * 250000
 
 DEFAULT_MIX_GAS_WEI: int = DEPLOYMENT_GAS_WEI
 
-# Order of the largest prime order subgroup of the elliptic curve group.  See:
-# https://github.com/ethereum/go-ethereum/blob/master/crypto/bn256/cloudflare/constants.go#L23
-# # noqa
-ZETH_PRIME: int = \
-    21888242871839275222246405745257275088548364400416034343698204186575808495617
-
-# Field capacity (=floor(log_2(ZETH_PRIME)))
-FIELD_CAPACITY: int = 253
-
 # Hash digest length (for commitment and PRFs)
 DIGEST_LENGTH: int = 256
 
@@ -69,9 +57,6 @@ DIGEST_LENGTH: int = 256
 PUBLIC_VALUE_LENGTH: int = 64
 PUBLIC_VALUE_LENGTH_BYTES: int = bit_length_to_byte_length(PUBLIC_VALUE_LENGTH)
 PUBLIC_VALUE_MASK: int = (1 << PUBLIC_VALUE_LENGTH) - 1
-
-# Number of residual bits when encoding digests into field values
-DIGEST_RESIDUAL_BITS: int = max(0, DIGEST_LENGTH - FIELD_CAPACITY)
 
 PHI_LENGTH: int = 256
 PHI_LENGTH_BYTES: int = bit_length_to_byte_length(PHI_LENGTH)
@@ -101,9 +86,6 @@ RESIDUAL_BITS_INDEX: int = (2 * JS_INPUTS) + JS_OUTPUTS + 2
 
 # Number of full-length digests to be encoded in public inputs
 NUM_INPUT_DIGESTS: int = (2 * JS_INPUTS) + 1
-
-# Total number of residual bits corresponding to digests in public inputs
-TOTAL_DIGEST_RESIDUAL_BITS: int = NUM_INPUT_DIGESTS * DIGEST_RESIDUAL_BITS
 
 # Solidity compiler version
 SOL_COMPILER_VERSION: str = 'v0.5.16'

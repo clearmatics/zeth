@@ -4,16 +4,13 @@
 
 pragma solidity ^0.5.0;
 
-/*
- * Reference paper:
- *
- * \[Bel07]:
- * "Two-Tier Signatures, Strongly Unforgeable Signatures and Fiat-Shamir without Random Oracles",
- * Mihir Bellare, Sarah Shoup,
- * International Workshop on Public Key Cryptography, 2007,
- * <https://eprint.iacr.org/2007/273.pdf>
-**/
-
+/// Reference paper:
+///  \[Bel07]:
+///  "Two-Tier Signatures, Strongly Unforgeable Signatures and Fiat-Shamir
+///   without Random Oracles",
+///  Mihir Bellare, Sarah Shoup,
+///  International Workshop on Public Key Cryptography, 2007,
+///  <https://eprint.iacr.org/2007/273.pdf>
 library OTSchnorrVerifier {
 
     function verify(
@@ -22,7 +19,8 @@ library OTSchnorrVerifier {
         uint256 vk2,
         uint256 vk3,
         uint256 sigma,
-        bytes32 hash_to_be_signed)
+        bytes32 hash_to_be_signed
+    )
         internal
         returns (bool)
     {
@@ -114,7 +112,6 @@ library OTSchnorrVerifier {
         }
 
         // compare
-
         return pad[0] == pad[2] && pad[1] == pad[3];
     }
 }

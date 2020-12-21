@@ -7,9 +7,10 @@
 import zeth.core.merkle_tree
 import zeth.core.utils
 import zeth.core.constants as constants
+from zeth.core.mimc import get_tree_hash_for_pairing
+from zeth.core.prover_client import ProverClient
 from zeth.core.zeth_address import ZethAddressPriv
-from zeth.core.contracts import MixOutputEvents
-from zeth.core.mixer_client import MixerClient
+from zeth.core.mixer_client import MixOutputEvents, MixerClient
 from zeth.core.wallet import Wallet, ZethNoteDescription
 from zeth.core.utils import EtherValue
 import test_commands.mock as mock
@@ -54,8 +55,8 @@ def allowance(
 
 def main() -> None:
 
-    zksnark = zeth.core.zksnark.get_zksnark_provider(
-        zeth.core.utils.parse_zksnark_arg())
+    zksnark_name = zeth.core.utils.parse_zksnark_arg()
+    zksnark = zeth.core.zksnark.get_zksnark_provider(zksnark_name)
     web3, eth = mock.open_test_web3()
 
     # Ethereum addresses
@@ -69,17 +70,24 @@ def main() -> None:
     # Deploy the token contract
     token_instance = deploy_token(web3, deployer_eth_address, None, 4000000)
 
+    # ProverClient
+    prover_client = ProverClient(mock.TEST_PROVER_SERVER_ENDPOINT)
+    prover_config = prover_client.get_configuration()
+    pp = prover_config.pairing_parameters
+    assert prover_client.get_configuration().zksnark_name == zksnark_name
+
     # Deploy Zeth contracts
     tree_depth = constants.ZETH_MERKLE_TREE_DEPTH
     zeth_client, _contract_desc = MixerClient.deploy(
         web3,
-        mock.TEST_PROVER_SERVER_ENDPOINT,
+        prover_client,
         deployer_eth_address,
         None,
         token_instance.address,
-        None,
-        zksnark)
-    mk_tree = zeth.core.merkle_tree.MerkleTree.empty_with_depth(tree_depth)
+        None)
+    tree_hash = get_tree_hash_for_pairing(pp.name)
+    mk_tree = zeth.core.merkle_tree.MerkleTree.empty_with_depth(
+        tree_depth, tree_hash)
     mixer_instance = zeth_client.mixer_instance
 
     # Keys and wallets
@@ -89,7 +97,7 @@ def main() -> None:
             # Note: symlink-attack resistance
             #   https://docs.python.org/3/library/shutil.html#shutil.rmtree.avoids_symlink_attacks
             shutil.rmtree(wallet_dir)
-        return Wallet(mixer_instance, name, wallet_dir, sk)
+        return Wallet(mixer_instance, name, wallet_dir, sk, tree_hash)
     sk_alice = keystore["Alice"].addr_sk
     sk_bob = keystore["Bob"].addr_sk
     sk_charlie = keystore["Charlie"].addr_sk
@@ -104,9 +112,9 @@ def main() -> None:
             -> Dict[str, List[ZethNoteDescription]]:
         nonlocal block_num
         notes = {
-            'alice': alice_wallet.receive_notes(out_ev),
-            'bob': bob_wallet.receive_notes(out_ev),
-            'charlie': charlie_wallet.receive_notes(out_ev),
+            'alice': alice_wallet.receive_notes(out_ev, pp),
+            'bob': bob_wallet.receive_notes(out_ev, pp),
+            'charlie': charlie_wallet.receive_notes(out_ev, pp),
         }
         alice_wallet.update_and_save_state(block_num)
         bob_wallet.update_and_save_state(block_num)
@@ -136,6 +144,7 @@ def main() -> None:
     try:
         result_deposit_bob_to_bob = scenario.bob_deposit(
             zeth_client,
+            prover_client,
             mk_tree,
             bob_eth_address,
             keystore,
@@ -163,7 +172,7 @@ def main() -> None:
     print("- The allowance for the Mixer from Bob is:", allowance_mixer)
     # Bob deposits ETHToken, split in 2 notes on the mixer
     result_deposit_bob_to_bob = scenario.bob_deposit(
-        zeth_client, mk_tree, bob_eth_address, keystore)
+        zeth_client, prover_client, mk_tree, bob_eth_address, keystore)
 
     print("- Balances after Bob's deposit: ")
     print_token_balances(
@@ -194,6 +203,7 @@ def main() -> None:
     # Execution of the transfer
     result_transfer_bob_to_charlie = scenario.bob_to_charlie(
         zeth_client,
+        prover_client,
         mk_tree,
         input_bob_to_charlie,
         bob_eth_address,
@@ -204,6 +214,7 @@ def main() -> None:
     try:
         result_double_spending = scenario.bob_to_charlie(
             zeth_client,
+            prover_client,
             mk_tree,
             input_bob_to_charlie,
             bob_eth_address,
@@ -230,6 +241,7 @@ def main() -> None:
 
     _ = scenario.charlie_withdraw(
         zeth_client,
+        prover_client,
         mk_tree,
         note_descs_charlie[0].as_input(),
         charlie_eth_address,
@@ -252,6 +264,8 @@ def main() -> None:
         # recompute the path to have the updated nodes
         result_double_spending = scenario.charlie_double_withdraw(
             zeth_client,
+            prover_client,
+            zksnark,
             mk_tree,
             note_descs_charlie[0].as_input(),
             charlie_eth_address,
@@ -287,6 +301,8 @@ def main() -> None:
 
     result_deposit_bob_to_bob = scenario.charlie_corrupt_bob_deposit(
         zeth_client,
+        prover_client,
+        zksnark,
         mk_tree,
         bob_eth_address,
         charlie_eth_address,

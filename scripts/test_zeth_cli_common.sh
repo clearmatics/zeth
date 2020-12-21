@@ -50,10 +50,17 @@ function setup_user_local_key() {
     ! [ -e eth-network ] && \
         (zeth_helper eth-gen-network-config $2)
     ! [ -e eth-address ] && \
-        (zeth_helper eth-gen-address && \
-         python -m test_commands.fund_eth_address)
+        (zeth_helper eth-gen-address && zeth_helper eth-fund)
     ! [ -e zeth-address.priv ] && \
         (zeth gen-address)
+
+    # Ensure that we have been able to perform all of these operations without
+    # querying the prover_server for the configuration.
+    if [ -e prover-config.cache ] ; then
+        echo Expected no prover config file
+        exit 1
+    fi
+
     popd
 }
 

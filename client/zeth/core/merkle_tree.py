@@ -3,17 +3,26 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-from zeth.core.mimc import MiMC7
 from os.path import exists
 import json
 import math
+from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Iterator, cast, Any
 
 
 ZERO_ENTRY = bytes.fromhex(
     "0000000000000000000000000000000000000000000000000000000000000000")
 
-HASH = MiMC7()
+
+class ITreeHash(ABC):
+    """
+    Abstract interface for a hash function to be used in a Merkle tree
+    structure.
+    """
+
+    @abstractmethod
+    def hash(self, left: bytes, right: bytes) -> bytes:
+        pass
 
 
 class MerkleTreeData:
@@ -29,22 +38,6 @@ class MerkleTreeData:
         self.depth = depth
         self.default_values = default_values
         self.layers = layers
-
-    @staticmethod
-    def empty_with_depth(depth: int) -> MerkleTreeData:
-        # Compute default values for each layer
-        default_values = [ZERO_ENTRY] * (depth + 1)
-        for i in range(depth - 1, -1, -1):
-            default_values[i] = MerkleTree.combine(
-                default_values[i + 1], default_values[i + 1])
-
-        # Initial layer data (fill the 0-th layer with the default root so it's
-        # always available).
-        layers: List[List[bytes]] = [[default_values[0]]]
-        layers.extend([[] for _ in range(depth)])
-        assert len(default_values) == depth + 1
-        assert len(layers) == depth + 1
-        return MerkleTreeData(depth, default_values, layers)
 
     @staticmethod
     def from_json_dict(json_dict: Dict[str, Any]) -> MerkleTreeData:
@@ -69,28 +62,44 @@ class MerkleTree:
     Merkle tree structure matching that used in the mixer contract. Simple
     implementation where unpopulated values (zeroes) are also stored.
     """
-    def __init__(self, tree_data: MerkleTreeData, depth: int):
+    def __init__(
+            self,
+            tree_data: MerkleTreeData,
+            depth: int,
+            tree_hash: ITreeHash):
         self.max_num_leaves = pow(2, depth)
         self.depth = tree_data.depth
         self.tree_data = tree_data
         self.num_new_leaves = 0
+        self.tree_hash = tree_hash
 
     @staticmethod
-    def empty_with_depth(depth: int) -> MerkleTree:
-        return MerkleTree(MerkleTreeData.empty_with_depth(depth), depth)
+    def _empty_data_with_depth(
+            depth: int, tree_hash: ITreeHash) -> MerkleTreeData:
+        # Compute default values for each layer
+        default_values = [ZERO_ENTRY] * (depth + 1)
+        for i in range(depth - 1, -1, -1):
+            default_values[i] = tree_hash.hash(
+                default_values[i + 1], default_values[i + 1])
+
+        # Initial layer data (fill the 0-th layer with the default root so it's
+        # always available).
+        layers: List[List[bytes]] = [[default_values[0]]]
+        layers.extend([[] for _ in range(depth)])
+
+        assert len(layers) == depth + 1
+        return MerkleTreeData(depth, default_values, layers)
 
     @staticmethod
-    def empty_with_size(num_leaves: int) -> MerkleTree:
+    def empty_with_depth(depth: int, tree_hash: ITreeHash) -> MerkleTree:
+        return MerkleTree(
+            MerkleTree._empty_data_with_depth(depth, tree_hash), depth, tree_hash)
+
+    @staticmethod
+    def empty_with_size(num_leaves: int, tree_hash: ITreeHash) -> MerkleTree:
         depth = int(math.log(num_leaves, 2))
         assert pow(2, depth) == num_leaves, f"Non-pow-2 size {num_leaves} given"
-        return MerkleTree.empty_with_depth(depth)
-
-    @staticmethod
-    def combine(left: bytes, right: bytes) -> bytes:
-        result_i = HASH.mimc_mp(
-            int.from_bytes(left, byteorder='big'),
-            int.from_bytes(right, byteorder='big'))
-        return result_i.to_bytes(32, byteorder='big')
+        return MerkleTree.empty_with_depth(depth, tree_hash)
 
     def get_num_entries(self) -> int:
         return len(self.tree_data.layers[self.depth])
@@ -154,7 +163,8 @@ class MerkleTree:
                 start_idx,
                 end_idx,
                 layer_default,
-                parent_layer)
+                parent_layer,
+                self.tree_hash)
             layer = parent_layer
             layer_default = parent_default
             layer_size = int(layer_size / 2)
@@ -201,12 +211,19 @@ class PersistentMerkleTree(MerkleTree):
     Version of MerkleTree that also supports persistence.
     """
     def __init__(
-            self, filename: str, tree_data: MerkleTreeData, depth: int):
-        MerkleTree.__init__(self, tree_data, depth)
+            self,
+            filename: str,
+            tree_data: MerkleTreeData,
+            depth: int,
+            tree_hash: ITreeHash):
+        MerkleTree.__init__(self, tree_data, depth, tree_hash)
         self.filename = filename
 
     @staticmethod
-    def open(filename: str, max_num_leaves: int) -> PersistentMerkleTree:
+    def open(
+            filename: str,
+            max_num_leaves: int,
+            tree_hash: ITreeHash) -> PersistentMerkleTree:
         depth = int(math.log(max_num_leaves, 2))
         assert max_num_leaves == int(math.pow(2, depth))
         if exists(filename):
@@ -215,9 +232,9 @@ class PersistentMerkleTree(MerkleTree):
                 tree_data = MerkleTreeData.from_json_dict(json_dict)
                 assert depth == tree_data.depth
         else:
-            tree_data = MerkleTreeData.empty_with_depth(depth)
+            tree_data = MerkleTree._empty_data_with_depth(depth, tree_hash)
 
-        return PersistentMerkleTree(filename, tree_data, depth)
+        return PersistentMerkleTree(filename, tree_data, depth, tree_hash)
 
     def save(self) -> None:
         with open(self.filename, "w") as tree_f:
@@ -240,7 +257,8 @@ def _recompute_layer(
         child_start_idx: int,
         child_end_idx: int,
         child_default_value: bytes,
-        parent_layer: List[bytes]) -> Tuple[int, int]:
+        parent_layer: List[bytes],
+        tree_hash: ITreeHash) -> Tuple[int, int]:
     """
     Recompute nodes in the parent layer that are affected by entries
     [child_start_idx, child_end_idx[ in the child layer.  If `child_end_idx` is
@@ -271,7 +289,7 @@ def _recompute_layer(
     # default value on the right.
     if child_end_idx & 1:
         child_left_idx = child_end_idx - 1
-        parent_layer[child_left_idx >> 1] = MerkleTree.combine(
+        parent_layer[child_left_idx >> 1] = tree_hash.hash(
             child_layer[child_left_idx], child_default_value)
     else:
         child_left_idx = child_end_idx
@@ -280,7 +298,7 @@ def _recompute_layer(
     # them to the parent layer.
     while child_left_idx > child_left_idx_rend:
         child_left_idx = child_left_idx - 2
-        parent_layer[child_left_idx >> 1] = MerkleTree.combine(
+        parent_layer[child_left_idx >> 1] = tree_hash.hash(
             child_layer[child_left_idx], child_layer[child_left_idx + 1])
 
     return child_start_idx >> 1, new_parent_layer_length
