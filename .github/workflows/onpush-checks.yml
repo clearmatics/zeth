@@ -15,6 +15,22 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: 10
+    - name: Cache npm
+      uses: actions/cache@v1
+      with:
+        path: ~/.npm
+        key: check-contracts-npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+    # Cache ganache-cli/node_modules to avoid recompiling native code
+    - name: Cache depends/ganache-cli/node_modules
+      uses: actions/cache@v1
+      with:
+        path: depends/ganache-cli/node_modules
+        key: check-contracts-ganache-node-modules-${{ runner.os }}-${{ hashFiles('depends/ganache-cli/package-lock.json') }}
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: check-contracts-pip-${{ runner.os }}-${{ hashFiles('client/setup.py') }}
     - name: Check Contracts
       run: scripts/ci check_contracts
 
@@ -24,7 +40,12 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
-    - name: Execute
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: check-client-pip-${{ runner.os }}-${{ hashFiles('client/setup.py') }}
+    - name: Check Client
       run: scripts/ci check_client
 
   check-cpp-linux:
