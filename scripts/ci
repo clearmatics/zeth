@@ -7,6 +7,59 @@ echo "running against commit: "`git log --oneline --no-decorate -n 1`
 set -x
 set -e
 
+function _setup_client() {
+    pushd client
+    python3 -m venv env
+    . env/bin/activate
+    pip install --upgrade pip --progress-bar off
+    pip install --upgrade setuptools wheel
+    make setup
+
+    deactivate
+    popd
+}
+
+function _ganache_is_active() {
+    curl -sf \
+         -H "Content-Type: application/json" \
+         -X POST \
+         --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}' \
+         http://localhost:8545
+}
+
+function _start_ganache() {
+    pushd zeth_contracts
+
+    npm run testrpc > ganache.stdout &
+    echo $! > ganache.pid
+
+    # Wait for ganache to be active
+    while ! _ganache_is_active ; do
+        echo "_start_ganache: waiting for ganache ..."
+        sleep 1
+    done
+    echo "_start_ganache: ganache is active"
+
+    popd
+}
+
+function _stop_ganache() {
+    pushd zeth_contracts
+    if ! [ -e ganache.pid ] ; then
+        echo "_stop_ganache: no PID file"
+        return 1
+    fi
+
+    pid=`cat ganache.pid`
+    while (kill "${pid}") ; do
+        sleep 0.5
+    done
+    rm ganache.pid
+    echo "_stop_ganache: ganache stopped"
+
+    popd
+}
+
 function check_format() {
     scripts/format
     git diff --no-ext-diff | head -n 20 > format_errors
@@ -27,15 +80,28 @@ function check_contracts() {
     npm install --unsafe-perm
     npm run check
     popd
+
+    # Run contract tests (in python)
+    _setup_client
+
+    _start_ganache
+
+    pushd client
+    . env/bin/activate
+    make test_contracts
+    deactivate
+    popd
+
+    _stop_ganache
+
 }
 
 function check_client() {
+    _setup_client
+
     pushd client
-    python3 -m venv env
     . env/bin/activate
-    pip install --upgrade pip --progress-bar off
-    pip install --upgrade setuptools wheel
-    make setup
+
     make check
 
     deactivate

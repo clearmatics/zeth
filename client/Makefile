@@ -39,5 +39,9 @@ test: ${PROTOBUF_OUTPUT}
 	python -m unittest
 
 test_contracts: ${PROTOBUF_OUTPUT}
-	python test_commands/test_contract_base_mixer.py
-	python test_commands/test_merkle_tree_contract.py
+	python -m test_commands.test_altbn128_mixer_base
+	python -m test_commands.test_bls12_377_contract
+	python -m test_commands.test_bw6_761_contract
+	python -m test_commands.test_groth16_bls12_377_contract
+	python -m test_commands.test_merkle_tree_contract
+	python -m test_commands.test_mimc_contract
