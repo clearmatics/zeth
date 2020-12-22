@@ -8,7 +8,7 @@ from zeth.core.contracts import InstanceDescription
 from zeth.cli.utils import get_eth_network, open_web3_from_network
 from tests.test_pairing import BLS12_377_PAIRING
 from os.path import join
-import sys
+from unittest import TestCase
 from typing import List, Any
 
 # pylint: disable=line-too-long
@@ -63,51 +63,42 @@ INPUTS_INVALID = [
 ]
 # pylint: enable=line-too-long
 
-
-def _invoke_groth16_bls12_377_verify(
-        contract_instance: Any,
-        vk: Groth16.VerificationKey,
-        proof: Groth16.Proof,
-        inputs: List[str]) -> bool:
-    vk_evm = Groth16.verification_key_to_contract_parameters(
-        vk, BLS12_377_PAIRING)
-    proof_evm = Groth16.proof_to_contract_parameters(proof, BLS12_377_PAIRING)
-    inputs_evm = hex_list_to_uint256_list(inputs)
-    return contract_instance.functions.test_verify(
-        vk_evm, proof_evm, inputs_evm).call()
+CONTRACT_INSTANCE: Any = None
 
 
-def test_groth16_bls12_377_valid(contract_instance: Any) -> None:
-    assert _invoke_groth16_bls12_377_verify(
-        contract_instance, VERIFICATION_KEY, PROOF, INPUTS_VALID)
+class TestGroth16BLS12_377Contract(TestCase):
 
+    @staticmethod
+    def setUpClass() -> None:
+        web3: Any = open_web3_from_network(get_eth_network(None))
+        contracts_dir = get_contracts_dir()
+        contract_instance_desc = InstanceDescription.deploy(
+            web3,
+            join(contracts_dir, "Groth16BLS12_377_test.sol"),
+            "Groth16BLS12_377_test",
+            web3.eth.accounts[0],  # pylint: disable=no-member
+            None,
+            500000,
+            {"allow_paths": contracts_dir})
+        global CONTRACT_INSTANCE  # pylint: disable=global-statement
+        CONTRACT_INSTANCE = contract_instance_desc.instantiate(web3)
 
-def test_groth16_bls12_377_invalid(contract_instance: Any) -> None:
-    assert not _invoke_groth16_bls12_377_verify(
-        contract_instance, VERIFICATION_KEY, PROOF, INPUTS_INVALID)
+    @staticmethod
+    def _invoke_groth16_bls12_377_verify(
+            vk: Groth16.VerificationKey,
+            proof: Groth16.Proof,
+            inputs: List[str]) -> bool:
+        vk_evm = Groth16.verification_key_to_contract_parameters(
+            vk, BLS12_377_PAIRING)
+        proof_evm = Groth16.proof_to_contract_parameters(proof, BLS12_377_PAIRING)
+        inputs_evm = hex_list_to_uint256_list(inputs)
+        return CONTRACT_INSTANCE.functions.test_verify(
+            vk_evm, proof_evm, inputs_evm).call()
 
+    def test_groth16_bls12_377_valid(self) -> None:
+        self.assertTrue(self._invoke_groth16_bls12_377_verify(
+            VERIFICATION_KEY, PROOF, INPUTS_VALID))
 
-def main() -> int:
-    web3: Any = open_web3_from_network(get_eth_network(None))
-    contracts_dir = get_contracts_dir()
-    contract_instance_desc = InstanceDescription.deploy(
-        web3,
-        join(contracts_dir, "Groth16BLS12_377_test.sol"),
-        "Groth16BLS12_377_test",
-        web3.eth.accounts[0],  # pylint: disable=no-member
-        None,
-        500000,
-        {"allow_paths": contracts_dir})
-    contract_instance = contract_instance_desc.instantiate(web3)
-
-    test_groth16_bls12_377_valid(contract_instance)
-    test_groth16_bls12_377_invalid(contract_instance)
-
-    print("========================================")
-    print("==              PASSED                ==")
-    print("========================================")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    def test_groth16_bls12_377_invalid(self) -> None:
+        self.assertFalse(self._invoke_groth16_bls12_377_verify(
+            VERIFICATION_KEY, PROOF, INPUTS_INVALID))

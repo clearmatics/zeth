@@ -33,15 +33,11 @@ syntax: ${PROTOBUF_OUTPUT}
 	mypy zeth/cli/zeth zeth/helper/zeth_helper
 	mypy -p tests
 	mypy -p test_commands
+	mypy -p test_contracts
 	pylint zeth.core zeth.cli zeth.helper tests test_commands
 
 test: ${PROTOBUF_OUTPUT}
-	python -m unittest
+	python -m unittest discover tests
 
 test_contracts: ${PROTOBUF_OUTPUT}
-	python -m test_commands.test_altbn128_mixer_base
-	python -m test_commands.test_bls12_377_contract
-	python -m test_commands.test_bw6_761_contract
-	python -m test_commands.test_groth16_bls12_377_contract
-	python -m test_commands.test_merkle_tree_contract
-	python -m test_commands.test_mimc_contract
+	python -m unittest discover test_contracts
