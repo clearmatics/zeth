@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -257,7 +257,7 @@ std::string get_server_version()
 void display_server_start_message()
 {
     std::string copyright =
-        "Copyright (c) 2015-2020 Clearmatics Technologies Ltd";
+        "Copyright (c) 2015-2021 Clearmatics Technologies Ltd";
     std::string license = "SPDX-License-Identifier: LGPL-3.0+";
     std::string project =
         "R&D Department: PoC for Zerocash on Ethereum/Autonity";
