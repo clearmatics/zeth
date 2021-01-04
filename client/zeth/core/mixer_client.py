@@ -112,12 +112,12 @@ class MixParameters:
 
     @staticmethod
     def from_json(zksnark: IZKSnarkProvider, params_json: str) -> MixParameters:
-        return MixParameters._from_json_dict(zksnark, json.loads(params_json))
+        return MixParameters.from_json_dict(zksnark, json.loads(params_json))
 
     def to_json(self) -> str:
-        return json.dumps(self._to_json_dict())
+        return json.dumps(self.to_json_dict())
 
-    def _to_json_dict(self) -> Dict[str, Any]:
+    def to_json_dict(self) -> Dict[str, Any]:
         ext_proof_json = self.extended_proof.to_json_dict()
         signature_vk_json = [
             str(x) for x in
@@ -132,7 +132,7 @@ class MixParameters:
         }
 
     @staticmethod
-    def _from_json_dict(
+    def from_json_dict(
             zksnark: IZKSnarkProvider,
             json_dict: Dict[str, Any]) -> MixParameters:
         ext_proof = ExtendedProof.from_json_dict(
