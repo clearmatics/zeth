@@ -45,10 +45,12 @@ contract BLS12_377MixerBase is MixerBase
     constructor(
         uint256 mk_depth,
         address token,
-        uint256[] memory vk
+        uint256[] memory vk,
+        address permitted_dispatcher,
+        uint256 vk_hash
     )
         public
-        MixerBase(mk_depth, token, vk)
+        MixerBase(mk_depth, token, vk, permitted_dispatcher, vk_hash)
     {
     }
 

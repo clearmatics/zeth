@@ -20,6 +20,10 @@ from typing import Optional
     default=INSTANCE_FILE_DEFAULT,
     help=f"File to write deployment address to (default={INSTANCE_FILE_DEFAULT})")
 @option("--token-address", help="Address of token contract (if used)")
+@option(
+    "--permitted-dispatcher",
+    help="Address of contract permitted to call dispatch method")
+@option("--vk-hash", type=str, help="verification key hash for dispatch calls")
 @option("--deploy-gas", type=int, help="Maximum gas, in Wei")
 @pass_context
 def deploy(
@@ -27,7 +31,9 @@ def deploy(
         eth_addr: Optional[str],
         eth_private_key: Optional[str],
         instance_out: str,
-        token_address: str,
+        token_address: Optional[str],
+        permitted_dispatcher: Optional[str],
+        vk_hash: Optional[str],
         deploy_gas: Optional[int]) -> None:
     """
     Deploy the zeth contracts and record the instantiation details.
@@ -51,7 +57,9 @@ def deploy(
         eth_address,
         eth_private_key_data,
         token_address,
-        deploy_gas)
+        permitted_dispatcher=permitted_dispatcher,
+        vk_hash=vk_hash,
+        deploy_gas=deploy_gas)
 
     mixer_desc = MixerDescription(mixer_instance_desc, token_instance_desc)
     write_mixer_description(instance_out, mixer_desc)

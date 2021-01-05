@@ -14,7 +14,8 @@ contract AltBN128MixerBase_test is AltBN128MixerBase
 {
     constructor(uint256 mk_depth)
         public
-        AltBN128MixerBase(mk_depth, address(0), new uint256[](0))
+        AltBN128MixerBase(
+            mk_depth, address(0), new uint256[](0), address(0), 0)
     {
     }
 

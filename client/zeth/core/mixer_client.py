@@ -30,6 +30,7 @@ import json
 from Crypto import Random
 from hashlib import blake2s, sha256
 import traceback
+import eth_abi
 from typing import Tuple, Dict, List, Iterator, Callable, Optional, Any
 
 
@@ -166,6 +167,21 @@ def mix_parameters_to_contract_arguments(
     ]
 
 
+def mix_parameters_to_dispatch_parameters(mix_parameters: MixParameters) -> bytes:
+    """
+    Encode parameters from mix_parameters into an array of uint256 values,
+    compatible with the `dispatch` method on Mixer. This conforms to the
+    `IZecaleApplicationan` solidity interface of Zecale
+    (https://github.com/clearmatics/zecale)
+    """
+    vk_param = signing.verification_key_as_mix_parameter(
+        mix_parameters.signature_vk)
+    sigma_param = signing.signature_as_mix_parameter(mix_parameters.signature)
+    return eth_abi.encode_abi(
+        ['uint256[4]', 'uint256', 'bytes[]'],
+        [vk_param, sigma_param, mix_parameters.ciphertexts])  # type: ignore
+
+
 class MixOutputEvents:
     """
     Event data for a single joinsplit output.  Holds address (in merkle tree),
@@ -252,6 +268,8 @@ class MixerClient:
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
             token_address: Optional[str] = None,
+            permitted_dispatcher: Optional[str] = None,
+            vk_hash: Optional[str] = None,
             deploy_gas: Optional[int] = None
     ) -> Tuple[MixerClient, contracts.InstanceDescription]:
         """
@@ -276,6 +294,8 @@ class MixerClient:
             constants.ZETH_MERKLE_TREE_DEPTH,  # mk_depth
             token_address or ZERO_ADDRESS,     # token
             zksnark.verification_key_to_contract_parameters(vk, pp),  # vk
+            permitted_dispatcher or ZERO_ADDRESS,  # permitted_dispatcher
+            int(vk_hash, 16) if vk_hash else 0,  # vk_hash
         ]
         mixer_description = contracts.InstanceDescription.deploy(
             web3,

@@ -15,10 +15,12 @@ contract Groth16BLS12_377Mixer is BLS12_377MixerBase
     constructor(
         uint256 mk_depth,
         address token,
-        uint256[] memory vk
+        uint256[] memory vk,
+        address permitted_dispatcher,
+        uint256 vk_hash
     )
         public
-        BLS12_377MixerBase(mk_depth, token, vk)
+        BLS12_377MixerBase(mk_depth, token, vk, permitted_dispatcher, vk_hash)
     {
     }
 
