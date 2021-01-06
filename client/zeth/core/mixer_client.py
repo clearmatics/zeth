@@ -171,7 +171,7 @@ def mix_parameters_to_dispatch_parameters(mix_parameters: MixParameters) -> byte
     """
     Encode parameters from mix_parameters into an array of uint256 values,
     compatible with the `dispatch` method on Mixer. This conforms to the
-    `IZecaleApplicationan` solidity interface of Zecale
+    `IZecaleApplication` solidity interface of Zecale
     (https://github.com/clearmatics/zecale)
     """
     vk_param = signing.verification_key_as_mix_parameter(
