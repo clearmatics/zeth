@@ -27,6 +27,10 @@ import json
 @option("--eth-addr", help="Sender's eth address or address filename")
 @option("--eth-private-key", help="Sender's eth private key file")
 @option("--wait", is_flag=True, help="Wait for transaction to be mined")
+@option(
+    "--for-dispatch-call",
+    is_flag=True,
+    help="Generate signature for later call to dispatch (implies --dry-run)")
 @option("--dump-parameters", help="Write mix parameters to file ('-' for stdout)")
 @option("--dry-run", "-n", is_flag=True, help="Do not send the mix transaction")
 @pass_context
@@ -39,6 +43,7 @@ def mix(
         eth_addr: Optional[str],
         eth_private_key: Optional[str],
         wait: bool,
+        for_dispatch_call: bool,
         dump_parameters: Optional[str],
         dry_run: bool) -> None:
     """
@@ -92,7 +97,8 @@ def mix(
         inputs,
         outputs,
         vin_pub,
-        vout_pub)
+        vout_pub,
+        for_dispatch_call=for_dispatch_call)
 
     # Dump parameters if requested
     if dump_parameters:
@@ -103,7 +109,7 @@ def mix(
                 json.dump(mix_params.to_json_dict(), mix_params_f)
 
     # Early-out if dry_run flag is set
-    if dry_run:
+    if for_dispatch_call or dry_run:
         return
 
     tx_hash = zeth_client.mix(
