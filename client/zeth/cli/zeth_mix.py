@@ -32,6 +32,10 @@ import json
     is_flag=True,
     help="Generate signature for later call to dispatch (implies --dry-run)")
 @option("--dump-parameters", help="Write mix parameters to file ('-' for stdout)")
+@option(
+    "--dump-signing-keypair",
+    help="Write signing keypair to file ('-' for stdout). "
+    "USE ONLY FOR DEBUGGING.")
 @option("--dry-run", "-n", is_flag=True, help="Do not send the mix transaction")
 @pass_context
 def mix(
@@ -45,6 +49,7 @@ def mix(
         wait: bool,
         for_dispatch_call: bool,
         dump_parameters: Optional[str],
+        dump_signing_keypair: Optional[str],
         dry_run: bool) -> None:
     """
     Generic mix function
@@ -89,16 +94,17 @@ def mix(
 
     # Create the MixParameters object manually so they can be displayed.
     # TODO: support saving the generated MixParameters to be sent later.
-    mix_params, _ = zeth_client.create_mix_parameters_and_signing_key(
-        prover_client,
-        wallet.merkle_tree,
-        zeth_address.ownership_keypair(),
-        eth_address,
-        inputs,
-        outputs,
-        vin_pub,
-        vout_pub,
-        for_dispatch_call=for_dispatch_call)
+    mix_params, signing_keypair = \
+        zeth_client.create_mix_parameters_and_signing_key(
+            prover_client,
+            wallet.merkle_tree,
+            zeth_address.ownership_keypair(),
+            eth_address,
+            inputs,
+            outputs,
+            vin_pub,
+            vout_pub,
+            for_dispatch_call=for_dispatch_call)
 
     # Dump parameters if requested
     if dump_parameters:
@@ -107,6 +113,14 @@ def mix(
         else:
             with open(dump_parameters, "w") as mix_params_f:
                 json.dump(mix_params.to_json_dict(), mix_params_f)
+
+    # Dump one-time signature keypair if requested
+    if dump_signing_keypair:
+        if dump_signing_keypair == '-':
+            print(f"signing_key={signing_keypair.to_json_dict()}")
+        else:
+            with open(dump_signing_keypair, "w") as signing_keypair_f:
+                json.dump(signing_keypair.to_json_dict(), signing_keypair_f)
 
     # Early-out if dry_run flag is set
     if for_dispatch_call or dry_run:
