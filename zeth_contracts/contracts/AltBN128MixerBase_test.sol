@@ -12,10 +12,18 @@ import "./AltBN128MixerBase.sol";
 // specific methods.
 contract AltBN128MixerBase_test is AltBN128MixerBase
 {
-    constructor(uint256 mk_depth)
+    constructor(
+        uint256 mk_depth,
+        address permitted_dispatcher,
+        uint256 vk_hash
+    )
         public
         AltBN128MixerBase(
-            mk_depth, address(0), new uint256[](0), address(0), 0)
+            mk_depth,
+            address(0),
+            new uint256[](0),
+            permitted_dispatcher,
+            vk_hash)
     {
     }
 
