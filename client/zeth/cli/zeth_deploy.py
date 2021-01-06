@@ -61,5 +61,9 @@ def deploy(
         vk_hash=vk_hash,
         deploy_gas=deploy_gas)
 
-    mixer_desc = MixerDescription(mixer_instance_desc, token_instance_desc)
+    mixer_desc = MixerDescription(
+        mixer=mixer_instance_desc,
+        token=token_instance_desc,
+        permitted_dispatcher=permitted_dispatcher,
+        vk_hash=vk_hash)
     write_mixer_description(instance_out, mixer_desc)

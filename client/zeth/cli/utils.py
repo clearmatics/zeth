@@ -21,7 +21,7 @@ from click import ClickException
 import json
 from os.path import exists, join, splitext
 from web3 import Web3  # type: ignore
-from typing import Dict, Tuple, Optional, Callable, Any
+from typing import Dict, Tuple, Optional, Callable, Any, cast
 
 
 class NetworkConfig:
@@ -131,26 +131,36 @@ class MixerDescription:
     def __init__(
             self,
             mixer: InstanceDescription,
-            token: Optional[InstanceDescription]):
+            token: Optional[InstanceDescription],
+            permitted_dispatcher: Optional[str],
+            vk_hash: Optional[str]):
         self.mixer = mixer
         self.token = token
+        self.permitted_dispatcher = permitted_dispatcher
+        self.vk_hash = vk_hash
 
-    def to_json(self) -> str:
-        json_dict = {
+    def to_json_dict(self) -> Dict[str, Any]:
+        json_dict: Dict[str, Any] = {
             "mixer": self.mixer.to_json_dict()
         }
         if self.token:
             json_dict["token"] = self.token.to_json_dict()
-        return json.dumps(json_dict)
+        if self.permitted_dispatcher:
+            json_dict["permitted_dispatcher"] = self.permitted_dispatcher
+        if self.vk_hash:
+            json_dict["vk_hash"] = self.vk_hash
+        return json_dict
 
     @staticmethod
-    def from_json(json_str: str) -> MixerDescription:
-        json_dict = json.loads(json_str)
+    def from_json_dict(json_dict: Dict[str, Any]) -> MixerDescription:
         mixer = InstanceDescription.from_json_dict(json_dict["mixer"])
-        token_dict = json_dict.get("token", None)
+        token_dict = cast(Optional[Dict[str, Any]], json_dict.get("token", None))
         token = InstanceDescription.from_json_dict(token_dict) \
             if token_dict else None
-        return MixerDescription(mixer, token)
+        permitted_dispatcher = \
+            cast(Optional[str], json_dict.get("permitted_dispatcher", None))
+        vk_hash = cast(Optional[str], json_dict.get("vk_hash", None))
+        return MixerDescription(mixer, token, permitted_dispatcher, vk_hash)
 
 
 def get_erc20_abi() -> Dict[str, Any]:
@@ -175,15 +185,15 @@ def write_mixer_description(
     Write the mixer (and token) instance information
     """
     with open(mixer_desc_file, "w") as instance_f:
-        instance_f.write(mixer_desc.to_json())
+        json.dump(mixer_desc.to_json_dict(), instance_f)
 
 
-def load_mixer_description(mixer_description_file: str) -> MixerDescription:
+def load_mixer_description(mixer_desc_file: str) -> MixerDescription:
     """
     Return mixer and token (if present) contract instances
     """
-    with open(mixer_description_file, "r") as desc_f:
-        return MixerDescription.from_json(desc_f.read())
+    with open(mixer_desc_file, "r") as desc_f:
+        return MixerDescription.from_json_dict(json.load(desc_f))
 
 
 def load_mixer_description_from_ctx(ctx: ClientConfig) -> MixerDescription:
