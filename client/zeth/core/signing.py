@@ -11,11 +11,12 @@ oracles" by Bellare and Shoup (https://eprint.iacr.org/2007/273.pdf) over Curve
 BN128
 """
 
+from __future__ import annotations
 from math import ceil
 from os import urandom
 from hashlib import sha256
 from py_ecc import bn128 as ec
-from typing import List, Tuple
+from typing import Dict, List, Tuple, Any
 
 FQ = ec.FQ
 G1 = Tuple[ec.FQ, ec.FQ]
@@ -31,9 +32,24 @@ class SigningVerificationKey:
     """
     An OT-Schnorr verification key.
     """
-    def __init__(self, x_g1: G1, y_g1: G1):
-        self.ppk = x_g1
-        self.spk = y_g1
+    def __init__(self, ppk: G1, spk: G1):
+        self.ppk = ppk
+        self.spk = spk
+
+    def to_bytes(self) -> bytes:
+        return g1_to_bytes(self.ppk) + g1_to_bytes(self.spk)
+
+    def to_json_dict(self) -> Dict[str, Any]:
+        return {
+            "ppk": g1_to_json_dict(self.ppk),
+            "spk": g1_to_json_dict(self.spk),
+        }
+
+    @staticmethod
+    def from_json_dict(json_dict: Dict[str, Any]) -> SigningVerificationKey:
+        return SigningVerificationKey(
+            ppk=g1_from_json_dict(json_dict["ppk"]),
+            spk=g1_from_json_dict(json_dict["spk"]))
 
 
 class SigningSecretKey:
@@ -44,18 +60,40 @@ class SigningSecretKey:
         self.psk = x
         self.ssk = (y, y_g1)
 
+    def to_json_dict(self) -> Dict[str, Any]:
+        return {
+            "psk": fq_to_hex(self.psk),
+            "ssk_y": fq_to_hex(self.ssk[0]),
+            "ssk_y_g1": g1_to_json_dict(self.ssk[1]),
+        }
+
+    @staticmethod
+    def from_json_dict(json_dict: Dict[str, Any]) -> SigningSecretKey:
+        return SigningSecretKey(
+            x=fq_from_hex(json_dict["psk"]),
+            y=fq_from_hex(json_dict["ssk_y"]),
+            y_g1=g1_from_json_dict(json_dict["ssk_y_g1"]))
+
 
 class SigningKeyPair:
     """
     An OT-Schnorr signing and verification keypair.
     """
-    def __init__(self, x: FQ, y: FQ, x_g1: G1, y_g1: G1):
-        # We include y_g1 in the signing key
-        self.sk = SigningSecretKey(x, y, y_g1)
-        self.vk = SigningVerificationKey(x_g1, y_g1)
+    def __init__(self, sk: SigningSecretKey, vk: SigningVerificationKey):
+        self.sk = sk
+        self.vk = vk
 
+    def to_json_dict(self) -> Dict[str, Any]:
+        return {
+            "sk": self.sk.to_json_dict(),
+            "vk": self.vk.to_json_dict(),
+        }
 
-Signature = int
+    @staticmethod
+    def from_json_dict(json_dict: Dict[str, Any]) -> SigningKeyPair:
+        return SigningKeyPair(
+            SigningSecretKey.from_json_dict(json_dict["sk"]),
+            SigningVerificationKey.from_json_dict(json_dict["vk"]))
 
 
 def gen_signing_keypair() -> SigningKeyPair:
@@ -70,25 +108,21 @@ def gen_signing_keypair() -> SigningKeyPair:
         int(bytes(urandom(key_size_byte)).hex(), 16) % SIGNATURE_PRIME)
     X = ec.multiply(ec.G1, x.n)
     Y = ec.multiply(ec.G1, y.n)
-    return SigningKeyPair(x, y, X, Y)
+
+    # We include y_g1 in the signing key
+    sk = SigningSecretKey(x, y, Y)
+    vk = SigningVerificationKey(X, Y)
+    return SigningKeyPair(sk, vk)
 
 
-def encode_vk_to_bytes(vk: SigningVerificationKey) -> bytes:
-    """
-    Encode a verification key as a byte string
-    We assume here the group prime $p$ is written in less than 256 bits
-    to conform with Ethereum bytes32 type
-    """
-    vk_byte = g1_to_bytes(vk.ppk)
-    vk_byte += g1_to_bytes(vk.spk)
-    return vk_byte
+Signature = int
 
 
-def encode_signature_to_bytes(signature: Signature) -> bytes:
+def signature_to_bytes(signature: Signature) -> bytes:
     return signature.to_bytes(32, byteorder='big')
 
 
-def decode_signature_from_bytes(sig_bytes: bytes) -> Signature:
+def signature_from_bytes(sig_bytes: bytes) -> Signature:
     return int.from_bytes(sig_bytes, byteorder='big')
 
 
@@ -111,7 +145,6 @@ def sign(
 
     # Compute the signature sigma
     sigma = (sk.ssk[0].n + challenge * sk.psk.n) % SIGNATURE_PRIME
-
     return sigma
 
 
@@ -168,6 +201,24 @@ def signature_from_mix_parameter(param: int) -> Signature:
     """
     return param
 
+# Low level encoding / decoding functions
+
+
+def fq_to_bytes(fq_element: FQ) -> bytes:
+    return int(fq_element.n).to_bytes(32, byteorder='big')
+
+
+def fq_from_bytes(fq_bytes: bytes) -> FQ:
+    return FQ(int.from_bytes(fq_bytes, byteorder='big'))
+
+
+def fq_to_hex(fq_element: FQ) -> str:
+    return fq_to_bytes(fq_element).hex()
+
+
+def fq_from_hex(fq_hex: str) -> FQ:
+    return fq_from_bytes(bytes.fromhex(fq_hex))
+
 
 def g1_to_bytes(group_el: G1) -> bytes:
     """
@@ -178,3 +229,14 @@ def g1_to_bytes(group_el: G1) -> bytes:
     return \
         int(group_el[0]).to_bytes(32, byteorder='big') + \
         int(group_el[1]).to_bytes(32, byteorder='big')
+
+
+def g1_to_json_dict(group_el: G1) -> Dict[str, Any]:
+    return {
+        "x": fq_to_hex(group_el[0]),
+        "y": fq_to_hex(group_el[1]),
+    }
+
+
+def g1_from_json_dict(json_dict: Dict[str, Any]) -> G1:
+    return (fq_from_hex(json_dict["x"]), fq_from_hex(json_dict["y"]))

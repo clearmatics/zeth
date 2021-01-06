@@ -9,7 +9,7 @@ Tests for zeth.core.contracts module
 from zeth.core.zksnark import ExtendedProof, Groth16
 from zeth.core.mixer_client import MixParameters
 from zeth.core.encryption import generate_encryption_keypair, encrypt
-from zeth.core.signing import gen_signing_keypair, sign, encode_vk_to_bytes
+from zeth.core.signing import gen_signing_keypair, sign
 from zeth.core.constants import NOTE_LENGTH_BYTES
 from unittest import TestCase
 from secrets import token_bytes
@@ -50,7 +50,7 @@ class TestContracts(TestCase):
             mix_params.extended_proof.to_json_dict(),
             mix_params_2.extended_proof.to_json_dict())
         self.assertEqual(
-            encode_vk_to_bytes(mix_params.signature_vk),
-            encode_vk_to_bytes(mix_params_2.signature_vk))
+            mix_params.signature_vk.to_bytes(),
+            mix_params_2.signature_vk.to_bytes())
         self.assertEqual(mix_params.signature, mix_params_2.signature)
         self.assertEqual(mix_params.ciphertexts, mix_params_2.ciphertexts)

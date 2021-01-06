@@ -44,6 +44,15 @@ class TestSigning(TestCase):
         """
         m = sha256("clearmatics".encode()).digest()
         sig = signing.sign(self.keypair.sk, m)
-        sig_encoded = signing.encode_signature_to_bytes(sig)
-        sig_decoded = signing.decode_signature_from_bytes(sig_encoded)
+        sig_encoded = signing.signature_to_bytes(sig)
+        sig_decoded = signing.signature_from_bytes(sig_encoded)
         self.assertEqual(sig, sig_decoded)
+
+    def test_keypair_encode_decode(self) -> None:
+        """
+        Test encoding and decoding of key pair
+        """
+        keypair = signing.gen_signing_keypair()
+        keypair_json = keypair.to_json_dict()
+        keypair2 = signing.SigningKeyPair.from_json_dict(keypair_json)
+        self.assertEqual(keypair_json, keypair2.to_json_dict())

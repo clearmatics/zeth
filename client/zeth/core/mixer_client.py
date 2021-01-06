@@ -753,7 +753,7 @@ def compute_h_sig(
     h = sha256()
     h.update(nf0)
     h.update(nf1)
-    h.update(signing.encode_vk_to_bytes(sign_vk))
+    h.update(sign_vk.to_bytes())
     return h.digest()
 
 
