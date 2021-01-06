@@ -140,7 +140,6 @@ def send_contract_call(
     between hosted keys (sender_eth_private_key is None) and local keys
     (sender_eth_private_key is not None). Returns the hash of the broadcast
     transaction.
-
     """
     tx_desc: Dict[str, Union[str, int]] = {'from': sender_eth_addr}
     if value:
