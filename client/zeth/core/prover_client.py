@@ -99,7 +99,6 @@ class ProverClient:
         """
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = prover_pb2_grpc.ProverStub(channel)  # type: ignore
-            print("-------------- Get the verification key --------------")
             verificationkey = stub.GetVerificationKey(_make_empty_message())
             return verificationkey
 
