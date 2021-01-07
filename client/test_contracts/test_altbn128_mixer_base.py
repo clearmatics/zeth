@@ -7,6 +7,7 @@
 from zeth.core.constants import \
     JS_INPUTS, ZETH_PUBLIC_UNIT_VALUE, ZETH_MERKLE_TREE_DEPTH
 import test_commands.mock as mock
+from unittest import TestCase
 from typing import Any
 
 # pylint: disable=line-too-long
@@ -91,58 +92,46 @@ RESIDUAL_BITS = int(
 PACKED_PRIMARY_INPUTS = \
     [ROOT] + COMMITMENTS + NULLIFIERS + [HSIG] + HTAGS + [RESIDUAL_BITS]
 
-
-def test_assemble_nullifiers(mixer_instance: Any) -> None:
-    # Test retrieving nullifiers
-    print("--- test_assemble_nullifiers")
-    for i in range(JS_INPUTS):
-        res = mixer_instance.functions.\
-            assemble_nullifier_test(i, PACKED_PRIMARY_INPUTS).call()
-        val = int.from_bytes(res, byteorder="big")
-        assert val == NULLIFIERS[i], f"expected: {NULLIFIERS[i]}, got: {val}"
+MIXER_INSTANCE: Any = None
 
 
-def test_assemble_hsig(mixer_instance: Any) -> None:
-    # Test retrieving hsig
-    print("--- test_assemble_hsig")
-    res = mixer_instance.functions.\
-        assemble_hsig_test(PACKED_PRIMARY_INPUTS).call()
-    hsig = int.from_bytes(res, byteorder="big")
-    assert hsig == HSIG, f"expected: {HSIG}, got {hsig}"
+class TestAltBN128MixerBaseContract(TestCase):
 
+    @staticmethod
+    def setUpClass() -> None:
+        print("Deploying AltBN128MixerBase_test.sol")
+        _web3, eth = mock.open_test_web3()
+        deployer_eth_address = eth.accounts[0]
+        _mixer_interface, mixer_instance = mock.deploy_contract(
+            eth,
+            deployer_eth_address,
+            "AltBN128MixerBase_test",
+            {
+                'mk_depth': ZETH_MERKLE_TREE_DEPTH,
+            })
+        global MIXER_INSTANCE   # pylint: disable=global-statement
+        MIXER_INSTANCE = mixer_instance
 
-def test_assemble_vpub(mixer_instance: Any) -> None:
-    # Test retrieving public values
-    print("--- test_assemble_vpub")
-    v_in, v_out = mixer_instance.functions.assemble_public_values_test(
-        PACKED_PRIMARY_INPUTS[-1]).call()
-    v_in_expect = VPUB[0] * ZETH_PUBLIC_UNIT_VALUE
-    v_out_expect = VPUB[1] * ZETH_PUBLIC_UNIT_VALUE
-    assert v_in == v_in_expect, f"expected: {v_in_expect}, got: {v_in}"
-    assert v_out == v_out_expect, f"expected: {v_out_expect}, got: {v_out}"
+    def test_assemble_nullifiers(self) -> None:
+        # Test retrieving nullifiers
+        for i in range(JS_INPUTS):
+            res = MIXER_INSTANCE.functions.\
+                assemble_nullifier_test(i, PACKED_PRIMARY_INPUTS).call()
+            val = int.from_bytes(res, byteorder="big")
+            self.assertEqual(NULLIFIERS[i], val)
 
+    def test_assemble_hsig(self) -> None:
+        # Test retrieving hsig
+        res = MIXER_INSTANCE.functions.\
+            assemble_hsig_test(PACKED_PRIMARY_INPUTS).call()
+        hsig = int.from_bytes(res, byteorder="big")
+        self.assertEqual(HSIG, hsig)
 
-def main() -> None:
-    print("Deploying AltBN128MixerBase_test.sol")
-    _web3, eth = mock.open_test_web3()
-    deployer_eth_address = eth.accounts[0]
-    _mixer_interface, mixer_instance = mock.deploy_contract(
-        eth,
-        deployer_eth_address,
-        "AltBN128MixerBase_test",
-        {
-            'mk_depth': ZETH_MERKLE_TREE_DEPTH,
-        })
-
-    print("Testing ...")
-    test_assemble_nullifiers(mixer_instance)
-    test_assemble_vpub(mixer_instance)
-    test_assemble_hsig(mixer_instance)
-
-    print("========================================")
-    print("==              PASSED                ==")
-    print("========================================")
-
-
-if __name__ == '__main__':
-    main()
+    def test_assemble_vpub(self) -> None:
+        # Test retrieving public values
+        v_in, v_out = MIXER_INSTANCE.functions.assemble_public_values_test(
+            PACKED_PRIMARY_INPUTS[-1]).call()
+        v_in_expect = VPUB[0] * ZETH_PUBLIC_UNIT_VALUE
+        v_out_expect = VPUB[1] * ZETH_PUBLIC_UNIT_VALUE
+        self.assertEqual(v_in_expect, v_in)
+        self.assertEqual(v_out_expect, v_out)
