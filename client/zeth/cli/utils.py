@@ -118,6 +118,20 @@ def open_web3_from_network(eth_net: NetworkConfig) -> Any:
         insecure=eth_net.insecure)
 
 
+def load_contract_address(contract_addr: str) -> str:
+    """
+    Parse a string as either an eth address, or a contract instance file.
+    """
+    if contract_addr.startswith("0x"):
+        return Web3.toChecksumAddress(contract_addr)
+    if exists(contract_addr):
+        with open(contract_addr, "r") as instance_f:
+            instance = InstanceDescription.from_json_dict(json.load(instance_f))
+        return Web3.toChecksumAddress(instance.address)
+    raise ClickException(
+        f"failed to parse as address or instance file: {contract_addr}")
+
+
 def open_web3_from_ctx(ctx: ClientConfig) -> Any:
     eth_net = get_eth_network(ctx.eth_network)
     return open_web3_from_network(eth_net)
