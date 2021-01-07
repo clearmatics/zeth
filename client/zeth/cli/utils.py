@@ -140,7 +140,9 @@ def open_web3_from_ctx(ctx: ClientConfig) -> Any:
 class MixerDescription:
     """
     Holds an InstanceDescription for the mixer contract, and optionally an
-    InstanceDescription for the token contract.
+    InstanceDescription for the token contract. When serialized to json, the
+    InstanceDescription for the mixer is held in the top-level object, so that
+    MixerDescription is compatible with a regular contract instance.
     """
     def __init__(
             self,
@@ -154,26 +156,31 @@ class MixerDescription:
         self.vk_hash = vk_hash
 
     def to_json_dict(self) -> Dict[str, Any]:
-        json_dict: Dict[str, Any] = {
-            "mixer": self.mixer.to_json_dict()
-        }
+        # Create an InstanceDescription JSON object, adding a "zeth_mixer"
+        # attribute for the extra data.
+        json_dict = self.mixer.to_json_dict()
+
+        zeth_mixer: Dict[str, Any] = {}
         if self.token:
-            json_dict["token"] = self.token.to_json_dict()
+            zeth_mixer["token"] = self.token.to_json_dict()
         if self.permitted_dispatcher:
-            json_dict["permitted_dispatcher"] = self.permitted_dispatcher
+            zeth_mixer["permitted_dispatcher"] = self.permitted_dispatcher
         if self.vk_hash:
-            json_dict["vk_hash"] = self.vk_hash
+            zeth_mixer["vk_hash"] = self.vk_hash
+        json_dict["zeth_mixer"] = zeth_mixer
         return json_dict
 
     @staticmethod
     def from_json_dict(json_dict: Dict[str, Any]) -> MixerDescription:
-        mixer = InstanceDescription.from_json_dict(json_dict["mixer"])
-        token_dict = cast(Optional[Dict[str, Any]], json_dict.get("token", None))
+        zeth_mixer = json_dict["zeth_mixer"]
+
+        mixer = InstanceDescription.from_json_dict(json_dict)
+        token_dict = cast(Optional[Dict[str, Any]], zeth_mixer.get("token", None))
         token = InstanceDescription.from_json_dict(token_dict) \
             if token_dict else None
         permitted_dispatcher = \
-            cast(Optional[str], json_dict.get("permitted_dispatcher", None))
-        vk_hash = cast(Optional[str], json_dict.get("vk_hash", None))
+            cast(Optional[str], zeth_mixer.get("permitted_dispatcher", None))
+        vk_hash = cast(Optional[str], zeth_mixer.get("vk_hash", None))
         return MixerDescription(mixer, token, permitted_dispatcher, vk_hash)
 
 
