@@ -38,6 +38,9 @@ copy_deployment_info deployer charlie
 
 # Alice deposits 200 and sends 100 to Bob
 pushd alice
+# Test getting vk from prover server
+[ -e vk.json ] || zeth get-verification-key --vk-out vk.json
+
 alice_pk=`cat zeth-address.pub`
 if ! [ -e notes/state_zeth ] ; then
     # Uncomment the following command to create dispatch call data for this transaction

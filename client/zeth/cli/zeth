@@ -9,6 +9,7 @@ from zeth.cli.constants import \
     INSTANCE_FILE_DEFAULT, ZETH_SECRET_ADDRESS_FILE_DEFAULT, WALLET_DIR_DEFAULT, \
     ETH_NETWORK_FILE_DEFAULT, ETH_NETWORK_DEFAULT
 from zeth.cli.utils import ClientConfig
+from zeth.cli.zeth_get_verification_key import get_verification_key
 from zeth.cli.zeth_deploy import deploy
 from zeth.cli.zeth_gen_address import gen_address
 from zeth.cli.zeth_sync import sync
@@ -80,6 +81,7 @@ def zeth(
         wallet_dir=wallet_dir)
 
 
+zeth.add_command(get_verification_key)
 zeth.add_command(deploy)
 zeth.add_command(gen_address)
 zeth.add_command(sync)
