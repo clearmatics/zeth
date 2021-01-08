@@ -14,6 +14,7 @@ from zeth.cli.zeth_deploy import deploy
 from zeth.cli.zeth_gen_address import gen_address
 from zeth.cli.zeth_sync import sync
 from zeth.cli.zeth_mix import mix
+from zeth.cli.zeth_wait import wait
 from zeth.cli.zeth_ls_notes import ls_notes
 from zeth.cli.zeth_ls_commits import ls_commits
 from click import group, command, option, pass_context, ClickException, Context
@@ -86,6 +87,7 @@ zeth.add_command(deploy)
 zeth.add_command(gen_address)
 zeth.add_command(sync)
 zeth.add_command(mix)
+zeth.add_command(wait)
 zeth.add_command(ls_notes)
 zeth.add_command(ls_commits)
 zeth.add_command(help)
