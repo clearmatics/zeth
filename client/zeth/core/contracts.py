@@ -9,6 +9,7 @@ from zeth.core.utils import EtherValue
 from zeth.core.constants import SOL_COMPILER_VERSION
 from web3.utils.contracts import find_matching_event_abi  # type: ignore
 from web3.utils.events import get_event_data  # type: ignore
+from eth_utils import event_abi_to_log_topic  # type: ignore
 import solcx
 from typing import Dict, List, Iterator, Optional, Union, Iterable, Any
 
@@ -187,8 +188,21 @@ def get_event_logs(
     instance, with the given name. Yields an iterator of event-specific objects
     to be decoded by the caller.
     """
+
+    # It is possible to achieve this via the contract interface, with code of
+    # the form:
+    #
+    #   event = instance.events[event_name]
+    #   filter = event.createFilter(fromBlock=start_block, toBlock=to_block)
+    #   logs = web3.eth.getFilterLogs(filter)
+    #
+    # However, this creates filters on the host node, which may not be
+    # permitted in all configurations. Hence, the code here iterates manually,
+    # skpping events with other topics, from the same contract.
+
     contract_address = instance.address
     event_abi = find_matching_event_abi(instance.abi, event_name=event_name)
+    log_topic = event_abi_to_log_topic(event_abi)
     batch_size = batch_size or SYNC_BLOCKS_PER_BATCH
 
     while start_block <= end_block:
@@ -202,5 +216,24 @@ def get_event_logs(
         }
         logs = web3.eth.getLogs(filter_params)
         for log in logs:
-            yield get_event_data(event_abi, log)
+            if log_topic == log['topics'][0]:
+                yield get_event_data(event_abi, log)
         start_block = to_block + 1
+
+
+def get_event_logs_from_tx_receipt(
+        instance_desc: InstanceDescription,
+        event_name: str,
+        tx_receipt: Any) -> Iterator[Any]:
+    """
+    Query a transaction receipt for all events emitted by the given contract
+    instance with a given event name. Yields an iterator of event-specific
+    objects to be decoded by the caller. This function intentionally avoids
+    connecting to a node, or creating host-side filters.
+    """
+    contract_address = instance_desc.address
+    event_abi = find_matching_event_abi(instance_desc.abi, event_name=event_name)
+    log_topic = event_abi_to_log_topic(event_abi)
+    for log in tx_receipt.logs:
+        if log.address == contract_address and log_topic == log['topics'][0]:
+            yield get_event_data(event_abi, log)

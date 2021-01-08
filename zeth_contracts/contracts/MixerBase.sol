@@ -89,7 +89,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     );
 
     /// Debug only
-    event LogDebug(string message);
+    event LogDebug(string message, uint256 value);
 
     /// Constructor
     constructor(
@@ -184,10 +184,11 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
                 inputs
             )
         );
+
         require(
             OTSchnorrVerifier.verify(
                 vk[0], vk[1], vk[2], vk[3], sigma, hash_to_be_signed),
-            "Invalid signature: Unable to verify the signature correctly"
+            "Invalid signature in dispatch"
         );
 
         mix_append_commitments_emit_and_handle_public_values(
