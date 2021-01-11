@@ -86,7 +86,6 @@ def mix(
         raise ClickException("input and output value mismatch")
 
     eth_address = load_eth_address(eth_addr)
-    eth_private_key_data = load_eth_private_key(eth_private_key)
 
     # If instance uses an ERC20 token, tx_value can be 0. Otherwise it should
     # match vin_pub.
@@ -126,6 +125,7 @@ def mix(
     if for_dispatch_call or dry_run:
         return
 
+    eth_private_key_data = load_eth_private_key(eth_private_key)
     tx_hash = zeth_client.mix(
         mix_params=mix_params,
         sender_eth_address=eth_address,
