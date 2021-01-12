@@ -21,9 +21,9 @@ class MiMC_mp_gadget : public libsnark::gadget<FieldT>
 {
 private:
     // First input
-    libsnark::pb_variable<FieldT> x;
+    libsnark::pb_linear_combination<FieldT> x;
     // Second input
-    libsnark::pb_variable<FieldT> y;
+    libsnark::pb_linear_combination<FieldT> y;
     // Output variable
     libsnark::pb_variable<FieldT> result;
     // Permutation output
@@ -34,8 +34,8 @@ private:
 public:
     MiMC_mp_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> &x,
-        const libsnark::pb_variable<FieldT> &y,
+        const libsnark::pb_linear_combination<FieldT> &x,
+        const libsnark::pb_linear_combination<FieldT> &y,
         const libsnark::pb_variable<FieldT> &result,
         const std::string &annotation_prefix = "MiMC_mp_gadget");
 

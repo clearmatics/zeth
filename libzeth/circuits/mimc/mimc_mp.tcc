@@ -13,8 +13,8 @@ namespace libzeth
 template<typename FieldT, typename PermutationT>
 MiMC_mp_gadget<FieldT, PermutationT>::MiMC_mp_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> &x,
-    const libsnark::pb_variable<FieldT> &y,
+    const libsnark::pb_linear_combination<FieldT> &x,
+    const libsnark::pb_linear_combination<FieldT> &y,
     const libsnark::pb_variable<FieldT> &result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
@@ -51,7 +51,7 @@ void MiMC_mp_gadget<FieldT, PermutationT>::generate_r1cs_witness() const
 
     // Filling output variables for Miyaguchi-Preenel equation
     this->pb.val(result) =
-        this->pb.val(y) + this->pb.val(perm_output) + this->pb.val(x);
+        this->pb.lc_val(y) + this->pb.val(perm_output) + this->pb.lc_val(x);
 }
 
 // Returns the hash of two elements
