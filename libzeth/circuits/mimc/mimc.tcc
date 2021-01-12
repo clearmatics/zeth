@@ -21,8 +21,9 @@ bool MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
 template<typename FieldT, size_t Exponent, size_t NumRounds>
 MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> &msg,
-    const libsnark::pb_variable<FieldT> &key,
+    const libsnark::pb_linear_combination<FieldT> &msg,
+    const libsnark::pb_linear_combination<FieldT> &key,
+    const libsnark::pb_variable<FieldT> &result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
@@ -31,27 +32,45 @@ MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
 
     // Initialize the round gadgets
     round_gadgets.reserve(NumRounds);
-    const libsnark::pb_variable<FieldT> *round_msg = &msg;
-    for (size_t i = 0; i < NumRounds; i++) {
-        // Set the input of the next round with the output variable of the
-        // previous round (except for round 0)
-        round_results[i].allocate(
-            this->pb, FMT(this->annotation_prefix, " round_result[%zu]", i));
 
+    // First round uses round_msg as an input.
+    round_results[0].allocate(
+        this->pb, FMT(this->annotation_prefix, " round_result[0]"));
+    round_gadgets.emplace_back(
+        this->pb,
+        msg,
+        key,
+        round_constants[0],
+        round_results[0],
+        false,
+        FMT(this->annotation_prefix, " round[0]"));
+
+    // All other rounds use the output of the previous round and output to an
+    // intermediate variable, except the last round, which outputs to the
+    // result parameter.
+    for (size_t i = 1; i < NumRounds; i++) {
         const bool is_last = (i == (NumRounds - 1));
+
+        // Allocate output variable (except for last round, which outputs to
+        // the result variable).
+        if (is_last) {
+            round_results[i] = result;
+        } else {
+            round_results[i].allocate(
+                this->pb,
+                FMT(this->annotation_prefix, " round_result[%zu]", i));
+        }
 
         // Initialize and add the current round gadget into the rounds gadget
         // vector, picking the relative constant
         round_gadgets.emplace_back(
             this->pb,
-            *round_msg,
+            round_results[i - 1],
             key,
             round_constants[i],
             round_results[i],
             is_last,
             FMT(this->annotation_prefix, " round[%zu]", i));
-
-        round_msg = &round_results[i];
     }
 }
 
@@ -74,14 +93,6 @@ void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
     for (auto &gadget : round_gadgets) {
         gadget.generate_r1cs_witness();
     }
-}
-
-template<typename FieldT, size_t Exponent, size_t NumRounds>
-const libsnark::pb_variable<FieldT>
-    &MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::result() const
-{
-    // Returns the result of the last encryption/permutation
-    return round_results.back();
 }
 
 // The following constants correspond to the iterative computation of sha3_256

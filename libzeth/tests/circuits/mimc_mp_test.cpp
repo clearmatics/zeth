@@ -132,8 +132,10 @@ TEST(TestMiMC, MiMC7PermTrue)
 
     libsnark::pb_variable<Field> in_x;
     libsnark::pb_variable<Field> in_k;
+    libsnark::pb_variable<Field> result;
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
+    result.allocate(pb, "result");
 
     pb.val(in_x) = Field("3703141493535563179657531719960160174296085208671919"
                          "316200479060314459804651");
@@ -141,14 +143,14 @@ TEST(TestMiMC, MiMC7PermTrue)
                          "2890706581988986633412003");
 
     MiMC_permutation_gadget<Field, 7, 91> mimc_gadget(
-        pb, in_x, in_k, "mimc_gadget");
+        pb, in_x, in_k, result, "mimc_gadget");
     mimc_gadget.generate_r1cs_constraints();
     mimc_gadget.generate_r1cs_witness();
 
     Field expected_out = Field("192990723315478049773124691205698348115617480"
                                "95378968014959488920239255590840");
     ASSERT_TRUE(pb.is_satisfied());
-    ASSERT_TRUE(expected_out == pb.val(mimc_gadget.result()));
+    ASSERT_TRUE(expected_out == pb.val(result));
 }
 
 TEST(TestMiMC, MiMC7PermFalse)
@@ -157,21 +159,24 @@ TEST(TestMiMC, MiMC7PermFalse)
 
     libsnark::pb_variable<Field> in_x;
     libsnark::pb_variable<Field> in_k;
+    libsnark::pb_variable<Field> result;
     in_x.allocate(pb, "x");
     in_k.allocate(pb, "k");
+    result.allocate(pb, "result");
 
     pb.val(in_x) = Field("3703141493535563179657531719960160174296085208671919"
                          "316200479060314459804651");
     pb.val(in_k) = Field("13455131405143248756924738814405142");
 
-    MiMCe7_permutation_gadget<Field> mimc_gadget(pb, in_x, in_k, "mimc_gadget");
+    MiMCe7_permutation_gadget<Field> mimc_gadget(
+        pb, in_x, in_k, result, "mimc_gadget");
     mimc_gadget.generate_r1cs_constraints();
     mimc_gadget.generate_r1cs_witness();
 
     Field unexpected_out = Field("1929907233154780497731246912056983481156174"
                                  "8095378968014959488920239255590840");
     ASSERT_TRUE(pb.is_satisfied());
-    ASSERT_FALSE(unexpected_out == pb.val(mimc_gadget.result()));
+    ASSERT_FALSE(unexpected_out == pb.val(result));
 }
 
 TEST(TestMiMC, MiMC7MpTrue)
@@ -193,15 +198,18 @@ TEST(TestMiMC, MiMC7MpTrue)
     pb.val(x) = Field("3703141493535563179657531719960160174296085208671919316"
                       "200479060314459804651");
 
+    libsnark::pb_variable<Field> result;
+    result.allocate(pb, "result");
+
     MiMC_mp_gadget<Field, MiMCe7_permutation_gadget<Field>> mimc_mp_gadget(
-        pb, x, y, "gadget");
+        pb, x, y, result, "gadget");
     mimc_mp_gadget.generate_r1cs_constraints();
     mimc_mp_gadget.generate_r1cs_witness();
 
     Field expected_out = Field("167979224495559946840631042142333962005996937"
                                "15764605878168345782964540311877");
     ASSERT_TRUE(pb.is_satisfied());
-    ASSERT_TRUE(expected_out == pb.val(mimc_mp_gadget.result()));
+    ASSERT_TRUE(expected_out == pb.val(result));
 }
 
 TEST(TestMiMC, MiMC7MpFalse)
@@ -221,15 +229,18 @@ TEST(TestMiMC, MiMC7MpFalse)
     pb.val(x) = Field("3703141493535563179657531719960160174296085208671919316"
                       "200479060314459804651");
 
+    libsnark::pb_variable<Field> result;
+    result.allocate(pb, "result");
+
     MiMC_mp_gadget<Field, MiMCe7_permutation_gadget<Field>> mimc_mp_gadget(
-        pb, x, y, "gadget");
+        pb, x, y, result, "gadget");
     mimc_mp_gadget.generate_r1cs_constraints();
     mimc_mp_gadget.generate_r1cs_witness();
 
     Field unexpected_out = Field("1679792244955599468406310421423339620059969"
                                  "3715764605878168345782964540311877");
     ASSERT_TRUE(pb.is_satisfied());
-    ASSERT_FALSE(unexpected_out == pb.val(mimc_mp_gadget.result()));
+    ASSERT_FALSE(unexpected_out == pb.val(result));
 }
 
 TEST(TestMiMC, TestMiMC31)
@@ -260,15 +271,18 @@ TEST(TestMiMC, TestMiMC31)
     m.allocate(pb, "m");
     pb.val(m) = m_val;
 
+    libsnark::pb_variable<Field> h;
+    h.allocate(pb, "h");
+
     MiMC_mp_gadget<Field, MiMCe31_permutation_gadget<Field>> mimc_mp_gadget(
-        pb, m, k, "mimc_mp");
+        pb, m, k, h, "mimc_mp");
     mimc_mp_gadget.generate_r1cs_constraints();
     mimc_mp_gadget.generate_r1cs_witness();
 
     // Check that the circuit is satisfied, and that the expected result is
     // generated.
     ASSERT_TRUE(pb.is_satisfied());
-    ASSERT_EQ(h_val, pb.val(mimc_mp_gadget.result()));
+    ASSERT_EQ(h_val, pb.val(h));
 }
 
 } // namespace
