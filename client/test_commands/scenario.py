@@ -56,7 +56,6 @@ def wait_for_tx_update_mk_tree(
 def get_mix_parameters_components(
         zeth_client: MixerClient,
         prover_client: ProverClient,
-        zksnark: IZKSnarkProvider,
         mk_tree: MerkleTree,
         sender_ownership_keypair: OwnershipKeyPair,
         inputs: List[Tuple[int, ZethNote]],
@@ -79,8 +78,7 @@ def get_mix_parameters_components(
         compute_h_sig_cb)
     prover_inputs, signing_keypair = zeth_client.create_prover_inputs(
         mix_call_desc)
-    ext_proof_proto = prover_client.get_proof(prover_inputs)
-    ext_proof = zksnark.extended_proof_from_proto(ext_proof_proto)
+    ext_proof = prover_client.get_proof(prover_inputs)
     return (
         prover_inputs.js_outputs[0],
         prover_inputs.js_outputs[1],
@@ -262,7 +260,6 @@ def charlie_double_withdraw(
         get_mix_parameters_components(
             zeth_client,
             prover_client,
-            zksnark,
             mk_tree,
             keystore["Charlie"].ownership_keypair(),  # sender
             [input1, input2],
@@ -370,7 +367,6 @@ def charlie_corrupt_bob_deposit(
         get_mix_parameters_components(
             zeth_client,
             prover_client,
-            zksnark,
             mk_tree,
             keystore["Bob"].ownership_keypair(),
             [input1, input2],

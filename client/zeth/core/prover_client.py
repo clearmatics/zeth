@@ -5,9 +5,10 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-from .pairing import PairingParameters, pairing_parameters_from_proto
+from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
+    IVerificationKey, ExtendedProof
+from zeth.core.pairing import PairingParameters, pairing_parameters_from_proto
 from zeth.api.zeth_messages_pb2 import ProofInputs
-from zeth.api.snark_messages_pb2 import VerificationKey, ExtendedProof
 from zeth.api import prover_pb2  # type: ignore
 from zeth.api import prover_pb2_grpc  # type: ignore
 import grpc  # type: ignore
@@ -93,14 +94,22 @@ class ProverClient:
 
         return self.prover_config
 
-    def get_verification_key(self) -> VerificationKey:
+    def get_zksnark_provider(self) -> IZKSnarkProvider:
+        """
+        Get the appropriate zksnark provider, based on the server configuration.
+        """
+        config = self.get_configuration()
+        return get_zksnark_provider(config.zksnark_name)
+
+    def get_verification_key(self) -> IVerificationKey:
         """
         Fetch the verification key from the proving service
         """
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = prover_pb2_grpc.ProverStub(channel)  # type: ignore
-            verificationkey = stub.GetVerificationKey(_make_empty_message())
-            return verificationkey
+            vk_proto = stub.GetVerificationKey(_make_empty_message())
+            zksnark = self.get_zksnark_provider()
+            return zksnark.verification_key_from_proto(vk_proto)
 
     def get_proof(
             self,
@@ -111,8 +120,9 @@ class ProverClient:
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = prover_pb2_grpc.ProverStub(channel)  # type: ignore
             print("-------------- Get the proof --------------")
-            proof = stub.Prove(proof_inputs)
-            return proof
+            extproof_proto = stub.Prove(proof_inputs)
+            zksnark = self.get_zksnark_provider()
+            return zksnark.extended_proof_from_proto(extproof_proto)
 
 
 def _make_empty_message() -> empty_pb2.Empty:
