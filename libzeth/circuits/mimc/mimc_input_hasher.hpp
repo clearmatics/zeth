@@ -34,6 +34,9 @@ public:
 
     void generate_r1cs_constraints();
     void generate_r1cs_witness() const;
+
+    static FieldT get_iv();
+    static FieldT compute_hash(const std::vector<FieldT> &values);
 };
 
 } // namespace libzeth

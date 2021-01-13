@@ -34,15 +34,8 @@ mimc_input_hasher<FieldT, comp_fnT>::mimc_input_hasher(
     _intermediate_values.allocate(
         pb, num_inputs, FMT(annotation_prefix, "intermediate_values"));
 
-    // IV generated as:
-    //   zeth.core.mimc._keccak_256(
-    //       zeth.core.mimc._str_to_bytes("clearmatics_hash_seed"))
-    // See: client/zeth/core/mimc.py
-    const FieldT iv_val(
-        "1319653706411738841819622385631198771438854383955240040834092139"
-        "7545324034315");
     libsnark::pb_linear_combination<FieldT> iv;
-    iv.assign(pb, iv_val);
+    iv.assign(pb, get_iv());
 
     // First step: hash_output[0] <- mimc_mp(iv, i[0])
 
@@ -90,6 +83,29 @@ void mimc_input_hasher<FieldT, comp_fnT>::generate_r1cs_witness() const
     for (const std::shared_ptr<comp_fnT> &cf : _compression_functions) {
         cf->generate_r1cs_witness();
     }
+}
+
+template<typename FieldT, typename comp_fnT>
+FieldT mimc_input_hasher<FieldT, comp_fnT>::get_iv()
+{
+    // IV generated as:
+    //   zeth.core.mimc._keccak_256(
+    //       zeth.core.mimc._str_to_bytes("clearmatics_hash_seed"))
+    // See: client/zeth/core/mimc.py
+    return FieldT(
+        "1319653706411738841819622385631198771438854383955240040834092139"
+        "7545324034315");
+}
+
+template<typename FieldT, typename comp_fnT>
+FieldT mimc_input_hasher<FieldT, comp_fnT>::compute_hash(
+    const std::vector<FieldT> &values)
+{
+    FieldT h = get_iv();
+    for (const FieldT &v : values) {
+        h = comp_fnT::get_hash(h, v);
+    }
+    return comp_fnT::get_hash(h, FieldT(values.size()));
 }
 
 } // namespace libzeth

@@ -58,6 +58,7 @@ TEST(MiMCInputHasherTest, SimpleInputValues)
     hasher.generate_r1cs_witness();
 
     ASSERT_EQ(expect_hash, pb.val(hashed_inputs));
+    ASSERT_EQ(expect_hash, input_hasher::compute_hash(simple_values));
     ASSERT_TRUE(pb.is_satisfied());
 }
 
