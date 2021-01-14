@@ -27,8 +27,11 @@ circuit_wrapper<
     NumOutputs,
     TreeDepth>::circuit_wrapper()
 {
+    // Joinsplit gadget internally allocates its public data first.
     // TODO: joinsplit_gadget should be refactored to be properly composable.
     joinsplit = std::make_shared<joinsplit_type>(pb);
+    const size_t num_public_elements = joinsplit->get_num_public_elements();
+    pb.set_input_sizes(num_public_elements);
 
     // Generate constraints
     joinsplit->generate_r1cs_constraints();

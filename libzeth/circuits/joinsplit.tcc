@@ -192,10 +192,10 @@ public:
             // represented. The aggregation of these bits plus of value_pub_in,
             // and value_pub_out take `nb_field_residual` field element(s) to be
             // represented
-            const size_t nb_packed_inputs =
+            const size_t num_packed_public_elements =
                 2 * NumInputs + 1 + nb_field_residual;
-            const size_t nb_inputs = 1 + NumOutputs + nb_packed_inputs;
-            pb.set_input_sizes(nb_inputs);
+            const size_t num_public_elements =
+                1 + NumOutputs + num_packed_public_elements;
             // ---------------------------------------------------------------
 
             ZERO.allocate(pb, FMT(this->annotation_prefix, " ZERO"));
@@ -277,14 +277,15 @@ public:
             // since we are packing all the inputs nullifiers + the h_is +
             // + the h_sig + the residual bits
             assert(packed_inputs.size() == NumInputs + 1 + NumInputs + 1);
-            assert(nb_packed_inputs == [this]() {
+            assert(num_packed_public_elements == [this]() {
                 size_t sum = 0;
                 for (const auto &i : packed_inputs) {
                     sum = sum + i.size();
                 }
                 return sum;
             }());
-            assert(nb_inputs == get_inputs_field_element_size());
+            assert(num_public_elements == get_num_public_elements());
+            (void)num_public_elements;
 
             // [SANITY CHECK] Total size of unpacked inputs
             size_t total_size_unpacked_inputs = 0;
@@ -599,8 +600,8 @@ public:
         return get_inputs_bit_size() - (1 + NumOutputs) * FieldT::capacity();
     }
 
-    // Computes the number of field elements in the primary inputs
-    static size_t get_inputs_field_element_size()
+    // Computes the number of field elements in the public data
+    static size_t get_num_public_elements()
     {
         size_t nb_elements = 0;
 
