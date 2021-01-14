@@ -88,7 +88,7 @@ static void write_ext_proof_to_file(
 class prover_server final : public zeth_proto::Prover::Service
 {
 private:
-    circuit_wrapper prover;
+    circuit_wrapper &prover;
 
     // The keypair is the result of the setup. Store a copy internally.
     snark::keypair keypair;
