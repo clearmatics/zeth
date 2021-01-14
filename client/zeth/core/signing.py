@@ -21,12 +21,6 @@ from typing import Dict, List, Tuple, Any
 FQ = ec.FQ
 G1 = Tuple[ec.FQ, ec.FQ]
 
-# pylint: disable=line-too-long
-# Characteristic of the scalar field of BN128 (see comment and reference above).
-SIGNATURE_PRIME = \
-    21888242871839275222246405745257275088548364400416034343698204186575808495617  # noqa
-# pylint: enable=line-too-long
-
 
 class SigningVerificationKey:
     """
@@ -101,11 +95,11 @@ def gen_signing_keypair() -> SigningKeyPair:
     Return a one-time signature key-pair
     composed of elements of F_q and G1.
     """
-    key_size_byte = ceil(len("{0:b}".format(SIGNATURE_PRIME)) / 8)
+    key_size_byte = ceil(len("{0:b}".format(ec.curve_order)) / 8)
     x = FQ(
-        int(bytes(urandom(key_size_byte)).hex(), 16) % SIGNATURE_PRIME)
+        int(bytes(urandom(key_size_byte)).hex(), 16) % ec.curve_order)
     y = FQ(
-        int(bytes(urandom(key_size_byte)).hex(), 16) % SIGNATURE_PRIME)
+        int(bytes(urandom(key_size_byte)).hex(), 16) % ec.curve_order)
     X = ec.multiply(ec.G1, x.n)
     Y = ec.multiply(ec.G1, y.n)
 
@@ -141,10 +135,10 @@ def sign(
 
     # Convert the hex digest into a field element
     challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
-    challenge = challenge % SIGNATURE_PRIME
+    challenge = challenge % ec.curve_order
 
     # Compute the signature sigma
-    sigma = (sk.ssk[0].n + challenge * sk.psk.n) % SIGNATURE_PRIME
+    sigma = (sk.ssk[0].n + challenge * sk.psk.n) % ec.curve_order
     return sigma
 
 
@@ -161,7 +155,7 @@ def verify(
     challenge_to_hash = g1_to_bytes(vk.spk) + m
 
     challenge = int(sha256(challenge_to_hash).hexdigest(), 16)
-    challenge = challenge % SIGNATURE_PRIME
+    challenge = challenge % ec.curve_order
 
     left_part = ec.multiply(ec.G1, FQ(sigma).n)
     right_part = ec.add(vk.spk, ec.multiply(vk.ppk, FQ(challenge).n))
