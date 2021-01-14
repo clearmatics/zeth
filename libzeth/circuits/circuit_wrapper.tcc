@@ -27,6 +27,11 @@ circuit_wrapper<
     NumOutputs,
     TreeDepth>::circuit_wrapper()
 {
+    // TODO: joinsplit_gadget should be refactored to be properly composable.
+    joinsplit = std::make_shared<joinsplit_type>(pb);
+
+    // Generate constraints
+    joinsplit->generate_r1cs_constraints();
 }
 
 template<
@@ -46,11 +51,6 @@ typename snarkT::keypair circuit_wrapper<
     NumOutputs,
     TreeDepth>::generate_trusted_setup() const
 {
-    libsnark::protoboard<Field> pb;
-    joinsplit_gadget<Field, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
-        g(pb);
-    g.generate_r1cs_constraints();
-
     // Generate a verification and proving key (trusted setup) and write them
     // in a file
     return snarkT::generate_setup(pb);
@@ -64,7 +64,7 @@ template<
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-libsnark::protoboard<libff::Fr<ppT>> circuit_wrapper<
+const libsnark::protoboard<libff::Fr<ppT>> &circuit_wrapper<
     HashT,
     HashTreeT,
     ppT,
@@ -73,10 +73,6 @@ libsnark::protoboard<libff::Fr<ppT>> circuit_wrapper<
     NumOutputs,
     TreeDepth>::get_constraint_system() const
 {
-    libsnark::protoboard<Field> pb;
-    joinsplit_gadget<Field, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
-        g(pb);
-    g.generate_r1cs_constraints();
     return pb;
 }
 
@@ -128,12 +124,7 @@ extended_proof<ppT, snarkT> circuit_wrapper<
         throw std::invalid_argument("invalid joinsplit balance");
     }
 
-    libsnark::protoboard<Field> pb;
-
-    joinsplit_gadget<Field, HashT, HashTreeT, NumInputs, NumOutputs, TreeDepth>
-        g(pb);
-    g.generate_r1cs_constraints();
-    g.generate_r1cs_witness(
+    joinsplit->generate_r1cs_witness(
         root, inputs, outputs, vpub_in, vpub_out, h_sig_in, phi_in);
 
     bool is_valid_witness = pb.is_satisfied();
