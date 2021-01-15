@@ -141,7 +141,7 @@ public:
     grpc::Status Prove(
         grpc::ServerContext *,
         const zeth_proto::ProofInputs *proof_inputs,
-        zeth_proto::ExtendedProof *proof) override
+        zeth_proto::ExtendedProofAndPublicData *proof_and_public_data) override
     {
         std::cout << "[ACK] Received the request to generate a proof"
                   << std::endl;
@@ -150,6 +150,8 @@ public:
 
         // Parse received message to feed to the prover
         try {
+            // TODO: Factor this into more maintainable smaller functions
+
             Field root = libzeth::base_field_element_from_hex<Field>(
                 proof_inputs->mk_root());
             libzeth::bits64 vpub_in =
@@ -204,6 +206,8 @@ public:
 
             std::cout << "[DEBUG] Data parsed successfully" << std::endl;
             std::cout << "[DEBUG] Generating the proof..." << std::endl;
+
+            std::vector<Field> public_data;
             libzeth::extended_proof<pp, snark> ext_proof = this->prover.prove(
                 root,
                 joinsplit_inputs,
@@ -212,10 +216,14 @@ public:
                 vpub_out,
                 h_sig_in,
                 phi_in,
-                this->keypair.pk);
+                this->keypair.pk,
+                public_data);
 
-            std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+            std::cout << "[DEBUG] Displaying extended proof and public data\n";
             ext_proof.write_json(std::cout);
+            for (const Field &f : public_data) {
+                std::cout << libzeth::base_field_element_to_hex(f) << "\n";
+            }
 
             // Write a copy of the proof for debugging.
             if (!proof_output_file.empty()) {
@@ -225,7 +233,12 @@ public:
             }
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
-            api_handler::extended_proof_to_proto(ext_proof, proof);
+            api_handler::extended_proof_to_proto(
+                ext_proof, proof_and_public_data->mutable_extended_proof());
+            for (size_t i = 0; i < public_data.size(); ++i) {
+                proof_and_public_data->add_public_data(
+                    libzeth::base_field_element_to_hex(public_data[i]));
+            }
 
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
@@ -370,7 +383,7 @@ int main(int argc, char **argv)
     }
 
     // Inititalize the curve parameters
-    std::cout << "[INFO] Init params" << std::endl;
+    std::cout << "[INFO] Init params (" << libzeth::pp_name<pp>() << ")\n";
     pp::init_public_params();
 
     // If the keypair file exists, load and use it, otherwise generate a new

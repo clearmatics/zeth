@@ -16,7 +16,7 @@ from os.path import exists
 from os import unlink
 import json
 from google.protobuf import empty_pb2
-from typing import Dict, Optional, Any
+from typing import Dict, List, Tuple, Optional, Any
 
 
 class ProverConfiguration:
@@ -113,16 +113,19 @@ class ProverClient:
 
     def get_proof(
             self,
-            proof_inputs: ProofInputs) -> ExtendedProof:
+            proof_inputs: ProofInputs) -> Tuple[ExtendedProof, List[int]]:
         """
         Request a proof generation to the proving service
         """
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = prover_pb2_grpc.ProverStub(channel)  # type: ignore
             print("-------------- Get the proof --------------")
-            extproof_proto = stub.Prove(proof_inputs)
+            extproof_and_pub_data = stub.Prove(proof_inputs)
             zksnark = self.get_zksnark_provider()
-            return zksnark.extended_proof_from_proto(extproof_proto)
+            extproof = zksnark.extended_proof_from_proto(
+                extproof_and_pub_data.extended_proof)
+            public_data = [int(x, 16) for x in extproof_and_pub_data.public_data]
+            return extproof, public_data
 
 
 def _make_empty_message() -> empty_pb2.Empty:

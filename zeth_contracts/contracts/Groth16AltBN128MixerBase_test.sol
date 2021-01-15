@@ -5,12 +5,12 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-import "./AltBN128MixerBase.sol";
+import "./Groth16AltBN128Mixer.sol";
 
 
-// Implementation of abstract AltBN128MixerBase contract, to allow testing
+// Implementation of Groth16AltBN128MixerBase contract, to allow testing
 // specific methods.
-contract AltBN128MixerBase_test is AltBN128MixerBase
+contract Groth16AltBN128MixerBase_test is Groth16AltBN128Mixer
 {
     constructor(
         uint256 mk_depth,
@@ -18,13 +18,22 @@ contract AltBN128MixerBase_test is AltBN128MixerBase
         uint256 vk_hash
     )
         public
-        AltBN128MixerBase(
+        Groth16AltBN128Mixer(
             mk_depth,
             address(0),
             new uint256[](0),
             permitted_dispatcher,
             vk_hash)
     {
+    }
+
+    function hash_public_proof_data_test(
+        uint256[NUM_INPUTS] memory public_data
+    )
+        public
+        returns (uint256)
+    {
+        return hash_public_proof_data(public_data);
     }
 
     function assemble_public_values_test(uint256 residual_bits)

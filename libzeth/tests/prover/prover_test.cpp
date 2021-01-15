@@ -5,6 +5,7 @@
 #include "libzeth/circuits/blake2s/blake2s.hpp"
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/circuits/circuit_wrapper.hpp"
+#include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/core/utils.hpp"
 #include "libzeth/snarks/groth16/groth16_snark.hpp"
 #include "libzeth/snarks/pghr13/pghr13_snark.hpp"
@@ -35,6 +36,9 @@ using prover = circuit_wrapper<
     2,
     TreeDepth>;
 
+template<typename snarkT>
+using input_hasher_type = typename prover<snarkT>::input_hasher_type;
+
 namespace
 {
 
@@ -42,7 +46,7 @@ const bits256 zero_bits256 = bits256::from_hex(
     "0000000000000000000000000000000000000000000000000000000000000000");
 
 template<typename snarkT>
-bool TestValidJS2In2Case1(
+void TestValidJS2In2Case1(
     const prover<snarkT> &prover, const typename snarkT::keypair &keypair)
 {
     // --- General setup for the tests --- //
@@ -140,6 +144,7 @@ bool TestValidJS2In2Case1(
     libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate proof", true);
+    std::vector<Field> public_data;
     extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
@@ -148,25 +153,33 @@ bool TestValidJS2In2Case1(
         value_pub_out_bits64,
         h_sig,
         phi,
-        keypair.pk);
+        keypair.pk,
+        public_data);
     libff::leave_block("Generate proof", true);
+    std::vector<Field> primary_inputs = ext_proof.get_primary_inputs();
+    ASSERT_EQ(1, primary_inputs.size());
+    ASSERT_NE(Field::zero(), primary_inputs[0]);
+
+    // Check the hashed public data
+    ASSERT_GT(public_data.size(), 1);
+    ASSERT_EQ(
+        input_hasher_type<snarkT>::compute_hash(public_data),
+        primary_inputs[0]);
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
     typename snarkT::verification_key vk = keypair.vk;
-    bool res = snarkT::verify(
-        ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
+    bool res = snarkT::verify(primary_inputs, ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
     ext_proof.write_json(std::cout);
-
-    return res;
+    ASSERT_TRUE(res);
 }
 
 template<typename snarkT>
-bool TestValidJS2In2Case2(
+void TestValidJS2In2Case2(
     const prover<snarkT> &prover, const typename snarkT::keypair &keypair)
 {
     libff::print_header(
@@ -261,6 +274,7 @@ bool TestValidJS2In2Case2(
     libff::enter_block("Generate proof", true);
     // RHS = 0x1A00000000000002 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F (LHS)
+    std::vector<Field> public_data;
     extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
@@ -271,8 +285,14 @@ bool TestValidJS2In2Case2(
         bits64::from_hex("000000000000000B"),
         h_sig,
         phi,
-        keypair.pk);
+        keypair.pk,
+        public_data);
     libff::leave_block("Generate proof", true);
+
+    // Check the hashed public data
+    ASSERT_EQ(
+        ext_proof.get_primary_inputs()[0],
+        input_hasher_type<snarkT>::compute_hash(public_data));
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
@@ -285,11 +305,11 @@ bool TestValidJS2In2Case2(
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
     ext_proof.write_json(std::cout);
 
-    return res;
+    ASSERT_TRUE(res);
 }
 
 template<typename snarkT>
-bool TestValidJS2In2Case3(
+void TestValidJS2In2Case3(
     const prover<snarkT> &prover, const typename snarkT::keypair &keypair)
 {
     // --- General setup for the tests --- //
@@ -386,6 +406,7 @@ bool TestValidJS2In2Case3(
     libff::enter_block("Generate proof", true);
     // (RHS) 0x1A00000000000012 + 0x1500000000000002 + 0x000000000000000B =
     // 2F0000000000000F + 0x0000000000000010 + 0x0 (LHS)
+    std::vector<Field> public_data;
     extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
@@ -394,8 +415,14 @@ bool TestValidJS2In2Case3(
         bits64::from_hex("000000000000000B"), // v_pub_out = 0x000000000000000B
         h_sig,
         phi,
-        keypair.pk);
+        keypair.pk,
+        public_data);
     libff::leave_block("Generate proof", true);
+
+    // Check the hashed public data
+    ASSERT_EQ(
+        ext_proof.get_primary_inputs()[0],
+        input_hasher_type<snarkT>::compute_hash(public_data));
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
@@ -408,11 +435,11 @@ bool TestValidJS2In2Case3(
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
     ext_proof.write_json(std::cout);
 
-    return res;
+    ASSERT_TRUE(res);
 }
 
 template<typename snarkT>
-bool TestValidJS2In2Deposit(
+void TestValidJS2In2Deposit(
     const prover<snarkT> &prover, const typename snarkT::keypair &keypair)
 {
     // --- General setup for the tests --- //
@@ -511,6 +538,7 @@ bool TestValidJS2In2Deposit(
     libff::enter_block("Generate proof", true);
     // RHS = 0x0 + 0x3782DACE9D900000 + 0x29A2241AF62C0000 = 0x6124FEE993BC0000
     // (LHS)
+    std::vector<Field> public_data;
     extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
@@ -521,8 +549,14 @@ bool TestValidJS2In2Deposit(
         bits64::from_hex("0000000000000000"),
         h_sig,
         phi,
-        keypair.pk);
+        keypair.pk,
+        public_data);
     libff::leave_block("Generate proof", true);
+
+    // Check the hashed public data
+    ASSERT_EQ(
+        ext_proof.get_primary_inputs()[0],
+        input_hasher_type<snarkT>::compute_hash(public_data));
 
     libff::enter_block("Verify proof", true);
     // Get the verification key
@@ -536,11 +570,11 @@ bool TestValidJS2In2Deposit(
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
-    return res;
+    ASSERT_TRUE(res);
 }
 
 template<typename snarkT>
-bool TestInvalidJS2In2(
+void TestInvalidJS2In2(
     const prover<snarkT> &prover, const typename snarkT::keypair &keypair)
 {
     // --- General setup for the tests --- //
@@ -644,6 +678,7 @@ bool TestInvalidJS2In2(
     // 0x8530000A00000001 (9.597170848876199937 ETH) + 0x7550000A00000000
     // (8.453256543524093952 ETH) = RHS LHS = 18.050427392400293888 ETH RHS
     // = 18.050427392400293889 ETH (1 wei higher than LHS)
+    std::vector<Field> public_data;
     extended_proof<pp, snarkT> ext_proof = prover.prove(
         updated_root_value,
         inputs,
@@ -654,7 +689,8 @@ bool TestInvalidJS2In2(
         bits64::from_hex("0000000000000000"),
         h_sig,
         phi,
-        keypair.pk);
+        keypair.pk,
+        public_data);
     libff::leave_block("Generate proof", true);
 
     libff::enter_block("Verify proof", true);
@@ -668,7 +704,7 @@ bool TestInvalidJS2In2(
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
     ext_proof.write_json(std::cout);
 
-    return res;
+    ASSERT_FALSE(res);
 }
 
 template<typename snarkT> static void run_prover_tests()
@@ -678,29 +714,23 @@ template<typename snarkT> static void run_prover_tests()
     prover<snarkT> proverJS2to2;
 
     typename snarkT::keypair keypair = proverJS2to2.generate_trusted_setup();
-    bool res = false;
 
-    res = TestValidJS2In2Case1(proverJS2to2, keypair);
-    ASSERT_TRUE(res);
+    TestValidJS2In2Case1(proverJS2to2, keypair);
 
-    res = TestValidJS2In2Case2(proverJS2to2, keypair);
-    ASSERT_TRUE(res);
+    TestValidJS2In2Case2(proverJS2to2, keypair);
 
-    res = TestValidJS2In2Case3(proverJS2to2, keypair);
-    ASSERT_TRUE(res);
+    TestValidJS2In2Case3(proverJS2to2, keypair);
 
-    res = TestValidJS2In2Deposit(proverJS2to2, keypair);
-    ASSERT_TRUE(res);
+    TestValidJS2In2Deposit(proverJS2to2, keypair);
 
     // The following is expected to throw an exception because LHS =/= RHS.
     // Ensure that the exception is thrown.
     ASSERT_THROW(
-        (res = TestInvalidJS2In2(proverJS2to2, keypair)),
-        std::invalid_argument);
+        (TestInvalidJS2In2(proverJS2to2, keypair)), std::invalid_argument);
 
+    bool res = false;
     try {
-        res = false;
-        res = TestInvalidJS2In2(proverJS2to2, keypair);
+        TestInvalidJS2In2(proverJS2to2, keypair);
         res = true;
     } catch (const std::invalid_argument &e) {
         std::cerr << "Invalid argument exception: " << e.what() << '\n';
