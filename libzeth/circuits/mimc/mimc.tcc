@@ -79,7 +79,7 @@ void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
     generate_r1cs_constraints()
 {
     // For each round, generates the constraints for the corresponding round
-    // gadget
+    // gadget.
     for (auto &gadget : round_gadgets) {
         gadget.generate_r1cs_constraints();
     }
@@ -89,7 +89,8 @@ template<typename FieldT, size_t Exponent, size_t NumRounds>
 void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
     generate_r1cs_witness() const
 {
-    // For each round, generates the witness for the corresponding round gadget
+    // For each round, generates the witness for the corresponding round
+    // gadget.
     for (auto &gadget : round_gadgets) {
         gadget.generate_r1cs_witness();
     }

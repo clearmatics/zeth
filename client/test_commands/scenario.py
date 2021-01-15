@@ -63,7 +63,7 @@ def get_mix_parameters_components(
         v_in: EtherValue,
         v_out: EtherValue,
         compute_h_sig_cb: Optional[ComputeHSigCB] = None
-) -> Tuple[ZethNote, ZethNote, ExtendedProof, JoinsplitSigKeyPair]:
+) -> Tuple[ZethNote, ZethNote, ExtendedProof, List[int], JoinsplitSigKeyPair]:
     """
     Manually create the components required for MixParameters. The tests below
     manipulate these to create custom MixParameters as part of attacks.
@@ -78,11 +78,12 @@ def get_mix_parameters_components(
         compute_h_sig_cb)
     prover_inputs, signing_keypair = zeth_client.create_prover_inputs(
         mix_call_desc)
-    ext_proof = prover_client.get_proof(prover_inputs)
+    ext_proof, public_data = prover_client.get_proof(prover_inputs)
     return (
         prover_inputs.js_outputs[0],
         prover_inputs.js_outputs[1],
         ext_proof,
+        public_data,
         signing_keypair)
 
 
@@ -256,7 +257,7 @@ def charlie_double_withdraw(
         return compute_h_sig(
             bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_vk)
 
-    output_note1, output_note2, proof, signing_keypair = \
+    output_note1, output_note2, proof, public_data, signing_keypair = \
         get_mix_parameters_components(
             zeth_client,
             prover_client,
@@ -276,10 +277,10 @@ def charlie_double_withdraw(
     assert attack_primary_input4 != 0
 
     print("proof = ", proof)
-    print("proof.inputs[3] = ", proof.inputs[3])
-    print("proof.inputs[4] = ", proof.inputs[4])
-    proof.inputs[3] = hex(attack_primary_input3)
-    proof.inputs[4] = hex(attack_primary_input4)
+    print("public_data[3] = ", public_data[3])
+    print("public_data[4] = ", public_data[4])
+    public_data[3] = attack_primary_input3
+    public_data[4] = attack_primary_input4
     # ### ATTACK BLOCK
 
     # construct pk object from bytes
@@ -297,10 +298,12 @@ def charlie_double_withdraw(
         signing_keypair,
         charlie_eth_address,
         ciphertexts,
-        proof)
+        proof,
+        public_data)
 
     mix_params = MixParameters(
         proof,
+        public_data,
         signing_keypair.vk,
         joinsplit_sig_charlie,
         ciphertexts)
@@ -363,7 +366,7 @@ def charlie_corrupt_bob_deposit(
 
     v_in = EtherValue(BOB_DEPOSIT_ETH)
 
-    output_note1, output_note2, proof, joinsplit_keypair = \
+    output_note1, output_note2, proof, public_data, joinsplit_keypair = \
         get_mix_parameters_components(
             zeth_client,
             prover_client,
@@ -399,10 +402,12 @@ def charlie_corrupt_bob_deposit(
             joinsplit_keypair,
             charlie_eth_address,
             ciphertexts,
-            proof)
+            proof,
+            public_data)
 
         mix_params = MixParameters(
             proof,
+            public_data,
             joinsplit_keypair.vk,
             joinsplit_sig_charlie,
             [fake_ciphertext0, fake_ciphertext1])
@@ -439,9 +444,11 @@ def charlie_corrupt_bob_deposit(
             new_joinsplit_keypair,
             charlie_eth_address,
             [fake_ciphertext0, fake_ciphertext1],
-            proof)
+            proof,
+            public_data)
         mix_params = MixParameters(
             proof,
+            public_data,
             new_joinsplit_keypair.vk,
             joinsplit_sig_charlie,
             [fake_ciphertext0, fake_ciphertext1])
@@ -470,9 +477,11 @@ def charlie_corrupt_bob_deposit(
             joinsplit_keypair,
             bob_eth_address,
             ciphertexts,
-            proof)
+            proof,
+            public_data)
         mix_params = MixParameters(
             proof,
+            public_data,
             joinsplit_keypair.vk,
             joinsplit_sig_bob,
             ciphertexts)
@@ -500,9 +509,11 @@ def charlie_corrupt_bob_deposit(
         joinsplit_keypair,
         bob_eth_address,
         ciphertexts,
-        proof)
+        proof,
+        public_data)
     mix_params = MixParameters(
         proof,
+        public_data,
         joinsplit_keypair.vk,
         joinsplit_sig_bob,
         ciphertexts)

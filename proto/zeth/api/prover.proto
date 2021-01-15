@@ -27,5 +27,5 @@ service Prover {
     rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
 
     // Request a proof generation on the given inputs
-    rpc Prove(ProofInputs) returns (ExtendedProof) {}
+    rpc Prove(ProofInputs) returns (ProofAndPublicData) {}
 }
