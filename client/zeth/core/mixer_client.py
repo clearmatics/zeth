@@ -30,6 +30,7 @@ import json
 from Crypto import Random
 from hashlib import blake2s, sha256
 import traceback
+import eth_abi
 from typing import Tuple, Dict, List, Iterator, Callable, Optional, Any
 
 
@@ -112,12 +113,12 @@ class MixParameters:
 
     @staticmethod
     def from_json(zksnark: IZKSnarkProvider, params_json: str) -> MixParameters:
-        return MixParameters._from_json_dict(zksnark, json.loads(params_json))
+        return MixParameters.from_json_dict(zksnark, json.loads(params_json))
 
     def to_json(self) -> str:
-        return json.dumps(self._to_json_dict())
+        return json.dumps(self.to_json_dict())
 
-    def _to_json_dict(self) -> Dict[str, Any]:
+    def to_json_dict(self) -> Dict[str, Any]:
         ext_proof_json = self.extended_proof.to_json_dict()
         signature_vk_json = [
             str(x) for x in
@@ -132,7 +133,7 @@ class MixParameters:
         }
 
     @staticmethod
-    def _from_json_dict(
+    def from_json_dict(
             zksnark: IZKSnarkProvider,
             json_dict: Dict[str, Any]) -> MixParameters:
         ext_proof = ExtendedProof.from_json_dict(
@@ -164,6 +165,21 @@ def mix_parameters_to_contract_arguments(
         hex_list_to_uint256_list(mix_parameters.extended_proof.inputs),
         mix_parameters.ciphertexts,
     ]
+
+
+def mix_parameters_to_dispatch_parameters(mix_parameters: MixParameters) -> bytes:
+    """
+    Encode parameters from mix_parameters into an array of uint256 values,
+    compatible with the `dispatch` method on Mixer. This conforms to the
+    `IZecaleApplication` solidity interface of Zecale
+    (https://github.com/clearmatics/zecale)
+    """
+    vk_param = signing.verification_key_as_mix_parameter(
+        mix_parameters.signature_vk)
+    sigma_param = signing.signature_as_mix_parameter(mix_parameters.signature)
+    return eth_abi.encode_abi(
+        ['uint256[4]', 'uint256', 'bytes[]'],
+        [vk_param, sigma_param, mix_parameters.ciphertexts])  # type: ignore
 
 
 class MixOutputEvents:
@@ -252,6 +268,8 @@ class MixerClient:
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
             token_address: Optional[str] = None,
+            permitted_dispatcher: Optional[str] = None,
+            vk_hash: Optional[str] = None,
             deploy_gas: Optional[int] = None
     ) -> Tuple[MixerClient, contracts.InstanceDescription]:
         """
@@ -276,6 +294,8 @@ class MixerClient:
             constants.ZETH_MERKLE_TREE_DEPTH,  # mk_depth
             token_address or ZERO_ADDRESS,     # token
             zksnark.verification_key_to_contract_parameters(vk, pp),  # vk
+            permitted_dispatcher or ZERO_ADDRESS,  # permitted_dispatcher
+            int(vk_hash, 16) if vk_hash else 0,  # vk_hash
         ]
         mixer_description = contracts.InstanceDescription.deploy(
             web3,
@@ -492,8 +512,19 @@ class MixerClient:
             prover_inputs: ProofInputs,
             signing_keypair: signing.SigningKeyPair,
             ext_proof: ExtendedProof,
-            sender_eth_address: str
+            sender_eth_address: str,
+            for_dispatch_call: bool = False
     ) -> MixParameters:
+        """
+        Create the MixParameters from MixCallDescription, signing keypair, sender
+        address and derived data (prover inputs and proof). This includes
+        creating and encrypting the plaintext messages, and generating the
+        one-time signature.
+
+        If for_dispatch_call is set, the parameters are to be passed to the
+        Mixer's `dispatch` call in a later operation (in which proof data is
+        not available), hence proof is ommitted from the signature.
+        """
 
         # Encrypt the notes
         outputs_and_notes = zip(mix_call_desc.outputs, prover_inputs.js_outputs) \
@@ -511,7 +542,8 @@ class MixerClient:
             signing_keypair,
             sender_eth_address,
             ciphertexts,
-            ext_proof)
+            ext_proof,
+            for_dispatch_call)
 
         mix_params = MixParameters(
             ext_proof, signing_keypair.vk, signature, ciphertexts)
@@ -527,11 +559,15 @@ class MixerClient:
             outputs: List[Tuple[ZethAddressPub, EtherValue]],
             v_in: EtherValue,
             v_out: EtherValue,
-            compute_h_sig_cb: Optional[ComputeHSigCB] = None
+            compute_h_sig_cb: Optional[ComputeHSigCB] = None,
+            for_dispatch_call: bool = False
     ) -> Tuple[MixParameters, JoinsplitSigKeyPair]:
         """
         Convenience function around creation of MixCallDescription, ProofInputs,
-        Proof and MixParameters.
+        Proof and MixParameters. If for_dispatch_call is set, the parameters
+        are to be passed to the Mixer's `dispatch` call in a later operation
+        (in which proof data is not available), hence proof is ommitted from
+        the signature.
         """
         # Generate prover inputs and signing key
         mix_call_desc = MixCallDescription(
@@ -557,7 +593,8 @@ class MixerClient:
             prover_inputs,
             signing_keypair,
             ext_proof,
-            sender_eth_address)
+            sender_eth_address,
+            for_dispatch_call)
 
         return mix_params, signing_keypair
 
@@ -635,20 +672,24 @@ def joinsplit_sign(
         signing_keypair: JoinsplitSigKeyPair,
         sender_eth_address: str,
         ciphertexts: List[bytes],
-        extproof: ExtendedProof) -> int:
+        extproof: ExtendedProof,
+        for_dispatch_call: bool = False) -> int:
     """
-    Generate a signature on the hash of the ciphertexts, proofs and
-    primary inputs. This is used to solve transaction malleability.  We chose
-    to sign the hash and not the values themselves for modularity (to use the
-    same code regardless of whether GROTH16 or PGHR13 proof system is chosen),
-    and sign the hash of the ciphers and inputs for consistency.
+    Generate a signature on the hash of the ciphertexts, proofs and primary
+    inputs. This is used to solve transaction malleability. We chose to sign
+    the hash and not the values themselves for modularity (to use the same code
+    regardless of whether GROTH16 or PGHR13 proof system is chosen), and sign
+    the hash of the ciphers and inputs for consistency. If for_dispatch_call is
+    set, the parameters are to be passed to the Mixer's `dispatch` call in a
+    later operation (in which proof data is not available), hence proof is
+    ommitted from the signature.
     """
     assert len(ciphertexts) == constants.JS_INPUTS
 
     # The message to sign consists of (in order):
     #   - senders Ethereum address
     #   - ciphertexts
-    #   - proof elements
+    #   - proof elements (if for_dispatch_call is False)
     #   - public input elements
     h = sha256()
     h.update(eth_address_to_bytes32(sender_eth_address))
@@ -657,7 +698,12 @@ def joinsplit_sign(
 
     proof_bytes, pub_inputs_bytes = _proof_and_inputs_to_bytes(
         zksnark, pp, extproof)
-    h.update(proof_bytes)
+
+    # If for_dispatch_call is set, omit proof from the signature. See
+    # MixerBase.sol.
+    if not for_dispatch_call:
+        h.update(proof_bytes)
+
     h.update(pub_inputs_bytes)
     message_digest = h.digest()
     return signing.sign(signing_keypair.sk, message_digest)
@@ -707,7 +753,7 @@ def compute_h_sig(
     h = sha256()
     h.update(nf0)
     h.update(nf1)
-    h.update(signing.encode_vk_to_bytes(sign_vk))
+    h.update(sign_vk.to_bytes())
     return h.digest()
 
 

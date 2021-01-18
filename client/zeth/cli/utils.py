@@ -21,7 +21,7 @@ from click import ClickException
 import json
 from os.path import exists, join, splitext
 from web3 import Web3  # type: ignore
-from typing import Dict, Tuple, Optional, Callable, Any
+from typing import Dict, Tuple, Optional, Callable, Any, cast
 
 
 class NetworkConfig:
@@ -118,6 +118,20 @@ def open_web3_from_network(eth_net: NetworkConfig) -> Any:
         insecure=eth_net.insecure)
 
 
+def load_contract_address(contract_addr: str) -> str:
+    """
+    Parse a string as either an eth address, or a contract instance file.
+    """
+    if contract_addr.startswith("0x"):
+        return Web3.toChecksumAddress(contract_addr)
+    if exists(contract_addr):
+        with open(contract_addr, "r") as instance_f:
+            instance = InstanceDescription.from_json_dict(json.load(instance_f))
+        return Web3.toChecksumAddress(instance.address)
+    raise ClickException(
+        f"failed to parse as address or instance file: {contract_addr}")
+
+
 def open_web3_from_ctx(ctx: ClientConfig) -> Any:
     eth_net = get_eth_network(ctx.eth_network)
     return open_web3_from_network(eth_net)
@@ -126,31 +140,48 @@ def open_web3_from_ctx(ctx: ClientConfig) -> Any:
 class MixerDescription:
     """
     Holds an InstanceDescription for the mixer contract, and optionally an
-    InstanceDescription for the token contract.
+    InstanceDescription for the token contract. When serialized to json, the
+    InstanceDescription for the mixer is held in the top-level object, so that
+    MixerDescription is compatible with a regular contract instance.
     """
     def __init__(
             self,
             mixer: InstanceDescription,
-            token: Optional[InstanceDescription]):
+            token: Optional[InstanceDescription],
+            permitted_dispatcher: Optional[str],
+            vk_hash: Optional[str]):
         self.mixer = mixer
         self.token = token
+        self.permitted_dispatcher = permitted_dispatcher
+        self.vk_hash = vk_hash
 
-    def to_json(self) -> str:
-        json_dict = {
-            "mixer": self.mixer.to_json_dict()
-        }
+    def to_json_dict(self) -> Dict[str, Any]:
+        # Create an InstanceDescription JSON object, adding a "zeth_mixer"
+        # attribute for the extra data.
+        json_dict = self.mixer.to_json_dict()
+
+        zeth_mixer: Dict[str, Any] = {}
         if self.token:
-            json_dict["token"] = self.token.to_json_dict()
-        return json.dumps(json_dict)
+            zeth_mixer["token"] = self.token.to_json_dict()
+        if self.permitted_dispatcher:
+            zeth_mixer["permitted_dispatcher"] = self.permitted_dispatcher
+        if self.vk_hash:
+            zeth_mixer["vk_hash"] = self.vk_hash
+        json_dict["zeth_mixer"] = zeth_mixer
+        return json_dict
 
     @staticmethod
-    def from_json(json_str: str) -> MixerDescription:
-        json_dict = json.loads(json_str)
-        mixer = InstanceDescription.from_json_dict(json_dict["mixer"])
-        token_dict = json_dict.get("token", None)
+    def from_json_dict(json_dict: Dict[str, Any]) -> MixerDescription:
+        zeth_mixer = json_dict["zeth_mixer"]
+
+        mixer = InstanceDescription.from_json_dict(json_dict)
+        token_dict = cast(Optional[Dict[str, Any]], zeth_mixer.get("token", None))
         token = InstanceDescription.from_json_dict(token_dict) \
             if token_dict else None
-        return MixerDescription(mixer, token)
+        permitted_dispatcher = \
+            cast(Optional[str], zeth_mixer.get("permitted_dispatcher", None))
+        vk_hash = cast(Optional[str], zeth_mixer.get("vk_hash", None))
+        return MixerDescription(mixer, token, permitted_dispatcher, vk_hash)
 
 
 def get_erc20_abi() -> Dict[str, Any]:
@@ -175,15 +206,15 @@ def write_mixer_description(
     Write the mixer (and token) instance information
     """
     with open(mixer_desc_file, "w") as instance_f:
-        instance_f.write(mixer_desc.to_json())
+        json.dump(mixer_desc.to_json_dict(), instance_f)
 
 
-def load_mixer_description(mixer_description_file: str) -> MixerDescription:
+def load_mixer_description(mixer_desc_file: str) -> MixerDescription:
     """
     Return mixer and token (if present) contract instances
     """
-    with open(mixer_description_file, "r") as desc_f:
-        return MixerDescription.from_json(desc_f.read())
+    with open(mixer_desc_file, "r") as desc_f:
+        return MixerDescription.from_json_dict(json.load(desc_f))
 
 
 def load_mixer_description_from_ctx(ctx: ClientConfig) -> MixerDescription:

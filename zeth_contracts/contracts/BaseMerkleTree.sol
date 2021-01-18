@@ -36,9 +36,6 @@ contract BaseMerkleTree
     // Number of leaves populated in `nodes`.
     uint256 internal num_leaves;
 
-    // Debug only
-    event LogDebug(bytes32 message);
-
     /// Constructor
     constructor(uint256 treeDepth) public {
         require (

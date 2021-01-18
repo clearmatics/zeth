@@ -11,6 +11,7 @@ from zeth.core.utils import EtherValue, from_zeth_units
 from zeth.api.zeth_messages_pb2 import ZethNote
 from click import command, option, pass_context, ClickException, Context
 from typing import List, Tuple, Optional
+import json
 
 
 @command()
@@ -26,7 +27,16 @@ from typing import List, Tuple, Optional
 @option("--eth-addr", help="Sender's eth address or address filename")
 @option("--eth-private-key", help="Sender's eth private key file")
 @option("--wait", is_flag=True, help="Wait for transaction to be mined")
-@option("--show-parameters", is_flag=True, help="Show the mixer parameters")
+@option(
+    "--for-dispatch-call",
+    is_flag=True,
+    help="Generate signature for later call to dispatch (implies --dry-run)")
+@option("--dump-parameters", help="Write mix parameters to file ('-' for stdout)")
+@option(
+    "--dump-signing-keypair",
+    help="Write signing keypair to file ('-' for stdout). "
+    "USE ONLY FOR DEBUGGING.")
+@option("--dry-run", "-n", is_flag=True, help="Do not send the mix transaction")
 @pass_context
 def mix(
         ctx: Context,
@@ -37,7 +47,10 @@ def mix(
         eth_addr: Optional[str],
         eth_private_key: Optional[str],
         wait: bool,
-        show_parameters: bool) -> None:
+        for_dispatch_call: bool,
+        dump_parameters: Optional[str],
+        dump_signing_keypair: Optional[str],
+        dry_run: bool) -> None:
     """
     Generic mix function
     """
@@ -73,7 +86,6 @@ def mix(
         raise ClickException("input and output value mismatch")
 
     eth_address = load_eth_address(eth_addr)
-    eth_private_key_data = load_eth_private_key(eth_private_key)
 
     # If instance uses an ERC20 token, tx_value can be 0. Otherwise it should
     # match vin_pub.
@@ -81,19 +93,39 @@ def mix(
 
     # Create the MixParameters object manually so they can be displayed.
     # TODO: support saving the generated MixParameters to be sent later.
-    mix_params, _ = zeth_client.create_mix_parameters_and_signing_key(
-        prover_client,
-        wallet.merkle_tree,
-        zeth_address.ownership_keypair(),
-        eth_address,
-        inputs,
-        outputs,
-        vin_pub,
-        vout_pub)
+    mix_params, signing_keypair = \
+        zeth_client.create_mix_parameters_and_signing_key(
+            prover_client,
+            wallet.merkle_tree,
+            zeth_address.ownership_keypair(),
+            eth_address,
+            inputs,
+            outputs,
+            vin_pub,
+            vout_pub,
+            for_dispatch_call=for_dispatch_call)
 
-    if show_parameters:
-        print(f"mix_params={mix_params.to_json()}")
+    # Dump parameters if requested
+    if dump_parameters:
+        if dump_parameters == '-':
+            print(f"mix_params={mix_params.to_json()}")
+        else:
+            with open(dump_parameters, "w") as mix_params_f:
+                json.dump(mix_params.to_json_dict(), mix_params_f)
 
+    # Dump one-time signature keypair if requested
+    if dump_signing_keypair:
+        if dump_signing_keypair == '-':
+            print(f"signing_key={signing_keypair.to_json_dict()}")
+        else:
+            with open(dump_signing_keypair, "w") as signing_keypair_f:
+                json.dump(signing_keypair.to_json_dict(), signing_keypair_f)
+
+    # Early-out if dry_run flag is set
+    if for_dispatch_call or dry_run:
+        return
+
+    eth_private_key_data = load_eth_private_key(eth_private_key)
     tx_hash = zeth_client.mix(
         mix_params=mix_params,
         sender_eth_address=eth_address,

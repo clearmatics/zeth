@@ -27,6 +27,14 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     // If token = address(0) then the mixer works with ether
     address private _token;
 
+    // Contract that is allowed to call the `dispatch` method, passing in the
+    // correct _vk_hash. (Disable the dispatch method by setting
+    // _permitted_dispatcher = 0, in which case _vk_hash is unused.)
+    address private _permitted_dispatcher;
+
+    // The acceptable value of _vk_hash, passed in by a trusted dispatcher.
+    uint256 private _vk_hash;
+
     // JoinSplit description, gives the number of inputs (nullifiers) and
     // outputs (commitments/ciphertexts) to receive and process.
     //
@@ -81,10 +89,16 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     );
 
     /// Debug only
-    event LogDebug(string message);
+    event LogDebug(string message, uint256 value);
 
     /// Constructor
-    constructor(uint256 depth, address token_address, uint256[] memory vk)
+    constructor(
+        uint256 depth,
+        address token_address,
+        uint256[] memory vk,
+        address permitted_dispatcher,
+        uint256 vk_hash
+    )
         public
         BaseMerkleTree(depth)
     {
@@ -92,6 +106,8 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         _roots[initialRoot] = true;
         _vk = vk;
         _token = token_address;
+        _permitted_dispatcher = permitted_dispatcher;
+        _vk_hash = vk_hash;
     }
 
     /// Function allowing external users of the contract to retrieve some of
@@ -114,6 +130,69 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         js_in_out = JSIN;
         js_out_out = JSOUT;
         num_inputs_out = NUM_INPUTS;
+    }
+
+    /// Permitted dispatchers may call this entry point if they have verified
+    /// the associated proof. This is technically part of the
+    /// IZecaleApplication interface, see
+    /// https://github.com/clearmatics/zecale
+    function dispatch(
+        uint256 nested_vk_hash,
+        uint256[] memory nested_inputs,
+        bytes memory nested_parameters
+    )
+        public
+        payable
+    {
+        // Sanity / permission checkcheck
+        require(
+            msg.sender == _permitted_dispatcher, "dispatcher not permitted");
+        require(nested_vk_hash == _vk_hash, "invalid nested_vk_hash");
+        require(nested_inputs.length == NUM_INPUTS);
+
+        // Decode the nested parameters
+        // TODO: convert ciphertext array without copying
+        (uint256[4] memory vk,
+         uint256 sigma,
+         bytes[] memory decoded_ciphertexts) = abi.decode(
+             nested_parameters, (uint256[4], uint256, bytes[]));
+        bytes[JSOUT] memory ciphertexts;
+        for (uint256 i = 0 ; i < JSOUT ; ++i) {
+            ciphertexts[i] = decoded_ciphertexts[i];
+        }
+
+        // Copy the public inputs into a fixed-size array.
+        // TODO: convert without copying.
+        uint256[NUM_INPUTS] memory inputs;
+        for (uint256 i = 0 ; i < NUM_INPUTS ; ++i) {
+            inputs[i] = nested_inputs[i];
+        }
+
+        // 1. Check the root and the nullifiers
+        bytes32[JSIN] memory nullifiers;
+        check_mkroot_nullifiers_hsig_append_nullifiers_state(
+            vk, inputs, nullifiers);
+
+        // 2.a Verify the signature on the hash of data_to_be_signed.
+        // hash_to_be_signed is expected to have been created without the proof
+        // data.
+        bytes32 hash_to_be_signed = sha256(
+            abi.encodePacked(
+                uint256(msg.sender),
+                ciphertexts[0],
+                ciphertexts[1],
+                inputs
+            )
+        );
+
+        require(
+            OTSchnorrVerifier.verify(
+                vk[0], vk[1], vk[2], vk[3], sigma, hash_to_be_signed),
+            "Invalid signature in dispatch"
+        );
+
+        mix_append_commitments_emit_and_handle_public_values(
+            inputs, ciphertexts, nullifiers);
     }
 
     /// This function is used to execute payments in zero knowledge.
@@ -160,6 +239,17 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
             "Invalid proof: Unable to verify the proof correctly"
         );
 
+        mix_append_commitments_emit_and_handle_public_values(
+            inputs, ciphertexts, nullifiers);
+    }
+
+    function mix_append_commitments_emit_and_handle_public_values(
+        uint256[NUM_INPUTS] memory inputs,
+        bytes[JSOUT] memory ciphertexts,
+        bytes32[JSIN] memory nullifiers
+    )
+        internal
+    {
         // 3. Append the commitments to the tree
         bytes32[JSOUT] memory commitments;
         assemble_commitments_and_append_to_state(inputs, commitments);
