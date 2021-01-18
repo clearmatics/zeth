@@ -153,8 +153,9 @@ std::ostream &r1cs_write_json(
 
     out_s << "{\n";
     out_s << "\"scalar_field_characteristic\":"
-          << "\"Not yet supported. Should be bigint in hexadecimal\""
-          << ",\n";
+          << "\"0x" +
+                 bigint_to_hex<libff::Fr<ppT>>(libff::Fr<ppT>::field_char())
+          << "\",\n";
     out_s << "\"num_variables\":" << pb.num_variables() << ",\n";
     out_s << "\"num_constraints\":" << pb.num_constraints() << ",\n";
     out_s << "\"num_inputs\": " << pb.num_inputs() << ",\n";
