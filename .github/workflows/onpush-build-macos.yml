@@ -5,7 +5,7 @@ on:
   push:
 
 env:
-  MACOS_BREW_PACKAGES: "pkg-config libomp"
+  MACOS_BREW_PACKAGES: "pkg-config libomp ccache"
 
 jobs:
 
@@ -13,16 +13,14 @@ jobs:
   submodules:
     runs-on: ubuntu-20.04
     outputs:
-      libsodium: ${{ steps.get-commits.outputs.libsodium }}
-      libsnark: ${{ steps.get-commits.outputs.libsnark }}
+      commits: ${{ steps.get-commits.outputs.commits }}
     steps:
     - uses: actions/checkout@v2
     - name: Get Submodule Commits
       id: get-commits
       run: |
         git submodule sync
-        echo "::set-output name=libsodium::"`git submodule status depends/libsodium | grep -oe '[0-9a-fA-F]\+' | head -c 8`
-        echo "::set-output name=libsnark::"`git submodule status depends/libsnark | grep -oe '[0-9a-fA-F]\+' | head -c 8`
+        echo "::set-output name=commits::"`git submodule status depends/libsodium | grep -oe '[0-9a-fA-F]\+' | head -c 8`-`git submodule status depends/libsnark | grep -oe '[0-9a-fA-F]\+' | head -c 8`
 
   # Main build
   build-macos:
@@ -35,16 +33,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - name: Cache libsodium
+    - name: Cache ccache
       uses: actions/cache@v1
       with:
-        key: libsodium-${{ needs.submodules.outputs.libsodium }}-${{ runner.os }}-${{ matrix.config }}
-        path: build/depends/libsodium-prefix
-    - name: Cache libsnark
-      uses: actions/cache@v1
-      with:
-        key: libsnark-${{ needs.submodules.outputs.libsnark }}-${{ runner.os }}-${{ matrix.config }}
-        path: build/depends/libsnark
+        key: submodules-${{ needs.submodules.outputs.commits }}-${{ runner.os }}-${{ matrix.config }}
+        path: ~/Library/Caches/ccache
     - name: Install Dependencies
       run: brew install ${MACOS_BREW_PACKAGES}
     - name: Execute
