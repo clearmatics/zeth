@@ -60,6 +60,26 @@ function _stop_ganache() {
     popd
 }
 
+function _build_setup() {
+    # Extra deps for native builds
+    if [ "${platform}" == "Linux" ] ; then
+        if (which apk) ; then
+            # Packages already available in Docker build
+            echo -n             # null op required for syntax
+        else
+            sudo apt install \
+                 libboost-dev \
+                 libboost-system-dev \
+                 libboost-filesystem-dev \
+                 libboost-program-options-dev \
+                 libgmp-dev \
+                 libprocps-dev \
+                 libxslt1-dev \
+                 pkg-config
+        fi
+    fi
+}
+
 function check_format() {
     scripts/format
     git diff --no-ext-diff | head -n 20 > format_errors
@@ -150,6 +170,9 @@ function mpc_tests() {
 }
 
 function build() {
+
+    _build_setup
+
     # Additional compilation flags
     cxx_flags="-Werror"
 
