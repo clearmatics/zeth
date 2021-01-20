@@ -6,17 +6,43 @@ on:
 
 jobs:
 
+  # Job to build the grpc libraries. The grpc build directory is populated and
+  # cached so that all other jobs can mark this job as a prerequisite and just
+  # run `make install`.
+  #
+  # NOTE: the version number here (in `key` and in script arguments) must be
+  # kept in sync with the key used by the jobs.
+  build-grpc:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache grpc
+      uses: actions/cache@v2
+      with:
+        key: grpc-1.31.x-${{ runner.os }}-test
+        path: depends/grpc
+    - name: Build grpc
+      run: if ! [ -d depends/grpc ] ; then scripts/install_grpc /usr v1.31.x depends/grpc ; fi
+
   build-linux:
     runs-on: ubuntu-20.04
+    needs: build-grpc
     strategy:
       matrix:
         config: [ Debug, Release ]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
+    - name: Cache grpc
+      uses: actions/cache@v1
+      with:
+        key: grpc-1.31.x-${{ runner.os }}-test
+        path: depends/grpc
+    - name: Install grpc
+      run: scripts/install_grpc /usr v1.31.x depends/grpc
     - name: Execute
-      run: CI_CHECK_FORMAT=1 CI_USE_DOCKER=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
+      run: CI_CHECK_FORMAT=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
 
   build-linux-pghr13:
     runs-on: ubuntu-20.04
