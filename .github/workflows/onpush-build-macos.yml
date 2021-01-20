@@ -9,17 +9,43 @@ env:
 
 jobs:
 
+  # Extract the commits of submodules for use by cache steps
+  submodules:
+    runs-on: ubuntu-20.04
+    outputs:
+      libsodium: ${{ steps.get-commits.outputs.libsodium }}
+      libsnark: ${{ steps.get-commits.outputs.libsnark }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Get Submodule Commits
+      id: get-commits
+      run: |
+        git submodule sync
+        echo "::set-output name=libsodium::"`git submodule status depends/libsodium | grep -oe '[0-9a-fA-F]\+' | head -c 8`
+        echo "::set-output name=libsnark::"`git submodule status depends/libsnark | grep -oe '[0-9a-fA-F]\+' | head -c 8`
+
+  # Main build
   build-macos:
     runs-on: macos-10.15
+    needs: submodules
     strategy:
       matrix:
         config: [ Debug, Release ]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
+    - name: Cache libsodium
+      uses: actions/cache@v1
+      with:
+        key: libsodium-${{ needs.submodules.outputs.libsodium }}-${{ runner.os }}-${{ matrix.config }}
+        path: build/depends/libsodium-prefix
+    - name: Cache libsnark
+      uses: actions/cache@v1
+      with:
+        key: libsnark-${{ needs.submodules.outputs.libsnark }}-${{ runner.os }}-${{ matrix.config }}
+        path: build/depends/libsnark
     - name: Install Dependencies
       run: brew install ${MACOS_BREW_PACKAGES}
     - name: Execute
       run: CI_CONFIG=${{ matrix.config }} scripts/ci build
-
