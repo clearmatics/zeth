@@ -64,7 +64,7 @@ function prepare_server_common() {
     # TLS server certs
     if ! [ -e ${SERVER_KEY} ] || ! [ -e ${SERVER_CERT} ] ; then
         echo TLS certificate ...
-        KEY_BITS=1024
+        KEY_BITS=4096
         cp /etc/ssl/openssl.cnf openssl.tmp.cnf
         echo "[v3_req]" >> openssl.tmp.cnf
         echo "subjectAltName=DNS:localhost" >> openssl.tmp.cnf
