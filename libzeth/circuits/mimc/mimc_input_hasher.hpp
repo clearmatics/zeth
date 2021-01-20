@@ -12,7 +12,7 @@ namespace libzeth
 
 /// Given a list of variables, hash the variables to a value which can be used
 /// as a public input bound to the original variables.
-template<typename FieldT, typename comp_fnT>
+template<typename FieldT, typename compFnT>
 class mimc_input_hasher : public libsnark::gadget<FieldT>
 {
 private:
@@ -20,7 +20,7 @@ private:
     libsnark::pb_variable<FieldT> _result;
 
     // Compression function constraints
-    std::vector<std::shared_ptr<comp_fnT>> _compression_functions;
+    std::vector<std::shared_ptr<compFnT>> _compression_functions;
 
     // Intermediate values
     libsnark::pb_variable_array<FieldT> _intermediate_values;

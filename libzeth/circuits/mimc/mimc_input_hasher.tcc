@@ -10,8 +10,8 @@
 namespace libzeth
 {
 
-template<typename FieldT, typename comp_fnT>
-mimc_input_hasher<FieldT, comp_fnT>::mimc_input_hasher(
+template<typename FieldT, typename compFnT>
+mimc_input_hasher<FieldT, compFnT>::mimc_input_hasher(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_linear_combination_array<FieldT> &inputs,
     const libsnark::pb_variable<FieldT> result,
@@ -39,16 +39,16 @@ mimc_input_hasher<FieldT, comp_fnT>::mimc_input_hasher(
 
     // First step: hash_output[0] <- mimc_mp(iv, i[0])
 
-    _compression_functions.emplace_back(new comp_fnT(
+    _compression_functions.emplace_back(new compFnT(
         pb,
         iv,
         inputs[0],
         _intermediate_values[0],
         FMT(annotation_prefix, " compression_functions[0]")));
 
-    // Intermediate invocations of the compression fucntion.
+    // Intermediate invocations of the compression function.
     for (size_t i = 1; i < num_inputs; ++i) {
-        _compression_functions.emplace_back(new comp_fnT(
+        _compression_functions.emplace_back(new compFnT(
             pb,
             _intermediate_values[i - 1],
             inputs[i],
@@ -59,7 +59,7 @@ mimc_input_hasher<FieldT, comp_fnT>::mimc_input_hasher(
     // Last invocation of compression function to finalize.
     libsnark::pb_linear_combination<FieldT> num_inputs_lc;
     num_inputs_lc.assign(pb, FieldT(num_inputs));
-    _compression_functions.emplace_back(new comp_fnT(
+    _compression_functions.emplace_back(new compFnT(
         pb,
         _intermediate_values[num_inputs - 1],
         num_inputs_lc,
@@ -69,24 +69,24 @@ mimc_input_hasher<FieldT, comp_fnT>::mimc_input_hasher(
     assert(_compression_functions.size() == num_inputs + 1);
 }
 
-template<typename FieldT, typename comp_fnT>
-void mimc_input_hasher<FieldT, comp_fnT>::generate_r1cs_constraints()
+template<typename FieldT, typename compFnT>
+void mimc_input_hasher<FieldT, compFnT>::generate_r1cs_constraints()
 {
-    for (const std::shared_ptr<comp_fnT> &cf : _compression_functions) {
+    for (const std::shared_ptr<compFnT> &cf : _compression_functions) {
         cf->generate_r1cs_constraints();
     }
 }
 
-template<typename FieldT, typename comp_fnT>
-void mimc_input_hasher<FieldT, comp_fnT>::generate_r1cs_witness() const
+template<typename FieldT, typename compFnT>
+void mimc_input_hasher<FieldT, compFnT>::generate_r1cs_witness() const
 {
-    for (const std::shared_ptr<comp_fnT> &cf : _compression_functions) {
+    for (const std::shared_ptr<compFnT> &cf : _compression_functions) {
         cf->generate_r1cs_witness();
     }
 }
 
-template<typename FieldT, typename comp_fnT>
-FieldT mimc_input_hasher<FieldT, comp_fnT>::get_iv()
+template<typename FieldT, typename compFnT>
+FieldT mimc_input_hasher<FieldT, compFnT>::get_iv()
 {
     // IV generated as:
     //   zeth.core.mimc._keccak_256(
@@ -97,15 +97,15 @@ FieldT mimc_input_hasher<FieldT, comp_fnT>::get_iv()
         "7545324034315");
 }
 
-template<typename FieldT, typename comp_fnT>
-FieldT mimc_input_hasher<FieldT, comp_fnT>::compute_hash(
+template<typename FieldT, typename compFnT>
+FieldT mimc_input_hasher<FieldT, compFnT>::compute_hash(
     const std::vector<FieldT> &values)
 {
     FieldT h = get_iv();
     for (const FieldT &v : values) {
-        h = comp_fnT::get_hash(h, v);
+        h = compFnT::get_hash(h, v);
     }
-    return comp_fnT::get_hash(h, FieldT(values.size()));
+    return compFnT::get_hash(h, FieldT(values.size()));
 }
 
 } // namespace libzeth
