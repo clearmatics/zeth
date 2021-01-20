@@ -193,6 +193,9 @@ function build() {
     if ! [ "${full_build}" == "1" ] ; then
         cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
     fi
+    if (which ccache) ; then
+        cmake_flags="${cmake_flags} -DCMAKE_C_COMPILER_LAUNCHER=ccache"
+    fi
 
     # Build and run unit tests
     . setup_env.sh
