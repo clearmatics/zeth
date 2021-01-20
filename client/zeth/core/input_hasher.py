@@ -15,13 +15,14 @@ DEFAULT_IV_UINT256 = \
 
 class InputHasher:
     """
-    Hash a series of field elements via the Merkle-Damgard construction on a
-    MiMC compression function. Note that since this function only accepts whole
-    numbers of scalar field elements, there is no ambiguity w.r.t to padding
-    and we could technically omit the finalization step. It has been kept for
-    now, to allow time for further consideration, and in case the form of the
-    hasher changes (e.g. in case we want to be able to hash arbitrary bit
-    strings in the future).
+    Note that this is currently experimental code. Hash a series of field
+    elements via the Merkle-Damgard construction on a MiMC compression
+    function. Note that since this function only accepts whole numbers of
+    scalar field elements, there is no ambiguity w.r.t to padding and we could
+    technically omit the finalization step. It has been kept for now, to allow
+    time for further consideration, and in case the form of the hasher changes
+    (e.g. in case we want to be able to hash arbitrary bit strings in the
+    future).
     """
     def __init__(self, compression_fn: MiMCBase, iv: int = DEFAULT_IV_UINT256):
         assert compression_fn.prime < (2 << 256)
