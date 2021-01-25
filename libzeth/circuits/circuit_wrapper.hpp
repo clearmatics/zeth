@@ -5,7 +5,7 @@
 #ifndef __ZETH_CIRCUITS_CIRCUIT_WRAPPER_HPP__
 #define __ZETH_CIRCUITS_CIRCUIT_WRAPPER_HPP__
 
-#include "libzeth/circuits/joinsplit.tcc"
+#include "libzeth/circuits/joinsplit.hpp"
 #include "libzeth/circuits/mimc/mimc_input_hasher.hpp"
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/core/note.hpp"
