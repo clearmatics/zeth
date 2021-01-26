@@ -38,7 +38,12 @@ jobs:
       with:
         key: submodules-${{ needs.submodules.outputs.commits }}-${{ runner.os }}-${{ matrix.config }}
         path: ~/Library/Caches/ccache
+    - name: Cache pip (for mpc tests)
+      uses: actions/cache@v2
+      with:
+        path: ~/Library/Caches/pip
+        key: build-macos-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Install Dependencies
       run: brew install ${MACOS_BREW_PACKAGES}
     - name: Execute
-      run: CI_CONFIG=${{ matrix.config }} scripts/ci build
+      run: CI_MPC_TESTS=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
