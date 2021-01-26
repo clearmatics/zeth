@@ -19,6 +19,15 @@ function _setup_client() {
     popd
 }
 
+function _setup_ganache() {
+    pushd zeth_contracts
+    npm config set python python2.7
+    npm config set engine-strict true
+    npm config set unsafe-perm true
+    npm install --unsafe-perm
+    popd
+}
+
 function _ganache_is_active() {
     curl -sf \
          -H "Content-Type: application/json" \
@@ -60,6 +69,48 @@ function _stop_ganache() {
     popd
 }
 
+function _prover_server_is_active() {
+    # Assume the client env is active
+    zeth get-verification-key
+}
+
+function _start_prover_server() {
+    # Requires the client env (for _prover_server_is_active)
+    . client/env/bin/activate
+    pushd build
+
+    ./prover_server/prover_server > prover_server.stdout &
+    echo $! > prover_server.pid
+
+    # Wait for prover_server to be active
+    while ! _prover_server_is_active ; do
+        echo "_start_prover_server: waiting for server ..."
+        sleep 1
+    done
+    echo "_start_prover_server:: prover_server is active"
+
+    popd # build
+    deactivate
+}
+
+function _stop_prover_server() {
+    pushd build
+
+    if ! [ -e prover_server.pid ] ; then
+        echo "_stop_prover_server: no PID file"
+        return 1
+    fi
+
+    pid=`cat prover_server.pid`
+    while (kill "${pid}") ; do
+        sleep 0.5
+    done
+    rm prover_server.pid
+    echo "_stop_prover_server:: prover_server stopped"
+
+    popd # build
+}
+
 function _build_setup() {
     # Extra deps for native builds
     if [ "${platform}" == "Linux" ] ; then
@@ -95,11 +146,14 @@ function check_format() {
 }
 
 function check_contracts() {
+
+    # Setup the zeth_contracts dir
+    _setup_ganache
+
+    # Run checks in zeth_contracts
     pushd zeth_contracts
-    npm config set python python2.7
-    npm install --unsafe-perm
     npm run check
-    popd
+    popd # zeth_contracts
 
     # Run contract tests (in python)
     _setup_client
@@ -169,6 +223,30 @@ function mpc_tests() {
     scripts/test_mpc_server_phase2
 }
 
+function integration_tests() {
+
+    # Native code is built.  Setup client and ganache.
+    _setup_ganache
+    _setup_client
+
+    # Start servers
+    _start_ganache
+    _start_prover_server
+
+    # Enter client env and run client test script
+    . client/env/bin/activate
+
+    ./scripts/test_zeth_cli
+    python -m test_commands.test_ether_mixing GROTH16
+    python -m test_commands.test_erc_token_mixing GROTH16
+
+    deactivate
+
+    # Stop servers
+    _stop_prover_server
+    _stop_ganache
+}
+
 function build() {
 
     _build_setup
@@ -190,9 +268,11 @@ function build() {
 
     cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG} -DZETH_SNARK=${CI_ZKSNARK}"
     cmake_flags="${cmake_flags} -DZETH_CURVE=${CI_CURVE}"
-    if ! [ "${full_build}" == "1" ] ; then
+    # Switch off slow tests unless CI_FULL_TESTS == 1
+    if ! [ "${CI_FULL_TESTS}" == "1" ] ; then
         cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
     fi
+    # Use ccache if available
     if (which ccache) ; then
         cmake_flags="${cmake_flags} -DCMAKE_C_COMPILER_LAUNCHER=ccache"
     fi
@@ -210,7 +290,13 @@ function build() {
     CTEST_OUTPUT_ON_FAILURE=1 make -j 2 check
     cd ..
 
-    mpc_tests
+    if [ "${CI_MPC_TESTS}" == "1" ] ; then
+        mpc_tests
+    fi
+
+    if [ "${CI_INTEGRATION_TESTS}" == "1" ] ; then
+        integration_tests
+    fi
 }
 
 function ci_setup() {
@@ -258,22 +344,17 @@ function ci_setup() {
     fi
 }
 
-
 ci_task=$1
-full_build=$2
-if [ "${full_build}" == "" ] ; then
-    if [ "${CI_EVENT_NAME}" == "pull_request" ] ; then
-        full_build=1
-    fi
-fi
 
 echo ci_task = ${ci_task}
-echo full_build=${full_build}
 echo CI_CONFIG=${CI_CONFIG}
 echo CI_ZKSNARK=${CI_ZKSNARK}
 echo CI_CURVE=${CI_CURVE}
 echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
 echo CI_EVENT_NAME=${CI_EVENT_NAME}
+echo CI_FULL_TEST=${CI_FULL_TESTS}
+echo CI_MPC_TESTS=${CI_MPC_TESTS}
+echo CI_INTEGRATION_TESTS=${CI_INTEGRATION_TESTS}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
     check_format
@@ -299,7 +380,10 @@ if [ "${CI_USE_DOCKER}" == "1" ] ; then
            --env CI_CONFIG=${CI_CONFIG} \
            --env CI_ZKSNARK=${CI_ZKSNARK} \
            --env CI_CURVE=${CI_CURVE} \
-           zeth-dev:latest $0 ${ci_task} ${full_build}
+           --env CI_FULL_TESTS=${CI_FULL_TESTS} \
+           --env CI_MPC_TESTS=${CI_MPC_TESTS} \
+           --env CI_INTEGRATION_TESTS=${CI_INTEGRATION_TESTS} \
+           zeth-dev:latest $0 ${ci_task}
 else
     ci_setup
     ${ci_task}
