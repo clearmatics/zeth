@@ -1,13 +1,45 @@
 # Actions for pull requests only
-name: zeth-ci-pull-request
+name: zeth-ci-onpullrequest-build-ubuntu
 
 on:
   pull_request:
 
 jobs:
 
+  # Job to build the grpc libraries. The grpc build directory is populated and
+  # cached so that all other jobs can mark this job as a prerequisite and just
+  # run `make install`.
+  #
+  # NOTE: the version number here (in `key` and in script arguments) must be
+  # kept in sync with the key used by the jobs.
+  onpr-build-grpc:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache grpc
+      uses: actions/cache@v2
+      with:
+        key: grpc-1.31.x-${{ runner.os }}-test
+        path: depends/grpc
+    - name: Build grpc
+      run: if ! [ -d depends/grpc ] ; then scripts/install_grpc /usr v1.31.x depends/grpc ; fi
+
+  # Extract the commits of submodules for use by cache steps
+  onpr-submodules:
+    runs-on: ubuntu-20.04
+    outputs:
+      commits: ${{ steps.get-commits.outputs.commits }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Get Submodule Commits
+      id: get-commits
+      run: |
+        git submodule sync
+        echo "::set-output name=commits::"`git submodule status depends/libsodium | grep -oe '[0-9a-fA-F]\+' | head -c 8`-`git submodule status depends/libsnark | grep -oe '[0-9a-fA-F]\+' | head -c 8`
+
   build-linux-full:
     runs-on: ubuntu-20.04
+    needs: [onpr-build-grpc, onpr-submodules]
     strategy:
       matrix:
         curve: [ BLS12_377, ALT_BN128 ]
@@ -15,5 +47,36 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 10
+    - name: Cache grpc
+      uses: actions/cache@v2
+      with:
+        key: grpc-1.31.x-${{ runner.os }}-test
+        path: depends/grpc
+    # - name: Cache ccache
+    #   uses: actions/cache@v2
+    #   with:
+    #     key: submodules-${{ needs.onpr-submodules.outputs.commits }}-${{ runner.os }}-${{ matrix.curve }}
+    #     path: ~/.ccache
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/pip
+          ~/Library/Caches/pip
+        key: build-linux-full-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
+    - name: Cache npm
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.npm
+          depends/ganache-cli/node_modules
+        key: build-linux-full-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
+    - name: Install dependencies
+      run: |
+        scripts/install_grpc /usr v1.31.x depends/grpc
+        sudo apt install -y ccache
     - name: Execute
-      run: CI_EVENT_NAME=pull_request CI_USE_DOCKER=1 CI_CONFIG=Release CI_CURVE=${{ matrix.curve }} scripts/ci build
+      run: CI_CONFIG=Release CI_CURVE=${{ matrix.curve }} CI_FULL_TESTS=1 CI_INTEGRATION_TESTS=1 scripts/ci build
