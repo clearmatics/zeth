@@ -1,5 +1,5 @@
 # Check actions (linters, analysis tools etc.)
-name: zeth-ci-push-checks
+name: zeth-ci-onpush-checks
 
 on:
   push:
@@ -9,28 +9,26 @@ jobs:
   check-contracts:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - uses: actions/setup-node@v1
+    - uses: actions/setup-node@v2
       with:
-        node-version: 10
-    - name: Cache npm
-      uses: actions/cache@v1
+        node-version: '10'
+    - name: Cache npm (incl ganache-cli/node_modules)
+      uses: actions/cache@v2
       with:
-        path: ~/.npm
-        key: check-contracts-npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-    # Cache ganache-cli/node_modules to avoid recompiling native code
-    - name: Cache depends/ganache-cli/node_modules
-      uses: actions/cache@v1
-      with:
-        path: depends/ganache-cli/node_modules
-        key: check-contracts-ganache-node-modules-${{ runner.os }}-${{ hashFiles('depends/ganache-cli/package-lock.json') }}
+        path: |
+          ~/.npm
+          depends/ganache-cli/node_modules
+        key: check-contracts-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
     - name: Cache pip
       uses: actions/cache@v2
       with:
-        path: ~/.cache/pip
-        key: check-contracts-pip-${{ runner.os }}-${{ hashFiles('client/setup.py') }}
+        path: |
+          ~/.cache/pip
+          ~/.solcx
+        key: check-contracts-pip-solcx-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Check Contracts
       run: scripts/ci check_contracts
 
@@ -44,7 +42,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.cache/pip
-        key: check-client-pip-${{ runner.os }}-${{ hashFiles('client/setup.py') }}
+        key: check-client-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Check Client
       run: scripts/ci check_client
 
