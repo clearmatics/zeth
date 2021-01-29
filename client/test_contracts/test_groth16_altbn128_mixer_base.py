@@ -7,6 +7,8 @@
 from zeth.core.constants import \
     JS_INPUTS, ZETH_PUBLIC_UNIT_VALUE, ZETH_MERKLE_TREE_DEPTH
 from zeth.core.prover_client import ProverConfiguration
+from zeth.core.mimc import MiMC7
+from zeth.core.input_hasher import InputHasher
 from zeth.core.zksnark import get_zksnark_provider
 from zeth.core.utils import EtherValue, hex_list_to_uint256_list
 from zeth.core.signing import SigningKeyPair
@@ -19,13 +21,6 @@ from unittest import TestCase
 from typing import Dict, Optional, Any
 
 # pylint: disable=line-too-long
-
-# TODO: These tests are specific to AltBN128MixerBase, however the mixer that
-# is deployed is a function of the currently running prover server. Change this
-# to deploy a test contract (inheriting from AltBN128MixerBase) which then
-# calls the given methods with the expected data (i.e. remove the requirement
-# for a running prover_server, and support type-checking of the test code
-# against interface changes).
 
 # Primary inputs
 
@@ -113,21 +108,21 @@ MIX_PARAMETERS_VIN = EtherValue(200)
 
 MIX_PARAMETERS_SIGNING_KEYPAIR = SigningKeyPair.from_json_dict({
     "sk": {
-        "psk": "19cca1b1f0a3389880a51c5dad6da41885f1aa2a85d3895a7ee57cd93b91d92d",
-        "ssk_y": "091f01468410d87af0308ca0e27580de7ce59b5771dbadf47c1831dcbd8d2ec2",  # noqa
+        "psk": "0094c3bd11c967ded0712fb8aa833dc34c2e9e36a298f9bca75ca47b014f525b",
+        "ssk_y": "26762feff4e7a0fe3f24182caf13b7709818bef122c3c8395c9cc71664925e2f",  # noqa
         "ssk_y_g1": {
-            "x": "0f9a984abbea6e4f61a927d7fc7aa1ac997fd98edc7c57f43888ec025ba58de9",  # noqa
-            "y": "08c7c8dcea11753d8ce4c77b70f3da5f497f3ecd6745e108d5080fae9936e66f",  # noqa
-        },
+            "x": "065495bf33403570a2c0bc2e5eb193dce106c82270ff72a68df1f3255019c37c",  # noqa
+            "y": "12ef732b1e3d2afe712f6414eb68f4bdf0bd610e2bb199dd3ba9c3b7a49e34b3"  # noqa
+        }
     },
     "vk": {
         "ppk": {
-            "x": "2142d7e3c856f37296366fbde935161d62f3e51685d91e541b2c44df830e9fd7",  # noqa
-            "y": "2da8644fa7c59b29d23d6a16591838dbfee30d281e0837dcdbf18fcca9eea54a",  # noqa
+            "x": "03ff72a98c117f06526da1ecf485ddc46130bd97f6254678ab42dec92b9b533b",  # noqa
+            "y": "1cd3a1f4ceb50551d9aec66aace46e630a3f6ff17106696ea1937ed573df82aa"  # noqa
         },
         "spk": {
-            "x": "0f9a984abbea6e4f61a927d7fc7aa1ac997fd98edc7c57f43888ec025ba58de9",  # noqa
-            "y": "08c7c8dcea11753d8ce4c77b70f3da5f497f3ecd6745e108d5080fae9936e66f",  # noqa
+            "x": "065495bf33403570a2c0bc2e5eb193dce106c82270ff72a68df1f3255019c37c",  # noqa
+            "y": "12ef732b1e3d2afe712f6414eb68f4bdf0bd610e2bb199dd3ba9c3b7a49e34b3"  # noqa
         }
     }
 })
@@ -135,33 +130,34 @@ MIX_PARAMETERS_SIGNING_KEYPAIR = SigningKeyPair.from_json_dict({
 MIX_PARAMETERS_DICT: Dict[str, Any] = {
     "extended_proof": {
         "proof": {
-            "a": ["0x022fc050ed6c153dcbfb1f18fdffd86e99e76bf9f9ceeb74b921be467df44d4f", "0x0473a961d1990f60799eff2bc2b8cb33cbeb4644fb87c3a2b5fa16b3cb662c80"],  # noqa
-            "b": [["0x14f5918361b5f09955f822b378d4cb363265cdbf43ac3eae9594f93b25c740a5", "0x1caab696a800e657558485215194cfb5915ddea3fc9001537d1811fba04068b3"], ["0x1e2552d77e7af276b2d92a3a61e4fdeab0487af08c63f65902de91a7d5a21824", "0x0f1380685f4aba028770692dd3ccdbdc3ba4758482344784e34cee54f9f8b4a1"]],  # noqa
-            "c": ["0x2bc2e2bfe646a10d5f220b21b5149bf724a8d34fd5f713775095b65f108ce90e", "0x1dc8f1acf805daf143686385f17ad06f4768e600555abbd1b21b65393ff196e8"],  # noqa
+            "a": ["0x19bb99d61b9fd80f83c62301b8b49a7721ff4b9169304ee2e565967dff6c1f50","0x10cf81855def824e4ebb56df71e63271c9c24778fb5022db0c0e5266c5dac8c0"],  # noqa
+            "b": [["0x2e8709a700d887a6d98b5c9e8154dd5aa2e8b37e176f7ee4dde254a4f01cb5f2", "0x26776b5283e39376a076ea7c9effd6ac6a2eb4e153ff33beccc50ea8c9ea77f6"], ["0x21d59a0bded4b94e995d1056fa08a5b44626f936bc7ce90556f288f558a4d6bc", "0x0dfe988bdd7e0f793df7d9d2136ccc2bd2fb9187eaf8f38430a7bfbdd0b7a8d2"]],  # noqa
+            "c": ["0x2e0f8bec7eebad06fab29c558e96cbd68d2d729bca8b56640b0f00f93593e372", "0x2276552ff16f6b4e67c06495941c1988eca4bc60c9aa75cfc57098beb4f19156"]  # noqa
         },
-        "inputs": [
-            "0x01e202cf4ac3721b9bfd398ec65969c811f32cb1e46df020337e9fc2fda0f014",
-            "0x19917fa2eea86a9082ef7766c7e7737c4153a499796baf01f68787d267b278cc",
-            "0x15e8587966977c5c5430cb9e84e686ee5f327ec2651a86c978ed7973ee8cd4b9",
-            "0x10c16790b950db6a0fd94ee66015d37e506e7a970cbbc962325839188ddd4875",
-            "0x029eae0aed749a8e05565a5228b825ac6e9a8ad034dbc7b674786783bae64be2",
-            "0x0945c9391ddd49eb41234a2249c78203040bf337ab27e1dd7a3c112010bc160d",
-            "0x03fb8ae204697d92aa1cb161a8fd533d62c9d4113db1de78547aa330f8148510",
-            "0x03dc42c147cc05ef3e5c3aae875a860dd73e7be3bc9578499a171f52cc5949e7",
-            "0x00000000000000000000000000001663000000000bebc2000000000000000000",
-        ],
+        "inputs": ["0x01a5e7daab7ee618030641a16ae09ec8f67e121f209e6241b65924122f2ed94b"]  # noqa
     },
+    "public_data": [
+        "0x1e202cf4ac3721b9bfd398ec65969c811f32cb1e46df020337e9fc2fda0f014",
+        "0xda3f23b4b07b9cf6ae3ddce133f7de065b1f933e2df5653b52ddc57a79b4ce7",
+        "0x153319f1ecdd7a6d25380dc08566a8b5a6a46cb7a14a920b5400d834ca66bdbe",
+        "0xd1179e6c517a300b86e6e99bba141ca6bd95ac41a02ecd4eeb2a19176de1069",
+        "0x16f67a9d4ad2656c1f2fbc0d39e4e7ddcbad04bb83e7a38511b1b5f42d5e5983",
+        "0xfa8d8b70f091bc6d9e5186c91968d37dcc5153e2ff39b5508c1e15016e2bace",
+        "0x91ac4bd99ed6bc7ff73df5cbfe6330f4875e2c180daccbf568d8146f86ba24b",
+        "0xd146d5f49d6461012ae4ab3f6f670e275098ed6369406c6f0e5bc4fd4828bce",
+        "0x9a7000000000bebc2000000000000000000"
+    ],
     "signature_vk": [
-        "15044425925993845483393126099570793906913594542449620874334342139863918092247",  # noqa
-        "20651600815268664951459086661967759114548020657233676039273591752689993033034",  # noqa
-        "7057838256995470367292750127543080978509804434882431937449883270040531602921",  # noqa
-        "3971491659664912517391994943672743161518296354269326311016522861877057218159",  # noqa
+        "1808275917333726390675593630676660592284499790243906329164148357633591169851",  # noqa
+        "13038682272157317746935630690273139043012615829064107162576212284919309632170",  # noqa
+        "2863325759893808656457455214623293696676979172082516149962341594639946597244",  # noqa
+        "8564702586272948230916163901148349984070935330485128468603906018200747127987"  # noqa
     ],
-    "signature": "10654946530806799981365073476369904106395106992608919376340445285630856100688",  # noqa
+    "signature": "19090395247809983100415210093724020502485107107595263044457463522078345927435",  # noqa
     "ciphertexts": [
-        "f976f9b61cb10cb3275c7dc5941c314e8a6f894e312426f005322fdc7cc7ec3ba895de2033c09e19e35720f416ac8cbfd131048e38e244a56bf0ade2a9367c5fbf8a7976f59d270f590f6eb5ab9fbf35afa4550866837a29553bb6610cd0a5f57ca5b9ae6cf1d536ace98f1a58b7fde2030d013a6c4869875c3689ffbe535dbe2dcaad2b7f396eb2124d2d328a88e54c4ff524e417f1b57b",  # noqa
-        "31424a6831ff6b7b5948ba5d7472030cf3427eeb730e974475d756995e48a1266b4ba550b6e28eb8b6b6367b3e7b7308ff2c1d641adcebaa818d3f325869bc66889c5e269673acbdfaa481feb5c57ef0ecccdcb58a8293dd347cf9a8423717dbea48119ebdc5b660f94a9ad1f43848299e02bcf07c59d3c594d65a486aa850c7adb7793673b965dfe27309631de9cad66638669afc16abea",  # noqa
-    ],
+        "642149825d05b2b6e40d5e479ac27718adde77563e1e4a924a10a01afc9f5c63bd72e87a9710c2ea97c78a051fcb82cd1cdc23817f5781baa8d3508189fc0963fa3f6209df70aa95db14f24080da94e32374da6e9ce6dc4c3c0efbcbb428e605d683034f672750dd8c1533bf814339800731330f74fd5d67fa24e2207e1b8225aab47ca918d5583f27305f3ea0fcd3c1689a25add0bbad50",  # noqa
+        "296909be36fb44361a34134c5acc47b01f5037c1be0f021734b993d0c766be10acc611836e9b77a67b59f4cbb74479402daa2e3d7b6a0ca780de9d0802bd751c0191bcaed8b2b7d5d334c7eb3bc339795cfeb7e7ace9ede7c1ebb8f4fa79f01342856dc557b680dd6e2ead876a7a281ab935c94aeba77f48097038cc8df1b36b56a97f6a2cdd42e05ed6f3ca26622ae87b405276b9544dcd"  # noqa
+    ]
 }
 
 WEB3: Optional[Any] = None
@@ -173,7 +169,7 @@ MIXER_INSTANCE: Any = None
 MIXER_CLIENT: Optional[MixerClient] = None
 
 
-class TestAltBN128MixerBaseContract(TestCase):
+class TestGroth16AltBN128MixerBaseContract(TestCase):
 
     @staticmethod
     def setUpClass() -> None:
@@ -183,7 +179,7 @@ class TestAltBN128MixerBaseContract(TestCase):
         _mixer_interface, mixer_instance = mock.deploy_contract(
             eth,
             deployer_eth_address,
-            "AltBN128MixerBase_test",
+            "Groth16AltBN128MixerBase_test",
             {
                 'mk_depth': ZETH_MERKLE_TREE_DEPTH,
                 'permitted_dispatcher': deployer_eth_address,
@@ -198,6 +194,15 @@ class TestAltBN128MixerBaseContract(TestCase):
         MIXER_INSTANCE = mixer_instance
         global MIXER_CLIENT  # pylint: disable=global-statement
         MIXER_CLIENT = MixerClient(web3, PROVER_CONFIG, MIXER_INSTANCE)
+
+    def test_hash_public_inputs(self) -> None:
+        zksnark = get_zksnark_provider(PROVER_CONFIG.zksnark_name)
+        mix_params = MixParameters.from_json_dict(zksnark, MIX_PARAMETERS_DICT)
+        public_data = mix_params.public_data
+        expect_hash = InputHasher(MiMC7()).hash(public_data)
+        actual_hash = MIXER_INSTANCE.functions.\
+            hash_public_proof_data_test(public_data).call()
+        self.assertEqual(expect_hash, actual_hash)
 
     def test_assemble_nullifiers(self) -> None:
         # Test retrieving nullifiers
@@ -237,10 +242,12 @@ class TestAltBN128MixerBaseContract(TestCase):
             sender_eth_address=sender_eth_address,
             ciphertexts=mix_params.ciphertexts,
             extproof=mix_params.extended_proof,
+            public_data=mix_params.public_data,
             for_dispatch_call=True)
         mix_params.signature = new_signature
 
-        nested_inputs = hex_list_to_uint256_list(mix_params.extended_proof.inputs)
+        nested_inputs = \
+            hex_list_to_uint256_list(mix_params.extended_proof.inputs)
         nested_parameters = mix_parameters_to_dispatch_parameters(mix_params)
         mixer_call = MIXER_INSTANCE.functions.dispatch(
             VK_HASH, nested_inputs, nested_parameters)

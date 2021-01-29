@@ -148,14 +148,22 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         require(
             msg.sender == _permitted_dispatcher, "dispatcher not permitted");
         require(nested_vk_hash == _vk_hash, "invalid nested_vk_hash");
-        require(nested_inputs.length == NUM_INPUTS);
+        require(nested_inputs.length == 1, "invalid num nested inputs");
 
         // Decode the nested parameters
         // TODO: convert ciphertext array without copying
         (uint256[4] memory vk,
          uint256 sigma,
+         uint256[] memory public_data,
          bytes[] memory decoded_ciphertexts) = abi.decode(
-             nested_parameters, (uint256[4], uint256, bytes[]));
+             nested_parameters, (uint256[4], uint256, uint256[], bytes[]));
+        require(
+            public_data.length == NUM_INPUTS,
+            "invalid number of public inputs in decoded data.");
+        require(
+            decoded_ciphertexts.length == JSOUT,
+            "invalid number of ciphertexts in decoded data.");
+
         bytes[JSOUT] memory ciphertexts;
         for (uint256 i = 0 ; i < JSOUT ; ++i) {
             ciphertexts[i] = decoded_ciphertexts[i];
@@ -165,8 +173,14 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // TODO: convert without copying.
         uint256[NUM_INPUTS] memory inputs;
         for (uint256 i = 0 ; i < NUM_INPUTS ; ++i) {
-            inputs[i] = nested_inputs[i];
+            inputs[i] = public_data[i];
         }
+
+        // Ensure that the primary input to the zk-proof (validated and passed
+        // in by the dispatcher), matches the hash of the public inputs.
+        require(
+            nested_inputs[0] == hash_public_proof_data(inputs),
+            "hash of public data does not match primary input");
 
         // 1. Check the root and the nullifiers
         bytes32[JSIN] memory nullifiers;
@@ -203,7 +217,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         uint256[] memory proof,
         uint256[4] memory vk,
         uint256 sigma,
-        uint256[NUM_INPUTS] memory inputs,
+        uint256[NUM_INPUTS] memory public_inputs,
         bytes[JSOUT] memory ciphertexts
     )
         public
@@ -212,7 +226,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // 1. Check the root and the nullifiers
         bytes32[JSIN] memory nullifiers;
         check_mkroot_nullifiers_hsig_append_nullifiers_state(
-            vk, inputs, nullifiers);
+            vk, public_inputs, nullifiers);
 
         // 2.a Verify the signature on the hash of data_to_be_signed
         bytes32 hash_to_be_signed = sha256(
@@ -224,7 +238,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
                 ciphertexts[0],
                 ciphertexts[1],
                 proof,
-                inputs
+                public_inputs
             )
         );
         require(
@@ -234,13 +248,14 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         );
 
         // 2.b Verify the proof
+        uint256 public_inputs_hash = hash_public_proof_data(public_inputs);
         require(
-            verify_zk_proof(proof, inputs),
+            verify_zk_proof(proof, public_inputs_hash),
             "Invalid proof: Unable to verify the proof correctly"
         );
 
         mix_append_commitments_emit_and_handle_public_values(
-            inputs, ciphertexts, nullifiers);
+            public_inputs, ciphertexts, nullifiers);
     }
 
     function mix_append_commitments_emit_and_handle_public_values(
@@ -269,6 +284,23 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // 6. Get the public values in Wei and modify the state depending on
         // their values
         process_public_values(inputs);
+    }
+
+    function hash_public_proof_data(uint256[NUM_INPUTS] memory public_data)
+        internal
+        returns (uint256)
+    {
+        // Initialize h with the IV and hash each public data value (see
+        // client/zeth/core/input_hasher.py for details)
+        bytes32 h;
+        h = bytes32(uint256(
+            // solhint-disable-next-line max-line-length
+            13196537064117388418196223856311987714388543839552400408340921397545324034315));
+        for (uint256 i = 0 ; i < NUM_INPUTS; ++i) {
+            h = hash(h, bytes32(public_data[i]));
+        }
+        h = hash(h, bytes32(NUM_INPUTS));
+        return uint256(h);
     }
 
     /// This function is used to extract the public values (vpub_in, vpub_out)
@@ -376,7 +408,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     // selected SNARK.
     function verify_zk_proof(
         uint256[] memory proof,
-        uint256[NUM_INPUTS] memory inputs
+        uint256 public_inputs_hash
     )
         internal
         returns (bool);

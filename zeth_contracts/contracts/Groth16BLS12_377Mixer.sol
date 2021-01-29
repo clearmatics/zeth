@@ -26,21 +26,15 @@ contract Groth16BLS12_377Mixer is BLS12_377MixerBase
 
     function verify_zk_proof(
         uint256[] memory proof,
-        uint256[NUM_INPUTS] memory inputs
+        uint256 public_inputs_hash
     )
         internal
         returns (bool)
     {
-        // Convert the statically sized inputs to a dynamic array
-        // expected by the verifyer.
-
-        // TODO: mechanism to pass static-sized input arrays to generic
-        // verifier functions to avoid this copy.
-
-        uint256[] memory input_values = new uint256[](NUM_INPUTS);
-        for (uint256 i = 0 ; i < NUM_INPUTS; i++) {
-            input_values[i] = inputs[i];
-        }
+        // Convert the single primary input to a dynamic array
+        // expected by the verifier.
+        uint256[] memory input_values = new uint256[](1);
+        input_values[0] = public_inputs_hash;
         return Groth16BLS12_377.verify(_vk, proof, input_values);
     }
 }

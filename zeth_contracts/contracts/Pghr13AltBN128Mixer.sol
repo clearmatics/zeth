@@ -47,7 +47,7 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
     }
 
     function verify(
-        uint256[NUM_INPUTS] memory input,
+        uint256[] memory inputs,
         Proof memory proof
     )
         internal
@@ -75,7 +75,7 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         // |I_{in}| == input.length, and vk.IC also contains A_0(s). Thus
         // ||vk.IC| == input.length + 1
         require(
-            input.length + 1 == vk.IC.length,
+            inputs.length + 1 == vk.IC.length,
             "Using strong input consistency, and the input length differs from"
             " expected"
         );
@@ -90,8 +90,8 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         // |I_{in}| = n here as we assume that we have a vector x of inputs of
         // size n.
         Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
-        for (uint256 i = 0; i < input.length; i++) {
-            vk_x = Pairing.add(vk_x, Pairing.mul(vk.IC[i + 1], input[i]));
+        for (uint256 i = 0; i < inputs.length; i++) {
+            vk_x = Pairing.add(vk_x, Pairing.mul(vk.IC[i + 1], inputs[i]));
         }
         vk_x = Pairing.add(vk_x, vk.IC[0]);
 
@@ -150,7 +150,7 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
 
     function verify_zk_proof(
         uint256[] memory proof_data,
-        uint256[NUM_INPUTS] memory inputs
+        uint256 public_inputs_hash
     )
         internal
         returns (bool)
@@ -171,14 +171,13 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         proof.H = Pairing.G1Point(proof_data[14], proof_data[15]);
         proof.K = Pairing.G1Point(proof_data[16], proof_data[17]);
 
-        for(uint256 i = 0; i < inputs.length; i++){
-            // Make sure that all primary inputs lie in the scalar field
-            require(
-                inputs[i] < r,
-                "Input is not is scalar field"
-            );
-        }
+        require(
+            public_inputs_hash < r,
+            "Input is not is scalar field"
+        );
 
+        uint256[] memory inputs = new uint256[](1);
+        inputs[0] = public_inputs_hash;
         uint256 verification_result = verify(inputs, proof);
         if (verification_result != 0) {
             return false;

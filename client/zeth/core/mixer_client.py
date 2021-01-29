@@ -21,7 +21,7 @@ from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
     ExtendedProof
 from zeth.core.utils import EtherValue, digest_to_binary_string, \
     int64_to_hex, message_to_bytes, eth_address_to_bytes32, to_zeth_units, \
-    get_contracts_dir, hex_list_to_uint256_list
+    get_contracts_dir
 from zeth.core.prover_client import ProverConfiguration, ProverClient
 from zeth.api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
 
@@ -103,10 +103,12 @@ class MixParameters:
     def __init__(
             self,
             extended_proof: ExtendedProof,
+            public_data: List[int],
             signature_vk: signing.SigningVerificationKey,
             signature: signing.Signature,
             ciphertexts: List[bytes]):
         self.extended_proof = extended_proof
+        self.public_data = public_data
         self.signature_vk = signature_vk
         self.signature = signature
         self.ciphertexts = ciphertexts
@@ -120,6 +122,7 @@ class MixParameters:
 
     def to_json_dict(self) -> Dict[str, Any]:
         ext_proof_json = self.extended_proof.to_json_dict()
+        public_data = [hex(x) for x in self.public_data]
         signature_vk_json = [
             str(x) for x in
             signing.verification_key_as_mix_parameter(self.signature_vk)]
@@ -127,6 +130,7 @@ class MixParameters:
         ciphertexts_json = [x.hex() for x in self.ciphertexts]
         return {
             "extended_proof": ext_proof_json,
+            "public_data": public_data,
             "signature_vk": signature_vk_json,
             "signature": signature_json,
             "ciphertexts": ciphertexts_json,
@@ -138,6 +142,7 @@ class MixParameters:
             json_dict: Dict[str, Any]) -> MixParameters:
         ext_proof = ExtendedProof.from_json_dict(
             zksnark, json_dict["extended_proof"])
+        public_data = [int(x, 16) for x in json_dict["public_data"]]
         signature_pk_param = [int(x) for x in json_dict["signature_vk"]]
         signature_pk = signing.verification_key_from_mix_parameter(
             signature_pk_param)
@@ -145,7 +150,7 @@ class MixParameters:
             int(json_dict["signature"]))
         ciphertexts = [bytes.fromhex(x) for x in json_dict["ciphertexts"]]
         return MixParameters(
-            ext_proof, signature_pk, signature, ciphertexts)
+            ext_proof, public_data, signature_pk, signature, ciphertexts)
 
 
 def mix_parameters_to_contract_arguments(
@@ -162,7 +167,7 @@ def mix_parameters_to_contract_arguments(
         proof_contract_params,
         signing.verification_key_as_mix_parameter(mix_parameters.signature_vk),
         signing.signature_as_mix_parameter(mix_parameters.signature),
-        hex_list_to_uint256_list(mix_parameters.extended_proof.inputs),
+        mix_parameters.public_data,
         mix_parameters.ciphertexts,
     ]
 
@@ -177,9 +182,11 @@ def mix_parameters_to_dispatch_parameters(mix_parameters: MixParameters) -> byte
     vk_param = signing.verification_key_as_mix_parameter(
         mix_parameters.signature_vk)
     sigma_param = signing.signature_as_mix_parameter(mix_parameters.signature)
+    public_data = mix_parameters.public_data
+    ciphertexts = mix_parameters.ciphertexts
     return eth_abi.encode_abi(
-        ['uint256[4]', 'uint256', 'bytes[]'],
-        [vk_param, sigma_param, mix_parameters.ciphertexts])  # type: ignore
+        ['uint256[4]', 'uint256', 'uint256[]', 'bytes[]'],
+        [vk_param, sigma_param, public_data, ciphertexts])  # type: ignore
 
 
 class MixOutputEvents:
@@ -511,6 +518,7 @@ class MixerClient:
             prover_inputs: ProofInputs,
             signing_keypair: signing.SigningKeyPair,
             ext_proof: ExtendedProof,
+            public_data: List[int],
             sender_eth_address: str,
             for_dispatch_call: bool = False
     ) -> MixParameters:
@@ -542,10 +550,11 @@ class MixerClient:
             sender_eth_address,
             ciphertexts,
             ext_proof,
+            public_data,
             for_dispatch_call)
 
         mix_params = MixParameters(
-            ext_proof, signing_keypair.vk, signature, ciphertexts)
+            ext_proof, public_data, signing_keypair.vk, signature, ciphertexts)
         return mix_params
 
     def create_mix_parameters_and_signing_key(
@@ -581,7 +590,7 @@ class MixerClient:
             mix_call_desc)
 
         # Query the prover_server for the related proof
-        ext_proof = prover_client.get_proof(prover_inputs)
+        ext_proof, public_data = prover_client.get_proof(prover_inputs)
 
         # Create the final MixParameters object
         mix_params = self.create_mix_parameters_from_proof(
@@ -589,6 +598,7 @@ class MixerClient:
             prover_inputs,
             signing_keypair,
             ext_proof,
+            public_data,
             sender_eth_address,
             for_dispatch_call)
 
@@ -669,6 +679,7 @@ def joinsplit_sign(
         sender_eth_address: str,
         ciphertexts: List[bytes],
         extproof: ExtendedProof,
+        public_data: List[int],
         for_dispatch_call: bool = False) -> int:
     """
     Generate a signature on the hash of the ciphertexts, proofs and primary
@@ -693,7 +704,7 @@ def joinsplit_sign(
         h.update(ciphertext)
 
     proof_bytes, pub_inputs_bytes = _proof_and_inputs_to_bytes(
-        zksnark, pp, extproof)
+        zksnark, pp, extproof, public_data)
 
     # If for_dispatch_call is set, omit proof from the signature. See
     # MixerBase.sol.
@@ -788,7 +799,8 @@ def _create_zeth_notes(
 def _proof_and_inputs_to_bytes(
         snark: IZKSnarkProvider,
         pp: PairingParameters,
-        extproof: ExtendedProof) -> Tuple[bytes, bytes]:
+        extproof: ExtendedProof,
+        public_data: List[int]) -> Tuple[bytes, bytes]:
     """
     Given a proof object, compute the byte encodings of the properties
     excluding "inputs", and the byte encoding of the "inputs". These are used
@@ -799,7 +811,7 @@ def _proof_and_inputs_to_bytes(
     proof = extproof.proof
     return \
         message_to_bytes(snark.proof_to_contract_parameters(proof, pp)), \
-        message_to_bytes(hex_list_to_uint256_list(extproof.inputs))
+        message_to_bytes(public_data)
 
 
 def _trap_r_randomness() -> str:

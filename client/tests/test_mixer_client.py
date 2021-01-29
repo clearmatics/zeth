@@ -28,6 +28,7 @@ class TestMixerClient(TestCase):
                 "bcde",
                 "cdef",
             ])
+        public_data = [1234, 4321, 9876, 6789]
         sig_keypair = gen_signing_keypair()
         sig_vk = sig_keypair.vk
         sig = sign(sig_keypair.sk, bytes.fromhex("00112233"))
@@ -37,7 +38,8 @@ class TestMixerClient(TestCase):
             encrypt(token_bytes(NOTE_LENGTH_BYTES), receiver_enc_keypair.k_pk),
         ]
 
-        mix_params = MixParameters(ext_proof, sig_vk, sig, ciphertexts)
+        mix_params = MixParameters(
+            ext_proof, public_data, sig_vk, sig, ciphertexts)
 
         mix_params_json = mix_params.to_json()
         mix_params_2 = MixParameters.from_json(zksnark, mix_params_json)

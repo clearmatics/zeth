@@ -6,6 +6,7 @@
 #define __ZETH_CIRCUITS_CIRCUIT_WRAPPER_HPP__
 
 #include "libzeth/circuits/joinsplit.tcc"
+#include "libzeth/circuits/mimc/mimc_input_hasher.hpp"
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/core/note.hpp"
 #include "libzeth/zeth_constants.hpp"
@@ -36,6 +37,7 @@ public:
         NumInputs,
         NumOutputs,
         TreeDepth>;
+    using input_hasher_type = mimc_input_hasher<Field, HashTreeT>;
 
     circuit_wrapper();
     circuit_wrapper(const circuit_wrapper &) = delete;
@@ -56,11 +58,15 @@ public:
         const bits64 &vpub_out,
         const bits256 &h_sig_in,
         const bits256 &phi_in,
-        const typename snarkT::proving_key &proving_key) const;
+        const typename snarkT::proving_key &proving_key,
+        std::vector<Field> &out_public_data) const;
 
 private:
     libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> public_data_hash;
+    libsnark::pb_variable_array<Field> public_data;
     std::shared_ptr<joinsplit_type> joinsplit;
+    std::shared_ptr<input_hasher_type> input_hasher;
 };
 
 } // namespace libzeth
