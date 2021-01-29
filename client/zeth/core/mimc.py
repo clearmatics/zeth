@@ -61,8 +61,15 @@ class MiMCBase(ITreeHash):
         """
         x = int.from_bytes(left, byteorder='big') % self.prime
         y = int.from_bytes(right, byteorder='big') % self.prime
-        result = (self.encrypt(x, y) + x + y) % self.prime
-        return result.to_bytes(32, byteorder='big')
+        return self.hash_int(x, y).to_bytes(32, byteorder='big')
+
+    def hash_int(self, x: int, y: int) -> int:
+        """
+        Similar to hash, but use field elements directly.
+        """
+        assert x < self.prime
+        assert y < self.prime
+        return (self.encrypt(x, y) + x + y) % self.prime
 
     @abstractmethod
     def mimc_round(self, message: int, key: int, rc: int) -> int:

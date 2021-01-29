@@ -276,13 +276,12 @@ class MixerClient:
         Deploy Zeth contracts.
         """
         prover_config = prover_client.get_configuration()
-        zksnark = get_zksnark_provider(prover_config.zksnark_name)
-        vk_proto = prover_client.get_verification_key()
-        pp = prover_config.pairing_parameters
-        vk = zksnark.verification_key_from_proto(vk_proto)
+        vk = prover_client.get_verification_key()
         deploy_gas = deploy_gas or constants.DEPLOYMENT_GAS_WEI
 
         contracts_dir = get_contracts_dir()
+        zksnark = get_zksnark_provider(prover_config.zksnark_name)
+        pp = prover_config.pairing_parameters
         mixer_name = zksnark.get_contract_name(pp)
         mixer_src = os.path.join(contracts_dir, mixer_name + ".sol")
 
@@ -581,11 +580,8 @@ class MixerClient:
         prover_inputs, signing_keypair = MixerClient.create_prover_inputs(
             mix_call_desc)
 
-        zksnark = get_zksnark_provider(self.prover_config.zksnark_name)
-
         # Query the prover_server for the related proof
-        ext_proof_proto = prover_client.get_proof(prover_inputs)
-        ext_proof = zksnark.extended_proof_from_proto(ext_proof_proto)
+        ext_proof = prover_client.get_proof(prover_inputs)
 
         # Create the final MixParameters object
         mix_params = self.create_mix_parameters_from_proof(

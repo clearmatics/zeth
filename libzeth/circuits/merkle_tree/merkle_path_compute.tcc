@@ -29,7 +29,9 @@ merkle_path_compute<FieldT, HashTreeT>::merkle_path_compute(
     assert(address_bits.size() == depth);
 
     // For each layer of the tree
+    digests.allocate(pb, depth, FMT(annotation_prefix, " digests"));
     for (size_t i = 0; i < depth; i++) {
+
         // We first initialize the gadget to order the computed hash and the
         // authentication node to know which one is the first to be hashed and
         // which one is the second (as in mimc_hash(left, right)) We also append
@@ -44,7 +46,7 @@ merkle_path_compute<FieldT, HashTreeT>::merkle_path_compute(
         } else {
             selectors.push_back(merkle_path_selector<FieldT>(
                 pb,
-                hashers[i - 1].result(),
+                digests[i - 1],
                 path[i],
                 address_bits[i],
                 FMT(this->annotation_prefix, " selector[%zu]", i)));
@@ -56,6 +58,7 @@ merkle_path_compute<FieldT, HashTreeT>::merkle_path_compute(
             pb,
             {selectors[i].get_left()},
             selectors[i].get_right(),
+            digests[i],
             FMT(this->annotation_prefix, " hasher[%zu]", i));
 
         // We append the initialized hasher in the vector of hashers
@@ -91,11 +94,11 @@ const libsnark::pb_variable<FieldT> merkle_path_compute<FieldT, HashTreeT>::
     result()
 {
     // We first check that we are not working with an empty tree
-    assert(hashers.size() > 0);
+    assert(digests.size() > 0);
 
     // We return the last hasher result, that is to say the computed root,
     // generated out of leaf, leaf address and merkle authentication path
-    return hashers.back().result();
+    return digests[digests.size() - 1];
 };
 
 } // namespace libzeth

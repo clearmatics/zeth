@@ -28,20 +28,20 @@ private:
 
     // Vector of intermediate result values
     std::array<libsnark::pb_variable<FieldT>, NumRounds> round_results;
+
     // Vector of MiMC round_gadgets
     std::vector<RoundT> round_gadgets;
 
 public:
     MiMC_permutation_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> &msg,
-        const libsnark::pb_variable<FieldT> &key,
+        const libsnark::pb_linear_combination<FieldT> &msg,
+        const libsnark::pb_linear_combination<FieldT> &key,
+        const libsnark::pb_variable<FieldT> &result,
         const std::string &annotation_prefix = "MiMCe7_permutation_gadget");
 
     void generate_r1cs_constraints();
     void generate_r1cs_witness() const;
-
-    const libsnark::pb_variable<FieldT> &result() const;
 
     // Constants vector initialization
     void setup_sha3_constants();

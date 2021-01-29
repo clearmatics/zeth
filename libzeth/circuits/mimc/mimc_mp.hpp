@@ -21,26 +21,26 @@ class MiMC_mp_gadget : public libsnark::gadget<FieldT>
 {
 private:
     // First input
-    libsnark::pb_variable<FieldT> x;
+    libsnark::pb_linear_combination<FieldT> x;
     // Second input
-    libsnark::pb_variable<FieldT> y;
-    // Permutation gadget
-    PermutationT permutation_gadget;
+    libsnark::pb_linear_combination<FieldT> y;
     // Output variable
-    libsnark::pb_variable<FieldT> output;
+    libsnark::pb_variable<FieldT> result;
+    // Permutation output
+    libsnark::pb_variable<FieldT> perm_output;
+    // Permutation gadget
+    std::shared_ptr<PermutationT> permutation_gadget;
 
 public:
     MiMC_mp_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> x,
-        const libsnark::pb_variable<FieldT> y,
+        const libsnark::pb_linear_combination<FieldT> &x,
+        const libsnark::pb_linear_combination<FieldT> &y,
+        const libsnark::pb_variable<FieldT> &result,
         const std::string &annotation_prefix = "MiMC_mp_gadget");
 
     void generate_r1cs_constraints();
     void generate_r1cs_witness() const;
-
-    // Returns the hash computed
-    const libsnark::pb_variable<FieldT> &result() const;
 
     // Returns the hash (field element)
     static FieldT get_hash(const FieldT x, FieldT y);

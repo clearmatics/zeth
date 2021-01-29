@@ -25,10 +25,10 @@ private:
         bit_utils<Exponent>::hamming_weight() - 2;
 
     // Message of the current round
-    const libsnark::pb_variable<FieldT> msg;
+    const libsnark::pb_linear_combination<FieldT> msg;
 
     // Key of the current round
-    const libsnark::pb_variable<FieldT> key;
+    const libsnark::pb_linear_combination<FieldT> key;
 
     // Round constant of the current round
     const FieldT round_const;
@@ -45,8 +45,8 @@ private:
 public:
     MiMC_round_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> &msg,
-        const libsnark::pb_variable<FieldT> &key,
+        const libsnark::pb_linear_combination<FieldT> &msg,
+        const libsnark::pb_linear_combination<FieldT> &key,
         const FieldT &round_const,
         libsnark::pb_variable<FieldT> &result,
         const bool add_k_to_result,

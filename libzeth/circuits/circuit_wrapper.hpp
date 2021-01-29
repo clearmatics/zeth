@@ -25,26 +25,27 @@ template<
     size_t TreeDepth>
 class circuit_wrapper
 {
-private:
-    std::shared_ptr<joinsplit_gadget<
-        libff::Fr<ppT>,
+public:
+    using Field = libff::Fr<ppT>;
+    // Both `joinsplit` and `joinsplit_gadget` are already used in the
+    // namespace.
+    using joinsplit_type = joinsplit_gadget<
+        Field,
         HashT,
         HashTreeT,
         NumInputs,
         NumOutputs,
-        TreeDepth>>
-        joinsplit_g;
-
-public:
-    using Field = libff::Fr<ppT>;
+        TreeDepth>;
 
     circuit_wrapper();
+    circuit_wrapper(const circuit_wrapper &) = delete;
+    circuit_wrapper &operator=(const circuit_wrapper &) = delete;
 
     // Generate the trusted setup
     typename snarkT::keypair generate_trusted_setup() const;
 
     // Retrieve the constraint system (intended for debugging purposes).
-    libsnark::protoboard<Field> get_constraint_system() const;
+    const libsnark::protoboard<Field> &get_constraint_system() const;
 
     // Generate a proof and returns an extended proof
     extended_proof<ppT, snarkT> prove(
@@ -56,6 +57,10 @@ public:
         const bits256 &h_sig_in,
         const bits256 &phi_in,
         const typename snarkT::proving_key &proving_key) const;
+
+private:
+    libsnark::protoboard<Field> pb;
+    std::shared_ptr<joinsplit_type> joinsplit;
 };
 
 } // namespace libzeth
