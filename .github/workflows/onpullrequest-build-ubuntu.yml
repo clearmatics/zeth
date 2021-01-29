@@ -37,7 +37,50 @@ jobs:
         git submodule sync
         echo "::set-output name=commits::"`git submodule status depends/libsodium | grep -oe '[0-9a-fA-F]\+' | head -c 8`-`git submodule status depends/libsnark | grep -oe '[0-9a-fA-F]\+' | head -c 8`
 
-  build-linux-full:
+  # Run the prover testing python scripts
+  prover-tests-linux:
+    runs-on: ubuntu-20.04
+    needs: [onpr-build-grpc, onpr-submodules]
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 10
+    - name: Cache grpc
+      uses: actions/cache@v2
+      with:
+        key: grpc-1.31.x-${{ runner.os }}-test
+        path: depends/grpc
+    - name: Cache ccache
+      uses: actions/cache@v2
+      with:
+        key: prover-tests-ccache-${{ needs.onpr-submodules.outputs.commits }}-${{ runner.os }}-test
+        path: ~/.ccache
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/pip
+          ~/Library/Caches/pip
+        key: prover-tests-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
+    - name: Cache npm
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.npm
+          depends/ganache-cli/node_modules
+        key: prover-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
+    - name: Install dependencies
+      run: |
+        scripts/install_grpc /usr v1.31.x depends/grpc
+        sudo apt install -y ccache
+    - name: Execute
+      run: CI_CONFIG=Release CI_CURVE=ALT_BN128 CI_PROVER_TESTS=1 scripts/ci build
+
+  # Run all unit tests and integration tests
+  integration-tests-linux:
     runs-on: ubuntu-20.04
     needs: [onpr-build-grpc, onpr-submodules]
     strategy:
@@ -55,25 +98,25 @@ jobs:
       with:
         key: grpc-1.31.x-${{ runner.os }}-test
         path: depends/grpc
-    # - name: Cache ccache
-    #   uses: actions/cache@v2
-    #   with:
-    #     key: submodules-${{ needs.onpr-submodules.outputs.commits }}-${{ runner.os }}-${{ matrix.curve }}
-    #     path: ~/.ccache
+    - name: Cache ccache
+      uses: actions/cache@v2
+      with:
+        key: integration-tests-ccache-${{ needs.onpr-submodules.outputs.commits }}-${{ matrix.curve }}-${{ runner.os }}-test
+        path: ~/.ccache
     - name: Cache pip
       uses: actions/cache@v2
       with:
         path: |
           ~/.cache/pip
           ~/Library/Caches/pip
-        key: build-linux-full-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
+        key: integration-tests-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Cache npm
       uses: actions/cache@v2
       with:
         path: |
           ~/.npm
           depends/ganache-cli/node_modules
-        key: build-linux-full-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
+        key: integration-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
         scripts/install_grpc /usr v1.31.x depends/grpc

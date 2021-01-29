@@ -223,6 +223,27 @@ function mpc_tests() {
     scripts/test_mpc_server_phase2
 }
 
+function prover_tests() {
+
+    # Native code is built.  Setup client and ganache.
+    _setup_ganache
+    _setup_client
+
+    # Start servers
+    _start_ganache
+    _start_prover_server
+
+    # Enter client env and run prover test scripts
+    . client/env/bin/activate
+    python -m test_commands.test_ether_mixing GROTH16
+    python -m test_commands.test_erc_token_mixing GROTH16
+    deactivate
+
+    # Stop servers
+    _stop_prover_server
+    _stop_ganache
+}
+
 function integration_tests() {
 
     # Native code is built.  Setup client and ganache.
@@ -235,11 +256,7 @@ function integration_tests() {
 
     # Enter client env and run client test script
     . client/env/bin/activate
-
     ./scripts/test_zeth_cli
-    python -m test_commands.test_ether_mixing GROTH16
-    python -m test_commands.test_erc_token_mixing GROTH16
-
     deactivate
 
     # Stop servers
@@ -292,6 +309,10 @@ function build() {
 
     if [ "${CI_MPC_TESTS}" == "1" ] ; then
         mpc_tests
+    fi
+
+    if [ "${CI_PROVER_TESTS}" == "1" ] ; then
+        prover_tests
     fi
 
     if [ "${CI_INTEGRATION_TESTS}" == "1" ] ; then
@@ -354,6 +375,7 @@ echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
 echo CI_EVENT_NAME=${CI_EVENT_NAME}
 echo CI_FULL_TEST=${CI_FULL_TESTS}
 echo CI_MPC_TESTS=${CI_MPC_TESTS}
+echo CI_PROVER_TESTS=${CI_PROVER_TESTS}
 echo CI_INTEGRATION_TESTS=${CI_INTEGRATION_TESTS}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
