@@ -169,10 +169,10 @@ make check
 ## Docker images
 | Docker files | Image | Tags | Description |
 |---------------|------|-----|--|
-| [./Dockerfile-prover](./Dockerfile-prover) | [clearmatics/zeth:latest-prover](https://github.com/orgs/clearmatics/packages/container/package/zeth) | `latest-prover`, `X.Y.Z-prover` - Release of zeth, `git-%HASH%-prover` - developers build by git-commit  | [Zeth Prover Server](./prover_server/README.md). Image use `zeth-base` for building |
-| [./Dockerfile-client](./Dockerfile-client) | [clearmatics/zeth:latest-client](https://github.com/orgs/clearmatics/packages/container/package/zeth) | `latest-client`, `X.Y.Z-client` - Release of zeth, `git-%HASH%-client` - developers build by git-commit  | [Python client to interact with the prover](./client/README.md) |
-| [./Dockerfile-mpc](./Dockerfile-mpc) | [clearmatics/zeth:latest-mpc](https://github.com/orgs/clearmatics/packages/container/package/zeth) | `latest-mpc`, `X.Y.Z-mpc` - Release of zeth, `git-%HASH%-mpc` - developers build by git-commit  | [Tools for Multi-Party Computation](./mpc/README.md). Image use `zeth-base` for building |
-| [./Dockerfile-base](./Dockerfile-base) | [clearmatics/zeth:latest-base](https://github.com/orgs/clearmatics/packages/container/package/zeth) | `latest-base`, `A.B.C-base` - Release of zeth-base | Base image for building other containers |
+| [./Dockerfile-prover](./Dockerfile-prover) | [ghcr.io/clearmatics/zeth:latest-prover](https://github.com/orgs/clearmatics/packages/container/package/zeth) | `latest-prover`, `X.Y.Z-prover` - Release of zeth, `git-%HASH%-prover` - developers build by git-commit  | [Zeth Prover Server](./prover_server/README.md). Image use `zeth-base` for building |
+| [./Dockerfile-client](./Dockerfile-client) | [ghcr.io/clearmatics/zeth:latest-client](https://github.com/orgs/clearmatics/packages/container/package/zeth) | `latest-client`, `X.Y.Z-client` - Release of zeth, `git-%HASH%-client` - developers build by git-commit  | [Python client to interact with the prover](./client/README.md) |
+| [./Dockerfile-mpc](./Dockerfile-mpc) | [ghcr.io/clearmatics/zeth:latest-mpc](https://github.com/orgs/clearmatics/packages/container/package/zeth) | `latest-mpc`, `X.Y.Z-mpc` - Release of zeth, `git-%HASH%-mpc` - developers build by git-commit  | [Tools for Multi-Party Computation](./mpc/README.md). Image use `zeth-base` for building |
+| [./Dockerfile-base](./Dockerfile-base) | [ghcr.io/clearmatics/zeth:latest-base](https://github.com/orgs/clearmatics/packages/container/package/zeth) | `latest-base`, `A.B.C-base` - Release of zeth-base | Base image for building other containers |
 
 
 ## Run analysis tools on the code
