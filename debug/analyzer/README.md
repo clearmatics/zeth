@@ -6,7 +6,7 @@ Basic set of functionalities to parse and run basic queries on the r1cs exported
 
 ```json
 {
-    "scalar_field_characteristic": "Not yet supported. Should be bigint in hexadecimal",
+    "scalar_field_characteristic": "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
     "num_variables": 549746, # Number of wires
     "num_constraints": 433391, # Number of gates
     "num_inputs": 17, # Number of primary inputs
