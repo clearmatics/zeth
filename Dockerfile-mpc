@@ -1,4 +1,4 @@
-FROM ghcr.io/clearmatics/zeth:latest-base AS stage1
+FROM ghcr.io/clearmatics/zeth:git-ac378f6a-base AS stage1
 
 LABEL org.opencontainers.image.source https://github.com/clearmatics/zeth
 
