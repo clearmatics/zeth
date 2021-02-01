@@ -1,4 +1,6 @@
-FROM clearmatics/zeth-base:v0.0.0 AS stage1
+FROM ghcr.io/clearmatics/zeth:latest-base AS stage1
+
+LABEL org.opencontainers.image.source https://github.com/clearmatics/zeth
 
 ENV ZETH_PATH=/home/zeth
 # Copy necessary files in the docker container
@@ -18,6 +20,9 @@ RUN cd ${ZETH_PATH} \
 ##
 
 FROM alpine:3.12
+
+LABEL org.opencontainers.image.source https://github.com/clearmatics/zeth
+
 RUN apk add --no-cache bash
 ## Move `prover_server` from previous image and put it in the PATH
 COPY --from=stage1 /home/zeth/build/prover_server/prover_server /usr/local/bin
