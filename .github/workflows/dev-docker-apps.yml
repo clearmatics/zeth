@@ -52,15 +52,6 @@ jobs:
             --output "type=image,push=true" \
             --file ./Dockerfile-${{ matrix.app }} ./
 
-      - name: "Docker Info"
-        run: |
-          docker pull ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }}
-          docker inspect ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }}
-          docker history ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }} --no-trunc
-          docker version
-          docker info
-          uname -a
-
   test:
     name: "Test"
     needs: docker-build
@@ -74,6 +65,9 @@ jobs:
       - name: "Get vars from git"
         id: git_vars
         run: echo ::set-output name=COMMIT_HASH::$(git rev-parse --short HEAD)
+
+      - name: "Configure Docker"
+        run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
       - name: "Run service"
         run: echo "Here we will run docker-compose based on images git-"${{ steps.git_vars.outputs.COMMIT_HASH }}
