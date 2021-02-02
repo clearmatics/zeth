@@ -54,6 +54,7 @@ jobs:
 
       - name: "Docker Info"
         run: |
+          docker pull ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }}
           docker inspect ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }}
           docker history ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }} --no-trunc
           docker version
@@ -62,6 +63,7 @@ jobs:
 
   test:
     name: "Test"
+    needs: docker-build
     runs-on: ubuntu-20.04
     timeout-minutes: 360
 
