@@ -30,7 +30,8 @@ void constraints_write_json(
         out_s << "{";
         out_s << "\"index\":" << lt.index << ",";
         out_s << "\"value\":"
-              << "\"0x" + bigint_to_hex<libff::Fr<ppT>>(lt.coeff.as_bigint())
+              << "\"" +
+                     bigint_to_hex<libff::Fr<ppT>>(lt.coeff.as_bigint(), true)
               << "\"";
         out_s << "}";
         count++;
@@ -153,8 +154,9 @@ std::ostream &r1cs_write_json(
 
     out_s << "{\n";
     out_s << "\"scalar_field_characteristic\":"
-          << "\"Not yet supported. Should be bigint in hexadecimal\""
-          << ",\n";
+          << "\"" + bigint_to_hex<libff::Fr<ppT>>(
+                        libff::Fr<ppT>::field_char(), true)
+          << "\",\n";
     out_s << "\"num_variables\":" << pb.num_variables() << ",\n";
     out_s << "\"num_constraints\":" << pb.num_constraints() << ",\n";
     out_s << "\"num_inputs\": " << pb.num_inputs() << ",\n";
