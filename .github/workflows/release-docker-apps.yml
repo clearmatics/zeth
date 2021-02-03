@@ -50,7 +50,7 @@ jobs:
       - name: "Tag and push latest image to registry"
         run: |
           docker pull ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }}
-          docker tag ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }} ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}
+          docker tag ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }} ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}-${{ matrix.app }}
           docker tag ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-${{ matrix.app }} ghcr.io/$GITHUB_REPOSITORY:latest-${{ matrix.app }}
           docker push ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}-${{ matrix.app }}
           docker push ghcr.io/$GITHUB_REPOSITORY:latest-${{ matrix.app }}

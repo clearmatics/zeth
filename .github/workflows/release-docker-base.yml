@@ -57,7 +57,7 @@ jobs:
       - name: "Tag and push latest image to registry"
         run: |
           docker pull ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-base
-          docker tag ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-base ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}
+          docker tag ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-base ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}-base
           docker tag ghcr.io/$GITHUB_REPOSITORY:git-${{ steps.git_vars.outputs.COMMIT_HASH }}-base ghcr.io/$GITHUB_REPOSITORY:latest-base
           docker push ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}-base
           docker push ghcr.io/$GITHUB_REPOSITORY:latest-base
