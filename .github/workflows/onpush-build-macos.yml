@@ -34,7 +34,7 @@ jobs:
       with:
         submodules: recursive
     - name: Cache ccache
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         key: submodules-${{ needs.submodules.outputs.commits }}-${{ runner.os }}-${{ matrix.config }}
         path: ~/Library/Caches/ccache
