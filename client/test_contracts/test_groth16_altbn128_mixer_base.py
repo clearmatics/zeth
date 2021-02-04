@@ -99,7 +99,8 @@ PROVER_CONFIG = ProverConfiguration(
     zksnark_name="GROTH16",
     pairing_parameters=test_pairing.ALT_BN128_PAIRING)
 
-VK_HASH = 1
+# Arbitrary VK hash (array of 2 evm words)
+VK_HASH = [2, 1]
 
 MIX_PARAMETERS_VIN = EtherValue(200)
 

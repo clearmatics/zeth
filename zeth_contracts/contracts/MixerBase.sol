@@ -33,7 +33,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     address private _permitted_dispatcher;
 
     // The acceptable value of _vk_hash, passed in by a trusted dispatcher.
-    uint256 private _vk_hash;
+    uint256[2] private _vk_hash;
 
     // JoinSplit description, gives the number of inputs (nullifiers) and
     // outputs (commitments/ciphertexts) to receive and process.
@@ -97,7 +97,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         address token_address,
         uint256[] memory vk,
         address permitted_dispatcher,
-        uint256 vk_hash
+        uint256[2] memory vk_hash
     )
         public
         BaseMerkleTree(depth)
@@ -137,7 +137,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     /// IZecaleApplication interface, see
     /// https://github.com/clearmatics/zecale
     function dispatch(
-        uint256 nested_vk_hash,
+        uint256[2] memory nested_vk_hash,
         uint256[] memory nested_inputs,
         bytes memory nested_parameters
     )
@@ -147,7 +147,10 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // Sanity / permission checkcheck
         require(
             msg.sender == _permitted_dispatcher, "dispatcher not permitted");
-        require(nested_vk_hash == _vk_hash, "invalid nested_vk_hash");
+        require(
+            nested_vk_hash[0] == _vk_hash[0] &&
+            nested_vk_hash[1] == _vk_hash[1],
+            "invalid nested_vk_hash");
         require(nested_inputs.length == 1, "invalid num nested inputs");
 
         // Decode the nested parameters
