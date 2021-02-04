@@ -18,7 +18,7 @@ jobs:
 
       - name: "Create swap from file"
         run: |
-            sudo fallocate -l 21G /swapfile2
+            sudo fallocate -l 19G /swapfile2
             sudo chmod 600 /swapfile2
             sudo mkswap /swapfile2
             sudo swapon /swapfile2
@@ -32,7 +32,7 @@ jobs:
       - name: "Get vars from git"
         id: git_vars
         run: |
-          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/docker-base-v/}
           echo ::set-output name=COMMIT_HASH::$(git rev-parse --short HEAD)
 
       - name: "Configure Docker"
