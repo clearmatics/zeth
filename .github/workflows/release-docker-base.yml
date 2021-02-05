@@ -5,13 +5,10 @@ on:
     tags:
       - docker-base-v[0-9]+.[0-9]+.[0-9]+ # Triggered by git tags like: docker-base-v0.2.12
 
-env:
-  REPO_OWNER: "clearmatics"
-
 jobs:
 
   docker-build:
-    name: "Build docker zeth-base"
+    name: "Docker build"
     runs-on: ubuntu-20.04
     timeout-minutes: 360
 
@@ -19,13 +16,9 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v2
 
-      - name: "Get vars from git"
-        id: git_vars
-        run: echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\/docker-base-/}
-
       - name: "Create swap from file"
         run: |
-            sudo fallocate -l 21G /swapfile2
+            sudo fallocate -l 19G /swapfile2
             sudo chmod 600 /swapfile2
             sudo mkswap /swapfile2
             sudo swapon /swapfile2
@@ -36,25 +29,26 @@ jobs:
           df -h
           nproc
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: "Get vars from git"
+        id: git_vars
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/docker-base-v/}
 
-      - name: Docker build
-        run: docker build -f ./Dockerfile-base -t $REPO_OWNER/zeth-base:${{ steps.git_vars.outputs.TAG }} .
+      - name: "Configure Docker"
+        run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      - name: Docker push
+      - name: "Docker build"
+        run: docker build -f ./Dockerfile-base -t ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}-base .
+
+      - name: "Docker push"
         run: |
-          docker push $REPO_OWNER/zeth-base:${{ steps.git_vars.outputs.TAG }}
-          docker tag $REPO_OWNER/zeth-base:${{ steps.git_vars.outputs.TAG }} $REPO_OWNER/zeth-base:latest
-          docker push $REPO_OWNER/zeth-base:latest
+          docker push ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}-base
+          docker tag ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}-base ghcr.io/$GITHUB_REPOSITORY:latest-base
+          docker push ghcr.io/$GITHUB_REPOSITORY:latest-base
 
       - name: "Docker Info"
         run: |
-          docker inspect $REPO_OWNER/zeth-base:${{ steps.git_vars.outputs.TAG }}
-          docker history $REPO_OWNER/zeth-base:${{ steps.git_vars.outputs.TAG }} --no-trunc
+          docker inspect ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}-base
+          docker history ghcr.io/$GITHUB_REPOSITORY:${{ steps.git_vars.outputs.VERSION }}-base --no-trunc
           docker version
           docker info
           uname -a
