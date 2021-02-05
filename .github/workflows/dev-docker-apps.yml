@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - develop
-      - docker-to-github
   pull_request:
     branches:
       - master
