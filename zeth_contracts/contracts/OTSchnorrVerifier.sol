@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 /// Reference paper:
 ///  \[Bel07]:
@@ -48,7 +48,7 @@ library OTSchnorrVerifier {
 
         assembly {
 
-            let g := sub(gas, 2000)
+            let g := sub(gas(), 2000)
 
             // pad:
             //   0x40  hash_to_be_signed

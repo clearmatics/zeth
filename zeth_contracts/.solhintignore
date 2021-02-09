@@ -1,2 +1,3 @@
+ERC20Mintable.sol
 node_modules/
 contracts/Migrations.sol

@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 import "./Pairing.sol";
 import "./AltBN128MixerBase.sol";
@@ -153,6 +152,7 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         uint256 public_inputs_hash
     )
         internal
+        override
         returns (bool)
     {
         // Scalar field characteristic

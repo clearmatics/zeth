@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 /// Abstract Merkle tree implementation. Child classes should implement the
 /// hash function.
@@ -13,7 +13,7 @@ pragma solidity ^0.5.0;
 /// This implementation stores all leaves and nodes, skipping those that have
 /// not been populated yet. The final entry in each layer stores that layer's
 /// default value.
-contract BaseMerkleTree
+abstract contract BaseMerkleTree
 {
     // Depth of the merkle tree (should be set with the same depth set in the
     // cpp prover)
@@ -37,7 +37,7 @@ contract BaseMerkleTree
     uint256 internal num_leaves;
 
     /// Constructor
-    constructor(uint256 treeDepth) public {
+    constructor(uint256 treeDepth) {
         require (
             treeDepth == DEPTH,
             "Invalid depth in BaseMerkleTree"
@@ -65,7 +65,10 @@ contract BaseMerkleTree
 
     /// Abstract hash function to be supplied by a concrete implementation of
     /// this class.
-    function hash(bytes32 left, bytes32 right) internal returns (bytes32);
+    function hash(bytes32 left, bytes32 right)
+        internal
+        virtual
+        returns (bytes32);
 
     function recomputeRoot(uint num_new_leaves) internal returns (bytes32) {
         // Assume `num_new_leaves` have been written into the leaf slots.

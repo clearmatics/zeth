@@ -2,15 +2,14 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 import "./MixerBase.sol";
 import "./MiMC31.sol";
 
 /// Partial implementation of abstract MixerBase which implements the
 /// curve-specific methods to use the BLS12-377 pairing.
-contract BLS12_377MixerBase is MixerBase
+abstract contract BLS12_377MixerBase is MixerBase
 {
     // TODO: Code here is very similar to AltBN128MixerBase, with only the
     // constants changed. Look into sharing more code (possibly by making some
@@ -49,12 +48,15 @@ contract BLS12_377MixerBase is MixerBase
         address permitted_dispatcher,
         uint256[2] memory vk_hash
     )
-        public
         MixerBase(mk_depth, token, vk, permitted_dispatcher, vk_hash)
     {
     }
 
-    function hash(bytes32 left, bytes32 right) internal returns(bytes32) {
+    function hash(bytes32 left, bytes32 right)
+        internal
+        override
+        returns(bytes32)
+    {
         return MiMC31.hash(left, right);
     }
 
@@ -67,6 +69,7 @@ contract BLS12_377MixerBase is MixerBase
     )
         internal
         pure
+        override
         returns(bytes32)
     {
         // The residual_bits_set_idx-th set of residual bits (denoted r_i

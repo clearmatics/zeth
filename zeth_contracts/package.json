@@ -17,7 +17,6 @@
   "dependencies": {
     "add": "^2.0.6",
     "ethereumjs-abi": "^0.6.8",
-    "openzeppelin-solidity": "^2.4.0",
     "shell-escape": "^0.2.0",
     "solhint": "^3.3.2",
     "strip-hex-prefix": "^1.0.0",

@@ -2,17 +2,20 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 import "./BaseMerkleTree.sol";
 
-contract MerkleTreeSha256 is BaseMerkleTree {
+contract MerkleTreeSha256 is BaseMerkleTree
+{
 
-    constructor(uint256 treeDepth) public BaseMerkleTree(treeDepth) {
+    constructor(uint256 treeDepth) public BaseMerkleTree(treeDepth)
+    {
     }
 
     /// Returns the current merkle tree
-    function getTree() internal view returns (bytes32[] memory) {
+    function getTree() internal view returns (bytes32[] memory)
+    {
         uint256 nbNodes = 2**(depth + 1) - 1;
         bytes32[] memory tmpTree = new bytes32[](nbNodes);
 
@@ -34,7 +37,8 @@ contract MerkleTreeSha256 is BaseMerkleTree {
     }
 
     /// Returns the root of the merkle tree
-    function getRoot() internal view returns(bytes32) {
+    function getRoot() internal view returns(bytes32)
+    {
         return getTree()[0];
     }
 }
