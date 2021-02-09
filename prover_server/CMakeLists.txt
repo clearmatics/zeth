@@ -44,30 +44,20 @@ add_executable(
   ${PROVER_SERVER_SOURCE}
   ${GRPC_SRCS}
 )
-if ("${STATIC_BUILD}")
+
+if (NOT APPLE)
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(GRPC REQUIRED IMPORTED_TARGET grpc++)
-
-  target_link_libraries(
-    prover_server
-
-    zeth
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${GRPC_LIBRARIES}
-    gRPC::grpc++_reflection
-    protobuf::libprotobuf
-  )
-else()
-  target_link_libraries(
-    prover_server
-
-    zeth
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    gRPC::grpc++_reflection
-    protobuf::libprotobuf
-  )
 endif()
+
+target_link_libraries(
+  prover_server
+
+  zeth
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${GRPC_LIBRARIES}
+  gRPC::grpc++_reflection
+  protobuf::libprotobuf
+  )

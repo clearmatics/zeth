@@ -23,11 +23,12 @@ endif()
 
 # libsodium
 set(LIBSODIUM_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libsodium)
+set(LIBSODIUM_CONFIGURE_CMD "CC=\"${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER}\" CXX=\"${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER}\" ./configure --prefix=<INSTALL_DIR> --enable-minimal --disable-shared --enable-static")
 
 include(ExternalProject)
 ExternalProject_Add(
   libsodium
   SOURCE_DIR ${LIBSODIUM_SOURCE_DIR}
-  CONFIGURE_COMMAND cd ${LIBSODIUM_SOURCE_DIR} && DO_NOT_UPDATE_CONFIG_SCRIPTS=1 ./autogen.sh && ./configure --prefix=<INSTALL_DIR> --enable-minimal --disable-shared --enable-static
+  CONFIGURE_COMMAND cd ${LIBSODIUM_SOURCE_DIR} && DO_NOT_UPDATE_CONFIG_SCRIPTS=1 ./autogen.sh && eval ${LIBSODIUM_CONFIGURE_CMD}
   BUILD_COMMAND cd ${LIBSODIUM_SOURCE_DIR} && make ${MAKE_BUILD_FLAGS}
   INSTALL_COMMAND cd ${LIBSODIUM_SOURCE_DIR} && make install)
