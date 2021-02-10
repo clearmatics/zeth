@@ -50,7 +50,7 @@ setup(
         "py_ecc==1.7.1",
         "py-solc-x==0.7.0",
         "pycryptodome==3.9.8",
-        "cryptography==3.2",
+        "cryptography==3.3.2",
         "requests==2.21.0",
         "rlp==1.1.0",
         "semantic-version==2.8.4",
