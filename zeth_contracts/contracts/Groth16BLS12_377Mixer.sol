@@ -17,7 +17,7 @@ contract Groth16BLS12_377Mixer is BLS12_377MixerBase
         address token,
         uint256[] memory vk,
         address permitted_dispatcher,
-        uint256 vk_hash
+        uint256[2] memory vk_hash
     )
         public
         BLS12_377MixerBase(mk_depth, token, vk, permitted_dispatcher, vk_hash)

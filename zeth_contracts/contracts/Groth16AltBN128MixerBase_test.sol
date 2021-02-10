@@ -15,7 +15,7 @@ contract Groth16AltBN128MixerBase_test is Groth16AltBN128Mixer
     constructor(
         uint256 mk_depth,
         address permitted_dispatcher,
-        uint256 vk_hash
+        uint256[2] memory vk_hash
     )
         public
         Groth16AltBN128Mixer(
