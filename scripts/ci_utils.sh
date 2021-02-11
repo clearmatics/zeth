@@ -4,6 +4,46 @@
 # All functions expect to be executed the root directory of the repository, and
 # will exit with this as the current directory.
 
+# Launch a server in the background and wait for it to be ready, recording the
+# pid in a file.
+#
+# 1 - server cmd
+# 2 - server check cmd
+# 3 - pid file
+# 4 - stdout file
+function server_start() {
+    $1 > $4 &
+    pid=$!
+    echo pid is ${pid}
+    echo ${pid} > $3
+
+    # Wait for prover_server to be active
+    while ! $2 ; do
+        echo "server_start: waiting for $1 ..."
+        sleep 1
+    done
+
+    echo "server_start: $1 is ACTIVE"
+}
+
+# Stop a background server, given a name and pid file
+#
+# 1 - server name
+# 2 - pid file
+function server_stop() {
+    if ! [ -e $2 ] ; then
+        echo "server_stop: no PID file for $1"
+        return 1
+    fi
+
+    pid=`cat $2`
+    while (kill "${pid}") ; do
+        sleep 0.5
+    done
+    rm $2
+    echo "server_stop: $1 STOPPED"
+}
+
 #
 # GANACHE
 #
@@ -12,21 +52,6 @@ function ganache_setup() {
     if [ "${platform}" == "Linux" ] ; then
         if (which apk) ; then
             apk add --update npm
-
-            # # `py3-virtualenv` depends on `python3`
-            # # which installs the latest version of python3
-            # # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
-            # # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
-            # apk add \
-            #     py3-virtualenv \
-            #     libffi-dev \
-            #     python3-dev
-
-            # # Install openssl for the mpc tests
-            # apk add openssl
-        # else
-        #     sudo apt update
-        #     sudo apt install python3-venv
         fi
     fi
 
@@ -48,34 +73,17 @@ function ganache_is_active() {
 
 function ganache_start() {
     pushd zeth_contracts
-
-    npm run testrpc > ganache.stdout &
-    echo $! > ganache.pid
-
-    # Wait for ganache to be active
-    while ! ganache_is_active ; do
-        echo "ganache_start: waiting for ganache ..."
-        sleep 1
-    done
-    echo "ganache_start: ganache is ACTIVE"
-
+    server_start \
+        "npm run testrpc" \
+        ganache_is_active \
+        ganache.pid \
+        ganache.stdout
     popd
 }
 
 function ganache_stop() {
     pushd zeth_contracts
-    if ! [ -e ganache.pid ] ; then
-        echo "ganache_stop: no PID file"
-        return 1
-    fi
-
-    pid=`cat ganache.pid`
-    while (kill "${pid}") ; do
-        sleep 0.5
-    done
-    rm ganache.pid
-    echo "ganache_stop: STOPPED"
-
+    server_stop ganache ganache.pid
     popd
 }
 
@@ -91,19 +99,15 @@ function prover_server_is_active() {
 }
 
 function prover_server_start() {
-    # Requires the client env (for _prover_server_is_active)
+    # Requires the client env (for prover_server_is_active)
     . client/env/bin/activate
     pushd build
 
-    ./prover_server/prover_server > prover_server.stdout &
-    echo $! > prover_server.pid
-
-    # Wait for prover_server to be active
-    while ! prover_server_is_active ; do
-        echo "prover_server_start: waiting for server ..."
-        sleep 1
-    done
-    echo "prover_server_start:: prover_server is ACTIVE"
+    server_start \
+        ./prover_server/prover_server \
+        prover_server_is_active \
+        prover_server.pid \
+        prover_server.stdout
 
     popd # build
     deactivate
@@ -111,19 +115,7 @@ function prover_server_start() {
 
 function prover_server_stop() {
     pushd build
-
-    if ! [ -e prover_server.pid ] ; then
-        echo "prover_server_stop: no PID file"
-        return 1
-    fi
-
-    pid=`cat prover_server.pid`
-    while (kill "${pid}") ; do
-        sleep 0.5
-    done
-    rm prover_server.pid
-    echo "prover_server_stop:: STOPPED"
-
+    server_stop prover_server prover_server.pid
     popd # build
 }
 
