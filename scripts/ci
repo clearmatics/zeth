@@ -78,8 +78,6 @@ function check_cpp() {
     # Configure and run clang-tidy cppcheck
     mkdir -p build
     pushd build
-    # cmake -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
-    # make VERBOSE=1 clang-tidy -j 5
     cmake -DUSE_CPP_CHECK=ON ..
     make VERBOSE=1 cppcheck -j 5
     popd
@@ -217,10 +215,8 @@ function ci_setup() {
 
         if (which apk) ; then
 
-            # apk add --update npm
-
-            # `py3-virtualenv` depends on `python3`
-            # which installs the latest version of python3
+            # `py3-virtualenv` depends on `python3` which installs the latest
+            # version of python3.
             # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
             # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
             apk add \
