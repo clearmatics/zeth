@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 import "./BaseMerkleTree.sol";
 import "./MiMC7.sol";
@@ -15,7 +15,8 @@ import "./MiMC7.sol";
 /// default value.
 contract MerkleTreeMiMC7_test is BaseMerkleTree
 {
-    constructor(uint treeDepth) public BaseMerkleTree(treeDepth) {
+    constructor(uint treeDepth) public BaseMerkleTree(treeDepth)
+    {
     }
 
     /// Add some leaves, computing the root, then adding more leaves and
@@ -42,7 +43,11 @@ contract MerkleTreeMiMC7_test is BaseMerkleTree
     }
 
     /// Use MiMC7 as the Merkle tree hash function.
-    function hash(bytes32 left, bytes32 right) internal returns(bytes32) {
+    function hash(bytes32 left, bytes32 right)
+        internal
+        override
+        returns(bytes32)
+    {
         return MiMC7.hash(left, right);
     }
 }

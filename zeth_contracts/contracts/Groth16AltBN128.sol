@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 library Groth16AltBN128
 {
@@ -113,10 +113,10 @@ library Groth16AltBN128
         uint256 vk_slot_num;
         assembly {
 
-            let g := sub(gas, 2000)
+            let g := sub(gas(), 2000)
 
             // Compute starting slot of vk data.
-            mstore(pad, vk_slot)
+            mstore(pad, vk.slot)
             vk_slot_num := keccak256(pad, 0x20)
             let abc_slot_num := add(vk_slot_num, 0x0a)
 
@@ -233,7 +233,7 @@ library Groth16AltBN128
             mstore(add(pad, 0x2c0), sload(add(vk_slot_num, 8)))
             mstore(add(pad, 0x2e0), sload(add(vk_slot_num, 9)))
 
-            success := call(sub(gas, 2000), 8, 0, pad, 0x300, pad, 0x20)
+            success := call(sub(gas(), 2000), 8, 0, pad, 0x300, pad, 0x20)
         }
 
         require(

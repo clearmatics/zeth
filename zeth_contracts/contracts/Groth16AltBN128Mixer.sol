@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 import "./AltBN128MixerBase.sol";
 import "./Groth16AltBN128.sol";
@@ -29,6 +28,7 @@ contract Groth16AltBN128Mixer is AltBN128MixerBase
         uint256 public_inputs_hash
     )
         internal
+        override
         returns (bool)
     {
         // Convert the single primary input to a dynamic array

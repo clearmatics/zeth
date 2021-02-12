@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 contract BW6_761_test
 {
@@ -21,7 +21,7 @@ contract BW6_761_test
         bool success = true;
         assembly
         {
-            success := call(gas, 0xc1, 0, points, 0x180, output, 0xc0)
+            success := call(gas(), 0xc1, 0, points, 0x180, output, 0xc0)
         }
 
         require(success, "precompiled contract call failed (ECAdd)");
@@ -36,7 +36,7 @@ contract BW6_761_test
         bool success = true;
         assembly
         {
-            success := call(gas, 0xc2, 0, input, 0x100, output, 0xc0)
+            success := call(gas(), 0xc2, 0, input, 0x100, output, 0xc0)
         }
 
         require(success, "precompiled contract call failed (ECMul)");
@@ -53,7 +53,7 @@ contract BW6_761_test
         bool success = true;
         assembly
         {
-            success := call(gas, 0xc3, 0, input, 0x600, output, 0x20)
+            success := call(gas(), 0xc3, 0, input, 0x600, output, 0x20)
         }
 
         require(success, "precompiled contract call failed (ECMul)");

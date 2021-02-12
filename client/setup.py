@@ -48,7 +48,7 @@ setup(
         "parsimonious==0.8.1",
         "protobuf==3.13.0",
         "py_ecc==1.7.1",
-        "py-solc-x==0.7.0",
+        "py-solc-x==1.1.0",
         "pycryptodome==3.9.8",
         "cryptography==3.3.2",
         "requests==2.21.0",

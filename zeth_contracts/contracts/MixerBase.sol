@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 import "./Tokens.sol";
 import "./OTSchnorrVerifier.sol";
@@ -11,7 +10,7 @@ import "./BaseMerkleTree.sol";
 
 /// MixerBase implements the functions shared across all Mixers (regardless
 /// which zkSNARK is used)
-contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
+abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
 {
     // The roots of the different updated trees
     mapping(bytes32 => bool) private _roots;
@@ -79,7 +78,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
 
     // The unit used for public values (ether in and out), in Wei. Must match
     // the python wrappers. Use Szabos (10^12 Wei).
-    uint64 internal constant PUBLIC_UNIT_VALUE_WEI = 1 szabo;
+    uint64 internal constant PUBLIC_UNIT_VALUE_WEI = 1e12;
 
     event LogMix(
         bytes32 root,
@@ -99,7 +98,6 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         address permitted_dispatcher,
         uint256[2] memory vk_hash
     )
-        public
         BaseMerkleTree(depth)
     {
         bytes32 initialRoot = nodes[0];
@@ -195,7 +193,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // data.
         bytes32 hash_to_be_signed = sha256(
             abi.encodePacked(
-                uint256(msg.sender),
+                uint256(uint160(msg.sender)),
                 ciphertexts[0],
                 ciphertexts[1],
                 inputs
@@ -234,7 +232,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // 2.a Verify the signature on the hash of data_to_be_signed
         bytes32 hash_to_be_signed = sha256(
             abi.encodePacked(
-                uint256(msg.sender),
+                uint256(uint160(msg.sender)),
                 // Unfortunately, we have to unroll this for now. We could
                 // replace encodePacked with a custom function but this would
                 // increase complexity and possibly gas usage.
@@ -405,6 +403,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     )
         internal
         pure
+        virtual
         returns(bytes32);
 
     // Implementations must implement the verification algorithm of the
@@ -414,6 +413,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         uint256 public_inputs_hash
     )
         internal
+        virtual
         returns (bool);
 
     /// This function processes the primary inputs to append and check the root
@@ -481,7 +481,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // If the vpub_in is > 0, we need to make sure the right amount is paid
         if (vpub_in > 0) {
             if (_token != address(0)) {
-                ERC20 erc20Token = ERC20(_token);
+                IERC20 erc20Token = IERC20(_token);
                 erc20Token.transferFrom(msg.sender, address(this), vpub_in);
             } else {
                 require(
@@ -493,7 +493,7 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
             // If vpub_in = 0, return incoming Ether to the caller
             if (msg.value > 0) {
                 // solhint-disable-next-line
-                (bool success, ) = msg.sender.call.value(msg.value)("");
+                (bool success, ) = msg.sender.call{value: msg.value}("");
                 require(success, "vpub_in return transfer failed");
             }
         }
@@ -502,17 +502,18 @@ contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // msg.sender and send him the appropriate value IF proof is valid
         if (vpub_out > 0) {
             if (_token != address(0)) {
-                ERC20 erc20Token = ERC20(_token);
+                IERC20 erc20Token = IERC20(_token);
                 erc20Token.transfer(msg.sender, vpub_out);
             } else {
                 // solhint-disable-next-line
-                (bool success, ) = msg.sender.call.value(vpub_out)("");
+                (bool success, ) = msg.sender.call{value: vpub_out}("");
                 require(success, "vpub_out transfer failed");
             }
         }
     }
 
-    function add_merkle_root(bytes32 root) internal {
+    function add_merkle_root(bytes32 root) internal
+    {
         _roots[root] = true;
     }
 }

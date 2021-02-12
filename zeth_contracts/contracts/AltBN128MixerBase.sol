@@ -2,15 +2,14 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 import "./MixerBase.sol";
 import "./MiMC7.sol";
 
 /// Partial implementation of abstract MixerBase which implements the
 /// curve-specific methods to use the ALT-BN128 pairing.
-contract AltBN128MixerBase is MixerBase
+abstract contract AltBN128MixerBase is MixerBase
 {
     // Constants regarding the hash digest length, the prime number used and
     // its associated length in bits and the max values (v_in and v_out)
@@ -42,13 +41,16 @@ contract AltBN128MixerBase is MixerBase
         address permitted_dispatcher,
         uint256[2] memory vk_hash
     )
-        public
         MixerBase(mk_depth, token, vk, permitted_dispatcher, vk_hash)
     {
     }
 
     /// Use MiMC7 as the Merkle tree hash function.
-    function hash(bytes32 left, bytes32 right) internal returns(bytes32) {
+    function hash(bytes32 left, bytes32 right)
+        internal
+        override
+        returns(bytes32)
+    {
         return MiMC7.hash(left, right);
     }
 
@@ -61,6 +63,7 @@ contract AltBN128MixerBase is MixerBase
     )
         internal
         pure
+        override
         returns(bytes32)
     {
         // The residual bits are located at:

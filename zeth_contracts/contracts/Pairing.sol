@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 /// Several pairing-related utility functions.
 ///
@@ -69,7 +69,7 @@ library Pairing {
         bool success;
         assembly {
             // Call bn256Add([p1.X, p1.Y, p2.X, p2.Y])
-            success := call(sub(gas, 2000), 6, 0, input, 0x80, r, 0x40)
+            success := call(sub(gas(), 2000), 6, 0, input, 0x80, r, 0x40)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
         }
@@ -93,7 +93,7 @@ library Pairing {
         bool success;
         assembly {
             // Call bn256ScalarMul([p.X, p.Y, s])
-            success := call(sub(gas, 2000), 7, 0, input, 0x60, r, 0x40)
+            success := call(sub(gas(), 2000), 7, 0, input, 0x60, r, 0x40)
             // Use "invalid" to make gas estimation work
             //switch success case 0 { invalid }
         }
@@ -153,7 +153,7 @@ library Pairing {
             // in the form: e(g1, g2) = e(g'1, g'2), we need to call the
             // precompiled bn256Pairing on input [(g1, g2), (neg(g'1), g'2)]
             success := call(
-                sub(gas, 2000),
+                sub(gas(), 2000),
                 8,
                 0,
                 add(input, 0x20),
