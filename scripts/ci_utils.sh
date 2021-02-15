@@ -1,4 +1,3 @@
-
 # Utility functions for CI tasks.
 #
 # All functions expect to be executed the root directory of the repository, and
