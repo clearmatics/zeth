@@ -1,0 +1,28 @@
+name: "Ccache caching"
+description: "Cache ccache based on submodule commits"
+outputs:
+    cache-key:
+        value: ${{ steps.cache-key.outputs.cache-key }}
+inputs:
+    cache-id:
+        description: "Unique identifier for use in cache key"
+        required: true
+runs:
+    using: "composite"
+    steps:
+    - name: Get Submodule Commits
+      id: submodules
+      shell: bash
+      run: |
+        echo "::set-output name=libsodium::"`git submodule status depends/libsodium | grep -oe '[0-9a-fA-F]\+' | head -c 8`
+        echo "::set-output name=libsnark::"`git submodule status depends/libsnark | grep -oe '[0-9a-fA-F]\+' | head -c 8`
+    - name: Generate cache-key
+      id: cache-key
+      shell: bash
+      run: |
+        echo "::set-output name=cache-key::"${{ inputs.cache-id }}-ccache-${{ steps.submodules.outputs.libsodium }}-${{ steps.submodules.outputs.libsnark }}-${{ runner.os }}-${{ matrix.config }}
+    - name: Cache ccache directory
+      uses: actions/cache@v2
+      with:
+        key: ${{ steps.cache-key.outputs.cache-key }}
+        path: ~/Library/Caches/ccache
