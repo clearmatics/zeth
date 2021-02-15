@@ -39,7 +39,7 @@ jobs:
     - name: Cache ccache
       uses: actions/cache@v2
       with:
-        key: submodules-${{ steps.submodules.outputs.commits }}-${{ runner.os }}-${{ matrix.config }}
+        key: submodules-${{ steps.submodules.outputs.libsodium }}-${{ steps.submodules.outputs.libsnark }}-${{ runner.os }}-${{ matrix.config }}
         path: ~/Library/Caches/ccache
     # - name: Cache pip (for mpc tests)
     #   uses: actions/cache@v2

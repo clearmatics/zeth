@@ -1,16 +1,16 @@
 name: "Submodule commits"
 description: "Get submodule commits"
 outputs:
-    commits:
-        value: ${{ steps.get-commits.outputs.commits }}
+    libsodium:
+        value: ${{ steps.get-commits.outputs.libsodium }}
+    libsnark:
+        value: ${{ steps.get-commits.outputs.libsnark }}
 runs:
     using: "composite"
     steps:
-    # - uses: actions/checkout@v2
-    #   with:
-    #     submodules: recursive
     - name: Get Submodule Commits
       id: get-commits
-      run: |
-        echo "::set-output name=commits::"`git submodule status depends/libsodium | grep -oe '[0-9a-fA-F]\+' | head -c 8`-`git submodule status depends/libsnark | grep -oe '[0-9a-fA-F]\+' | head -c 8`
       shell: bash
+      run: |
+        echo "::set-output name=libsodium::"`git submodule status depends/libsodium | grep -oe '[0-9a-fA-F]\+' | head -c 8`
+        echo "::set-output name=libsnark::"`git submodule status depends/libsnark | grep -oe '[0-9a-fA-F]\+' | head -c 8`
