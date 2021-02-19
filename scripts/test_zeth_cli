@@ -4,7 +4,7 @@ set -e
 set -x
 
 if ! [ "$1" == "" ] ; then
-    echo == RUNING ON NETWORK: $1 ==
+    echo == RUNNING ON NETWORK: $1 ==
     eth_network=$1
 else
     eth_network=

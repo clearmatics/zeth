@@ -20,8 +20,9 @@ function show_balances() {
 
 # Show the balance for the users in the test, based on their locally managed
 # accounts.
+# # 1 - a list of names
 function show_balances() {
-    for name in deployer alice bob charlie ; do
+    for name in $1 ; do
         pushd ${name}
         echo -n "${name}: "
         zeth_helper eth-get-balance
