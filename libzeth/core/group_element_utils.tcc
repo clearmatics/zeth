@@ -89,6 +89,28 @@ GroupT group_element_from_json(const std::string &json)
     return result;
 }
 
+template<typename GroupT>
+void group_element_write_bytes(const GroupT &point, std::ostream &out_s)
+{
+    GroupT affine_p = point;
+    affine_p.to_affine_coordinates();
+    field_element_write_bytes(affine_p.X, out_s);
+    field_element_write_bytes(affine_p.Y, out_s);
+}
+
+template<typename GroupT>
+void group_element_read_bytes(GroupT &point, std::istream &in_s)
+{
+    field_element_read_bytes(point.X, in_s);
+    field_element_read_bytes(point.Y, in_s);
+    if (internal::coordinate_equals_zero(point.X) &&
+        internal::coordinate_equals_one(point.Y)) {
+        point.Z = point.Z.zero();
+    } else {
+        point.Z = point.Z.one();
+    }
+}
+
 } // namespace libzeth
 
 #endif // __ZETH_CORE_GROUP_ELEMENT_UTILS_TCC__

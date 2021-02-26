@@ -100,6 +100,49 @@ public:
     }
 };
 
+// Generic reader and write for fields and field extensions.
+template<typename FieldT> class field_element_bytes
+{
+public:
+    static void write(const FieldT &field_el, std::ostream &out_s)
+    {
+        for (size_t i = 0; i < FieldT::tower_extension_degree; ++i) {
+            field_element_write_bytes(field_el.coeffs[i], out_s);
+        }
+    }
+    static void read(FieldT &field_el, std::istream &in_s)
+    {
+        for (size_t i = 0; i < FieldT::tower_extension_degree; ++i) {
+            field_element_read_bytes(field_el.coeffs[i], in_s);
+        }
+    }
+};
+
+/// Implementation of field_element_bytes for the base-case of Fp_model types.
+/// Big-endian bigint values (i.e. not in montgomery form).
+template<mp_size_t n, const libff::bigint<n> &modulus>
+class field_element_bytes<libff::Fp_model<n, modulus>>
+{
+public:
+    using Field = libff::Fp_model<n, modulus>;
+    static void write(const Field &field_el, std::ostream &out_s)
+    {
+        // Convert to bigint, reverse bytes in-place, and write to stream.
+        const libff::bigint<n> bi = field_el.as_bigint();
+        std::reverse((char *)(&bi), (char *)(&bi + 1));
+        out_s.write((const char *)(&bi.data[0]), sizeof(bi));
+    }
+    static void read(Field &field_el, std::istream &in_s)
+    {
+        // Read bigint from stream, reverse bytes in-place and convert to field
+        // element.
+        libff::bigint<n> res;
+        in_s.read((char *)(&res.data[0]), sizeof(res));
+        std::reverse((char *)(&res), (char *)(&res + 1));
+        field_el = Field(res);
+    }
+};
+
 } // namespace internal
 
 template<typename FieldT>
@@ -159,6 +202,18 @@ FieldT field_element_from_json(const std::string &json)
     FieldT result;
     field_element_read_json(result, ss);
     return result;
+}
+
+template<typename FieldT>
+void field_element_write_bytes(const FieldT &el, std::ostream &out_s)
+{
+    internal::field_element_bytes<FieldT>::write(el, out_s);
+}
+
+template<typename FieldT>
+void field_element_read_bytes(FieldT &el, std::istream &in_s)
+{
+    internal::field_element_bytes<FieldT>::read(el, in_s);
 }
 
 } // namespace libzeth

@@ -26,6 +26,17 @@ std::string group_element_to_json(const GroupT &point);
 template<typename GroupT>
 GroupT group_element_from_json(const std::string &json);
 
+/// Write a group element as bytes to a stream. The elements are written as X
+/// and Y coordinates of the affine form, where each coordinate is written
+/// using field_element_write_bytes.
+template<typename GroupT>
+void group_element_write_bytes(const GroupT &point, std::ostream &out_s);
+
+/// Read a group elements as bytes from a stream, in the format described for
+/// group_element_write_bytes.
+template<typename GroupT>
+void group_element_read_bytes(GroupT &point, std::istream &in_s);
+
 } // namespace libzeth
 
 #include "libzeth/core/group_element_utils.tcc"
