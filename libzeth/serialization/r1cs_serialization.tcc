@@ -80,9 +80,9 @@ std::string accumulation_vector_to_json(
 {
     std::stringstream ss;
     unsigned vect_length = acc_vector.rest.indices.size() + 1;
-    ss << "[" << point_affine_to_json(acc_vector.first);
+    ss << "[" << group_element_to_json(acc_vector.first);
     for (size_t i = 0; i < vect_length - 1; ++i) {
-        ss << ", " << point_affine_to_json(acc_vector.rest.values[i]);
+        ss << ", " << group_element_to_json(acc_vector.rest.values[i]);
     }
     ss << "]";
     std::string vect_json_str = ss.str();
@@ -122,7 +122,7 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_json(
     //                start_idx       end_idx
 
     element_str = acc_vector_str.substr(start_idx, end_idx + 2 - start_idx);
-    libff::G1<ppT> front = point_affine_from_json<libff::G1<ppT>>(element_str);
+    libff::G1<ppT> front = group_element_from_json<libff::G1<ppT>>(element_str);
     start_idx = acc_vector_str.find(prefix, end_idx);
 
     // Extract remaining elements
@@ -134,7 +134,7 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_json(
         }
 
         element_str = acc_vector_str.substr(start_idx, end_idx + 2 - start_idx);
-        rest.push_back(point_affine_from_json<libff::G1<ppT>>(element_str));
+        rest.push_back(group_element_from_json<libff::G1<ppT>>(element_str));
         start_idx = acc_vector_str.find(prefix, end_idx);
     } while (start_idx != std::string::npos);
 

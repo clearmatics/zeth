@@ -12,18 +12,19 @@ namespace libzeth
 
 /// Write a group element as a json string to a stream
 template<typename GroupT>
-void point_affine_write_json(const GroupT &point, std::ostream &out_s);
+void group_element_write_json(const GroupT &point, std::ostream &out_s);
 
 /// Read a JSON string from a stream and convert it into a group element
 template<typename GroupT>
-void point_affine_read_json(GroupT &point, std::istream &in_s);
+void group_element_read_json(GroupT &point, std::istream &in_s);
 
 /// Convert a group element to a json string (array of hexadecimal strings).
-template<typename GroupT> std::string point_affine_to_json(const GroupT &point);
+template<typename GroupT>
+std::string group_element_to_json(const GroupT &point);
 
 /// Convert a JSON string into a group element
 template<typename GroupT>
-GroupT point_affine_from_json(const std::string &json);
+GroupT group_element_from_json(const std::string &json);
 
 } // namespace libzeth
 

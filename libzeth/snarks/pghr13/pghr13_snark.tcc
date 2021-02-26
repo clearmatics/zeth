@@ -57,19 +57,19 @@ std::ostream &pghr13_snark<ppT>::verification_key_write_json(
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
 
     os << "{\n";
-    os << " \"a\": " << point_affine_to_json(vk.alphaA_g2) << ",\n";
-    os << " \"b\": " << point_affine_to_json(vk.alphaB_g1) << ",\n";
-    os << " \"c\": " << point_affine_to_json(vk.alphaC_g2) << ",\n";
-    os << " \"g\": " << point_affine_to_json(vk.gamma_g2) << ",\n";
-    os << " \"gb1\": " << point_affine_to_json(vk.gamma_beta_g1) << ",\n";
-    os << " \"gb2\": " << point_affine_to_json(vk.gamma_beta_g2) << ",\n";
-    os << " \"z\": " << point_affine_to_json(vk.rC_Z_g2) << ",\n";
+    os << " \"a\": " << group_element_to_json(vk.alphaA_g2) << ",\n";
+    os << " \"b\": " << group_element_to_json(vk.alphaB_g1) << ",\n";
+    os << " \"c\": " << group_element_to_json(vk.alphaC_g2) << ",\n";
+    os << " \"g\": " << group_element_to_json(vk.gamma_g2) << ",\n";
+    os << " \"gb1\": " << group_element_to_json(vk.gamma_beta_g1) << ",\n";
+    os << " \"gb2\": " << group_element_to_json(vk.gamma_beta_g2) << ",\n";
+    os << " \"z\": " << group_element_to_json(vk.rC_Z_g2) << ",\n";
 
-    os << "\"IC\" :[" << point_affine_to_json(vk.encoded_IC_query.first);
+    os << "\"IC\" :[" << group_element_to_json(vk.encoded_IC_query.first);
 
     for (size_t i = 1; i < ic_length; ++i) {
         os << ","
-           << point_affine_to_json(vk.encoded_IC_query.rest.values[i - 1]);
+           << group_element_to_json(vk.encoded_IC_query.rest.values[i - 1]);
     }
 
     os << "]\n";
@@ -114,14 +114,14 @@ std::ostream &pghr13_snark<ppT>::proof_write_json(
     const typename pghr13_snark<ppT>::proof &proof, std::ostream &os)
 {
     os << "{\n";
-    os << " \"a\": " << point_affine_to_json(proof.g_A.g) << ",\n";
-    os << " \"a_p\": " << point_affine_to_json(proof.g_A.h) << ",\n";
-    os << " \"b\": " << point_affine_to_json(proof.g_B.g) << ",\n";
-    os << " \"b_p\": " << point_affine_to_json(proof.g_B.h) << ",\n";
-    os << " \"c\": " << point_affine_to_json(proof.g_C.g) << ",\n";
-    os << " \"c_p\": " << point_affine_to_json(proof.g_C.h) << ",\n";
-    os << " \"h\": " << point_affine_to_json(proof.g_H) << ",\n";
-    os << " \"k\": " << point_affine_to_json(proof.g_K) << "\n";
+    os << " \"a\": " << group_element_to_json(proof.g_A.g) << ",\n";
+    os << " \"a_p\": " << group_element_to_json(proof.g_A.h) << ",\n";
+    os << " \"b\": " << group_element_to_json(proof.g_B.g) << ",\n";
+    os << " \"b_p\": " << group_element_to_json(proof.g_B.h) << ",\n";
+    os << " \"c\": " << group_element_to_json(proof.g_C.g) << ",\n";
+    os << " \"c_p\": " << group_element_to_json(proof.g_C.h) << ",\n";
+    os << " \"h\": " << group_element_to_json(proof.g_H) << ",\n";
+    os << " \"k\": " << group_element_to_json(proof.g_K) << "\n";
     os << "}";
     return os;
 }

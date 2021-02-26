@@ -30,7 +30,7 @@ template<typename FieldT> static bool coordinate_equals_one(const FieldT &f)
 } // namespace internal
 
 template<typename GroupT>
-void point_affine_write_json(const GroupT &point, std::ostream &out_s)
+void group_element_write_json(const GroupT &point, std::ostream &out_s)
 {
     GroupT affine_p = point;
     affine_p.to_affine_coordinates();
@@ -42,7 +42,7 @@ void point_affine_write_json(const GroupT &point, std::ostream &out_s)
 }
 
 template<typename GroupT>
-void point_affine_read_json(GroupT &point, std::istream &in_s)
+void group_element_read_json(GroupT &point, std::istream &in_s)
 {
     char sep;
 
@@ -73,18 +73,19 @@ void point_affine_read_json(GroupT &point, std::istream &in_s)
     }
 }
 
-template<typename GroupT> std::string point_affine_to_json(const GroupT &point)
+template<typename GroupT> std::string group_element_to_json(const GroupT &point)
 {
     std::stringstream ss;
-    point_affine_write_json(point, ss);
+    group_element_write_json(point, ss);
     return ss.str();
 }
 
-template<typename GroupT> GroupT point_affine_from_json(const std::string &json)
+template<typename GroupT>
+GroupT group_element_from_json(const std::string &json)
 {
     std::stringstream ss(json);
     GroupT result;
-    point_affine_read_json(result, ss);
+    group_element_read_json(result, ss);
     return result;
 }
 

@@ -134,13 +134,13 @@ TEST(ECOperationDataTest, BW6_761)
     ASSERT_FALSE(g2_not_in_subgroup.is_in_safe_subgroup());
 
     std::cout << "   g1_not_well_formed: ";
-    point_affine_write_json(g1_not_well_formed, std::cout);
+    group_element_write_json(g1_not_well_formed, std::cout);
     std::cout << "\n   g1_not_in_subgroup: ";
-    point_affine_write_json(g1_not_in_subgroup, std::cout);
+    group_element_write_json(g1_not_in_subgroup, std::cout);
     std::cout << "\n   g2_not_well_formed: ";
-    point_affine_write_json(g2_not_well_formed, std::cout);
+    group_element_write_json(g2_not_well_formed, std::cout);
     std::cout << "\n   g2_not_in_subgroup: ";
-    point_affine_write_json(g2_not_in_subgroup, std::cout);
+    group_element_write_json(g2_not_in_subgroup, std::cout);
     std::cout << "\n";
 }
 
@@ -174,13 +174,13 @@ TEST(ECOperationDataTest, BLS12_377)
     ASSERT_FALSE(g2_not_in_subgroup.is_in_safe_subgroup());
 
     std::cout << "   g1_not_well_formed: ";
-    point_affine_write_json(g1_not_well_formed, std::cout);
+    group_element_write_json(g1_not_well_formed, std::cout);
     std::cout << "\n   g1_not_in_subgroup: ";
-    point_affine_write_json(g1_not_in_subgroup, std::cout);
+    group_element_write_json(g1_not_in_subgroup, std::cout);
     std::cout << "\n   g2_not_well_formed: ";
-    point_affine_write_json(g2_not_well_formed, std::cout);
+    group_element_write_json(g2_not_well_formed, std::cout);
     std::cout << "\n   g2_not_in_subgroup: ";
-    point_affine_write_json(g2_not_in_subgroup, std::cout);
+    group_element_write_json(g2_not_in_subgroup, std::cout);
     std::cout << "\n";
 }
 
