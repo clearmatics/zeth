@@ -19,7 +19,8 @@ template<typename GroupT>
 void group_element_read_json(GroupT &point, std::istream &in_s);
 
 /// Convert a group element to a json string (array of hexadecimal strings).
-template<typename GroupT> std::string group_element_to_json(const GroupT &point);
+template<typename GroupT>
+std::string group_element_to_json(const GroupT &point);
 
 /// Convert a JSON string into a group element
 template<typename GroupT>

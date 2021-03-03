@@ -80,7 +80,8 @@ template<typename GroupT> std::string group_element_to_json(const GroupT &point)
     return ss.str();
 }
 
-template<typename GroupT> GroupT group_element_from_json(const std::string &json)
+template<typename GroupT>
+GroupT group_element_from_json(const std::string &json)
 {
     std::stringstream ss(json);
     GroupT result;
