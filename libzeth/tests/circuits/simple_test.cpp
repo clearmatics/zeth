@@ -5,8 +5,10 @@
 #include "simple_test.hpp"
 
 #include "core/utils.hpp"
+#include "libzeth/serialization/r1cs_serialization.hpp"
 #include "zeth_config.h"
 
+#include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 
 using namespace libsnark;
@@ -14,6 +16,8 @@ using namespace libzeth;
 
 using pp = defaults::pp;
 using Field = defaults::Field;
+
+boost::filesystem::path g_output_dir = boost::filesystem::path("");
 
 namespace
 {
@@ -27,6 +31,14 @@ TEST(SimpleTests, SimpleCircuitProof)
     // Constraint system
     const r1cs_constraint_system<Field> constraint_system =
         pb.get_constraint_system();
+
+    // Write to file if output directory is given.
+    if (!g_output_dir.empty()) {
+        boost::filesystem::path outpath =
+            g_output_dir / "simple_circuit_r1cs.json";
+        std::ofstream r1cs_stream(outpath.c_str());
+        libzeth::r1cs_write_json<pp>(pb, r1cs_stream);
+    }
 
     const r1cs_primary_input<Field> primary{12};
     const r1cs_auxiliary_input<Field> auxiliary{1, 1, 1};
@@ -78,14 +90,18 @@ TEST(SimpleTests, SimpleCircuitProofPow2Domain)
 
 int main(int argc, char **argv)
 {
-    // /!\ WARNING: Do once for all tests. Do not
-    // forget to do this !!!!
+    // WARNING: Do once for all tests. Do not forget to do this.
     pp::init_public_params();
 
     // Remove stdout noise from libff
     libff::inhibit_profiling_counters = true;
     libff::inhibit_profiling_info = true;
-    // Run
     ::testing::InitGoogleTest(&argc, argv);
+
+    // Extract the test data destination dir, if passed on the command line.
+    if (argc > 1) {
+        g_output_dir = boost::filesystem::path(argv[1]);
+    }
+
     return RUN_ALL_TESTS();
 }
