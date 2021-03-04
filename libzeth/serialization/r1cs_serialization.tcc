@@ -15,14 +15,14 @@ namespace libzeth
 namespace internal
 {
 
-template<typename ppT>
+template<typename FieldT>
 void constraints_write_json(
-    const libsnark::linear_combination<libff::Fr<ppT>> &constraints,
+    const libsnark::linear_combination<FieldT> &constraints,
     std::ostream &out_s)
 {
     out_s << "[";
     size_t count = 0;
-    for (const libsnark::linear_term<libff::Fr<ppT>> &lt : constraints.terms) {
+    for (const libsnark::linear_term<FieldT> &lt : constraints.terms) {
         if (count != 0) {
             out_s << ",";
         }
@@ -30,8 +30,7 @@ void constraints_write_json(
         out_s << "{";
         out_s << "\"index\":" << lt.index << ",";
         out_s << "\"value\":"
-              << "\"" +
-                     bigint_to_hex<libff::Fr<ppT>>(lt.coeff.as_bigint(), true)
+              << "\"" + bigint_to_hex<FieldT>(lt.coeff.as_bigint(), true)
               << "\"";
         out_s << "}";
         count++;
@@ -142,31 +141,28 @@ libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_json(
         std::move(front), std::move(rest));
 }
 
-template<typename ppT>
+template<typename FieldT>
 std::ostream &r1cs_write_json(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb, std::ostream &out_s)
+    const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s)
 {
     // output inputs, right now need to compile with debug flag so that the
     // `variable_annotations` exists. Having trouble setting that up so will
     // leave for now.
-    libsnark::r1cs_constraint_system<libff::Fr<ppT>> constraints =
-        pb.get_constraint_system();
 
     out_s << "{\n";
     out_s << "\"scalar_field_characteristic\":"
-          << "\"" + bigint_to_hex<libff::Fr<ppT>>(
-                        libff::Fr<ppT>::field_char(), true)
+          << "\"" + bigint_to_hex<FieldT>(FieldT::field_char(), true)
           << "\",\n";
-    out_s << "\"num_variables\":" << pb.num_variables() << ",\n";
-    out_s << "\"num_constraints\":" << pb.num_constraints() << ",\n";
-    out_s << "\"num_inputs\": " << pb.num_inputs() << ",\n";
+    out_s << "\"num_variables\":" << r1cs.num_variables() << ",\n";
+    out_s << "\"num_constraints\":" << r1cs.num_constraints() << ",\n";
+    out_s << "\"num_inputs\": " << r1cs.num_inputs() << ",\n";
     out_s << "\"variables_annotations\":[";
-    for (size_t i = 0; i < constraints.num_variables(); ++i) {
+    for (size_t i = 0; i < r1cs.num_variables(); ++i) {
         out_s << "{";
         out_s << "\"index\":" << i << ",";
         out_s << "\"annotation\":"
-              << "\"" << constraints.variable_annotations[i].c_str() << "\"";
-        if (i == constraints.num_variables() - 1) {
+              << "\"" << r1cs.variable_annotations.at(i).c_str() << "\"";
+        if (i == r1cs.num_variables() - 1) {
             out_s << "}";
         } else {
             out_s << "},";
@@ -174,26 +170,23 @@ std::ostream &r1cs_write_json(
     }
     out_s << "],\n";
     out_s << "\"constraints\":[";
-    for (size_t c = 0; c < constraints.num_constraints(); ++c) {
+    for (size_t c = 0; c < r1cs.num_constraints(); ++c) {
         out_s << "{";
         out_s << "\"constraint_id\": " << c << ",";
         out_s << "\"constraint_annotation\": "
-              << "\"" << constraints.constraint_annotations[c].c_str() << "\",";
+              << "\"" << r1cs.constraint_annotations.at(c).c_str() << "\",";
         out_s << "\"linear_combination\":";
         out_s << "{";
         out_s << "\"A\":";
-        internal::constraints_write_json<ppT>(
-            constraints.constraints[c].a, out_s);
+        internal::constraints_write_json(r1cs.constraints[c].a, out_s);
         out_s << ",";
         out_s << "\"B\":";
-        internal::constraints_write_json<ppT>(
-            constraints.constraints[c].b, out_s);
+        internal::constraints_write_json(r1cs.constraints[c].b, out_s);
         out_s << ",";
         out_s << "\"C\":";
-        internal::constraints_write_json<ppT>(
-            constraints.constraints[c].c, out_s);
+        internal::constraints_write_json(r1cs.constraints[c].c, out_s);
         out_s << "}";
-        if (c == constraints.num_constraints() - 1) {
+        if (c == r1cs.num_constraints() - 1) {
             out_s << "}";
         } else {
             out_s << "},";

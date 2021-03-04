@@ -86,7 +86,7 @@ template<
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-const libsnark::protoboard<libff::Fr<ppT>> &circuit_wrapper<
+const libsnark::r1cs_constraint_system<libff::Fr<ppT>> &circuit_wrapper<
     HashT,
     HashTreeT,
     ppT,
@@ -95,7 +95,7 @@ const libsnark::protoboard<libff::Fr<ppT>> &circuit_wrapper<
     NumOutputs,
     TreeDepth>::get_constraint_system() const
 {
-    return pb;
+    return pb.get_constraint_system();
 }
 
 template<
