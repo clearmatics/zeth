@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-template<typename apiHandlerT> void verification_key_encode_decode_test()
+template<typename apiHandlerT> void verification_key_encode_decode_json_test()
 {
     using snark = typename apiHandlerT::snark;
 
@@ -20,7 +20,7 @@ template<typename apiHandlerT> void verification_key_encode_decode_test()
 }
 
 template<typename ppT, typename apiHandlerT>
-void extended_proof_encode_decode_test(
+void extended_proof_encode_decode_json_test(
     const libzeth::extended_proof<ppT, typename apiHandlerT::snark> &proof)
 {
     using snark = typename apiHandlerT::snark;
