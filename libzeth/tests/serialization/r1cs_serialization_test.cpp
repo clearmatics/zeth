@@ -2,7 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzeth/circuits/blake2s/blake2s.hpp"
+#include "libzeth/circuits/circuit_types.hpp"
+#include "libzeth/circuits/circuit_wrapper.hpp"
+#include "libzeth/serialization/proto_utils.hpp"
 #include "libzeth/serialization/r1cs_serialization.hpp"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
 #include "libzeth/tests/circuits/simple_test.hpp"
 
 #include <gtest/gtest.h>
@@ -56,16 +61,28 @@ template<typename ppT> void accumulation_vector_json_encode_decode()
 template<typename ppT> void r1cs_bytes_encode_decode()
 {
     using Field = libff::Fr<ppT>;
-    libsnark::protoboard<Field> pb;
-    libzeth::tests::simple_circuit(pb);
 
-    libsnark::r1cs_constraint_system<Field> r1cs = pb.get_constraint_system();
+    // Create the joinsplit constraint system.
+    libzeth::circuit_wrapper<
+        libzeth::HashT<Field>,
+        libzeth::HashTreeT<Field>,
+        ppT,
+        libzeth::groth16_snark<ppT>,
+        2,
+        2,
+        32>
+        circuit;
+    const libsnark::r1cs_constraint_system<Field> &r1cs =
+        circuit.get_constraint_system();
 
     std::string r1cs_bytes = ([&r1cs]() {
         std::stringstream ss;
         libzeth::r1cs_write_bytes(r1cs, ss);
         return ss.str();
     })();
+
+    std::cout << "Joinsplit constraint system(" << libzeth::pp_name<ppT>()
+              << "): " << std::to_string(r1cs_bytes.size()) << " bytes\n";
 
     libsnark::r1cs_constraint_system<Field> r1cs2;
     {
@@ -97,10 +114,7 @@ TEST(R1CSSerializationTest, AccumulationVectorJsonEncodeDecode)
 TEST(R1CSSerializationTest, R1CSBytesEncodeDecode)
 {
     r1cs_bytes_encode_decode<libff::alt_bn128_pp>();
-    r1cs_bytes_encode_decode<libff::mnt4_pp>();
-    r1cs_bytes_encode_decode<libff::mnt6_pp>();
     r1cs_bytes_encode_decode<libff::bls12_377_pp>();
-    r1cs_bytes_encode_decode<libff::bw6_761_pp>();
 }
 
 } // namespace
