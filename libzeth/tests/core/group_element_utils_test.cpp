@@ -135,6 +135,49 @@ TEST(GroupElementUtilsTest, G2EncodeDecodeBytes)
     group_element_encode_decode_bytes_test<libff::G2<libff::bw6_761_pp>>();
 }
 
+template<typename GroupT> static void group_elements_encode_decode_bytes_test()
+{
+    const size_t num_elements = 17;
+    std::vector<GroupT> elements;
+    elements.reserve(num_elements);
+    for (size_t i = 0; i < num_elements; ++i) {
+        elements.emplace_back(GroupT::random_element());
+    }
+
+    std::string buffer;
+    {
+        std::stringstream ss;
+        libzeth::group_elements_write_bytes(elements, ss);
+        buffer = ss.str();
+    }
+
+    std::vector<GroupT> elements_decoded;
+    {
+        std::stringstream ss(buffer);
+        libzeth::group_elements_read_bytes(elements_decoded, ss);
+    }
+
+    ASSERT_EQ(elements, elements_decoded);
+}
+
+TEST(GroupElementUtilsTest, G1CollectionEncodeDecodeBytes)
+{
+    group_elements_encode_decode_bytes_test<libff::G1<libff::alt_bn128_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G1<libff::mnt4_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G1<libff::mnt6_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G1<libff::bls12_377_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G1<libff::bw6_761_pp>>();
+}
+
+TEST(GroupElementUtilsTest, G2CollectionEncodeDecodeBytes)
+{
+    group_elements_encode_decode_bytes_test<libff::G2<libff::alt_bn128_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G2<libff::mnt4_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G2<libff::mnt6_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G2<libff::bls12_377_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G2<libff::bw6_761_pp>>();
+}
+
 } // namespace
 
 int main(int argc, char **argv)
