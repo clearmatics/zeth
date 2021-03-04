@@ -39,6 +39,14 @@ template<typename FieldT>
 std::ostream &r1cs_write_json(
     const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s);
 
+template<typename FieldT>
+void r1cs_read_bytes(
+    libsnark::r1cs_constraint_system<FieldT> &r1cs, std::istream &in_s);
+
+template<typename FieldT>
+void r1cs_write_bytes(
+    const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s);
+
 } // namespace libzeth
 
 #include "libzeth/serialization/r1cs_serialization.tcc"

@@ -8,6 +8,7 @@
 #include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/serialization/r1cs_serialization.hpp"
+#include "libzeth/serialization/stream_utils.hpp"
 
 namespace libzeth
 {
@@ -195,6 +196,84 @@ std::ostream &r1cs_write_json(
     out_s << "]\n";
     out_s << "}";
     return out_s;
+}
+
+template<typename FieldT>
+void linear_combination_read_bytes(
+    libsnark::linear_combination<FieldT> &linear_combination,
+    std::istream &in_s)
+{
+    const uint32_t num_terms = read_bytes<uint32_t>(in_s);
+
+    linear_combination.terms.clear();
+    linear_combination.terms.reserve(num_terms);
+    for (uint32_t i = 0; i < num_terms; ++i) {
+        const libsnark::var_index_t idx =
+            read_bytes<libsnark::var_index_t>(in_s);
+        FieldT coeff;
+        field_element_read_bytes(coeff, in_s);
+        linear_combination.terms.emplace_back(idx, coeff);
+    }
+}
+
+template<typename FieldT>
+void linear_combination_write_bytes(
+    const libsnark::linear_combination<FieldT> &linear_combination,
+    std::ostream &out_s)
+{
+    // Write the number of terms as a uint32_t to save space. If this assert
+    // fires (a single linear combination contains 2^32 terms), change to
+    // size_t.
+    assert(
+        linear_combination.terms.size() <=
+        (size_t)std::numeric_limits<uint32_t>::max);
+    const uint32_t num_terms = (uint32_t)linear_combination.terms.size();
+    write_bytes(num_terms, out_s);
+
+    for (const libsnark::linear_term<FieldT> &term : linear_combination.terms) {
+        write_bytes(term.index, out_s);
+        field_element_write_bytes(term.coeff, out_s);
+    }
+}
+
+template<typename FieldT>
+void r1cs_constraint_read_bytes(
+    libsnark::r1cs_constraint<FieldT> &constraint, std::istream &in_s)
+{
+    linear_combination_read_bytes(constraint.a, in_s);
+    linear_combination_read_bytes(constraint.b, in_s);
+    linear_combination_read_bytes(constraint.c, in_s);
+}
+
+template<typename FieldT>
+void r1cs_constraint_write_bytes(
+    const libsnark::r1cs_constraint<FieldT> &constraint, std::ostream &out_s)
+{
+    linear_combination_write_bytes(constraint.a, out_s);
+    linear_combination_write_bytes(constraint.b, out_s);
+    linear_combination_write_bytes(constraint.c, out_s);
+}
+
+template<typename FieldT>
+void r1cs_read_bytes(
+    libsnark::r1cs_constraint_system<FieldT> &r1cs, std::istream &in_s)
+{
+    read_bytes(r1cs.primary_input_size, in_s);
+    read_bytes(r1cs.auxiliary_input_size, in_s);
+    collection_read_bytes<
+        std::vector<libsnark::r1cs_constraint<FieldT>>,
+        r1cs_constraint_read_bytes>(r1cs.constraints, in_s);
+}
+
+template<typename FieldT>
+void r1cs_write_bytes(
+    const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s)
+{
+    write_bytes(r1cs.primary_input_size, out_s);
+    write_bytes(r1cs.auxiliary_input_size, out_s);
+    collection_write_bytes<
+        std::vector<libsnark::r1cs_constraint<FieldT>>,
+        r1cs_constraint_write_bytes>(r1cs.constraints, out_s);
 }
 
 } // namespace libzeth
