@@ -35,9 +35,9 @@ template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_json(
     const std::string &acc_vector_str);
 
-template<typename ppT>
+template<typename FieldT>
 std::ostream &r1cs_write_json(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb, std::ostream &out_s);
+    const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s);
 
 } // namespace libzeth
 

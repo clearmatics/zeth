@@ -29,7 +29,7 @@ TEST(SimpleTests, SimpleCircuitProof)
     libzeth::tests::simple_circuit<Field>(pb);
 
     // Constraint system
-    const r1cs_constraint_system<Field> constraint_system =
+    const r1cs_constraint_system<Field> &constraint_system =
         pb.get_constraint_system();
 
     // Write to file if output directory is given.
@@ -37,7 +37,7 @@ TEST(SimpleTests, SimpleCircuitProof)
         boost::filesystem::path outpath =
             g_output_dir / "simple_circuit_r1cs.json";
         std::ofstream r1cs_stream(outpath.c_str());
-        libzeth::r1cs_write_json<pp>(pb, r1cs_stream);
+        libzeth::r1cs_write_json(pb.get_constraint_system(), r1cs_stream);
     }
 
     const r1cs_primary_input<Field> primary{12};
@@ -73,7 +73,7 @@ TEST(SimpleTests, SimpleCircuitProofPow2Domain)
     protoboard<Field> pb;
     libzeth::tests::simple_circuit<Field>(pb);
 
-    const r1cs_constraint_system<Field> constraint_system =
+    const r1cs_constraint_system<Field> &constraint_system =
         pb.get_constraint_system();
     const r1cs_gg_ppzksnark_keypair<pp> keypair =
         r1cs_gg_ppzksnark_generator<pp>(constraint_system, true);

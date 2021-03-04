@@ -71,7 +71,7 @@ static void write_constraint_system(
     const circuit_wrapper &prover, const boost::filesystem::path &r1cs_file)
 {
     std::ofstream r1cs_stream(r1cs_file.c_str());
-    libzeth::r1cs_write_json<pp>(prover.get_constraint_system(), r1cs_stream);
+    libzeth::r1cs_write_json(prover.get_constraint_system(), r1cs_stream);
 }
 
 static void write_ext_proof_to_file(
