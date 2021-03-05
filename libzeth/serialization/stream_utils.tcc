@@ -159,18 +159,20 @@ template<typename kcvectorT>
 void knowledge_commitment_vector_read_bytes(
     kcvectorT &knowledge_commitment_vector, std::istream &in_s)
 {
-    using kcT = typename kcvectorT::knowledge_commitment_t;
+    using kcT = typename std::decay<decltype(
+        knowledge_commitment_vector.values[0])>::type;
     sparse_vector_read_bytes<kcT, knowledge_commitment_read_bytes<kcT>>(
         knowledge_commitment_vector, in_s);
 }
 
 template<typename kcvectorT>
 void knowledge_commitment_vector_write_bytes(
-    const kcvectorT &knowledge_commitment, std::ostream &out_s)
+    const kcvectorT &knowledge_commitment_vector, std::ostream &out_s)
 {
-    using kcT = typename kcvectorT::knowledge_commitment_t;
+    using kcT = typename std::decay<decltype(
+        knowledge_commitment_vector.values[0])>::type;
     sparse_vector_write_bytes<kcT, knowledge_commitment_write_bytes<kcT>>(
-        knowledge_commitment, out_s);
+        knowledge_commitment_vector, out_s);
 }
 
 } // namespace libzeth
