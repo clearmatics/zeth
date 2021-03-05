@@ -6,6 +6,7 @@
 #define __ZETH_CORE_GROUP_ELEMENT_UTILS_TCC__
 
 #include "libzeth/core/field_element_utils.hpp"
+#include "libzeth/serialization/stream_utils.hpp"
 
 namespace libzeth
 {
@@ -111,27 +112,23 @@ void group_element_read_bytes(GroupT &point, std::istream &in_s)
     }
 }
 
-template<typename GroupCollectionT>
+template<typename GroupT, typename GroupCollectionT>
 void group_elements_write_bytes(
     const GroupCollectionT &points, std::ostream &out_s)
 {
-    write_bytes(points.size(), out_s);
-    for (const auto &pt : points) {
-        group_element_write_bytes(pt, out_s);
-    }
+    collection_write_bytes<
+        GroupT,
+        GroupCollectionT,
+        group_element_write_bytes<GroupT>>(points, out_s);
 }
 
-template<typename GroupCollectionT>
+template<typename GroupT, typename GroupCollectionT>
 void group_elements_read_bytes(GroupCollectionT &points, std::istream &in_s)
 {
-    const size_t num_points = read_bytes<size_t>(in_s);
-
-    points.clear();
-    points.reserve(num_points);
-    for (size_t i = 0; i < num_points; ++i) {
-        points.emplace_back();
-        group_element_read_bytes(points.back(), in_s);
-    }
+    collection_read_bytes<
+        GroupT,
+        GroupCollectionT,
+        group_element_read_bytes<GroupT>>(points, in_s);
 }
 
 } // namespace libzeth
