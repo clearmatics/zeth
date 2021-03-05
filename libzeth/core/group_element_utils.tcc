@@ -6,6 +6,7 @@
 #define __ZETH_CORE_GROUP_ELEMENT_UTILS_TCC__
 
 #include "libzeth/core/field_element_utils.hpp"
+#include "libzeth/serialization/stream_utils.hpp"
 
 namespace libzeth
 {
