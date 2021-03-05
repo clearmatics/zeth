@@ -225,7 +225,7 @@ void linear_combination_write_bytes(
     // fires (a single linear combination contains 2^32 terms), change to
     // size_t.
     assert(
-        linear_combination.terms.size() <= std::numeric_limit<uint32_t>::max);
+        linear_combination.terms.size() <= std::numeric_limits<uint32_t>::max);
     const uint32_t num_terms = (uint32_t)linear_combination.terms.size();
     write_bytes(num_terms, out_s);
 
