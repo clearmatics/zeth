@@ -443,7 +443,9 @@ TEST(MPCTests, KeyPairReadWrite)
         in.exceptions(
             std::ios_base::eofbit | std::ios_base::badbit |
             std::ios_base::failbit);
-        return groth16_snark<pp>::keypair_read_bytes(in);
+        typename groth16_snark<pp>::keypair kp;
+        groth16_snark<pp>::keypair_read_bytes(kp, in);
+        return kp;
     }();
 
     ASSERT_EQ(keypair.pk, keypair_deserialized.pk);

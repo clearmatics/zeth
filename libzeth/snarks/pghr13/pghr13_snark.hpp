@@ -40,31 +40,30 @@ public:
         const verification_key &verification_key);
 
     /// Write verification as json
-    static std::ostream &verification_key_write_json(
+    static void verification_key_write_json(
         const verification_key &, std::ostream &);
 
     /// Write verification key as bytes
-    static std::ostream &verification_key_write_bytes(
+    static void verification_key_write_bytes(
         const verification_key &, std::ostream &);
 
     /// Read a verification key as bytes
-    static verification_key verification_key_read_bytes(std::istream &);
+    static void verification_key_read_bytes(verification_key &, std::istream &);
 
     /// Write proving key as bytes
-    static std::ostream &proving_key_write_bytes(
-        const proving_key &, std::ostream &);
+    static void proving_key_write_bytes(const proving_key &, std::ostream &);
 
     /// Read proving key as bytes
-    static proving_key proving_key_read_bytes(std::istream &);
+    static void proving_key_read_bytes(proving_key &, std::istream &);
 
-    /// Write proof as json
-    static std::ostream &proof_write_json(const proof &, std::ostream &);
-
-    /// Write a keypair to a stream.
-    static std::ostream &keypair_write_bytes(const keypair &, std::ostream &);
+    /// Write proof as json.
+    static void proof_write_json(const proof &, std::ostream &);
 
     /// Read a keypair from a stream.
-    static keypair keypair_read_bytes(std::istream &);
+    static void keypair_read_bytes(keypair &, std::istream &);
+
+    /// Write a keypair as bytes
+    static void keypair_write_bytes(const keypair &, std::ostream &);
 };
 
 } // namespace libzeth

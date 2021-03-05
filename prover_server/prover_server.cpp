@@ -55,7 +55,10 @@ static snark::keypair load_keypair(const boost::filesystem::path &keypair_file)
         keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
     in_s.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return snark::keypair_read_bytes(in_s);
+
+    snark::keypair keypair;
+    snark::keypair_read_bytes(keypair, in_s);
+    return keypair;
 }
 
 static void write_keypair(

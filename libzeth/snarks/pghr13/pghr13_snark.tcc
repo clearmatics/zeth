@@ -51,7 +51,7 @@ bool pghr13_snark<ppT>::verify(
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::verification_key_write_json(
+void pghr13_snark<ppT>::verification_key_write_json(
     const pghr13_snark<ppT>::verification_key &vk, std::ostream &os)
 {
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
@@ -74,43 +74,38 @@ std::ostream &pghr13_snark<ppT>::verification_key_write_json(
 
     os << "]\n";
     os << "}";
-    return os;
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::verification_key_write_bytes(
+void pghr13_snark<ppT>::verification_key_write_bytes(
     const typename pghr13_snark<ppT>::verification_key &vk, std::ostream &os)
 {
-    return os << vk;
+    os << vk;
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::verification_key pghr13_snark<
-    ppT>::verification_key_read_bytes(std::istream &in_s)
+void pghr13_snark<ppT>::verification_key_read_bytes(
+    typename pghr13_snark<ppT>::verification_key &vk, std::istream &in_s)
 {
-    verification_key vk;
     in_s >> vk;
-    return vk;
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::proving_key_write_bytes(
+void pghr13_snark<ppT>::proving_key_write_bytes(
     const typename pghr13_snark<ppT>::proving_key &pk, std::ostream &os)
 {
-    return os << pk;
+    os << pk;
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::proving_key pghr13_snark<
-    ppT>::proving_key_read_bytes(std::istream &in_s)
+void pghr13_snark<ppT>::proving_key_read_bytes(
+    typename pghr13_snark<ppT>::proving_key &pk, std::istream &in_s)
 {
-    proving_key pk;
     in_s >> pk;
-    return pk;
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::proof_write_json(
+void pghr13_snark<ppT>::proof_write_json(
     const typename pghr13_snark<ppT>::proof &proof, std::ostream &os)
 {
     os << "{\n";
@@ -123,23 +118,22 @@ std::ostream &pghr13_snark<ppT>::proof_write_json(
     os << " \"h\": " << group_element_to_json(proof.g_H) << ",\n";
     os << " \"k\": " << group_element_to_json(proof.g_K) << "\n";
     os << "}";
-    return os;
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::keypair_write_bytes(
+void pghr13_snark<ppT>::keypair_write_bytes(
     const typename pghr13_snark<ppT>::keypair &keypair, std::ostream &os)
 {
     proving_key_write_bytes(keypair.pk, os);
-    return verification_key_write_bytes(keypair.vk, os);
+    verification_key_write_bytes(keypair.vk, os);
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::keypair pghr13_snark<ppT>::keypair_read_bytes(
-    std::istream &in_s)
+void pghr13_snark<ppT>::keypair_read_bytes(
+    typename pghr13_snark<ppT>::keypair &keypair, std::istream &in_s)
 {
-    return keypair(
-        proving_key_read_bytes(in_s), verification_key_read_bytes(in_s));
+    proving_key_read_bytes(keypair.pk, in_s);
+    verification_key_read_bytes(keypair.vk, in_s);
 }
 
 } // namespace libzeth
