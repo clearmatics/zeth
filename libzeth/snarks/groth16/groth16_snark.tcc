@@ -7,6 +7,7 @@
 
 #include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/core/utils.hpp"
+#include "libzeth/serialization/r1cs_serialization.hpp"
 #include "libzeth/snarks/groth16/groth16_snark.hpp"
 
 namespace libzeth
@@ -71,10 +72,17 @@ template<typename ppT>
 void groth16_snark<ppT>::verification_key_write_bytes(
     const verification_key &vk, std::ostream &out_s)
 {
+    using G1 = libff::G1<ppT>;
+
     if (!is_well_formed<ppT>(vk)) {
         throw std::invalid_argument("verification key (write) not well-formed");
     }
-    out_s << vk;
+
+    group_element_write_bytes(vk.alpha_g1, out_s);
+    group_element_write_bytes(vk.beta_g2, out_s);
+    group_element_write_bytes(vk.delta_g2, out_s);
+    accumulation_vector_write_bytes<G1, group_element_write_bytes<G1>>(
+        vk.ABC_g1, out_s);
 }
 
 template<typename ppT>
@@ -84,14 +92,31 @@ void groth16_snark<ppT>::proving_key_write_bytes(
     if (!is_well_formed<ppT>(pk)) {
         throw std::invalid_argument("proving key (write) not well-formed");
     }
-    out_s << pk;
+
+    group_element_write_bytes(pk.alpha_g1, out_s);
+    group_element_write_bytes(pk.beta_g1, out_s);
+    group_element_write_bytes(pk.beta_g2, out_s);
+    group_element_write_bytes(pk.delta_g1, out_s);
+    group_element_write_bytes(pk.delta_g2, out_s);
+    group_elements_write_bytes(pk.A_query, out_s);
+    knowledge_commitment_vector_write_bytes(pk.B_query, out_s);
+    group_elements_write_bytes(pk.H_query, out_s);
+    group_elements_write_bytes(pk.L_query, out_s);
+    r1cs_write_bytes(pk.constraint_system, out_s);
 }
 
 template<typename ppT>
 void groth16_snark<ppT>::verification_key_read_bytes(
     groth16_snark<ppT>::verification_key &vk, std::istream &in_s)
 {
-    in_s >> vk;
+    using G1 = libff::G1<ppT>;
+
+    group_element_read_bytes(vk.alpha_g1, in_s);
+    group_element_read_bytes(vk.beta_g2, in_s);
+    group_element_read_bytes(vk.delta_g2, in_s);
+    accumulation_vector_read_bytes<G1, group_element_read_bytes<G1>>(
+        vk.ABC_g1, in_s);
+
     if (!is_well_formed<ppT>(vk)) {
         throw std::invalid_argument("verification key (read) not well-formed");
     }
@@ -101,7 +126,17 @@ template<typename ppT>
 void groth16_snark<ppT>::proving_key_read_bytes(
     groth16_snark<ppT>::proving_key &pk, std::istream &in_s)
 {
-    in_s >> pk;
+    group_element_read_bytes(pk.alpha_g1, in_s);
+    group_element_read_bytes(pk.beta_g1, in_s);
+    group_element_read_bytes(pk.beta_g2, in_s);
+    group_element_read_bytes(pk.delta_g1, in_s);
+    group_element_read_bytes(pk.delta_g2, in_s);
+    group_elements_read_bytes(pk.A_query, in_s);
+    knowledge_commitment_vector_read_bytes(pk.B_query, in_s);
+    group_elements_read_bytes(pk.H_query, in_s);
+    group_elements_read_bytes(pk.L_query, in_s);
+    r1cs_read_bytes(pk.constraint_system, in_s);
+
     if (!is_well_formed<ppT>(pk)) {
         throw std::invalid_argument("proving key (read) not well-formed");
     }

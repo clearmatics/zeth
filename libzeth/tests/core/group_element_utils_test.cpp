@@ -147,14 +147,14 @@ template<typename GroupT> static void group_elements_encode_decode_bytes_test()
     std::string buffer;
     {
         std::stringstream ss;
-        libzeth::group_elements_write_bytes<GroupT>(elements, ss);
+        libzeth::group_elements_write_bytes(elements, ss);
         buffer = ss.str();
     }
 
     std::vector<GroupT> elements_decoded;
     {
         std::stringstream ss(buffer);
-        libzeth::group_elements_read_bytes<GroupT>(elements_decoded, ss);
+        libzeth::group_elements_read_bytes(elements_decoded, ss);
     }
 
     ASSERT_EQ(elements, elements_decoded);

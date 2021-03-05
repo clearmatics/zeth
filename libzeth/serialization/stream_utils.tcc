@@ -5,6 +5,7 @@
 #ifndef __ZETH_SERIALIZATION_STREAM_UTILS_TCC__
 #define __ZETH_SERIALIZATION_STREAM_UTILS_TCC__
 
+#include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/serialization/stream_utils.hpp"
 
 namespace libzeth
@@ -36,9 +37,9 @@ typename std::enable_if<std::is_fundamental<T>::value, void>::type write_bytes(
 /// Write the first n from a collection of values, using a specified writer
 /// function.
 template<
-    typename ValueT,
+    // typename ValueT,
     typename CollectionT,
-    void(WriterFn)(const ValueT &, std::ostream &)>
+    void(WriterFn)(const MemberT<CollectionT> &, std::ostream &)>
 void collection_n_write_bytes(
     const CollectionT &collection, const size_t n, std::ostream &out_s)
 {
@@ -50,9 +51,8 @@ void collection_n_write_bytes(
 /// Read n element using a specified reader function, appending to the given
 /// collection.
 template<
-    typename ValueT,
     typename CollectionT,
-    void(ReaderFn)(ValueT &, std::istream &)>
+    void(ReaderFn)(MemberT<CollectionT> &, std::istream &)>
 void collection_n_read_bytes(
     CollectionT &collection, const size_t n, std::istream &in_s)
 {
@@ -65,29 +65,28 @@ void collection_n_read_bytes(
 /// Write a full collection of values to a stream as bytes, using
 /// a specific writer function.
 template<
-    typename ValueT,
     typename CollectionT,
-    void(WriterT)(const ValueT &, std::ostream &)>
+    void(WriterT)(const MemberT<CollectionT> &, std::ostream &)>
 void collection_write_bytes(const CollectionT &collection, std::ostream &out_s)
 {
     write_bytes(collection.size(), out_s);
-    collection_n_write_bytes<ValueT, CollectionT, WriterT>(
+    collection_n_write_bytes<CollectionT, WriterT>(
         collection, collection.size(), out_s);
 }
 
 /// Read a collection of values, from a stream of bytes, using
 /// a specific reader function.
 template<
-    typename ValueT,
+    // typename ValueT,
     typename CollectionT,
-    void(ReaderT)(ValueT &, std::istream &)>
+    void(ReaderT)(MemberT<CollectionT> &, std::istream &)>
 void collection_read_bytes(CollectionT &collection, std::istream &in_s)
 {
     const size_t n = read_bytes<size_t>(in_s);
 
     collection.clear();
     collection.reserve(n);
-    collection_n_read_bytes<ValueT, CollectionT, ReaderT>(collection, n, in_s);
+    collection_n_read_bytes<CollectionT, ReaderT>(collection, n, in_s);
 }
 
 template<typename T, void(ReaderFn)(T &, std::istream &)>
@@ -127,14 +126,6 @@ template<typename T, void(ReaderFn)(T &, std::istream &)>
 void accumulation_vector_read_bytes(
     libsnark::accumulation_vector<T> &acc_vector, std::istream &in_s)
 {
-    // const size_t num_elements = read_bytes<size_t>(in_s);
-    // assert(num_elements > 0);
-    // group_element_read_bytes(acc_vector.first);
-    // acc_vector.rest.clear();
-    // acc_vector.rest.reserve();
-
-    // acc_vector.
-
     ReaderFn(acc_vector.first, in_s);
     sparse_vector_read_bytes<T, ReaderFn>(acc_vector.rest, in_s);
 }
@@ -145,6 +136,42 @@ void accumulation_vector_write_bytes(
 {
     WriterFn(acc_vector.first, out_s);
     sparse_vector_write_bytes<T, WriterFn>(acc_vector.rest, out_s);
+}
+
+template<typename kcT>
+void knowledge_commitment_read_bytes(
+    kcT &knowledge_commitment, std::istream &in_s)
+{
+    group_element_read_bytes(knowledge_commitment.g, in_s);
+    group_element_read_bytes(knowledge_commitment.h, in_s);
+}
+
+template<typename kcT>
+void knowledge_commitment_write_bytes(
+    const kcT &knowledge_commitment, std::ostream &out_s)
+{
+    group_element_write_bytes(knowledge_commitment.g, out_s);
+    group_element_write_bytes(knowledge_commitment.h, out_s);
+}
+
+template<typename kcvectorT>
+void knowledge_commitment_vector_read_bytes(
+    kcvectorT &knowledge_commitment_vector, std::istream &in_s)
+{
+    using kcT = typename std::decay<decltype(
+        knowledge_commitment_vector.values[0])>::type;
+    sparse_vector_read_bytes<kcT, knowledge_commitment_read_bytes<kcT>>(
+        knowledge_commitment_vector, in_s);
+}
+
+template<typename kcvectorT>
+void knowledge_commitment_vector_write_bytes(
+    const kcvectorT &knowledge_commitment_vector, std::ostream &out_s)
+{
+    using kcT = typename std::decay<decltype(
+        knowledge_commitment_vector.values[0])>::type;
+    sparse_vector_write_bytes<kcT, knowledge_commitment_write_bytes<kcT>>(
+        knowledge_commitment_vector, out_s);
 }
 
 } // namespace libzeth

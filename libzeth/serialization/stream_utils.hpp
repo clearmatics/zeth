@@ -13,6 +13,12 @@
 namespace libzeth
 {
 
+/// Statically derive the type of the element contained in a (vector-like)
+/// collection.
+template<typename CollectionT>
+using MemberT =
+    typename std::decay<decltype((*(CollectionT *)nullptr)[0])>::type;
+
 /// Read a primitive datatype from a stream as raw bytes.
 template<typename T>
 typename std::enable_if<std::is_fundamental<T>::value, T>::type read_bytes(
@@ -31,53 +37,56 @@ typename std::enable_if<std::is_fundamental<T>::value, void>::type write_bytes(
 /// Write the first n from a collection of values, using a specified writer
 /// function.
 template<
-    typename ValueT,
     typename CollectionT,
-    void(WriterT)(const ValueT &, std::ostream &)>
+    void(WriterT)(const MemberT<CollectionT> &, std::ostream &)>
 void collection_n_write_bytes(
     const CollectionT &collection, const size_t n, std::ostream &out_s);
 
 /// Read n element using a specified reader function, appending to the given
 /// collection.
 template<
-    typename ValueT,
     typename CollectionT,
-    void(ReaderT)(ValueT &, std::istream &)>
+    void(ReaderT)(MemberT<CollectionT> &, std::istream &)>
 void collection_n_read_bytes_n(
     CollectionT &collection, const size_t n, std::istream &in_s);
 
 /// Write a full collection of group elements to a stream as bytes, using
 /// a specific writer function.
 template<
-    typename ValueT,
     typename CollectionT,
-    void(WriterT)(const ValueT &, std::ostream &)>
+    void(WriterT)(const MemberT<CollectionT> &, std::ostream &)>
 void collection_write_bytes(const CollectionT &collection, std::ostream &out_s);
 
 /// Read a collection of group elements as bytes, usinng
 /// group_elements_read_bytes.
 template<
-    typename ValueT,
     typename CollectionT,
-    void(ReaderT)(ValueT &, std::istream &)>
+    void(ReaderT)(MemberT<CollectionT> &, std::istream &)>
 void collection_read_bytes(CollectionT &points, std::istream &in_s);
 
-template<typename GroupT>
+template<typename T, void(ReaderFn)(T &, std::istream &)>
 void sparse_vector_read_bytes(
-    libsnark::sparse_vector<GroupT> &sparse_vector, std::istream &in_s);
+    libsnark::sparse_vector<T> &sparse_vector, std::istream &in_s);
 
-template<typename GroupT>
+template<typename T, void(WriterFn)(const T &, std::ostream &)>
 void sparse_vector_write_bytes(
-    const libsnark::sparse_vector<GroupT> &sparse_vector, std::ostream &out_s);
+    const libsnark::sparse_vector<T> &sparse_vector, std::ostream &out_s);
 
-template<typename GroupT>
+template<typename T, void(ReaderFn)(T &, std::istream &)>
 void accumulation_vector_read_bytes(
-    libsnark::accumulation_vector<GroupT> &acc_vector, std::istream &in_s);
+    libsnark::accumulation_vector<T> &acc_vector, std::istream &in_s);
 
-template<typename GroupT>
+template<typename T, void(WriterFn)(const T &, std::ostream &)>
 void accumulation_vector_write_bytes(
-    const libsnark::accumulation_vector<GroupT> &acc_vector,
-    std::ostream &out_s);
+    const libsnark::accumulation_vector<T> &acc_vector, std::ostream &out_s);
+
+template<typename kcvectorT>
+void knowledge_commitment_vector_read_bytes(
+    kcvectorT &knowledge_commitment, std::istream &in_s);
+
+template<typename kcvectorT>
+void knowledge_commitment_vector_write_bytes(
+    const kcvectorT &knowledge_commitment, std::ostream &out_s);
 
 } // namespace libzeth
 
