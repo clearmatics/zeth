@@ -39,13 +39,13 @@ void group_element_read_bytes(GroupT &point, std::istream &in_s);
 
 /// Write a collection of group elements as bytes to a stream, using
 /// group_element_write_bytes.
-template<typename GroupCollectionT>
+template<typename GroupT, typename GroupCollectionT>
 void group_elements_write_bytes(
     const GroupCollectionT &points, std::ostream &out_s);
 
 /// Read a collection of group elements as bytes, usinng
 /// group_elements_read_bytes.
-template<typename GroupCollectionT>
+template<typename GroupT, typename GroupCollectionT>
 void group_elements_read_bytes(GroupCollectionT &points, std::istream &in_s);
 
 } // namespace libzeth
