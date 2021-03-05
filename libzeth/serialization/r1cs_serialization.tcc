@@ -225,7 +225,8 @@ void linear_combination_write_bytes(
     // fires (a single linear combination contains 2^32 terms), change to
     // size_t.
     assert(
-        linear_combination.terms.size() <= std::numeric_limits<uint32_t>::max);
+        linear_combination.terms.size() <=
+        (size_t)std::numeric_limits<uint32_t>::max);
     const uint32_t num_terms = (uint32_t)linear_combination.terms.size();
     write_bytes(num_terms, out_s);
 
@@ -268,7 +269,7 @@ std::istream &r1cs_read_bytes(
         r1cs_constraint_read_bytes(c, in_s);
         r1cs.constraints.emplace_back(c);
     }
-    assert(cs.size() == num_constraints);
+    assert(r1cs.constraints.size() == num_constraints);
 
     return in_s;
 }
