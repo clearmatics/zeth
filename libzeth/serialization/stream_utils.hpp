@@ -5,6 +5,8 @@
 #ifndef __ZETH_SERIALIZATION_STREAM_UTILS_HPP__
 #define __ZETH_SERIALIZATION_STREAM_UTILS_HPP__
 
+#include "libzeth/core/include_libsnark.hpp"
+
 #include <iostream>
 #include <type_traits>
 
@@ -21,7 +23,7 @@ template<typename T>
 typename std::enable_if<std::is_fundamental<T>::value, void>::type read_bytes(
     T &val, std::istream &in_s);
 
-// Write a primitive datatype to a stream as raw bytes.ap
+// Write a primitive datatype to a stream as raw bytes.
 template<typename T>
 typename std::enable_if<std::is_fundamental<T>::value, void>::type write_bytes(
     const T &val, std::ostream &out_s);
@@ -59,6 +61,23 @@ template<
     typename CollectionT,
     void(ReaderT)(ValueT &, std::istream &)>
 void collection_read_bytes(CollectionT &points, std::istream &in_s);
+
+template<typename GroupT>
+void sparse_vector_read_bytes(
+    libsnark::sparse_vector<GroupT> &sparse_vector, std::istream &in_s);
+
+template<typename GroupT>
+void sparse_vector_write_bytes(
+    const libsnark::sparse_vector<GroupT> &sparse_vector, std::ostream &out_s);
+
+template<typename GroupT>
+void accumulation_vector_read_bytes(
+    libsnark::accumulation_vector<GroupT> &acc_vector, std::istream &in_s);
+
+template<typename GroupT>
+void accumulation_vector_write_bytes(
+    const libsnark::accumulation_vector<GroupT> &acc_vector,
+    std::ostream &out_s);
 
 } // namespace libzeth
 
