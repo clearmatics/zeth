@@ -5,6 +5,8 @@
 #ifndef __ZETH_TESTS_SNARKS_COMMON_SNARK_TESTS_TCC__
 #define __ZETH_TESTS_SNARKS_COMMON_SNARK_TESTS_TCC__
 
+#include "libzeth/tests/circuits/simple_test.hpp"
+
 #include <iostream>
 #include <sstream>
 
@@ -19,6 +21,15 @@ static const size_t DUMMY_NUM_PRIMARY_INPUTS = 37;
 template<typename ppT, typename snarkT>
 typename snarkT::proving_key dummy_proving_key()
 {
+    using Field = libff::Fr<ppT>;
+    libsnark::protoboard<Field> pb;
+    libzeth::tests::simple_circuit(pb);
+    libzeth::tests::simple_circuit(pb);
+    libzeth::tests::simple_circuit(pb);
+    libzeth::tests::simple_circuit(pb);
+
+    typename snarkT::keypair keypair = snarkT::generate_setup(pb);
+    return keypair.pk;
 }
 
 template<typename ppT, typename snarkT>
@@ -34,9 +45,12 @@ bool verification_key_read_write_bytes_test()
         return ss.str();
     })();
 
-    std::stringstream ss(buffer);
-    const typename snarkT::verification_key vk2 =
-        snarkT::verification_key_read_bytes(ss);
+    typename snarkT::verification_key vk2;
+    {
+        std::stringstream ss(buffer);
+        snarkT::verification_key_read_bytes(vk2, ss);
+    }
+
     return vk == vk2;
 }
 
@@ -50,8 +64,12 @@ template<typename ppT, typename snarkT> bool proving_key_read_write_bytes_test()
         return ss.str();
     })();
 
-    std::stringstream ss(buffer);
-    const typename snarkT::proving_key pk2 = snarkT::proving_key_read_bytes(ss);
+    typename snarkT::proving_key pk2;
+    {
+        std::stringstream ss(buffer);
+        snarkT::proving_key_read_bytes(pk2, ss);
+    }
+
     return pk == pk2;
 }
 
