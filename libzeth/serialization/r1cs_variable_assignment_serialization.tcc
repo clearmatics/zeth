@@ -17,7 +17,6 @@ void r1cs_variable_assignment_read_bytes(
     libsnark::r1cs_variable_assignment<FieldT> &assignment, std::istream &in_s)
 {
     collection_read_bytes<
-        FieldT,
         libsnark::r1cs_variable_assignment<FieldT>,
         field_element_read_bytes<FieldT>>(assignment, in_s);
 }
@@ -28,7 +27,6 @@ void r1cs_variable_assignment_write_bytes(
     std::ostream &out_s)
 {
     collection_write_bytes<
-        FieldT,
         libsnark::r1cs_variable_assignment<FieldT>,
         field_element_write_bytes<FieldT>>(assignment, out_s);
 }

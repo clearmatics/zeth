@@ -93,7 +93,7 @@ GroupT group_element_from_json(const std::string &json)
 template<typename GroupT>
 void group_element_write_bytes(const GroupT &point, std::ostream &out_s)
 {
-    GroupT affine_p = point;
+    typename std::decay<GroupT>::type affine_p = point;
     affine_p.to_affine_coordinates();
     field_element_write_bytes(affine_p.X, out_s);
     field_element_write_bytes(affine_p.Y, out_s);
@@ -112,23 +112,19 @@ void group_element_read_bytes(GroupT &point, std::istream &in_s)
     }
 }
 
-template<typename GroupT, typename GroupCollectionT>
+template<typename GroupCollectionT>
 void group_elements_write_bytes(
     const GroupCollectionT &points, std::ostream &out_s)
 {
-    collection_write_bytes<
-        GroupT,
-        GroupCollectionT,
-        group_element_write_bytes<GroupT>>(points, out_s);
+    collection_write_bytes<GroupCollectionT, group_element_write_bytes>(
+        points, out_s);
 }
 
-template<typename GroupT, typename GroupCollectionT>
+template<typename GroupCollectionT>
 void group_elements_read_bytes(GroupCollectionT &points, std::istream &in_s)
 {
-    collection_read_bytes<
-        GroupT,
-        GroupCollectionT,
-        group_element_read_bytes<GroupT>>(points, in_s);
+    collection_read_bytes<GroupCollectionT, group_element_read_bytes>(
+        points, in_s);
 }
 
 } // namespace libzeth
