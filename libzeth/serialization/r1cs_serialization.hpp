@@ -40,11 +40,11 @@ std::ostream &r1cs_write_json(
     const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s);
 
 template<typename FieldT>
-std::istream &r1cs_read_bytes(
+void r1cs_read_bytes(
     libsnark::r1cs_constraint_system<FieldT> &r1cs, std::istream &in_s);
 
 template<typename FieldT>
-std::ostream &r1cs_write_bytes(
+void r1cs_write_bytes(
     const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s);
 
 } // namespace libzeth

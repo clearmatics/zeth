@@ -255,38 +255,25 @@ void r1cs_constraint_write_bytes(
 }
 
 template<typename FieldT>
-std::istream &r1cs_read_bytes(
+void r1cs_read_bytes(
     libsnark::r1cs_constraint_system<FieldT> &r1cs, std::istream &in_s)
 {
     read_bytes(r1cs.primary_input_size, in_s);
     read_bytes(r1cs.auxiliary_input_size, in_s);
-    const size_t num_constraints = read_bytes<size_t>(in_s);
-
-    r1cs.constraints.clear();
-    r1cs.constraints.reserve(num_constraints);
-    for (size_t i = 0; i < num_constraints; ++i) {
-        libsnark::r1cs_constraint<FieldT> c;
-        r1cs_constraint_read_bytes(c, in_s);
-        r1cs.constraints.emplace_back(c);
-    }
-    assert(r1cs.constraints.size() == num_constraints);
-
-    return in_s;
+    collection_read_bytes<
+        std::vector<libsnark::r1cs_constraint<FieldT>>,
+        r1cs_constraint_read_bytes>(r1cs.constraints, in_s);
 }
 
 template<typename FieldT>
-std::ostream &r1cs_write_bytes(
+void r1cs_write_bytes(
     const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s)
 {
     write_bytes(r1cs.primary_input_size, out_s);
     write_bytes(r1cs.auxiliary_input_size, out_s);
-    write_bytes(r1cs.num_constraints(), out_s);
-
-    for (const libsnark::r1cs_constraint<FieldT> &c : r1cs.constraints) {
-        r1cs_constraint_write_bytes(c, out_s);
-    }
-
-    return out_s;
+    collection_write_bytes<
+        std::vector<libsnark::r1cs_constraint<FieldT>>,
+        r1cs_constraint_write_bytes>(r1cs.constraints, out_s);
 }
 
 } // namespace libzeth
