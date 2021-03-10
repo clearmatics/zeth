@@ -5,6 +5,7 @@
 #ifndef __ZETH_SERIALIZATION_STREAM_UTILS_TCC__
 #define __ZETH_SERIALIZATION_STREAM_UTILS_TCC__
 
+#include "libzeth/core/group_element_utils.hpp"
 #include "libzeth/serialization/stream_utils.hpp"
 
 namespace libzeth
