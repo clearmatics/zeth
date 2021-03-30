@@ -6,16 +6,19 @@
 
 #include "core/utils.hpp"
 #include "libzeth/serialization/r1cs_serialization.hpp"
-#include "zeth_config.h"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
+#include "serialization/proto_utils.hpp"
+#include "serialization/r1cs_variable_assignment_serialization.hpp"
 
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 using namespace libsnark;
 using namespace libzeth;
 
-using pp = defaults::pp;
-using Field = defaults::Field;
+using pp = libff::alt_bn128_pp;
+using Field = libff::Fr<pp>;
 
 boost::filesystem::path g_output_dir = boost::filesystem::path("");
 
@@ -34,8 +37,9 @@ TEST(SimpleTests, SimpleCircuitProof)
 
     // Write to file if output directory is given.
     if (!g_output_dir.empty()) {
+
         boost::filesystem::path outpath =
-            g_output_dir / "simple_circuit_r1cs.json";
+            g_output_dir / ("simple_circuit_r1cs_" + pp_name<pp>() + ".json");
         std::ofstream r1cs_stream(outpath.c_str());
         libzeth::r1cs_write_json(pb.get_constraint_system(), r1cs_stream);
     }
@@ -65,6 +69,29 @@ TEST(SimpleTests, SimpleCircuitProof)
 
     ASSERT_TRUE(
         r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
+
+    if (!g_output_dir.empty()) {
+        {
+            boost::filesystem::path proving_key_path =
+                g_output_dir / ("simple_proving_key_" + pp_name<pp>() + ".bin");
+            std::ofstream out_s(proving_key_path.c_str());
+            groth16_snark<pp>::proving_key_write_bytes(keypair.pk, out_s);
+        }
+        {
+            boost::filesystem::path verification_key_path =
+                g_output_dir /
+                ("simple_verification_key_" + pp_name<pp>() + ".bin");
+            std::ofstream out_s(verification_key_path.c_str());
+            groth16_snark<pp>::verification_key_write_bytes(keypair.vk, out_s);
+        }
+        {
+            boost::filesystem::path primary_inputs_path =
+                g_output_dir /
+                ("simple_primary_input_" + pp_name<pp>() + ".bin");
+            std::ofstream out_s(primary_inputs_path.c_str());
+            r1cs_variable_assignment_write_bytes(primary, out_s);
+        }
+    }
 }
 
 TEST(SimpleTests, SimpleCircuitProofPow2Domain)
