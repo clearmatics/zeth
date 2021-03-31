@@ -54,6 +54,7 @@ abstract contract BLS12_377MixerBase is MixerBase
 
     function hash(bytes32 left, bytes32 right)
         internal
+        pure
         override
         returns(bytes32)
     {

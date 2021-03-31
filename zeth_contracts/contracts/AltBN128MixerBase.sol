@@ -48,6 +48,7 @@ abstract contract AltBN128MixerBase is MixerBase
     /// Use MiMC7 as the Merkle tree hash function.
     function hash(bytes32 left, bytes32 right)
         internal
+        pure
         override
         returns(bytes32)
     {
