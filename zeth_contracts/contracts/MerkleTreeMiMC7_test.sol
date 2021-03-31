@@ -15,7 +15,7 @@ import "./MiMC7.sol";
 /// default value.
 contract MerkleTreeMiMC7_test is BaseMerkleTree
 {
-    constructor(uint treeDepth) public BaseMerkleTree(treeDepth)
+    constructor(uint treeDepth) BaseMerkleTree(treeDepth)
     {
     }
 
