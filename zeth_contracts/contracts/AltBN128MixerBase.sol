@@ -72,16 +72,16 @@ abstract contract AltBN128MixerBase is MixerBase
         //
         // Shift to occupy the highest order bits:
         // 255                                       128         64           0
-        //  | bits_to_shift |     | residualBitsIdx |           |           |
+        //  |  bitsToShift  |     |  residualBitsIdx  |           |           |
         //  | <------------ | xxx |                   |<v_pub_in>)|<v_pub_out>|
         //                residual bits
 
         // Number of bits AFTER public values
         uint256 residualBitsIdx = residualBitsSetIdx * NUM_RESIDUAL_BITS;
-        uint256 bits_to_shift =
+        uint256 bitsToShift =
             RESIDUAL_BITS_SHIFT - TOTAL_PUBLIC_VALUE_BITS - residualBitsIdx;
         uint256 residualBits =
-            (residual << bits_to_shift) & RESIDUAL_BITS_MASK;
+            (residual << bitsToShift) & RESIDUAL_BITS_MASK;
         return bytes32(fieldElement | residualBits);
     }
 }
