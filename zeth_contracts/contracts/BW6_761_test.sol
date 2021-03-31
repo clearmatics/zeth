@@ -15,7 +15,7 @@ contract BW6_761_test
 
     // `points` should be the concatenation of 2 encoded points
     function testECAdd(bytes32[2 * POINT_WORDS] memory points)
-        public returns (bytes32[POINT_WORDS] memory)
+        external returns (bytes32[POINT_WORDS] memory)
     {
         bytes32[POINT_WORDS] memory output;
         bool success = true;
@@ -30,7 +30,7 @@ contract BW6_761_test
 
     // `inputs` is an encoded point, followed by an encoded scalar.
     function testECMul(bytes32[POINT_WORDS + SCALAR_WORDS] memory input)
-        public returns (bytes32[POINT_WORDS] memory)
+        external returns (bytes32[POINT_WORDS] memory)
     {
         bytes32[POINT_WORDS] memory output;
         bool success = true;
@@ -47,7 +47,7 @@ contract BW6_761_test
     // a G1 point, followed by a G2 point. For BW6-761, both of these points
     // are 6 words, so there should be 4 * 2 * 6 = 48 words (
     function testECPairing(bytes32[8 * POINT_WORDS] memory input)
-        public returns (uint256)
+        external returns (uint256)
     {
         uint256[1] memory output;
         bool success = true;

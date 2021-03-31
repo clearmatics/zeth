@@ -27,12 +27,6 @@ abstract contract AltBN128MixerBase is MixerBase
     uint256 internal constant RESIDUAL_BITS_MASK =
         ((1 << NUM_RESIDUAL_BITS) - 1) << RESIDUAL_BITS_SHIFT;
 
-    // Total number of residual bits from packing of 256-bit long string into
-    // 253-bit long field elements to which are added the public value of size
-    // 64 bits
-    uint256 internal constant TOTAL_NUM_RESIDUAL_BITS =
-    2 * PUBLIC_VALUE_BITS + NUM_RESIDUAL_BITS * NUM_HASH_DIGESTS;
-
     /// Constructor of the contract
     constructor(
         uint256 mk_depth,

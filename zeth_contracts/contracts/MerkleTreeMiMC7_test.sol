@@ -27,7 +27,7 @@ contract MerkleTreeMiMC7_test is BaseMerkleTree
         bytes32[] memory first,
         bytes32[] memory second
     )
-        public
+        external
         returns (bytes32)
     {
         for (uint i = 0 ; i < first.length ; ++i) {
