@@ -7,6 +7,7 @@
 #include "core/utils.hpp"
 #include "libzeth/serialization/r1cs_serialization.hpp"
 #include "libzeth/snarks/groth16/groth16_snark.hpp"
+#include "libzeth/snarks/pghr13/pghr13_snark.hpp"
 #include "serialization/proto_utils.hpp"
 #include "serialization/r1cs_variable_assignment_serialization.hpp"
 
@@ -17,16 +18,15 @@
 using namespace libsnark;
 using namespace libzeth;
 
-using pp = libff::alt_bn128_pp;
-using Field = libff::Fr<pp>;
-
 boost::filesystem::path g_output_dir = boost::filesystem::path("");
 
 namespace
 {
 
-TEST(SimpleTests, SimpleCircuitProof)
+template<typename ppT, typename snarkT> void test_simple_circuit_proof()
 {
+    using Field = libff::Fr<ppT>;
+
     // Simple circuit
     protoboard<Field> pb;
     libzeth::tests::simple_circuit<Field>(pb);
@@ -39,13 +39,14 @@ TEST(SimpleTests, SimpleCircuitProof)
     if (!g_output_dir.empty()) {
 
         boost::filesystem::path outpath =
-            g_output_dir / ("simple_circuit_r1cs_" + pp_name<pp>() + ".json");
+            g_output_dir / ("simple_circuit_r1cs_" + pp_name<ppT>() + ".json");
         std::ofstream r1cs_stream(outpath.c_str());
         libzeth::r1cs_write_json(pb.get_constraint_system(), r1cs_stream);
     }
 
-    const r1cs_primary_input<Field> primary{12};
-    const r1cs_auxiliary_input<Field> auxiliary{1, 1, 1};
+    r1cs_primary_input<Field> primary;
+    r1cs_auxiliary_input<Field> auxiliary;
+    libzeth::tests::simple_circuit_assignment(Field("78"), primary, auxiliary);
 
     {
         // Test solution x = 1 (g1 = 1, g2 = 1), y = 12
@@ -61,41 +62,57 @@ TEST(SimpleTests, SimpleCircuitProof)
         }
     }
 
-    const r1cs_gg_ppzksnark_keypair<pp> keypair =
-        r1cs_gg_ppzksnark_generator<pp>(constraint_system);
+    const typename snarkT::keypair keypair = snarkT::generate_setup(pb);
 
-    const r1cs_gg_ppzksnark_proof<pp> proof =
-        r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary);
+    const typename snarkT::proof proof =
+        snarkT::generate_proof(keypair.pk, primary, auxiliary);
 
-    ASSERT_TRUE(
-        r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
+    ASSERT_TRUE(snarkT::verify(primary, proof, keypair.vk));
 
     if (!g_output_dir.empty()) {
         {
             boost::filesystem::path proving_key_path =
-                g_output_dir / ("simple_proving_key_" + pp_name<pp>() + ".bin");
+                g_output_dir /
+                ("simple_proving_key_" + pp_name<ppT>() + ".bin");
             std::ofstream out_s(proving_key_path.c_str());
-            groth16_snark<pp>::proving_key_write_bytes(keypair.pk, out_s);
+            snarkT::proving_key_write_bytes(keypair.pk, out_s);
         }
         {
             boost::filesystem::path verification_key_path =
-                g_output_dir /
-                ("simple_verification_key_" + pp_name<pp>() + ".bin");
+                g_output_dir / ("simple_verification_key_" + snarkT::name +
+                                "_" + pp_name<ppT>() + ".bin");
             std::ofstream out_s(verification_key_path.c_str());
-            groth16_snark<pp>::verification_key_write_bytes(keypair.vk, out_s);
+            snarkT::verification_key_write_bytes(keypair.vk, out_s);
         }
         {
-            boost::filesystem::path primary_inputs_path =
-                g_output_dir /
-                ("simple_primary_input_" + pp_name<pp>() + ".bin");
-            std::ofstream out_s(primary_inputs_path.c_str());
-            r1cs_variable_assignment_write_bytes(primary, out_s);
+            boost::filesystem::path assignment_path =
+                g_output_dir / ("simple_assignment_" + pp_name<ppT>() + ".bin");
+            std::ofstream out_s(assignment_path.c_str());
+            r1cs_variable_assignment_write_bytes(
+                pb.full_variable_assignment(), out_s);
         }
     }
 }
 
+TEST(SimpleTests, SimpleCircuitProofGroth16)
+{
+    test_simple_circuit_proof<
+        libff::alt_bn128_pp,
+        libzeth::groth16_snark<libff::alt_bn128_pp>>();
+}
+
+TEST(SimpleTests, SimpleCircuitProofPghr13)
+{
+    test_simple_circuit_proof<
+        libff::alt_bn128_pp,
+        pghr13_snark<libff::alt_bn128_pp>>();
+}
+
 TEST(SimpleTests, SimpleCircuitProofPow2Domain)
 {
+    using pp = libff::alt_bn128_pp;
+    using Field = libff::Fr<pp>;
+
     // Simple circuit
     protoboard<Field> pb;
     libzeth::tests::simple_circuit<Field>(pb);
@@ -118,7 +135,7 @@ TEST(SimpleTests, SimpleCircuitProofPow2Domain)
 int main(int argc, char **argv)
 {
     // WARNING: Do once for all tests. Do not forget to do this.
-    pp::init_public_params();
+    libff::alt_bn128_pp::init_public_params();
 
     // Remove stdout noise from libff
     libff::inhibit_profiling_counters = true;
