@@ -139,7 +139,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         uint256[] memory nestedInputs,
         bytes memory nestedParameters
     )
-        public
+        external
         payable
     {
         // Sanity / permission checkcheck
@@ -221,7 +221,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         uint256[NUM_INPUTS] memory publicInputs,
         bytes[JSOUT] memory ciphertexts
     )
-        public
+        external
         payable
     {
         // 1. Check the root and the nullifiers

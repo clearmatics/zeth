@@ -11,12 +11,12 @@ import "./MiMC31.sol";
 contract MiMC_test
 {
     /// Test function for MiMC7
-    function testMimc7(bytes32 x, bytes32 y) public pure returns (bytes32) {
+    function testMimc7(bytes32 x, bytes32 y) external pure returns (bytes32) {
         return MiMC7.hash(x, y);
     }
 
     /// Test function for MiMC31
-    function testMimc31(bytes32 x, bytes32 y) public pure returns (bytes32) {
+    function testMimc31(bytes32 x, bytes32 y) external pure returns (bytes32) {
         return MiMC31.hash(x, y);
     }
 }

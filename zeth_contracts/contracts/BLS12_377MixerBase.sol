@@ -35,12 +35,6 @@ abstract contract BLS12_377MixerBase is MixerBase
     uint256 internal constant RESIDUAL_BITS_MASK =
         ((1 << NUM_RESIDUAL_BITS) - 1) << RESIDUAL_BITS_SHIFT;
 
-    // Total number of bits required to hold all residual bits from, including
-    // the public vin and vout values (each 64 bits long). Denoted RSDBLEN in
-    // Zeth specifications.
-    uint256 internal constant RESIDUAL_BITS_LENGTH =
-        2 * PUBLIC_VALUE_BITS + NUM_RESIDUAL_BITS * NUM_HASH_DIGESTS;
-
     constructor(
         uint256 mk_depth,
         address token,
