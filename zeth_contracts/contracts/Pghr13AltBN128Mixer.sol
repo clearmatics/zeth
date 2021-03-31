@@ -89,7 +89,8 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         // size n.
         Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
         for (uint256 i = 0; i < inputs.length; i++) {
-            vk_x = Pairing.addG1(vk_x, Pairing.scalarMulG1(vk.IC[i + 1], inputs[i]));
+            vk_x = Pairing.addG1(vk_x,
+                Pairing.scalarMulG1(vk.IC[i + 1], inputs[i]));
         }
         vk_x = Pairing.addG1(vk_x, vk.IC[0]);
 
@@ -122,7 +123,8 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         bool pairing_check = Pairing.pairingProd3(
             proof.K,
             vk.gamma,
-            Pairing.negateG1(Pairing.addG1(vk_x, Pairing.addG1(proof.A, proof.C))),
+            Pairing.negateG1(Pairing.addG1(vk_x,
+                Pairing.addG1(proof.A, proof.C))),
             vk.gammaBeta2,
             Pairing.negateG1(vk.gammaBeta1),
             proof.B);

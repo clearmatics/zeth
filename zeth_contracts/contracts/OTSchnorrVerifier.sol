@@ -36,9 +36,11 @@ library OTSchnorrVerifier {
         //   Pairing.G1Point memory Y = Pairing.G1Point(vk[2], vk[3]);
         //
         //   // S = g^{sigma}
-        //   Pairing.G1Point memory S = Pairing.scalarMulG1(Pairing.genG1(), sigma);
+        //   Pairing.G1Point memory S = Pairing.scalarMulG1(
+        //                                  Pairing.genG1(), sigma);
         //   // S_comp = g^{y + xh}
-        //   Pairing.G1Point memory S_comp = Pairing.addG1(Y, Pairing.scalarMulG1(X, h));
+        //   Pairing.G1Point memory S_comp = Pairing.addG1(Y,
+        //                                       Pairing.scalarMulG1(X, h));
         //
         //   // Check that g^{sigma} == g^{y + xh}
         //   return (S.X == S_comp.X && S.Y == S_comp.Y);
