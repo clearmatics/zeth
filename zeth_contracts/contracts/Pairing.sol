@@ -47,7 +47,11 @@ library Pairing {
     }
 
     // Return the negation of p, i.e. p.add(p.negate()) should be zero.
-    function negateG1(G1Point memory p) internal pure returns (G1Point memory) {
+    function negateG1(G1Point memory p)
+        internal
+        pure
+        returns (G1Point memory)
+    {
         // The prime q in the base field F_q for G1
         // solhint-disable-next-line
         uint256 q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
