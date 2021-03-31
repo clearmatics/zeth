@@ -45,6 +45,7 @@ contract MerkleTreeMiMC7_test is BaseMerkleTree
     /// Use MiMC7 as the Merkle tree hash function.
     function hash(bytes32 left, bytes32 right)
         internal
+        pure
         override
         returns(bytes32)
     {
