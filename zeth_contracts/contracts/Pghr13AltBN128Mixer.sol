@@ -90,9 +90,9 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         // size n.
         Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
         for (uint256 i = 0; i < inputs.length; i++) {
-            vk_x = Pairing.add(vk_x, Pairing.mul(vk.IC[i + 1], inputs[i]));
+            vk_x = Pairing.addG1(vk_x, Pairing.scalarMulG1(vk.IC[i + 1], inputs[i]));
         }
-        vk_x = Pairing.add(vk_x, vk.IC[0]);
+        vk_x = Pairing.addG1(vk_x, vk.IC[0]);
 
         // 2. Check the validity of knowledge commitments for A, B, C
         //   e(π_A, vk_A) = e(π′A, P2), e(vk_B, π_B)
@@ -100,19 +100,19 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         //                = e(π′_C, P2),
         if (!Pairing.pairingProd2(
             proof.A, vk.A,
-            Pairing.negate(proof.A_p), Pairing.P2())
+            Pairing.negateG1(proof.A_p), Pairing.P2())
         ) {
             return 1;
         }
         if (!Pairing.pairingProd2(
             vk.B, proof.B,
-            Pairing.negate(proof.B_p), Pairing.P2())
+            Pairing.negateG1(proof.B_p), Pairing.P2())
         ) {
             return 2;
         }
         if (!Pairing.pairingProd2(
             proof.C, vk.C,
-            Pairing.negate(proof.C_p), Pairing.P2())
+            Pairing.negateG1(proof.C_p), Pairing.P2())
         ) {
             return 3;
         }
@@ -123,9 +123,9 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         bool pairing_check = Pairing.pairingProd3(
             proof.K,
             vk.gamma,
-            Pairing.negate(Pairing.add(vk_x, Pairing.add(proof.A, proof.C))),
+            Pairing.negateG1(Pairing.addG1(vk_x, Pairing.addG1(proof.A, proof.C))),
             vk.gammaBeta2,
-            Pairing.negate(vk.gammaBeta1),
+            Pairing.negateG1(vk.gammaBeta1),
             proof.B);
         if (!pairing_check) {
             return 4;
@@ -134,11 +134,11 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         // 4. Check QAP divisibility
         // e(vk_x + π_A, π_B) = e(π_H, vk_Z) · e(π_C, P2)
         pairing_check = Pairing.pairingProd3(
-            Pairing.add(vk_x, proof.A),
+            Pairing.addG1(vk_x, proof.A),
             proof.B,
-            Pairing.negate(proof.H),
+            Pairing.negateG1(proof.H),
             vk.Z,
-            Pairing.negate(proof.C),
+            Pairing.negateG1(proof.C),
             Pairing.P2());
         if (!pairing_check) {
             return 5;

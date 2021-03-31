@@ -47,7 +47,7 @@ library Pairing {
     }
 
     // Return the negation of p, i.e. p.add(p.negate()) should be zero.
-    function negate(G1Point memory p) internal pure returns (G1Point memory) {
+    function negateG1(G1Point memory p) internal pure returns (G1Point memory) {
         // The prime q in the base field F_q for G1
         // solhint-disable-next-line
         uint256 q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
@@ -57,7 +57,7 @@ library Pairing {
     }
 
     // Return the sum of two points of G1
-    function add(G1Point memory p1, G1Point memory p2)
+    function addG1(G1Point memory p1, G1Point memory p2)
         internal
         returns (G1Point memory r)
     {
@@ -82,7 +82,7 @@ library Pairing {
 
     // Return the product of a point on G1 and a scalar, i.e.
     // p == p.mul(1) and p.add(p) == p.mul(2) for all points p.
-    function mul(G1Point memory p, uint256 s)
+    function scalarMulG1(G1Point memory p, uint256 s)
         internal
         returns (G1Point memory r)
     {

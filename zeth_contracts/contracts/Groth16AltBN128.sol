@@ -71,7 +71,7 @@ library Groth16AltBN128
         //   Pairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
         //   for (uint256 i = 0; i < input.length; i++) {
         //       vk_x =
-        //           Pairing.add(vk_x, Pairing.mul(vk.ABC[i + 1], input[i]));
+        //           Pairing.addG1(vk_x, Pairing.scalarMulG1(vk.ABC[i + 1], input[i]));
         //   }
         //
         // The linear combination loop was the biggest cost center of the mixer
