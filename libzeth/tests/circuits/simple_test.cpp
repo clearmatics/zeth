@@ -72,8 +72,8 @@ template<typename ppT, typename snarkT> void test_simple_circuit_proof()
     if (!g_output_dir.empty()) {
         {
             boost::filesystem::path proving_key_path =
-                g_output_dir /
-                ("simple_proving_key_" + pp_name<ppT>() + ".bin");
+                g_output_dir / ("simple_proving_key_" + snarkT::name + "_" +
+                                pp_name<ppT>() + ".bin");
             std::ofstream out_s(proving_key_path.c_str());
             snarkT::proving_key_write_bytes(keypair.pk, out_s);
         }
@@ -85,11 +85,18 @@ template<typename ppT, typename snarkT> void test_simple_circuit_proof()
             snarkT::verification_key_write_bytes(keypair.vk, out_s);
         }
         {
-            boost::filesystem::path assignment_path =
-                g_output_dir / ("simple_assignment_" + pp_name<ppT>() + ".bin");
-            std::ofstream out_s(assignment_path.c_str());
-            r1cs_variable_assignment_write_bytes(
-                pb.full_variable_assignment(), out_s);
+            boost::filesystem::path primary_inputs_path =
+                g_output_dir /
+                ("simple_primary_input_" + pp_name<ppT>() + ".bin");
+            std::ofstream out_s(primary_inputs_path.c_str());
+            r1cs_variable_assignment_write_bytes(primary, out_s);
+        }
+        {
+            boost::filesystem::path proof_path =
+                g_output_dir / ("simple_proof_" + snarkT::name + "_" +
+                                pp_name<ppT>() + ".bin");
+            std::ofstream out_s(proof_path.c_str());
+            snarkT::proof_write_bytes(proof, out_s);
         }
     }
 }
