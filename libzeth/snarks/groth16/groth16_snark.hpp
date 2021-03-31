@@ -65,11 +65,17 @@ public:
     /// Write proof as json.
     static void proof_write_json(const proof &, std::ostream &);
 
-    /// Read a keypair from a stream.
-    static void keypair_read_bytes(keypair &, std::istream &);
+    /// Write proof as bytes
+    static void proof_write_bytes(const proof &, std::ostream &);
+
+    /// Read proof as bytes
+    static void proof_read_bytes(proof &, std::istream &);
 
     /// Write a keypair as bytes
     static void keypair_write_bytes(const keypair &, std::ostream &);
+
+    /// Read a keypair from a stream.
+    static void keypair_read_bytes(keypair &, std::istream &);
 };
 
 /// Check well-formedness of a proving key

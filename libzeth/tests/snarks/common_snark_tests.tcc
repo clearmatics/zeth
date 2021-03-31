@@ -7,6 +7,7 @@
 
 #include "libzeth/tests/circuits/simple_test.hpp"
 
+#include <exception>
 #include <iostream>
 #include <sstream>
 
@@ -29,7 +30,35 @@ typename snarkT::proving_key dummy_proving_key()
     libzeth::tests::simple_circuit(pb);
 
     typename snarkT::keypair keypair = snarkT::generate_setup(pb);
+
     return keypair.pk;
+}
+
+template<typename ppT, typename snarkT> typename snarkT::proof dummy_proof()
+{
+    using Field = libff::Fr<ppT>;
+    libsnark::protoboard<Field> pb;
+    libzeth::tests::simple_circuit(pb);
+    libzeth::tests::simple_circuit(pb);
+    libzeth::tests::simple_circuit(pb);
+    libzeth::tests::simple_circuit(pb);
+
+    libsnark::r1cs_primary_input<Field> primary;
+    libsnark::r1cs_auxiliary_input<Field> auxiliary;
+    libzeth::tests::simple_circuit_assignment(Field("10"), primary, auxiliary);
+    libzeth::tests::simple_circuit_assignment(
+        Field("12"), auxiliary, auxiliary);
+    libzeth::tests::simple_circuit_assignment(
+        Field("14"), auxiliary, auxiliary);
+    libzeth::tests::simple_circuit_assignment(
+        Field("16"), auxiliary, auxiliary);
+
+    if (!pb.get_constraint_system().is_satisfied(primary, auxiliary)) {
+        throw std::runtime_error("constraint system not satisfied");
+    }
+
+    const typename snarkT::keypair keypair = snarkT::generate_setup(pb);
+    return snarkT::generate_proof(keypair.pk, primary, auxiliary);
 }
 
 template<typename ppT, typename snarkT>
@@ -71,6 +100,25 @@ template<typename ppT, typename snarkT> bool proving_key_read_write_bytes_test()
     }
 
     return pk == pk2;
+}
+
+template<typename ppT, typename snarkT> bool proof_read_write_bytes_test()
+{
+    const typename snarkT::proof proof = dummy_proof<ppT, snarkT>();
+
+    std::string buffer = ([&proof]() {
+        std::stringstream ss;
+        snarkT::proof_write_bytes(proof, ss);
+        return ss.str();
+    })();
+
+    typename snarkT::proof proof2;
+    {
+        std::stringstream ss(buffer);
+        snarkT::proof_read_bytes(proof2, ss);
+    }
+
+    return proof == proof2;
 }
 
 } // namespace tests

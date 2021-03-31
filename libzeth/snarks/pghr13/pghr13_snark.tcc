@@ -123,6 +123,28 @@ void pghr13_snark<ppT>::proof_write_json(
 }
 
 template<typename ppT>
+void pghr13_snark<ppT>::proof_write_bytes(
+    const typename pghr13_snark<ppT>::proof &proof, std::ostream &out_s)
+{
+    knowledge_commitment_write_bytes(proof.g_A, out_s);
+    knowledge_commitment_write_bytes(proof.g_B, out_s);
+    knowledge_commitment_write_bytes(proof.g_C, out_s);
+    group_element_write_bytes(proof.g_H, out_s);
+    group_element_write_bytes(proof.g_K, out_s);
+}
+
+template<typename ppT>
+void pghr13_snark<ppT>::proof_read_bytes(
+    typename pghr13_snark<ppT>::proof &proof, std::istream &in_s)
+{
+    knowledge_commitment_read_bytes(proof.g_A, in_s);
+    knowledge_commitment_read_bytes(proof.g_B, in_s);
+    knowledge_commitment_read_bytes(proof.g_C, in_s);
+    group_element_read_bytes(proof.g_H, in_s);
+    group_element_read_bytes(proof.g_K, in_s);
+}
+
+template<typename ppT>
 void pghr13_snark<ppT>::keypair_write_bytes(
     const typename pghr13_snark<ppT>::keypair &keypair, std::ostream &os)
 {

@@ -80,6 +80,14 @@ template<typename T, void(WriterFn)(const T &, std::ostream &)>
 void accumulation_vector_write_bytes(
     const libsnark::accumulation_vector<T> &acc_vector, std::ostream &out_s);
 
+template<typename kcT>
+void knowledge_commitment_read_bytes(
+    kcT &knowledge_commitment, std::istream &in_s);
+
+template<typename kcT>
+void knowledge_commitment_write_bytes(
+    const kcT &knowledge_commitment, std::ostream &out_s);
+
 template<typename kcvectorT>
 void knowledge_commitment_vector_read_bytes(
     kcvectorT &knowledge_commitment, std::istream &in_s);

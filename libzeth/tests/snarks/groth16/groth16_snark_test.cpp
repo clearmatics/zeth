@@ -192,6 +192,19 @@ TEST(Groth16SnarkTest, TestProvingKeyReadWriteBytes)
     ASSERT_TRUE(test_bls12_377);
 }
 
+TEST(Groth16SnarkTest, TestProofReadWriteBytes)
+{
+    const bool test_alt_bn128 = libzeth::tests::proof_read_write_bytes_test<
+        libff::alt_bn128_pp,
+        libzeth::groth16_snark<libff::alt_bn128_pp>>();
+    ASSERT_TRUE(test_alt_bn128);
+    const bool test_bls12_377 =
+        libzeth::tests::proving_key_read_write_bytes_test<
+            libff::bls12_377_pp,
+            libzeth::groth16_snark<libff::bls12_377_pp>>();
+    ASSERT_TRUE(test_bls12_377);
+}
+
 } // namespace
 
 int main(int argc, char **argv)

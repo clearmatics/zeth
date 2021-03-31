@@ -148,6 +148,33 @@ void groth16_snark<ppT>::proving_key_read_bytes(
 }
 
 template<typename ppT>
+void groth16_snark<ppT>::proof_write_json(
+    const typename groth16_snark<ppT>::proof &proof, std::ostream &out_s)
+{
+    out_s << "{\n  \"a\": " << group_element_to_json(proof.g_A)
+          << ",\n  \"b\": " << group_element_to_json(proof.g_B)
+          << ",\n  \"c\": " << group_element_to_json(proof.g_C) << "\n}";
+}
+
+template<typename ppT>
+void groth16_snark<ppT>::proof_write_bytes(
+    const typename groth16_snark<ppT>::proof &proof, std::ostream &out_s)
+{
+    group_element_write_bytes(proof.g_A, out_s);
+    group_element_write_bytes(proof.g_B, out_s);
+    group_element_write_bytes(proof.g_C, out_s);
+}
+
+template<typename ppT>
+void groth16_snark<ppT>::proof_read_bytes(
+    typename groth16_snark<ppT>::proof &proof, std::istream &in_s)
+{
+    group_element_read_bytes(proof.g_A, in_s);
+    group_element_read_bytes(proof.g_B, in_s);
+    group_element_read_bytes(proof.g_C, in_s);
+}
+
+template<typename ppT>
 void groth16_snark<ppT>::keypair_write_bytes(
     const typename groth16_snark<ppT>::keypair &keypair, std::ostream &out_s)
 {
@@ -161,15 +188,6 @@ void groth16_snark<ppT>::keypair_read_bytes(
 {
     proving_key_read_bytes(keypair.pk, in_s);
     verification_key_read_bytes(keypair.vk, in_s);
-}
-
-template<typename ppT>
-void groth16_snark<ppT>::proof_write_json(
-    const typename groth16_snark<ppT>::proof &proof, std::ostream &out_s)
-{
-    out_s << "{\n  \"a\": " << group_element_to_json(proof.g_A)
-          << ",\n  \"b\": " << group_element_to_json(proof.g_B)
-          << ",\n  \"c\": " << group_element_to_json(proof.g_C) << "\n}";
 }
 
 template<typename ppT>
