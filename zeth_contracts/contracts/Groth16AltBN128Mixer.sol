@@ -22,9 +22,9 @@ contract Groth16AltBN128Mixer is AltBN128MixerBase
     {
     }
 
-    function verify_zk_proof(
+    function verifyZkProof(
         uint256[] memory proof,
-        uint256 public_inputs_hash
+        uint256 publicInputsHash
     )
         internal
         override
@@ -33,7 +33,7 @@ contract Groth16AltBN128Mixer is AltBN128MixerBase
         // Convert the single primary input to a dynamic array
         // expected by the verifier.
         uint256[] memory input_values = new uint256[](1);
-        input_values[0] = public_inputs_hash;
+        input_values[0] = publicInputsHash;
         return Groth16AltBN128.verify(_vk, proof, input_values);
     }
 }

@@ -29,12 +29,12 @@ library Pairing {
     }
 
     // Return the generator of G1
-    function P1() internal pure returns (G1Point memory) {
+    function genG1() internal pure returns (G1Point memory) {
         return G1Point(1, 2);
     }
 
     // Return the generator of G2
-    function P2() internal pure returns (G2Point memory) {
+    function genG2() internal pure returns (G2Point memory) {
         return G2Point(
             // solhint-disable-next-line
             11559732032986387107991004021392285783925812861821192530917403151452391805634,
@@ -178,7 +178,8 @@ library Pairing {
         G1Point memory a1, G2Point memory a2,
         G1Point memory b1, G2Point memory b2)
         internal
-        returns (bool) {
+        returns (bool)
+    {
         G1Point[] memory p1 = new G1Point[](2);
         G2Point[] memory p2 = new G2Point[](2);
         p1[0] = a1;
@@ -194,7 +195,8 @@ library Pairing {
         G1Point memory b1, G2Point memory b2,
         G1Point memory c1, G2Point memory c2)
         internal
-        returns (bool) {
+        returns (bool)
+    {
         G1Point[] memory p1 = new G1Point[](3);
         G2Point[] memory p2 = new G2Point[](3);
         p1[0] = a1;
@@ -213,7 +215,8 @@ library Pairing {
         G1Point memory c1, G2Point memory c2,
         G1Point memory d1, G2Point memory d2)
         internal
-        returns (bool) {
+        returns (bool)
+    {
         G1Point[] memory p1 = new G1Point[](4);
         G2Point[] memory p2 = new G2Point[](4);
         p1[0] = a1;
