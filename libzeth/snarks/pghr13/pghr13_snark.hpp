@@ -28,10 +28,16 @@ public:
     static keypair generate_setup(
         const libsnark::protoboard<libff::Fr<ppT>> &pb);
 
-    /// Generate the proof
+    /// Generate the proof (from the values set to the protoboard)
     static proof generate_proof(
         const libsnark::protoboard<libff::Fr<ppT>> &pb,
         const proving_key &proving_key);
+
+    /// Generate the proof (from given primary and auxiliary values)
+    static proof generate_proof(
+        const proving_key &proving_key,
+        const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_input,
+        const libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary_input);
 
     /// Verify proof
     static bool verify(

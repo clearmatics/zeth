@@ -26,14 +26,16 @@ typename pghr13_snark<ppT>::proof pghr13_snark<ppT>::generate_proof(
     const libsnark::protoboard<libff::Fr<ppT>> &pb,
     const pghr13_snark<ppT>::proving_key &proving_key)
 {
-    // See:
-    // https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp#L81
-    // For the definition of r1cs_primary_input and r1cs_auxiliary_input
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input =
-        pb.primary_input();
-    libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary_input =
-        pb.auxiliary_input();
+    return generate_proof(
+        proving_key, pb.primary_input(), pb.auxiliary_input());
+}
 
+template<typename ppT>
+typename pghr13_snark<ppT>::proof pghr13_snark<ppT>::generate_proof(
+    const pghr13_snark<ppT>::proving_key &proving_key,
+    const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_input,
+    const libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary_input)
+{
     // Generate proof from public input, auxiliary input (private/secret data),
     // and proving key
     return libsnark::r1cs_ppzksnark_prover(

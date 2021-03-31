@@ -29,11 +29,16 @@ typename groth16_snark<ppT>::proof groth16_snark<ppT>::generate_proof(
     const libsnark::protoboard<libff::Fr<ppT>> &pb,
     const typename groth16_snark<ppT>::proving_key &proving_key)
 {
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input =
-        pb.primary_input();
-    libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary_input =
-        pb.auxiliary_input();
+    return generate_proof(
+        proving_key, pb.primary_input(), pb.auxiliary_input());
+}
 
+template<typename ppT>
+typename groth16_snark<ppT>::proof groth16_snark<ppT>::generate_proof(
+    const proving_key &proving_key,
+    const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_input,
+    const libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary_input)
+{
     // Generate proof from public input, auxiliary input and proving key.
     // For now, force a pow2 domain, in case the key came from the MPC.
     return libsnark::r1cs_gg_ppzksnark_prover(
