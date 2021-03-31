@@ -94,24 +94,24 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         vk_x = Pairing.addG1(vk_x, vk.IC[0]);
 
         // 2. Check the validity of knowledge commitments for A, B, C
-        //   e(π_A, vk_A) = e(π′A, P2), e(vk_B, π_B)
-        //                = e(π′_B, P2), e(vk_C, π_C)
-        //                = e(π′_C, P2),
+        //   e(π_A, vk_A) = e(π′A, genG2), e(vk_B, π_B)
+        //                = e(π′_B, genG2), e(vk_C, π_C)
+        //                = e(π′_C, genG2),
         if (!Pairing.pairingProd2(
             proof.A, vk.A,
-            Pairing.negateG1(proof.A_p), Pairing.P2())
+            Pairing.negateG1(proof.A_p), Pairing.genG2())
         ) {
             return 1;
         }
         if (!Pairing.pairingProd2(
             vk.B, proof.B,
-            Pairing.negateG1(proof.B_p), Pairing.P2())
+            Pairing.negateG1(proof.B_p), Pairing.genG2())
         ) {
             return 2;
         }
         if (!Pairing.pairingProd2(
             proof.C, vk.C,
-            Pairing.negateG1(proof.C_p), Pairing.P2())
+            Pairing.negateG1(proof.C_p), Pairing.genG2())
         ) {
             return 3;
         }
@@ -131,14 +131,14 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         }
 
         // 4. Check QAP divisibility
-        // e(vk_x + π_A, π_B) = e(π_H, vk_Z) · e(π_C, P2)
+        // e(vk_x + π_A, π_B) = e(π_H, vk_Z) · e(π_C, genG2)
         pairing_check = Pairing.pairingProd3(
             Pairing.addG1(vk_x, proof.A),
             proof.B,
             Pairing.negateG1(proof.H),
             vk.Z,
             Pairing.negateG1(proof.C),
-            Pairing.P2());
+            Pairing.genG2());
         if (!pairing_check) {
             return 5;
         }
@@ -146,9 +146,9 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         return 0;
     }
 
-    function verify_zk_proof(
-        uint256[] memory proof_data,
-        uint256 public_inputs_hash
+    function verifyZkProof(
+        uint256[] memory proofData,
+        uint256 publicInputsHash
     )
         internal
         override
@@ -160,23 +160,23 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
 
         // Slightly redundant
         Proof memory proof;
-        proof.A = Pairing.G1Point(proof_data[0], proof_data[1]);
-        proof.A_p = Pairing.G1Point(proof_data[2], proof_data[3]);
+        proof.A = Pairing.G1Point(proofData[0], proofData[1]);
+        proof.A_p = Pairing.G1Point(proofData[2], proofData[3]);
         proof.B = Pairing.G2Point(
-            proof_data[4], proof_data[5], proof_data[6], proof_data[7]);
-        proof.B_p = Pairing.G1Point(proof_data[8], proof_data[9]);
-        proof.C = Pairing.G1Point(proof_data[10], proof_data[11]);
-        proof.C_p = Pairing.G1Point(proof_data[12], proof_data[13]);
-        proof.H = Pairing.G1Point(proof_data[14], proof_data[15]);
-        proof.K = Pairing.G1Point(proof_data[16], proof_data[17]);
+            proofData[4], proofData[5], proofData[6], proofData[7]);
+        proof.B_p = Pairing.G1Point(proofData[8], proofData[9]);
+        proof.C = Pairing.G1Point(proofData[10], proofData[11]);
+        proof.C_p = Pairing.G1Point(proofData[12], proofData[13]);
+        proof.H = Pairing.G1Point(proofData[14], proofData[15]);
+        proof.K = Pairing.G1Point(proofData[16], proofData[17]);
 
         require(
-            public_inputs_hash < r,
+            publicInputsHash < r,
             "Input is not is scalar field"
         );
 
         uint256[] memory inputs = new uint256[](1);
-        inputs[0] = public_inputs_hash;
+        inputs[0] = publicInputsHash;
         uint256 verification_result = verify(inputs, proof);
         if (verification_result != 0) {
             return false;

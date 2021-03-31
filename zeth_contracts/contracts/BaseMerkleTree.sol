@@ -34,7 +34,7 @@ abstract contract BaseMerkleTree
     bytes32[MAX_NUM_NODES] internal nodes;
 
     // Number of leaves populated in `nodes`.
-    uint256 internal num_leaves;
+    uint256 internal numLeaves;
 
     /// Constructor
     constructor(uint256 treeDepth) {
@@ -50,15 +50,15 @@ abstract contract BaseMerkleTree
         // If this require fails => the merkle tree is full, we can't append
         // leaves anymore.
         require(
-            num_leaves < MAX_NUM_LEAVES,
+            numLeaves < MAX_NUM_LEAVES,
             "Merkle tree full: Cannot append anymore"
         );
 
         // Address of the next leaf is the current number of leaves (before
         // insertion).  Compute the next index in the full set of nodes, and
         // write.
-        uint256 next_address = num_leaves;
-        ++num_leaves;
+        uint256 next_address = numLeaves;
+        ++numLeaves;
         uint256 next_entry_idx = (MAX_NUM_LEAVES - 1) + next_address;
         nodes[next_entry_idx] = commitment;
     }
@@ -70,13 +70,13 @@ abstract contract BaseMerkleTree
         virtual
         returns (bytes32);
 
-    function recomputeRoot(uint num_new_leaves) internal returns (bytes32) {
-        // Assume `num_new_leaves` have been written into the leaf slots.
+    function recomputeRoot(uint numNewLeaves) internal returns (bytes32) {
+        // Assume `numNewLeaves` have been written into the leaf slots.
         // Update any affected nodes in the tree, up to the root, using the
         // default values for any missing nodes.
 
-        uint256 end_idx = num_leaves;
-        uint256 start_idx = num_leaves - num_new_leaves;
+        uint256 end_idx = numLeaves;
+        uint256 start_idx = numLeaves - numNewLeaves;
         uint256 layer_size = MAX_NUM_LEAVES;
 
         while (layer_size > 1) {
@@ -104,8 +104,8 @@ abstract contract BaseMerkleTree
     }
 
     /// Recompute nodes in the parent layer that are affected by entries
-    /// [child_start_idx, child_end_idx[ in the child layer.  If
-    /// `child_end_idx` is required in the calculation, the final entry of
+    /// [childStartIdx, childEndIdx[ in the child layer.  If
+    /// `childEndIdx` is required in the calculation, the final entry of
     /// the child layer is used (since this contains the default entry for
     /// the layer if the tree is not full).
     ///
@@ -114,19 +114,19 @@ abstract contract BaseMerkleTree
     ///          / \     / \     / \     / \     / \     / \
     /// Child:  ?   ?   ?   ?   A   B   C   D   E   ?   ?   0
     ///                         ^                   ^
-    ///                child_start_idx         child_end_idx
+    ///                childStartIdx         childEndIdx
     ///
     /// Returns the start and end indices (within the parent layer) of touched
     /// parent nodes.
     function recomputeParentLayer(
-        uint256 child_layer_size,
-        uint256 child_start_idx,
-        uint256 child_end_idx
+        uint256 childLayerSize,
+        uint256 childStartIdx,
+        uint256 childEndIdx
     )
         private
         returns (uint256, uint256)
     {
-        uint256 child_layer_start = child_layer_size - 1;
+        uint256 child_layer_start = childLayerSize - 1;
 
         // Start at the right and iterate left, so we only execute the
         // default_value logic once.  child_left_idx_rend (reverse-end) is the
@@ -134,20 +134,20 @@ abstract contract BaseMerkleTree
         // parent node hash.
 
         uint256 child_left_idx_rend =
-            child_layer_start + (child_start_idx & MASK_LS_BIT);
+            child_layer_start + (childStartIdx & MASK_LS_BIT);
 
-        // If child_end_idx is odd, it is the RIGHT of a computation we need
+        // If childEndIdx is odd, it is the RIGHT of a computation we need
         // to make. Do the computation using the default value, and move to
         // the next pair (on the left).
         // Otherwise, we have a fully populated pair.
 
         uint256 child_left_idx;
-        if ((child_end_idx & 1) != 0) {
-            child_left_idx = child_layer_start + child_end_idx - 1;
+        if ((childEndIdx & 1) != 0) {
+            child_left_idx = child_layer_start + childEndIdx - 1;
             nodes[(child_left_idx - 1) / 2] =
                 hash(nodes[child_left_idx], nodes[2 * child_layer_start]);
         } else {
-            child_left_idx = child_layer_start + child_end_idx;
+            child_left_idx = child_layer_start + childEndIdx;
         }
 
         // At this stage, pairs are all populated. Compute until we reach
@@ -159,6 +159,6 @@ abstract contract BaseMerkleTree
                 hash(nodes[child_left_idx], nodes[child_left_idx + 1]);
         }
 
-        return (child_start_idx / 2, (child_end_idx + 1) / 2);
+        return (childStartIdx / 2, (childEndIdx + 1) / 2);
     }
 }

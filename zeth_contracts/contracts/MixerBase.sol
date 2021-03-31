@@ -27,12 +27,12 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     address private _token;
 
     // Contract that is allowed to call the `dispatch` method, passing in the
-    // correct _vk_hash. (Disable the dispatch method by setting
-    // _permitted_dispatcher = 0, in which case _vk_hash is unused.)
-    address private _permitted_dispatcher;
+    // correct _vkHash. (Disable the dispatch method by setting
+    // _permittedDispatcher = 0, in which case _vkHash is unused.)
+    address private _permittedDispatcher;
 
-    // The acceptable value of _vk_hash, passed in by a trusted dispatcher.
-    uint256[2] private _vk_hash;
+    // The acceptable value of _vkHash, passed in by a trusted dispatcher.
+    uint256[2] private _vkHash;
 
     // JoinSplit description, gives the number of inputs (nullifiers) and
     // outputs (commitments/ciphertexts) to receive and process.
@@ -104,8 +104,8 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         _roots[initialRoot] = true;
         _vk = vk;
         _token = token_address;
-        _permitted_dispatcher = permitted_dispatcher;
-        _vk_hash = vk_hash;
+        _permittedDispatcher = permitted_dispatcher;
+        _vkHash = vk_hash;
     }
 
     /// Function allowing external users of the contract to retrieve some of
@@ -116,7 +116,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     ///
     /// Returns the number of input notes, the number of output notes and the
     /// total number of primary inputs.
-    function get_constants()
+    function getConstants()
         external
         pure
         returns (
@@ -135,21 +135,21 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     /// IZecaleApplication interface, see
     /// https://github.com/clearmatics/zecale
     function dispatch(
-        uint256[2] memory nested_vk_hash,
-        uint256[] memory nested_inputs,
-        bytes memory nested_parameters
+        uint256[2] memory nestedVkHash,
+        uint256[] memory nestedInputs,
+        bytes memory nestedParameters
     )
         public
         payable
     {
         // Sanity / permission checkcheck
         require(
-            msg.sender == _permitted_dispatcher, "dispatcher not permitted");
+            msg.sender == _permittedDispatcher, "dispatcher not permitted");
         require(
-            nested_vk_hash[0] == _vk_hash[0] &&
-            nested_vk_hash[1] == _vk_hash[1],
-            "invalid nested_vk_hash");
-        require(nested_inputs.length == 1, "invalid num nested inputs");
+            nestedVkHash[0] == _vkHash[0] &&
+            nestedVkHash[1] == _vkHash[1],
+            "invalid nestedVkHash");
+        require(nestedInputs.length == 1, "invalid num nested inputs");
 
         // Decode the nested parameters
         // TODO: convert ciphertext array without copying
@@ -157,7 +157,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
          uint256 sigma,
          uint256[] memory public_data,
          bytes[] memory decoded_ciphertexts) = abi.decode(
-             nested_parameters, (uint256[4], uint256, uint256[], bytes[]));
+             nestedParameters, (uint256[4], uint256, uint256[], bytes[]));
         require(
             public_data.length == NUM_INPUTS,
             "invalid number of public inputs in decoded data.");
@@ -180,18 +180,18 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // Ensure that the primary input to the zk-proof (validated and passed
         // in by the dispatcher), matches the hash of the public inputs.
         require(
-            nested_inputs[0] == hash_public_proof_data(inputs),
+            nestedInputs[0] == hashPublicProofData(inputs),
             "hash of public data does not match primary input");
 
         // 1. Check the root and the nullifiers
         bytes32[JSIN] memory nullifiers;
-        check_mkroot_nullifiers_hsig_append_nullifiers_state(
+        checkMkrootNullifiersHsigAppendNullifiersState(
             vk, inputs, nullifiers);
 
         // 2.a Verify the signature on the hash of data_to_be_signed.
-        // hash_to_be_signed is expected to have been created without the proof
+        // hashToBeSigned is expected to have been created without the proof
         // data.
-        bytes32 hash_to_be_signed = sha256(
+        bytes32 hashToBeSigned = sha256(
             abi.encodePacked(
                 uint256(uint160(msg.sender)),
                 ciphertexts[0],
@@ -202,11 +202,11 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
 
         require(
             OTSchnorrVerifier.verify(
-                vk[0], vk[1], vk[2], vk[3], sigma, hash_to_be_signed),
+                vk[0], vk[1], vk[2], vk[3], sigma, hashToBeSigned),
             "Invalid signature in dispatch"
         );
 
-        mix_append_commitments_emit_and_handle_public_values(
+        mixAppendCommitmentsEmitAndHandlePublicValues(
             inputs, ciphertexts, nullifiers);
     }
 
@@ -218,7 +218,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         uint256[] memory proof,
         uint256[4] memory vk,
         uint256 sigma,
-        uint256[NUM_INPUTS] memory public_inputs,
+        uint256[NUM_INPUTS] memory publicInputs,
         bytes[JSOUT] memory ciphertexts
     )
         public
@@ -226,11 +226,11 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     {
         // 1. Check the root and the nullifiers
         bytes32[JSIN] memory nullifiers;
-        check_mkroot_nullifiers_hsig_append_nullifiers_state(
-            vk, public_inputs, nullifiers);
+        checkMkrootNullifiersHsigAppendNullifiersState(
+            vk, publicInputs, nullifiers);
 
         // 2.a Verify the signature on the hash of data_to_be_signed
-        bytes32 hash_to_be_signed = sha256(
+        bytes32 hashToBeSigned = sha256(
             abi.encodePacked(
                 uint256(uint160(msg.sender)),
                 // Unfortunately, we have to unroll this for now. We could
@@ -239,27 +239,27 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
                 ciphertexts[0],
                 ciphertexts[1],
                 proof,
-                public_inputs
+                publicInputs
             )
         );
         require(
             OTSchnorrVerifier.verify(
-                vk[0], vk[1], vk[2], vk[3], sigma, hash_to_be_signed),
+                vk[0], vk[1], vk[2], vk[3], sigma, hashToBeSigned),
             "Invalid signature: Unable to verify the signature correctly"
         );
 
         // 2.b Verify the proof
-        uint256 public_inputs_hash = hash_public_proof_data(public_inputs);
+        uint256 publicInputsHash = hashPublicProofData(publicInputs);
         require(
-            verify_zk_proof(proof, public_inputs_hash),
+            verifyZkProof(proof, publicInputsHash),
             "Invalid proof: Unable to verify the proof correctly"
         );
 
-        mix_append_commitments_emit_and_handle_public_values(
-            public_inputs, ciphertexts, nullifiers);
+        mixAppendCommitmentsEmitAndHandlePublicValues(
+            publicInputs, ciphertexts, nullifiers);
     }
 
-    function mix_append_commitments_emit_and_handle_public_values(
+    function mixAppendCommitmentsEmitAndHandlePublicValues(
         uint256[NUM_INPUTS] memory inputs,
         bytes[JSOUT] memory ciphertexts,
         bytes32[JSIN] memory nullifiers
@@ -268,11 +268,11 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     {
         // 3. Append the commitments to the tree
         bytes32[JSOUT] memory commitments;
-        assemble_commitments_and_append_to_state(inputs, commitments);
+        assembleCommitmentsAndAppendToState(inputs, commitments);
 
         // 4. Add the new root to the list of existing roots
         bytes32 new_merkle_root = recomputeRoot(JSOUT);
-        add_merkle_root(new_merkle_root);
+        addMerkleRoot(new_merkle_root);
 
         // 5. Emit the all Mix data
         emit LogMix(
@@ -284,10 +284,10 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
 
         // 6. Get the public values in Wei and modify the state depending on
         // their values
-        process_public_values(inputs);
+        processPublicValues(inputs);
     }
 
-    function hash_public_proof_data(uint256[NUM_INPUTS] memory public_data)
+    function hashPublicProofData(uint256[NUM_INPUTS] memory public_data)
         internal
         returns (uint256)
     {
@@ -306,7 +306,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
 
     /// This function is used to extract the public values (vpub_in, vpub_out)
     /// from the residual field element(S)
-    function assemble_public_values(uint256 residual_bits)
+    function assemblePublicValues(uint256 residualBits)
         internal
         pure
         returns (
@@ -315,16 +315,16 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         )
     {
         // vpub_out and vpub_in occupy the first and second PUBLIC_VALUE_BITS
-        vpub_out = (residual_bits & PUBLIC_VALUE_MASK) * PUBLIC_UNIT_VALUE_WEI;
-        vpub_in = ((residual_bits >> PUBLIC_VALUE_BITS) & PUBLIC_VALUE_MASK)
+        vpub_out = (residualBits & PUBLIC_VALUE_MASK) * PUBLIC_UNIT_VALUE_WEI;
+        vpub_in = ((residualBits >> PUBLIC_VALUE_BITS) & PUBLIC_VALUE_MASK)
             * PUBLIC_UNIT_VALUE_WEI;
     }
 
-    /// This function is used to reassemble hsig given the primary_inputs.
+    /// This function is used to reassemble hsig given the primaryInputs.
     /// To do so, we extract the remaining bits of hsig from the residual field
     /// element(S) and combine them with the hsig field element
-    function assemble_hsig(
-        uint256[NUM_INPUTS] memory primary_inputs
+    function assembleHsig(
+        uint256[NUM_INPUTS] memory primaryInputs
     )
         internal
         pure
@@ -332,20 +332,20 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     {
         // The h_sig residual bits are after the JSIN authentication tags and
         // JSIN nullifier bits.
-        return extract_bytes32(
-            primary_inputs[1 + JSIN + JSOUT],
-            primary_inputs[1 + JSOUT + NUM_HASH_DIGESTS],
+        return extractBytes32(
+            primaryInputs[1 + JSIN + JSOUT],
+            primaryInputs[1 + JSOUT + NUM_HASH_DIGESTS],
             2 * JSIN
         );
     }
 
     /// This function is used to reassemble the nullifiers given the nullifier
-    /// index [0, JSIN[ and the primary_inputs To do so, we extract the
+    /// index [0, JSIN[ and the primaryInputs To do so, we extract the
     /// remaining bits of the nullifier from the residual field element(S) and
     /// combine them with the nullifier field element
-    function assemble_nullifier(
+    function assembleNullifier(
         uint256 index,
-        uint256[NUM_INPUTS] memory primary_inputs
+        uint256[NUM_INPUTS] memory primaryInputs
     )
         internal
         pure
@@ -355,9 +355,9 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         require(index < JSIN, "nullifier index overflow");
 
         // Nullifier residual bits follow the JSIN message authentication tags.
-        return extract_bytes32(
-            primary_inputs[1 + JSOUT + index],
-            primary_inputs[1 + JSOUT + NUM_HASH_DIGESTS],
+        return extractBytes32(
+            primaryInputs[1 + JSOUT + index],
+            primaryInputs[1 + JSOUT + NUM_HASH_DIGESTS],
             JSIN + index
         );
     }
@@ -396,10 +396,10 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     // Utility function to extract a full uint256 from a field element and the
     // n-th set of residual bits from `residual`. This function is
     // curve-dependent.
-    function extract_bytes32(
-        uint256 field_element,
+    function extractBytes32(
+        uint256 fieldElement,
         uint256 residual,
-        uint256 residual_bits_set_idx
+        uint256 residualBitsSetIdx
     )
         internal
         pure
@@ -408,9 +408,9 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
 
     // Implementations must implement the verification algorithm of the
     // selected SNARK.
-    function verify_zk_proof(
+    function verifyZkProof(
         uint256[] memory proof,
-        uint256 public_inputs_hash
+        uint256 publicInputsHash
     )
         internal
         virtual
@@ -420,22 +420,22 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
     /// and nullifiers in the primary inputs (instance) and modifies the state
     /// of the mixer contract accordingly. (ie: Appends the commitments to the
     /// tree, appends the nullifiers to the list and so on).
-    function check_mkroot_nullifiers_hsig_append_nullifiers_state(
+    function checkMkrootNullifiersHsigAppendNullifiersState(
         uint256[4] memory vk,
-        uint256[NUM_INPUTS] memory primary_inputs,
+        uint256[NUM_INPUTS] memory primaryInputs,
         bytes32[JSIN] memory nfs)
         internal
     {
         // 1. We re-assemble the full root digest and check it is in the tree
         require(
-            _roots[bytes32(primary_inputs[0])],
+            _roots[bytes32(primaryInputs[0])],
             "Invalid root: This root doesn't exist"
         );
 
         // 2. We re-assemble the nullifiers (JSInputs) and check they were not
         // already seen.
         for (uint256 i = 0; i < JSIN; i++) {
-            bytes32 nullifier = assemble_nullifier(i, primary_inputs);
+            bytes32 nullifier = assembleNullifier(i, primaryInputs);
             require(
                 !_nullifiers[nullifier],
                 "Invalid nullifier: This nullifier has already been used"
@@ -449,7 +449,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         // they are equal (i.e. that h_sig re-assembled was correctly generated
         // from vk).
         bytes32 expected_hsig = sha256(abi.encodePacked(nfs, vk));
-        bytes32 hsig = assemble_hsig(primary_inputs);
+        bytes32 hsig = assembleHsig(primaryInputs);
         require(
             expected_hsig == hsig,
             "Invalid hsig: This hsig does not correspond to the hash of vk and"
@@ -457,26 +457,26 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         );
     }
 
-    function assemble_commitments_and_append_to_state(
-        uint256[NUM_INPUTS] memory primary_inputs,
+    function assembleCommitmentsAndAppendToState(
+        uint256[NUM_INPUTS] memory primaryInputs,
         bytes32[JSOUT] memory comms
     )
         internal
     {
         // We re-assemble the commitments (JSOutputs)
         for (uint256 i = 0; i < JSOUT; i++) {
-            bytes32 current_commitment = bytes32(primary_inputs[1 + i]);
+            bytes32 current_commitment = bytes32(primaryInputs[1 + i]);
             comms[i] = current_commitment;
             insert(current_commitment);
         }
     }
 
-    function process_public_values(uint256[NUM_INPUTS] memory primary_inputs)
+    function processPublicValues(uint256[NUM_INPUTS] memory primaryInputs)
         internal
     {
         // We get vpub_in and vpub_out in wei
-        (uint256 vpub_in, uint256 vpub_out) = assemble_public_values(
-            primary_inputs[1 + JSOUT + NUM_HASH_DIGESTS]);
+        (uint256 vpub_in, uint256 vpub_out) = assemblePublicValues(
+            primaryInputs[1 + JSOUT + NUM_HASH_DIGESTS]);
 
         // If the vpub_in is > 0, we need to make sure the right amount is paid
         if (vpub_in > 0) {
@@ -512,7 +512,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         }
     }
 
-    function add_merkle_root(bytes32 root) internal
+    function addMerkleRoot(bytes32 root) internal
     {
         _roots[root] = true;
     }

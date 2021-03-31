@@ -57,10 +57,10 @@ abstract contract AltBN128MixerBase is MixerBase
 
     /// Utility function to extract a full uint256 from a field element and the
     /// n-th set of residual bits from `residual`.
-    function extract_bytes32(
-        uint256 field_element,
+    function extractBytes32(
+        uint256 fieldElement,
         uint256 residual,
-        uint256 residual_bits_set_idx
+        uint256 residualBitsSetIdx
     )
         internal
         pure
@@ -68,20 +68,20 @@ abstract contract AltBN128MixerBase is MixerBase
         returns(bytes32)
     {
         // The residual bits are located at:
-        //  (2*public_value_bits) + (residual_bits_set_idx*NUM_RESIDUAL_BITS)
+        //  (2*public_value_bits) + (residualBitsSetIdx*NUM_RESIDUAL_BITS)
         //
         // Shift to occupy the highest order bits:
         // 255                                       128         64           0
-        //  | bits_to_shift |     | residual_bits_idx |           |           |
+        //  | bits_to_shift |     | residualBitsIdx |           |           |
         //  | <------------ | xxx |                   |<v_pub_in>)|<v_pub_out>|
         //                residual bits
 
         // Number of bits AFTER public values
-        uint256 residual_bits_idx = residual_bits_set_idx * NUM_RESIDUAL_BITS;
+        uint256 residualBitsIdx = residualBitsSetIdx * NUM_RESIDUAL_BITS;
         uint256 bits_to_shift =
-            RESIDUAL_BITS_SHIFT - TOTAL_PUBLIC_VALUE_BITS - residual_bits_idx;
-        uint256 residual_bits =
+            RESIDUAL_BITS_SHIFT - TOTAL_PUBLIC_VALUE_BITS - residualBitsIdx;
+        uint256 residualBits =
             (residual << bits_to_shift) & RESIDUAL_BITS_MASK;
-        return bytes32(field_element | residual_bits);
+        return bytes32(fieldElement | residualBits);
     }
 }
