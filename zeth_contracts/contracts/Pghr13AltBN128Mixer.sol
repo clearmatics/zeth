@@ -38,7 +38,6 @@ contract Pghr13AltBN128Mixer is AltBN128MixerBase
         address permitted_dispatcher,
         uint256[2] memory vk_hash
     )
-        public
         AltBN128MixerBase(mk_depth, token, vk, permitted_dispatcher, vk_hash)
     {
         uint256 vk_words = vk.length;
