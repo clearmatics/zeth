@@ -15,6 +15,7 @@ template<typename ppT> bool test_r1cs_variable_assignment_read_write_bytes()
 {
     using FieldT = libff::Fr<ppT>;
     const size_t assignment_size = 37;
+    const size_t primary_size = 3;
 
     libsnark::r1cs_variable_assignment<FieldT> assignment;
     assignment.reserve(assignment_size);
@@ -34,10 +35,31 @@ template<typename ppT> bool test_r1cs_variable_assignment_read_write_bytes()
         libzeth::r1cs_variable_assignment_read_bytes(assignment2, ss);
     }
 
+    if (assignment != assignment2) {
+        return false;
+    }
+
+    // Write as separate primary and auxiliary iputs
+    buffer = ([&assignment]() {
+        std::stringstream ss;
+        libzeth::r1cs_variable_assignment_write_bytes(
+            libsnark::r1cs_primary_input<FieldT>(
+                assignment.begin(), assignment.begin() + primary_size),
+            libsnark::r1cs_primary_input<FieldT>(
+                assignment.begin() + primary_size, assignment.end()),
+            ss);
+        return ss.str();
+    })();
+
+    {
+        std::stringstream ss(buffer);
+        libzeth::r1cs_variable_assignment_read_bytes(assignment2, ss);
+    }
+
     return assignment == assignment2;
 }
 
-TEST(R1CSVariableAssignementSerializationTest, AssignmentReeadWriteBytes)
+TEST(R1CSVariableAssignementSerializationTest, AssignmentReadWriteBytes)
 {
     const bool test_alt_bn128 =
         test_r1cs_variable_assignment_read_write_bytes<libff::alt_bn128_pp>();

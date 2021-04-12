@@ -19,6 +19,12 @@ void r1cs_variable_assignment_write_bytes(
     const libsnark::r1cs_variable_assignment<FieldT> &assignment,
     std::ostream &out_s);
 
+template<typename FieldT>
+void r1cs_variable_assignment_write_bytes(
+    const libsnark::r1cs_primary_input<FieldT> &primary,
+    const libsnark::r1cs_auxiliary_input<FieldT> &auxiliary,
+    std::ostream &out_s);
+
 } // namespace libzeth
 
 #include "libzeth/serialization/r1cs_variable_assignment_serialization.tcc"

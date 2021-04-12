@@ -92,6 +92,12 @@ template<typename ppT, typename snarkT> void test_simple_circuit_proof()
             r1cs_variable_assignment_write_bytes(primary, out_s);
         }
         {
+            boost::filesystem::path assignment_path =
+                g_output_dir / ("simple_assignment_" + pp_name<ppT>() + ".bin");
+            std::ofstream out_s(assignment_path.c_str());
+            r1cs_variable_assignment_write_bytes(primary, auxiliary, out_s);
+        }
+        {
             boost::filesystem::path proof_path =
                 g_output_dir / ("simple_proof_" + snarkT::name + "_" +
                                 pp_name<ppT>() + ".bin");
