@@ -26,8 +26,8 @@ typename groth16_snark<ppT>::keypair groth16_snark<ppT>::generate_setup(
 
 template<typename ppT>
 typename groth16_snark<ppT>::proof groth16_snark<ppT>::generate_proof(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const typename groth16_snark<ppT>::proving_key &proving_key)
+    const typename groth16_snark<ppT>::proving_key &proving_key,
+    const libsnark::protoboard<libff::Fr<ppT>> &pb)
 {
     return generate_proof(
         proving_key, pb.primary_input(), pb.auxiliary_input());

@@ -167,7 +167,7 @@ extended_proof<ppT, snarkT> circuit_wrapper<
     // Instantiate an extended_proof from the proof we generated and the given
     // primary_input
     return extended_proof<ppT, snarkT>(
-        snarkT::generate_proof(pb, proving_key), pb.primary_input());
+        snarkT::generate_proof(proving_key, pb), pb.primary_input());
 }
 
 } // namespace libzeth

@@ -30,8 +30,8 @@ public:
 
     /// Generate the proof (from the values set to the protoboard)
     static proof generate_proof(
-        const libsnark::protoboard<libff::Fr<ppT>> &pb,
-        const proving_key &proving_key);
+        const proving_key &proving_key,
+        const libsnark::protoboard<libff::Fr<ppT>> &pb);
 
     /// Generate the proof (from given primary and auxiliary values)
     static proof generate_proof(

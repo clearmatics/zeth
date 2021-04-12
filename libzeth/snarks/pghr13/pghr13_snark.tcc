@@ -23,8 +23,8 @@ typename pghr13_snark<ppT>::keypair pghr13_snark<ppT>::generate_setup(
 
 template<typename ppT>
 typename pghr13_snark<ppT>::proof pghr13_snark<ppT>::generate_proof(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const pghr13_snark<ppT>::proving_key &proving_key)
+    const pghr13_snark<ppT>::proving_key &proving_key,
+    const libsnark::protoboard<libff::Fr<ppT>> &pb)
 {
     return generate_proof(
         proving_key, pb.primary_input(), pb.auxiliary_input());

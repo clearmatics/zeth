@@ -43,7 +43,7 @@ template<typename GroupCollectionT>
 void group_elements_write_bytes(
     const GroupCollectionT &points, std::ostream &out_s);
 
-/// Read a collection of group elements as bytes, usinng
+/// Read a collection of group elements as bytes, using
 /// group_elements_read_bytes.
 template<typename GroupCollectionT>
 void group_elements_read_bytes(GroupCollectionT &points, std::istream &in_s);

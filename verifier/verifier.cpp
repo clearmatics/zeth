@@ -131,13 +131,13 @@ int main(int argc, char **argv)
         po::variables_map vm;
         po::store(parsed, vm);
 
-        if (0 == vm.count("vk_file")) {
+        if (vm.count("vk_file") == 0) {
             throw po::error("vk_file not specified");
         }
-        if (0 == vm.count("primary_input_file")) {
+        if (vm.count("primary_input_file") == 0) {
             throw po::error("primary_input_file not specified");
         }
-        if (0 == vm.count("proof_file")) {
+        if (vm.count("proof_file") == 0) {
             throw po::error("proof_file not specified");
         }
         std::string vk_file = vm["vk_file"].as<std::string>();
