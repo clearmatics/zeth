@@ -55,7 +55,10 @@ static snark::keypair load_keypair(const boost::filesystem::path &keypair_file)
         keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
     in_s.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return snark::keypair_read_bytes(in_s);
+
+    snark::keypair keypair;
+    snark::keypair_read_bytes(keypair, in_s);
+    return keypair;
 }
 
 static void write_keypair(
@@ -71,7 +74,7 @@ static void write_constraint_system(
     const circuit_wrapper &prover, const boost::filesystem::path &r1cs_file)
 {
     std::ofstream r1cs_stream(r1cs_file.c_str());
-    libzeth::r1cs_write_json<pp>(prover.get_constraint_system(), r1cs_stream);
+    libzeth::r1cs_write_json(prover.get_constraint_system(), r1cs_stream);
 }
 
 static void write_ext_proof_to_file(

@@ -47,7 +47,8 @@ public:
     typename snarkT::keypair generate_trusted_setup() const;
 
     // Retrieve the constraint system (intended for debugging purposes).
-    const libsnark::protoboard<Field> &get_constraint_system() const;
+    const libsnark::r1cs_constraint_system<Field> &get_constraint_system()
+        const;
 
     // Generate a proof and returns an extended proof
     extended_proof<ppT, snarkT> prove(

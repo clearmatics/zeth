@@ -4,7 +4,9 @@
 
 #include "libzeth/core/field_element_utils.hpp"
 #include "libzeth/core/group_element_utils.hpp"
+#include "libzeth/serialization/proto_utils.hpp"
 
+#include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
@@ -12,6 +14,8 @@
 #include <libff/algebra/curves/curve_utils.hpp>
 
 using namespace libzeth;
+
+boost::filesystem::path g_output_dir = boost::filesystem::path("");
 
 namespace
 {
@@ -47,12 +51,22 @@ template<typename ppT> void operation_test_data()
     const libff::G2<ppT> g2_4 = g2_2 + g2_2;
     const libff::G2<ppT> g2_8 = g2_4 + g2_4;
 
+    // Simultaneously write all field and group  data to a string stream.
+    std::stringstream binary_stream;
+
     std::cout << " Fr:";
     std::cout << "\n    r: "
               << bigint_to_hex<libff::Fr<ppT>>(libff::Fr<ppT>::mod);
 
+    std::cout << "\n   1: ";
+    field_element_write_json(fr_1, std::cout);
+    field_element_write_bytes(fr_1, binary_stream);
+    std::cout << "\n   2: ";
+    field_element_write_json(fr_2, std::cout);
+    field_element_write_bytes(fr_2, binary_stream);
     std::cout << "\n   -2: ";
     field_element_write_json(fr_minus_2, std::cout);
+    field_element_write_bytes(fr_minus_2, binary_stream);
 
     std::cout << " Fq:";
     std::cout << "\n    q: "
@@ -60,34 +74,59 @@ template<typename ppT> void operation_test_data()
 
     std::cout << "\n G1:";
     std::cout << "\n   1: ";
-    point_affine_write_json(g1_1, std::cout);
+    group_element_write_json(g1_1, std::cout);
+    group_element_write_bytes(g1_1, binary_stream);
     std::cout << "\n  -1: ";
-    point_affine_write_json(-g1_1, std::cout);
+    group_element_write_json(-g1_1, std::cout);
+    group_element_write_bytes(-g1_1, binary_stream);
     std::cout << "\n   2: ";
-    point_affine_write_json(g1_2, std::cout);
+    group_element_write_json(g1_2, std::cout);
+    group_element_write_bytes(g1_2, binary_stream);
     std::cout << "\n   3: ";
-    point_affine_write_json(g1_3, std::cout);
+    group_element_write_json(g1_3, std::cout);
+    group_element_write_bytes(g1_3, binary_stream);
     std::cout << "\n   4: ";
-    point_affine_write_json(g1_4, std::cout);
+    group_element_write_json(g1_4, std::cout);
+    group_element_write_bytes(g1_4, binary_stream);
     std::cout << "\n   6: ";
-    point_affine_write_json(g1_6, std::cout);
+    group_element_write_json(g1_6, std::cout);
+    group_element_write_bytes(g1_6, binary_stream);
     std::cout << "\n   8: ";
-    point_affine_write_json(g1_8, std::cout);
+    group_element_write_json(g1_8, std::cout);
+    group_element_write_bytes(g1_8, binary_stream);
     std::cout << "\n  -8: ";
-    point_affine_write_json(-g1_8, std::cout);
+    group_element_write_json(-g1_8, std::cout);
+    group_element_write_bytes(-g1_8, binary_stream);
 
     std::cout << "\n G2:";
     std::cout << "\n   1: ";
-    point_affine_write_json(g2_1, std::cout);
+    group_element_write_json(g2_1, std::cout);
+    group_element_write_bytes(g2_1, binary_stream);
     std::cout << "\n  -1: ";
-    point_affine_write_json(-g2_1, std::cout);
+    group_element_write_json(-g2_1, std::cout);
+    group_element_write_bytes(-g2_1, binary_stream);
     std::cout << "\n   4: ";
-    point_affine_write_json(g2_4, std::cout);
+    group_element_write_json(g2_4, std::cout);
+    group_element_write_bytes(g2_4, binary_stream);
     std::cout << "\n   8: ";
-    point_affine_write_json(g2_8, std::cout);
+    group_element_write_json(g2_8, std::cout);
+    group_element_write_bytes(g2_8, binary_stream);
     std::cout << "\n  -8: ";
-    point_affine_write_json(-g2_8, std::cout);
+    group_element_write_json(-g2_8, std::cout);
+    group_element_write_bytes(-g2_8, binary_stream);
     std::cout << "\n";
+
+    // Write the binary data if output_dir given
+    if (!g_output_dir.empty()) {
+        boost::filesystem::path outpath =
+            g_output_dir / ("ec_test_data_" + libzeth::pp_name<ppT>() + ".bin");
+        std::cout << "(writing to file " << outpath << ")\n";
+        std::ofstream out_s(
+            outpath.c_str(), std::ios_base::out | std::ios_base::binary);
+        out_s << binary_stream.str();
+    } else {
+        std::cout << "(skipping binary data write)\n";
+    }
 
     // Check the statements above
     ASSERT_EQ(g1_6, g1_2 + g1_4);
@@ -134,13 +173,13 @@ TEST(ECOperationDataTest, BW6_761)
     ASSERT_FALSE(g2_not_in_subgroup.is_in_safe_subgroup());
 
     std::cout << "   g1_not_well_formed: ";
-    point_affine_write_json(g1_not_well_formed, std::cout);
+    group_element_write_json(g1_not_well_formed, std::cout);
     std::cout << "\n   g1_not_in_subgroup: ";
-    point_affine_write_json(g1_not_in_subgroup, std::cout);
+    group_element_write_json(g1_not_in_subgroup, std::cout);
     std::cout << "\n   g2_not_well_formed: ";
-    point_affine_write_json(g2_not_well_formed, std::cout);
+    group_element_write_json(g2_not_well_formed, std::cout);
     std::cout << "\n   g2_not_in_subgroup: ";
-    point_affine_write_json(g2_not_in_subgroup, std::cout);
+    group_element_write_json(g2_not_in_subgroup, std::cout);
     std::cout << "\n";
 }
 
@@ -174,13 +213,13 @@ TEST(ECOperationDataTest, BLS12_377)
     ASSERT_FALSE(g2_not_in_subgroup.is_in_safe_subgroup());
 
     std::cout << "   g1_not_well_formed: ";
-    point_affine_write_json(g1_not_well_formed, std::cout);
+    group_element_write_json(g1_not_well_formed, std::cout);
     std::cout << "\n   g1_not_in_subgroup: ";
-    point_affine_write_json(g1_not_in_subgroup, std::cout);
+    group_element_write_json(g1_not_in_subgroup, std::cout);
     std::cout << "\n   g2_not_well_formed: ";
-    point_affine_write_json(g2_not_well_formed, std::cout);
+    group_element_write_json(g2_not_well_formed, std::cout);
     std::cout << "\n   g2_not_in_subgroup: ";
-    point_affine_write_json(g2_not_in_subgroup, std::cout);
+    group_element_write_json(g2_not_in_subgroup, std::cout);
     std::cout << "\n";
 }
 
@@ -192,5 +231,11 @@ int main(int argc, char **argv)
     libff::bls12_377_pp::init_public_params();
     libff::bw6_761_pp::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);
+
+    // Extract the test data destination dir, if passed on the command line.
+    if (argc > 1) {
+        g_output_dir = boost::filesystem::path(argv[1]);
+    }
+
     return RUN_ALL_TESTS();
 }

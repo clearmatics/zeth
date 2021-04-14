@@ -86,7 +86,7 @@ template<
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-const libsnark::protoboard<libff::Fr<ppT>> &circuit_wrapper<
+const libsnark::r1cs_constraint_system<libff::Fr<ppT>> &circuit_wrapper<
     HashT,
     HashTreeT,
     ppT,
@@ -95,7 +95,7 @@ const libsnark::protoboard<libff::Fr<ppT>> &circuit_wrapper<
     NumOutputs,
     TreeDepth>::get_constraint_system() const
 {
-    return pb;
+    return pb.get_constraint_system();
 }
 
 template<
@@ -167,7 +167,7 @@ extended_proof<ppT, snarkT> circuit_wrapper<
     // Instantiate an extended_proof from the proof we generated and the given
     // primary_input
     return extended_proof<ppT, snarkT>(
-        snarkT::generate_proof(pb, proving_key), pb.primary_input());
+        snarkT::generate_proof(proving_key, pb), pb.primary_input());
 }
 
 } // namespace libzeth
