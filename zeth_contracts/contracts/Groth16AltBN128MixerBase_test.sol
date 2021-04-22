@@ -68,7 +68,8 @@ contract Groth16AltBN128MixerBase_test is Groth16AltBN128Mixer
         uint256[] memory /* proof */,
         uint256[NUM_INPUTS] memory /* inputs */
     )
-        internal
+        public
+        pure
         returns (bool)
     {
         return false;
