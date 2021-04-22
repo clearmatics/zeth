@@ -202,27 +202,27 @@ class TestGroth16AltBN128MixerBaseContract(TestCase):
         public_data = mix_params.public_data
         expect_hash = InputHasher(MiMC7()).hash(public_data)
         actual_hash = MIXER_INSTANCE.functions.\
-            hash_public_proof_data_test(public_data).call()
+            hashPublicProofDataTest(public_data).call()
         self.assertEqual(expect_hash, actual_hash)
 
     def test_assemble_nullifiers(self) -> None:
         # Test retrieving nullifiers
         for i in range(JS_INPUTS):
             res = MIXER_INSTANCE.functions.\
-                assemble_nullifier_test(i, PACKED_PRIMARY_INPUTS).call()
+                assembleNullifierTest(i, PACKED_PRIMARY_INPUTS).call()
             val = int.from_bytes(res, byteorder="big")
             self.assertEqual(NULLIFIERS[i], val)
 
     def test_assemble_hsig(self) -> None:
         # Test retrieving hsig
         res = MIXER_INSTANCE.functions.\
-            assemble_hsig_test(PACKED_PRIMARY_INPUTS).call()
+            assembleHsigTest(PACKED_PRIMARY_INPUTS).call()
         hsig = int.from_bytes(res, byteorder="big")
         self.assertEqual(HSIG, hsig)
 
     def test_assemble_vpub(self) -> None:
         # Test retrieving public values
-        v_in, v_out = MIXER_INSTANCE.functions.assemble_public_values_test(
+        v_in, v_out = MIXER_INSTANCE.functions.assemblePublicValuesTest(
             PACKED_PRIMARY_INPUTS[-1]).call()
         v_in_expect = VPUB[0] * ZETH_PUBLIC_UNIT_VALUE
         v_out_expect = VPUB[1] * ZETH_PUBLIC_UNIT_VALUE

@@ -10,11 +10,12 @@ contract Groth16BLS12_377_test
 {
     uint256[] private _vk;
 
-    function test_verify(
+    function verifyTest(
         uint256[] memory vk,
         uint256[] memory proof,
-        uint256[] memory inputs)
-        public
+        uint256[] memory inputs
+    )
+        external
         returns(bool)
     {
         _vk = vk;
