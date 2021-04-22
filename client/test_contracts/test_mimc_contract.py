@@ -37,7 +37,7 @@ class TestMiMCContract(TestCase):
         # pylint: enable=line-too-long
         h = MiMC7().hash(x, y)
 
-        result = CONTRACT_INSTANCE.functions.testMimc7(x, y).call()
+        result = CONTRACT_INSTANCE.functions.mimc7Test(x, y).call()
         self.assertEqual(h, result)
 
     def test_mimc31(self) -> None:
@@ -47,5 +47,5 @@ class TestMiMCContract(TestCase):
         # pylint: enable=line-too-long
         h = MiMC31().hash(x, y)
 
-        result = CONTRACT_INSTANCE.functions.testMimc31(x, y).call()
+        result = CONTRACT_INSTANCE.functions.mimc31Test(x, y).call()
         self.assertEqual(h, result)
