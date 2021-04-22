@@ -25,38 +25,38 @@ contract Groth16AltBN128MixerBase_test is Groth16AltBN128Mixer
     {
     }
 
-    function hash_public_proof_data_test(
-        uint256[NUM_INPUTS] memory public_data
+    function hashPublicProofDataTest(
+        uint256[NUM_INPUTS] memory publicData
     )
-        public
+        external
         returns (uint256)
     {
-        return hashPublicProofData(public_data);
+        return hashPublicProofData(publicData);
     }
 
-    function assemble_public_values_test(uint256 residualBits)
-        public
+    function assemblePublicValuesTest(uint256 residualBits)
+        external
         pure
         returns (uint256 vpub_in, uint256 vpub_out)
     {
         return assemblePublicValues(residualBits);
     }
 
-    function assemble_hsig_test(
+    function assembleHsigTest(
         uint256[NUM_INPUTS] memory primaryInputs
     )
-        public
+        external
         pure
         returns(bytes32 hsig)
     {
         return assembleHsig(primaryInputs);
     }
 
-    function assemble_nullifier_test(
+    function assembleNullifierTest(
         uint256 index,
         uint256[NUM_INPUTS] memory primaryInputs
     )
-        public
+        external
         pure
         returns(bytes32 nf)
     {
@@ -68,7 +68,7 @@ contract Groth16AltBN128MixerBase_test is Groth16AltBN128Mixer
         uint256[] memory /* proof */,
         uint256[NUM_INPUTS] memory /* inputs */
     )
-        public
+        external
         pure
         returns (bool)
     {

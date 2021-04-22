@@ -287,7 +287,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
         processPublicValues(inputs);
     }
 
-    function hashPublicProofData(uint256[NUM_INPUTS] memory public_data)
+    function hashPublicProofData(uint256[NUM_INPUTS] memory publicData)
         internal
         returns (uint256)
     {
@@ -298,7 +298,7 @@ abstract contract MixerBase is BaseMerkleTree, ERC223ReceivingContract
             // solhint-disable-next-line max-line-length
             13196537064117388418196223856311987714388543839552400408340921397545324034315));
         for (uint256 i = 0 ; i < NUM_INPUTS; ++i) {
-            h = hash(h, bytes32(public_data[i]));
+            h = hash(h, bytes32(publicData[i]));
         }
         h = hash(h, bytes32(NUM_INPUTS));
         return uint256(h);

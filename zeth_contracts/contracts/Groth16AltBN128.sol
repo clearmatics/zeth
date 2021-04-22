@@ -18,11 +18,6 @@ library Groth16AltBN128
         // solhint-disable-next-line max-line-length
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
-    // Return the value PRIME_R, the characteristic of the scalar field.
-    function scalar_r() internal pure returns (uint256) {
-        return PRIME_R;
-    }
-
     // Fr elements and Fq elements can be held in a single uint256. Therefore
     // G1 elements require 2 uint256s. G2 elements have coordinates in Fp2, and
     // therefore occupy 4 uint256s. Based on this, the offsets and slot numbers
