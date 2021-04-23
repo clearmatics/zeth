@@ -366,60 +366,6 @@ abstract contract BaseMixer is BaseMerkleTree, ERC223ReceivingContract
         );
     }
 
-    // ======================================================================
-    // Reminder: Remember that the primary inputs are ordered as follows:
-    //
-    //   [Root, CommitmentS, NullifierS, h_sig, h_iS, Residual Element(s)]
-    //
-    // ie, below is the index mapping of the primary input elements on the
-    // protoboard:
-    //
-    //   <Merkle Root>               0
-    //   <Commitment[0]>             1
-    //   ...
-    //   <Commitment[_JSOUT - 1]>     _JSOUT
-    //   <Nullifier[0]>              _JSOUT + 1
-    //   ...
-    //   <Nullifier[_JSIN]>           _JSOUT + _JSIN
-    //   <h_sig>                     _JSOUT + _JSIN + 1
-    //   <Message Auth Tag[0]>       _JSOUT + _JSIN + 2
-    //   ...
-    //   <Message Auth Tag[_JSIN]>    _JSOUT + 2*_JSIN + 1
-    //   <Residual Field Elements>   _JSOUT + 2*_JSIN + 2
-    //
-    // The Residual field elements are structured as follows:
-    //
-    //   255                                         128         64           0
-    //   |<empty>|<h_sig>|<nullifiers>|<msg_auth_tags>|<v_pub_in>)|<v_pub_out>|
-    //
-    // where each entry entry after public output and input holds the
-    // (curve-specific) number residual bits for the corresponding 256 bit
-    // value.
-    // ======================================================================
-    //
-    // Utility function to extract a full uint256 from a field element and the
-    // n-th set of residual bits from `residual`. This function is
-    // curve-dependent.
-    function _extractBytes32(
-        uint256 fieldElement,
-        uint256 residual,
-        uint256 residualBitsSetIdx
-    )
-        internal
-        pure
-        virtual
-        returns(bytes32);
-
-    // Implementations must implement the verification algorithm of the
-    // selected SNARK.
-    function _verifyZkProof(
-        uint256[] memory proof,
-        uint256 publicInputsHash
-    )
-        internal
-        virtual
-        returns (bool);
-
     /// This function processes the primary inputs to append and check the root
     /// and nullifiers in the primary inputs (instance) and modifies the state
     /// of the mixer contract accordingly. (ie: Appends the commitments to the
@@ -520,4 +466,58 @@ abstract contract BaseMixer is BaseMerkleTree, ERC223ReceivingContract
     {
         _roots[root] = true;
     }
+
+    // ======================================================================
+    // Reminder: Remember that the primary inputs are ordered as follows:
+    //
+    //   [Root, CommitmentS, NullifierS, h_sig, h_iS, Residual Element(s)]
+    //
+    // ie, below is the index mapping of the primary input elements on the
+    // protoboard:
+    //
+    //   <Merkle Root>               0
+    //   <Commitment[0]>             1
+    //   ...
+    //   <Commitment[_JSOUT - 1]>     _JSOUT
+    //   <Nullifier[0]>              _JSOUT + 1
+    //   ...
+    //   <Nullifier[_JSIN]>           _JSOUT + _JSIN
+    //   <h_sig>                     _JSOUT + _JSIN + 1
+    //   <Message Auth Tag[0]>       _JSOUT + _JSIN + 2
+    //   ...
+    //   <Message Auth Tag[_JSIN]>    _JSOUT + 2*_JSIN + 1
+    //   <Residual Field Elements>   _JSOUT + 2*_JSIN + 2
+    //
+    // The Residual field elements are structured as follows:
+    //
+    //   255                                         128         64           0
+    //   |<empty>|<h_sig>|<nullifiers>|<msg_auth_tags>|<v_pub_in>)|<v_pub_out>|
+    //
+    // where each entry entry after public output and input holds the
+    // (curve-specific) number residual bits for the corresponding 256 bit
+    // value.
+    // ======================================================================
+
+    /// Utility function to extract a full uint256 from a field element and the
+    /// n-th set of residual bits from `residual`. This function is
+    /// curve-dependent.
+    function _extractBytes32(
+        uint256 fieldElement,
+        uint256 residual,
+        uint256 residualBitsSetIdx
+    )
+        internal
+        pure
+        virtual
+        returns(bytes32);
+
+    /// Implementations must implement the verification algorithm of the
+    /// selected SNARK.
+    function _verifyZkProof(
+        uint256[] memory proof,
+        uint256 publicInputsHash
+    )
+        internal
+        virtual
+        returns (bool);
 }

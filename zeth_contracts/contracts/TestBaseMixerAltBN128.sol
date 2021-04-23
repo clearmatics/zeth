@@ -66,10 +66,11 @@ contract TestBaseMixerAltBN128 is BaseMixerAltBN128
     // Dummy implementation of abstract function
     function _verifyZkProof(
         uint256[] memory /* proof */,
-        uint256[_NUM_INPUTS] memory /* inputs */
+        uint256 /* publicInputsHash */
     )
-        external
+        internal
         pure
+        override
         returns (bool)
     {
         return false;
