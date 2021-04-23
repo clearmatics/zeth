@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 import "./LPairing.sol";
 import "./BaseMixerAltBN128.sol";
 
-contract MixerAltBN128Pghr13 is BaseMixerAltBN128
+contract MixerPghr13AltBN128 is BaseMixerAltBN128
 {
     struct VerifyingKey {
         LPairing.G2Point A;
