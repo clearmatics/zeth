@@ -4,23 +4,23 @@
 
 pragma solidity ^0.8.0;
 
-contract BLS12_377_test
+contract TestBLS12_377
 {
     // In many cases, these numbers must be used as literals in the assembly
     // code.
 
-    uint256 private constant SCALAR_WORDS = 1;
-    uint256 private constant G1_COORD_WORDS = 2;
-    uint256 private constant G1_POINT_WORDS = 2 * G1_COORD_WORDS;
-    uint256 private constant G2_COORD_WORDS = 4;
-    uint256 private constant G2_POINT_WORDS = 2 * G2_COORD_WORDS;
+    uint256 private constant _SCALAR_WORDS = 1;
+    uint256 private constant _G1_COORD_WORDS = 2;
+    uint256 private constant _G1_POINT_WORDS = 2 * _G1_COORD_WORDS;
+    uint256 private constant _G2_COORD_WORDS = 4;
+    uint256 private constant _G2_POINT_WORDS = 2 * _G2_COORD_WORDS;
 
     /// `input` is the concatenation of 2 encoded points in G1
-    function testECAdd(bytes32[2 * G1_POINT_WORDS] memory input)
+    function ecAddTest(bytes32[2 * _G1_POINT_WORDS] memory input)
         external
-        returns(bytes32[G1_POINT_WORDS] memory)
+        returns(bytes32[_G1_POINT_WORDS] memory)
     {
-        bytes32[G1_POINT_WORDS] memory output;
+        bytes32[_G1_POINT_WORDS] memory output;
         bool success = true;
         assembly
         {
@@ -32,11 +32,11 @@ contract BLS12_377_test
     }
 
     /// `input` is an encoded point in G1, followed by an encoded scalar.
-    function testECMul(bytes32[G1_POINT_WORDS + SCALAR_WORDS] memory input)
+    function ecMulTest(bytes32[_G1_POINT_WORDS + _SCALAR_WORDS] memory input)
         external
-        returns(bytes32[G1_POINT_WORDS] memory)
+        returns(bytes32[_G1_POINT_WORDS] memory)
     {
-        bytes32[G1_POINT_WORDS] memory output;
+        bytes32[_G1_POINT_WORDS] memory output;
         bool success = true;
         assembly
         {
@@ -50,8 +50,8 @@ contract BLS12_377_test
     /// `input` is the concatenation of 4 pairs of encoded points. Each pair is
     /// a G1 point, followed by a G2 point. For BW6-761, both of these points
     /// are 6 words, so there should be 4 * 2 * 6 = 48 words.
-    function testECPairing(
-        bytes32[4 * (G1_POINT_WORDS + G2_POINT_WORDS)] memory input
+    function ecPairingTest(
+        bytes32[4 * (_G1_POINT_WORDS + _G2_POINT_WORDS)] memory input
     )
         external
         returns(uint256)

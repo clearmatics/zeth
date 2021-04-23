@@ -4,54 +4,54 @@
 
 pragma solidity ^0.8.0;
 
-import "./MixerBase.sol";
-import "./MiMC7.sol";
+import "./BaseMixer.sol";
+import "./LMiMC7.sol";
 
-/// Partial implementation of abstract MixerBase which implements the
+/// Partial implementation of abstract BaseMixer which implements the
 /// curve-specific methods to use the ALT-BN128 pairing.
-abstract contract AltBN128MixerBase is MixerBase
+abstract contract BaseMixerAltBN128 is BaseMixer
 {
-    // Constants regarding the hash digest length, the prime number used and
+    // Constants regarding the _hash digest length, the prime number used and
     // its associated length in bits and the max values (v_in and v_out)
     // FIELD_CAPACITY = floor( log_2(r) )
-    uint256 internal constant FIELD_CAPACITY = 253;
+    uint256 internal constant _FIELD_CAPACITY = 253;
 
     // Number of residual bits per bytes32
-    uint256 internal constant NUM_RESIDUAL_BITS =
-        DIGEST_LENGTH - FIELD_CAPACITY;
+    uint256 internal constant _NUM_RESIDUAL_BITS =
+        _DIGEST_LENGTH - _FIELD_CAPACITY;
 
     // Shift to move residual bits from lowest order to highest order
-    uint256 internal constant RESIDUAL_BITS_SHIFT = 256 - NUM_RESIDUAL_BITS;
+    uint256 internal constant _RESIDUAL_BITS_SHIFT = 256 - _NUM_RESIDUAL_BITS;
 
     // Mask to extract the residual bits in the high-order position
-    uint256 internal constant RESIDUAL_BITS_MASK =
-        ((1 << NUM_RESIDUAL_BITS) - 1) << RESIDUAL_BITS_SHIFT;
+    uint256 internal constant _RESIDUAL_BITS_MASK =
+        ((1 << _NUM_RESIDUAL_BITS) - 1) << _RESIDUAL_BITS_SHIFT;
 
     /// Constructor of the contract
     constructor(
-        uint256 mk_depth,
+        uint256 mkDepth,
         address token,
         uint256[] memory vk,
-        address permitted_dispatcher,
-        uint256[2] memory vk_hash
+        address permittedDispatcher,
+        uint256[2] memory vkHash
     )
-        MixerBase(mk_depth, token, vk, permitted_dispatcher, vk_hash)
+        BaseMixer(mkDepth, token, vk, permittedDispatcher, vkHash)
     {
     }
 
-    /// Use MiMC7 as the Merkle tree hash function.
-    function hash(bytes32 left, bytes32 right)
+    /// Use LMiMC7 as the Merkle tree _hash function.
+    function _hash(bytes32 left, bytes32 right)
         internal
         pure
         override
         returns(bytes32)
     {
-        return MiMC7.hash(left, right);
+        return LMiMC7._hash(left, right);
     }
 
     /// Utility function to extract a full uint256 from a field element and the
     /// n-th set of residual bits from `residual`.
-    function extractBytes32(
+    function _extractBytes32(
         uint256 fieldElement,
         uint256 residual,
         uint256 residualBitsSetIdx
@@ -71,11 +71,11 @@ abstract contract AltBN128MixerBase is MixerBase
         //                residual bits
 
         // Number of bits AFTER public values
-        uint256 residualBitsIdx = residualBitsSetIdx * NUM_RESIDUAL_BITS;
+        uint256 residualBitsIdx = residualBitsSetIdx * _NUM_RESIDUAL_BITS;
         uint256 bitsToShift =
-            RESIDUAL_BITS_SHIFT - TOTAL_PUBLIC_VALUE_BITS - residualBitsIdx;
+            _RESIDUAL_BITS_SHIFT - _TOTAL_PUBLIC_VALUE_BITS - residualBitsIdx;
         uint256 residualBits =
-            (residual << bitsToShift) & RESIDUAL_BITS_MASK;
+            (residual << bitsToShift) & _RESIDUAL_BITS_MASK;
         return bytes32(fieldElement | residualBits);
     }
 }

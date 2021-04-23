@@ -174,17 +174,17 @@ class TestGroth16AltBN128MixerBaseContract(TestCase):
 
     @staticmethod
     def setUpClass() -> None:
-        print("Deploying AltBN128MixerBase_test.sol")
+        print("Deploying TestBaseMixerAltBN128.sol")
         web3, eth = mock.open_test_web3()
         deployer_eth_address = eth.accounts[0]
         _mixer_interface, mixer_instance = mock.deploy_contract(
             eth,
             deployer_eth_address,
-            "Groth16AltBN128MixerBase_test",
+            "TestBaseMixerAltBN128",
             {
-                'mk_depth': ZETH_MERKLE_TREE_DEPTH,
-                'permitted_dispatcher': deployer_eth_address,
-                'vk_hash': VK_HASH,
+                'mkDepth': ZETH_MERKLE_TREE_DEPTH,
+                'permittedDispatcher': deployer_eth_address,
+                'vkHash': VK_HASH,
             })
 
         global WEB3  # pylint: disable=global-statement

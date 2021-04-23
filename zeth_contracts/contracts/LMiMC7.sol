@@ -16,9 +16,9 @@ pragma solidity ^0.8.0;
 /// Section: "Miyaguchi–Preneel"
 // solhint-disable-next-line max-line-length
 /// <https://en.wikipedia.org/wiki/One-way_compression_function#Miyaguchi%E2%80%93Preneel>
-library MiMC7
+library LMiMC7
 {
-    function hash(bytes32 x, bytes32 y) internal pure returns (bytes32 out) {
+    function _hash(bytes32 x, bytes32 y) internal pure returns (bytes32 out) {
         // See [AGRRT16]:
         //   The round function is:
         //     F_i(a, key, rc_i) -> a^7 + key + rc
