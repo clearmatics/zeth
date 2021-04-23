@@ -87,20 +87,32 @@ template<typename ppT> void generate_test_data()
         -(G1::one() + G1::one()), // beta_g1 = [-2]_1
         -(G2::one() + G2::one()), // beta_g2 = [-2]_2
         libff::G1_vector<ppT>{{
-            // A_query = { [7]_1, [-3]_1, [8]_1 }
+            // A_query = { [7]_1, [-3]_1, [8]_1, [-4]_1, [9]_1, [-5]_1 }
             Field("7") * G1::one(),
             -Field("3") * G1::one(),
             Field("8") * G1::one(),
+            -Field("4") * G1::one(),
+            Field("9") * G1::one(),
+            -Field("5") * G1::one(),
         }},
         libsnark::knowledge_commitment_vector<G2, G1>(
             std::vector<libsnark::knowledge_commitment<G2, G1>>{{
-                // B_query = { ([9]_1,[9]_2), ([-9]_1,[-9]_2), ([10]_1,[10}_2) }
+                // B_query = {
+                //   ([9]_1,[9]_2), ([-9]_1,[-9]_2), ([10]_1,[10}_2),
+                //   ([11]_1,[11}_2), ([12]_1,[12}_2), ([13]_1,[13}_2)
+                // }
                 libsnark::knowledge_commitment<G2, G1>(
                     Field("9") * G2::one(), Field("9") * G1::one()),
                 libsnark::knowledge_commitment<G2, G1>(
                     -Field("9") * G2::one(), -Field("9") * G1::one()),
                 libsnark::knowledge_commitment<G2, G1>(
                     Field("10") * G2::one(), Field("10") * G1::one()),
+                libsnark::knowledge_commitment<G2, G1>(
+                    -Field("11") * G2::one(), -Field("11") * G1::one()),
+                libsnark::knowledge_commitment<G2, G1>(
+                    Field("12") * G2::one(), Field("12") * G1::one()),
+                libsnark::knowledge_commitment<G2, G1>(
+                    -Field("13") * G2::one(), -Field("13") * G1::one()),
             }}),
         {{
             // H_query = { [11]_1, [-11]_1, [12]_1 }
