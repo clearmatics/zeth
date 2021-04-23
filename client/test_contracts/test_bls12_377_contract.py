@@ -82,12 +82,12 @@ class TestBLS12_377Contract(TestCase):
 
     @staticmethod
     def setUpClass() -> None:
-        print("Deploying BLS12_377_test.sol")
+        print("Deploying TestBLS12_377.sol")
         _web3, eth = mock.open_test_web3()
         _bls12_interface, bls12_instance = mock.deploy_contract(
             eth,
             eth.accounts[0],
-            "BLS12_377_test",
+            "TestBLS12_377",
             {})
         global BLS12_INSTANCE  # pylint: disable=global-statement
         BLS12_INSTANCE = bls12_instance
@@ -96,14 +96,14 @@ class TestBLS12_377Contract(TestCase):
         """
         Check that [6] == [2] + [4]
         """
-        result = BLS12_INSTANCE.functions.testECAdd(G1_2 + G1_4).call()
+        result = BLS12_INSTANCE.functions.ecAddTest(G1_2 + G1_4).call()
         self.assertEqual(G1_6, result)
 
     def test_bls12_ecmul(self) -> None:
         """
         Check that [-8] == -2 * [4]
         """
-        result = BLS12_INSTANCE.functions.testECMul(G1_4 + FR_MINUS_2).call()
+        result = BLS12_INSTANCE.functions.ecMulTest(G1_4 + FR_MINUS_2).call()
         self.assertEqual(G1_MINUS_8, result)
 
     def test_bls12_ecpairing(self) -> None:
@@ -113,9 +113,9 @@ class TestBLS12_377Contract(TestCase):
         # Note, return result here is uint256(1) or uint256(0) depending on the
         # pairing check result.
         points = G1_6 + G2_4 + G1_3 + G2_8 + G1_4 + G2_4 + G1_MINUS_8 + G2_8
-        result = BLS12_INSTANCE.functions.testECPairing(points).call()
+        result = BLS12_INSTANCE.functions.ecPairingTest(points).call()
         self.assertEqual(1, result)
 
         points = G1_6 + G2_4 + G1_3 + G2_8 + G1_4 + G2_4 + G1_MINUS_8 + G2_4
-        result = BLS12_INSTANCE.functions.testECPairing(points).call()
+        result = BLS12_INSTANCE.functions.ecPairingTest(points).call()
         self.assertEqual(0, result)

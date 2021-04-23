@@ -56,7 +56,7 @@ DIGEST_LENGTH: int = 256
 # Public value length (v_pub_in and v_pub_out)
 PUBLIC_VALUE_LENGTH: int = 64
 PUBLIC_VALUE_LENGTH_BYTES: int = bit_length_to_byte_length(PUBLIC_VALUE_LENGTH)
-PUBLIC_VALUE_MASK: int = (1 << PUBLIC_VALUE_LENGTH) - 1
+_PUBLIC_VALUE_MASK: int = (1 << PUBLIC_VALUE_LENGTH) - 1
 
 PHI_LENGTH: int = 256
 PHI_LENGTH_BYTES: int = bit_length_to_byte_length(PHI_LENGTH)

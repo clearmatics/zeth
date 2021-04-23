@@ -21,8 +21,8 @@ class TestMiMCContract(TestCase):
         contracts_dir = get_contracts_dir()
         contract_instance_desc = InstanceDescription.deploy(
             web3,
-            join(contracts_dir, "MiMC_test.sol"),
-            "MiMC_test",
+            join(contracts_dir, "TestMiMC.sol"),
+            "TestMiMC",
             web3.eth.accounts[0],  # pylint: disable=no-member
             None,
             500000,

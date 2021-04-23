@@ -44,7 +44,7 @@ class TestMerkleTreeContract(TestCase):
         _mktree_interface, mktree_instance = mock.deploy_contract(
             eth,
             deployer_eth_address,
-            "MerkleTreeMiMC7_test",
+            "TestMerkleTreeMiMC7",
             {'treeDepth': ZETH_MERKLE_TREE_DEPTH})
         global MKTREE_INSTANCE  # pylint: disable=global-statement
         MKTREE_INSTANCE = mktree_instance
@@ -52,7 +52,7 @@ class TestMerkleTreeContract(TestCase):
     def test_tree_empty(self) -> None:
         mktree = MerkleTree.empty_with_depth(ZETH_MERKLE_TREE_DEPTH, MiMC7())
         expected_root = mktree.recompute_root()
-        root = MKTREE_INSTANCE.functions.testAddLeaves([], []).call()
+        root = MKTREE_INSTANCE.functions.addLeavesTest([], []).call()
         self.assertEqual(expected_root, root, "test_tree_empty")
 
     def _test_partial(self, num_entries: int, step: int = 1) -> None:
@@ -72,7 +72,7 @@ class TestMerkleTreeContract(TestCase):
             print(f"_test_partial: num_entries={num_entries}, cut={cut}")
             first = leaves[:cut]
             second = leaves[cut:]
-            root = MKTREE_INSTANCE.functions.testAddLeaves(first, second).call()
+            root = MKTREE_INSTANCE.functions.addLeavesTest(first, second).call()
             self.assertEqual(
                 expected_root,
                 root,

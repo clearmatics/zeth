@@ -4,9 +4,9 @@
 
 pragma solidity ^0.8.0;
 
-import "./Groth16BLS12_377.sol";
+import "./LGroth16BLS12_377.sol";
 
-contract Groth16BLS12_377_test
+contract TestGroth16BLS12_377
 {
     uint256[] private _vk;
 
@@ -19,6 +19,6 @@ contract Groth16BLS12_377_test
         returns(bool)
     {
         _vk = vk;
-        return Groth16BLS12_377.verify(_vk, proof, inputs);
+        return LGroth16BLS12_377._verify(_vk, proof, inputs);
     }
 }

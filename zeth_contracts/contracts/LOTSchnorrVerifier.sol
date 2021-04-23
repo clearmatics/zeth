@@ -11,9 +11,9 @@ pragma solidity ^0.8.0;
 ///  Mihir Bellare, Sarah Shoup,
 ///  International Workshop on Public Key Cryptography, 2007,
 ///  <https://eprint.iacr.org/2007/273.pdf>
-library OTSchnorrVerifier {
+library LOTSchnorrVerifier {
 
-    function verify(
+    function _verify(
         uint256 vk0,
         uint256 vk1,
         uint256 vk2,
@@ -31,16 +31,16 @@ library OTSchnorrVerifier {
         //   uint256 h = uint256(h_bytes);
         //
         //   // X = g^{x}, where g represents a generator of the cyclic group G
-        //   Pairing.G1Point memory X = Pairing.G1Point(vk[0], vk[1]);
+        //   LPairing.G1Point memory X = LPairing.G1Point(vk[0], vk[1]);
         //   // Y = g^{y}
-        //   Pairing.G1Point memory Y = Pairing.G1Point(vk[2], vk[3]);
+        //   LPairing.G1Point memory Y = LPairing.G1Point(vk[2], vk[3]);
         //
         //   // S = g^{sigma}
-        //   Pairing.G1Point memory S = Pairing.scalarMulG1(
-        //                                  Pairing.genG1(), sigma);
+        //   LPairing.G1Point memory S = LPairing._scalarMulG1(
+        //                                  LPairing._genG1(), sigma);
         //   // S_comp = g^{y + xh}
-        //   Pairing.G1Point memory S_comp = Pairing.addG1(Y,
-        //                                       Pairing.scalarMulG1(X, h));
+        //   LPairing.G1Point memory S_comp = LPairing._addG1(Y,
+        //                                       LPairing._scalarMulG1(X, h));
         //
         //   // Check that g^{sigma} == g^{y + xh}
         //   return (S.X == S_comp.X && S.Y == S_comp.Y);
@@ -90,7 +90,7 @@ library OTSchnorrVerifier {
             //   0x40
             //   0x20  (Y + h.X)[1]
             //   0x00  (Y + h.X)[0]
-            // copy genG1 and sigma (see Pairing.sol for values)
+            // copy _genG1 and sigma (see LPairing.sol for values)
 
             mstore(add(pad, 0x40), 1)
             mstore(add(pad, 0x60), 2)
@@ -98,8 +98,8 @@ library OTSchnorrVerifier {
 
             // pad:
             //   0x80  sigma
-            //   0x60  genG1[1]
-            //   0x40  genG1[0]
+            //   0x60  _genG1[1]
+            //   0x40  _genG1[0]
             //   0x20  (Y + h.X)[1]
             //   0x00  (Y + h.X)[0]
             // call bn256ScalarMul(in: 0x40, out: 0x40)
@@ -107,8 +107,8 @@ library OTSchnorrVerifier {
             pop(call(g, 7, 0, x_location, 0x60, x_location, 0x40))
 
             // pad:
-            //   0x60  sigma.genG1[1]
-            //   0x40  sigma.genG1[0]
+            //   0x60  sigma._genG1[1]
+            //   0x40  sigma._genG1[0]
             //   0x20  (Y + h.X)[1]
             //   0x00  (Y + h.X)[0]
         }

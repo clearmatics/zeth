@@ -74,8 +74,8 @@ class TestGroth16BLS12_377Contract(TestCase):
         contracts_dir = get_contracts_dir()
         contract_instance_desc = InstanceDescription.deploy(
             web3,
-            join(contracts_dir, "Groth16BLS12_377_test.sol"),
-            "Groth16BLS12_377_test",
+            join(contracts_dir, "TestGroth16BLS12_377.sol"),
+            "TestGroth16BLS12_377",
             web3.eth.accounts[0],  # pylint: disable=no-member
             None,
             500000,

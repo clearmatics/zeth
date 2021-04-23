@@ -23,10 +23,10 @@ pragma solidity ^0.8.0;
 ///   e (exponent) = 31, so that e=2^t-1 (t=5) and 1 == gcd(e, r-1)
 ///   rounds = 51
 ///
-/// See MiMC7.sol for details.
-library MiMC31
+/// See LMiMC7.sol for details.
+library LMiMC31
 {
-    function hash(bytes32 x, bytes32 y) internal pure returns(bytes32 out) {
+    function _hash(bytes32 x, bytes32 y) internal pure returns(bytes32 out) {
         // Round function (see [AGRRT16]):
         //   F_i(a, key, rc_i) -> (a + key + rc)^31
         //

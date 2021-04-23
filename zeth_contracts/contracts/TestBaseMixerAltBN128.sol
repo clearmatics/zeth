@@ -4,34 +4,34 @@
 
 pragma solidity ^0.8.0;
 
-import "./Groth16AltBN128Mixer.sol";
+import "./BaseMixerAltBN128.sol";
 
 
-// Implementation of Groth16AltBN128MixerBase contract, to allow testing
+// Implementation of BaseMixerAltBN128 contract, to allow testing
 // specific methods.
-contract Groth16AltBN128MixerBase_test is Groth16AltBN128Mixer
+contract TestBaseMixerAltBN128 is BaseMixerAltBN128
 {
     constructor(
-        uint256 mk_depth,
-        address permitted_dispatcher,
-        uint256[2] memory vk_hash
+        uint256 mkDepth,
+        address permittedDispatcher,
+        uint256[2] memory vkHash
     )
-        Groth16AltBN128Mixer(
-            mk_depth,
+        BaseMixerAltBN128(
+            mkDepth,
             address(0),
             new uint256[](0),
-            permitted_dispatcher,
-            vk_hash)
+            permittedDispatcher,
+            vkHash)
     {
     }
 
     function hashPublicProofDataTest(
-        uint256[NUM_INPUTS] memory publicData
+        uint256[_NUM_INPUTS] memory publicData
     )
         external
         returns (uint256)
     {
-        return hashPublicProofData(publicData);
+        return _hashPublicProofData(publicData);
     }
 
     function assemblePublicValuesTest(uint256 residualBits)
@@ -39,34 +39,34 @@ contract Groth16AltBN128MixerBase_test is Groth16AltBN128Mixer
         pure
         returns (uint256 vpub_in, uint256 vpub_out)
     {
-        return assemblePublicValues(residualBits);
+        return _assemblePublicValues(residualBits);
     }
 
     function assembleHsigTest(
-        uint256[NUM_INPUTS] memory primaryInputs
+        uint256[_NUM_INPUTS] memory primaryInputs
     )
         external
         pure
         returns(bytes32 hsig)
     {
-        return assembleHsig(primaryInputs);
+        return _assembleHsig(primaryInputs);
     }
 
     function assembleNullifierTest(
         uint256 index,
-        uint256[NUM_INPUTS] memory primaryInputs
+        uint256[_NUM_INPUTS] memory primaryInputs
     )
         external
         pure
         returns(bytes32 nf)
     {
-        return assembleNullifier(index, primaryInputs);
+        return _assembleNullifier(index, primaryInputs);
     }
 
     // Dummy implementation of abstract function
-    function verifyZkProof(
+    function _verifyZkProof(
         uint256[] memory /* proof */,
-        uint256[NUM_INPUTS] memory /* inputs */
+        uint256[_NUM_INPUTS] memory /* inputs */
     )
         external
         pure
