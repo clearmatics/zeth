@@ -156,6 +156,7 @@ void TestValidJS2In2Case1(
         keypair.pk,
         public_data);
     libff::leave_block("Generate proof", true);
+
     std::vector<Field> primary_inputs = ext_proof.get_primary_inputs();
     ASSERT_EQ(1, primary_inputs.size());
     ASSERT_NE(Field::zero(), primary_inputs[0]);
@@ -165,6 +166,12 @@ void TestValidJS2In2Case1(
     ASSERT_EQ(
         input_hasher_type<snarkT>::compute_hash(public_data),
         primary_inputs[0]);
+
+    // The full assignment should be strictly larger than the public data, and
+    // begin with the primary input.
+    const std::vector<Field> &full_assignment = prover.get_last_assignment();
+    ASSERT_GT(full_assignment.size(), public_data.size());
+    ASSERT_EQ(primary_inputs[0], full_assignment[0]);
 
     libff::enter_block("Verify proof", true);
     // Get the verification key

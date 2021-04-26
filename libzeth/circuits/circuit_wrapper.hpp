@@ -62,6 +62,8 @@ public:
         const typename snarkT::proving_key &proving_key,
         std::vector<Field> &out_public_data) const;
 
+    const std::vector<Field> &get_last_assignment() const;
+
 private:
     libsnark::protoboard<Field> pb;
     libsnark::pb_variable<Field> public_data_hash;
