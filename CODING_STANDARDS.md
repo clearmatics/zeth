@@ -18,12 +18,13 @@ We adhere to the `pep8` standard, using `flake8`, `pylint` and `mypy` to catch f
 Solidity code must adhere to the [solidity coding standards](https://docs.soliditylang.org/en/develop/style-guide.html), with the following amendments:
 - Test functions must end with the suffix `Test` (e.g. `reverseBytesTest`)
 - Private/internal state variables and functions must have an underscore prefix (e.g. `_myInternalFunction`)
+- Virtual functions in abstract contracts must be written last and located at the end of the contract source
 - Function parameters must not be prefixed with an underscore
 - Interface names must have a capital I prefix (e.g. `IERC20`)
 - Library names must have a capital L prefix (e.g. `LPairing`)
 - Test contract names must have a `Test` prefix (e.g. `TestMyContract`)
-- Event names must be prefixed by `Log` (e.g. `LogDeposit`)
 - Contract names may not be PascalCase if using PascalCase is introducing confusions in the name (e.g. `BLS12377.sol` vs `BLS12_377.sol`). PascalCase should be used whenever possible
+- Event names must be prefixed by `Log` (e.g. `LogDeposit`)
 
 **Note:** Some of the files of the current code base may not fully comply with the coding standards above. Old code will progressively be updated to converge towards the recommended style.
 
