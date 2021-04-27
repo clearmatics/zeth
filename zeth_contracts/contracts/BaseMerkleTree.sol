@@ -5,7 +5,7 @@
 pragma solidity ^0.8.0;
 
 /// Abstract Merkle tree implementation. Child classes should implement the
-/// _hash function.
+/// hash function.
 ///
 /// The Merkle tree implementation must trade-off complexity, storage,
 /// initialization cost, and update & root computation cost.
@@ -63,7 +63,7 @@ abstract contract BaseMerkleTree
         _nodes[next_entry_idx] = commitment;
     }
 
-    /// Abstract _hash function to be supplied by a concrete implementation of
+    /// Abstract hash function to be supplied by a concrete implementation of
     /// this class.
     function _hash(bytes32 left, bytes32 right)
         internal
@@ -131,7 +131,7 @@ abstract contract BaseMerkleTree
         // Start at the right and iterate left, so we only execute the
         // default_value logic once.  child_left_idx_rend (reverse-end) is the
         // smallest value of child_left_idx at which we should recompute the
-        // parent node _hash.
+        // parent node hash.
 
         uint256 child_left_idx_rend =
             child_layer_start + (childStartIdx & _MASK_LS_BIT);
