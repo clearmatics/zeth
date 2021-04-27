@@ -24,6 +24,7 @@ public:
     extended_proof(
         typename snarkT::proof &&in_proof,
         libsnark::r1cs_primary_input<libff::Fr<ppT>> &&in_primary_inputs);
+
     const typename snarkT::proof &get_proof() const;
 
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_inputs()
