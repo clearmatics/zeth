@@ -170,7 +170,7 @@ MIXER_INSTANCE: Any = None
 MIXER_CLIENT: Optional[MixerClient] = None
 
 
-class TestGroth16AltBN128MixerBaseContract(TestCase):
+class TestBaseMixerAltBN128Contract(TestCase):
 
     @staticmethod
     def setUpClass() -> None:
