@@ -13,7 +13,7 @@ pragma solidity ^0.8.0;
 /// This implementation stores all leaves and nodes, skipping those that have
 /// not been populated yet. The final entry in each layer stores that layer's
 /// default value.
-abstract contract BaseMerkleTree
+abstract contract AbstractMerkleTree
 {
     // Depth of the merkle tree (should be set with the same depth set in the
     // cpp prover)
@@ -40,7 +40,7 @@ abstract contract BaseMerkleTree
     constructor(uint256 treeDepth) {
         require (
             treeDepth == _DEPTH,
-            "Invalid depth in BaseMerkleTree"
+            "Invalid depth in AbstractMerkleTree"
         );
         _initializeTree();
     }

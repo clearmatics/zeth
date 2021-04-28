@@ -4,18 +4,18 @@
 
 pragma solidity ^0.8.0;
 
-import "./BaseMixer.sol";
-import "./LMiMC31.sol";
+import "./AbstractMixer.sol";
+import "./LibMiMC31.sol";
 
-/// Partial implementation of abstract BaseMixer which implements the
+/// Partial implementation of AbstractMixer which implements the
 /// curve-specific methods to use the BLS12-377 pairing.
-abstract contract BaseMixerBLS12_377 is BaseMixer
+abstract contract AbstractMixerBLS12_377 is AbstractMixer
 {
-    // TODO: Code here is very similar to BaseMixerAltBN128, with only the
+    // TODO: Code here is very similar to AbstractMixerAltBN128, with only the
     // constants changed. Look into sharing more code (possibly by making some
     // of these constants dynamic).
 
-    // Constants regarding the _hash digest length, the prime number used and
+    // Constants regarding the hash digest length, the prime number used and
     // its associated length in bits and the max values (v_in and v_out)
 
     // Number of bits that can be reliably represented by a single field
@@ -42,17 +42,18 @@ abstract contract BaseMixerBLS12_377 is BaseMixer
         address permittedDispatcher,
         uint256[2] memory vkHash
     )
-        BaseMixer(mkDepth, token, vk, permittedDispatcher, vkHash)
+        AbstractMixer(mkDepth, token, vk, permittedDispatcher, vkHash)
     {
     }
 
+    /// Use MiMC31 as the Merkle tree hash function.
     function _hash(bytes32 left, bytes32 right)
         internal
         pure
         override
         returns(bytes32)
     {
-        return LMiMC31._hash(left, right);
+        return LibMiMC31._hash(left, right);
     }
 
     /// Extract a full uint256 from a field element and the n-th set of

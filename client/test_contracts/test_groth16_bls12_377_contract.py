@@ -92,7 +92,7 @@ class TestGroth16BLS12_377Contract(TestCase):
             vk, BLS12_377_PAIRING)
         proof_evm = Groth16.proof_to_contract_parameters(proof, BLS12_377_PAIRING)
         inputs_evm = hex_list_to_uint256_list(inputs)
-        return CONTRACT_INSTANCE.functions.verifyTest(
+        return CONTRACT_INSTANCE.functions.testVerify(
             vk_evm, proof_evm, inputs_evm).call()
 
     def test_groth16_bls12_377_valid(self) -> None:

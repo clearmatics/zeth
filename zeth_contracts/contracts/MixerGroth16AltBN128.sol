@@ -4,12 +4,12 @@
 
 pragma solidity ^0.8.0;
 
-import "./BaseMixerAltBN128.sol";
-import "./LGroth16AltBN128.sol";
+import "./AbstractMixerAltBN128.sol";
+import "./LibGroth16AltBN128.sol";
 
-/// Instance of BaseMixerAltBN128 implementing the Groth16 verifier for the
+/// Instance of AbstractMixerAltBN128 implementing the Groth16 verifier for the
 /// alt-bn128 pairing.
-contract MixerGroth16AltBN128 is BaseMixerAltBN128
+contract MixerGroth16AltBN128 is AbstractMixerAltBN128
 {
     constructor(
         uint256 mkDepth,
@@ -18,7 +18,7 @@ contract MixerGroth16AltBN128 is BaseMixerAltBN128
         address permittedDispatcher,
         uint256[2] memory vkHash
     )
-        BaseMixerAltBN128(mkDepth, token, vk, permittedDispatcher, vkHash)
+        AbstractMixerAltBN128(mkDepth, token, vk, permittedDispatcher, vkHash)
     {
     }
 
@@ -34,6 +34,6 @@ contract MixerGroth16AltBN128 is BaseMixerAltBN128
         // expected by the verifier.
         uint256[] memory inputValues = new uint256[](1);
         inputValues[0] = publicInputsHash;
-        return LGroth16AltBN128._verify(_vk, proof, inputValues);
+        return LibGroth16AltBN128._verify(_vk, proof, inputValues);
     }
 }

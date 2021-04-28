@@ -4,14 +4,14 @@
 
 pragma solidity ^0.8.0;
 
-import "./BaseMixer.sol";
-import "./LMiMC7.sol";
+import "./AbstractMixer.sol";
+import "./LibMiMC7.sol";
 
-/// Partial implementation of abstract BaseMixer which implements the
+/// Partial implementation of AbstractMixer which implements the
 /// curve-specific methods to use the ALT-BN128 pairing.
-abstract contract BaseMixerAltBN128 is BaseMixer
+abstract contract AbstractMixerAltBN128 is AbstractMixer
 {
-    // Constants regarding the _hash digest length, the prime number used and
+    // Constants regarding the hash digest length, the prime number used and
     // its associated length in bits and the max values (v_in and v_out)
     // FIELD_CAPACITY = floor( log_2(r) )
     uint256 internal constant _FIELD_CAPACITY = 253;
@@ -35,18 +35,18 @@ abstract contract BaseMixerAltBN128 is BaseMixer
         address permittedDispatcher,
         uint256[2] memory vkHash
     )
-        BaseMixer(mkDepth, token, vk, permittedDispatcher, vkHash)
+        AbstractMixer(mkDepth, token, vk, permittedDispatcher, vkHash)
     {
     }
 
-    /// Use LMiMC7 as the Merkle tree _hash function.
+    /// Use MiMC7 as the Merkle tree hash function.
     function _hash(bytes32 left, bytes32 right)
         internal
         pure
         override
         returns(bytes32)
     {
-        return LMiMC7._hash(left, right);
+        return LibMiMC7._hash(left, right);
     }
 
     /// Utility function to extract a full uint256 from a field element and the

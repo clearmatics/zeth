@@ -96,14 +96,14 @@ class TestBLS12_377Contract(TestCase):
         """
         Check that [6] == [2] + [4]
         """
-        result = BLS12_INSTANCE.functions.ecAddTest(G1_2 + G1_4).call()
+        result = BLS12_INSTANCE.functions.testECAdd(G1_2 + G1_4).call()
         self.assertEqual(G1_6, result)
 
     def test_bls12_ecmul(self) -> None:
         """
         Check that [-8] == -2 * [4]
         """
-        result = BLS12_INSTANCE.functions.ecMulTest(G1_4 + FR_MINUS_2).call()
+        result = BLS12_INSTANCE.functions.testECMul(G1_4 + FR_MINUS_2).call()
         self.assertEqual(G1_MINUS_8, result)
 
     def test_bls12_ecpairing(self) -> None:
@@ -113,9 +113,9 @@ class TestBLS12_377Contract(TestCase):
         # Note, return result here is uint256(1) or uint256(0) depending on the
         # pairing check result.
         points = G1_6 + G2_4 + G1_3 + G2_8 + G1_4 + G2_4 + G1_MINUS_8 + G2_8
-        result = BLS12_INSTANCE.functions.ecPairingTest(points).call()
+        result = BLS12_INSTANCE.functions.testECPairing(points).call()
         self.assertEqual(1, result)
 
         points = G1_6 + G2_4 + G1_3 + G2_8 + G1_4 + G2_4 + G1_MINUS_8 + G2_4
-        result = BLS12_INSTANCE.functions.ecPairingTest(points).call()
+        result = BLS12_INSTANCE.functions.testECPairing(points).call()
         self.assertEqual(0, result)

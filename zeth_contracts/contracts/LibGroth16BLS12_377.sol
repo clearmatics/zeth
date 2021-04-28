@@ -4,7 +4,7 @@
 
 pragma solidity ^0.8.0;
 
-library LGroth16BLS12_377
+library LibGroth16BLS12_377
 {
     // Fr elements occupy 1 uint256, and Fq elements occupy 2 uint256s.
     // Therefore G1 elements occupy 4 uint256s. G2 elements have coordinates in

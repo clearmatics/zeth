@@ -4,19 +4,19 @@
 
 pragma solidity ^0.8.0;
 
-import "./BaseMixerAltBN128.sol";
+import "./AbstractMixerAltBN128.sol";
 
 
-// Implementation of BaseMixerAltBN128 contract, to allow testing
+// Implementation of AbstractMixerAltBN128 contract, to allow testing
 // specific methods.
-contract TestBaseMixerAltBN128 is BaseMixerAltBN128
+contract TestAbstractMixerAltBN128 is AbstractMixerAltBN128
 {
     constructor(
         uint256 mkDepth,
         address permittedDispatcher,
         uint256[2] memory vkHash
     )
-        BaseMixerAltBN128(
+        AbstractMixerAltBN128(
             mkDepth,
             address(0),
             new uint256[](0),
@@ -25,7 +25,7 @@ contract TestBaseMixerAltBN128 is BaseMixerAltBN128
     {
     }
 
-    function hashPublicProofDataTest(
+    function testHashPublicProofData(
         uint256[_NUM_INPUTS] memory publicData
     )
         external
@@ -34,7 +34,7 @@ contract TestBaseMixerAltBN128 is BaseMixerAltBN128
         return _hashPublicProofData(publicData);
     }
 
-    function assemblePublicValuesTest(uint256 residualBits)
+    function testAssemblePublicValues(uint256 residualBits)
         external
         pure
         returns (uint256 vpub_in, uint256 vpub_out)
@@ -42,7 +42,7 @@ contract TestBaseMixerAltBN128 is BaseMixerAltBN128
         return _assemblePublicValues(residualBits);
     }
 
-    function assembleHsigTest(
+    function testAssembleHsig(
         uint256[_NUM_INPUTS] memory primaryInputs
     )
         external
@@ -52,7 +52,7 @@ contract TestBaseMixerAltBN128 is BaseMixerAltBN128
         return _assembleHsig(primaryInputs);
     }
 
-    function assembleNullifierTest(
+    function testAssembleNullifier(
         uint256 index,
         uint256[_NUM_INPUTS] memory primaryInputs
     )

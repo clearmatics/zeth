@@ -11,7 +11,7 @@ pragma solidity ^0.8.0;
 ///  Mihir Bellare, Sarah Shoup,
 ///  International Workshop on Public Key Cryptography, 2007,
 ///  <https://eprint.iacr.org/2007/273.pdf>
-library LOTSchnorrVerifier {
+library LibOTSchnorrVerifier {
 
     function _verify(
         uint256 vk0,
@@ -30,17 +30,17 @@ library LOTSchnorrVerifier {
         //       abi.encodePacked(vk[2], vk[3], hashToBeSigned));
         //   uint256 h = uint256(h_bytes);
         //
-        //   // X = g^{x}, where g represents a generator of the cyclic group G
-        //   LPairing.G1Point memory X = LPairing.G1Point(vk[0], vk[1]);
+        //   // X = g^{x}, where g is a generator of the cyclic group G
+        //   LibPairing.G1Point memory X = LibPairing.G1Point(vk[0], vk[1]);
         //   // Y = g^{y}
-        //   LPairing.G1Point memory Y = LPairing.G1Point(vk[2], vk[3]);
+        //   LibPairing.G1Point memory Y = LibPairing.G1Point(vk[2], vk[3]);
         //
         //   // S = g^{sigma}
-        //   LPairing.G1Point memory S = LPairing._scalarMulG1(
-        //                                  LPairing._genG1(), sigma);
+        //   LibPairing.G1Point memory S =
+        //       LibPairing._scalarMulG1(LibPairing._genG1(), sigma);
         //   // S_comp = g^{y + xh}
-        //   LPairing.G1Point memory S_comp = LPairing._addG1(Y,
-        //                                       LPairing._scalarMulG1(X, h));
+        //   LibPairing.G1Point memory S_comp =
+        //       LibPairing._addG1(Y, LibPairing._scalarMulG1(X, h));
         //
         //   // Check that g^{sigma} == g^{y + xh}
         //   return (S.X == S_comp.X && S.Y == S_comp.Y);
@@ -90,7 +90,7 @@ library LOTSchnorrVerifier {
             //   0x40
             //   0x20  (Y + h.X)[1]
             //   0x00  (Y + h.X)[0]
-            // copy _genG1 and sigma (see LPairing.sol for values)
+            // copy _genG1 and sigma (see LibPairing.sol for values)
 
             mstore(add(pad, 0x40), 1)
             mstore(add(pad, 0x60), 2)

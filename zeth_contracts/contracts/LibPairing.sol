@@ -13,7 +13,7 @@ pragma solidity ^0.8.0;
 /// gas and costs:
 // solhint-disable-next-line
 ///   https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go
-library LPairing {
+library LibPairing {
 
     struct G1Point {
         uint256 X;

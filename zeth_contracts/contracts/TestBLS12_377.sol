@@ -16,7 +16,7 @@ contract TestBLS12_377
     uint256 private constant _G2_POINT_WORDS = 2 * _G2_COORD_WORDS;
 
     /// `input` is the concatenation of 2 encoded points in G1
-    function ecAddTest(bytes32[2 * _G1_POINT_WORDS] memory input)
+    function testECAdd(bytes32[2 * _G1_POINT_WORDS] memory input)
         external
         returns(bytes32[_G1_POINT_WORDS] memory)
     {
@@ -32,7 +32,7 @@ contract TestBLS12_377
     }
 
     /// `input` is an encoded point in G1, followed by an encoded scalar.
-    function ecMulTest(bytes32[_G1_POINT_WORDS + _SCALAR_WORDS] memory input)
+    function testECMul(bytes32[_G1_POINT_WORDS + _SCALAR_WORDS] memory input)
         external
         returns(bytes32[_G1_POINT_WORDS] memory)
     {
@@ -50,7 +50,7 @@ contract TestBLS12_377
     /// `input` is the concatenation of 4 pairs of encoded points. Each pair is
     /// a G1 point, followed by a G2 point. For BW6-761, both of these points
     /// are 6 words, so there should be 4 * 2 * 6 = 48 words.
-    function ecPairingTest(
+    function testECPairing(
         bytes32[4 * (_G1_POINT_WORDS + _G2_POINT_WORDS)] memory input
     )
         external
