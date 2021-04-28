@@ -4,12 +4,12 @@
 
 pragma solidity ^0.8.0;
 
-import "./LGroth16BLS12_377.sol";
-import "./BaseMixerBLS12_377.sol";
+import "./LibGroth16BLS12_377.sol";
+import "./AbstractMixerBLS12_377.sol";
 
-// Instance of BaseMixerBLS12_377 implementing the Groth16 verifier for the
+// Instance of AbstractMixerBLS12_377 implementing the Groth16 verifier for the
 // bls12-377 pairing.
-contract MixerGroth16BLS12_377 is BaseMixerBLS12_377
+contract MixerGroth16BLS12_377 is AbstractMixerBLS12_377
 {
     constructor(
         uint256 mkDepth,
@@ -18,7 +18,7 @@ contract MixerGroth16BLS12_377 is BaseMixerBLS12_377
         address permittedDispatcher,
         uint256[2] memory vkHash
     )
-        BaseMixerBLS12_377(mkDepth, token, vk, permittedDispatcher, vkHash)
+        AbstractMixerBLS12_377(mkDepth, token, vk, permittedDispatcher, vkHash)
     {
     }
 
@@ -34,6 +34,6 @@ contract MixerGroth16BLS12_377 is BaseMixerBLS12_377
         // expected by the verifier.
         uint256[] memory input_values = new uint256[](1);
         input_values[0] = publicInputsHash;
-        return LGroth16BLS12_377._verify(_vk, proof, input_values);
+        return LibGroth16BLS12_377._verify(_vk, proof, input_values);
     }
 }

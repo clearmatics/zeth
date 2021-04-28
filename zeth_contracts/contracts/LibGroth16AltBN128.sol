@@ -4,7 +4,7 @@
 
 pragma solidity ^0.8.0;
 
-library LGroth16AltBN128
+library LibGroth16AltBN128
 {
     // The structure of the verification key differs from the reference paper.
     // It doesn't contain any element of GT, but only elements of G1 and G2
@@ -63,11 +63,11 @@ library LGroth16AltBN128
         //   vk_x = \sum_{i=0}^{l} a_i * vk.ABC[i], vk_x in G1.
         //
         // ORIGINAL CODE:
-        //   LPairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
+        //   LibPairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
         //   for (uint256 i = 0; i < input.length; i++) {
         //       vk_x =
-        //           LPairing._addG1(vk_x,
-        //               LPairing._scalarMulG1(vk.ABC[i + 1], input[i]));
+        //           LibPairing._addG1(vk_x,
+        //               LibPairing._scalarMulG1(vk.ABC[i + 1], input[i]));
         //   }
         //
         // The linear combination loop was the biggest cost center of the mixer
@@ -169,7 +169,7 @@ library LGroth16AltBN128
         //   e(vk_x, -g2) * e(vk.Alpha, vk.Minus_Beta) *
         //       e(negate(Proof.A), Proof.B) * e(Proof.C, vk.Minus_Delta) == 1
         //
-        // See LPairing.pairing().
+        // See LibPairing.pairing().
         // Note terms have been re-ordered since vk_x is already at offset
         // 0x00. Memory is laid out:
         //

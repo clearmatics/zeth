@@ -5,12 +5,12 @@
 pragma solidity ^0.8.0;
 
 import "./Tokens.sol";
-import "./LOTSchnorrVerifier.sol";
-import "./BaseMerkleTree.sol";
+import "./LibOTSchnorrVerifier.sol";
+import "./AbstractMerkleTree.sol";
 
-/// BaseMixer implements the functions shared across all Mixers (regardless
+/// AbstractMixer implements the functions shared across all Mixers (regardless
 /// which zkSNARK is used)
-abstract contract BaseMixer is BaseMerkleTree, ERC223ReceivingContract
+abstract contract AbstractMixer is AbstractMerkleTree, ERC223ReceivingContract
 {
     // The roots of the different updated trees
     mapping(bytes32 => bool) private _roots;
@@ -100,7 +100,7 @@ abstract contract BaseMixer is BaseMerkleTree, ERC223ReceivingContract
         address permittedDispatcher,
         uint256[2] memory vkHash
     )
-        BaseMerkleTree(depth)
+        AbstractMerkleTree(depth)
     {
         bytes32 initialRoot = _nodes[0];
         _roots[initialRoot] = true;
@@ -203,7 +203,7 @@ abstract contract BaseMixer is BaseMerkleTree, ERC223ReceivingContract
         );
 
         require(
-            LOTSchnorrVerifier._verify(
+            LibOTSchnorrVerifier._verify(
                 vk[0], vk[1], vk[2], vk[3], sigma, hashToBeSigned),
             "Invalid signature in dispatch"
         );
@@ -245,7 +245,7 @@ abstract contract BaseMixer is BaseMerkleTree, ERC223ReceivingContract
             )
         );
         require(
-            LOTSchnorrVerifier._verify(
+            LibOTSchnorrVerifier._verify(
                 vk[0], vk[1], vk[2], vk[3], sigma, hashToBeSigned),
             "Invalid signature: Unable to verify the signature correctly"
         );

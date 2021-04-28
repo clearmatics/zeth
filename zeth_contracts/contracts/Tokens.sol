@@ -11,13 +11,11 @@ pragma solidity ^0.8.0;
 abstract contract IERC20
 {
     function transferFrom(address from, address to, uint256 value)
-        public
-        virtual
+        external
         returns (bool);
 
     function transfer(address to, uint256 value)
-        public
-        virtual
+        external
         returns (bool);
 
     event Transfer(address indexed from, address indexed to, uint256 value);

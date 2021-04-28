@@ -4,13 +4,13 @@
 
 pragma solidity ^0.8.0;
 
-import "./LGroth16BLS12_377.sol";
+import "./LibGroth16BLS12_377.sol";
 
 contract TestGroth16BLS12_377
 {
     uint256[] private _vk;
 
-    function verifyTest(
+    function testVerify(
         uint256[] memory vk,
         uint256[] memory proof,
         uint256[] memory inputs
@@ -19,6 +19,6 @@ contract TestGroth16BLS12_377
         returns(bool)
     {
         _vk = vk;
-        return LGroth16BLS12_377._verify(_vk, proof, inputs);
+        return LibGroth16BLS12_377._verify(_vk, proof, inputs);
     }
 }

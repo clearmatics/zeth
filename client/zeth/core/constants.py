@@ -73,7 +73,7 @@ TRAPR_LENGTH_BYTES: int = bit_length_to_byte_length(TRAPR_LENGTH)
 NOTE_LENGTH: int = APK_LENGTH + PUBLIC_VALUE_LENGTH + RHO_LENGTH + TRAPR_LENGTH
 NOTE_LENGTH_BYTES: int = bit_length_to_byte_length(NOTE_LENGTH)
 
-# Public inputs are (see BaseMixer.sol):
+# Public inputs are (see AbstractMixer.sol):
 #   [0                 ] - 1     x merkle root
 #   [1                 ] - jsOut x commitment
 #   [1 + jsOut         ] - jsIn  x nullifier (partial)
