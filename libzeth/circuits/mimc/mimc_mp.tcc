@@ -17,41 +17,28 @@ MiMC_mp_gadget<FieldT, PermutationT>::MiMC_mp_gadget(
     const libsnark::pb_linear_combination<FieldT> &y,
     const libsnark::pb_variable<FieldT> &result,
     const std::string &annotation_prefix)
-    : libsnark::gadget<FieldT>(pb, annotation_prefix)
-    , x(x)
-    , y(y)
-    , result(result)
 {
-    perm_output.allocate(this->pb, FMT(annotation_prefix, " perm_output"));
+    // Adding x+y to the output of the permutation yields the Miyaguchi-Preneel
+    // equation:
+    //
+    //   result = permutation(x, y) + x + y
+
+    libsnark::pb_linear_combination<FieldT> x_plus_y;
+    x_plus_y.assign(pb, x + y);
     permutation_gadget.reset(new PermutationT(
-        pb,
-        x,
-        y,
-        perm_output,
-        FMT(this->annotation_prefix, " permutation_gadget")));
+        pb, x, y, result, x_plus_y, FMT(annotation_prefix, " MP")));
 }
 
 template<typename FieldT, typename PermutationT>
 void MiMC_mp_gadget<FieldT, PermutationT>::generate_r1cs_constraints()
 {
-    // Setting constraints for the permutation gadget
     permutation_gadget->generate_r1cs_constraints();
-
-    // Adding constraint for the Miyaguchi-Preneel equation
-    this->pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(perm_output + x + y, 1, result),
-        FMT(this->annotation_prefix, " out=k+E_k(m_i)+m_i"));
 }
 
 template<typename FieldT, typename PermutationT>
 void MiMC_mp_gadget<FieldT, PermutationT>::generate_r1cs_witness() const
 {
-    // Generating witness for the gadget
     permutation_gadget->generate_r1cs_witness();
-
-    // Filling output variables for Miyaguchi-Preenel equation
-    this->pb.val(result) =
-        this->pb.lc_val(y) + this->pb.val(perm_output) + this->pb.lc_val(x);
 }
 
 // Returns the hash of two elements

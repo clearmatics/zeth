@@ -10,25 +10,26 @@
 namespace libzeth
 {
 
-/// This gadget implements the interface of the HashTreeT template
+/// This gadget implements the interface of the HashTreeT template.
 ///
-/// MiMC_mp_gadget enforces correct computation of MiMC compression function
-/// based on a the Miyaguchi-Preneel compression construct and a
+/// MiMC_mp_gadget enforces correct computation of the MiMC compression
+/// function, based on a the Miyaguchi-Preneel compression construct using a
 /// MiMC_permutation_gadget instance, PermutationT, operating on FieldT
 /// elements.
-template<typename FieldT, typename PermutationT>
-class MiMC_mp_gadget : public libsnark::gadget<FieldT>
+///
+/// This class contains only an instance of PermutationT, with parameters
+/// configured to make it efficiently compute Miyaguchi-Preneel. As such, it
+/// may appear as first sight that it should inherit from PermutationT. We do
+/// not inherit from PermutationT, either publicly (because the "is-a"
+/// relationship does not hold in general), or privately (because the
+/// pb_linear_combination interface does not support immediate construction of
+/// `x + y`, making the constructor very awkard - this is also the reason that
+/// a pointer is required, rather than a simple instance of PermutationT).
+/// Further, we do not inherit from libsnark::gadget<>, as it is not necessary
+/// and would just add unused data to the class.
+template<typename FieldT, typename PermutationT> class MiMC_mp_gadget
 {
 private:
-    // First input
-    libsnark::pb_linear_combination<FieldT> x;
-    // Second input
-    libsnark::pb_linear_combination<FieldT> y;
-    // Output variable
-    libsnark::pb_variable<FieldT> result;
-    // Permutation output
-    libsnark::pb_variable<FieldT> perm_output;
-    // Permutation gadget
     std::shared_ptr<PermutationT> permutation_gadget;
 
 public:
