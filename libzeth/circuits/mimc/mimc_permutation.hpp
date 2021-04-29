@@ -2,16 +2,18 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_CIRCUITS_MIMC_HPP__
-#define __ZETH_CIRCUITS_MIMC_HPP__
+#ifndef __ZETH_CIRCUITS_MIMC_PERMUTATION_HPP__
+#define __ZETH_CIRCUITS_MIMC_PERMUTATION_HPP__
 
 #include "libzeth/circuits/mimc/mimc_round.hpp"
 
 namespace libzeth
 {
 
-/// MiMC_permutation_gadget enforces correct computation of a MiMC round
-/// function applied some number of rounds.
+/// MiMC_permutation_gadget enforces correct computation of the MiMC
+/// permutation, denoted MiMC_r(k, m) in the Zeth specifications
+/// (https://github.com/clearmatics/zeth-specifications), by peforming
+/// NumRounds MiMC rounds with the given Exponent.
 template<typename FieldT, size_t Exponent, size_t NumRounds>
 class MiMC_permutation_gadget : public libsnark::gadget<FieldT>
 {
@@ -49,6 +51,6 @@ public:
 
 } // namespace libzeth
 
-#include "libzeth/circuits/mimc/mimc.tcc"
+#include "libzeth/circuits/mimc/mimc_permutation.tcc"
 
-#endif // __ZETH_CIRCUITS_MIMC_HPP__
+#endif // __ZETH_CIRCUITS_MIMC_PERMUTATION_HPP__
