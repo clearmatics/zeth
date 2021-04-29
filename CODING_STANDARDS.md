@@ -21,7 +21,7 @@ Solidity code must adhere to the [solidity coding standards](https://docs.solidi
 - The order in which contract members are written must driven by their scope (i.e. `public/external` functions must appear first in the contract code, `internal/private` functions must appear last). Additionally, `virtual` functions in abstract contracts must be written last in their visibility group.
 - Function parameters must not be prefixed with an underscore
 - Interface names must have a capital I prefix (e.g. `IERC20`)
-- Library names must have a capital L prefix (e.g. `LibPairing`)
+- Library names must have a `Lib` prefix (e.g. `LibPairing`)
 - Test contract names must have a `Test` prefix (e.g. `TestMyContract`)
 - Abstract contract names must have an `Abstract` prefix (e.g. `AbstractMyContract`)
 - Contract names may not be PascalCase if using PascalCase is introducing confusions in the name (e.g. `BLS12377.sol` vs `BLS12_377.sol`). PascalCase should be used whenever possible
