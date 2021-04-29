@@ -24,6 +24,8 @@ MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
     const libsnark::pb_linear_combination<FieldT> &msg,
     const libsnark::pb_linear_combination<FieldT> &key,
     const libsnark::pb_variable<FieldT> &result,
+    const libsnark::pb_linear_combination<FieldT> &add_to_result,
+    const bool have_add_to_result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
@@ -63,16 +65,61 @@ MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
     }
 
     // For last round, output to the result variable and add `key` to the
-    // result.
+    // result, along with any add_to_result.
     round_results[NumRounds - 1] = result;
-    round_gadgets.emplace_back(
-        this->pb,
-        round_results[NumRounds - 2],
-        key,
-        round_constants[NumRounds - 1],
-        round_results[NumRounds - 1],
-        key,
-        FMT(this->annotation_prefix, " round[%zu]", NumRounds - 1));
+
+    if (have_add_to_result) {
+        libsnark::pb_linear_combination<FieldT> key_plus_add_to_result;
+        key_plus_add_to_result.assign(this->pb, key + add_to_result);
+        round_gadgets.emplace_back(
+            this->pb,
+            round_results[NumRounds - 2],
+            key,
+            round_constants[NumRounds - 1],
+            round_results[NumRounds - 1],
+            key_plus_add_to_result,
+            FMT(this->annotation_prefix, " round[%zu]", NumRounds - 1));
+    } else {
+        round_gadgets.emplace_back(
+            this->pb,
+            round_results[NumRounds - 2],
+            key,
+            round_constants[NumRounds - 1],
+            round_results[NumRounds - 1],
+            key,
+            FMT(this->annotation_prefix, " round[%zu]", NumRounds - 1));
+    }
+}
+
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_linear_combination<FieldT> &msg,
+    const libsnark::pb_linear_combination<FieldT> &key,
+    const libsnark::pb_variable<FieldT> &result,
+    const std::string &annotation_prefix)
+    : MiMC_permutation_gadget(
+          pb,
+          msg,
+          key,
+          result,
+          libsnark::pb_linear_combination<FieldT>(),
+          false,
+          annotation_prefix)
+{
+}
+
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_linear_combination<FieldT> &msg,
+    const libsnark::pb_linear_combination<FieldT> &key,
+    const libsnark::pb_variable<FieldT> &result,
+    const libsnark::pb_linear_combination<FieldT> &add_to_result,
+    const std::string &annotation_prefix)
+    : MiMC_permutation_gadget(
+          pb, msg, key, result, add_to_result, true, annotation_prefix)
+{
 }
 
 template<typename FieldT, size_t Exponent, size_t NumRounds>
