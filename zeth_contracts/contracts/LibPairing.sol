@@ -13,7 +13,7 @@ pragma solidity ^0.8.0;
 /// gas and costs:
 // solhint-disable-next-line
 ///   https://github.com/ethereum/go-ethereum/blob/master/params/protocol_params.go
-library Pairing {
+library LibPairing {
 
     struct G1Point {
         uint256 X;
@@ -29,12 +29,12 @@ library Pairing {
     }
 
     // Return the generator of G1
-    function P1() internal pure returns (G1Point memory) {
+    function _genG1() internal pure returns (G1Point memory) {
         return G1Point(1, 2);
     }
 
     // Return the generator of G2
-    function P2() internal pure returns (G2Point memory) {
+    function _genG2() internal pure returns (G2Point memory) {
         return G2Point(
             // solhint-disable-next-line
             11559732032986387107991004021392285783925812861821192530917403151452391805634,
@@ -47,7 +47,11 @@ library Pairing {
     }
 
     // Return the negation of p, i.e. p.add(p.negate()) should be zero.
-    function negate(G1Point memory p) internal pure returns (G1Point memory) {
+    function _negateG2(G1Point memory p)
+        internal
+        pure
+        returns (G1Point memory)
+    {
         // The prime q in the base field F_q for G1
         // solhint-disable-next-line
         uint256 q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
@@ -57,7 +61,7 @@ library Pairing {
     }
 
     // Return the sum of two points of G1
-    function add(G1Point memory p1, G1Point memory p2)
+    function _addG1(G1Point memory p1, G1Point memory p2)
         internal
         returns (G1Point memory r)
     {
@@ -82,7 +86,7 @@ library Pairing {
 
     // Return the product of a point on G1 and a scalar, i.e.
     // p == p.mul(1) and p.add(p) == p.mul(2) for all points p.
-    function mul(G1Point memory p, uint256 s)
+    function _scalarMulG1(G1Point memory p, uint256 s)
         internal
         returns (G1Point memory r)
     {
@@ -104,7 +108,7 @@ library Pairing {
     }
 
     // Return the result of computing the pairing check
-    function pairing(G1Point[] memory p1, G2Point[] memory p2)
+    function _pairing(G1Point[] memory p1, G2Point[] memory p2)
         internal
         returns (bool)
     {
@@ -174,27 +178,29 @@ library Pairing {
     }
 
     // Convenience method for a pairing check for two pairs.
-    function pairingProd2(
+    function _pairingProd2(
         G1Point memory a1, G2Point memory a2,
         G1Point memory b1, G2Point memory b2)
         internal
-        returns (bool) {
+        returns (bool)
+    {
         G1Point[] memory p1 = new G1Point[](2);
         G2Point[] memory p2 = new G2Point[](2);
         p1[0] = a1;
         p1[1] = b1;
         p2[0] = a2;
         p2[1] = b2;
-        return pairing(p1, p2);
+        return _pairing(p1, p2);
     }
 
     // Convenience method for a pairing check for three pairs.
-    function pairingProd3(
+    function _pairingProd3(
         G1Point memory a1, G2Point memory a2,
         G1Point memory b1, G2Point memory b2,
         G1Point memory c1, G2Point memory c2)
         internal
-        returns (bool) {
+        returns (bool)
+    {
         G1Point[] memory p1 = new G1Point[](3);
         G2Point[] memory p2 = new G2Point[](3);
         p1[0] = a1;
@@ -203,17 +209,18 @@ library Pairing {
         p2[0] = a2;
         p2[1] = b2;
         p2[2] = c2;
-        return pairing(p1, p2);
+        return _pairing(p1, p2);
     }
 
     // Convenience method for a pairing check for 4 pairs.
-    function pairingProd4(
+    function _pairingProd4(
         G1Point memory a1, G2Point memory a2,
         G1Point memory b1, G2Point memory b2,
         G1Point memory c1, G2Point memory c2,
         G1Point memory d1, G2Point memory d2)
         internal
-        returns (bool) {
+        returns (bool)
+    {
         G1Point[] memory p1 = new G1Point[](4);
         G2Point[] memory p2 = new G2Point[](4);
         p1[0] = a1;
@@ -224,6 +231,6 @@ library Pairing {
         p2[1] = b2;
         p2[2] = c2;
         p2[3] = d2;
-        return pairing(p1, p2);
+        return _pairing(p1, p2);
     }
 }

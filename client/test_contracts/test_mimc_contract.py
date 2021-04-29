@@ -21,8 +21,8 @@ class TestMiMCContract(TestCase):
         contracts_dir = get_contracts_dir()
         contract_instance_desc = InstanceDescription.deploy(
             web3,
-            join(contracts_dir, "MiMC_test.sol"),
-            "MiMC_test",
+            join(contracts_dir, "TestMiMC.sol"),
+            "TestMiMC",
             web3.eth.accounts[0],  # pylint: disable=no-member
             None,
             500000,
@@ -37,7 +37,7 @@ class TestMiMCContract(TestCase):
         # pylint: enable=line-too-long
         h = MiMC7().hash(x, y)
 
-        result = CONTRACT_INSTANCE.functions.test_mimc7(x, y).call()
+        result = CONTRACT_INSTANCE.functions.testMimc7(x, y).call()
         self.assertEqual(h, result)
 
     def test_mimc31(self) -> None:
@@ -47,5 +47,5 @@ class TestMiMCContract(TestCase):
         # pylint: enable=line-too-long
         h = MiMC31().hash(x, y)
 
-        result = CONTRACT_INSTANCE.functions.test_mimc31(x, y).call()
+        result = CONTRACT_INSTANCE.functions.testMimc31(x, y).call()
         self.assertEqual(h, result)

@@ -709,7 +709,7 @@ def joinsplit_sign(
         zksnark, pp, extproof, public_data)
 
     # If for_dispatch_call is set, omit proof from the signature. See
-    # MixerBase.sol.
+    # AbstractMixer.sol.
     if not for_dispatch_call:
         h.update(proof_bytes)
 

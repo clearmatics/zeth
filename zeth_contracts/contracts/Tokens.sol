@@ -8,16 +8,14 @@ pragma solidity ^0.8.0;
 /// and from the Mixer. Note that we only declare the functions we are
 /// interested in, namely, transferFrom() (used to do a Deposit), and
 /// transfer() (used to do a withdrawal)
-abstract contract IERC20
+interface IERC20
 {
     function transferFrom(address from, address to, uint256 value)
-        public
-        virtual
+        external
         returns (bool);
 
     function transfer(address to, uint256 value)
-        public
-        virtual
+        external
         returns (bool);
 
     event Transfer(address indexed from, address indexed to, uint256 value);

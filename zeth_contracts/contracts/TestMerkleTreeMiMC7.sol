@@ -4,8 +4,8 @@
 
 pragma solidity ^0.8.0;
 
-import "./BaseMerkleTree.sol";
-import "./MiMC7.sol";
+import "./AbstractMerkleTree.sol";
+import "./LibMiMC7.sol";
 
 /// The Merkle tree implementation must trade-off complexity, storage,
 /// initialization cost, and update & root computation cost.
@@ -13,9 +13,9 @@ import "./MiMC7.sol";
 /// This implementation stores all leaves and nodes, skipping those that have
 /// not been populated yet. The final entry in each layer stores that layer's
 /// default value.
-contract MerkleTreeMiMC7_test is BaseMerkleTree
+contract TestMerkleTreeMiMC7 is AbstractMerkleTree
 {
-    constructor(uint treeDepth) public BaseMerkleTree(treeDepth)
+    constructor(uint treeDepth) AbstractMerkleTree(treeDepth)
     {
     }
 
@@ -27,27 +27,28 @@ contract MerkleTreeMiMC7_test is BaseMerkleTree
         bytes32[] memory first,
         bytes32[] memory second
     )
-        public
+        external
         returns (bytes32)
     {
         for (uint i = 0 ; i < first.length ; ++i) {
             insert(first[i]);
         }
-        bytes32 root = recomputeRoot(first.length);
+        bytes32 root = _recomputeRoot(first.length);
 
         for (uint i = 0 ; i < second.length ; ++i) {
             insert(second[i]);
         }
-        root = recomputeRoot(second.length);
+        root = _recomputeRoot(second.length);
         return root;
     }
 
     /// Use MiMC7 as the Merkle tree hash function.
-    function hash(bytes32 left, bytes32 right)
+    function _hash(bytes32 left, bytes32 right)
         internal
+        pure
         override
         returns(bytes32)
     {
-        return MiMC7.hash(left, right);
+        return LibMiMC7._hash(left, right);
     }
 }

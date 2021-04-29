@@ -4,7 +4,7 @@
 
 pragma solidity ^0.8.0;
 
-library Groth16AltBN128
+library LibGroth16AltBN128
 {
     // The structure of the verification key differs from the reference paper.
     // It doesn't contain any element of GT, but only elements of G1 and G2
@@ -14,14 +14,9 @@ library Groth16AltBN128
     // contract code.
 
     // Used by client code to verify that inputs are in the correct field.
-    uint256 internal constant PRIME_R =
+    uint256 internal constant _PRIME_R =
         // solhint-disable-next-line max-line-length
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
-
-    // Return the value PRIME_R, the characteristic of the scalar field.
-    function scalar_r() internal pure returns (uint256) {
-        return PRIME_R;
-    }
 
     // Fr elements and Fq elements can be held in a single uint256. Therefore
     // G1 elements require 2 uint256s. G2 elements have coordinates in Fp2, and
@@ -41,7 +36,7 @@ library Groth16AltBN128
     //     uint256[2] c,              (offset 06 - 0x06)
     //     <end>                      (offset 08 - 0x08)
 
-    function verify(
+    function _verify(
         uint256[] storage vk,
         uint256[] memory proof,
         uint256[] memory input
@@ -61,17 +56,18 @@ library Groth16AltBN128
 
         // Ensure that all inputs belong to the scalar field.
         for (uint256 i = 0 ; i < numInputs; i++) {
-            require(input[i] < PRIME_R, "Input is not in scalar field");
+            require(input[i] < _PRIME_R, "Input is not in scalar field");
         }
 
         // 1. Compute the linear combination
         //   vk_x = \sum_{i=0}^{l} a_i * vk.ABC[i], vk_x in G1.
         //
         // ORIGINAL CODE:
-        //   Pairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
+        //   LibPairing.G1Point memory vk_x = vk.ABC[0]; // a_0 = 1
         //   for (uint256 i = 0; i < input.length; i++) {
         //       vk_x =
-        //           Pairing.add(vk_x, Pairing.mul(vk.ABC[i + 1], input[i]));
+        //           LibPairing._addG1(vk_x,
+        //               LibPairing._scalarMulG1(vk.ABC[i + 1], input[i]));
         //   }
         //
         // The linear combination loop was the biggest cost center of the mixer
@@ -173,8 +169,9 @@ library Groth16AltBN128
         //   e(vk_x, -g2) * e(vk.Alpha, vk.Minus_Beta) *
         //       e(negate(Proof.A), Proof.B) * e(Proof.C, vk.Minus_Delta) == 1
         //
-        // See Pairing.pairing(). Note terms have been re-ordered since vk_x is
-        // already at offset 0x00. Memory is laid out:
+        // See LibPairing.pairing().
+        // Note terms have been re-ordered since vk_x is already at offset
+        // 0x00. Memory is laid out:
         //
         //   0x0300
         //   0x0280 - verifyKey.Minus_Delta in G2

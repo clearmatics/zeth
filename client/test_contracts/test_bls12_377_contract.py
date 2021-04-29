@@ -82,12 +82,12 @@ class TestBLS12_377Contract(TestCase):
 
     @staticmethod
     def setUpClass() -> None:
-        print("Deploying BLS12_377_test.sol")
+        print("Deploying TestBLS12_377.sol")
         _web3, eth = mock.open_test_web3()
         _bls12_interface, bls12_instance = mock.deploy_contract(
             eth,
             eth.accounts[0],
-            "BLS12_377_test",
+            "TestBLS12_377",
             {})
         global BLS12_INSTANCE  # pylint: disable=global-statement
         BLS12_INSTANCE = bls12_instance
