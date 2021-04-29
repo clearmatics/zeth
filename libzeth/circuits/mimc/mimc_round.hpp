@@ -36,11 +36,17 @@ private:
     // Result variable
     const libsnark::pb_variable<FieldT> result;
 
-    // Boolean variable to add the key after the round
-    const bool add_key_to_result;
+    // Optional linear combination to add after the final round
+    const libsnark::pb_linear_combination<FieldT> add_to_result;
+
+    // Flag indicating whether add_to_result is valid
+    const bool have_add_to_result;
 
     // Intermediate values
     std::vector<libsnark::pb_variable<FieldT>> exponents;
+
+    // Initialization code shared by constructors.
+    void initialize();
 
 public:
     MiMC_round_gadget(
@@ -49,7 +55,17 @@ public:
         const libsnark::pb_linear_combination<FieldT> &key,
         const FieldT &round_const,
         libsnark::pb_variable<FieldT> &result,
-        const bool add_k_to_result,
+        const std::string &annotation_prefix = "MiMC_round_gadget");
+
+    /// Constructor that supports adding some linear_combination to the final
+    /// result.
+    MiMC_round_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const libsnark::pb_linear_combination<FieldT> &msg,
+        const libsnark::pb_linear_combination<FieldT> &key,
+        const FieldT &round_const,
+        libsnark::pb_variable<FieldT> &result,
+        const libsnark::pb_linear_combination<FieldT> &add_to_result,
         const std::string &annotation_prefix = "MiMC_round_gadget");
 
     void generate_r1cs_constraints();

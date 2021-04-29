@@ -11,24 +11,49 @@ namespace libzeth
 {
 
 template<typename FieldT, size_t Exponent>
+void MiMC_round_gadget<FieldT, Exponent>::initialize()
+{
+    // Each condition requires an intermediate variable, except the final one,
+    // which uses _result (and optionally _k).
+    exponents.resize(NUM_CONDITIONS - 1);
+}
+
+template<typename FieldT, size_t Exponent>
 MiMC_round_gadget<FieldT, Exponent>::MiMC_round_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_linear_combination<FieldT> &msg,
     const libsnark::pb_linear_combination<FieldT> &key,
     const FieldT &round_const,
     libsnark::pb_variable<FieldT> &result,
-    const bool add_key_to_result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , msg(msg)
     , key(key)
     , round_const(round_const)
     , result(result)
-    , add_key_to_result(add_key_to_result)
+    , have_add_to_result(false)
 {
-    // Each condition requires an intermediate variable, except the final one,
-    // which uses _result (and optionally _k).
-    exponents.resize(NUM_CONDITIONS - 1);
+    initialize();
+}
+
+template<typename FieldT, size_t Exponent>
+MiMC_round_gadget<FieldT, Exponent>::MiMC_round_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_linear_combination<FieldT> &msg,
+    const libsnark::pb_linear_combination<FieldT> &key,
+    const FieldT &round_const,
+    libsnark::pb_variable<FieldT> &result,
+    const libsnark::pb_linear_combination<FieldT> &add_to_result,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , msg(msg)
+    , key(key)
+    , round_const(round_const)
+    , result(result)
+    , add_to_result(add_to_result)
+    , have_add_to_result(true)
+{
+    initialize();
 }
 
 template<typename FieldT, size_t Exponent>
@@ -82,14 +107,16 @@ void MiMC_round_gadget<FieldT, Exponent>::generate_r1cs_constraints()
     }
     assert(exp_idx == exponents.size());
 
-    // Final multiply (lowest-order bit is known to be 1):
-    //   result = last * t (+ k)
-    // such that:
-    //   result (- k) = last * t
-    if (add_key_to_result) {
+    // Final multiply (lowest-order bit is known to be 1),
+    if (have_add_to_result) {
+        // addition of add_to_result:
+        //      result = last * t + add_to_result
+        //  <=> result - add_to_result = last * t
         this->pb.add_r1cs_constraint(
-            libsnark::r1cs_constraint<FieldT>(*last, t, result - key),
-            FMT(this->annotation_prefix, " calc_t^%zu_add_key", Exponent));
+            libsnark::r1cs_constraint<FieldT>(*last, t, result - add_to_result),
+            FMT(this->annotation_prefix,
+                " calc_t^%zu_add_to_result",
+                Exponent));
     } else {
         this->pb.add_r1cs_constraint(
             libsnark::r1cs_constraint<FieldT>(*last, t, result),
@@ -125,10 +152,11 @@ void MiMC_round_gadget<FieldT, Exponent>::generate_r1cs_witness() const
         this->pb.val(exponents[var_idx++]) = v;
     }
 
-    // v = v * t (+ k)
+    // v = v * t + add_to_result
     v = v * t;
-    if (add_key_to_result) {
-        v = v + k_val;
+    if (have_add_to_result) {
+        add_to_result.evaluate(this->pb);
+        v = v + this->pb.lc_val(add_to_result);
     }
     this->pb.val(result) = v;
 }

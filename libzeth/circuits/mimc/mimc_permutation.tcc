@@ -42,36 +42,37 @@ MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
         key,
         round_constants[0],
         round_results[0],
-        false,
         FMT(this->annotation_prefix, " round[0]"));
 
-    // All other rounds use the output of the previous round and output to an
-    // intermediate variable, except the last round, which outputs to the
-    // result parameter.
-    for (size_t i = 1; i < NumRounds; i++) {
-        const bool is_last = (i == (NumRounds - 1));
+    // Intermediate rounds use the output of the previous round and output to
+    // an intermediate variable (allocated here)
+    for (size_t i = 1; i < NumRounds - 1; i++) {
+        // Allocate intermediate round result.
+        round_results[i].allocate(
+            this->pb, FMT(this->annotation_prefix, " round_result[%zu]", i));
 
-        // Allocate output variable (except for last round, which outputs to
-        // the result variable).
-        if (is_last) {
-            round_results[i] = result;
-        } else {
-            round_results[i].allocate(
-                this->pb,
-                FMT(this->annotation_prefix, " round_result[%zu]", i));
-        }
-
-        // Initialize and add the current round gadget into the rounds gadget
-        // vector, picking the relative constant
+        // Initialize the current round gadget into the vector of round gadgets
+        // vector, picking the correct round constant.
         round_gadgets.emplace_back(
             this->pb,
             round_results[i - 1],
             key,
             round_constants[i],
             round_results[i],
-            is_last,
             FMT(this->annotation_prefix, " round[%zu]", i));
     }
+
+    // For last round, output to the result variable and add `key` to the
+    // result.
+    round_results[NumRounds - 1] = result;
+    round_gadgets.emplace_back(
+        this->pb,
+        round_results[NumRounds - 2],
+        key,
+        round_constants[NumRounds - 1],
+        round_results[NumRounds - 1],
+        key,
+        FMT(this->annotation_prefix, " round[%zu]", NumRounds - 1));
 }
 
 template<typename FieldT, size_t Exponent, size_t NumRounds>

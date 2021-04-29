@@ -28,7 +28,7 @@ namespace
 
 // Testing that (15212  + 98645 + 216319)**7 =
 // 427778066313557225181231220812180094976
-TEST(TestMiMC, MiMC7RoundTrueNoAddKToResult)
+TEST(TestMiMC, MiMC7Round)
 {
     libsnark::protoboard<Field> pb;
     libsnark::pb_variable<Field> in_x;
@@ -43,7 +43,7 @@ TEST(TestMiMC, MiMC7RoundTrueNoAddKToResult)
 
     result.allocate(pb, "result");
     MiMCe7_round_gadget<Field> round_gadget(
-        pb, in_x, in_k, in_C, result, false, "round_gadget");
+        pb, in_x, in_k, in_C, result, "round_gadget");
     round_gadget.generate_r1cs_constraints();
     round_gadget.generate_r1cs_witness();
 
@@ -52,7 +52,7 @@ TEST(TestMiMC, MiMC7RoundTrueNoAddKToResult)
     ASSERT_TRUE(expected_out == pb.val(result));
 }
 
-TEST(TestMiMC, MiMC7RoundFalseNoAddKToResult)
+TEST(TestMiMC, MiMC7RoundIncorrect)
 {
     libsnark::protoboard<Field> pb;
     libsnark::pb_variable<Field> in_x;
@@ -67,7 +67,7 @@ TEST(TestMiMC, MiMC7RoundFalseNoAddKToResult)
 
     result.allocate(pb, "result");
     MiMCe7_round_gadget<Field> round_gadget(
-        pb, in_x, in_k, in_C, result, false, "round_gadget");
+        pb, in_x, in_k, in_C, result, "round_gadget");
     round_gadget.generate_r1cs_constraints();
     round_gadget.generate_r1cs_witness();
 
@@ -78,7 +78,7 @@ TEST(TestMiMC, MiMC7RoundFalseNoAddKToResult)
 
 // Testing that (15212  + 98645 + 216319)**7 + 98645 =
 // 427778066313557225181231220812180193621
-TEST(TestMiMC, MiMC7RoundTrueAddKToResult)
+TEST(TestMiMC, MiMC7RoundAddToResult)
 {
     libsnark::protoboard<Field> pb;
     libsnark::pb_variable<Field> in_x;
@@ -93,7 +93,7 @@ TEST(TestMiMC, MiMC7RoundTrueAddKToResult)
 
     result.allocate(pb, "result");
     MiMCe7_round_gadget<Field> round_gadget(
-        pb, in_x, in_k, in_C, result, true, "round_gadget");
+        pb, in_x, in_k, in_C, result, in_k, "round_gadget");
     round_gadget.generate_r1cs_constraints();
     round_gadget.generate_r1cs_witness();
 
@@ -102,7 +102,7 @@ TEST(TestMiMC, MiMC7RoundTrueAddKToResult)
     ASSERT_TRUE(expected_out == pb.val(result));
 }
 
-TEST(TestMiMC, MiMC7RoundFalseAddKToResult)
+TEST(TestMiMC, MiMC7RoundAddToResultIncorrect)
 {
     libsnark::protoboard<Field> pb;
     libsnark::pb_variable<Field> in_x;
@@ -117,7 +117,7 @@ TEST(TestMiMC, MiMC7RoundFalseAddKToResult)
 
     result.allocate(pb, "result");
     MiMCe7_round_gadget<Field> round_gadget(
-        pb, in_x, in_k, in_C, result, true, "round_gadget");
+        pb, in_x, in_k, in_C, result, in_k, "round_gadget");
     round_gadget.generate_r1cs_constraints();
     round_gadget.generate_r1cs_witness();
 
@@ -126,7 +126,7 @@ TEST(TestMiMC, MiMC7RoundFalseAddKToResult)
     ASSERT_FALSE(unexpected_out == pb.val(result));
 }
 
-TEST(TestMiMC, MiMC7PermTrue)
+TEST(TestMiMC, MiMC7Perm)
 {
     libsnark::protoboard<Field> pb;
 
@@ -153,7 +153,7 @@ TEST(TestMiMC, MiMC7PermTrue)
     ASSERT_TRUE(expected_out == pb.val(result));
 }
 
-TEST(TestMiMC, MiMC7PermFalse)
+TEST(TestMiMC, MiMC7PermIncorrect)
 {
     libsnark::protoboard<Field> pb;
 
@@ -179,7 +179,7 @@ TEST(TestMiMC, MiMC7PermFalse)
     ASSERT_FALSE(unexpected_out == pb.val(result));
 }
 
-TEST(TestMiMC, MiMC7MpTrue)
+TEST(TestMiMC, MiMC7Mp)
 {
     libsnark::protoboard<Field> pb;
 
@@ -212,7 +212,7 @@ TEST(TestMiMC, MiMC7MpTrue)
     ASSERT_TRUE(expected_out == pb.val(result));
 }
 
-TEST(TestMiMC, MiMC7MpFalse)
+TEST(TestMiMC, MiMC7MpIncorrect)
 {
     libsnark::protoboard<Field> pb;
 
