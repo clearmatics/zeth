@@ -13,11 +13,15 @@ using namespace libzeth;
 template<typename FieldT>
 using MiMCe7_round_gadget = MiMC_round_gadget<FieldT, 7>;
 template<typename FieldT>
-using MiMCe31_round_gadget = MiMC_round_gadget<FieldT, 31>;
-template<typename FieldT>
 using MiMCe7_permutation_gadget = MiMC_permutation_gadget<FieldT, 7, 91>;
 template<typename FieldT>
-using MiMCe31_permutation_gadget = MiMC_permutation_gadget<FieldT, 31, 51>;
+using MiMCe17_round_gadget = MiMC_round_gadget<FieldT, 17>;
+template<typename FieldT>
+using MiMCe17_ALT_BN128_permutation_gadget =
+    MiMC_permutation_gadget<FieldT, 17, 65>;
+template<typename FieldT>
+using MiMCe17_BLS12_377_permutation_gadget =
+    MiMC_permutation_gadget<FieldT, 17, 62>;
 
 // Test data here specialized for alt_bn128
 using pp = libff::alt_bn128_pp;
@@ -243,20 +247,53 @@ TEST(TestMiMC, MiMC7MpIncorrect)
     ASSERT_FALSE(unexpected_out == pb.val(result));
 }
 
-TEST(TestMiMC, TestMiMC31)
+// Testing that (15212  + 98645 + 216319)**7 =
+// 427778066313557225181231220812180094976
+TEST(TestMiMC, MiMC17_ALT_BN128_Round)
 {
-    using Field = libff::bls12_377_Fr;
+    using Field = libff::alt_bn128_Fr;
 
-    // Test data from client test
-    const Field m_val(
-        "361463706104393758314627143582733736918979816094794952605869"
-        "5634226054692860");
-    const Field k_val(
-        "577560616941962560685931949698212627967485873079130048105101"
-        "9590436651369410");
-    const Field h_val(
-        "757520454940410747883073955769867933053765668805066446289274"
-        "1835534561279075");
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> in_x;
+    libsnark::pb_variable<Field> in_k;
+    libsnark::pb_variable<Field> result;
+
+    in_x.allocate(pb, "x");
+    in_k.allocate(pb, "k");
+    result.allocate(pb, "result");
+
+    // Test data from client test (test_mimc_alt_bn128_round), to ensure
+    // consistency between implementations.
+
+    pb.val(in_x) = Field("340282366920938463463374607431768211456");
+    pb.val(in_k) = Field("28948022309329048855892746252171976963317496166410141"
+                         "009864396001978282409983");
+    Field in_C = Field("1422006791884799603110814443576367281105075806594536430"
+                       "8986253046354060608451");
+
+    MiMCe17_round_gadget<Field> round_gadget(
+        pb, in_x, in_k, in_C, result, "round_gadget");
+    round_gadget.generate_r1cs_constraints();
+    round_gadget.generate_r1cs_witness();
+
+    Field expected_out = Field("15194574649778181158537940501307832704788048781"
+                               "286507777438072456493095881604");
+    ASSERT_TRUE(pb.is_satisfied());
+    ASSERT_TRUE(expected_out == pb.val(result));
+}
+
+TEST(TestMiMC, MiMC17_ALT_BN128_MP)
+{
+    using Field = libff::alt_bn128_Fr;
+
+    // Test data from client test (test_mimc_alt_bn128_hash), to ensure
+    // consistency between implementations.
+
+    const Field m_val("340282366920938463463374607431768211456");
+    const Field k_val("28948022309329048855892746252171976963317496166410141009"
+                      "864396001978282409983");
+    const Field h_val("14599678357063082723814206975733222579132256174923645170"
+                      "354481857040188426666");
 
     libsnark::protoboard<Field> pb;
 
@@ -274,8 +311,87 @@ TEST(TestMiMC, TestMiMC31)
     libsnark::pb_variable<Field> h;
     h.allocate(pb, "h");
 
-    MiMC_mp_gadget<Field, MiMCe31_permutation_gadget<Field>> mimc_mp_gadget(
-        pb, m, k, h, "mimc_mp");
+    MiMC_mp_gadget<Field, MiMCe17_ALT_BN128_permutation_gadget<Field>>
+        mimc_mp_gadget(pb, m, k, h, "mimc_mp");
+    mimc_mp_gadget.generate_r1cs_constraints();
+    mimc_mp_gadget.generate_r1cs_witness();
+
+    // Check that the circuit is satisfied, and that the expected result is
+    // generated.
+    ASSERT_TRUE(pb.is_satisfied());
+    ASSERT_EQ(h_val, pb.val(h));
+}
+
+// Testing that (15212  + 98645 + 216319)**7 =
+// 427778066313557225181231220812180094976
+TEST(TestMiMC, MiMC17_BLS12_377_Round)
+{
+    using Field = libff::bls12_377_Fr;
+
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> in_x;
+    libsnark::pb_variable<Field> in_k;
+    libsnark::pb_variable<Field> result;
+
+    in_x.allocate(pb, "x");
+    in_k.allocate(pb, "k");
+    result.allocate(pb, "result");
+
+    // Test data from client test (test_mimc_bls12_377_round), to ensure
+    // consistency between implementations.
+
+    pb.val(in_x) = Field("340282366920938463463374607431768211456");
+    pb.val(in_k) = Field("36146370610439375831462714358273373691897981609479495"
+                         "26058695634226054692860");
+    Field in_C = Field("5775606169419625606859319496982126279674858730791300481"
+                       "051019590436651369410");
+
+    MiMCe17_round_gadget<Field> round_gadget(
+        pb, in_x, in_k, in_C, result, "round_gadget");
+    round_gadget.generate_r1cs_constraints();
+    round_gadget.generate_r1cs_witness();
+
+    Field expected_out = Field("70652923384013840748711649474482841764205668417"
+                               "1152884149736992660816802274");
+    ASSERT_TRUE(pb.is_satisfied());
+    ASSERT_EQ(expected_out, pb.val(result));
+}
+
+TEST(TestMiMC, MiMC17_BLS12_377_MP)
+{
+    using Field = libff::bls12_377_Fr;
+
+    // Test data from client test (test_mimc_bls12_377_hash), to ensure
+    // consistency between implementations.
+
+    const Field m_val(
+        "361463706104393758314627143582733736918979816094794952605869"
+        "5634226054692860");
+    const Field k_val(
+        "577560616941962560685931949698212627967485873079130048105101"
+        "9590436651369410");
+    const Field h_val(
+        "580310635483157120553405751259383795319189070903739068091192"
+        "5249983717812220");
+
+    libsnark::protoboard<Field> pb;
+
+    // Public input
+    libsnark::pb_variable<Field> k;
+    k.allocate(pb, "k");
+    pb.set_input_sizes(1);
+    pb.val(k) = k_val;
+
+    // Private inputs
+    libsnark::pb_variable<Field> m;
+    m.allocate(pb, "m");
+    pb.val(m) = m_val;
+
+    libsnark::pb_variable<Field> h;
+    h.allocate(pb, "h");
+
+    MiMC_mp_gadget<Field, MiMCe17_BLS12_377_permutation_gadget<Field>>
+        mimc_mp_gadget(pb, m, k, h, "mimc_mp");
     mimc_mp_gadget.generate_r1cs_constraints();
     mimc_mp_gadget.generate_r1cs_witness();
 
