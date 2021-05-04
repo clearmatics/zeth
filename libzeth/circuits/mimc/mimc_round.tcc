@@ -31,7 +31,7 @@ MiMC_round_gadget<FieldT, Exponent>::MiMC_round_gadget(
     , key(key)
     , round_const(round_const)
     , result(result)
-    , have_add_to_result(false)
+    , add_to_result_is_valid(false)
 {
     initialize();
 }
@@ -51,7 +51,7 @@ MiMC_round_gadget<FieldT, Exponent>::MiMC_round_gadget(
     , round_const(round_const)
     , result(result)
     , add_to_result(add_to_result)
-    , have_add_to_result(true)
+    , add_to_result_is_valid(true)
 {
     initialize();
 }
@@ -108,7 +108,7 @@ void MiMC_round_gadget<FieldT, Exponent>::generate_r1cs_constraints()
     assert(exp_idx == exponents.size());
 
     // Final multiply (lowest-order bit is known to be 1),
-    if (have_add_to_result) {
+    if (add_to_result_is_valid) {
         // addition of add_to_result:
         //      result = last * t + add_to_result
         //  <=> result - add_to_result = last * t
@@ -154,7 +154,7 @@ void MiMC_round_gadget<FieldT, Exponent>::generate_r1cs_witness() const
 
     // v = v * t + add_to_result
     v = v * t;
-    if (have_add_to_result) {
+    if (add_to_result_is_valid) {
         add_to_result.evaluate(this->pb);
         v = v + this->pb.lc_val(add_to_result);
     }

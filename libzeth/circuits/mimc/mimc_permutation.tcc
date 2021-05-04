@@ -25,7 +25,7 @@ MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
     const libsnark::pb_linear_combination<FieldT> &key,
     const libsnark::pb_variable<FieldT> &result,
     const libsnark::pb_linear_combination<FieldT> &add_to_result,
-    const bool have_add_to_result,
+    const bool add_to_result_is_valid,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
@@ -68,7 +68,7 @@ MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
     // result, along with any add_to_result.
     round_results[NumRounds - 1] = result;
 
-    if (have_add_to_result) {
+    if (add_to_result_is_valid) {
         libsnark::pb_linear_combination<FieldT> key_plus_add_to_result;
         key_plus_add_to_result.assign(this->pb, key + add_to_result);
         round_gadgets.emplace_back(

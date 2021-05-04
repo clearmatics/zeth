@@ -45,7 +45,7 @@ private:
         const libsnark::pb_linear_combination<FieldT> &key,
         const libsnark::pb_variable<FieldT> &result,
         const libsnark::pb_linear_combination<FieldT> &add_to_result,
-        const bool have_add_to_result,
+        const bool add_to_result_is_valid,
         const std::string &annotation_prefix);
 
 public:

@@ -40,7 +40,7 @@ private:
     const libsnark::pb_linear_combination<FieldT> add_to_result;
 
     // Flag indicating whether add_to_result is valid
-    const bool have_add_to_result;
+    const bool add_to_result_is_valid;
 
     // Intermediate values
     std::vector<libsnark::pb_variable<FieldT>> exponents;
