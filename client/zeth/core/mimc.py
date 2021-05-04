@@ -106,7 +106,6 @@ class MiMCAltBN128(MiMC17Base):
 
 
 class MiMCBLS12_377(MiMC17Base):  # pylint: disable=invalid-name
-
     """
     MiMC specialized for Fr in BLS12-377, using exponent 17 and 62 rounds. See
     zeth specifications (Section 3.2) for details.
