@@ -20,8 +20,10 @@ template<typename FieldT, size_t Exponent, size_t NumRounds>
 class MiMC_permutation_gadget : public libsnark::gadget<FieldT>
 {
 private:
-    // Round constants only available up to 91 rounds
-    static_assert(NumRounds <= 91, "NumRounds must be less than 91");
+    // Round constants only available up to some maximum number of rounds
+    static const size_t MaxRounds = 65;
+    static_assert(
+        NumRounds <= MaxRounds, "NumRounds must be less than MaxRounds");
 
     // Instantiate round gadget with exponent = Exponent
     using RoundT = MiMC_round_gadget<FieldT, Exponent>;
