@@ -5,7 +5,7 @@
 pragma solidity ^0.8.0;
 
 import "./AbstractMixer.sol";
-import "./LibMiMC7.sol";
+import "./LibMiMC.sol";
 
 /// Partial implementation of AbstractMixer which implements the
 /// curve-specific methods to use the ALT-BN128 pairing.
@@ -39,14 +39,13 @@ abstract contract AbstractMixerAltBN128 is AbstractMixer
     {
     }
 
-    /// Use MiMC7 as the Merkle tree hash function.
     function _hash(bytes32 left, bytes32 right)
         internal
         pure
         override
         returns(bytes32)
     {
-        return LibMiMC7._hash(left, right);
+        return LibMiMC._hashAltBN128(left, right);
     }
 
     /// Utility function to extract a full uint256 from a field element and the

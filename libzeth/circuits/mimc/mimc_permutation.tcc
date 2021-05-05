@@ -2,10 +2,10 @@
 // Content taken and adapted from:
 // https://github.com/HarryR/ethsnarks/blob/master/src/gadgets/mimc.hpp
 
-#ifndef __ZETH_CIRCUITS_MIMC_TCC__
-#define __ZETH_CIRCUITS_MIMC_TCC__
+#ifndef __ZETH_CIRCUITS_MIMC_PERMUTATION_TCC__
+#define __ZETH_CIRCUITS_MIMC_PERMUTATION_TCC__
 
-#include "libzeth/circuits/mimc/mimc.hpp"
+#include "libzeth/circuits/mimc/mimc_permutation.hpp"
 
 namespace libzeth
 {
@@ -24,6 +24,8 @@ MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
     const libsnark::pb_linear_combination<FieldT> &msg,
     const libsnark::pb_linear_combination<FieldT> &key,
     const libsnark::pb_variable<FieldT> &result,
+    const libsnark::pb_linear_combination<FieldT> &add_to_result,
+    const bool add_to_result_is_valid,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
@@ -42,36 +44,82 @@ MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
         key,
         round_constants[0],
         round_results[0],
-        false,
         FMT(this->annotation_prefix, " round[0]"));
 
-    // All other rounds use the output of the previous round and output to an
-    // intermediate variable, except the last round, which outputs to the
-    // result parameter.
-    for (size_t i = 1; i < NumRounds; i++) {
-        const bool is_last = (i == (NumRounds - 1));
+    // Intermediate rounds use the output of the previous round and output to
+    // an intermediate variable (allocated here)
+    for (size_t i = 1; i < NumRounds - 1; i++) {
+        // Allocate intermediate round result.
+        round_results[i].allocate(
+            this->pb, FMT(this->annotation_prefix, " round_result[%zu]", i));
 
-        // Allocate output variable (except for last round, which outputs to
-        // the result variable).
-        if (is_last) {
-            round_results[i] = result;
-        } else {
-            round_results[i].allocate(
-                this->pb,
-                FMT(this->annotation_prefix, " round_result[%zu]", i));
-        }
-
-        // Initialize and add the current round gadget into the rounds gadget
-        // vector, picking the relative constant
+        // Initialize the current round gadget into the vector of round gadgets
+        // vector, picking the correct round constant.
         round_gadgets.emplace_back(
             this->pb,
             round_results[i - 1],
             key,
             round_constants[i],
             round_results[i],
-            is_last,
             FMT(this->annotation_prefix, " round[%zu]", i));
     }
+
+    // For last round, output to the result variable and add `key` to the
+    // result, along with any add_to_result.
+    round_results[NumRounds - 1] = result;
+
+    if (add_to_result_is_valid) {
+        libsnark::pb_linear_combination<FieldT> key_plus_add_to_result;
+        key_plus_add_to_result.assign(this->pb, key + add_to_result);
+        round_gadgets.emplace_back(
+            this->pb,
+            round_results[NumRounds - 2],
+            key,
+            round_constants[NumRounds - 1],
+            round_results[NumRounds - 1],
+            key_plus_add_to_result,
+            FMT(this->annotation_prefix, " round[%zu]", NumRounds - 1));
+    } else {
+        round_gadgets.emplace_back(
+            this->pb,
+            round_results[NumRounds - 2],
+            key,
+            round_constants[NumRounds - 1],
+            round_results[NumRounds - 1],
+            key,
+            FMT(this->annotation_prefix, " round[%zu]", NumRounds - 1));
+    }
+}
+
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_linear_combination<FieldT> &msg,
+    const libsnark::pb_linear_combination<FieldT> &key,
+    const libsnark::pb_variable<FieldT> &result,
+    const std::string &annotation_prefix)
+    : MiMC_permutation_gadget(
+          pb,
+          msg,
+          key,
+          result,
+          libsnark::pb_linear_combination<FieldT>(),
+          false,
+          annotation_prefix)
+{
+}
+
+template<typename FieldT, size_t Exponent, size_t NumRounds>
+MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::MiMC_permutation_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_linear_combination<FieldT> &msg,
+    const libsnark::pb_linear_combination<FieldT> &key,
+    const libsnark::pb_variable<FieldT> &result,
+    const libsnark::pb_linear_combination<FieldT> &add_to_result,
+    const std::string &annotation_prefix)
+    : MiMC_permutation_gadget(
+          pb, msg, key, result, add_to_result, true, annotation_prefix)
+{
 }
 
 template<typename FieldT, size_t Exponent, size_t NumRounds>
@@ -107,7 +155,8 @@ void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
         return;
     }
 
-    round_constants.reserve(NumRounds);
+    // For simplicity, always generate constants for MaxRounds.
+    round_constants.reserve(MaxRounds);
 
     // The constant is set to "0" in the first round of MiMC permutation (see:
     // https://eprint.iacr.org/2016/492.pdf)
@@ -245,63 +294,12 @@ void MiMC_permutation_gadget<FieldT, Exponent, NumRounds>::
         "74544443080560119509560262720937836494902079641131221139823065933367514898276"));
     round_constants.push_back(FieldT(
         "36856043990250139109110674451326757800006928098085552406998173198427373834846"));
-    round_constants.push_back(FieldT(
-        "89876265522016337550524744707009312276376790319197860491657618155961055194949"));
-    round_constants.push_back(FieldT(
-        "110827903006446644954303964609043521818500007209339765337677716791359271709709"));
-    round_constants.push_back(FieldT(
-        "19507166101303357762640682204614541813131172968402646378144792525256753001746"));
-    round_constants.push_back(FieldT(
-        "107253144238416209039771223682727408821599541893659793703045486397265233272366"));
-    round_constants.push_back(FieldT(
-        "50595349797145823467207046063156205987118773849740473190540000392074846997926"));
-    round_constants.push_back(FieldT(
-        "44703482889665897122601827877356260454752336134846793080442136212838463818460"));
-    round_constants.push_back(FieldT(
-        "72587689163044446617379334085046687704026377073069181869522598220420039333904"));
-    round_constants.push_back(FieldT(
-        "102651401786920090371975453907921346781687924794638352783098945209363379010084"));
-    round_constants.push_back(FieldT(
-        "93452870373806728605513560063145330258676656934938716540885043830342716774537"));
-    round_constants.push_back(FieldT(
-        "78296669596559313198894751403351590225284664485458045241864014863714864424243"));
-    round_constants.push_back(FieldT(
-        "115089219682233450926699488628267277641700041858332325616476033644461392438459"));
-    round_constants.push_back(FieldT(
-        "12503229023709380637667243769419362848195673442247523096260626221166887267863"));
-    round_constants.push_back(FieldT(
-        "4710254915107472945023322521703570589554948344762175784852248799008742965033"));
-    round_constants.push_back(FieldT(
-        "7718237385336937042064321465151951780913850666971695410931421653062451982185"));
-    round_constants.push_back(FieldT(
-        "115218487714637830492048339157964615618803212766527542809597433013530253995292"));
-    round_constants.push_back(FieldT(
-        "30146276054995781136885926012526705051587400199196161599789168368938819073525"));
-    round_constants.push_back(FieldT(
-        "81645575619063610562025782726266715757461113967190574155696199274188206173145"));
-    round_constants.push_back(FieldT(
-        "103065286526250765895346723898189993161715212663393551904337911885906019058491"));
-    round_constants.push_back(FieldT(
-        "19401253163389218637767300383887292725233192135251696535631823232537040754970"));
-    round_constants.push_back(FieldT(
-        "39843332085422732827481601668576197174769872102167705377474553046529879993254"));
-    round_constants.push_back(FieldT(
-        "27288628349107331632228897768386713717171618488175838305048363657709955104492"));
-    round_constants.push_back(FieldT(
-        "63512042813079522866974560192099016266996589861590638571563519363305976473166"));
-    round_constants.push_back(FieldT(
-        "88099896769123586138541398153669061847681467623298355942484821247745931328016"));
-    round_constants.push_back(FieldT(
-        "69497565113721491657291572438744729276644895517335084478398926389231201598482"));
-    round_constants.push_back(FieldT(
-        "17118586436782638926114048491697362406660860405685472757612739816905521144705"));
-    round_constants.push_back(FieldT(
-        "50507769484714413215987736701379019852081133212073163694059431350432441698257"));
     // clang-format on
 
+    assert(round_constants.size() == MaxRounds);
     round_constants_initialized = true;
 }
 
 } // namespace libzeth
 
-#endif // __ZETH_CIRCUITS_MIMC_TCC__
+#endif // __ZETH_CIRCUITS_MIMC_PERMUTATION_TCC__

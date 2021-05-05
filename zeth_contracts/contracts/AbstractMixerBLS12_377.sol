@@ -5,7 +5,7 @@
 pragma solidity ^0.8.0;
 
 import "./AbstractMixer.sol";
-import "./LibMiMC31.sol";
+import "./LibMiMC.sol";
 
 /// Partial implementation of AbstractMixer which implements the
 /// curve-specific methods to use the BLS12-377 pairing.
@@ -46,14 +46,13 @@ abstract contract AbstractMixerBLS12_377 is AbstractMixer
     {
     }
 
-    /// Use MiMC31 as the Merkle tree hash function.
     function _hash(bytes32 left, bytes32 right)
         internal
         pure
         override
         returns(bytes32)
     {
-        return LibMiMC31._hash(left, right);
+        return LibMiMC._hashBLS12_377(left, right);
     }
 
     /// Extract a full uint256 from a field element and the n-th set of
