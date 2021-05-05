@@ -14,6 +14,7 @@
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 
 using namespace libsnark;
 using namespace libzeth;
@@ -23,7 +24,8 @@ boost::filesystem::path g_output_dir = boost::filesystem::path("");
 namespace
 {
 
-template<typename ppT, typename snarkT> void test_simple_circuit_proof()
+template<typename ppT, typename snarkT>
+void test_simple_circuit_proof(bool support_output = true)
 {
     using Field = libff::Fr<ppT>;
 
@@ -36,7 +38,7 @@ template<typename ppT, typename snarkT> void test_simple_circuit_proof()
         pb.get_constraint_system();
 
     // Write to file if output directory is given.
-    if (!g_output_dir.empty()) {
+    if (!g_output_dir.empty() && support_output) {
 
         boost::filesystem::path outpath =
             g_output_dir / ("simple_circuit_r1cs_" + pp_name<ppT>() + ".json");
@@ -69,7 +71,7 @@ template<typename ppT, typename snarkT> void test_simple_circuit_proof()
 
     ASSERT_TRUE(snarkT::verify(primary, proof, keypair.vk));
 
-    if (!g_output_dir.empty()) {
+    if (!g_output_dir.empty() && support_output) {
         {
             boost::filesystem::path proving_key_path =
                 g_output_dir / ("simple_proving_key_" + snarkT::name + "_" +
@@ -107,18 +109,25 @@ template<typename ppT, typename snarkT> void test_simple_circuit_proof()
     }
 }
 
-TEST(SimpleTests, SimpleCircuitProofGroth16)
+TEST(SimpleTests, SimpleCircuitProofGroth16AltBN128)
 {
     test_simple_circuit_proof<
         libff::alt_bn128_pp,
         libzeth::groth16_snark<libff::alt_bn128_pp>>();
 }
 
+TEST(SimpleTests, SimpleCircuitProofGroth16BLS12_377)
+{
+    test_simple_circuit_proof<
+        libff::bls12_377_pp,
+        libzeth::groth16_snark<libff::bls12_377_pp>>();
+}
+
 TEST(SimpleTests, SimpleCircuitProofPghr13)
 {
     test_simple_circuit_proof<
         libff::alt_bn128_pp,
-        pghr13_snark<libff::alt_bn128_pp>>();
+        pghr13_snark<libff::alt_bn128_pp>>(false);
 }
 
 TEST(SimpleTests, SimpleCircuitProofPow2Domain)
@@ -149,6 +158,7 @@ int main(int argc, char **argv)
 {
     // WARNING: Do once for all tests. Do not forget to do this.
     libff::alt_bn128_pp::init_public_params();
+    libff::bls12_377_pp::init_public_params();
 
     // Remove stdout noise from libff
     libff::inhibit_profiling_counters = true;

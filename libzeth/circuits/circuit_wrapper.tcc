@@ -170,6 +170,26 @@ extended_proof<ppT, snarkT> circuit_wrapper<
         snarkT::generate_proof(proving_key, pb), pb.primary_input());
 }
 
+template<
+    typename HashT,
+    typename HashTreeT,
+    typename ppT,
+    typename snarkT,
+    size_t NumInputs,
+    size_t NumOutputs,
+    size_t TreeDepth>
+const std::vector<libff::Fr<ppT>> &circuit_wrapper<
+    HashT,
+    HashTreeT,
+    ppT,
+    snarkT,
+    NumInputs,
+    NumOutputs,
+    TreeDepth>::get_last_assignment() const
+{
+    return pb.full_variable_assignment();
+}
+
 } // namespace libzeth
 
 #endif // __ZETH_CIRCUITS_CIRCUIT_WRAPPER_TCC__
