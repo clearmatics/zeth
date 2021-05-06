@@ -11,6 +11,7 @@ from web3.utils.contracts import find_matching_event_abi  # type: ignore
 from web3.utils.events import get_event_data  # type: ignore
 from eth_utils import event_abi_to_log_topic  # type: ignore
 import solcx
+import solcx.install  # type: ignore
 from typing import Dict, List, Iterator, Optional, Union, Iterable, Any
 
 # Avoid trying to read too much data into memory
@@ -117,7 +118,10 @@ def get_block_number(web3: Any) -> int:
 
 
 def install_sol() -> None:
-    solcx.install_solc(SOL_COMPILER_VERSION)
+    try:
+        solcx.install_solc(SOL_COMPILER_VERSION)
+    except solcx.exceptions.SolcInstallationError:
+        solcx.install.compile_solc(SOL_COMPILER_VERSION)
 
 
 def compile_files(files: List[str], **kwargs: Any) -> Any:
