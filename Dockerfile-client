@@ -1,6 +1,12 @@
+# Image to copy solc compiler from
+FROM ethereum/solc:0.8.1-alpine as solc-0.8.1
+
 FROM python:3.8-alpine3.12
 
 LABEL org.opencontainers.image.source https://github.com/clearmatics/zeth
+
+# Image to copy solc compiler from
+COPY --from=solc-0.8.1 /usr/local/bin/solc /root/.solcx/solc-v0.8.1
 
 RUN apk --update --no-cache add \
     build-base \
