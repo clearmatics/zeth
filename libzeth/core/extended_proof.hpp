@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -24,6 +24,7 @@ public:
     extended_proof(
         typename snarkT::proof &&in_proof,
         libsnark::r1cs_primary_input<libff::Fr<ppT>> &&in_primary_inputs);
+
     const typename snarkT::proof &get_proof() const;
 
     const libsnark::r1cs_primary_input<libff::Fr<ppT>> &get_primary_inputs()

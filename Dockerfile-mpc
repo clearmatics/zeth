@@ -1,4 +1,6 @@
-FROM clearmatics/zeth-base:v0.0.0 AS stage1
+FROM ghcr.io/clearmatics/zeth:0.0.2-base AS stage1
+
+LABEL org.opencontainers.image.source https://github.com/clearmatics/zeth
 
 # 1. Build phase 1: powers of tau rust binaries
 ENV POT_PATH=/home/powersoftau
@@ -28,6 +30,9 @@ RUN cd ${ZETH_PATH} && mkdir build && cd build \
 ##
 
 FROM alpine:3.12
+
+LABEL org.opencontainers.image.source https://github.com/clearmatics/zeth
+
 # Move rust and c++ binaries from previous image and put it in the PATH
 COPY --from=stage1 /usr/local/bin/ /usr/local/bin
 # Move the mpc python code

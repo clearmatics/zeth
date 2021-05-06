@@ -38,8 +38,16 @@ copy_deployment_info deployer charlie
 
 # Alice deposits 200 and sends 100 to Bob
 pushd alice
+# Test getting vk from prover server
+[ -e vk.json ] || zeth get-verification-key --vk-out vk.json
+
 alice_pk=`cat zeth-address.pub`
 if ! [ -e notes/state_zeth ] ; then
+    # Uncomment the following command to create dispatch call data for this transaction
+    # zeth mix --wait --vin 200 --out ${alice_pk},200 \
+    #      --for-dispatch-call \
+    #      --dump-signing-keypair deposit_otsig_keypair.json \
+    #      --dump-parameters deposit_mixparams.json
     zeth mix --wait --vin 200 --out ${alice_pk},200
 fi
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`

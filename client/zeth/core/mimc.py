@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -61,52 +61,60 @@ class MiMCBase(ITreeHash):
         """
         x = int.from_bytes(left, byteorder='big') % self.prime
         y = int.from_bytes(right, byteorder='big') % self.prime
-        result = (self.encrypt(x, y) + x + y) % self.prime
-        return result.to_bytes(32, byteorder='big')
+        return self.hash_int(x, y).to_bytes(32, byteorder='big')
+
+    def hash_int(self, x: int, y: int) -> int:
+        """
+        Similar to hash, but use field elements directly.
+        """
+        assert x < self.prime
+        assert y < self.prime
+        return (self.encrypt(x, y) + x + y) % self.prime
 
     @abstractmethod
     def mimc_round(self, message: int, key: int, rc: int) -> int:
         pass
 
 
-class MiMC7(MiMCBase):
+class MiMC17Base(MiMCBase):
     """
-    MiMC specialized for Fr in ALT-BN128, in which the exponent is 7 and 91
-    rounds are used.
+    Implementation of MiMCBase with exponent 17
+    """
+    def mimc_round(self, message: int, key: int, rc: int) -> int:
+        # May not be optimal to operate on huge numbers (256 * e bits). For
+        # reference, the manual version is below:
+        #   a = (message + key + rc) % self.prime
+        #   a_2 = (a * a) % self.prime
+        #   a_4 = (a_2 * a_2) % self.prime
+        #   a_8 = (a_4 * a_4) % self.prime
+        #   a_16 = (a_8 * a_8) % self.prime
+        #   return (a_16 * a) % self.prime
+        return ((message + key + rc) ** 17) % self.prime
+
+
+class MiMCAltBN128(MiMC17Base):
+    """
+    MiMC specialized for Fr in ALT-BN128, using exponent 17 and 65 rounds. See
+    zeth specifications (Section 3.2) for details.
     """
     def __init__(self, seed_str: str = MIMC_MT_SEED):
-        MiMCBase.__init__(
-            self,
+        super().__init__(
             seed_str,
             21888242871839275222246405745257275088548364400416034343698204186575808495617,  # noqa
             # pylint: disable=line-too-long
-            91)
-
-    def mimc_round(self, message: int, key: int, rc: int) -> int:
-        xored = (message + key + rc) % self.prime
-        return xored ** 7 % self.prime
+            65)
 
 
-class MiMC31(MiMCBase):
+class MiMCBLS12_377(MiMC17Base):  # pylint: disable=invalid-name
     """
-    MiMC implementation using exponent of 31 and 51 rounds. Note that this is
-    suitable for BLS12-377, since 31=2^5-1, and 1 == gcd(31, r-1). See
-    [AGRRT16] for details.
+    MiMC specialized for Fr in BLS12-377, using exponent 17 and 62 rounds. See
+    zeth specifications (Section 3.2) for details.
     """
     def __init__(self, seed_str: str = MIMC_MT_SEED):
-        MiMCBase.__init__(
-            self,
+        super().__init__(
             seed_str,
             8444461749428370424248824938781546531375899335154063827935233455917409239041,  # noqa
-            51)
-
-    def mimc_round(self, message: int, key: int, rc: int) -> int:
-        a = (message + key + rc) % self.prime
-        a_2 = (a * a) % self.prime
-        a_4 = (a_2 * a_2) % self.prime
-        a_8 = (a_4 * a_4) % self.prime
-        a_16 = (a_8 * a_8) % self.prime
-        return (a_16 * a_8 * a_4 * a_2 * a) % self.prime
+            62)
 
 
 def get_tree_hash_for_pairing(pairing_name: str) -> ITreeHash:
@@ -115,9 +123,9 @@ def get_tree_hash_for_pairing(pairing_name: str) -> ITreeHash:
     the selection logic in `libzeth/circuits/circuit_types.hpp`.
     """
     if pairing_name == "alt-bn128":
-        return MiMC7()
+        return MiMCAltBN128()
     if pairing_name == "bls12-377":
-        return MiMC31()
+        return MiMCBLS12_377()
     raise Exception(f"no tree hash for pairing: {pairing_name}")
 
 

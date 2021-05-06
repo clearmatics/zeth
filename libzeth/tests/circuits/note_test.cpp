@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -20,7 +20,7 @@ using namespace libzeth;
 using pp = defaults::pp;
 using Field = defaults::Field;
 using Hash = BLAKE2s_256<Field>;
-using HashTree = MiMC_mp_gadget<Field, MiMC_permutation_gadget<Field, 7, 91>>;
+using HashTree = MiMC_mp_gadget<Field, MiMC_permutation_gadget<Field, 17, 65>>;
 static const size_t TreeDepth = 4;
 
 namespace

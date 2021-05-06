@@ -46,6 +46,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: codeql-py-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
       - name: Custom dependencies installation
         run: |
           cd client
@@ -63,4 +68,3 @@ jobs:
           setup-python-dependencies: false
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
-

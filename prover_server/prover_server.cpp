@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -7,6 +7,7 @@
 #include "libzeth/core/utils.hpp"
 #include "libzeth/serialization/proto_utils.hpp"
 #include "libzeth/serialization/r1cs_serialization.hpp"
+#include "libzeth/serialization/r1cs_variable_assignment_serialization.hpp"
 #include "libzeth/zeth_constants.hpp"
 #include "zeth_config.h"
 
@@ -55,7 +56,10 @@ static snark::keypair load_keypair(const boost::filesystem::path &keypair_file)
         keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
     in_s.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return snark::keypair_read_bytes(in_s);
+
+    snark::keypair keypair;
+    snark::keypair_read_bytes(keypair, in_s);
+    return keypair;
 }
 
 static void write_keypair(
@@ -67,19 +71,55 @@ static void write_keypair(
     snark::keypair_write_bytes(keypair, out_s);
 }
 
+static void write_proving_key(
+    const typename snark::proving_key &pk,
+    const boost::filesystem::path &pk_file)
+{
+    std::ofstream out_s(
+        pk_file.c_str(), std::ios_base::out | std::ios_base::binary);
+    snark::proving_key_write_bytes(pk, out_s);
+}
+
+static void write_verification_key(
+    const typename snark::verification_key &vk,
+    const boost::filesystem::path &vk_file)
+{
+    std::ofstream out_s(
+        vk_file.c_str(), std::ios_base::out | std::ios_base::binary);
+    snark::verification_key_write_bytes(vk, out_s);
+}
+
 static void write_constraint_system(
     const circuit_wrapper &prover, const boost::filesystem::path &r1cs_file)
 {
     std::ofstream r1cs_stream(r1cs_file.c_str());
-    libzeth::r1cs_write_json<pp>(prover.get_constraint_system(), r1cs_stream);
+    libzeth::r1cs_write_json(prover.get_constraint_system(), r1cs_stream);
 }
 
-static void write_ext_proof_to_file(
+static void write_extproof_to_json_file(
     const libzeth::extended_proof<pp, snark> &ext_proof,
-    boost::filesystem::path proof_path)
+    const boost::filesystem::path &proof_path)
 {
-    std::ofstream os(proof_path.c_str());
-    ext_proof.write_json(os);
+    std::ofstream out_s(proof_path.c_str());
+    ext_proof.write_json(out_s);
+}
+
+static void write_proof_to_file(
+    const typename snark::proof &proof,
+    const boost::filesystem::path &proof_path)
+{
+    std::ofstream out_s(
+        proof_path.c_str(), std::ios_base::out | std::ios_base::binary);
+    snark::proof_write_bytes(proof, out_s);
+}
+
+static void write_assignment_to_file(
+    const std::vector<Field> &assignment,
+    const boost::filesystem::path &assignment_path)
+{
+    std::ofstream out_s(
+        assignment_path.c_str(), std::ios_base::out | std::ios_base::binary);
+    libzeth::r1cs_variable_assignment_write_bytes(assignment, out_s);
 }
 
 /// The prover_server class inherits from the Prover service
@@ -88,20 +128,37 @@ static void write_ext_proof_to_file(
 class prover_server final : public zeth_proto::Prover::Service
 {
 private:
-    circuit_wrapper prover;
+    circuit_wrapper &prover;
 
     // The keypair is the result of the setup. Store a copy internally.
     snark::keypair keypair;
 
     // Optional file to write proofs into (for debugging).
+    boost::filesystem::path extproof_json_output_file;
+
+    // Optional file to write proofs into (for debugging).
     boost::filesystem::path proof_output_file;
+
+    // Optional file to write primary input data into (for debugging).
+    boost::filesystem::path primary_output_file;
+
+    // Optional file to write full assignments into (for debugging).
+    boost::filesystem::path assignment_output_file;
 
 public:
     explicit prover_server(
         circuit_wrapper &prover,
         const snark::keypair &keypair,
-        const boost::filesystem::path &proof_output_file)
-        : prover(prover), keypair(keypair), proof_output_file(proof_output_file)
+        const boost::filesystem::path &extproof_json_output_file,
+        const boost::filesystem::path &proof_output_file,
+        const boost::filesystem::path &primary_output_file,
+        const boost::filesystem::path &assignment_output_file)
+        : prover(prover)
+        , keypair(keypair)
+        , extproof_json_output_file(extproof_json_output_file)
+        , proof_output_file(proof_output_file)
+        , primary_output_file(primary_output_file)
+        , assignment_output_file(assignment_output_file)
     {
     }
 
@@ -141,7 +198,7 @@ public:
     grpc::Status Prove(
         grpc::ServerContext *,
         const zeth_proto::ProofInputs *proof_inputs,
-        zeth_proto::ExtendedProof *proof) override
+        zeth_proto::ExtendedProofAndPublicData *proof_and_public_data) override
     {
         std::cout << "[ACK] Received the request to generate a proof"
                   << std::endl;
@@ -150,6 +207,8 @@ public:
 
         // Parse received message to feed to the prover
         try {
+            // TODO: Factor this into more maintainable smaller functions
+
             Field root = libzeth::base_field_element_from_hex<Field>(
                 proof_inputs->mk_root());
             libzeth::bits64 vpub_in =
@@ -204,6 +263,8 @@ public:
 
             std::cout << "[DEBUG] Data parsed successfully" << std::endl;
             std::cout << "[DEBUG] Generating the proof..." << std::endl;
+
+            std::vector<Field> public_data;
             libzeth::extended_proof<pp, snark> ext_proof = this->prover.prove(
                 root,
                 joinsplit_inputs,
@@ -212,20 +273,47 @@ public:
                 vpub_out,
                 h_sig_in,
                 phi_in,
-                this->keypair.pk);
+                this->keypair.pk,
+                public_data);
 
-            std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+            std::cout << "[DEBUG] Displaying extended proof and public data\n";
             ext_proof.write_json(std::cout);
+            for (const Field &f : public_data) {
+                std::cout << libzeth::base_field_element_to_hex(f) << "\n";
+            }
 
             // Write a copy of the proof for debugging.
+            if (!extproof_json_output_file.empty()) {
+                std::cout << "[DEBUG] Writing extended proof (JSON) to "
+                          << extproof_json_output_file << "\n";
+                write_extproof_to_json_file(
+                    ext_proof, extproof_json_output_file);
+            }
             if (!proof_output_file.empty()) {
-                std::cout << "[DEBUG] Writing extended proof to "
-                          << proof_output_file << "\n";
-                write_ext_proof_to_file(ext_proof, proof_output_file);
+                std::cout << "[DEBUG] Writing proof to " << proof_output_file
+                          << "\n";
+                write_proof_to_file(ext_proof.get_proof(), proof_output_file);
+            }
+            if (!primary_output_file.empty()) {
+                std::cout << "[DEBUG] Writing primary input to "
+                          << primary_output_file << "\n";
+                write_assignment_to_file(
+                    ext_proof.get_primary_inputs(), primary_output_file);
+            }
+            if (!assignment_output_file.empty()) {
+                std::cout << "[DEBUG] WARNING! Writing assignment to "
+                          << assignment_output_file << "\n";
+                write_assignment_to_file(
+                    prover.get_last_assignment(), assignment_output_file);
             }
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
-            api_handler::extended_proof_to_proto(ext_proof, proof);
+            api_handler::extended_proof_to_proto(
+                ext_proof, proof_and_public_data->mutable_extended_proof());
+            for (size_t i = 0; i < public_data.size(); ++i) {
+                proof_and_public_data->add_public_data(
+                    libzeth::base_field_element_to_hex(public_data[i]));
+            }
 
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
@@ -257,7 +345,7 @@ std::string get_server_version()
 void display_server_start_message()
 {
     std::string copyright =
-        "Copyright (c) 2015-2020 Clearmatics Technologies Ltd";
+        "Copyright (c) 2015-2021 Clearmatics Technologies Ltd";
     std::string license = "SPDX-License-Identifier: LGPL-3.0+";
     std::string project =
         "R&D Department: PoC for Zerocash on Ethereum/Autonity";
@@ -278,12 +366,21 @@ void display_server_start_message()
 static void RunServer(
     circuit_wrapper &prover,
     const typename snark::keypair &keypair,
-    const boost::filesystem::path &proof_output_file)
+    const boost::filesystem::path &extproof_json_output_file,
+    const boost::filesystem::path &proof_output_file,
+    const boost::filesystem::path &primary_output_file,
+    const boost::filesystem::path &assignment_output_file)
 {
     // Listen for incoming connections on 0.0.0.0:50051
     std::string server_address("0.0.0.0:50051");
 
-    prover_server service(prover, keypair, proof_output_file);
+    prover_server service(
+        prover,
+        keypair,
+        extproof_json_output_file,
+        proof_output_file,
+        primary_output_file,
+        assignment_output_file);
 
     grpc::ServerBuilder builder;
 
@@ -319,9 +416,29 @@ int main(int argc, char **argv)
         po::value<boost::filesystem::path>(),
         "file in which to export the r1cs (in json format)");
     options.add_options()(
-        "proof-output,p",
+        "proving-key-output",
         po::value<boost::filesystem::path>(),
-        "(DEBUG) file to write generated proofs into");
+        "write proving key to file (if generated)");
+    options.add_options()(
+        "verification-key-output",
+        po::value<boost::filesystem::path>(),
+        "write verification key to file (if generated)");
+    options.add_options()(
+        "extproof-json-output",
+        po::value<boost::filesystem::path>(),
+        "(DEBUG) write generated extended proofs (JSON) to file");
+    options.add_options()(
+        "proof-output",
+        po::value<boost::filesystem::path>(),
+        "(DEBUG) write generated proofs to file");
+    options.add_options()(
+        "primary-output",
+        po::value<boost::filesystem::path>(),
+        "(DEBUG) write primary input to file");
+    options.add_options()(
+        "assignment-output",
+        po::value<boost::filesystem::path>(),
+        "(DEBUG) write full assignment to file (INSECURE!)");
 
     auto usage = [&]() {
         std::cout << "Usage:"
@@ -334,7 +451,12 @@ int main(int argc, char **argv)
 
     boost::filesystem::path keypair_file;
     boost::filesystem::path r1cs_file;
+    boost::filesystem::path proving_key_output_file;
+    boost::filesystem::path verification_key_output_file;
+    boost::filesystem::path extproof_json_output_file;
     boost::filesystem::path proof_output_file;
+    boost::filesystem::path primary_output_file;
+    boost::filesystem::path assignment_output_file;
     try {
         po::variables_map vm;
         po::store(
@@ -349,9 +471,29 @@ int main(int argc, char **argv)
         if (vm.count("r1cs")) {
             r1cs_file = vm["r1cs"].as<boost::filesystem::path>();
         }
+        if (vm.count("proving-key-output")) {
+            proving_key_output_file =
+                vm["proving-key-output"].as<boost::filesystem::path>();
+        }
+        if (vm.count("verification-key-output")) {
+            verification_key_output_file =
+                vm["verification-key-output"].as<boost::filesystem::path>();
+        }
+        if (vm.count("extproof-json-output")) {
+            extproof_json_output_file =
+                vm["extproof-json-output"].as<boost::filesystem::path>();
+        }
         if (vm.count("proof-output")) {
             proof_output_file =
                 vm["proof-output"].as<boost::filesystem::path>();
+        }
+        if (vm.count("primary-output")) {
+            primary_output_file =
+                vm["primary-output"].as<boost::filesystem::path>();
+        }
+        if (vm.count("assignment-output")) {
+            assignment_output_file =
+                vm["assignment-output"].as<boost::filesystem::path>();
         }
     } catch (po::error &error) {
         std::cerr << " ERROR: " << error.what() << std::endl;
@@ -370,13 +512,16 @@ int main(int argc, char **argv)
     }
 
     // Inititalize the curve parameters
-    std::cout << "[INFO] Init params" << std::endl;
+    std::cout << "[INFO] Init params (" << libzeth::pp_name<pp>() << ")\n";
     pp::init_public_params();
 
     // If the keypair file exists, load and use it, otherwise generate a new
     // keypair and write it to the file.
     circuit_wrapper prover;
-    snark::keypair keypair = [&keypair_file, &prover]() {
+    snark::keypair keypair = [&keypair_file,
+                              &proving_key_output_file,
+                              &verification_key_output_file,
+                              &prover]() {
         if (boost::filesystem::exists(keypair_file)) {
             std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
             return load_keypair(keypair_file);
@@ -387,6 +532,18 @@ int main(int argc, char **argv)
         const snark::keypair keypair = prover.generate_trusted_setup();
         std::cout << "[INFO] Writing new keypair to " << keypair_file << "\n";
         write_keypair(keypair, keypair_file);
+
+        if (!proving_key_output_file.empty()) {
+            std::cout << "[DEBUG] Writing separate proving key to "
+                      << proving_key_output_file << "\n";
+            write_proving_key(keypair.pk, proving_key_output_file);
+        }
+        if (!verification_key_output_file.empty()) {
+            std::cout << "[DEBUG] Writing separate verification key to "
+                      << verification_key_output_file << "\n";
+            write_verification_key(keypair.vk, verification_key_output_file);
+        }
+
         return keypair;
     }();
 
@@ -398,6 +555,12 @@ int main(int argc, char **argv)
     }
 
     std::cout << "[INFO] Setup successful, starting the server..." << std::endl;
-    RunServer(prover, keypair, proof_output_file);
+    RunServer(
+        prover,
+        keypair,
+        extproof_json_output_file,
+        proof_output_file,
+        primary_output_file,
+        assignment_output_file);
     return 0;
 }

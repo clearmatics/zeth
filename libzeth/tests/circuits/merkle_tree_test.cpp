@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -12,7 +12,7 @@
 using namespace libzeth;
 
 template<typename FieldT>
-using MiMCe7_permutation_gadget = MiMC_permutation_gadget<FieldT, 7, 91>;
+using MiMCe7_permutation_gadget = MiMC_permutation_gadget<FieldT, 17, 65>;
 
 // Instantiation of the templates for the tests.  Data here assumes alt_bn128
 using pp = libff::alt_bn128_pp;
@@ -84,13 +84,12 @@ bool test_merkle_path_authenticator_depth1()
     // right leaf:
     // 134551314051432487569247388144051420116740427803855572138106146683954151557,
     // root:
-    // 7121700468981037559893852455893095765125417767594185027454590493596569372187
+    // hash(left, right)
     Field left = Field("37031414935355631796575317199601601742960852086719193"
                        "16200479060314459804651");
     Field right = Field("1345513140514324875692473881440514201167404278038555"
                         "72138106146683954151557");
-    Field root = Field("71217004689810375598938524558930957651254177675941850"
-                       "27454590493596569372187");
+    Field root = HashTree::get_hash(left, right);
 
     // Set the authenticator for right leaf (`is_right` = 1)
     Field is_right = 1;
@@ -167,8 +166,8 @@ bool test_merkle_path_authenticator_depth3()
                         "3374630310875272509334396");
     Field left2 = Field("9881790034808292405036271961589462686158587796044671"
                         "417688221824074647491645");
-    Field root = Field("13476730430097836153970274382710787532919044453117948"
-                       "373701924629587143655224");
+    Field root = HashTree::get_hash(
+        left2, HashTree::get_hash(left1, HashTree::get_hash(left0, right0)));
     Field is_right = 1;
 
     // Bit representation of the leaf to authenticate
@@ -227,33 +226,24 @@ bool test_merkle_path_authenticator_depth3()
     return true;
 }
 
-TEST(MainTests, TestMerkleTreeField)
+TEST(MerkleTreeTest, PathSelector0)
 {
-    bool res = false;
+    ASSERT_TRUE(test_merkle_path_selector(0));
+}
 
-    res = test_merkle_path_selector(0);
-    std::cout
-        << "[test_merkle_path_selector 0] Expected (True), Obtained result: "
-        << res << std::endl;
-    ASSERT_TRUE(res);
+TEST(MerkleTreeTest, PathSelector1)
+{
+    ASSERT_TRUE(test_merkle_path_selector(1));
+}
 
-    res = test_merkle_path_selector(1);
-    std::cout
-        << "[test_merkle_path_selector 1] Expected (True), Obtained result: "
-        << res << std::endl;
-    ASSERT_TRUE(res);
+TEST(MerkleTreeTest, PathAuthenticatorDepth1)
+{
+    ASSERT_TRUE(test_merkle_path_authenticator_depth1());
+}
 
-    res = test_merkle_path_authenticator_depth1();
-    std::cout << "[test_merkle_path_authenticator_depth1] Expected (True), "
-                 "Obtained result: "
-              << res << std::endl;
-    ASSERT_TRUE(res);
-
-    res = test_merkle_path_authenticator_depth3();
-    std::cout << "[test_merkle_path_authenticator_depth3] Expected (True), "
-                 "Obtained result: "
-              << res << std::endl;
-    ASSERT_TRUE(res);
+TEST(MerkleTreeTest, PathAuthenticatorDepth3)
+{
+    ASSERT_TRUE(test_merkle_path_authenticator_depth3());
 }
 
 } // namespace

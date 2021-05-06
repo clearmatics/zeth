@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -25,10 +25,10 @@ private:
         bit_utils<Exponent>::hamming_weight() - 2;
 
     // Message of the current round
-    const libsnark::pb_variable<FieldT> msg;
+    const libsnark::pb_linear_combination<FieldT> msg;
 
     // Key of the current round
-    const libsnark::pb_variable<FieldT> key;
+    const libsnark::pb_linear_combination<FieldT> key;
 
     // Round constant of the current round
     const FieldT round_const;
@@ -36,20 +36,36 @@ private:
     // Result variable
     const libsnark::pb_variable<FieldT> result;
 
-    // Boolean variable to add the key after the round
-    const bool add_key_to_result;
+    // Optional linear combination to add after the final round
+    const libsnark::pb_linear_combination<FieldT> add_to_result;
+
+    // Flag indicating whether add_to_result is valid
+    const bool add_to_result_is_valid;
 
     // Intermediate values
     std::vector<libsnark::pb_variable<FieldT>> exponents;
 
+    // Initialization code shared by constructors.
+    void initialize();
+
 public:
     MiMC_round_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> &msg,
-        const libsnark::pb_variable<FieldT> &key,
+        const libsnark::pb_linear_combination<FieldT> &msg,
+        const libsnark::pb_linear_combination<FieldT> &key,
         const FieldT &round_const,
         libsnark::pb_variable<FieldT> &result,
-        const bool add_k_to_result,
+        const std::string &annotation_prefix = "MiMC_round_gadget");
+
+    /// Constructor that supports adding some linear_combination to the final
+    /// result.
+    MiMC_round_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const libsnark::pb_linear_combination<FieldT> &msg,
+        const libsnark::pb_linear_combination<FieldT> &key,
+        const FieldT &round_const,
+        libsnark::pb_variable<FieldT> &result,
+        const libsnark::pb_linear_combination<FieldT> &add_to_result,
         const std::string &annotation_prefix = "MiMC_round_gadget");
 
     void generate_r1cs_constraints();

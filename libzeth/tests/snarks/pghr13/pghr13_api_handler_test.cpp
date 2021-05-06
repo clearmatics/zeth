@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -20,7 +20,7 @@ namespace
 
 TEST(PGHR13ApiHandlerTest, VerificationKeyEncodeDecode)
 {
-    verification_key_encode_decode_test<libzeth::pghr13_api_handler<pp>>();
+    verification_key_encode_decode_json_test<libzeth::pghr13_api_handler<pp>>();
 }
 
 TEST(PGHR13ApiHandlerTest, ProofEncodeDecode)
@@ -33,7 +33,7 @@ TEST(PGHR13ApiHandlerTest, ProofEncodeDecode)
         G1::random_element());
     libsnark::r1cs_primary_input<Fr> dummy_inputs{
         Fr::random_element(), Fr::random_element(), Fr::random_element()};
-    extended_proof_encode_decode_test<pp, libzeth::pghr13_api_handler<pp>>(
+    extended_proof_encode_decode_json_test<pp, libzeth::pghr13_api_handler<pp>>(
         {std::move(dummy_proof), std::move(dummy_inputs)});
 }
 

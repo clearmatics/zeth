@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -18,7 +18,7 @@ if sys.version_info < (3, 7):
 
 setup(
     name='zeth',
-    version='0.6',
+    version='0.7',
     description='Interface to zeth operations',
     packages=find_packages(),
     install_requires=[
@@ -48,9 +48,9 @@ setup(
         "parsimonious==0.8.1",
         "protobuf==3.13.0",
         "py_ecc==1.7.1",
-        "py-solc-x==0.7.0",
+        "py-solc-x==1.1.0",
         "pycryptodome==3.9.8",
-        "cryptography==3.2",
+        "cryptography==3.3.2",
         "requests==2.21.0",
         "rlp==1.1.0",
         "semantic-version==2.8.4",

@@ -1,21 +1,33 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
-/// Declare the ERC20 interface in order to handle ERC20 tokens transfers to
+/// Declare the IERC20 interface in order to handle ERC20 tokens transfers to
 /// and from the Mixer. Note that we only declare the functions we are
 /// interested in, namely, transferFrom() (used to do a Deposit), and
 /// transfer() (used to do a withdrawal)
-contract ERC20 {
-    function transferFrom(address from, address to, uint256 value) public;
-    function transfer(address to, uint256 value) public;
+interface IERC20
+{
+    function transferFrom(address from, address to, uint256 value)
+        external
+        returns (bool);
+
+    function transfer(address to, uint256 value)
+        external
+        returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value);
 }
 
 /// ERC223 token compatible contract
-contract ERC223ReceivingContract {
+contract ERC223ReceivingContract
+{
     // See:
     // solhint-disable-next-line max-line-length
     //   https://github.com/Dexaran/ERC223-token-standard/blob/Recommended/Receiver_Interface.sol

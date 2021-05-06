@@ -5,59 +5,40 @@
 #ifndef __ZETH_CIRCUITS_MIMC_MP_TCC__
 #define __ZETH_CIRCUITS_MIMC_MP_TCC__
 
+#include "mimc_mp.hpp"
+
 namespace libzeth
 {
 
 template<typename FieldT, typename PermutationT>
 MiMC_mp_gadget<FieldT, PermutationT>::MiMC_mp_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> x,
-    const libsnark::pb_variable<FieldT> y,
+    const libsnark::pb_linear_combination<FieldT> &x,
+    const libsnark::pb_linear_combination<FieldT> &y,
+    const libsnark::pb_variable<FieldT> &result,
     const std::string &annotation_prefix)
-    : libsnark::gadget<FieldT>(pb, annotation_prefix)
-    , x(x)
-    , y(y)
-    , permutation_gadget(
-          pb, x, y, FMT(this->annotation_prefix, " permutation_gadget"))
 {
-    // Allocates output variable
-    output.allocate(pb, FMT(this->annotation_prefix, " output"));
+    // Adding x+y to the output of the permutation yields the Miyaguchi-Preneel
+    // equation:
+    //
+    //   result = permutation(x, y) + x + y
+
+    libsnark::pb_linear_combination<FieldT> x_plus_y;
+    x_plus_y.assign(pb, x + y);
+    permutation_gadget.reset(new PermutationT(
+        pb, x, y, result, x_plus_y, FMT(annotation_prefix, " MP")));
 }
 
 template<typename FieldT, typename PermutationT>
 void MiMC_mp_gadget<FieldT, PermutationT>::generate_r1cs_constraints()
 {
-    // Setting constraints for the permutation gadget
-    permutation_gadget.generate_r1cs_constraints();
-
-    const libsnark::pb_variable<FieldT> &m = x;
-    const libsnark::pb_variable<FieldT> &key = y;
-
-    // Adding constraint for the Miyaguchi-Preneel equation
-    this->pb.add_r1cs_constraint(
-        libsnark::r1cs_constraint<FieldT>(
-            permutation_gadget.result() + m + key, 1, output),
-        FMT(this->annotation_prefix, " out=k+E_k(m_i)+m_i"));
+    permutation_gadget->generate_r1cs_constraints();
 }
 
 template<typename FieldT, typename PermutationT>
 void MiMC_mp_gadget<FieldT, PermutationT>::generate_r1cs_witness() const
 {
-    // Generating witness for the gadget
-    permutation_gadget.generate_r1cs_witness();
-
-    // Filling output variables for Miyaguchi-Preenel equation
-    this->pb.val(output) = this->pb.val(y) +
-                           this->pb.val(permutation_gadget.result()) +
-                           this->pb.val(x);
-}
-
-template<typename FieldT, typename PermutationT>
-const libsnark::pb_variable<FieldT>
-    &MiMC_mp_gadget<FieldT, PermutationT>::result() const
-{
-    // Returns the output
-    return output;
+    permutation_gadget->generate_r1cs_witness();
 }
 
 // Returns the hash of two elements
@@ -68,23 +49,27 @@ FieldT MiMC_mp_gadget<FieldT, PermutationT>::get_hash(const FieldT x, FieldT y)
 
     libsnark::pb_variable<FieldT> pb_x;
     libsnark::pb_variable<FieldT> pb_y;
+    libsnark::pb_variable<FieldT> result;
 
     // Allocates and fill with the x and y
-    pb_x.allocate(pb, " x");
+    pb_x.allocate(pb, "x");
     pb.val(pb_x) = x;
 
-    pb_y.allocate(pb, " y");
+    pb_y.allocate(pb, "y");
     pb.val(pb_y) = y;
+
+    result.allocate(pb, "result");
 
     // Initialize the Hash
     MiMC_mp_gadget<FieldT, PermutationT> mimc_hasher(
-        pb, pb_x, pb_y, " mimc_hash");
+        pb, pb_x, pb_y, result, " mimc_hash");
 
     // Computes the hash
+    mimc_hasher.generate_r1cs_constraints();
     mimc_hasher.generate_r1cs_witness();
 
     // Returns the hash
-    return pb.val(mimc_hasher.result());
+    return pb.val(result);
 }
 
 } // namespace libzeth

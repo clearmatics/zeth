@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -6,6 +6,7 @@
 #define __ZETH_CIRCUITS_CIRCUIT_WRAPPER_HPP__
 
 #include "libzeth/circuits/joinsplit.tcc"
+#include "libzeth/circuits/mimc/mimc_input_hasher.hpp"
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/core/note.hpp"
 #include "libzeth/zeth_constants.hpp"
@@ -25,26 +26,29 @@ template<
     size_t TreeDepth>
 class circuit_wrapper
 {
-private:
-    std::shared_ptr<joinsplit_gadget<
-        libff::Fr<ppT>,
+public:
+    using Field = libff::Fr<ppT>;
+    // Both `joinsplit` and `joinsplit_gadget` are already used in the
+    // namespace.
+    using joinsplit_type = joinsplit_gadget<
+        Field,
         HashT,
         HashTreeT,
         NumInputs,
         NumOutputs,
-        TreeDepth>>
-        joinsplit_g;
-
-public:
-    using Field = libff::Fr<ppT>;
+        TreeDepth>;
+    using input_hasher_type = mimc_input_hasher<Field, HashTreeT>;
 
     circuit_wrapper();
+    circuit_wrapper(const circuit_wrapper &) = delete;
+    circuit_wrapper &operator=(const circuit_wrapper &) = delete;
 
     // Generate the trusted setup
     typename snarkT::keypair generate_trusted_setup() const;
 
     // Retrieve the constraint system (intended for debugging purposes).
-    libsnark::protoboard<Field> get_constraint_system() const;
+    const libsnark::r1cs_constraint_system<Field> &get_constraint_system()
+        const;
 
     // Generate a proof and returns an extended proof
     extended_proof<ppT, snarkT> prove(
@@ -55,7 +59,17 @@ public:
         const bits64 &vpub_out,
         const bits256 &h_sig_in,
         const bits256 &phi_in,
-        const typename snarkT::proving_key &proving_key) const;
+        const typename snarkT::proving_key &proving_key,
+        std::vector<Field> &out_public_data) const;
+
+    const std::vector<Field> &get_last_assignment() const;
+
+private:
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> public_data_hash;
+    libsnark::pb_variable_array<Field> public_data;
+    std::shared_ptr<joinsplit_type> joinsplit;
+    std::shared_ptr<input_hasher_type> input_hasher;
 };
 
 } // namespace libzeth

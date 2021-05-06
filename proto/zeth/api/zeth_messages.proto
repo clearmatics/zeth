@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package zeth_proto;
 
+import "zeth/api/snark_messages.proto";
+
 message ZethNote {
     string apk = 1;
     // Hex string representing a int64 value
@@ -33,4 +35,15 @@ message ProofInputs {
     string pub_out_value = 5;
     string h_sig = 6;
     string phi = 7;
+}
+
+// The extended proof and related public data for the Zeth statement using ProofInputs data
+message ExtendedProofAndPublicData {
+    // The extended proof (with single public input - the hash of public_data).
+    ExtendedProof extended_proof = 1;
+
+    // The public data (public inputs to the Zeth statement). Each element in
+    // the array is a hex-encoded member of the scalar field for the pairing
+    // being used.
+    repeated string public_data = 2;
 }

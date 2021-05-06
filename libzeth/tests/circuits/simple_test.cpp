@@ -1,35 +1,54 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "simple_test.hpp"
 
 #include "core/utils.hpp"
-#include "zeth_config.h"
+#include "libzeth/serialization/r1cs_serialization.hpp"
+#include "libzeth/snarks/groth16/groth16_snark.hpp"
+#include "libzeth/snarks/pghr13/pghr13_snark.hpp"
+#include "serialization/proto_utils.hpp"
+#include "serialization/r1cs_variable_assignment_serialization.hpp"
 
+#include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 
 using namespace libsnark;
 using namespace libzeth;
 
-using pp = defaults::pp;
-using Field = defaults::Field;
+boost::filesystem::path g_output_dir = boost::filesystem::path("");
 
 namespace
 {
 
-TEST(SimpleTests, SimpleCircuitProof)
+template<typename ppT, typename snarkT>
+void test_simple_circuit_proof(bool support_output = true)
 {
+    using Field = libff::Fr<ppT>;
+
     // Simple circuit
     protoboard<Field> pb;
     libzeth::tests::simple_circuit<Field>(pb);
 
     // Constraint system
-    const r1cs_constraint_system<Field> constraint_system =
+    const r1cs_constraint_system<Field> &constraint_system =
         pb.get_constraint_system();
 
-    const r1cs_primary_input<Field> primary{12};
-    const r1cs_auxiliary_input<Field> auxiliary{1, 1, 1};
+    // Write to file if output directory is given.
+    if (!g_output_dir.empty() && support_output) {
+
+        boost::filesystem::path outpath =
+            g_output_dir / ("simple_circuit_r1cs_" + pp_name<ppT>() + ".json");
+        std::ofstream r1cs_stream(outpath.c_str());
+        libzeth::r1cs_write_json(pb.get_constraint_system(), r1cs_stream);
+    }
+
+    r1cs_primary_input<Field> primary;
+    r1cs_auxiliary_input<Field> auxiliary;
+    libzeth::tests::simple_circuit_assignment(Field("78"), primary, auxiliary);
 
     {
         // Test solution x = 1 (g1 = 1, g2 = 1), y = 12
@@ -45,23 +64,82 @@ TEST(SimpleTests, SimpleCircuitProof)
         }
     }
 
-    const r1cs_gg_ppzksnark_keypair<pp> keypair =
-        r1cs_gg_ppzksnark_generator<pp>(constraint_system);
+    const typename snarkT::keypair keypair = snarkT::generate_setup(pb);
 
-    const r1cs_gg_ppzksnark_proof<pp> proof =
-        r1cs_gg_ppzksnark_prover(keypair.pk, primary, auxiliary);
+    const typename snarkT::proof proof =
+        snarkT::generate_proof(keypair.pk, primary, auxiliary);
 
-    ASSERT_TRUE(
-        r1cs_gg_ppzksnark_verifier_strong_IC(keypair.vk, primary, proof));
+    ASSERT_TRUE(snarkT::verify(primary, proof, keypair.vk));
+
+    if (!g_output_dir.empty() && support_output) {
+        {
+            boost::filesystem::path proving_key_path =
+                g_output_dir / ("simple_proving_key_" + snarkT::name + "_" +
+                                pp_name<ppT>() + ".bin");
+            std::ofstream out_s(proving_key_path.c_str());
+            snarkT::proving_key_write_bytes(keypair.pk, out_s);
+        }
+        {
+            boost::filesystem::path verification_key_path =
+                g_output_dir / ("simple_verification_key_" + snarkT::name +
+                                "_" + pp_name<ppT>() + ".bin");
+            std::ofstream out_s(verification_key_path.c_str());
+            snarkT::verification_key_write_bytes(keypair.vk, out_s);
+        }
+        {
+            boost::filesystem::path primary_inputs_path =
+                g_output_dir /
+                ("simple_primary_input_" + pp_name<ppT>() + ".bin");
+            std::ofstream out_s(primary_inputs_path.c_str());
+            r1cs_variable_assignment_write_bytes(primary, out_s);
+        }
+        {
+            boost::filesystem::path assignment_path =
+                g_output_dir / ("simple_assignment_" + pp_name<ppT>() + ".bin");
+            std::ofstream out_s(assignment_path.c_str());
+            r1cs_variable_assignment_write_bytes(primary, auxiliary, out_s);
+        }
+        {
+            boost::filesystem::path proof_path =
+                g_output_dir / ("simple_proof_" + snarkT::name + "_" +
+                                pp_name<ppT>() + ".bin");
+            std::ofstream out_s(proof_path.c_str());
+            snarkT::proof_write_bytes(proof, out_s);
+        }
+    }
+}
+
+TEST(SimpleTests, SimpleCircuitProofGroth16AltBN128)
+{
+    test_simple_circuit_proof<
+        libff::alt_bn128_pp,
+        libzeth::groth16_snark<libff::alt_bn128_pp>>();
+}
+
+TEST(SimpleTests, SimpleCircuitProofGroth16BLS12_377)
+{
+    test_simple_circuit_proof<
+        libff::bls12_377_pp,
+        libzeth::groth16_snark<libff::bls12_377_pp>>();
+}
+
+TEST(SimpleTests, SimpleCircuitProofPghr13)
+{
+    test_simple_circuit_proof<
+        libff::alt_bn128_pp,
+        pghr13_snark<libff::alt_bn128_pp>>(false);
 }
 
 TEST(SimpleTests, SimpleCircuitProofPow2Domain)
 {
+    using pp = libff::alt_bn128_pp;
+    using Field = libff::Fr<pp>;
+
     // Simple circuit
     protoboard<Field> pb;
     libzeth::tests::simple_circuit<Field>(pb);
 
-    const r1cs_constraint_system<Field> constraint_system =
+    const r1cs_constraint_system<Field> &constraint_system =
         pb.get_constraint_system();
     const r1cs_gg_ppzksnark_keypair<pp> keypair =
         r1cs_gg_ppzksnark_generator<pp>(constraint_system, true);
@@ -78,14 +156,19 @@ TEST(SimpleTests, SimpleCircuitProofPow2Domain)
 
 int main(int argc, char **argv)
 {
-    // /!\ WARNING: Do once for all tests. Do not
-    // forget to do this !!!!
-    pp::init_public_params();
+    // WARNING: Do once for all tests. Do not forget to do this.
+    libff::alt_bn128_pp::init_public_params();
+    libff::bls12_377_pp::init_public_params();
 
     // Remove stdout noise from libff
     libff::inhibit_profiling_counters = true;
     libff::inhibit_profiling_info = true;
-    // Run
     ::testing::InitGoogleTest(&argc, argv);
+
+    // Extract the test data destination dir, if passed on the command line.
+    if (argc > 1) {
+        g_output_dir = boost::filesystem::path(argv[1]);
+    }
+
     return RUN_ALL_TESTS();
 }

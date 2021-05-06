@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -44,6 +44,21 @@ template<typename FieldT> void simple_circuit(libsnark::protoboard<FieldT> &pb)
     // y == (g2 + 4.g1 + 2x + 5) * 1
     pb.add_r1cs_constraint(
         r1cs_constraint<FieldT>(g2 + (4 * g1) + (2 * x) + 5, 1, y), "y");
+}
+
+template<typename FieldT>
+void simple_circuit_assignment(
+    const FieldT &x,
+    std::vector<FieldT> &out_primary,
+    std::vector<FieldT> &out_auxiliary)
+{
+    const FieldT g1 = x * x;
+    const FieldT g2 = g1 * x;
+    const FieldT y = g2 + (g1 * 4) + (x * 2) + 5;
+    out_primary.push_back(y);
+    out_auxiliary.push_back(x);
+    out_auxiliary.push_back(g1);
+    out_auxiliary.push_back(g2);
 }
 
 } // namespace tests

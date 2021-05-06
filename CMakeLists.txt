@@ -16,7 +16,7 @@ project(zeth CXX)
 
 # Versionning of the project
 set(ZETH_VERSION_MAJOR 0)
-set(ZETH_VERSION_MINOR 6)
+set(ZETH_VERSION_MINOR 7)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -315,6 +315,7 @@ add_subdirectory(libzeth)
 # If zeth is being used as a dependency, skip the tools build
 if ("${IS_ZETH_PARENT}")
   add_subdirectory(prover_server)
+  add_subdirectory(verifier)
   # For now the MPC for Groth16 only is tailored to the alt_bn128 pairing group
   if((${ZETH_SNARK} STREQUAL "GROTH16") AND (${MPC}))
     add_subdirectory(mpc_tools)

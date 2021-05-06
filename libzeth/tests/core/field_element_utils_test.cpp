@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -113,6 +113,41 @@ template<typename ppT> void field_element_encode_decode_json_badstring_test()
     do_field_element_encode_decode_json_badstring_test<libff::Fqk<ppT>>();
 }
 
+template<typename FieldT> void do_field_element_read_write_bytes_test()
+{
+    static const size_t elements_to_write = 4;
+    FieldT elements[elements_to_write];
+    for (FieldT &el : elements) {
+        el = FieldT::random_element();
+    }
+
+    std::string buffer;
+    {
+        std::stringstream out_s;
+        for (const FieldT &el : elements) {
+            libzeth::field_element_write_bytes(el, out_s);
+        }
+        buffer = out_s.str();
+    }
+
+    {
+        std::stringstream in_s(buffer);
+        for (const FieldT &el : elements) {
+            FieldT read;
+            libzeth::field_element_read_bytes(read, in_s);
+            ASSERT_EQ(el, read);
+        }
+    }
+}
+
+template<typename ppT> void field_element_read_write_bytes_test()
+{
+    do_field_element_read_write_bytes_test<libff::Fr<ppT>>();
+    do_field_element_read_write_bytes_test<libff::Fq<ppT>>();
+    do_field_element_read_write_bytes_test<libff::Fqe<ppT>>();
+    do_field_element_read_write_bytes_test<libff::Fqk<ppT>>();
+}
+
 TEST(FieldElementUtilsTest, BigIntEncodeDecodeHex)
 {
     bigint_encode_decode_hex_test<libff::alt_bn128_pp>();
@@ -156,6 +191,15 @@ TEST(FieldElementUtilsTest, FieldElementEncodeDecodeJsonBadString)
     field_element_encode_decode_json_badstring_test<libff::mnt6_pp>();
     field_element_encode_decode_json_badstring_test<libff::bls12_377_pp>();
     field_element_encode_decode_json_badstring_test<libff::bw6_761_pp>();
+}
+
+TEST(FieldElementUtilsTest, FieldElementReadWriteBytes)
+{
+    field_element_read_write_bytes_test<libff::alt_bn128_pp>();
+    field_element_read_write_bytes_test<libff::mnt4_pp>();
+    field_element_read_write_bytes_test<libff::mnt6_pp>();
+    field_element_read_write_bytes_test<libff::bls12_377_pp>();
+    field_element_read_write_bytes_test<libff::bw6_761_pp>();
 }
 
 } // namespace

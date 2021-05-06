@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -63,7 +63,8 @@ private:
 
     libsnark::pb_variable<FieldT> ZERO;
 
-    // ---- Primary inputs (public) ---- //
+    // PUBLIC DATA: to be made available to the mixer
+
     // Merkle Root
     std::shared_ptr<libsnark::pb_variable<FieldT>> merkle_root;
     // List of nullifiers of the notes to spend
@@ -82,7 +83,11 @@ private:
     std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumInputs>
         h_is;
 
-    // ---- Auxiliary inputs (private) ---- //
+    // PRIVATE DATA: must be auxiliary (private) inputs to the statement.
+    // Protoboard owner is responsible for ensuring this. (Note that the PUBLIC
+    // inputs above are allocated first, so only the first
+    // get_num_public_elements allocated by this gadget are "public").
+
     // Total amount transfered in the transaction
     libsnark::pb_variable_array<FieldT> zk_total_uint64;
     // List of all spending keys
@@ -125,29 +130,26 @@ public:
     {
         // Block dedicated to generate the verifier inputs
         {
-            // The verification inputs are, except for the root, all bit-strings
-            // of various lengths (256-bit digests and 64-bit integers) and so
-            // we pack them into as few field elements as possible. (The more
-            // verification inputs you have, the more expensive verification
-            // is.)
-
-            // --------- ALLOCATION OF PRIMARY INPUTS -------- //
-            // We make sure to have the primary inputs ordered as follow:
-            // [Root, NullifierS, CommitmentS, h_sig, h_iS, Residual field
-            // element(S)] ie, below is the index mapping of the primary input
-            // elements on the protoboard:
-            // - Index of the "Root" field element: {0}
-            // - Index of the "NullifierS" field elements: [1, 1 + NumInputs[
-            // - Index of the "CommitmentS" field elements: [1 + NumInputs,
-            //   1 + NumInputs + NumOutputs[
-            // - Index of the "h_sig" field element: {1 + NumInputs +
-            //   NumOutputs}
-            // - Index of the "h_iS" field elements: [1 + NumInputs + NumOutputs
-            //   + 1, 1 + NumInputs + NumOutputs + NumInputs[
-            // - Index of the "Residual field element(S)", ie "v_pub_in",
-            //   "v_pub_out", and bits of previous variables not fitting within
-            //   FieldT::capacity() [1 + NumInputs + NumOutputs + NumInputs,
-            //   1 + NumInputs + NumOutputs + NumInputs + nb_field_residual[
+            // PUBLIC DATA: allocated first so that the protoboard has access.
+            //
+            // Allocation is currently performed here in the following order
+            // (with the protoboard owner determining whether these are primary
+            // or auxiliary inputs to the circuit):
+            // - Root
+            // - NullifierS
+            // - CommitmentS
+            // - h_sig
+            // - h_iS
+            // - Residual field element(S)
+            //
+            // This yields the following index mappings:
+            //  0                                 : "Root"
+            //  1, ...                            : Nullifiers (NumInputs)
+            //  1 + NumInputs, ...                : Commitments (Num Outputs)
+            //  1 + NumInputs + NumOutputs        : h_sig
+            //  2 + NumInputs + NumOutputs, ...   : h_iS (NumInputs)
+            //  2 + 2xNumInputs + NumOutputs, ... : v_in, v_out, residual
+            //                                            (nb_field_residual)
 
             // We first allocate the root
             merkle_root.reset(new libsnark::pb_variable<FieldT>);
@@ -184,20 +186,20 @@ public:
                 nb_field_residual,
                 FMT(this->annotation_prefix, " residual_bits"));
 
-            // The primary inputs are:
-            // [Root, NullifierS, CommitmentS, h_sig, h_iS, Residual Field
-            // Element(S)]. The root is represented on a single field element.
-            // H_sig, as well as each nullifier, commitment and h_i are in
-            // {0,1}^256 and thus take 1 field element and a few bits to be
-            // represented. The aggregation of these bits plus of value_pub_in,
-            // and value_pub_out take `nb_field_residual` field element(s) to be
-            // represented
-            const size_t nb_packed_inputs =
+            // Compute the number of packed public elements, and the total
+            // number of public elements (see table above). The "packed" inputs
+            // (those represented as a field element and some residual bits)
+            // are:
+            //   H_sig, nullifier, commitments and h_iS
+            const size_t num_packed_public_elements =
                 2 * NumInputs + 1 + nb_field_residual;
-            const size_t nb_inputs = 1 + NumOutputs + nb_packed_inputs;
-            pb.set_input_sizes(nb_inputs);
-            // ---------------------------------------------------------------
+            const size_t num_public_elements =
+                1 + NumOutputs + num_packed_public_elements;
 
+            // PRIVATE DATA:
+
+            // Allocate a ZERO variable
+            // TODO: check whether/why this is actually needed
             ZERO.allocate(pb, FMT(this->annotation_prefix, " ZERO"));
 
             // Initialize the digest_variables
@@ -277,14 +279,15 @@ public:
             // since we are packing all the inputs nullifiers + the h_is +
             // + the h_sig + the residual bits
             assert(packed_inputs.size() == NumInputs + 1 + NumInputs + 1);
-            assert(nb_packed_inputs == [this]() {
+            assert(num_packed_public_elements == [this]() {
                 size_t sum = 0;
                 for (const auto &i : packed_inputs) {
                     sum = sum + i.size();
                 }
                 return sum;
             }());
-            assert(nb_inputs == get_inputs_field_element_size());
+            assert(num_public_elements == get_num_public_elements());
+            (void)num_public_elements;
 
             // [SANITY CHECK] Total size of unpacked inputs
             size_t total_size_unpacked_inputs = 0;
@@ -599,8 +602,8 @@ public:
         return get_inputs_bit_size() - (1 + NumOutputs) * FieldT::capacity();
     }
 
-    // Computes the number of field elements in the primary inputs
-    static size_t get_inputs_field_element_size()
+    // Computes the number of field elements in the public data
+    static size_t get_num_public_elements()
     {
         size_t nb_elements = 0;
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -496,4 +496,4 @@ def _contract_name(zksnark_name: str, pp: PairingParameters) -> str:
     Given a snark name fragment (as used in contract naming conventions) and
     pairing parameters, determine the full contract name.
     """
-    return zksnark_name + PAIRING_NAME_TO_CONTRACT_NAME[pp.name] + "Mixer"
+    return "Mixer" + zksnark_name + PAIRING_NAME_TO_CONTRACT_NAME[pp.name]

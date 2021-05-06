@@ -64,7 +64,7 @@ function prepare_server_common() {
     # TLS server certs
     if ! [ -e ${SERVER_KEY} ] || ! [ -e ${SERVER_CERT} ] ; then
         echo TLS certificate ...
-        KEY_BITS=1024
+        KEY_BITS=4096
         cp /etc/ssl/openssl.cnf openssl.tmp.cnf
         echo "[v3_req]" >> openssl.tmp.cnf
         echo "subjectAltName=DNS:localhost" >> openssl.tmp.cnf
@@ -93,9 +93,19 @@ function start_server_common() {
     $2 > server.stdout &
     echo $! > server.pid
 
+    x=1
     while ! $3 ; do
+        if [ $x == 10 ] ; then
+            echo "FAILED TO LAUNCH"
+            exit 1
+        fi
+
         echo "TEST: waiting for server to start ..."
         sleep 1
+
+        x=$(( $x + 1 ))
+        echo "TEST: retrying ($x)"
+
     done
     echo "TEST: server up (pid: "`cat server.pid`")"
     popd

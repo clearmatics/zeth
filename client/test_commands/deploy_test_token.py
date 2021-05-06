@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -65,11 +65,11 @@ def compile_token() -> Interface:
     zeth_dir = get_zeth_dir()
     allowed_path = join(
         zeth_dir,
-        "zeth_contracts/node_modules/openzeppelin-solidity/contracts")
+        "zeth_contracts/contracts")
     path_to_token = join(
         zeth_dir,
-        "zeth_contracts/node_modules/openzeppelin-solidity/contracts",
-        "token/ERC20/ERC20Mintable.sol")
+        "zeth_contracts/contracts",
+        "ERC20Mintable.sol")
     # Compilation
     set_solc_version(SOL_COMPILER_VERSION)
     compiled_sol = compile_files([path_to_token], allow_paths=allowed_path)

@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -57,6 +57,17 @@ template<typename FieldT> std::string field_element_to_json(const FieldT &el);
 
 template<typename FieldT>
 FieldT field_element_from_json(const std::string &json);
+
+/// Write a field element as bytes. Base field elements are written in plain
+/// (non-Montgomery) form as fixed-size big-endian integers. Extension field
+/// elements are written as a series of components.
+template<typename FieldT>
+void field_element_write_bytes(const FieldT &el, std::ostream &out_s);
+
+/// Read a field element as bytes, in the format described for
+/// field_element_write_bytes.
+template<typename FieldT>
+void field_element_read_bytes(FieldT &el, std::istream &in_s);
 
 } // namespace libzeth
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -56,7 +56,7 @@ DIGEST_LENGTH: int = 256
 # Public value length (v_pub_in and v_pub_out)
 PUBLIC_VALUE_LENGTH: int = 64
 PUBLIC_VALUE_LENGTH_BYTES: int = bit_length_to_byte_length(PUBLIC_VALUE_LENGTH)
-PUBLIC_VALUE_MASK: int = (1 << PUBLIC_VALUE_LENGTH) - 1
+_PUBLIC_VALUE_MASK: int = (1 << PUBLIC_VALUE_LENGTH) - 1
 
 PHI_LENGTH: int = 256
 PHI_LENGTH_BYTES: int = bit_length_to_byte_length(PHI_LENGTH)
@@ -73,7 +73,7 @@ TRAPR_LENGTH_BYTES: int = bit_length_to_byte_length(TRAPR_LENGTH)
 NOTE_LENGTH: int = APK_LENGTH + PUBLIC_VALUE_LENGTH + RHO_LENGTH + TRAPR_LENGTH
 NOTE_LENGTH_BYTES: int = bit_length_to_byte_length(NOTE_LENGTH)
 
-# Public inputs are (see BaseMixer.sol):
+# Public inputs are (see AbstractMixer.sol):
 #   [0                 ] - 1     x merkle root
 #   [1                 ] - jsOut x commitment
 #   [1 + jsOut         ] - jsIn  x nullifier (partial)
@@ -88,7 +88,7 @@ RESIDUAL_BITS_INDEX: int = (2 * JS_INPUTS) + JS_OUTPUTS + 2
 NUM_INPUT_DIGESTS: int = (2 * JS_INPUTS) + 1
 
 # Solidity compiler version
-SOL_COMPILER_VERSION: str = 'v0.5.16'
+SOL_COMPILER_VERSION: str = 'v0.8.1'
 
 # Seed for MIMC
 MIMC_MT_SEED: str = "clearmatics_mt_seed"

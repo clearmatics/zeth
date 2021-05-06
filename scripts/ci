@@ -4,8 +4,23 @@ platform=`uname`
 echo platform=${platform}
 echo "running against commit: "`git log --oneline --no-decorate -n 1`
 
+# Include the CI utils functions
+. scripts/ci_utils.sh
+
 set -x
 set -e
+
+function _setup_client() {
+    pushd client
+    python3 -m venv env
+    . env/bin/activate
+    pip install --upgrade pip --progress-bar off
+    pip install --upgrade setuptools wheel
+    make setup
+
+    deactivate
+    popd
+}
 
 function check_format() {
     scripts/format
@@ -22,20 +37,34 @@ function check_format() {
 }
 
 function check_contracts() {
+    # Setup the zeth_contracts dir
+    ganache_setup
+
+    # Run checks in zeth_contracts
     pushd zeth_contracts
-    npm config set python python2.7
-    npm install --unsafe-perm
     npm run check
+    popd # zeth_contracts
+
+    # Run contract tests (in python)
+    _setup_client
+
+    ganache_start
+
+    pushd client
+    . env/bin/activate
+    make test_contracts
+    deactivate
     popd
+
+    ganache_stop
 }
 
 function check_client() {
+    _setup_client
+
     pushd client
-    python3 -m venv env
     . env/bin/activate
-    pip install --upgrade pip --progress-bar off
-    pip install --upgrade setuptools wheel
-    make setup
+
     make check
 
     deactivate
@@ -49,8 +78,6 @@ function check_cpp() {
     # Configure and run clang-tidy cppcheck
     mkdir -p build
     pushd build
-    # cmake -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
-    # make VERBOSE=1 clang-tidy -j 5
     cmake -DUSE_CPP_CHECK=ON ..
     make VERBOSE=1 cppcheck -j 5
     popd
@@ -83,7 +110,51 @@ function mpc_tests() {
     scripts/test_mpc_server_phase2
 }
 
+function prover_tests() {
+
+    # Native code is built.  Setup client and ganache.
+    ganache_setup
+    _setup_client
+
+    # Start servers
+    ganache_start
+    prover_server_start
+
+    # Enter client env and run prover test scripts
+    . client/env/bin/activate
+    python -m test_commands.test_ether_mixing GROTH16
+    python -m test_commands.test_erc_token_mixing GROTH16
+    deactivate
+
+    # Stop servers
+    prover_server_stop
+    ganache_stop
+}
+
+function integration_tests() {
+
+    # Native code is built.  Setup client and ganache.
+    ganache_setup
+    _setup_client
+
+    # Start servers
+    ganache_start
+    prover_server_start
+
+    # Enter client env and run client test script
+    . client/env/bin/activate
+    ./scripts/test_zeth_cli
+    deactivate
+
+    # Stop servers
+    prover_server_stop
+    ganache_stop
+}
+
 function build() {
+
+    cpp_build_setup
+
     # Additional compilation flags
     cxx_flags="-Werror"
 
@@ -101,8 +172,13 @@ function build() {
 
     cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG} -DZETH_SNARK=${CI_ZKSNARK}"
     cmake_flags="${cmake_flags} -DZETH_CURVE=${CI_CURVE}"
-    if ! [ "${full_build}" == "1" ] ; then
+    # Switch off slow tests unless CI_FULL_TESTS == 1
+    if ! [ "${CI_FULL_TESTS}" == "1" ] ; then
         cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
+    fi
+    # Use ccache if available
+    if (which ccache) ; then
+        cmake_flags="${cmake_flags} -DCMAKE_C_COMPILER_LAUNCHER=ccache"
     fi
 
     # Build and run unit tests
@@ -118,37 +194,29 @@ function build() {
     CTEST_OUTPUT_ON_FAILURE=1 make -j 2 check
     cd ..
 
-    mpc_tests
+    if [ "${CI_MPC_TESTS}" == "1" ] ; then
+        mpc_tests
+    fi
+
+    if [ "${CI_PROVER_TESTS}" == "1" ] ; then
+        prover_tests
+    fi
+
+    if [ "${CI_INTEGRATION_TESTS}" == "1" ] ; then
+        integration_tests
+    fi
 }
 
 function ci_setup() {
-
-    if [ "${platform}" == "Darwin" ] ; then
-        # Some of these commands can fail (if packages are already installed,
-        # etc), hence the `|| echo`.
-        brew update || echo
-        brew install \
-             gmp \
-             grpc \
-             protobuf \
-             boost \
-             openssl \
-             cmake \
-             libtool \
-             autoconf \
-             automake \
-             || echo
-    fi
 
     # The base docker image we use is Alpine
     # See: https://www.alpinelinux.org/
     if [ "${platform}" == "Linux" ] ; then
 
         if (which apk) ; then
-            apk add --update npm
 
-            # `py3-virtualenv` depends on `python3`
-            # which installs the latest version of python3
+            # `py3-virtualenv` depends on `python3` which installs the latest
+            # version of python3.
             # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
             # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
             apk add \
@@ -166,22 +234,18 @@ function ci_setup() {
     fi
 }
 
-
 ci_task=$1
-full_build=$2
-if [ "${full_build}" == "" ] ; then
-    if [ "${CI_EVENT_NAME}" == "pull_request" ] ; then
-        full_build=1
-    fi
-fi
 
 echo ci_task = ${ci_task}
-echo full_build=${full_build}
 echo CI_CONFIG=${CI_CONFIG}
 echo CI_ZKSNARK=${CI_ZKSNARK}
 echo CI_CURVE=${CI_CURVE}
 echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
 echo CI_EVENT_NAME=${CI_EVENT_NAME}
+echo CI_FULL_TEST=${CI_FULL_TESTS}
+echo CI_MPC_TESTS=${CI_MPC_TESTS}
+echo CI_PROVER_TESTS=${CI_PROVER_TESTS}
+echo CI_INTEGRATION_TESTS=${CI_INTEGRATION_TESTS}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
     check_format
@@ -207,7 +271,10 @@ if [ "${CI_USE_DOCKER}" == "1" ] ; then
            --env CI_CONFIG=${CI_CONFIG} \
            --env CI_ZKSNARK=${CI_ZKSNARK} \
            --env CI_CURVE=${CI_CURVE} \
-           zeth-dev:latest $0 ${ci_task} ${full_build}
+           --env CI_FULL_TESTS=${CI_FULL_TESTS} \
+           --env CI_MPC_TESTS=${CI_MPC_TESTS} \
+           --env CI_INTEGRATION_TESTS=${CI_INTEGRATION_TESTS} \
+           zeth-dev:latest $0 ${ci_task}
 else
     ci_setup
     ${ci_task}

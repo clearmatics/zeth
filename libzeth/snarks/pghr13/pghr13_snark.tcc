@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -23,17 +23,19 @@ typename pghr13_snark<ppT>::keypair pghr13_snark<ppT>::generate_setup(
 
 template<typename ppT>
 typename pghr13_snark<ppT>::proof pghr13_snark<ppT>::generate_proof(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const pghr13_snark<ppT>::proving_key &proving_key)
+    const pghr13_snark<ppT>::proving_key &proving_key,
+    const libsnark::protoboard<libff::Fr<ppT>> &pb)
 {
-    // See:
-    // https://github.com/scipr-lab/libsnark/blob/92a80f74727091fdc40e6021dc42e9f6b67d5176/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp#L81
-    // For the definition of r1cs_primary_input and r1cs_auxiliary_input
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input =
-        pb.primary_input();
-    libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary_input =
-        pb.auxiliary_input();
+    return generate_proof(
+        proving_key, pb.primary_input(), pb.auxiliary_input());
+}
 
+template<typename ppT>
+typename pghr13_snark<ppT>::proof pghr13_snark<ppT>::generate_proof(
+    const pghr13_snark<ppT>::proving_key &proving_key,
+    const libsnark::r1cs_primary_input<libff::Fr<ppT>> &primary_input,
+    const libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary_input)
+{
     // Generate proof from public input, auxiliary input (private/secret data),
     // and proving key
     return libsnark::r1cs_ppzksnark_prover(
@@ -51,95 +53,111 @@ bool pghr13_snark<ppT>::verify(
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::verification_key_write_json(
+void pghr13_snark<ppT>::verification_key_write_json(
     const pghr13_snark<ppT>::verification_key &vk, std::ostream &os)
 {
     unsigned ic_length = vk.encoded_IC_query.rest.indices.size() + 1;
 
     os << "{\n";
-    os << " \"a\": " << point_affine_to_json(vk.alphaA_g2) << ",\n";
-    os << " \"b\": " << point_affine_to_json(vk.alphaB_g1) << ",\n";
-    os << " \"c\": " << point_affine_to_json(vk.alphaC_g2) << ",\n";
-    os << " \"g\": " << point_affine_to_json(vk.gamma_g2) << ",\n";
-    os << " \"gb1\": " << point_affine_to_json(vk.gamma_beta_g1) << ",\n";
-    os << " \"gb2\": " << point_affine_to_json(vk.gamma_beta_g2) << ",\n";
-    os << " \"z\": " << point_affine_to_json(vk.rC_Z_g2) << ",\n";
+    os << " \"a\": " << group_element_to_json(vk.alphaA_g2) << ",\n";
+    os << " \"b\": " << group_element_to_json(vk.alphaB_g1) << ",\n";
+    os << " \"c\": " << group_element_to_json(vk.alphaC_g2) << ",\n";
+    os << " \"g\": " << group_element_to_json(vk.gamma_g2) << ",\n";
+    os << " \"gb1\": " << group_element_to_json(vk.gamma_beta_g1) << ",\n";
+    os << " \"gb2\": " << group_element_to_json(vk.gamma_beta_g2) << ",\n";
+    os << " \"z\": " << group_element_to_json(vk.rC_Z_g2) << ",\n";
 
-    os << "\"IC\" :[" << point_affine_to_json(vk.encoded_IC_query.first);
+    os << "\"IC\" :[" << group_element_to_json(vk.encoded_IC_query.first);
 
     for (size_t i = 1; i < ic_length; ++i) {
         os << ","
-           << point_affine_to_json(vk.encoded_IC_query.rest.values[i - 1]);
+           << group_element_to_json(vk.encoded_IC_query.rest.values[i - 1]);
     }
 
     os << "]\n";
     os << "}";
-    return os;
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::verification_key_write_bytes(
+void pghr13_snark<ppT>::verification_key_write_bytes(
     const typename pghr13_snark<ppT>::verification_key &vk, std::ostream &os)
 {
-    return os << vk;
+    os << vk;
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::verification_key pghr13_snark<
-    ppT>::verification_key_read_bytes(std::istream &in_s)
+void pghr13_snark<ppT>::verification_key_read_bytes(
+    typename pghr13_snark<ppT>::verification_key &vk, std::istream &in_s)
 {
-    verification_key vk;
     in_s >> vk;
-    return vk;
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::proving_key_write_bytes(
+void pghr13_snark<ppT>::proving_key_write_bytes(
     const typename pghr13_snark<ppT>::proving_key &pk, std::ostream &os)
 {
-    return os << pk;
+    os << pk;
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::proving_key pghr13_snark<
-    ppT>::proving_key_read_bytes(std::istream &in_s)
+void pghr13_snark<ppT>::proving_key_read_bytes(
+    typename pghr13_snark<ppT>::proving_key &pk, std::istream &in_s)
 {
-    proving_key pk;
     in_s >> pk;
-    return pk;
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::proof_write_json(
+void pghr13_snark<ppT>::proof_write_json(
     const typename pghr13_snark<ppT>::proof &proof, std::ostream &os)
 {
     os << "{\n";
-    os << " \"a\": " << point_affine_to_json(proof.g_A.g) << ",\n";
-    os << " \"a_p\": " << point_affine_to_json(proof.g_A.h) << ",\n";
-    os << " \"b\": " << point_affine_to_json(proof.g_B.g) << ",\n";
-    os << " \"b_p\": " << point_affine_to_json(proof.g_B.h) << ",\n";
-    os << " \"c\": " << point_affine_to_json(proof.g_C.g) << ",\n";
-    os << " \"c_p\": " << point_affine_to_json(proof.g_C.h) << ",\n";
-    os << " \"h\": " << point_affine_to_json(proof.g_H) << ",\n";
-    os << " \"k\": " << point_affine_to_json(proof.g_K) << "\n";
+    os << " \"a\": " << group_element_to_json(proof.g_A.g) << ",\n";
+    os << " \"a_p\": " << group_element_to_json(proof.g_A.h) << ",\n";
+    os << " \"b\": " << group_element_to_json(proof.g_B.g) << ",\n";
+    os << " \"b_p\": " << group_element_to_json(proof.g_B.h) << ",\n";
+    os << " \"c\": " << group_element_to_json(proof.g_C.g) << ",\n";
+    os << " \"c_p\": " << group_element_to_json(proof.g_C.h) << ",\n";
+    os << " \"h\": " << group_element_to_json(proof.g_H) << ",\n";
+    os << " \"k\": " << group_element_to_json(proof.g_K) << "\n";
     os << "}";
-    return os;
 }
 
 template<typename ppT>
-std::ostream &pghr13_snark<ppT>::keypair_write_bytes(
+void pghr13_snark<ppT>::proof_write_bytes(
+    const typename pghr13_snark<ppT>::proof &proof, std::ostream &out_s)
+{
+    knowledge_commitment_write_bytes(proof.g_A, out_s);
+    knowledge_commitment_write_bytes(proof.g_B, out_s);
+    knowledge_commitment_write_bytes(proof.g_C, out_s);
+    group_element_write_bytes(proof.g_H, out_s);
+    group_element_write_bytes(proof.g_K, out_s);
+}
+
+template<typename ppT>
+void pghr13_snark<ppT>::proof_read_bytes(
+    typename pghr13_snark<ppT>::proof &proof, std::istream &in_s)
+{
+    knowledge_commitment_read_bytes(proof.g_A, in_s);
+    knowledge_commitment_read_bytes(proof.g_B, in_s);
+    knowledge_commitment_read_bytes(proof.g_C, in_s);
+    group_element_read_bytes(proof.g_H, in_s);
+    group_element_read_bytes(proof.g_K, in_s);
+}
+
+template<typename ppT>
+void pghr13_snark<ppT>::keypair_write_bytes(
     const typename pghr13_snark<ppT>::keypair &keypair, std::ostream &os)
 {
     proving_key_write_bytes(keypair.pk, os);
-    return verification_key_write_bytes(keypair.vk, os);
+    verification_key_write_bytes(keypair.vk, os);
 }
 
 template<typename ppT>
-typename pghr13_snark<ppT>::keypair pghr13_snark<ppT>::keypair_read_bytes(
-    std::istream &in_s)
+void pghr13_snark<ppT>::keypair_read_bytes(
+    typename pghr13_snark<ppT>::keypair &keypair, std::istream &in_s)
 {
-    return keypair(
-        proving_key_read_bytes(in_s), verification_key_read_bytes(in_s));
+    proving_key_read_bytes(keypair.pk, in_s);
+    verification_key_read_bytes(keypair.vk, in_s);
 }
 
 } // namespace libzeth

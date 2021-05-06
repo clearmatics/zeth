@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -20,7 +20,7 @@ if sys.version_info < (3, 7):
 
 setup(
     name='coordinator',
-    version='0.6',
+    version='0.7',
     description='MPC Coordinator for Zeth SRS',
     packages=find_packages(),
     install_requires=[

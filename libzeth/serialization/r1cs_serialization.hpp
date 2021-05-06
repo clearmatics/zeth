@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -35,9 +35,17 @@ template<typename ppT>
 libsnark::accumulation_vector<libff::G1<ppT>> accumulation_vector_from_json(
     const std::string &acc_vector_str);
 
-template<typename ppT>
+template<typename FieldT>
 std::ostream &r1cs_write_json(
-    const libsnark::protoboard<libff::Fr<ppT>> &pb, std::ostream &out_s);
+    const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s);
+
+template<typename FieldT>
+void r1cs_read_bytes(
+    libsnark::r1cs_constraint_system<FieldT> &r1cs, std::istream &in_s);
+
+template<typename FieldT>
+void r1cs_write_bytes(
+    const libsnark::r1cs_constraint_system<FieldT> &r1cs, std::ostream &out_s);
 
 } // namespace libzeth
 

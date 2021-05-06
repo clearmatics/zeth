@@ -1,5 +1,7 @@
 FROM alpine:3.12
 
+LABEL org.opencontainers.image.source https://github.com/clearmatics/zeth
+
 ####
 # This Dockerfile builds the base image
 # (installs all the dependencies) for Zeth

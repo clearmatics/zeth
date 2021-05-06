@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -27,10 +27,10 @@ TEST(GroupElementUtilsTest, G1EncodeDecodeJsonTestVectorAltBN128)
         "\"0x2857bd14bbc09767bed8e913d3ccb42b2bc8738f715417dd6f020725d22bcd90\""
         "]";
     G1 g1 = Fr(13) * G1::one();
-    std::string g1_json = libzeth::point_affine_to_json(g1);
+    std::string g1_json = libzeth::group_element_to_json(g1);
     ASSERT_EQ(g1_json_expected, g1_json);
 
-    G1 g1_decoded = libzeth::point_affine_from_json<G1>(g1_json);
+    G1 g1_decoded = libzeth::group_element_from_json<G1>(g1_json);
     ASSERT_EQ(g1, g1_decoded);
 }
 
@@ -50,45 +50,132 @@ TEST(GroupElementUtilsTest, G2EncodeJsonTestVectorAltBN128)
         "\"0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa\""
         "]]";
     G2 g2 = G2::one();
-    const std::string g2_json = libzeth::point_affine_to_json(g2);
-    const G2 g2_decoded = libzeth::point_affine_from_json<G2>(g2_json);
+    const std::string g2_json = libzeth::group_element_to_json(g2);
+    const G2 g2_decoded = libzeth::group_element_from_json<G2>(g2_json);
 
     ASSERT_EQ(g2_json_expected, g2_json);
     ASSERT_EQ(g2, g2_decoded);
 }
 
 template<typename GroupT>
-static void single_group_element_encode_decode_test(const GroupT &g)
+static void single_group_element_encode_decode_json_test(const GroupT &g)
 {
-    const std::string g_json = libzeth::point_affine_to_json(g);
-    const GroupT g_decoded = libzeth::point_affine_from_json<GroupT>(g_json);
+    const std::string g_json = libzeth::group_element_to_json(g);
+    const GroupT g_decoded = libzeth::group_element_from_json<GroupT>(g_json);
 
     ASSERT_EQ(g, g_decoded);
 }
 
-template<typename GroupT> static void group_element_encode_decode_test()
+template<typename GroupT> static void group_element_encode_decode_json_test()
 {
-    single_group_element_encode_decode_test(GroupT::random_element());
-    single_group_element_encode_decode_test(GroupT::zero());
-    single_group_element_encode_decode_test(GroupT::one());
+    single_group_element_encode_decode_json_test(GroupT::random_element());
+    single_group_element_encode_decode_json_test(GroupT::zero());
+    single_group_element_encode_decode_json_test(GroupT::one());
 }
 
-TEST(GroupElementUtilsTest, G1EncodeDecode)
+TEST(GroupElementUtilsTest, G1EncodeDecodeJSON)
 {
-    group_element_encode_decode_test<libff::G1<libff::alt_bn128_pp>>();
-    group_element_encode_decode_test<libff::G1<libff::mnt4_pp>>();
-    group_element_encode_decode_test<libff::G1<libff::mnt6_pp>>();
-    group_element_encode_decode_test<libff::G1<libff::bls12_377_pp>>();
-    group_element_encode_decode_test<libff::G1<libff::bw6_761_pp>>();
+    group_element_encode_decode_json_test<libff::G1<libff::alt_bn128_pp>>();
+    group_element_encode_decode_json_test<libff::G1<libff::mnt4_pp>>();
+    group_element_encode_decode_json_test<libff::G1<libff::mnt6_pp>>();
+    group_element_encode_decode_json_test<libff::G1<libff::bls12_377_pp>>();
+    group_element_encode_decode_json_test<libff::G1<libff::bw6_761_pp>>();
 }
 
-TEST(GroupElementUtilsTest, G2EncodeDecode)
+TEST(GroupElementUtilsTest, G2EncodeDecodeJSON)
 {
-    group_element_encode_decode_test<libff::G2<libff::alt_bn128_pp>>();
-    group_element_encode_decode_test<libff::G2<libff::mnt4_pp>>();
-    group_element_encode_decode_test<libff::G2<libff::mnt6_pp>>();
-    group_element_encode_decode_test<libff::G2<libff::bls12_377_pp>>();
-    group_element_encode_decode_test<libff::G2<libff::bw6_761_pp>>();
+    group_element_encode_decode_json_test<libff::G2<libff::alt_bn128_pp>>();
+    group_element_encode_decode_json_test<libff::G2<libff::mnt4_pp>>();
+    group_element_encode_decode_json_test<libff::G2<libff::mnt6_pp>>();
+    group_element_encode_decode_json_test<libff::G2<libff::bls12_377_pp>>();
+    group_element_encode_decode_json_test<libff::G2<libff::bw6_761_pp>>();
+}
+
+template<typename GroupT>
+static void single_group_element_encode_decode_bytes_test(const GroupT &g)
+{
+    std::string buffer;
+    {
+        std::stringstream ss;
+        libzeth::group_element_write_bytes(g, ss);
+        buffer = ss.str();
+    }
+
+    GroupT g_decoded;
+    {
+        std::stringstream ss(buffer);
+        libzeth::group_element_read_bytes(g_decoded, ss);
+    }
+
+    ASSERT_EQ(g, g_decoded);
+}
+
+template<typename GroupT> static void group_element_encode_decode_bytes_test()
+{
+    single_group_element_encode_decode_bytes_test(GroupT::random_element());
+    single_group_element_encode_decode_bytes_test(GroupT::zero());
+    single_group_element_encode_decode_bytes_test(GroupT::one());
+}
+
+TEST(GroupElementUtilsTest, G1EncodeDecodeBytes)
+{
+    group_element_encode_decode_bytes_test<libff::G1<libff::alt_bn128_pp>>();
+    group_element_encode_decode_bytes_test<libff::G1<libff::mnt4_pp>>();
+    group_element_encode_decode_bytes_test<libff::G1<libff::mnt6_pp>>();
+    group_element_encode_decode_bytes_test<libff::G1<libff::bls12_377_pp>>();
+    group_element_encode_decode_bytes_test<libff::G1<libff::bw6_761_pp>>();
+}
+
+TEST(GroupElementUtilsTest, G2EncodeDecodeBytes)
+{
+    group_element_encode_decode_bytes_test<libff::G2<libff::alt_bn128_pp>>();
+    group_element_encode_decode_bytes_test<libff::G2<libff::mnt4_pp>>();
+    group_element_encode_decode_bytes_test<libff::G2<libff::mnt6_pp>>();
+    group_element_encode_decode_bytes_test<libff::G2<libff::bls12_377_pp>>();
+    group_element_encode_decode_bytes_test<libff::G2<libff::bw6_761_pp>>();
+}
+
+template<typename GroupT> static void group_elements_encode_decode_bytes_test()
+{
+    const size_t num_elements = 17;
+    std::vector<GroupT> elements;
+    elements.reserve(num_elements);
+    for (size_t i = 0; i < num_elements; ++i) {
+        elements.emplace_back(GroupT::random_element());
+    }
+
+    std::string buffer;
+    {
+        std::stringstream ss;
+        libzeth::group_elements_write_bytes(elements, ss);
+        buffer = ss.str();
+    }
+
+    std::vector<GroupT> elements_decoded;
+    {
+        std::stringstream ss(buffer);
+        libzeth::group_elements_read_bytes(elements_decoded, ss);
+    }
+
+    ASSERT_EQ(elements, elements_decoded);
+}
+
+TEST(GroupElementUtilsTest, G1CollectionEncodeDecodeBytes)
+{
+    group_elements_encode_decode_bytes_test<libff::G1<libff::alt_bn128_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G1<libff::mnt4_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G1<libff::mnt6_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G1<libff::bls12_377_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G1<libff::bw6_761_pp>>();
+}
+
+TEST(GroupElementUtilsTest, G2CollectionEncodeDecodeBytes)
+{
+    group_elements_encode_decode_bytes_test<libff::G2<libff::alt_bn128_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G2<libff::mnt4_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G2<libff::mnt6_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G2<libff::bls12_377_pp>>();
+    group_elements_encode_decode_bytes_test<libff::G2<libff::bw6_761_pp>>();
 }
 
 } // namespace

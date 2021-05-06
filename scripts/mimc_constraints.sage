@@ -52,6 +52,8 @@ def output_valid_configs_and_constraints(r):
     for t in range(2, 22):
         e = (1 << t) - 1
         output_valid_config_and_constraints(r, log_2_r, e)
+        e = (1 << t) + 1
+        output_valid_config_and_constraints(r, log_2_r, e)
 
     # TODO: determine if these value are valid
     # output_valid_config_and_constraints(r, log_2_r, 11)
@@ -60,6 +62,21 @@ def output_valid_configs_and_constraints(r):
     # output_valid_config_and_constraints(r, log_2_r, 19)
     # output_valid_config_and_constraints(r, log_2_r, 23)
 
+
+# BW6-761
+print("BW6-761:")
+output_valid_configs_and_constraints(
+    r=258664426012969094010652733694893533536393512754914660539884262666720468348340822774968888139573360124440321458177)
+
+# MNT4
+print("MNT4:")
+output_valid_configs_and_constraints(
+    r=475922286169261325753349249653048451545124878552823515553267735739164647307408490559963137)
+
+# MNT6
+print("MNT6:")
+output_valid_configs_and_constraints(
+    r=475922286169261325753349249653048451545124879242694725395555128576210262817955800483758081)
 
 # BLS12-377
 print("BLS12-377:")
