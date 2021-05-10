@@ -20,8 +20,11 @@ template<typename FieldT, size_t Exponent, size_t NumRounds>
 class MiMC_permutation_gadget : public libsnark::gadget<FieldT>
 {
 private:
-    // Round constants only available up to some maximum number of rounds
-    static const size_t MaxRounds = 65;
+    // Round constants only available up to some maximum number of rounds. Note
+    // that the instantiations used in this library do not use all 93 round
+    // constants, but other instantiations may (in particular, see
+    // instantations for other curves in https://github.com/clearmatics/zecale).
+    static const size_t MaxRounds = 93;
     static_assert(
         NumRounds <= MaxRounds, "NumRounds must be less than MaxRounds");
 
