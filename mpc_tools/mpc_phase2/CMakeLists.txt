@@ -16,6 +16,7 @@ target_include_directories(mpc-cli PUBLIC cli)
 target_link_libraries(
   mpc-cli
   zeth
+  tool
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )

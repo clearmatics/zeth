@@ -7,52 +7,13 @@
 
 #include "libzeth/core/include_libsnark.hpp"
 #include "libzeth/mpc/groth16/mpc_hash.hpp"
-#include "zeth_config.h"
+#include "mpc_subcommand.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <map>
 #include <string>
 #include <vector>
-
-using ProtoboardInitFn =
-    std::function<void(libsnark::protoboard<libzeth::defaults::Field> &)>;
-
-class subcommand
-{
-protected:
-    std::string subcommand_name;
-    std::string subcommand_description;
-    bool verbose;
-    ProtoboardInitFn protoboard_init;
-
-private:
-    bool help;
-
-public:
-    using Field = libzeth::defaults::Field;
-
-    subcommand(
-        const std::string &subcommand_name, const std::string &description);
-    void set_global_options(bool verbose, const ProtoboardInitFn &pb_init);
-    int execute(const std::vector<std::string> &args);
-    const std::string &description() const;
-
-protected:
-    void init_protoboard(libsnark::protoboard<Field> &pb) const;
-
-private:
-    void usage(const boost::program_options::options_description &all_options);
-
-    virtual void initialize_suboptions(
-        boost::program_options::options_description &options,
-        boost::program_options::options_description &all_options,
-        boost::program_options::positional_options_description &pos) = 0;
-    virtual void parse_suboptions(
-        const boost::program_options::variables_map &vm) = 0;
-    virtual void subcommand_usage() = 0;
-    virtual int execute_subcommand() = 0;
-};
 
 // interface for ReadableT types:
 // {
@@ -86,19 +47,19 @@ inline ReadableT read_from_file_and_hash(
     return v;
 }
 
-extern subcommand *mpc_linear_combination_cmd;
-extern subcommand *mpc_dummy_phase2_cmd;
-extern subcommand *mpc_phase2_begin_cmd;
-extern subcommand *mpc_phase2_contribute_cmd;
-extern subcommand *mpc_phase2_verify_contribution_cmd;
-extern subcommand *mpc_phase2_verify_transcript_cmd;
-extern subcommand *mpc_create_keypair_cmd;
+extern mpc_subcommand *mpc_linear_combination_cmd;
+extern mpc_subcommand *mpc_dummy_phase2_cmd;
+extern mpc_subcommand *mpc_phase2_begin_cmd;
+extern mpc_subcommand *mpc_phase2_contribute_cmd;
+extern mpc_subcommand *mpc_phase2_verify_contribution_cmd;
+extern mpc_subcommand *mpc_phase2_verify_transcript_cmd;
+extern mpc_subcommand *mpc_create_keypair_cmd;
 
 /// Main entry point into the mpc command for a given circuit.
 int mpc_main(
+    const std::map<std::string, mpc_subcommand *> &commands,
+    const ProtoboardInitFn &pb_init,
     int argc,
-    char **argv,
-    const std::map<std::string, subcommand *> &commands,
-    const ProtoboardInitFn &pb_init);
+    char **argv);
 
 #endif // __ZETH_MPC_CLI_COMMON_HPP__

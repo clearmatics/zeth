@@ -18,7 +18,7 @@ namespace
 // Options:
 //   --transcript <file>     Append contribution, if it is valid
 //   --new-challenge <file>  Write new challenge, if contribution is valid
-class mpc_phase2_verify_contribution : public subcommand
+class mpc_phase2_verify_contribution : public mpc_subcommand
 {
 private:
     std::string challenge_file;
@@ -28,7 +28,7 @@ private:
 
 public:
     mpc_phase2_verify_contribution()
-        : subcommand(
+        : mpc_subcommand(
               "mpc_phase2_verify_contribution",
               "Verify contribution and optionally output next challenge")
         , challenge_file()
@@ -74,15 +74,15 @@ private:
                                  : "";
     }
 
-    void subcommand_usage() override
+    void subcommand_usage(const char *argv0) override
     {
-        std::cout << "Usage:\n\n  " << subcommand_name
+        std::cout << "Usage:\n  " << argv0 << " " << subcommand_name
                   << " [<options>] <challenge_file> <response_file>\n\n";
     }
 
-    int execute_subcommand() override
+    int execute_subcommand(const global_options &options) override
     {
-        if (verbose) {
+        if (options.verbose) {
             std::cout << "challenge: " << challenge_file << "\n"
                       << "response: " << response_file << "\n"
                       << "transcript: " << transcript_file << "\n"
@@ -139,5 +139,5 @@ private:
 
 } // namespace
 
-subcommand *mpc_phase2_verify_contribution_cmd =
+mpc_subcommand *mpc_phase2_verify_contribution_cmd =
     new mpc_phase2_verify_contribution();

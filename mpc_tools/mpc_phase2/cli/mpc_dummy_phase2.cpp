@@ -18,14 +18,15 @@ namespace
 //     mpc dummy_phase2 [<option>]
 //         <linear_combination_file>
 //         <final_challenge_file>
-class mpc_dummy_phase2 : public subcommand
+class mpc_dummy_phase2 : public mpc_subcommand
 {
     std::string linear_combination_file;
     std::string out_file;
 
 public:
     mpc_dummy_phase2()
-        : subcommand("dummy-phase2", "Run a dummy MPC to generate test data")
+        : mpc_subcommand(
+              "dummy-phase2", "Run a dummy MPC to generate test data")
         , linear_combination_file()
         , out_file()
     {
@@ -61,17 +62,16 @@ private:
         out_file = vm["final_challenge_file"].as<std::string>();
     }
 
-    void subcommand_usage() override
+    void subcommand_usage(const char *argv0) override
     {
-        std::cout << "Usage:" << std::endl
-                  << "  " << subcommand_name
+        std::cout << "Usage:\n  " << argv0 << " " << subcommand_name
                   << " [<options>] <linear_combination_file> "
                      "<final_challenge_file>\n";
     }
 
-    int execute_subcommand() override
+    int execute_subcommand(const global_options &options) override
     {
-        if (verbose) {
+        if (options.verbose) {
             std::cout << "linear_combination_file: " << linear_combination_file
                       << "\n"
                       << "out_file: " << out_file << std::endl;
@@ -85,9 +85,9 @@ private:
 
         // Generate the zeth circuit (to determine the number of inputs)
         libff::enter_block("computing num_inputs");
-        const size_t num_inputs = [this]() {
+        const size_t num_inputs = [&options]() {
             libsnark::protoboard<Field> pb;
-            init_protoboard(pb);
+            options.protoboard_init(pb);
             return pb.num_inputs();
         }();
         libff::print_indent();
@@ -113,4 +113,4 @@ private:
 
 } // namespace
 
-subcommand *mpc_dummy_phase2_cmd = new mpc_dummy_phase2();
+mpc_subcommand *mpc_dummy_phase2_cmd = new mpc_dummy_phase2();

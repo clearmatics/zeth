@@ -12,7 +12,7 @@ void simple_protoboard(libsnark::protoboard<libzeth::defaults::Field> &pb)
 
 int main(int argc, char **argv)
 {
-    const std::map<std::string, subcommand *> commands{
+    const std::map<std::string, mpc_subcommand *> commands{
         {"linear-combination", mpc_linear_combination_cmd},
         {"dummy-phase2", mpc_dummy_phase2_cmd},
         {"phase2-begin", mpc_phase2_begin_cmd},
@@ -21,5 +21,5 @@ int main(int argc, char **argv)
         {"phase2-verify-transcript", mpc_phase2_verify_transcript_cmd},
         {"create-keypair", mpc_create_keypair_cmd},
     };
-    return mpc_main(argc, argv, commands, simple_protoboard);
+    return mpc_main(commands, simple_protoboard, argc, argv);
 }

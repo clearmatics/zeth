@@ -27,7 +27,7 @@ namespace
 // Options:
 //  -h,--help           This message
 //  --pot-degree        powersoftau degree (assumed to match linear comb)
-class mpc_create_keypair : public subcommand
+class mpc_create_keypair : public mpc_subcommand
 {
 private:
     std::string powersoftau_file;
@@ -38,7 +38,8 @@ private:
 
 public:
     mpc_create_keypair()
-        : subcommand("create-keypair", "Create a full keypair from MPC output")
+        : mpc_subcommand(
+              "create-keypair", "Create a full keypair from MPC output")
         , powersoftau_file()
         , lin_comb_file()
         , phase2_challenge_file()
@@ -97,17 +98,18 @@ private:
             vm.count("pot-degree") ? vm["pot-degree"].as<size_t>() : 0;
     }
 
-    void subcommand_usage() override
+    void subcommand_usage(const char *argv0) override
     {
         std::cout << "Usage:\n"
-                  << "  " << subcommand_name << " [<options>]  \\\n"
+                  << "  " << argv0 << " " << subcommand_name
+                  << " [<options>]  \\\n"
                   << "        <powersoftau_file> <linear_combination_file> \\\n"
                   << "        <phase2_challenge_file> <keypair_out_file>\n\n";
     }
 
-    int execute_subcommand() override
+    int execute_subcommand(const global_options &options) override
     {
-        if (verbose) {
+        if (options.verbose) {
             std::cout << "powersoftau_file: " << powersoftau_file << "\n"
                       << "lin_comb_file: " << lin_comb_file << "\n"
                       << "phase2_challenge_file: " << phase2_challenge_file
@@ -148,7 +150,7 @@ private:
         // Compute circuit
         libff::enter_block("Generate QAP");
         libsnark::protoboard<Field> pb;
-        init_protoboard(pb);
+        options.protoboard_init(pb);
         libsnark::r1cs_constraint_system<Field> cs = pb.get_constraint_system();
         const libsnark::qap_instance<Field> qap =
             libsnark::r1cs_to_qap_instance_map(cs, true);
@@ -182,4 +184,4 @@ private:
 } // namespace
 
 // Subcommand instance
-subcommand *mpc_create_keypair_cmd = new mpc_create_keypair();
+mpc_subcommand *mpc_create_keypair_cmd = new mpc_create_keypair();

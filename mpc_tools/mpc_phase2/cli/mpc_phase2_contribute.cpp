@@ -18,7 +18,7 @@ namespace
 // Options:
 //   --digest <file>     Write contribution hash to file
 //   --skip-user-input   Use only system randomness
-class mpc_phase2_contribute : public subcommand
+class mpc_phase2_contribute : public mpc_subcommand
 {
 private:
     std::string challenge_file;
@@ -28,7 +28,7 @@ private:
 
 public:
     mpc_phase2_contribute()
-        : subcommand(
+        : mpc_subcommand(
               "phase2-contribute",
               "Create response (MPC contribution) from challenge")
         , challenge_file()
@@ -69,15 +69,15 @@ private:
         skip_user_input = (bool)vm.count("skip-user-input");
     }
 
-    void subcommand_usage() override
+    void subcommand_usage(const char *argv0) override
     {
-        std::cout << "Usage:\n  " << subcommand_name
+        std::cout << "Usage:\n  " << argv0 << " " << subcommand_name
                   << " [<options>] <challenge_file> <response_file>\n\n";
     }
 
-    int execute_subcommand() override
+    int execute_subcommand(const global_options &options) override
     {
-        if (verbose) {
+        if (options.verbose) {
             std::cout << "challenge_file: " << challenge_file << "\n";
             std::cout << "out_file: " << out_file << std::endl;
             std::cout << "digest: " << digest_file << std::endl;
@@ -164,4 +164,4 @@ private:
 
 } // namespace
 
-subcommand *mpc_phase2_contribute_cmd = new mpc_phase2_contribute();
+mpc_subcommand *mpc_phase2_contribute_cmd = new mpc_phase2_contribute();
