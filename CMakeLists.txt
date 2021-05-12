@@ -311,6 +311,7 @@ endif()
 
 # Add all local subdirecetories
 add_subdirectory(libzeth)
+add_subdirectory(libtool)
 
 # If zeth is being used as a dependency, skip the tools build
 if ("${IS_ZETH_PARENT}")
