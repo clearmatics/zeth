@@ -22,13 +22,19 @@ template<typename ppT> bool test_r1cs_variable_assignment_read_write_bytes()
     for (size_t i = 0; i < assignment_size; ++i) {
         assignment.push_back(FieldT::random_element());
     }
+    const libsnark::r1cs_primary_input<FieldT> primary(
+        assignment.begin(), assignment.begin() + primary_size);
+    const libsnark::r1cs_auxiliary_input<FieldT> auxiliary(
+        assignment.begin() + primary_size, assignment.end());
 
+    // Write as full assignment
     std::string buffer = ([&assignment]() {
         std::stringstream ss;
         libzeth::r1cs_variable_assignment_write_bytes(assignment, ss);
         return ss.str();
     })();
 
+    // Read as full assignment
     libsnark::r1cs_variable_assignment<FieldT> assignment2;
     {
         std::stringstream ss(buffer);
@@ -39,7 +45,7 @@ template<typename ppT> bool test_r1cs_variable_assignment_read_write_bytes()
         return false;
     }
 
-    // Write as separate primary and auxiliary iputs
+    // Write as separate primary and auxiliary inputs
     buffer = ([&assignment]() {
         std::stringstream ss;
         libzeth::r1cs_variable_assignment_write_bytes(
@@ -51,12 +57,31 @@ template<typename ppT> bool test_r1cs_variable_assignment_read_write_bytes()
         return ss.str();
     })();
 
+    // Read back as full assignment
     {
         std::stringstream ss(buffer);
         libzeth::r1cs_variable_assignment_read_bytes(assignment2, ss);
     }
 
-    return assignment == assignment2;
+    if (assignment != assignment2) {
+        return false;
+    }
+
+    // Read as separate primary in auxiliary
+    libsnark::r1cs_primary_input<FieldT> primary2;
+    libsnark::r1cs_auxiliary_input<FieldT> auxiliary2;
+    {
+        std::stringstream ss(buffer);
+        libzeth::r1cs_variable_assignment_read_bytes(
+            primary2, auxiliary2, primary_size, ss);
+    }
+
+    if (primary2 != primary || auxiliary2 != auxiliary) {
+        return false;
+    }
+
+    // Passed
+    return true;
 }
 
 TEST(R1CSVariableAssignementSerializationTest, AssignmentReadWriteBytes)
