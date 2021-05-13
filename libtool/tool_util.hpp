@@ -18,6 +18,9 @@ namespace libtool
 /// exception handling enabled.
 std::ifstream open_input_binary_file(const std::string &filename);
 
+/// Utility function to open a binary file for writing, with appropriate flags.
+std::ofstream open_output_binary_file(const std::string &filename);
+
 } // namespace libtool
 
 #endif // __ZETH_LIBTOOL_TOOL_UTIL_HPP__

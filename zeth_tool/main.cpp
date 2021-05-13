@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libtool/run.hpp"
+#include "zeth_tool/prove_cmd.hpp"
 #include "zeth_tool/tool_common.hpp"
 #include "zeth_tool/verify_cmd.hpp"
 
@@ -33,6 +34,7 @@ int main(int argc, char **argv)
     // Create command structures
     std::map<std::string, zeth_subcommand *> commands{
         {"verify", verify_cmd},
+        {"prove", prove_cmd},
     };
 
     zeth_command cmd;

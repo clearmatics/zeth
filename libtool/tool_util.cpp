@@ -16,4 +16,11 @@ std::ifstream open_input_binary_file(const std::string &filename)
     return in_s;
 }
 
+std::ofstream open_output_binary_file(const std::string &filename)
+{
+    std::ofstream out_s(
+        filename.c_str(), std::ios_base::out | std::ios_base::binary);
+    return out_s;
+}
+
 } // namespace libtool
