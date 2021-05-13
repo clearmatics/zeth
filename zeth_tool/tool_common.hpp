@@ -66,6 +66,75 @@ protected:
     }
 };
 
+/// Base class of subcommands with entry points generic over curve and snark.
+/// Implementations are expected to implement a public generic
+/// `execute_generic` method of the form:
+///
+///   class my_cmd : generic_subcommand_base<my_cmd>
+///   {
+///    public:
+///     template<typename ppT, typename snarkT> int execute_generic(
+///         const global_options &)
+///     {
+///       ...
+///     }
+///   }
+///
+/// along side the usual parsing entry points `initialize_suboptions` and
+/// `parse_suboptions`, which MUST call the equivalent methods on this base
+/// class.
+template<class CommandT> class generic_subcommand : public zeth_subcommand
+{
+public:
+    generic_subcommand(
+        const std::string &subcommand_name, const std::string &description)
+        : zeth_subcommand(subcommand_name, description)
+    {
+    }
+
+protected:
+    void initialize_suboptions(
+        boost::program_options::options_description &options,
+        boost::program_options::options_description &,
+        boost::program_options::positional_options_description &) override
+    {
+        // Options
+        options.add_options()(
+            "curve,c",
+            po::value<std::string>(),
+            "Curve: alt-bn128, bls12-377 or bw6-761");
+        options.add_options()(
+            "snark,s", po::value<std::string>(), "Snark: groth16 or pghr13");
+    }
+
+    void parse_suboptions(
+        const boost::program_options::variables_map &vm) override
+    {
+        curve = vm.count("curve") ? vm["curve"].as<std::string>() : "alt-bn128";
+        snark = vm.count("snark") ? vm["snark"].as<std::string>() : "groth16";
+    }
+
+    int execute_subcommand(const global_options &options) override
+    {
+        return curve_and_snark_resolver<this_caller>::resolve(
+            curve, snark, this, options);
+    }
+
+protected:
+    template<typename ppT, typename snarkT> class this_caller
+    {
+    public:
+        static int execute(
+            generic_subcommand<CommandT> *that, const global_options &o)
+        {
+            return ((CommandT *)that)->template execute_generic<ppT, snarkT>(o);
+        }
+    };
+
+    std::string curve;
+    std::string snark;
+};
+
 } // namespace zethtool
 
 #endif // __ZETH_TOOL_TOOL_COMMON_HPP__

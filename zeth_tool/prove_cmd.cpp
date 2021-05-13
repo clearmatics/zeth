@@ -14,73 +14,60 @@ namespace zethtool
 namespace commands
 {
 
-class prove_cmd : public zeth_subcommand
+class prove_cmd : public generic_subcommand<prove_cmd>
 {
 public:
+    using base_class = generic_subcommand<prove_cmd>;
+
     prove_cmd(
         const std::string &subcommand_name, const std::string &description)
-        : zeth_subcommand(subcommand_name, description)
+        : base_class(subcommand_name, description), num_primary_inputs(1)
     {
     }
 
-protected:
-    /// Given in the form of a class, in order to be used as a parameter to
-    /// curve_and_snark_resolver.
-    template<typename ppT, typename snarkT> class prove_runner
+    template<typename ppT, typename snarkT>
+    int execute_generic(const global_options &)
     {
-    public:
-        static int execute(
-            const std::string &pk_file,
-            const std::string &assignment_file,
-            uint16_t num_primary_inputs,
-            const std::string &proof_file)
+        ppT::init_public_params();
+        libff::inhibit_profiling_info = true;
+        libff::inhibit_profiling_counters = true;
+
+        typename snarkT::proving_key proving_key;
         {
-            ppT::init_public_params();
-            libff::inhibit_profiling_info = true;
-            libff::inhibit_profiling_counters = true;
-
-            typename snarkT::proving_key proving_key;
-            {
-                std::ifstream in_s = libtool::open_input_binary_file(pk_file);
-                snarkT::proving_key_read_bytes(proving_key, in_s);
-            }
-
-            libsnark::r1cs_primary_input<libff::Fr<ppT>> primary;
-            libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary;
-            {
-                std::ifstream in_s =
-                    libtool::open_input_binary_file(assignment_file);
-                libzeth::r1cs_variable_assignment_read_bytes(
-                    primary, auxiliary, num_primary_inputs, in_s);
-            }
-
-            typename snarkT::proof proof =
-                snarkT::generate_proof(proving_key, primary, auxiliary);
-
-            // Write to output file
-            std::cout << "Writing proof to file: " << proof_file << "\n";
-            {
-                std::ofstream out_s =
-                    libtool::open_output_binary_file(proof_file);
-                snarkT::proof_write_bytes(proof, out_s);
-            }
-
-            return 0;
+            std::ifstream in_s = libtool::open_input_binary_file(pk_file);
+            snarkT::proving_key_read_bytes(proving_key, in_s);
         }
-    };
 
+        libsnark::r1cs_primary_input<libff::Fr<ppT>> primary;
+        libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary;
+        {
+            std::ifstream in_s =
+                libtool::open_input_binary_file(assignment_file);
+            libzeth::r1cs_variable_assignment_read_bytes(
+                primary, auxiliary, num_primary_inputs, in_s);
+        }
+
+        typename snarkT::proof proof =
+            snarkT::generate_proof(proving_key, primary, auxiliary);
+
+        // Write to output file
+        std::cout << "Writing proof to file: " << proof_file << "\n";
+        {
+            std::ofstream out_s = libtool::open_output_binary_file(proof_file);
+            snarkT::proof_write_bytes(proof, out_s);
+        }
+
+        return 0;
+    }
+
+protected:
     void initialize_suboptions(
         boost::program_options::options_description &options,
         boost::program_options::options_description &all_options,
         boost::program_options::positional_options_description &pos) override
     {
-        // Options
-        options.add_options()(
-            "curve,c",
-            po::value<std::string>(),
-            "Curve: alt-bn128, bls12-377 or bw6-761");
-        options.add_options()(
-            "snark,s", po::value<std::string>(), "Snark: groth16 or pghr13");
+        base_class::initialize_suboptions(options, all_options, pos);
+
         options.add_options()(
             "primary_inputs,p",
             po::value<uint16_t>(),
@@ -101,6 +88,8 @@ protected:
     void parse_suboptions(
         const boost::program_options::variables_map &vm) override
     {
+        base_class::parse_suboptions(vm);
+
         if (vm.count("pk_file") == 0) {
             throw po::error("pk_file not specified");
         }
@@ -117,8 +106,6 @@ protected:
         if (vm.count("primary_inputs")) {
             num_primary_inputs = vm["primary_inputs"].as<uint16_t>();
         }
-        curve = vm.count("curve") ? vm["curve"].as<std::string>() : "alt-bn128";
-        snark = vm.count("snark") ? vm["snark"].as<std::string>() : "groth16";
     }
 
     void subcommand_usage(const char *argv0) override
@@ -129,23 +116,10 @@ protected:
                   << " prove [pk_file] [assignment_file] [proof_file]\n";
     }
 
-    int execute_subcommand(const global_options &) override
-    {
-        return curve_and_snark_resolver<prove_runner>::resolve(
-            curve,
-            snark,
-            pk_file,
-            assignment_file,
-            num_primary_inputs,
-            proof_file);
-    }
-
     std::string pk_file;
     std::string assignment_file;
     std::string proof_file;
     uint16_t num_primary_inputs;
-    std::string curve;
-    std::string snark;
 };
 
 } // namespace commands
