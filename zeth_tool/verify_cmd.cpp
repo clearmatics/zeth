@@ -33,20 +33,20 @@ public:
 
         typename snarkT::verification_key verification_key;
         {
-            std::ifstream in_s = libtool::open_input_binary_file(vk_file);
+            std::ifstream in_s = libtool::open_binary_input_file(vk_file);
             snarkT::verification_key_read_bytes(verification_key, in_s);
         }
 
         libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_input;
         {
             std::ifstream in_s =
-                libtool::open_input_binary_file(primary_input_file);
+                libtool::open_binary_input_file(primary_input_file);
             libzeth::r1cs_variable_assignment_read_bytes(primary_input, in_s);
         }
 
         typename snarkT::proof proof;
         {
-            std::ifstream in_s = libtool::open_input_binary_file(proof_file);
+            std::ifstream in_s = libtool::open_binary_input_file(proof_file);
             snarkT::proof_read_bytes(proof, in_s);
         }
 

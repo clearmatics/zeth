@@ -34,7 +34,7 @@ public:
 
         typename snarkT::proof proof;
         {
-            std::ifstream in_s = libtool::open_input_binary_file(proof_file);
+            std::ifstream in_s = libtool::open_binary_input_file(proof_file);
             snarkT::proof_read_bytes(proof, in_s);
         }
 

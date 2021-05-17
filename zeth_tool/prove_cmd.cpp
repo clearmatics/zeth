@@ -34,7 +34,7 @@ public:
 
         typename snarkT::proving_key proving_key;
         {
-            std::ifstream in_s = libtool::open_input_binary_file(pk_file);
+            std::ifstream in_s = libtool::open_binary_input_file(pk_file);
             snarkT::proving_key_read_bytes(proving_key, in_s);
         }
 
@@ -42,7 +42,7 @@ public:
         libsnark::r1cs_auxiliary_input<libff::Fr<ppT>> auxiliary;
         {
             std::ifstream in_s =
-                libtool::open_input_binary_file(assignment_file);
+                libtool::open_binary_input_file(assignment_file);
             libzeth::r1cs_variable_assignment_read_bytes(
                 primary, auxiliary, num_primary_inputs, in_s);
         }

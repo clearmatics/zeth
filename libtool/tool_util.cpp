@@ -7,7 +7,7 @@
 namespace libtool
 {
 
-std::ifstream open_input_binary_file(const std::string &filename)
+std::ifstream open_binary_input_file(const std::string &filename)
 {
     std::ifstream in_s(
         filename.c_str(), std::ios_base::in | std::ios_base::binary);

@@ -16,7 +16,7 @@ namespace libtool
 
 /// Utility function to open a file for reading, with appropriate flags and
 /// exception handling enabled.
-std::ifstream open_input_binary_file(const std::string &filename);
+std::ifstream open_binary_input_file(const std::string &filename);
 
 /// Utility function to open a binary file for writing, with appropriate flags.
 std::ofstream open_output_binary_file(const std::string &filename);
