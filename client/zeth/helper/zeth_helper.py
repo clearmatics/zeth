@@ -16,6 +16,7 @@ from click import group, command, option, pass_context, ClickException, Context
 from click_default_group import DefaultGroup  # type: ignore
 
 
+# pylint: disable=redefined-builtin
 @command()
 @pass_context
 def help(ctx: Context) -> None:

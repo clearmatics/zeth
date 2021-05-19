@@ -50,7 +50,7 @@ copy_deployment_info deployer charlie
 pushd alice
 alice_pk=`cat zeth-address.pub`
 if ! [ -e notes/state_zeth ] ; then
-    zeth_helper token-approve 200
+    zeth-helper token-approve 200
     zeth mix --wait --vin 200 --out 200
 fi
 note_id=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
