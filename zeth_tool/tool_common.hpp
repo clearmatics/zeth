@@ -45,8 +45,9 @@ public:
             return resolve_snark<libff::alt_bn128_pp>(snark_name, args...);
         } else if (curve_name == "bls12-377") {
             return resolve_snark<libff::bls12_377_pp>(snark_name, args...);
-        } else if (curve_name == "bw6-761") {
-            return resolve_snark<libff::bw6_761_pp>(snark_name, args...);
+            // Disabled for now (missing implementation of some functionality)
+            // } else if (curve_name == "bw6-761") {
+            //     return resolve_snark<libff::bw6_761_pp>(snark_name, args...);
         }
 
         throw po::error("unrecognized curve");
