@@ -50,6 +50,16 @@ public:
 template<typename FieldT>
 using HashTreeT = typename tree_hash_selector<FieldT>::tree_hash;
 
+template<typename ppT, typename snarkT>
+using JoinsplitCircuitT = circuit_wrapper<
+    HashT<libff::Fr<ppT>>,
+    HashTreeT<libff::Fr<ppT>>,
+    ppT,
+    snarkT,
+    libzeth::ZETH_NUM_JS_INPUTS,
+    libzeth::ZETH_NUM_JS_OUTPUTS,
+    libzeth::ZETH_MERKLE_TREE_DEPTH>;
+
 } // namespace libzeth
 
 #endif // __ZETH_CIRCUITS_CIRCUIT_TYPES_HPP__
