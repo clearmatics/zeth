@@ -16,7 +16,7 @@ std::ifstream open_binary_input_file(const std::string &filename)
     return in_s;
 }
 
-std::ofstream open_output_binary_file(const std::string &filename)
+std::ofstream open_binary_output_file(const std::string &filename)
 {
     std::ofstream out_s(
         filename.c_str(), std::ios_base::out | std::ios_base::binary);

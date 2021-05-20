@@ -53,7 +53,7 @@ public:
         // Write to output file
         std::cout << "Writing proof to file: " << proof_file << "\n";
         {
-            std::ofstream out_s = libtool::open_output_binary_file(proof_file);
+            std::ofstream out_s = libtool::open_binary_output_file(proof_file);
             snarkT::proof_write_bytes(proof, out_s);
         }
 
