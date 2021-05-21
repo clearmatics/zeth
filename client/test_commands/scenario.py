@@ -224,10 +224,12 @@ def charlie_double_withdraw(
     attack_primary_input4: int = 0
 
     def compute_h_sig_attack_nf(
-            nf0: bytes,
-            nf1: bytes,
+            nfs: List[bytes],
             sign_vk: JoinsplitSigVerificationKey) -> bytes:
         # We disassemble the nfs to get the formatting of the primary inputs
+        assert len(nfs) == 2
+        nf0 = nfs[0]
+        nf1 = nfs[1]
         input_nullifier0 = nf0.hex()
         input_nullifier1 = nf1.hex()
         nf0_rev = "{0:0256b}".format(int(input_nullifier0, 16))
@@ -255,7 +257,7 @@ def charlie_double_withdraw(
             primary_input4_res_bits
         attack_nf1 = "{0:064x}".format(int(attack_nf1_bits, 2))
         return compute_h_sig(
-            bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_vk)
+            [bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1)], sign_vk)
 
     output_note1, output_note2, proof, public_data, signing_keypair = \
         get_mix_parameters_components(
