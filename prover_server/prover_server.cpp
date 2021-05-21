@@ -212,6 +212,10 @@ public:
                 libzeth::bits256::from_hex(proof_inputs->phi());
 
             if (libzeth::ZETH_NUM_JS_INPUTS != proof_inputs->js_inputs_size()) {
+                std::cout << "[INFO] Request with "
+                          << proof_inputs->js_inputs_size()
+                          << " inputs. Expecting "
+                          << libzeth::ZETH_NUM_JS_INPUTS << "\n";
                 throw std::invalid_argument("Invalid number of JS inputs");
             }
             if (libzeth::ZETH_NUM_JS_OUTPUTS !=
