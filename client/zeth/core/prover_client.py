@@ -119,7 +119,6 @@ class ProverClient:
         """
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = prover_pb2_grpc.ProverStub(channel)  # type: ignore
-            print("-------------- Get the proof --------------")
             extproof_and_pub_data = stub.Prove(proof_inputs)
             zksnark = self.get_zksnark_provider()
             extproof = zksnark.extended_proof_from_proto(
