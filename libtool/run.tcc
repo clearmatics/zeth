@@ -20,8 +20,7 @@ void print_usage(
     const std::map<std::string, subcommand<GlobalOptionsT> *> &subcommands)
 {
     std::cout << "Usage:\n"
-              << "  " << argv[0]
-              << " [<options>] <command> <command-arguments> ...\n\n"
+              << "  " << argv[0] << " [OPTIONS] COMMAND [ARGS] ...\n\n"
               << options;
 
     std::cout << "\nCommands:\n";
