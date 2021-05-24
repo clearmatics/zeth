@@ -15,6 +15,13 @@ void r1cs_variable_assignment_read_bytes(
     libsnark::r1cs_variable_assignment<FieldT> &assignment, std::istream &in_s);
 
 template<typename FieldT>
+void r1cs_variable_assignment_read_bytes(
+    libsnark::r1cs_primary_input<FieldT> &primary,
+    libsnark::r1cs_auxiliary_input<FieldT> &auxiliary,
+    const size_t primary_input_size,
+    std::istream &in_s);
+
+template<typename FieldT>
 void r1cs_variable_assignment_write_bytes(
     const libsnark::r1cs_variable_assignment<FieldT> &assignment,
     std::ostream &out_s);

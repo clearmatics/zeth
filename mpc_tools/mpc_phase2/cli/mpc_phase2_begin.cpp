@@ -19,7 +19,7 @@ namespace
 // Usage:
 //   $0 phase2-begin [<options>] <linear_combination_file> <challenge_out_file>
 //
-class mpc_phase2_begin : public subcommand
+class mpc_phase2_begin : public mpc_subcommand
 {
 private:
     std::string lin_comb_file;
@@ -27,7 +27,7 @@ private:
 
 public:
     mpc_phase2_begin()
-        : subcommand("phase2-begin", "Create the initial MPC challenge")
+        : mpc_subcommand("phase2-begin", "Create the initial MPC challenge")
         , lin_comb_file()
         , out_file()
     {
@@ -61,16 +61,16 @@ private:
         out_file = vm["challenge_out_file"].as<std::string>();
     }
 
-    void subcommand_usage() override
+    void subcommand_usage(const char *argv0) override
     {
-        std::cout << "Usage:\n  " << subcommand_name
+        std::cout << "Usage:\n  " << argv0 << " " << subcommand_name
                   << " [<options>] <linear_combination_file> "
                      "<challenge_out_file>\n\n";
     }
 
-    int execute_subcommand() override
+    int execute_subcommand(const global_options &options) override
     {
-        if (verbose) {
+        if (options.verbose) {
             std::cout << "lin_comb_file: " << lin_comb_file << "\n";
             std::cout << "out: " << out_file << std::endl;
         }
@@ -84,9 +84,9 @@ private:
 
         // Compute circuit
         libff::enter_block("Computing num inputs");
-        const size_t num_inputs = [this]() {
+        const size_t num_inputs = [&options]() {
             libsnark::protoboard<Field> pb;
-            init_protoboard(pb);
+            options.protoboard_init(pb);
             return pb.num_inputs();
         }();
         libff::print_indent();
@@ -116,4 +116,4 @@ private:
 } // namespace
 
 // Subcommand instance
-subcommand *mpc_phase2_begin_cmd = new mpc_phase2_begin();
+mpc_subcommand *mpc_phase2_begin_cmd = new mpc_phase2_begin();

@@ -22,7 +22,7 @@ namespace
 // Options:
 //   --digest <file>   Confirm that a contribution with the given digest is
 //                     included in the transcript.
-class mpc_phase2_verify_transcript : public subcommand
+class mpc_phase2_verify_transcript : public mpc_subcommand
 {
 private:
     std::string challenge_0_file;
@@ -32,7 +32,7 @@ private:
 
 public:
     mpc_phase2_verify_transcript()
-        : subcommand(
+        : mpc_subcommand(
               "phase2-verify-transcript",
               "Verify full transcript, check specific contribution")
         , challenge_0_file()
@@ -80,16 +80,16 @@ private:
         digest = vm.count("digest") ? vm["digest"].as<std::string>() : "";
     }
 
-    void subcommand_usage() override
+    void subcommand_usage(const char *argv0) override
     {
-        std::cout << "Usage:\n  " << subcommand_name
+        std::cout << "Usage:\n  " << argv0 << " " << subcommand_name
                   << " \\\n    <challenge_0_file> <transcript_file> "
                      "<final_challenge_file>\n\n";
     }
 
-    int execute_subcommand() override
+    int execute_subcommand(const global_options &options) override
     {
-        if (verbose) {
+        if (options.verbose) {
             std::cout << "challenge_0: " << challenge_0_file << "\n"
                       << "transcript: " << transcript_file << "\n"
                       << "final_challenge: " << final_challenge_file
@@ -210,5 +210,5 @@ private:
 
 } // namespace
 
-subcommand *mpc_phase2_verify_transcript_cmd =
+mpc_subcommand *mpc_phase2_verify_transcript_cmd =
     new mpc_phase2_verify_transcript();

@@ -27,7 +27,7 @@ namespace
 //     -h,--help        This message
 //     --pot-degree     powersoftau degree (assumed equal to lagrange file)
 //     --verify         Skip computation.  Load and verify input data.
-class mpc_linear_combination : public subcommand
+class mpc_linear_combination : public mpc_subcommand
 {
     std::string powersoftau_file;
     std::string lagrange_file;
@@ -37,7 +37,7 @@ class mpc_linear_combination : public subcommand
 
 public:
     mpc_linear_combination()
-        : subcommand(
+        : mpc_subcommand(
               "linear-combination", "Create linear combination for our circuit")
         , powersoftau_file()
         , lagrange_file()
@@ -89,17 +89,16 @@ private:
         verify = (bool)vm.count("verify");
     }
 
-    void subcommand_usage() override
+    void subcommand_usage(const char *argv0) override
     {
-        std::cout << "Usage:\n"
-                  << "  " << subcommand_name
+        std::cout << "Usage:\n  " << argv0 << " " << subcommand_name
                   << " [<options>] <powersoftau file> <lagrange file> "
                      "<linear_comb_file>\n";
     }
 
-    int execute_subcommand() override
+    int execute_subcommand(const global_options &options) override
     {
-        if (verbose) {
+        if (options.verbose) {
             std::cout << "powersoftau_file: " << powersoftau_file << "\n"
                       << "lagrange_file: " << lagrange_file << "\n"
                       << "powersoftau_degree: " << powersoftau_degree << "\n"
@@ -132,7 +131,7 @@ private:
         // Compute circuit
         libff::enter_block("Generate QAP");
         libsnark::protoboard<Field> pb;
-        init_protoboard(pb);
+        options.protoboard_init(pb);
         const libsnark::r1cs_constraint_system<Field> cs =
             pb.get_constraint_system();
         const libsnark::qap_instance<Field> qap =
@@ -175,4 +174,4 @@ private:
 
 } // namespace
 
-subcommand *mpc_linear_combination_cmd = new mpc_linear_combination();
+mpc_subcommand *mpc_linear_combination_cmd = new mpc_linear_combination();

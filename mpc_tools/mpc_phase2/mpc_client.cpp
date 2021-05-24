@@ -28,10 +28,10 @@ void zeth_protoboard(libsnark::protoboard<Field> &pb)
 
 int main(int argc, char **argv)
 {
-    const std::map<std::string, subcommand *> commands{
+    const std::map<std::string, mpc_subcommand *> commands{
         {"phase2-contribute", mpc_phase2_contribute_cmd},
         {"phase2-verify-transcript", mpc_phase2_verify_transcript_cmd},
         {"create-keypair", mpc_create_keypair_cmd},
     };
-    return mpc_main(argc, argv, commands, zeth_protoboard);
+    return mpc_main(commands, zeth_protoboard, argc, argv);
 }
