@@ -60,9 +60,6 @@ def mix(
     if len(output_specs) > JS_OUTPUTS:
         raise ClickException(f"too many outputs (max {JS_OUTPUTS})")
 
-    print(f"vin = {vin}")
-    print(f"vout = {vout}")
-
     vin_pub = EtherValue(vin)
     vout_pub = EtherValue(vout)
     client_ctx = ctx.obj
