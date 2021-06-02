@@ -7,6 +7,7 @@
 from __future__ import annotations
 from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
     IVerificationKey, ExtendedProof
+from zeth.core.constants import JS_INPUTS
 from zeth.core.pairing import PairingParameters, pairing_parameters_from_proto
 from zeth.api.zeth_messages_pb2 import ProofInputs
 from zeth.api import prover_pb2  # type: ignore
@@ -117,6 +118,7 @@ class ProverClient:
         """
         Request a proof generation to the proving service
         """
+        assert len(proof_inputs.js_inputs) == JS_INPUTS
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = prover_pb2_grpc.ProverStub(channel)  # type: ignore
             extproof_and_pub_data = stub.Prove(proof_inputs)
