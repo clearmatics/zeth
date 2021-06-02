@@ -56,7 +56,7 @@ setup(
         "semantic-version==2.8.4",
         "six==1.15.0",
         "toolz==0.9.0",
-        "urllib3==1.24.2",
+        "urllib3==1.26.5",
         "web3==4.8.2",
         "websockets==6.0",
     ],
