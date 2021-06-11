@@ -58,7 +58,7 @@ setup(
         "toolz==0.9.0",
         "urllib3==1.24.2",
         "web3==4.8.2",
-        "websockets==6.0",
+        "websockets==9.1",
     ],
     scripts=[
         "test_commands/test_ether_mixing.py",
