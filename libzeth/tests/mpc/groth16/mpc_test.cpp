@@ -6,7 +6,6 @@
 #include "libzeth/circuits/sha256/sha256_ethereum.hpp"
 #include "libzeth/core/chacha_rng.hpp"
 #include "libzeth/core/evaluator_from_lagrange.hpp"
-#include "libzeth/core/multi_exp.hpp"
 #include "libzeth/core/utils.hpp"
 #include "libzeth/mpc/groth16/mpc_utils.hpp"
 #include "libzeth/mpc/groth16/phase2.hpp"
