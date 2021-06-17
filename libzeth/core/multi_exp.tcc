@@ -18,7 +18,7 @@ GroupT multi_exp(
     typename std::vector<FieldT>::const_iterator fs_end)
 {
     const libff::multi_exp_method Method = libff::multi_exp_method_BDLO12;
-    return libff::multi_exp_with_mixed_addition<GroupT, FieldT, Method>(
+    return libff::multi_exp_filter_one_zero<GroupT, FieldT, Method>(
         gs_start, gs_end, fs_start, fs_end, 1);
 }
 
@@ -30,7 +30,7 @@ GroupT multi_exp(const std::vector<GroupT> &gs, const libff::Fr_vector<ppT> &fs)
 
     using Fr = libff::Fr<ppT>;
     const libff::multi_exp_method Method = libff::multi_exp_method_BDLO12;
-    return libff::multi_exp_with_mixed_addition<GroupT, Fr, Method>(
+    return libff::multi_exp_filter_one_zero<GroupT, Fr, Method>(
         gs.begin(), gs.begin() + fs.size(), fs.begin(), fs.end(), 1);
 }
 
