@@ -689,7 +689,7 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_dummy_phase2(
     return srs_mpc_phase2_compute_challenge(std::move(response_1));
 }
 
-template<typename ppT>
+template<typename ppT, libff::multi_exp_base_form BaseForm>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     srs_powersoftau<ppT> &&pot,
     srs_mpc_layer_L1<ppT> &&layer1,
@@ -761,6 +761,14 @@ libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
         pot.beta_g2,
         layer2.delta_g2,
         libsnark::accumulation_vector<G1>(std::move(ABC_0), std::move(ABC_i)));
+
+    // Convert all arrays to special form, if requested.
+    if (BaseForm == libff::multi_exp_base_form_special) {
+        libff::batch_to_special(layer1.A_g1);
+        libff::batch_to_special(B_i);
+        libff::batch_to_special(layer2.H_g1);
+        libff::batch_to_special(layer2.L_g1);
+    }
 
     libsnark::r1cs_gg_ppzksnark_proving_key<ppT> pk(
         G1(pot.alpha_tau_powers_g1[0]),

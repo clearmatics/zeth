@@ -286,8 +286,14 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_dummy_phase2(
     size_t num_inputs);
 
 /// Given the output from all phases of the MPC, create the proving and
-/// verification keys for the given circuit.
-template<typename ppT>
+/// verification keys for the given circuit. If BaseForm =
+/// libff::multi_exp_base_form_special, all arrays are converted to special
+/// form for more efficient proving (This will happen naturally as a side
+/// effect of (de)serialization, and hence this batch conversion is disabled by
+/// default).
+template<
+    typename ppT,
+    libff::multi_exp_base_form BaseForm = libff::multi_exp_base_form_normal>
 libsnark::r1cs_gg_ppzksnark_keypair<ppT> mpc_create_key_pair(
     srs_powersoftau<ppT> &&pot,
     srs_mpc_layer_L1<ppT> &&layer1,
