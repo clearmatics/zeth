@@ -51,14 +51,11 @@ setup(
         "py-solc-x==1.1.0",
         "pycryptodome==3.9.8",
         "cryptography==3.3.2",
-        "requests==2.21.0",
         "rlp==1.1.0",
         "semantic-version==2.8.4",
         "six==1.15.0",
         "toolz==0.9.0",
-        "urllib3==1.24.2",
-        "web3==4.8.2",
-        "websockets==6.0",
+        "web3>=4,<5",
     ],
     entry_points={
         'console_scripts': [
