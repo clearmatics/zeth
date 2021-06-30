@@ -22,7 +22,7 @@ jobs:
         key: grpc-1.31.x-${{ runner.os }}
         path: depends/grpc
     - name: Build grpc
-      run: if ! [ -d depends/grpc ] ; then scripts/install_grpc /usr v1.31.x depends/grpc ; fi
+      run: if ! [ -d depends/grpc ] ; then scripts/install_grpc /usr v1.31.x ; fi
 
   build-linux:
     runs-on: ubuntu-20.04
@@ -46,7 +46,7 @@ jobs:
         key: build-linux-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
-        scripts/install_grpc /usr v1.31.x depends/grpc
+        INSTALL_ONLY=1 scripts/install_grpc /usr v1.31.x
         sudo apt install -y ccache
     - name: Execute
       run: CI_CHECK_FORMAT=1 CI_MPC_TESTS=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
@@ -65,7 +65,7 @@ jobs:
         path: depends/grpc
     - name: Install dependencies
       run: |
-        scripts/install_grpc /usr v1.31.x depends/grpc
+        INSTALL_ONLY=1 scripts/install_grpc /usr v1.31.x
         sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_ZKSNARK=PGHR13 scripts/ci build
@@ -84,7 +84,7 @@ jobs:
         path: depends/grpc
     - name: Install dependencies
       run: |
-        scripts/install_grpc /usr v1.31.x depends/grpc
+        INSTALL_ONLY=1 scripts/install_grpc /usr v1.31.x
         sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_CURVE=BLS12_377 scripts/ci build

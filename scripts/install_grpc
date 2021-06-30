@@ -3,11 +3,12 @@
 # This script is only intended to run on the CI machines. Not for local
 # development.
 
-# Expect 3 arguments, all non-empty.
-if [ "$#" -ne 3 ] || [ "" == "$1" ] || [ "" == "$2" ] || [ "" == "$3" ] ; then
+# Expect 2 arguments.
+if [ "" == "$1" ] || [ "" == "$2" ] ; then
    echo "error: invalid arguments"
-   echo "Usage: $0 <install-location> <version> <build-dir>"
+   echo "Usage: $0 <install-location> <version>"
    echo ""
+   echo "If env var INSTALL_ONLY=1, only run sudo make install"
    exit 1
 fi
 
@@ -16,62 +17,52 @@ set -x
 
 INSTALL_DIR=$1
 VERSION=$2
-BUILD_DIR=$3
 
-# This script executes in one of 2 modes on the CI:
-#
-# - No pre-existing build directory (DO_BUILD=1).
-#
-# - Pre-existing build directory, cached a previous successful build
-#   (DO_BUILD=0). In this case, installation can be performed directly.
+pushd depends
 
-if [ -d "${BUILD_DIR}" ] ; then
-    DO_BUILD=0
-else
-    DO_BUILD=1
-fi
-
-mkdir -p ${BUILD_DIR}
-pushd ${BUILD_DIR}
-
-    # Clone repo and submodules (if DO_BUILD == 1)
-    if [ "${DO_BUILD}" == "1" ] ; then
-        git clone --depth 1 -b ${VERSION} https://github.com/grpc/grpc .
-        git submodule update --depth 1 --init --recursive
+    if ! [ -d grpc ] ; then
+        git clone --depth 1 -b ${VERSION} https://github.com/grpc/grpc
+        git -C grpc submodule update --depth 1 --init --recursive
+    else
+        echo grpc directory already exists. skipping download.
     fi
 
-    # Install protobuf
-    pushd third_party/protobuf
-        if [ "${DO_BUILD}" == "1" ] ; then
-            [ -e ./configure ] || ./autogen.sh
-            DIST_LANG=cpp ./configure --prefix ${INSTALL_DIR}
-            make -j $(($(nproc)+1))
-        fi
-        sudo make install
-    popd # third_party/protobuf
+    pushd grpc
 
-    # Install grpc
-    mkdir -p build
-    pushd build
-        if [ "${DO_BUILD}" == "1" ] ; then
-            cmake \
-                -DCMAKE_PREFIX_PATH=${INSTALL_DIR}       \
-                -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}    \
-                -DCMAKE_BUILD_TYPE=Release               \
-                -DgRPC_INSTALL=ON                        \
-                -DgRPC_BUILD_TESTS=OFF                   \
-                -DBUILD_TESTING=OFF                      \
-                -DgRPC_SSL_PROVIDER=package              \
-                -DgRPC_PROTOBUF_PROVIDER=package         \
-                -DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF      \
-                -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF        \
-                -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF \
-                -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF         \
-                -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF        \
-                ..
-            make -j"$(($(nproc)+1))"
-        fi
-        sudo make install
-    popd # build
+        # Install protobuf
+        pushd third_party/protobuf
+            if [ "${INSTALL_ONLY}" != "1" ] ; then
+                [ -e ./configure ] || ./autogen.sh
+                DIST_LANG=cpp ./configure --prefix ${INSTALL_DIR}
+                make -j $(($(nproc)+1))
+            fi
+            sudo make install
+        popd # third_party/protobuf
 
-popd # ${INSTALL_DEST}
+        # Install grpc
+        mkdir -p build
+        pushd build
+            if [ "${INSTALL_ONLY}" != "1" ] ; then
+                cmake \
+                    -DCMAKE_PREFIX_PATH=${INSTALL_DIR}       \
+                    -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}    \
+                    -DCMAKE_BUILD_TYPE=Release               \
+                    -DgRPC_INSTALL=ON                        \
+                    -DgRPC_BUILD_TESTS=OFF                   \
+                    -DBUILD_TESTING=OFF                      \
+                    -DgRPC_SSL_PROVIDER=package              \
+                    -DgRPC_PROTOBUF_PROVIDER=package         \
+                    -DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF      \
+                    -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF        \
+                    -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF \
+                    -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF         \
+                    -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF        \
+                    ..
+                make -j"$(($(nproc)+1))"
+            fi
+            sudo make install
+        popd # build
+
+    popd # grpc
+
+popd # depends
