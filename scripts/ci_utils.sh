@@ -97,13 +97,14 @@ function prover_server_is_active() {
     zeth get-verification-key
 }
 
+# 1 - prover server flags
 function prover_server_start() {
     # Requires the client env (for prover_server_is_active)
     . client/env/bin/activate
     pushd build
 
     server_start \
-        ./prover_server/prover_server \
+        "./prover_server/prover_server $1" \
         prover_server_is_active \
         prover_server.pid \
         prover_server.stdout
