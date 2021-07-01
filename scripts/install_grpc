@@ -18,6 +18,11 @@ set -x
 INSTALL_DIR=$1
 VERSION=$2
 
+if [ "${INSTALL_ONLY}" != "1" ] ; then
+    . scripts/ci_utils.sh
+    cpp_build_setup
+fi
+
 pushd depends
 
     if ! [ -d grpc ] ; then

@@ -147,6 +147,13 @@ function cpp_build_setup() {
         if (which apk) ; then
             # Packages already available in Docker build
             echo -n             # null op required for syntax
+        elif (which yum) ; then
+            sudo yum groupinstall -y "Development Tools"
+            sudo yum install -y \
+                 openssl openssl-devel \
+                 gmp-devel procps-devel cmake3 \
+                 python3 python3-devel \
+                 boost-devel
         else
             sudo apt install \
                  libboost-dev \
