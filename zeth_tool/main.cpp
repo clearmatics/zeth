@@ -6,6 +6,7 @@
 #include "zeth_tool/dump_proof_cmd.hpp"
 #include "zeth_tool/joinsplit_circuit_cmd.hpp"
 #include "zeth_tool/prove_cmd.hpp"
+#include "zeth_tool/split_keypair_cmd.hpp"
 #include "zeth_tool/tool_common.hpp"
 #include "zeth_tool/verify_cmd.hpp"
 
@@ -39,6 +40,7 @@ int main(int argc, char **argv)
         {"prove", prove_cmd},
         {"dump-proof", dump_proof_cmd},
         {"joinsplit-circuit", joinsplit_circuit_cmd},
+        {"split-keypair", split_keypair_cmd},
     };
 
     zeth_command cmd;
