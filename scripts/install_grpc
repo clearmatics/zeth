@@ -4,7 +4,7 @@
 # development.
 
 # Expect 2 arguments.
-if [ "" == "$1" ] || [ "" == "$2" ] ; then
+if [ "$1" == "" ] || [ "$2" == "" ] ; then
    echo "error: invalid arguments"
    echo "Usage: $0 <install-location> <version>"
    echo ""
@@ -15,11 +15,13 @@ fi
 set -e
 set -x
 
+. scripts/build_utils.sh
+init_platform
+
 INSTALL_DIR=$1
 VERSION=$2
 
 if [ "${INSTALL_ONLY}" != "1" ] ; then
-    . scripts/ci_utils.sh
     cpp_build_setup
 fi
 

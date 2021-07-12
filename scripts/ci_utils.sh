@@ -3,6 +3,8 @@
 # All functions expect to be executed the root directory of the repository, and
 # will exit with this as the current directory.
 
+./scripts/build_utils.sh
+
 # Launch a server in the background and wait for it to be ready, recording the
 # pid in a file.
 #
@@ -48,6 +50,8 @@ function server_stop() {
 #
 
 function ganache_setup() {
+    assert_init_platform
+
     if [ "${platform}" == "Linux" ] ; then
         if (which apk) ; then
             apk add --update npm
@@ -117,53 +121,4 @@ function prover_server_stop() {
     pushd build
     server_stop prover_server prover_server.pid
     popd # build
-}
-
-#
-# DEPENDENCIES
-#
-
-function cpp_build_setup() {
-    # Extra deps for native builds
-
-    if [ "${platform}" == "Darwin" ] ; then
-        # Some of these commands can fail (if packages are already installed,
-        # etc), hence the `|| echo`.
-        brew update || echo
-        brew install \
-             gmp \
-             grpc \
-             protobuf \
-             boost \
-             openssl \
-             cmake \
-             libtool \
-             autoconf \
-             automake \
-             || echo
-    fi
-
-    if [ "${platform}" == "Linux" ] ; then
-        if (which apk) ; then
-            # Packages already available in Docker build
-            echo -n             # null op required for syntax
-        elif (which yum) ; then
-            sudo yum groupinstall -y "Development Tools"
-            sudo yum install -y \
-                 openssl openssl-devel \
-                 gmp-devel procps-devel cmake3 \
-                 python3 python3-devel \
-                 boost-devel
-        else
-            sudo apt install \
-                 libboost-dev \
-                 libboost-system-dev \
-                 libboost-filesystem-dev \
-                 libboost-program-options-dev \
-                 libgmp-dev \
-                 libprocps-dev \
-                 libxslt1-dev \
-                 pkg-config
-        fi
-    fi
 }
