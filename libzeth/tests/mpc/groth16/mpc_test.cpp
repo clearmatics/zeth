@@ -6,7 +6,6 @@
 #include "libzeth/circuits/sha256/sha256_ethereum.hpp"
 #include "libzeth/core/chacha_rng.hpp"
 #include "libzeth/core/evaluator_from_lagrange.hpp"
-#include "libzeth/core/multi_exp.hpp"
 #include "libzeth/core/utils.hpp"
 #include "libzeth/mpc/groth16/mpc_utils.hpp"
 #include "libzeth/mpc/groth16/phase2.hpp"
@@ -256,13 +255,15 @@ TEST(MPCTests, Layer2)
     srs_mpc_phase2_accumulator<pp> phase2 =
         srs_mpc_dummy_phase2<pp>(lin_comb, delta, num_inputs).accumulator;
 
-    // final keypair
-    const r1cs_gg_ppzksnark_keypair<pp> keypair = mpc_create_key_pair(
-        std::move(pot),
-        std::move(lin_comb),
-        std::move(phase2),
-        std::move(constraint_system),
-        qap);
+    // final keypair (in special-form since it will be used directly, and not
+    // serialized)
+    r1cs_gg_ppzksnark_keypair<pp> keypair =
+        mpc_create_key_pair<pp, libff::multi_exp_base_form_special>(
+            std::move(pot),
+            std::move(lin_comb),
+            std::move(phase2),
+            std::move(constraint_system),
+            qap);
 
     // Compare against directly computed values
     {

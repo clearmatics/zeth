@@ -84,8 +84,8 @@ template<typename ppT>
 void pairing_parameters_to_proto(zeth_proto::PairingParameters &pp_proto)
 {
     pp_proto.set_name(pp_name<ppT>());
-    pp_proto.set_r(bigint_to_hex<libff::Fr<ppT>>(libff::Fr<ppT>::mod));
-    pp_proto.set_q(bigint_to_hex<libff::Fq<ppT>>(libff::Fq<ppT>::mod));
+    pp_proto.set_r(libff::bigint_to_hex(libff::Fr<ppT>::mod));
+    pp_proto.set_q(libff::bigint_to_hex(libff::Fq<ppT>::mod));
     *pp_proto.mutable_generator_g1() =
         point_g1_affine_to_proto<ppT>(libff::G1<ppT>::one());
     *pp_proto.mutable_generator_g2() =

@@ -81,7 +81,7 @@ template<typename ppT> void generate_test_data()
 
     // Proving key
     const typename groth16::proving_key pk(
-        G1::one(),                // alpha_g1 = [1]_1
+        G1(G1::one()),            // alpha_g1 = [1]_1
         -G1::one(),               // beta_g1 = [-1]_1
         -G2::one(),               // beta_g2 = [-1]_2
         -(G1::one() + G1::one()), // beta_g1 = [-2]_1

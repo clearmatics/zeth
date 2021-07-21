@@ -21,7 +21,9 @@ public:
 
     prove_cmd(
         const std::string &subcommand_name, const std::string &description)
-        : base_class(subcommand_name, description), num_primary_inputs(1)
+        : base_class(subcommand_name, description)
+        , num_primary_inputs(1)
+        , profile(false)
     {
     }
 
@@ -29,8 +31,10 @@ public:
     int execute_generic(const global_options &)
     {
         ppT::init_public_params();
-        libff::inhibit_profiling_info = true;
-        libff::inhibit_profiling_counters = true;
+        if (!profile) {
+            libff::inhibit_profiling_info = true;
+            libff::inhibit_profiling_counters = true;
+        }
 
         typename snarkT::proving_key proving_key;
         {
@@ -71,7 +75,8 @@ protected:
         options.add_options()(
             "primary_inputs,p",
             po::value<uint16_t>(),
-            "Number of primary inputs (default: 1)");
+            "Number of primary inputs (default: 1)")(
+            "profile,r", "Enable profiling output");
 
         all_options.add(options).add_options()(
             "pk_file", po::value<std::string>(), "Proving key file");
@@ -106,6 +111,7 @@ protected:
         if (vm.count("primary_inputs")) {
             num_primary_inputs = vm["primary_inputs"].as<uint16_t>();
         }
+        profile = (bool)vm.count("profile");
     }
 
     void subcommand_usage(const char *argv0) override
@@ -120,6 +126,7 @@ protected:
     std::string assignment_file;
     std::string proof_file;
     uint16_t num_primary_inputs;
+    bool profile;
 };
 
 } // namespace commands
