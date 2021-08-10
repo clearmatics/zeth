@@ -6,15 +6,15 @@
 
 import zeth.core.merkle_tree
 import zeth.core.utils
-import zeth.core.constants as constants
+from zeth.core import constants
 from zeth.core.mimc import get_tree_hash_for_pairing
 from zeth.core.prover_client import ProverClient
 from zeth.core.zeth_address import ZethAddressPriv
 from zeth.core.mixer_client import MixOutputEvents, MixerClient
 from zeth.core.wallet import Wallet, ZethNoteDescription
 from zeth.core.utils import EtherValue
-import test_commands.mock as mock
-import test_commands.scenario as scenario
+from test_commands import mock
+from test_commands import scenario
 from test_commands.deploy_test_token import deploy_token, mint_token
 from os.path import join, exists
 import shutil

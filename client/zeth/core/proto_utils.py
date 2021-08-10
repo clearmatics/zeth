@@ -6,7 +6,7 @@
 Utilities to handle protobuf types
 """
 
-import zeth.core.constants as constants
+from zeth.core import constants
 from zeth.api.zeth_messages_pb2 import ZethNote
 
 from typing import Dict

@@ -4,8 +4,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import zeth.core.constants as constants
-import zeth.core.encryption as encryption
+from zeth.core import constants
+from zeth.core import encryption
 from unittest import TestCase
 
 

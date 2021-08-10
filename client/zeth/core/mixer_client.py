@@ -5,8 +5,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-import zeth.core.contracts as contracts
-import zeth.core.constants as constants
+from zeth.core import contracts
+from zeth.core import constants
 from zeth.core.zeth_address import ZethAddressPub, ZethAddress
 from zeth.core.ownership import OwnershipPublicKey, OwnershipSecretKey, \
     OwnershipKeyPair, ownership_key_as_hex
@@ -15,8 +15,8 @@ from zeth.core.encryption import \
     generate_encryption_keypair, encrypt, decrypt
 from zeth.core.merkle_tree import MerkleTree, compute_merkle_path
 from zeth.core.pairing import PairingParameters
-import zeth.core.signing as signing
-import zeth.core.proto_utils as proto_utils
+from zeth.core import signing
+from zeth.core import proto_utils
 from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
     ExtendedProof
 from zeth.core.utils import EtherValue, digest_to_binary_string, \

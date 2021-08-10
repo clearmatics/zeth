@@ -11,12 +11,12 @@ from zeth.core.mixer_client import MixCallDescription, MixParameters, MixResult,
     event_args_to_mix_result, get_dummy_input_and_address, compute_h_sig
 from zeth.core.prover_client import ProverClient
 from zeth.core.zksnark import IZKSnarkProvider, ExtendedProof
-import zeth.core.signing as signing
+from zeth.core import signing
 from zeth.core.contracts import get_event_logs_from_tx_receipt
 from zeth.core.merkle_tree import MerkleTree
 from zeth.core.utils import EtherValue
 from zeth.api.zeth_messages_pb2 import ZethNote
-import test_commands.mock as mock
+from test_commands import mock
 
 from os import urandom
 from web3 import Web3  # type: ignore
