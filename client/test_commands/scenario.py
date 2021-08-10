@@ -7,11 +7,12 @@
 from zeth.core.zeth_address import ZethAddressPub
 from zeth.core.mixer_client import MixCallDescription, MixParameters, MixResult, \
     MixerClient, OwnershipKeyPair, JoinsplitSigVerificationKey, ComputeHSigCB, \
-    JoinsplitSigKeyPair, parse_mix_call, joinsplit_sign, encrypt_notes, \
-    get_dummy_input_and_address, compute_h_sig
+    JoinsplitSigKeyPair, joinsplit_sign, encrypt_notes, \
+    event_args_to_mix_result, get_dummy_input_and_address, compute_h_sig
 from zeth.core.prover_client import ProverClient
 from zeth.core.zksnark import IZKSnarkProvider, ExtendedProof
 import zeth.core.signing as signing
+from zeth.core.contracts import get_event_logs_from_tx_receipt
 from zeth.core.merkle_tree import MerkleTree
 from zeth.core.utils import EtherValue
 from zeth.api.zeth_messages_pb2 import ZethNote
@@ -19,7 +20,7 @@ import test_commands.mock as mock
 
 from os import urandom
 from web3 import Web3  # type: ignore
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Any
 
 ZERO_UNITS_HEX = "0000000000000000"
 BOB_DEPOSIT_ETH = 200
@@ -37,6 +38,18 @@ def dump_merkle_tree(mk_tree: List[bytes]) -> None:
     print("[DEBUG] Displaying the Merkle tree of commitments: ")
     for node in mk_tree:
         print("Node: " + Web3.toHex(node)[2:])
+
+
+def parse_mix_call(
+        mixer_instance: Any,
+        tx_receipt: Any) -> MixResult:
+    """
+    Get the logs data associated with this mixing
+    """
+    log_mix_events = \
+        get_event_logs_from_tx_receipt(mixer_instance, "LogMix", tx_receipt)
+    mix_results = [event_args_to_mix_result(ev.args) for ev in log_mix_events]
+    return mix_results[0]
 
 
 def wait_for_tx_update_mk_tree(

@@ -639,18 +639,6 @@ def receive_note(
         return None
 
 
-def parse_mix_call(
-        mixer_instance: Any,
-        _tx_receipt: str) -> MixResult:
-    """
-    Get the logs data associated with this mixing
-    """
-    log_mix_filter = mixer_instance.eventFilter("LogMix", {'fromBlock': 'latest'})
-    log_mix_events = log_mix_filter.get_all_entries()
-    mix_results = [event_args_to_mix_result(ev.args) for ev in log_mix_events]
-    return mix_results[0]
-
-
 def get_mix_results(
         web3: Any,
         mixer_instance: Any,

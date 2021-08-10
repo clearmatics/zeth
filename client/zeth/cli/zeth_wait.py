@@ -21,17 +21,18 @@ def wait(ctx: Context, transaction_id: str) -> None:
 
     # Retrieve the tx receipt and dump logs
     web3 = open_web3_from_ctx(client_ctx)  # type: ignore
+    instance = instance_desc.instantiate(web3)
     tx_receipt = web3.eth.waitForTransactionReceipt(transaction_id, 10000) \
         # pylint: disable=no-member
 
     print("LogDebug events:")
-    logs = get_event_logs_from_tx_receipt(instance_desc, "LogDebug", tx_receipt)
+    logs = get_event_logs_from_tx_receipt(instance, "LogDebug", tx_receipt)
     for log in logs:
         print(
             f" {log.args['message']}: {log.args['value']} "
             f"({hex(log.args['value'])})")
 
     print("LogMix events:")
-    logs = get_event_logs_from_tx_receipt(instance_desc, "LogMix", tx_receipt)
+    logs = get_event_logs_from_tx_receipt(instance, "LogMix", tx_receipt)
     for log in logs:
         print(f" {log}")
