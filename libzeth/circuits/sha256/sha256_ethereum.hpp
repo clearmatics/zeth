@@ -43,7 +43,6 @@ public:
 
     sha256_ethereum(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> &ZERO,
         const libsnark::block_variable<FieldT> &input_block,
         const libsnark::digest_variable<FieldT> &output,
         const std::string &annotation_prefix = "sha256_ethereum");
