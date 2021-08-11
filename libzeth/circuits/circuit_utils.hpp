@@ -15,9 +15,12 @@ namespace libzeth
 template<typename FieldT>
 libsnark::linear_combination<FieldT> packed_addition(
     const libsnark::pb_variable_array<FieldT> &input);
+
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> variable_array_from_bit_vector(
-    const std::vector<bool> &bits, const libsnark::pb_variable<FieldT> &ZERO);
+    libsnark::protoboard<FieldT> &pb,
+    const std::vector<bool> &bits,
+    const std::string &annotation_prefix);
 
 } // namespace libzeth
 

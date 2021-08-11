@@ -46,22 +46,21 @@ libsnark::linear_combination<FieldT> packed_addition(
     // Thus here, we make sure our binary string is interpreted correctly.
     return libsnark::pb_packing_sum<FieldT>(
         libsnark::pb_variable_array<FieldT>(inputs.rbegin(), inputs.rend()));
-};
+}
 
-// Takes a vector of boolean values, and convert this vector of boolean values
-// into a vector of FieldT::zero() and FieldT:one()
+// Allocate an array of variables on a given protoboard, and set the values to
+// zero or one based on a vector of bits.
 template<typename FieldT>
 libsnark::pb_variable_array<FieldT> variable_array_from_bit_vector(
-    const std::vector<bool> &bits, const libsnark::pb_variable<FieldT> &ZERO)
+    libsnark::protoboard<FieldT> &pb,
+    const std::vector<bool> &bits,
+    const std::string &annotation_prefix)
 {
-    libsnark::pb_variable_array<FieldT> acc;
-    acc.reserve(bits.size());
-    for (bool bit : bits) {
-        acc.emplace_back(bit ? ONE : ZERO);
-    }
-
-    return acc;
-};
+    libsnark::pb_variable_array<FieldT> vars;
+    vars.allocate(pb, bits.size(), annotation_prefix);
+    vars.fill_with_bits(pb, bits);
+    return vars;
+}
 
 } // namespace libzeth
 

@@ -108,7 +108,7 @@ sha256_ethereum<FieldT>::sha256_ethereum(
                 0, 0, 0, 0, 0, 0, 1, 0, //
                 0, 0, 0, 0, 0, 0, 0, 0, //
             },
-            ZERO);
+            FMT(annotation_prefix, " padding"));
 
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc#L35
     // Note: The IV defined in libsnark is made of:

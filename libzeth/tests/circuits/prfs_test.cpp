@@ -32,6 +32,7 @@ TEST(TestPRFs, TestGenZeroes)
 
     libsnark::pb_variable_array<Field> zeroes256 =
         variable_array_from_bit_vector(
+            pb,
             {
                 0, 0, 0, 0, 0, 0, 0, 0, //
                 0, 0, 0, 0, 0, 0, 0, 0, //
@@ -66,12 +67,12 @@ TEST(TestPRFs, TestGenZeroes)
                 0, 0, 0, 0, 0, 0, 0, 0, //
                 0, 0, 0, 0, 0, 0, 0, 0, //
             },
-            ZERO);
+            "zeroes256");
 
     libsnark::pb_variable_array<Field> result =
         gen_256_zeroes<Field, Hash>(ZERO);
     ASSERT_EQ(result.get_bits(pb), zeroes256.get_bits(pb));
-};
+}
 
 TEST(TestPRFs, TestPRFAddrApkGadget)
 {
@@ -83,6 +84,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
     // a_sk corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<Field> a_sk = variable_array_from_bit_vector(
+        pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 0, 0, 0, 0, 0, 0, 0, // 00
@@ -117,7 +119,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
             0, 0, 0, 0, 0, 0, 0, 0, // 00
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        ZERO);
+        "sk");
 
     // a_pk should equal:
     // 0x208f95ee37621c3c2d9c74be39bf687c47e84c679b88df270858067c08a16daf Since
@@ -132,9 +134,10 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
     // both on-chain and off-chain)
     libsnark::pb_variable_array<Field> a_pk_expected =
         variable_array_from_bit_vector(
+            pb,
             bit_vector_from_hex("2390c9e5370be7355f220b29caf3912ef970d828b73976"
                                 "ae9bfeb1402ce4c1f9"),
-            ZERO);
+            "expected");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -146,7 +149,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
     ASSERT_EQ(result->get_digest(), a_pk_expected.get_bits(pb));
-};
+}
 
 TEST(TestPRFs, TestPRFNFGadget)
 {
@@ -158,6 +161,7 @@ TEST(TestPRFs, TestPRFNFGadget)
     // a_sk corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<Field> a_sk = variable_array_from_bit_vector(
+        pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 0, 0, 0, 0, 0, 0, 0, // 00
@@ -192,10 +196,11 @@ TEST(TestPRFs, TestPRFNFGadget)
             0, 0, 0, 0, 0, 0, 0, 0, // 00
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        ZERO);
+        "sk");
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<Field> rho = variable_array_from_bit_vector(
+        pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 0, 0, 0, 0, 0, 0, 0, //
@@ -230,7 +235,7 @@ TEST(TestPRFs, TestPRFNFGadget)
             0, 0, 0, 0, 0, 0, 0, 0, //
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        ZERO);
+        "rho");
 
     // nf should equal:
     // 4a5f4f585dda39cc597366f9172bae924d22e832487e12e76742dbab9393b620
@@ -244,9 +249,10 @@ TEST(TestPRFs, TestPRFNFGadget)
     // both on-chain and off-chain)
     libsnark::pb_variable_array<Field> nf_expected =
         variable_array_from_bit_vector(
+            pb,
             bit_vector_from_hex("ea43866d185e1bdb84713b699a2966d929d1392488c010"
                                 "c603e46a4cb92986f8"),
-            ZERO);
+            "expected");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -259,7 +265,7 @@ TEST(TestPRFs, TestPRFNFGadget)
     bool is_valid_witness = pb.is_satisfied();
     ASSERT_TRUE(is_valid_witness);
     ASSERT_EQ(result->get_digest(), nf_expected.get_bits(pb));
-};
+}
 
 TEST(TestPRFs, TestPRFPKGadget)
 {
@@ -271,6 +277,7 @@ TEST(TestPRFs, TestPRFPKGadget)
     // a_sk corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<Field> a_sk = variable_array_from_bit_vector(
+        pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 0, 0, 0, 0, 0, 0, 0, // 00
@@ -305,10 +312,11 @@ TEST(TestPRFs, TestPRFPKGadget)
             0, 0, 0, 0, 0, 0, 0, 0, // 00
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        ZERO);
+        "sk");
 
     // h_sig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<Field> hsig = variable_array_from_bit_vector(
+        pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 0, 0, 0, 0, 0, 0, 0, //
@@ -343,7 +351,7 @@ TEST(TestPRFs, TestPRFPKGadget)
             0, 0, 0, 0, 0, 0, 0, 0, //
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        ZERO);
+        "hsig");
 
     // h_i should equal:
     // 7ea1525fdbf9462c5144796937e1f80b9dad42369f7d4987c436b2f79257f9ac h_i =
@@ -357,9 +365,10 @@ TEST(TestPRFs, TestPRFPKGadget)
     // both on-chain and off-chain)
     libsnark::pb_variable_array<Field> h_expected0 =
         variable_array_from_bit_vector(
+            pb,
             bit_vector_from_hex("8527fb92081cf832659a188163287f98b8c919401ba619"
                                 "d6ebd30dc0f1aedeff"),
-            ZERO);
+            "expected0");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result0(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -372,9 +381,10 @@ TEST(TestPRFs, TestPRFPKGadget)
 
     libsnark::pb_variable_array<Field> h_expected1 =
         variable_array_from_bit_vector(
+            pb,
             bit_vector_from_hex("aea510673ff50225bec4bd918c102ea0c9b117b9353464"
                                 "4ee70b74522b204b29"),
-            ZERO);
+            "expected1");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result1(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -389,7 +399,7 @@ TEST(TestPRFs, TestPRFPKGadget)
     ASSERT_TRUE(is_valid_witness);
     ASSERT_EQ(result0->get_digest(), h_expected0.get_bits(pb));
     ASSERT_EQ(result1->get_digest(), h_expected1.get_bits(pb));
-};
+}
 
 TEST(TestPRFs, TestPRFRhoGadget)
 {
@@ -401,6 +411,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
     // phi corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<Field> phi = variable_array_from_bit_vector(
+        pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 0, 0, 0, 0, 0, 0, 0, // 00
@@ -435,10 +446,11 @@ TEST(TestPRFs, TestPRFRhoGadget)
             0, 0, 0, 0, 0, 0, 0, 0, // 00
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        ZERO);
+        "phi");
 
     // hsig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<Field> hsig = variable_array_from_bit_vector(
+        pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
             0, 0, 0, 0, 0, 0, 0, 0, //
@@ -473,7 +485,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
             0, 0, 0, 0, 0, 0, 0, 0, //
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        ZERO);
+        "hsig");
 
     // rho should equal:
     // a87c47a6c721bdbbb4aa8875c2aa72d4db31b9526aa920656049e00786f7f8a4
@@ -485,9 +497,10 @@ TEST(TestPRFs, TestPRFRhoGadget)
     // on-chain and off-chain)
     libsnark::pb_variable_array<Field> rho_expected0 =
         variable_array_from_bit_vector(
+            pb,
             bit_vector_from_hex("d7b7c4536bbba1aaca684706ba0df170af95515d573ad9"
                                 "3e30015e1c40ebc539"),
-            ZERO);
+            "expected0");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result0(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -500,9 +513,10 @@ TEST(TestPRFs, TestPRFRhoGadget)
 
     libsnark::pb_variable_array<Field> rho_expected1 =
         variable_array_from_bit_vector(
+            pb,
             bit_vector_from_hex("bb17f6088e47a8b2ac8e3d57588d52fed63079dc2b7045"
                                 "561d6d5e7288384249"),
-            ZERO);
+            "expected1");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result1(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -517,7 +531,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
     ASSERT_TRUE(is_valid_witness);
     ASSERT_EQ(result0->get_digest(), rho_expected0.get_bits(pb));
     ASSERT_EQ(result1->get_digest(), rho_expected1.get_bits(pb));
-};
+}
 
 } // namespace
 
