@@ -285,7 +285,6 @@ class MixerClient:
         """
         prover_config = prover_client.get_configuration()
         vk = prover_client.get_verification_key()
-        deploy_gas = deploy_gas or constants.DEPLOYMENT_GAS_WEI
 
         contracts_dir = get_contracts_dir()
         zksnark = get_zksnark_provider(prover_config.zksnark_name)
@@ -375,8 +374,7 @@ class MixerClient:
             mix_params,
             sender_eth_address,
             sender_eth_private_key,
-            tx_value or v_in,
-            constants.DEFAULT_MIX_GAS_WEI)
+            tx_value or v_in)
 
     def mix(
             self,
@@ -384,7 +382,7 @@ class MixerClient:
             sender_eth_address: str,
             sender_eth_private_key: Optional[bytes],
             tx_value: EtherValue,
-            call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> str:
+            call_gas: Optional[int] = None) -> str:
         """
         Given a MixParameters object, create and broadcast a transaction
         performing the appropriate mix call.
@@ -404,7 +402,7 @@ class MixerClient:
             mix_params: MixParameters,
             sender_eth_address: str,
             tx_value: EtherValue,
-            call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> bool:
+            call_gas: Optional[int] = None) -> bool:
         """
         Call the mix method (executes on the RPC host without creating a
         transaction). Returns True if the call succeeds. False, otherwise.
