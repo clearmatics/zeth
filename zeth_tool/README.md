@@ -1,4 +1,4 @@
-# `zeth-tool`
+# Zeth tool
 
 Primarily designed for performing fine-grained operations, either outside of the scope of the zeth client, or as part of larger high-level operations.
 
