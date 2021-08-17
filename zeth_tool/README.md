@@ -6,4 +6,4 @@ Examples include, generation of arbitrary proofs (given a proving key and full a
 
 Since the tool is more development / administration focussed, not all functionality is necessarily complete, and may be extended as required in the future (possibly including operations that are specific to the zeth circuit).
 
-To build, run `make zeth-tool` in the `build` directory (see the [main README](../README.md)) to build to executable at `build/zeth-tool/zeth-tool`. Run `zeth-tool help` (with the appropriate path to the executable) to see the up-to-date list of supported commands.
+To build, run `make zeth-tool` in the `build` directory (see the [main README](../README.md)) to build to executable at `build/zeth_tool/zeth-tool`. Run `zeth-tool help` (with the appropriate path to the executable) to see the up-to-date list of supported commands.
