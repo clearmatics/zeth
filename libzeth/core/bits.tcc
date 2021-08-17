@@ -37,7 +37,7 @@ template<size_t numBits> bits<numBits>::bits()
 
 template<size_t numBits>
 template<typename... boolList>
-bits<numBits>::bits(const boolList &...bits)
+bits<numBits>::bits(const boolList &... bits)
     : std::array<bool, numBits>{std::forward<bool>(bits)...}
 {
 }

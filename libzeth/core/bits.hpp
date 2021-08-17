@@ -35,7 +35,7 @@ public:
 
     /// Construct from initializer-list.
     // cppcheck-suppress noExplicitConstructor
-    template<typename... boolList> bits(const boolList &...bits);
+    template<typename... boolList> bits(const boolList &... bits);
 
     std::vector<bool> to_vector() const;
 
