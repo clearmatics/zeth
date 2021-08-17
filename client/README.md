@@ -87,7 +87,7 @@ script](../scripts/test_zeth_cli).
 Depending on the operation being performed, the `zeth` client must:
 - interact with an Ethereum RPC host,
 - interact with the deployed Zeth contracts,
-- request proofs and proof verification keys from `prover_server`, and
+- request proofs and proof verification keys from `prover-server`, and
 - access secret and public data for the current user
 
 Quite a lot of information must be given in order for the client to do this,

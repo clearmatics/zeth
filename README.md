@@ -36,9 +36,9 @@ Additionally, several tools from the GCC and LLVM tools suite are used to improv
 To use the Zeth functionality, 3 components are required:
 - An Ethereum network (the commands below use a local testnet) to host the Zeth
   contracts and handle transactions.
-- A running "prover_server" process, used by Zeth clients to generate proofs.
+- A running `prover-server` process, used by Zeth clients to generate proofs.
 - Client tools, which generate all inputs required for a Zeth operations,
-  request proofs from the "prover_server", and transmit transactions to the
+  request proofs from the `prover-server`, and transmit transactions to the
   Ethereum network holding the Zeth contract.
 
 We use 3 terminals, one for each of the above components.
@@ -47,16 +47,16 @@ Note: Mac users should increase docker runtime memory from 2GB to 4GB to allow T
 
 #### Terminal 1:
 
-We propose 2 alternatives to run the `prover_server` below.
+We propose 2 alternatives to run the `prover-server` below.
 
-##### Fetch the prover_server image (recommended)
+##### Fetch the `prover-server` image (recommended)
 
 ```bash
 docker pull ghcr.io/clearmatics/zeth:latest-prover
-docker run -ti -p 50051:50051 --name prover ghcr.io/clearmatics/zeth:latest-prover prover_server
+docker run -ti -p 50051:50051 --name prover ghcr.io/clearmatics/zeth:latest-prover prover-server
 ```
 
-##### Build and run the prover_server in the development container
+##### Build and run the `prover-server` in the development container
 
 ```bash
 # Clone this repository:
@@ -76,19 +76,19 @@ docker run -ti -p 50051:50051 --name zeth zeth-dev:latest
 mkdir build
 cd build
 cmake .. [<flags (see below)>]
-# Compile all libraries and tools, including the prover_server
+# Compile all libraries and tools, including the prover-server
 make
 # (optional) Run the unit tests
 make test
 # (optional) Run the all tests (unit tests, syntax checks, etc)
 make check
 
-# Start the prover_server process
-prover_server
+# Start the prover-server process
+prover-server
 ```
 
-Note: By default, `prover_server` generates a key at startup. Flags can be used
-to force the server to load and/or save keys. Run `prover_server --help`
+Note: By default, `prover-server` generates a key at startup. Flags can be used
+to force the server to load and/or save keys. Run `prover-server --help`
 for more details.
 
 ##### Build Options

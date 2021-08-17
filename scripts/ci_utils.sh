@@ -18,7 +18,7 @@ function server_start() {
     echo pid is ${pid}
     echo ${pid} > $3
 
-    # Wait for prover_server to be active
+    # Wait for prover-server to be active
     while ! $2 ; do
         echo "server_start: waiting for $1 ..."
         sleep 1

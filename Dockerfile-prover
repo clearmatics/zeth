@@ -10,12 +10,12 @@ COPY . ${ZETH_PATH}
 RUN cd ${ZETH_PATH} \
     && git submodule update --init --recursive
 
-# Build `prover_server`
+# Build `prover-server`
 RUN cd ${ZETH_PATH} \
     && mkdir build \
     && cd build \
     && cmake -DMPC=OFF -DSTATIC_BUILD=ON .. \
-    && make -j"$($(nprocs)+1)" prover_server
+    && make -j"$($(nprocs)+1)" prover-server
 
 ##
 
@@ -24,6 +24,6 @@ FROM alpine:3.12
 LABEL org.opencontainers.image.source https://github.com/clearmatics/zeth
 
 RUN apk add --no-cache bash
-## Move `prover_server` from previous image and put it in the PATH
-COPY --from=stage1 /home/zeth/build/prover_server/prover_server /usr/local/bin
+## Move `prover-server` from previous image and put it in the PATH
+COPY --from=stage1 /home/zeth/build/prover_server/prover-server /usr/local/bin
 CMD ["/bin/bash"]
