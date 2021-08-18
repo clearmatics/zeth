@@ -171,7 +171,7 @@ TEST(TestSHA256, TestHashWithZeroLeg)
         pb, {left, right}, "Block_variable");
 
     libzeth::sha256_ethereum<Field> hasher(
-        pb, input_block, result, "Sha256_ethereum");
+        pb, input_block, result, "sha256_ethereum");
 
     hasher.generate_r1cs_constraints(true);
     hasher.generate_r1cs_witness();

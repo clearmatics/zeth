@@ -119,7 +119,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
             0, 0, 0, 0, 0, 0, 0, 0, // 00
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        "sk");
+        "a_sk");
 
     // a_pk should equal:
     // 0x208f95ee37621c3c2d9c74be39bf687c47e84c679b88df270858067c08a16daf Since
@@ -137,7 +137,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
             pb,
             bit_vector_from_hex("2390c9e5370be7355f220b29caf3912ef970d828b73976"
                                 "ae9bfeb1402ce4c1f9"),
-            "expected");
+            "a_pk_expected");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -196,7 +196,7 @@ TEST(TestPRFs, TestPRFNFGadget)
             0, 0, 0, 0, 0, 0, 0, 0, // 00
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        "sk");
+        "a_sk");
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<Field> rho = pb_variable_array_from_bit_vector(
@@ -252,7 +252,7 @@ TEST(TestPRFs, TestPRFNFGadget)
             pb,
             bit_vector_from_hex("ea43866d185e1bdb84713b699a2966d929d1392488c010"
                                 "c603e46a4cb92986f8"),
-            "expected");
+            "nf_expected");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -312,7 +312,7 @@ TEST(TestPRFs, TestPRFPKGadget)
             0, 0, 0, 0, 0, 0, 0, 0, // 00
             1, 1, 1, 1, 1, 1, 1, 1  // FF
         },
-        "sk");
+        "a_sk");
 
     // h_sig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
     libsnark::pb_variable_array<Field> hsig = pb_variable_array_from_bit_vector(
@@ -368,7 +368,7 @@ TEST(TestPRFs, TestPRFPKGadget)
             pb,
             bit_vector_from_hex("8527fb92081cf832659a188163287f98b8c919401ba619"
                                 "d6ebd30dc0f1aedeff"),
-            "expected0");
+            "h_expected0");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result0(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -384,7 +384,7 @@ TEST(TestPRFs, TestPRFPKGadget)
             pb,
             bit_vector_from_hex("aea510673ff50225bec4bd918c102ea0c9b117b9353464"
                                 "4ee70b74522b204b29"),
-            "expected1");
+            "h_expected1");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result1(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -500,7 +500,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
             pb,
             bit_vector_from_hex("d7b7c4536bbba1aaca684706ba0df170af95515d573ad9"
                                 "3e30015e1c40ebc539"),
-            "expected0");
+            "rho_expected0");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result0(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
@@ -516,7 +516,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
             pb,
             bit_vector_from_hex("bb17f6088e47a8b2ac8e3d57588d52fed63079dc2b7045"
                                 "561d6d5e7288384249"),
-            "expected1");
+            "rho_expected1");
 
     std::shared_ptr<libsnark::digest_variable<Field>> result1(
         new digest_variable<Field>(pb, Hash::get_digest_len(), "result"));
