@@ -31,7 +31,7 @@ TEST(TestPRFs, TestGenZeroes)
     pb.val(ZERO) = Field::zero();
 
     libsnark::pb_variable_array<Field> zeroes256 =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 0, 0, 0, 0, 0, 0, 0, 0, //
@@ -83,7 +83,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
 
     // a_sk corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<Field> a_sk = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a_sk = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -133,7 +133,7 @@ TEST(TestPRFs, TestPRFAddrApkGadget)
     // function Note: (we want to make sure that we generate the same digests
     // both on-chain and off-chain)
     libsnark::pb_variable_array<Field> a_pk_expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             bit_vector_from_hex("2390c9e5370be7355f220b29caf3912ef970d828b73976"
                                 "ae9bfeb1402ce4c1f9"),
@@ -160,7 +160,7 @@ TEST(TestPRFs, TestPRFNFGadget)
 
     // a_sk corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<Field> a_sk = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a_sk = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -199,7 +199,7 @@ TEST(TestPRFs, TestPRFNFGadget)
         "sk");
 
     // hex: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<Field> rho = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> rho = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -248,7 +248,7 @@ TEST(TestPRFs, TestPRFNFGadget)
     // blake2s function (we want to make sure that we generate the same digests
     // both on-chain and off-chain)
     libsnark::pb_variable_array<Field> nf_expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             bit_vector_from_hex("ea43866d185e1bdb84713b699a2966d929d1392488c010"
                                 "c603e46a4cb92986f8"),
@@ -276,7 +276,7 @@ TEST(TestPRFs, TestPRFPKGadget)
 
     // a_sk corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<Field> a_sk = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a_sk = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -315,7 +315,7 @@ TEST(TestPRFs, TestPRFPKGadget)
         "sk");
 
     // h_sig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<Field> hsig = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> hsig = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -364,7 +364,7 @@ TEST(TestPRFs, TestPRFPKGadget)
     // blake2s function (we want to make sure that we generate the same digests
     // both on-chain and off-chain)
     libsnark::pb_variable_array<Field> h_expected0 =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             bit_vector_from_hex("8527fb92081cf832659a188163287f98b8c919401ba619"
                                 "d6ebd30dc0f1aedeff"),
@@ -380,7 +380,7 @@ TEST(TestPRFs, TestPRFPKGadget)
     prf_pk_gadget0.generate_r1cs_witness();
 
     libsnark::pb_variable_array<Field> h_expected1 =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             bit_vector_from_hex("aea510673ff50225bec4bd918c102ea0c9b117b9353464"
                                 "4ee70b74522b204b29"),
@@ -410,7 +410,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
 
     // phi corresponds to the number:
     // 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<Field> phi = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> phi = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -449,7 +449,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
         "phi");
 
     // hsig: 0x0F000000000000FF00000000000000FF00000000000000FF00000000000000FF
-    libsnark::pb_variable_array<Field> hsig = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> hsig = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -496,7 +496,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
     // function (we want to make sure that we generate the same digests both
     // on-chain and off-chain)
     libsnark::pb_variable_array<Field> rho_expected0 =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             bit_vector_from_hex("d7b7c4536bbba1aaca684706ba0df170af95515d573ad9"
                                 "3e30015e1c40ebc539"),
@@ -512,7 +512,7 @@ TEST(TestPRFs, TestPRFRhoGadget)
     prf_rho_gadget0.generate_r1cs_witness();
 
     libsnark::pb_variable_array<Field> rho_expected1 =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             bit_vector_from_hex("bb17f6088e47a8b2ac8e3d57588d52fed63079dc2b7045"
                                 "561d6d5e7288384249"),

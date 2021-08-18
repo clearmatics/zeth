@@ -22,7 +22,7 @@ TEST(TestXOR, TestTrue)
 {
     libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -32,7 +32,7 @@ TEST(TestXOR, TestTrue)
         },
         "a");
 
-    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = pb_variable_array_from_bit_vector(
         pb,
         {
             1, 1, 1, 1, 0, 0, 0, 0, // F0
@@ -50,7 +50,7 @@ TEST(TestXOR, TestTrue)
     xor_gadget.generate_r1cs_witness();
 
     libsnark::pb_variable_array<Field> expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 1, 1, 1, 1, 1, 1, 1, // FF
@@ -67,7 +67,7 @@ TEST(TestXORConstant, TestTrue)
 {
     libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -77,7 +77,7 @@ TEST(TestXORConstant, TestTrue)
         },
         "a");
 
-    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = pb_variable_array_from_bit_vector(
         pb,
         {
             1, 1, 1, 1, 0, 0, 0, 0, // F0
@@ -102,7 +102,7 @@ TEST(TestXORConstant, TestTrue)
     xor_c_gadget.generate_r1cs_witness();
 
     libsnark::pb_variable_array<Field> expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 1, 1, 1, 0, 0, 0, 0, // F0
@@ -119,7 +119,7 @@ TEST(Testxor_rot, TestTrue)
 {
     libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 0, 0, 0, 1, 1, 1, 1, // 0F
@@ -129,7 +129,7 @@ TEST(Testxor_rot, TestTrue)
         },
         "a");
 
-    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = pb_variable_array_from_bit_vector(
         pb,
         {
             1, 1, 1, 1, 0, 0, 0, 0, // F0
@@ -175,7 +175,7 @@ TEST(Testxor_rot, TestTrue)
     xor_rot32_gadget.generate_r1cs_witness();
 
     libsnark::pb_variable_array<Field> expected0 =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 1, 1, 1, 1, 1, 1, 1, // FF
@@ -186,7 +186,7 @@ TEST(Testxor_rot, TestTrue)
             "expected0");
 
     libsnark::pb_variable_array<Field> expected8 =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 0, 0, 0, 0, 0, 0, 0, 0, // 00
@@ -197,7 +197,7 @@ TEST(Testxor_rot, TestTrue)
             "expected8");
 
     libsnark::pb_variable_array<Field> expected16 =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 0, 0, 0, 0, 0, 0, 0, 0, // 00
@@ -208,7 +208,7 @@ TEST(Testxor_rot, TestTrue)
             "expected16");
 
     libsnark::pb_variable_array<Field> expected24 =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 1, 1, 1, 1, 1, 1, 1, // FF
@@ -229,7 +229,7 @@ TEST(Testdouble_packed, TestTrue)
 {
     libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = pb_variable_array_from_bit_vector(
         pb,
         {
             1, 0, 0, 0, 1, 1, 1, 1, // 8F
@@ -239,7 +239,7 @@ TEST(Testdouble_packed, TestTrue)
         },
         "a");
 
-    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = pb_variable_array_from_bit_vector(
         pb,
         {
             1, 1, 1, 1, 0, 0, 0, 0, // F0
@@ -257,7 +257,7 @@ TEST(Testdouble_packed, TestTrue)
     add_mod32_gadget.generate_r1cs_witness();
 
     libsnark::pb_variable_array<Field> expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 0, 0, 0, 0, 0, 0, 0, // 80

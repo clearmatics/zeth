@@ -40,7 +40,7 @@ sha256_ethereum<FieldT>::sha256_ethereum(
     // written in the checkSum function of the crypto/sha256 go package
     // Total size of this vector = 512bits
     libsnark::pb_variable_array<FieldT> length_padding =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 0, 0, 0, 0, 0, 0, 0, // First part: 448bits <-> 56bytes

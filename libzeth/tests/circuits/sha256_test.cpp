@@ -71,7 +71,7 @@ TEST(TestSHA256, TestHash)
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, //
     };
     libsnark::pb_variable_array<Field> left =
-        libzeth::variable_array_from_bit_vector(pb, left_bits, "left");
+        libzeth::pb_variable_array_from_bit_vector(pb, left_bits, "left");
 
     // hex: 0x43C000000000003FC00000000000003FC00000000000003FC00000000000003F
     std::vector<bool> right_bits = {
@@ -93,7 +93,7 @@ TEST(TestSHA256, TestHash)
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, //
     };
     libsnark::pb_variable_array<Field> right =
-        libzeth::variable_array_from_bit_vector(pb, right_bits, "right");
+        libzeth::pb_variable_array_from_bit_vector(pb, right_bits, "right");
 
     libsnark::digest_variable<Field> result(
         pb, HashT::get_digest_len(), "result");
@@ -117,7 +117,8 @@ TEST(TestSHA256, TestHash)
     const std::vector<bool> expected_bits =
         libzeth::bit_vector_from_hex(expected_hex);
     const libsnark::pb_variable_array<Field> expected =
-        libzeth::variable_array_from_bit_vector(pb, expected_bits, "expected");
+        libzeth::pb_variable_array_from_bit_vector(
+            pb, expected_bits, "expected");
 
     hasher.generate_r1cs_constraints(true);
     hasher.generate_r1cs_witness();

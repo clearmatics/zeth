@@ -30,7 +30,7 @@ TEST(TestG, TestTrue)
 {
     libsnark::protoboard<Field> pb;
 
-    libsnark::pb_variable_array<Field> a = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> a = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 1, 1, 0, 1, 0, 1, 1, // 6B
@@ -40,7 +40,7 @@ TEST(TestG, TestTrue)
         },
         "a");
 
-    libsnark::pb_variable_array<Field> b = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> b = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 1, 0, 1, 0, 0, 0, 1, // 51
@@ -50,7 +50,7 @@ TEST(TestG, TestTrue)
         },
         "b");
 
-    libsnark::pb_variable_array<Field> c = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> c = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 1, 1, 0, 1, 0, 1, 0, // 6A
@@ -60,7 +60,7 @@ TEST(TestG, TestTrue)
         },
         "c");
 
-    libsnark::pb_variable_array<Field> d = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> d = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 1, 0, 1, 0, 0, 0, 1, // 51
@@ -71,7 +71,7 @@ TEST(TestG, TestTrue)
         "d");
 
     // First word in little endian "lleh"
-    libsnark::pb_variable_array<Field> x = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> x = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 1, 1, 0, 1, 1, 0, 0, // 6C
@@ -82,7 +82,7 @@ TEST(TestG, TestTrue)
         "x");
 
     // Second word in little endian "ow o"
-    libsnark::pb_variable_array<Field> y = variable_array_from_bit_vector(
+    libsnark::pb_variable_array<Field> y = pb_variable_array_from_bit_vector(
         pb,
         {
             0, 1, 1, 0, 1, 1, 1, 1, // 6F
@@ -109,7 +109,7 @@ TEST(TestG, TestTrue)
     g_gadget.generate_r1cs_witness();
 
     libsnark::pb_variable_array<Field> a2_expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 0, 1, 1, 1, 0, 0, 0, 0, // 70
@@ -120,7 +120,7 @@ TEST(TestG, TestTrue)
             "a2_expected");
 
     libsnark::pb_variable_array<Field> b2_expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 1, 0, 0, 0, 0, 0, 0, // C0
@@ -131,7 +131,7 @@ TEST(TestG, TestTrue)
             "b2_expected");
 
     libsnark::pb_variable_array<Field> c2_expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 1, 1, 0, 0, 1, 1, 1, // E7
@@ -142,7 +142,7 @@ TEST(TestG, TestTrue)
             "c2_expected");
 
     libsnark::pb_variable_array<Field> d2_expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 0, 1, 1, 0, 0, 0, 0, // B0
@@ -170,7 +170,7 @@ TEST(TestBlake2sComp, TestTrue)
 
     // b"hello world" in big endian
     libsnark::pb_variable_array<Field> pb_var_input =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 0, 1, 1, 0, 1, 0, 0, 0, // 68
@@ -201,7 +201,7 @@ TEST(TestBlake2sComp, TestTrue)
 
     // default chaining value
     libsnark::pb_variable_array<Field> pb_var_h =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1,
              1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0,
@@ -227,7 +227,7 @@ TEST(TestBlake2sComp, TestTrue)
 
     // blake2s(b"hello world")
     libsnark::pb_variable_array<Field> expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 0, 0, 1, 1, 0, 1, 0, // 9A
@@ -280,7 +280,7 @@ TEST(TestBlake2s, TestTrue)
 
     // b"hello world" in big endian
     libsnark::pb_variable_array<Field> pb_var_input =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 0, 1, 1, 0, 1, 0, 0, 0, // 68
@@ -308,7 +308,7 @@ TEST(TestBlake2s, TestTrue)
 
     // blake2s(b"hello world")
     libsnark::pb_variable_array<Field> expected =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
             pb,
             {
                 1, 0, 0, 1, 1, 0, 1, 0, // 9A
@@ -491,7 +491,7 @@ TEST(TestBlake2s, TestTrue2)
         0, 1, 1, 0, 1, 0, 0, 0  // 68
     };
     libsnark::pb_variable_array<Field> input_vars =
-        variable_array_from_bit_vector(pb, input_bits, "input_vars");
+        pb_variable_array_from_bit_vector(pb, input_bits, "input_vars");
 
     libsnark::block_variable<Field> input(
         pb, {input_vars}, "blake2s_block_input");

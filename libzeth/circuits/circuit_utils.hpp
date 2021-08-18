@@ -17,7 +17,7 @@ libsnark::linear_combination<FieldT> packed_addition(
     const libsnark::pb_variable_array<FieldT> &input);
 
 template<typename FieldT>
-libsnark::pb_variable_array<FieldT> variable_array_from_bit_vector(
+libsnark::pb_variable_array<FieldT> pb_variable_array_from_bit_vector(
     libsnark::protoboard<FieldT> &pb,
     const std::vector<bool> &bits,
     const std::string &annotation_prefix);
