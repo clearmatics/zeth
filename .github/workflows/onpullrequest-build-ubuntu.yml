@@ -22,7 +22,7 @@ jobs:
         key: grpc-1.31.x-${{ runner.os }}
         path: depends/grpc
     - name: Build grpc
-      run: if ! [ -d depends/grpc ] ; then scripts/install_grpc /usr v1.31.x depends/grpc ; fi
+      run: if ! [ -d depends/grpc ] ; then scripts/install_grpc /usr v1.31.x ; fi
 
   # Extract the commits of submodules for use by cache steps
   onpr-submodules:
@@ -77,7 +77,7 @@ jobs:
         key: prover-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
-        scripts/install_grpc /usr v1.31.x depends/grpc
+        INSTALL_ONLY=1 scripts/install_grpc /usr v1.31.x
         sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_CURVE=${{ matrix.curve }} CI_PROVER_TESTS=1 scripts/ci build
@@ -124,7 +124,7 @@ jobs:
         key: integration-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
-        scripts/install_grpc /usr v1.31.x depends/grpc
+        INSTALL_ONLY=1 scripts/install_grpc /usr v1.31.x
         sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_CURVE=${{ matrix.curve }} CI_FULL_TESTS=1 CI_INTEGRATION_TESTS=1 scripts/ci build

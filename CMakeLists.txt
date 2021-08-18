@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.13)
 
 # Change the compiler BEFORE the first `project()` command to avoid an infinite loop.
 # See: https://public.kitware.com/pipermail/cmake/2009-November/033133.html

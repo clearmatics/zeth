@@ -153,6 +153,7 @@ def send_contract_call(
         transaction = call.buildTransaction(tx_desc)
         signed_tx = web3.eth.account.signTransaction(
             transaction, sender_eth_private_key)
+        print(f"send_contract_call: size={len(signed_tx.rawTransaction)}")
         return web3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
     # Hosted path

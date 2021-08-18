@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 
-platform=`uname`
-echo platform=${platform}
-echo "running against commit: "`git log --oneline --no-decorate -n 1`
-
 # Include the CI utils functions
+. scripts/build_utils.sh
 . scripts/ci_utils.sh
 
 set -x
 set -e
+
+# Init platform variables
+init_platform
+
+echo "running against commit: "`git log --oneline --no-decorate -n 1`
 
 function _setup_client() {
     pushd client
