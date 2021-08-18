@@ -8,6 +8,20 @@ New code should follow these rules, and old code should be changed over time to 
 - Each file should have a well-defined purpose and be concerned with a single narrow concept.
 - Add unit tests for new code. As far as possible, one test per source file or logical group of files.
 - Names should be as clear and concise as possible, avoiding opaque abbreviations.
+- In conditions, the tested variable must appear on the left of the operator. This is to stay consistent with English, which writes/reads from left to right.
+  ```
+  // GOOD:
+  if (age >= 18) { // Reads "If age is above 18" (the test is on the value of `age` here, so it appears first)
+      drive();
+  }
+  ```
+  instead of:
+  ```
+  // BAD:
+  if (18 <= age) { // Reads "If 18 is below age" (the test is on the value `age` yet it appears last, which doesn't read naturally)
+      drive();
+  }
+  ```
 
 ## Python
 
