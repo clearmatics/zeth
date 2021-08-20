@@ -70,7 +70,6 @@ public:
 /// however given the inputs are boolean, the output is automatically boolean
 template<typename FieldT> class xor_rot_gadget : public libsnark::gadget<FieldT>
 {
-
 private:
     const libsnark::pb_variable_array<FieldT> a;
     const libsnark::pb_variable_array<FieldT> b;
@@ -98,7 +97,6 @@ public:
 template<typename FieldT>
 class double_bit32_sum_eq_gadget : public libsnark::gadget<FieldT>
 {
-
 private:
     libsnark::pb_variable_array<FieldT> a;
     libsnark::pb_variable_array<FieldT> b;

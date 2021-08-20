@@ -14,7 +14,7 @@ namespace libzeth
 {
 
 template<typename FieldT, typename HashT>
-class COMM_gadget : libsnark::gadget<FieldT>
+class COMM_gadget : public libsnark::gadget<FieldT>
 {
 private:
     // input variable block = {x, y}

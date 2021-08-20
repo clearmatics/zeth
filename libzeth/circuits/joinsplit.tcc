@@ -23,7 +23,7 @@ template<
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-class joinsplit_gadget : libsnark::gadget<FieldT>
+class joinsplit_gadget : public libsnark::gadget<FieldT>
 {
 private:
     const size_t digest_len_minus_field_cap =
