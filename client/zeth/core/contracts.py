@@ -43,7 +43,7 @@ class InstanceDescription:
             contract_name: str,
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
-            deployment_gas: int,
+            deployment_gas: Optional[int],
             compiler_flags: Dict[str, Any] = None,
             args: Iterable[Any] = None) -> InstanceDescription:
         """
@@ -71,7 +71,7 @@ class InstanceDescription:
             web3: Any,
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
-            deployment_gas: int,
+            deployment_gas: Optional[int],
             compiled: Any,
             *args: Any) -> InstanceDescription:
         contract = web3.eth.contract(

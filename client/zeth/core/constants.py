@@ -45,11 +45,6 @@ JS_INPUTS: int = 2
 # Nb of output notes
 JS_OUTPUTS: int = 2
 
-# Gas cost estimates
-DEPLOYMENT_GAS_WEI: int = ZETH_MERKLE_TREE_DEPTH * 250000
-
-DEFAULT_MIX_GAS_WEI: int = DEPLOYMENT_GAS_WEI
-
 # Hash digest length (for commitment and PRFs)
 DIGEST_LENGTH: int = 256
 
