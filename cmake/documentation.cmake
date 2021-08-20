@@ -37,6 +37,6 @@ endif()
 
 add_custom_target(
   docs
-  COMMAND ${XDG_OPEN} ${CMAKE_CURRENT_BINARY_DIR}/doc_doxygen/html/index.html
+  COMMAND ${XDG_OPEN} ${CMAKE_CURRENT_BINARY_DIR}/docs/html/index.html
   DEPENDS build_docs
 )
