@@ -45,7 +45,7 @@ jobs:
       matrix:
         curve: [ BLS12_377, ALT_BN128 ]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
     - uses: actions/setup-node@v1
@@ -90,7 +90,7 @@ jobs:
       matrix:
         curve: [ BLS12_377, ALT_BN128 ]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
     - uses: actions/setup-node@v1
