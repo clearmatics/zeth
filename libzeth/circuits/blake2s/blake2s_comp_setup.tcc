@@ -159,16 +159,16 @@ void BLAKE2s_256_comp<FieldT>::setup_v(bool is_last_block)
 
     // [v_8, v_9, v_10, v_11] = [IV_0, IV_1, IV_2, IV_3]
     for (size_t i = 8; i < 12; i++) {
-        BLAKE2s_IV[i - 8].fill_variable_array(this->pb, v[0][i]);
+        BLAKE2s_IV[i - 8].fill_pb_variable_array(this->pb, v[0][i]);
     }
 
     // v_12 = t0 XOR IV_4
     bits32 temp_xored = bits_xor(BLAKE2s_IV[4], t[0]);
-    temp_xored.fill_variable_array(this->pb, v[0][12]);
+    temp_xored.fill_pb_variable_array(this->pb, v[0][12]);
 
     // v_13 = t1 XOR IV_5
     temp_xored = bits_xor(BLAKE2s_IV[5], t[1]);
-    temp_xored.fill_variable_array(this->pb, v[0][13]);
+    temp_xored.fill_pb_variable_array(this->pb, v[0][13]);
 
     // v_14 = f0 XOR IV_6
     if (is_last_block) {
@@ -176,11 +176,11 @@ void BLAKE2s_256_comp<FieldT>::setup_v(bool is_last_block)
     } else {
         temp_xored = BLAKE2s_IV[6];
     }
-    temp_xored.fill_variable_array(this->pb, v[0][14]);
+    temp_xored.fill_pb_variable_array(this->pb, v[0][14]);
 
     // v_15 = f1 XOR IV_7
     temp_xored = BLAKE2s_IV[7];
-    temp_xored.fill_variable_array(this->pb, v[0][15]);
+    temp_xored.fill_pb_variable_array(this->pb, v[0][15]);
 }
 
 template<typename FieldT> void BLAKE2s_256_comp<FieldT>::setup_mixing_gadgets()

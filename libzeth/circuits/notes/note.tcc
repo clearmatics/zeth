@@ -41,8 +41,8 @@ template<typename FieldT> void note_gadget<FieldT>::generate_r1cs_constraints()
 template<typename FieldT>
 void note_gadget<FieldT>::generate_r1cs_witness(const zeth_note &note)
 {
-    note.r.fill_variable_array(this->pb, r);
-    note.value.fill_variable_array(this->pb, value);
+    note.r.fill_pb_variable_array(this->pb, r);
+    note.value.fill_pb_variable_array(this->pb, value);
 }
 
 // Gadget that makes sure that all conditions are met in order to spend a note:
@@ -175,7 +175,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
     spend_authority->generate_r1cs_witness();
 
     // Witness rho for the input note
-    note.rho.fill_variable_array(this->pb, rho);
+    note.rho.fill_pb_variable_array(this->pb, rho);
     // Witness the nullifier for the input note
     expose_nullifiers->generate_r1cs_witness();
 
@@ -258,7 +258,7 @@ void input_note_gadget<FieldT, HashT, HashTreeT, TreeDepth>::
               << (this->pb.val(value_enforce)).as_ulong() << std::endl;
 
     // Witness merkle tree authentication path
-    address_bits.fill_variable_array(this->pb, address_bits_va);
+    address_bits.fill_pb_variable_array(this->pb, address_bits_va);
 
     // Set auth_path values
     auth_path->fill_with_field_elements(this->pb, merkle_path);
@@ -301,7 +301,7 @@ void output_note_gadget<FieldT, HashT>::generate_r1cs_witness(
     note_gadget<FieldT>::generate_r1cs_witness(note);
 
     // Witness a_pk with note information
-    note.a_pk.fill_variable_array(this->pb, a_pk->bits);
+    note.a_pk.fill_pb_variable_array(this->pb, a_pk->bits);
 
     commit_to_outputs_cm->generate_r1cs_witness();
 }
