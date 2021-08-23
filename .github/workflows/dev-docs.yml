@@ -2,8 +2,7 @@ name: zeth-ci-dev-docs
 
 on:
   push:
-    branches: [ extend-doxy-config ]
-    #branches: [ develop ]
+    branches: [ develop ]
 
 jobs:
   build-grpc:
