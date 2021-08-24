@@ -37,7 +37,7 @@ LABEL org.opencontainers.image.source https://github.com/clearmatics/zeth
 COPY --from=stage1 /usr/local/bin/ /usr/local/bin
 # Move the mpc python code
 COPY --from=stage1 /home/zeth/mpc/ /home/zeth-mpc
-COPY --from=stage1 /home/zeth/scripts/docker/entrypoint-mpc.sh /home/zeth-mpc/entrypoint.sh
+COPY --from=stage1 /home/zeth/scripts/docker/entrypoint-mpc /home/zeth-mpc/entrypoint
 RUN apk --update --no-cache add \
     bash \
     # Install necessary shared libs to run the rust binaries
@@ -60,5 +60,5 @@ RUN apk del \
 
 WORKDIR /home/zeth-mpc
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint"]
 CMD ["/bin/bash"]

@@ -35,7 +35,7 @@ function check_format() {
     fi
 
     # Perform the check for copyright notices here
-    scripts/check_copyright
+    scripts/check-copyright
 }
 
 function check_contracts() {
@@ -96,7 +96,7 @@ function mpc_tests() {
     fi
 
     # Setup the mpc python env and install dependencies
-    scripts/mpc_setup
+    scripts/mpc-setup
 
     # Execute checks on mpc python code
     pushd mpc
@@ -106,10 +106,10 @@ function mpc_tests() {
     popd
 
     # Execute the test scripts for pot-process, mpc, mpc server and client
-    scripts/test_pot_process
-    scripts/test_phase2
-    scripts/test_mpc_contributors_from_csv
-    scripts/test_mpc_server_phase2
+    scripts/test-pot-process
+    scripts/test-phase2
+    scripts/test-mpc-contributors-from-csv
+    scripts/test-mpc-server-phase2
 }
 
 function prover_tests() {
@@ -145,7 +145,7 @@ function integration_tests() {
 
     # Enter client env and run client test script
     . client/env/bin/activate
-    ./scripts/test_zeth_cli
+    ./scripts/test-zeth-cli
     deactivate
 
     # Stop servers

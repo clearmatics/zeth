@@ -80,7 +80,7 @@ Note that `make setup` will automatically install the solidity compiler in `$HOM
 The `zeth` command exposes Zeth operations via a command line interface.  A
 brief description is given in this section.  More details are available via
 `zeth --help`, and example usage can be seen in the [pyclient test
-script](../scripts/test_zeth_cli).
+script](../scripts/test-zeth-cli).
 
 ## Environment
 
