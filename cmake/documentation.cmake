@@ -22,7 +22,7 @@ message("Doxygen build started")
 
 # The option ALL allows to build the docs together with the application
 add_custom_target(
-  doc_doxygen
+  build_docs
   ALL
   COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -37,6 +37,6 @@ endif()
 
 add_custom_target(
   docs
-  COMMAND ${XDG_OPEN} ${CMAKE_CURRENT_BINARY_DIR}/doc_doxygen/html/index.html
-  DEPENDS doc_doxygen
+  COMMAND ${XDG_OPEN} ${CMAKE_CURRENT_BINARY_DIR}/docs/html/index.html
+  DEPENDS build_docs
 )
