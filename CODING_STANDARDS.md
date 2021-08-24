@@ -11,17 +11,28 @@ New code should follow these rules, and old code should be changed over time to 
 - In conditions, the tested variable must appear on the left of the operator. This is to stay consistent with English, which writes/reads from left to right.
   ```
   // GOOD:
-  if (age >= 18) { // Reads "If age is above 18" (the test is on the value of `age` here, so it appears first)
+  // The test below reads "If age is above 18"
+  // (the test is on the value of `age` here, so it appears first)
+  if (age >= 18) {
       drive();
   }
   ```
   instead of:
   ```
   // BAD:
-  if (18 <= age) { // Reads "If 18 is below age" (the test is on the value `age` yet it appears last, which doesn't read naturally)
+  // The test below reads "If 18 is below age"
+  // (the test is on the value `age` yet it appears last, which doesn't read naturally)
+  if (18 <= age) {
       drive();
   }
   ```
+- Executables (bash scripts, CLIs etc.) and their flags are named using `kebab-case` (e.g. `foo-bar --baz`).
+
+## Bash
+
+Only executable bash scripts must be set to be executable (e.g. via `chmod +x <file>`).
+Executable bash scripts are named using `kebab-case` and do not have file extension (e.g. `my-bash-command` and **not** `my-bash-command.sh` or `my_bash_command`). Non-executable bash scripts are named in `snake_case` and have an `.sh` extension.
+Use the `env` functionality by default in shebangs except if the context suggests otherwise (e.g. `#!/usr/bin/env bash` instead of `#!/bin/bash`).
 
 ## Python
 
