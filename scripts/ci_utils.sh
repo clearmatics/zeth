@@ -93,7 +93,7 @@ function ganache_stop() {
 #
 # PROVER SERVER
 #
-# These functions assume that the prover_server has been built in the build
+# These functions assume that the prover-server has been built in the build
 # directory.
 
 function prover_server_is_active() {
@@ -108,7 +108,7 @@ function prover_server_start() {
     pushd build
 
     server_start \
-        "./prover_server/prover_server $1" \
+        "./prover_server/prover-server $1" \
         prover_server_is_active \
         prover_server.pid \
         prover_server.stdout
