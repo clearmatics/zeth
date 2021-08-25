@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 # Simple script to run the generic prover with some keys and witness data,
 # recording the output (including timing information) to separate files.

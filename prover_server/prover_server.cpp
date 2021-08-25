@@ -399,7 +399,8 @@ static void RunServer(
 int main(int argc, char **argv)
 {
     // Options
-    po::options_description options("");
+    po::options_description options("Options");
+    options.add_options()("help,h", "This help");
     options.add_options()(
         "keypair,k",
         po::value<boost::filesystem::path>(),

@@ -55,7 +55,7 @@ function setup_user_local_key() {
         (zeth gen-address)
 
     # Ensure that we have been able to perform all of these operations without
-    # querying the prover_server for the configuration.
+    # querying the prover-server for the configuration.
     if [ -e prover-config.cache ] ; then
         echo Expected no prover config file
         exit 1

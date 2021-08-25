@@ -582,7 +582,7 @@ class MixerClient:
         assert len(prover_inputs.js_outputs) == constants.JS_OUTPUTS
         # pylint: enable=no-member
 
-        # Query the prover_server for the related proof
+        # Query the prover-server for the related proof
         ext_proof, public_data = prover_client.get_proof(prover_inputs)
 
         # Create the final MixParameters object
