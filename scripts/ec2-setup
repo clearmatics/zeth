@@ -62,5 +62,5 @@ popd
 mkdir -p build
 pushd build
     CMAKE_PREFIX_PATH=/usr/local cmake -DCMAKE_BUILD_TYPE=Release ..
-    make -j"$(($(nproc)+1))" prover_server zeth-tool
+    make -j"$(($(nproc)+1))" prover-server zeth-tool
 popd
