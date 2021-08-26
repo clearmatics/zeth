@@ -19,8 +19,8 @@ set_property(SOURCE ${PROTO_SRCS} PROPERTY
   COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter -Wno-error"
 )
 
-# Enable Boost for program_options
-find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
+# Enable Boost for filesystem
+find_package(Boost REQUIRED COMPONENTS system filesystem)
 include_directories(${Boost_INCLUDE_DIR})
 
 # libsodium

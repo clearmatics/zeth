@@ -31,8 +31,7 @@ void constraints_write_json(
         out_s << "{";
         out_s << "\"index\":" << lt.index << ",";
         out_s << "\"value\":"
-              << "\"" + bigint_to_hex<FieldT>(lt.coeff.as_bigint(), true)
-              << "\"";
+              << "\"" + base_field_element_to_hex(lt.coeff) << "\"";
         out_s << "}";
         count++;
     }
@@ -152,8 +151,7 @@ std::ostream &r1cs_write_json(
 
     out_s << "{\n";
     out_s << "\"scalar_field_characteristic\":"
-          << "\"" + bigint_to_hex<FieldT>(FieldT::field_char(), true)
-          << "\",\n";
+          << "\"" + libff::bigint_to_hex(FieldT::field_char(), true) << "\",\n";
     out_s << "\"num_variables\":" << r1cs.num_variables() << ",\n";
     out_s << "\"num_constraints\":" << r1cs.num_constraints() << ",\n";
     out_s << "\"num_inputs\": " << r1cs.num_inputs() << ",\n";

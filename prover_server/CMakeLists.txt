@@ -33,14 +33,14 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 # so that we will find zethConfig.h
 include_directories(${PROJECT_BINARY_DIR})
 
-# prover_server executable
+# prover-server executable
 file(
   GLOB_RECURSE
   PROVER_SERVER_SOURCE
   prover_server.cpp
 )
 add_executable(
-  prover_server
+  prover-server
   ${PROVER_SERVER_SOURCE}
   ${GRPC_SRCS}
 )
@@ -51,7 +51,7 @@ if (NOT APPLE)
 endif()
 
 target_link_libraries(
-  prover_server
+  prover-server
 
   zeth
   ${Boost_SYSTEM_LIBRARY}

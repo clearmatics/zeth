@@ -5,6 +5,8 @@ include(CTest)
 # A target which builds all tests, even if they will not be run.
 add_custom_target(build_tests)
 
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+
 # Function to create test targets, based on the FAST flag:
 #
 #   zeth_test(

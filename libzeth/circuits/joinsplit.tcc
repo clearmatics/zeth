@@ -23,7 +23,7 @@ template<
     size_t NumInputs,
     size_t NumOutputs,
     size_t TreeDepth>
-class joinsplit_gadget : libsnark::gadget<FieldT>
+class joinsplit_gadget : public libsnark::gadget<FieldT>
 {
 private:
     const size_t digest_len_minus_field_cap =
@@ -467,10 +467,10 @@ public:
         // Witness public values
         //
         // Witness LHS public value
-        vpub_in.fill_variable_array(this->pb, zk_vpub_in);
+        vpub_in.fill_pb_variable_array(this->pb, zk_vpub_in);
 
         // Witness RHS public value
-        vpub_out.fill_variable_array(this->pb, zk_vpub_out);
+        vpub_out.fill_pb_variable_array(this->pb, zk_vpub_out);
 
         // Witness h_sig
         h_sig->generate_r1cs_witness(h_sig_in.to_vector());
@@ -495,7 +495,7 @@ public:
                     left_side_acc, inputs[i].note.value, true);
             }
 
-            left_side_acc.fill_variable_array(this->pb, zk_total_uint64);
+            left_side_acc.fill_pb_variable_array(this->pb, zk_total_uint64);
         }
 
         // Witness the JoinSplit inputs and the h_is

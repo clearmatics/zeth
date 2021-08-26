@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.13)
 
 # Change the compiler BEFORE the first `project()` command to avoid an infinite loop.
 # See: https://public.kitware.com/pipermail/cmake/2009-November/033133.html
@@ -16,7 +16,7 @@ project(zeth CXX)
 
 # Versionning of the project
 set(ZETH_VERSION_MAJOR 0)
-set(ZETH_VERSION_MINOR 7)
+set(ZETH_VERSION_MINOR 8)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -311,11 +311,12 @@ endif()
 
 # Add all local subdirecetories
 add_subdirectory(libzeth)
+add_subdirectory(libtool)
 
 # If zeth is being used as a dependency, skip the tools build
 if ("${IS_ZETH_PARENT}")
   add_subdirectory(prover_server)
-  add_subdirectory(verifier)
+  add_subdirectory(zeth_tool)
   # For now the MPC for Groth16 only is tailored to the alt_bn128 pairing group
   if((${ZETH_SNARK} STREQUAL "GROTH16") AND (${MPC}))
     add_subdirectory(mpc_tools)

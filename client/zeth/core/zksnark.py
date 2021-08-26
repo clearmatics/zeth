@@ -13,7 +13,7 @@ from zeth.core.pairing import G1Point, G2Point, PairingParameters, \
     g1_point_to_contract_parameters, g1_point_from_proto, g1_point_to_proto, \
     g2_point_to_contract_parameters, g2_point_from_proto, g2_point_to_proto, \
     g2_point_negate
-import zeth.core.constants as constants
+from zeth.core import constants
 from zeth.api import snark_messages_pb2
 
 import json

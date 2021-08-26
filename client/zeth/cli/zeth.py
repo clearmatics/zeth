@@ -19,9 +19,10 @@ from zeth.cli.zeth_ls_notes import ls_notes
 from zeth.cli.zeth_ls_commits import ls_commits
 from click import group, command, option, pass_context, ClickException, Context
 from click_default_group import DefaultGroup  # type: ignore
-from typing import Optional, Any
+from typing import Optional
 
 
+# pylint: disable=redefined-builtin
 @command()
 @pass_context
 def help(ctx: Context) -> None:

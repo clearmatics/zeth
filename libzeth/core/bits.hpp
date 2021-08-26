@@ -35,7 +35,7 @@ public:
 
     /// Construct from initializer-list.
     // cppcheck-suppress noExplicitConstructor
-    template<typename... boolList> bits(const boolList &... bits);
+    template<typename... boolList> bits(const boolList &...bits);
 
     std::vector<bool> to_vector() const;
 
@@ -53,7 +53,7 @@ public:
     /// Fill a libsnark::pb_variable_array with bits from this container,
     /// representing each as 1 or 0 in FieldT.
     template<typename FieldT>
-    void fill_variable_array(
+    void fill_pb_variable_array(
         libsnark::protoboard<FieldT> &pb,
         libsnark::pb_variable_array<FieldT> &var_array) const;
 
@@ -87,6 +87,9 @@ std::vector<bool> bit_vector_from_size_t_le(size_t x);
 
 /// Returns the big endian binary encoding of the integer x.
 std::vector<bool> bit_vector_from_size_t_be(size_t x);
+
+void bit_vector_write_string(
+    const std::vector<bool> &bits, std::ostream &out_s);
 
 } // namespace libzeth
 

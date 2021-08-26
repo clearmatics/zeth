@@ -19,26 +19,6 @@ template<typename FieldT> libff::bigint<FieldT::num_limbs> dummy_bigint()
     return FieldT::random_element().as_bigint();
 }
 
-template<typename FieldT> void do_bigint_encode_decode_hex_test()
-{
-    const libff::bigint<FieldT::num_limbs> bi = dummy_bigint<FieldT>();
-    const std::string bi_hex = libzeth::bigint_to_hex<FieldT>(bi);
-    const libff::bigint<FieldT::num_limbs> bi_decoded =
-        libzeth::bigint_from_hex<FieldT>(bi_hex);
-    std::cout << "bi_hex: " << bi_hex << std::endl;
-    std::cout << "bi_decoded_hex: "
-              << libzeth::bigint_to_hex<FieldT>(bi_decoded) << std::endl;
-
-    ASSERT_EQ(2 * sizeof(bi.data), bi_hex.size());
-    ASSERT_EQ(bi, bi_decoded);
-}
-
-template<typename ppT> void bigint_encode_decode_hex_test()
-{
-    do_bigint_encode_decode_hex_test<libff::Fr<ppT>>();
-    do_bigint_encode_decode_hex_test<libff::Fq<ppT>>();
-}
-
 template<typename FieldT> void do_base_field_element_encode_decode_hex_test()
 {
     const FieldT fe = FieldT::random_element();
@@ -146,15 +126,6 @@ template<typename ppT> void field_element_read_write_bytes_test()
     do_field_element_read_write_bytes_test<libff::Fq<ppT>>();
     do_field_element_read_write_bytes_test<libff::Fqe<ppT>>();
     do_field_element_read_write_bytes_test<libff::Fqk<ppT>>();
-}
-
-TEST(FieldElementUtilsTest, BigIntEncodeDecodeHex)
-{
-    bigint_encode_decode_hex_test<libff::alt_bn128_pp>();
-    bigint_encode_decode_hex_test<libff::mnt4_pp>();
-    bigint_encode_decode_hex_test<libff::mnt6_pp>();
-    bigint_encode_decode_hex_test<libff::bls12_377_pp>();
-    bigint_encode_decode_hex_test<libff::bw6_761_pp>();
 }
 
 TEST(FieldElementUtilsTest, BaseFieldElementEncodeDecodeHex)

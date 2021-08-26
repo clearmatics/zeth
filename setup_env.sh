@@ -8,4 +8,4 @@ export ZETH_SETUP_DIR=$ZETH/zeth_setup
 mkdir -p $ZETH_SETUP_DIR
 
 # Add the zeth executables in the PATH
-export PATH=$ZETH/build/prover_server:$ZETH/build/mpc_tools:$ZETH/build/mpc_tools/mpc_phase2:$PATH
+export PATH=$ZETH/build/prover_server:$ZETH/build/mpc_tools:$ZETH/build/mpc_tools/mpc_phase2:$ZETH/build/zeth_tool:$PATH

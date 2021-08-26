@@ -62,4 +62,13 @@ std::vector<bool> bit_vector_from_size_t_be(size_t x)
     return res;
 }
 
+void bit_vector_write_string(const std::vector<bool> &bits, std::ostream &out_s)
+{
+    out_s << "{";
+    for (size_t i = 0; i < bits.size() - 1; ++i) {
+        out_s << bits[i] << ", ";
+    }
+    out_s << bits[bits.size() - 1] << "}\n";
+}
+
 } // namespace libzeth

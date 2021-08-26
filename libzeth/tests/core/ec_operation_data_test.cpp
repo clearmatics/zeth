@@ -55,8 +55,7 @@ template<typename ppT> void operation_test_data()
     std::stringstream binary_stream;
 
     std::cout << " Fr:";
-    std::cout << "\n    r: "
-              << bigint_to_hex<libff::Fr<ppT>>(libff::Fr<ppT>::mod);
+    std::cout << "\n    r: " << libff::bigint_to_hex(libff::Fr<ppT>::mod);
 
     std::cout << "\n   1: ";
     field_element_write_json(fr_1, std::cout);
@@ -69,8 +68,7 @@ template<typename ppT> void operation_test_data()
     field_element_write_bytes(fr_minus_2, binary_stream);
 
     std::cout << " Fq:";
-    std::cout << "\n    q: "
-              << bigint_to_hex<libff::Fq<ppT>>(libff::Fq<ppT>::mod);
+    std::cout << "\n    q: " << libff::bigint_to_hex(libff::Fq<ppT>::mod);
 
     std::cout << "\n G1:";
     std::cout << "\n   1: ";

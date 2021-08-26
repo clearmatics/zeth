@@ -7,19 +7,20 @@
 from zeth.core.zeth_address import ZethAddressPub
 from zeth.core.mixer_client import MixCallDescription, MixParameters, MixResult, \
     MixerClient, OwnershipKeyPair, JoinsplitSigVerificationKey, ComputeHSigCB, \
-    JoinsplitSigKeyPair, parse_mix_call, joinsplit_sign, encrypt_notes, \
-    get_dummy_input_and_address, compute_h_sig
+    JoinsplitSigKeyPair, joinsplit_sign, encrypt_notes, \
+    event_args_to_mix_result, get_dummy_input_and_address, compute_h_sig
 from zeth.core.prover_client import ProverClient
 from zeth.core.zksnark import IZKSnarkProvider, ExtendedProof
-import zeth.core.signing as signing
+from zeth.core import signing
+from zeth.core.contracts import get_event_logs_from_tx_receipt
 from zeth.core.merkle_tree import MerkleTree
 from zeth.core.utils import EtherValue
 from zeth.api.zeth_messages_pb2 import ZethNote
-import test_commands.mock as mock
+from test_commands import mock
 
 from os import urandom
 from web3 import Web3  # type: ignore
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Any
 
 ZERO_UNITS_HEX = "0000000000000000"
 BOB_DEPOSIT_ETH = 200
@@ -37,6 +38,18 @@ def dump_merkle_tree(mk_tree: List[bytes]) -> None:
     print("[DEBUG] Displaying the Merkle tree of commitments: ")
     for node in mk_tree:
         print("Node: " + Web3.toHex(node)[2:])
+
+
+def parse_mix_call(
+        mixer_instance: Any,
+        tx_receipt: Any) -> MixResult:
+    """
+    Get the logs data associated with this mixing
+    """
+    log_mix_events = \
+        get_event_logs_from_tx_receipt(mixer_instance, "LogMix", tx_receipt)
+    mix_results = [event_args_to_mix_result(ev.args) for ev in log_mix_events]
+    return mix_results[0]
 
 
 def wait_for_tx_update_mk_tree(
@@ -224,10 +237,12 @@ def charlie_double_withdraw(
     attack_primary_input4: int = 0
 
     def compute_h_sig_attack_nf(
-            nf0: bytes,
-            nf1: bytes,
+            nfs: List[bytes],
             sign_vk: JoinsplitSigVerificationKey) -> bytes:
         # We disassemble the nfs to get the formatting of the primary inputs
+        assert len(nfs) == 2
+        nf0 = nfs[0]
+        nf1 = nfs[1]
         input_nullifier0 = nf0.hex()
         input_nullifier1 = nf1.hex()
         nf0_rev = "{0:0256b}".format(int(input_nullifier0, 16))
@@ -255,7 +270,7 @@ def charlie_double_withdraw(
             primary_input4_res_bits
         attack_nf1 = "{0:064x}".format(int(attack_nf1_bits, 2))
         return compute_h_sig(
-            bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1), sign_vk)
+            [bytes.fromhex(attack_nf0), bytes.fromhex(attack_nf1)], sign_vk)
 
     output_note1, output_note2, proof, public_data, signing_keypair = \
         get_mix_parameters_components(

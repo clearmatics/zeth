@@ -338,9 +338,13 @@ def do_sync(
     if wait_tx:
         _do_sync()
         tx_receipt = web3.eth.waitForTransactionReceipt(wait_tx, 10000)
+        tx = web3.eth.getTransaction(wait_tx)
         gas_used = tx_receipt.gasUsed
         status = tx_receipt.status
-        print(f"{wait_tx[0:8]}: gasUsed={gas_used}, status={status}")
+        size_bytes = len(tx.input)
+        print(
+            f"{wait_tx[0:8]}: gasUsed={gas_used}, status={status}, "
+            f"input_size={size_bytes}")
 
     return _do_sync()
 

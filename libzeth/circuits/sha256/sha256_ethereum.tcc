@@ -24,7 +24,6 @@ namespace libzeth
 template<typename FieldT>
 sha256_ethereum<FieldT>::sha256_ethereum(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> &ZERO,
     const libsnark::block_variable<FieldT> &input_block,
     const libsnark::digest_variable<FieldT> &output,
     const std::string &annotation_prefix)
@@ -41,7 +40,8 @@ sha256_ethereum<FieldT>::sha256_ethereum(
     // written in the checkSum function of the crypto/sha256 go package
     // Total size of this vector = 512bits
     libsnark::pb_variable_array<FieldT> length_padding =
-        variable_array_from_bit_vector(
+        pb_variable_array_from_bit_vector(
+            pb,
             {
                 1, 0, 0, 0, 0, 0, 0, 0, // First part: 448bits <-> 56bytes
                 0, 0, 0, 0, 0, 0, 0, 0, //
@@ -108,7 +108,7 @@ sha256_ethereum<FieldT>::sha256_ethereum(
                 0, 0, 0, 0, 0, 0, 1, 0, //
                 0, 0, 0, 0, 0, 0, 0, 0, //
             },
-            ZERO);
+            FMT(annotation_prefix, " padding"));
 
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc#L35
     // Note: The IV defined in libsnark is made of:
@@ -164,7 +164,7 @@ sha256_ethereum<FieldT>::sha256_ethereum(
     // then used as IV for the second hashing round
     libsnark::pb_linear_combination_array<FieldT> IV2(intermediate_hash->bits);
 
-    // We hash the intermediate hash wiht the padding.
+    // We hash the intermediate hash with the padding.
     hasher2.reset(new libsnark::sha256_compression_function_gadget<FieldT>(
         pb,
         IV2,

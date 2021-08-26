@@ -28,16 +28,7 @@ using pp = libzeth::defaults::pp;
 using Field = libzeth::defaults::Field;
 using snark = libzeth::defaults::snark;
 using api_handler = libzeth::defaults::api_handler;
-using hash = libzeth::HashT<Field>;
-using hash_tree = libzeth::HashTreeT<Field>;
-using circuit_wrapper = libzeth::circuit_wrapper<
-    hash,
-    hash_tree,
-    pp,
-    snark,
-    libzeth::ZETH_NUM_JS_INPUTS,
-    libzeth::ZETH_NUM_JS_OUTPUTS,
-    libzeth::ZETH_MERKLE_TREE_DEPTH>;
+using circuit_wrapper = libzeth::JoinsplitCircuitT<pp, snark>;
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
@@ -221,6 +212,10 @@ public:
                 libzeth::bits256::from_hex(proof_inputs->phi());
 
             if (libzeth::ZETH_NUM_JS_INPUTS != proof_inputs->js_inputs_size()) {
+                std::cout << "[INFO] Request with "
+                          << proof_inputs->js_inputs_size()
+                          << " inputs. Expecting "
+                          << libzeth::ZETH_NUM_JS_INPUTS << "\n";
                 throw std::invalid_argument("Invalid number of JS inputs");
             }
             if (libzeth::ZETH_NUM_JS_OUTPUTS !=
@@ -404,7 +399,8 @@ static void RunServer(
 int main(int argc, char **argv)
 {
     // Options
-    po::options_description options("");
+    po::options_description options("Options");
+    options.add_options()("help,h", "This help");
     options.add_options()(
         "keypair,k",
         po::value<boost::filesystem::path>(),

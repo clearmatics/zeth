@@ -5,8 +5,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-import zeth.core.contracts as contracts
-import zeth.core.constants as constants
+from zeth.core import contracts
+from zeth.core import constants
 from zeth.core.zeth_address import ZethAddressPub, ZethAddress
 from zeth.core.ownership import OwnershipPublicKey, OwnershipSecretKey, \
     OwnershipKeyPair, ownership_key_as_hex
@@ -15,18 +15,19 @@ from zeth.core.encryption import \
     generate_encryption_keypair, encrypt, decrypt
 from zeth.core.merkle_tree import MerkleTree, compute_merkle_path
 from zeth.core.pairing import PairingParameters
-import zeth.core.signing as signing
-import zeth.core.proto_utils as proto_utils
+from zeth.core import signing
+from zeth.core import proto_utils
 from zeth.core.zksnark import IZKSnarkProvider, get_zksnark_provider, \
     ExtendedProof
 from zeth.core.utils import EtherValue, digest_to_binary_string, \
     int64_to_hex, message_to_bytes, eth_address_to_bytes32, to_zeth_units, \
     get_contracts_dir, hex_to_uint256_list
 from zeth.core.prover_client import ProverConfiguration, ProverClient
-from zeth.api.zeth_messages_pb2 import ZethNote, JoinsplitInput, ProofInputs
+import zeth.api.zeth_messages_pb2 as api
 
 import os
 import json
+import math
 from Crypto import Random
 from hashlib import blake2s, sha256
 import traceback
@@ -42,7 +43,7 @@ JoinsplitSigVerificationKey = signing.SigningVerificationKey
 JoinsplitSigSecretKey = signing.SigningSecretKey
 JoinsplitSigKeyPair = signing.SigningKeyPair
 
-ComputeHSigCB = Callable[[bytes, bytes, JoinsplitSigVerificationKey], bytes]
+ComputeHSigCB = Callable[[List[bytes], JoinsplitSigVerificationKey], bytes]
 
 
 class MixCallDescription:
@@ -55,7 +56,7 @@ class MixCallDescription:
             self,
             mk_tree: MerkleTree,
             sender_ownership_keypair: OwnershipKeyPair,
-            inputs: List[Tuple[int, ZethNote]],
+            inputs: List[Tuple[int, api.ZethNote]],
             outputs: List[Tuple[ZethAddressPub, EtherValue]],
             v_in: EtherValue,
             v_out: EtherValue,
@@ -223,13 +224,13 @@ def event_args_to_mix_result(event_args: Any) -> MixResult:
         output_events=out_events)
 
 
-def create_joinsplit_input(
+def create_api_joinsplit_input(
         merkle_path: List[str],
         address: int,
-        note: ZethNote,
+        note: api.ZethNote,
         a_sk: OwnershipSecretKey,
-        nullifier: bytes) -> JoinsplitInput:
-    return JoinsplitInput(
+        nullifier: bytes) -> api.JoinsplitInput:
+    return api.JoinsplitInput(
         merkle_path=merkle_path,
         address=address,
         note=note,
@@ -238,12 +239,12 @@ def create_joinsplit_input(
 
 
 def get_dummy_input_and_address(
-        a_pk: OwnershipPublicKey) -> Tuple[int, ZethNote]:
+        a_pk: OwnershipPublicKey) -> Tuple[int, api.ZethNote]:
     """
     Create a zeth note and address, for use as circuit inputs where there is no
     real input.
     """
-    dummy_note = ZethNote(
+    dummy_note = api.ZethNote(
         apk=ownership_key_as_hex(a_pk),
         value=ZERO_UNITS_HEX,
         rho=_get_dummy_rho(),
@@ -284,7 +285,6 @@ class MixerClient:
         """
         prover_config = prover_client.get_configuration()
         vk = prover_client.get_verification_key()
-        deploy_gas = deploy_gas or constants.DEPLOYMENT_GAS_WEI
 
         contracts_dir = get_contracts_dir()
         zksnark = get_zksnark_provider(prover_config.zksnark_name)
@@ -350,7 +350,7 @@ class MixerClient:
             sender_ownership_keypair: OwnershipKeyPair,
             sender_eth_address: str,
             sender_eth_private_key: Optional[bytes],
-            inputs: List[Tuple[int, ZethNote]],
+            inputs: List[Tuple[int, api.ZethNote]],
             outputs: List[Tuple[ZethAddressPub, EtherValue]],
             v_in: EtherValue,
             v_out: EtherValue,
@@ -374,8 +374,7 @@ class MixerClient:
             mix_params,
             sender_eth_address,
             sender_eth_private_key,
-            tx_value or v_in,
-            constants.DEFAULT_MIX_GAS_WEI)
+            tx_value or v_in)
 
     def mix(
             self,
@@ -383,7 +382,7 @@ class MixerClient:
             sender_eth_address: str,
             sender_eth_private_key: Optional[bytes],
             tx_value: EtherValue,
-            call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> str:
+            call_gas: Optional[int] = None) -> str:
         """
         Given a MixParameters object, create and broadcast a transaction
         performing the appropriate mix call.
@@ -403,7 +402,7 @@ class MixerClient:
             mix_params: MixParameters,
             sender_eth_address: str,
             tx_value: EtherValue,
-            call_gas: int = constants.DEFAULT_MIX_GAS_WEI) -> bool:
+            call_gas: Optional[int] = None) -> bool:
         """
         Call the mix method (executes on the RPC host without creating a
         transaction). Returns True if the call succeeds. False, otherwise.
@@ -439,7 +438,7 @@ class MixerClient:
     @staticmethod
     def create_prover_inputs(
             mix_call_desc: MixCallDescription
-    ) -> Tuple[ProofInputs, signing.SigningKeyPair]:
+    ) -> Tuple[api.ProofInputs, signing.SigningKeyPair]:
         """
         Given the basic parameters for a mix call, compute the input to the prover
         server, and the signing key pair.
@@ -447,16 +446,29 @@ class MixerClient:
 
         # Compute Merkle paths
         mk_tree = mix_call_desc.mk_tree
-        mk_root = mk_tree.get_root()
+        sender_ask = mix_call_desc.sender_ownership_keypair.a_sk
+
+        def _create_api_input(
+                input_address: int,
+                input_note: api.ZethNote) -> api.JoinsplitInput:
+            mk_path = compute_merkle_path(input_address, mk_tree)
+            input_nullifier = compute_nullifier(input_note, sender_ask)
+            return create_api_joinsplit_input(
+                mk_path,
+                input_address,
+                input_note,
+                sender_ask,
+                input_nullifier)
+
         inputs = mix_call_desc.inputs
-        mk_paths = [compute_merkle_path(addr, mk_tree) for addr, _ in inputs]
+        api_inputs = [_create_api_input(addr, note) for addr, note in inputs]
+
+        mk_root = mk_tree.get_root()
 
         # Extract (<ownership-address>, <value>) tuples
         outputs_with_a_pk = \
             [(zeth_addr.a_pk, to_zeth_units(value))
              for (zeth_addr, value) in mix_call_desc.outputs]
-        output0 = outputs_with_a_pk[0]
-        output1 = outputs_with_a_pk[1]
 
         # Public input and output values as Zeth units
         public_in_value_zeth_units = to_zeth_units(mix_call_desc.v_in)
@@ -464,50 +476,21 @@ class MixerClient:
 
         # Generate the signing key
         signing_keypair = signing.gen_signing_keypair()
-        sender_ask = mix_call_desc.sender_ownership_keypair.a_sk
-
-        # Compute the input note nullifiers
-        (input_address0, input_note0) = mix_call_desc.inputs[0]
-        (input_address1, input_note1) = mix_call_desc.inputs[1]
-        input_nullifier0 = compute_nullifier(input_note0, sender_ask)
-        input_nullifier1 = compute_nullifier(input_note1, sender_ask)
-
-        # Convert to JoinsplitInput objects
-        js_inputs: List[JoinsplitInput] = [
-            create_joinsplit_input(
-                mk_paths[0],
-                input_address0,
-                input_note0,
-                sender_ask,
-                input_nullifier0),
-            create_joinsplit_input(
-                mk_paths[1],
-                input_address1,
-                input_note1,
-                sender_ask,
-                input_nullifier1)
-        ]
 
         # Use the specified or default h_sig computation
         compute_h_sig_cb = mix_call_desc.compute_h_sig_cb or compute_h_sig
         h_sig = compute_h_sig_cb(
-            input_nullifier0,
-            input_nullifier1,
+            [bytes.fromhex(input.nullifier) for input in api_inputs],
             signing_keypair.vk)
         phi = _phi_randomness()
 
-        # Joinsplit Output Notes
-        output_note0, output_note1 = _create_zeth_notes(
-            phi, h_sig, output0, output1)
-        js_outputs = [
-            output_note0,
-            output_note1
-        ]
+        # Create the api.ZethNote objects
+        api_outputs = _create_api_zeth_notes(phi, h_sig, outputs_with_a_pk)
 
-        proof_inputs = ProofInputs(
+        proof_inputs = api.ProofInputs(
             mk_root=mk_root.hex(),
-            js_inputs=js_inputs,
-            js_outputs=js_outputs,
+            js_inputs=api_inputs,
+            js_outputs=api_outputs,
             pub_in_value=int64_to_hex(public_in_value_zeth_units),
             pub_out_value=int64_to_hex(public_out_value_zeth_units),
             h_sig=h_sig.hex(),
@@ -517,7 +500,7 @@ class MixerClient:
     def create_mix_parameters_from_proof(
             self,
             mix_call_desc: MixCallDescription,
-            prover_inputs: ProofInputs,
+            prover_inputs: api.ProofInputs,
             signing_keypair: signing.SigningKeyPair,
             ext_proof: ExtendedProof,
             public_data: List[int],
@@ -538,7 +521,7 @@ class MixerClient:
         # Encrypt the notes
         outputs_and_notes = zip(mix_call_desc.outputs, prover_inputs.js_outputs) \
             # pylint: disable=no-member
-        output_notes_with_k_pk: List[Tuple[ZethNote, EncryptionPublicKey]] = \
+        output_notes_with_k_pk: List[Tuple[api.ZethNote, EncryptionPublicKey]] = \
             [(note, zeth_addr.k_pk)
              for ((zeth_addr, _), note) in outputs_and_notes]
         ciphertexts = encrypt_notes(output_notes_with_k_pk)
@@ -565,7 +548,7 @@ class MixerClient:
             mk_tree: MerkleTree,
             sender_ownership_keypair: OwnershipKeyPair,
             sender_eth_address: str,
-            inputs: List[Tuple[int, ZethNote]],
+            inputs: List[Tuple[int, api.ZethNote]],
             outputs: List[Tuple[ZethAddressPub, EtherValue]],
             v_in: EtherValue,
             v_out: EtherValue,
@@ -588,10 +571,18 @@ class MixerClient:
             v_in,
             v_out,
             compute_h_sig_cb)
+        assert len(mix_call_desc.inputs) == constants.JS_INPUTS
+        assert len(mix_call_desc.outputs) == constants.JS_OUTPUTS
+
         prover_inputs, signing_keypair = MixerClient.create_prover_inputs(
             mix_call_desc)
 
-        # Query the prover_server for the related proof
+        # pylint: disable=no-member
+        assert len(prover_inputs.js_inputs) == constants.JS_INPUTS
+        assert len(prover_inputs.js_outputs) == constants.JS_OUTPUTS
+        # pylint: enable=no-member
+
+        # Query the prover-server for the related proof
         ext_proof, public_data = prover_client.get_proof(prover_inputs)
 
         # Create the final MixParameters object
@@ -608,13 +599,14 @@ class MixerClient:
 
 
 def encrypt_notes(
-        notes: List[Tuple[ZethNote, EncryptionPublicKey]]) -> List[bytes]:
+        notes: List[Tuple[api.ZethNote, EncryptionPublicKey]]) -> List[bytes]:
     """
     Encrypts a set of output notes to be decrypted by the respective receivers.
     Returns the ciphertexts corresponding to each note.
     """
 
-    def _encrypt_note(out_note: ZethNote, pub_key: EncryptionPublicKey) -> bytes:
+    def _encrypt_note(
+            out_note: api.ZethNote, pub_key: EncryptionPublicKey) -> bytes:
         out_note_bytes = proto_utils.zeth_note_to_bytes(out_note)
 
         return encrypt(out_note_bytes, pub_key)
@@ -626,7 +618,7 @@ def encrypt_notes(
 def receive_note(
         out_ev: MixOutputEvents,
         receiver_k_sk: EncryptionSecretKey
-) -> Optional[Tuple[bytes, ZethNote]]:
+) -> Optional[Tuple[bytes, api.ZethNote]]:
     """
     Given the receivers secret key, and the event data from a transaction
     (encrypted notes), decrypt any that are intended for the receiver. Return
@@ -643,18 +635,6 @@ def receive_note(
         return None
     except ValueError:
         return None
-
-
-def parse_mix_call(
-        mixer_instance: Any,
-        _tx_receipt: str) -> MixResult:
-    """
-    Get the logs data associated with this mixing
-    """
-    log_mix_filter = mixer_instance.eventFilter("LogMix", {'fromBlock': 'latest'})
-    log_mix_events = log_mix_filter.get_all_entries()
-    mix_results = [event_args_to_mix_result(ev.args) for ev in log_mix_events]
-    return mix_results[0]
 
 
 def get_mix_results(
@@ -718,7 +698,7 @@ def joinsplit_sign(
     return signing.sign(signing_keypair.sk, message_digest)
 
 
-def compute_commitment(zeth_note: ZethNote, pp: PairingParameters) -> bytes:
+def compute_commitment(zeth_note: api.ZethNote, pp: PairingParameters) -> bytes:
     """
     Used by the recipient of a payment to recompute the commitment and check
     the membership in the tree to confirm the validity of a payment
@@ -736,7 +716,7 @@ def compute_commitment(zeth_note: ZethNote, pp: PairingParameters) -> bytes:
 
 
 def compute_nullifier(
-        zeth_note: ZethNote,
+        zeth_note: api.ZethNote,
         spending_authority_ask: OwnershipSecretKey) -> bytes:
     """
     Returns nf = blake2s(1110 || [a_sk]_252 || rho)
@@ -752,50 +732,40 @@ def compute_nullifier(
 
 
 def compute_h_sig(
-        nf0: bytes,
-        nf1: bytes,
+        nullifiers: List[bytes],
         sign_vk: JoinsplitSigVerificationKey) -> bytes:
     """
-    Compute h_sig = sha256(nf0 || nf1 || sign_vk)
-    Flatten the verification key
+    Compute h_sig = sha256(nf_1 || ... || nf_{JS_INPUTS} || sign_vk)
     """
     h = sha256()
-    h.update(nf0)
-    h.update(nf1)
+    for nf in nullifiers:
+        h.update(nf)
     h.update(sign_vk.to_bytes())
     return h.digest()
 
 
-def _create_zeth_notes(
+def _create_api_zeth_notes(
         phi: bytes,
         hsig: bytes,
-        output0: Tuple[OwnershipPublicKey, int],
-        output1: Tuple[OwnershipPublicKey, int]
-) -> Tuple[ZethNote, ZethNote]:
+        outputs: List[Tuple[OwnershipPublicKey, int]]
+) -> List[api.ZethNote]:
     """
-    Create two ordered ZethNotes. Used to generate new output
-    notes to be passed to the prover server.
+    Create ordered list of api.ZethNote objects from the output descriptions.
     """
-    (recipient0, value0) = output0
-    (recipient1, value1) = output1
+    def _create_api_zeth_note(
+            out_index: int, recipient: OwnershipPublicKey, value: int
+    ) -> api.ZethNote:
+        rho = _compute_rho_i(phi, hsig, out_index)
+        trap_r = _trap_r_randomness()
+        return api.ZethNote(
+            apk=ownership_key_as_hex(recipient),
+            value=int64_to_hex(value),
+            rho=rho.hex(),
+            trap_r=trap_r)
 
-    rho0 = _compute_rho_i(phi, hsig, 0)
-    trap_r0 = _trap_r_randomness()
-    note0 = ZethNote(
-        apk=ownership_key_as_hex(recipient0),
-        value=int64_to_hex(value0),
-        rho=rho0.hex(),
-        trap_r=trap_r0)
-
-    rho1 = _compute_rho_i(phi, hsig, 1)
-    trap_r1 = _trap_r_randomness()
-    note1 = ZethNote(
-        apk=ownership_key_as_hex(recipient1),
-        value=int64_to_hex(value1),
-        rho=rho1.hex(),
-        trap_r=trap_r1)
-
-    return note0, note1
+    return [
+        _create_api_zeth_note(idx, recipient, value)
+        for idx, (recipient, value) in enumerate(outputs)]
 
 
 def _proof_and_inputs_to_bytes(
@@ -826,21 +796,36 @@ def _trap_r_randomness() -> str:
 
 def _compute_rho_i(phi: bytes, hsig: bytes, i: int) -> bytes:
     """
-    Returns rho_i = blake2s(0 || i || 10 || [phi]_252 || hsig)
+    Returns
+      rho_i = blake2s(0 || i || 10 || phi_truncated || hsig)
+    where i is encoded in the smallest number of bits (index_bits) required to
+    hold values 0, ..., JS_OUTPUTS-1, and phi_truncated is binary
+    representation of phi, truncated to 256 - index_bits - 3 bits.
+
     See: Zcash protocol spec p. 57, Section 5.4.2 Pseudo Random Functions
     """
-    # [SANITY CHECK] make sure i is in the interval [0, JS_INPUTS]. For now,
-    # this code also relies on JS_INPUTS being <= 2.
-    assert i < constants.JS_INPUTS
-    assert constants.JS_INPUTS <= 2, \
-        "function needs updating to support JS_INPUTS > 2"
+    assert i < constants.JS_OUTPUTS
 
+    # Compute the number of bits required to represent the input index, and
+    # truncate phi so that:
+    #   left_leg = 0 || i || 10 || phi_truncated
+    # occupies exactly 256 bits
+
+    index_bits = math.ceil(math.log(constants.JS_OUTPUTS, 2))
+    index_bin = f"{i:b}"
+    index_bin = "0" * (index_bits - len(index_bin)) + index_bin
+    assert len(index_bin) == index_bits, \
+        f"index_bits: {index_bits}, index_bin: {index_bin}, i: {i}"
+
+    phi_truncated_bits = 256 - 1 - index_bits - 2
+    phi_truncated_bin = digest_to_binary_string(phi)[:phi_truncated_bits]
+    assert len(phi_truncated_bin) == phi_truncated_bits
+
+    left_leg_bin = "0" + index_bin + "10" + phi_truncated_bin
+    assert len(left_leg_bin) == 256
+
+    # Compute blake2s(left_leg || hsig)
     blake_hash = blake2s()
-
-    # Append PRF^{rho} tag to a_sk
-    binary_phi = digest_to_binary_string(phi)
-    first_252bits_phi = binary_phi[:252]
-    left_leg_bin = "0" + str(i) + "10" + first_252bits_phi
     blake_hash.update(int(left_leg_bin, 2).to_bytes(32, byteorder='big'))
     blake_hash.update(hsig)
     return blake_hash.digest()

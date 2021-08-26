@@ -14,8 +14,8 @@ from zeth.core.prover_client import ProverClient
 from zeth.core.zeth_address import ZethAddressPriv
 from zeth.core.mixer_client import MixOutputEvents, MixerClient
 from zeth.core.wallet import Wallet, ZethNoteDescription
-import test_commands.mock as mock
-import test_commands.scenario as scenario
+from test_commands import mock
+from test_commands import scenario
 
 from os.path import join, exists
 import shutil

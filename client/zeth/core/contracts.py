@@ -7,11 +7,10 @@
 from __future__ import annotations
 from zeth.core.utils import EtherValue
 from zeth.core.constants import SOL_COMPILER_VERSION
-from web3.utils.contracts import find_matching_event_abi  # type: ignore
-from web3.utils.events import get_event_data  # type: ignore
-from eth_utils import event_abi_to_log_topic  # type: ignore
+from web3._utils.contracts import find_matching_event_abi
+from eth_utils import event_abi_to_log_topic
 import solcx
-from typing import Dict, List, Iterator, Optional, Union, Iterable, Any
+from typing import Dict, List, Iterator, Optional, Union, Iterable, Any, cast
 
 # Avoid trying to read too much data into memory
 SYNC_BLOCKS_PER_BATCH = 1000
@@ -44,7 +43,7 @@ class InstanceDescription:
             contract_name: str,
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
-            deployment_gas: int,
+            deployment_gas: Optional[int],
             compiler_flags: Dict[str, Any] = None,
             args: Iterable[Any] = None) -> InstanceDescription:
         """
@@ -72,7 +71,7 @@ class InstanceDescription:
             web3: Any,
             deployer_eth_address: str,
             deployer_eth_private_key: Optional[bytes],
-            deployment_gas: int,
+            deployment_gas: Optional[int],
             compiled: Any,
             *args: Any) -> InstanceDescription:
         contract = web3.eth.contract(
@@ -153,6 +152,7 @@ def send_contract_call(
         transaction = call.buildTransaction(tx_desc)
         signed_tx = web3.eth.account.signTransaction(
             transaction, sender_eth_private_key)
+        print(f"send_contract_call: size={len(signed_tx.rawTransaction)}")
         return web3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
     # Hosted path
@@ -201,10 +201,12 @@ def get_event_logs(
     # skpping events with other topics, from the same contract.
 
     contract_address = instance.address
-    event_abi = find_matching_event_abi(instance.abi, event_name=event_name)
-    log_topic = event_abi_to_log_topic(event_abi)
-    batch_size = batch_size or SYNC_BLOCKS_PER_BATCH
+    contract_event = instance.events[event_name]()
 
+    event_abi = find_matching_event_abi(instance.abi, event_name=event_name)
+    log_topic = event_abi_to_log_topic(cast(Dict[str, Any], event_abi))
+
+    batch_size = batch_size or SYNC_BLOCKS_PER_BATCH
     while start_block <= end_block:
         # Filters are *inclusive* wrt "toBlock", hence the -1 here, and +1 to
         # set start_block before iterating.
@@ -217,12 +219,12 @@ def get_event_logs(
         logs = web3.eth.getLogs(filter_params)
         for log in logs:
             if log_topic == log['topics'][0]:
-                yield get_event_data(event_abi, log)
+                yield contract_event.processLog(log)
         start_block = to_block + 1
 
 
 def get_event_logs_from_tx_receipt(
-        instance_desc: InstanceDescription,
+        instance: Any,
         event_name: str,
         tx_receipt: Any) -> Iterator[Any]:
     """
@@ -231,9 +233,11 @@ def get_event_logs_from_tx_receipt(
     objects to be decoded by the caller. This function intentionally avoids
     connecting to a node, or creating host-side filters.
     """
-    contract_address = instance_desc.address
-    event_abi = find_matching_event_abi(instance_desc.abi, event_name=event_name)
-    log_topic = event_abi_to_log_topic(event_abi)
+    contract_address = instance.address
+    contract_event = instance.events[event_name]()
+
+    event_abi = find_matching_event_abi(instance.abi, event_name=event_name)
+    log_topic = event_abi_to_log_topic(cast(Dict[str, Any], event_abi))
     for log in tx_receipt.logs:
         if log.address == contract_address and log_topic == log['topics'][0]:
-            yield get_event_data(event_abi, log)
+            yield contract_event.processLog(log)

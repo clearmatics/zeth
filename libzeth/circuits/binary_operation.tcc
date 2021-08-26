@@ -254,7 +254,7 @@ void double_bit32_sum_eq_gadget<FieldT>::generate_r1cs_witness()
     bits32 a_bits32 = bits32::from_vector(a.get_bits(this->pb));
     bits32 b_bits32 = bits32::from_vector(b.get_bits(this->pb));
     bits32 left_side_acc = bits_add<32>(a_bits32, b_bits32, false);
-    left_side_acc.fill_variable_array(this->pb, res);
+    left_side_acc.fill_pb_variable_array(this->pb, res);
 }
 
 } // namespace libzeth

@@ -7,6 +7,7 @@ from zeth.core.merkle_tree import ITreeHash
 from Crypto.Hash import keccak \
     # pylint: disable=import-error,no-name-in-module,line-too-long  #type: ignore
 from abc import abstractmethod
+from typing import List
 
 # Reference papers:
 #
@@ -115,6 +116,23 @@ class MiMCBLS12_377(MiMC17Base):  # pylint: disable=invalid-name
             seed_str,
             8444461749428370424248824938781546531375899335154063827935233455917409239041,  # noqa
             62)
+
+
+def generate_round_constants(seed_str: str, num_rounds: int) -> List[int]:
+    """
+    Return the first `num_rounds` round constants. Not called directly here,
+    but used to precompute (in particular for the mimc_permutation gadget).
+    """
+    seed = _keccak_256(_str_to_bytes(seed_str))
+    rc = seed
+
+    rcs = [0]
+    for _ in range(1, num_rounds):
+        rc = _update_round_constant(rc)
+        rcs.append(rc)
+
+    assert len(rcs) == num_rounds
+    return rcs
 
 
 def get_tree_hash_for_pairing(pairing_name: str) -> ITreeHash:

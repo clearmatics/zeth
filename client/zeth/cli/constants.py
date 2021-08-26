@@ -10,6 +10,7 @@ Constants and defaults specific to the CLI interface.
 ETH_RPC_ENDPOINT_DEFAULTS = {
     "ganache": "http://localhost:8545",
     "autonity-helloworld": "http://localhost:8541",
+    "bakerloo": "https://rpc3.bakerloo.autonity.network:8545",
 }
 
 ETH_NETWORK_FILE_DEFAULT = "eth-network"

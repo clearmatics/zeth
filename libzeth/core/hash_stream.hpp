@@ -32,7 +32,7 @@ template<typename HashT> class hash_ostream_wrapper;
 template<typename HashT> class hash_istream_wrapper;
 
 /// Internal streambuf for hash_ostream. Hash and discard all written data.
-template<typename HashT> class hash_streambuf : std::streambuf
+template<typename HashT> class hash_streambuf : public std::streambuf
 {
 protected:
     hash_streambuf();
@@ -44,7 +44,7 @@ protected:
 };
 
 /// Internal streambuf for wrapped streams. Hash data and forward.
-template<typename HashT> class hash_streambuf_wrapper : std::streambuf
+template<typename HashT> class hash_streambuf_wrapper : public std::streambuf
 {
 protected:
     explicit hash_streambuf_wrapper(std::ostream *inner);

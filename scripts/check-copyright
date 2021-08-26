@@ -8,7 +8,7 @@ function check_copyright_files() {
     count=0
     while read -r file ; do
         if ! (head -n 4 ${file} | grep -q "Copyright\|DISCLAIMER") ; then
-            echo "check_copyright: ${file}"
+            echo "check-copyright: ${file}"
             count=$((${count} + 1))
         fi
     done
@@ -20,6 +20,6 @@ if ! (git ls-files '*.py' | check_copyright_files && \
           git ls-files 'mpc/commands' | check_copyright_files && \
           git ls-files '*.hpp' '*.cpp' '*.tcc' | check_copyright_files)
 then
-    echo "check_copyright: ERROR: the above files have missing copyright notices"
+    echo "check-copyright: ERROR: the above files have missing copyright notices"
     exit 1
 fi

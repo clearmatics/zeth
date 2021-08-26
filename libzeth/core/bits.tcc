@@ -37,7 +37,7 @@ template<size_t numBits> bits<numBits>::bits()
 
 template<size_t numBits>
 template<typename... boolList>
-bits<numBits>::bits(const boolList &... bits)
+bits<numBits>::bits(const boolList &...bits)
     : std::array<bool, numBits>{std::forward<bool>(bits)...}
 {
 }
@@ -106,7 +106,7 @@ template<size_t numBits> bool bits<numBits>::is_zero() const
 
 template<size_t numBits>
 template<typename FieldT>
-void bits<numBits>::fill_variable_array(
+void bits<numBits>::fill_pb_variable_array(
     libsnark::protoboard<FieldT> &pb,
     libsnark::pb_variable_array<FieldT> &var_array) const
 {
