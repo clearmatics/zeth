@@ -45,7 +45,7 @@ def eth_fund(
             # with the password 'test'. Attempt to unlock it.
             # pylint: disable=import-outside-toplevel, no-member
             from web3.middleware import geth_poa_middleware  # type: ignore
-            web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+            web3.middleware_onion.inject(geth_poa_middleware, layer=0)
             web3.personal.unlockAccount(source_addr, "test")
 
     source_addr = load_eth_address(source_addr)
