@@ -16,7 +16,7 @@ project(zeth CXX)
 
 # Versionning of the project
 set(ZETH_VERSION_MAJOR 0)
-set(ZETH_VERSION_MINOR 7)
+set(ZETH_VERSION_MINOR 8)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
