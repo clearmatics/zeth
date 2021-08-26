@@ -15,7 +15,7 @@ jobs:
         key: grpc-1.31.x-${{ runner.os }}
         path: depends/grpc
     - name: Build grpc
-      run: if ! [ -d depends/grpc ] ; then scripts/install_grpc /usr v1.31.x ; fi
+      run: if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.31.x ; fi
 
   build-documentation:
     runs-on: ubuntu-20.04
@@ -36,7 +36,7 @@ jobs:
         source scripts/build_utils.sh
         init_platform
         cpp_build_setup
-        INSTALL_ONLY=1 scripts/install_grpc /usr v1.31.x
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.31.x
         sudo apt install -y doxygen graphviz
     - name: Generatate documentation
       run: |
