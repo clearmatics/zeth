@@ -30,7 +30,8 @@ def eth_fund(
         amount: int) -> None:
     """
     Fund an address. If no source address is given, the first hosted account on
-    the RPC host is used.
+    the RPC host is used. This command should only be used in test environments
+    such as ganache or autonity-helloworld.
     """
     eth_addr = load_eth_address(eth_addr)
     eth_network = get_eth_network(ctx.obj["eth_network"])
@@ -45,9 +46,10 @@ def eth_fund(
             # with the password 'test'. Attempt to unlock it.
             # pylint: disable=import-outside-toplevel, no-member
             from web3.middleware import geth_poa_middleware  # type: ignore
-            web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+            web3.middleware_onion.inject(geth_poa_middleware, layer=0)
             web3.personal.unlockAccount(source_addr, "test")
 
+    source_addr = load_eth_address(source_addr)
     print(f"eth_addr = {eth_addr}")
     print(f"source_addr = {source_addr}")
     print(f"amount = {amount}")
