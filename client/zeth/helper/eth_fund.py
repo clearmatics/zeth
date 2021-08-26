@@ -48,6 +48,7 @@ def eth_fund(
             web3.middleware_stack.inject(geth_poa_middleware, layer=0)
             web3.personal.unlockAccount(source_addr, "test")
 
+    source_addr = load_eth_address(source_addr)
     print(f"eth_addr = {eth_addr}")
     print(f"source_addr = {source_addr}")
     print(f"amount = {amount}")
