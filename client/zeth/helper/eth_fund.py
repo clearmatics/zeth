@@ -30,7 +30,8 @@ def eth_fund(
         amount: int) -> None:
     """
     Fund an address. If no source address is given, the first hosted account on
-    the RPC host is used.
+    the RPC host is used. This command should only be used in test environments
+    such as ganache or autonity-helloworld.
     """
     eth_addr = load_eth_address(eth_addr)
     eth_network = get_eth_network(ctx.obj["eth_network"])
