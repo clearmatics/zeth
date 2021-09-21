@@ -3,7 +3,7 @@
 # All functions expect to be executed the root directory of the repository, and
 # will exit with this as the current directory.
 
-./scripts/build_utils.sh
+. scripts/build_utils.sh
 
 # Launch a server in the background and wait for it to be ready, recording the
 # pid in a file.
