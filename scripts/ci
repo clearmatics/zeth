@@ -44,6 +44,7 @@ function check_contracts() {
 
     # Run checks in zeth_contracts
     pushd zeth_contracts
+    npm install
     npm run check
     popd # zeth_contracts
 

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+echo Starting ganache docker container.  Press CTRL-C to exit.
+
+# Run ganache from the Docker container, passing in the flags required by the
+# zeth tests.
+docker run \
+       --rm \
+       -p 8545:8545 \
+       ghcr.io/clearmatics/ganache-cli:latest \
+       --hardfork istanbul \
+       --gasLimit 0x3FFFFFFFFFFFF \
+       --gasPrice 1 \
+       --defaultBalanceEther 9000000000
