@@ -38,7 +38,7 @@ jobs:
         cpp_build_setup
         INSTALL_ONLY=1 scripts/install-grpc /usr v1.31.x
         sudo apt install -y doxygen graphviz
-    - name: Generatate documentation
+    - name: Generate documentation
       run: |
         mkdir -p build
         pushd build
