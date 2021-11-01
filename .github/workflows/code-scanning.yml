@@ -38,14 +38,12 @@ jobs:
         uses: github/codeql-action/analyze@v1
 
   codeql-py-build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
+          submodules: recursive
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -54,9 +52,9 @@ jobs:
       - name: Custom dependencies installation
         run: |
           cd client
-          python -m venv env
+          python3 -m venv env
           source env/bin/activate
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip --progress-bar off
           pip install --upgrade setuptools wheel
           make setup
           echo "CODEQL_PYTHON=$(which python)" >> $GITHUB_ENV
