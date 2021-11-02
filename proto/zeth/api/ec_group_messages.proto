@@ -23,7 +23,7 @@ message Group1Point {
 // The points in G2 are represented in affine form. Coordinates are encoded as
 // JSON objects containing hexadecimal strings. Depending on the pairing,
 // coordinates may be in the base field (simple strings, as for G1) or in
-// extension fields (JSON arrays of stings).
+// extension fields (JSON arrays of strings).
 //
 // e.g. Let A be a `Group2Point` message. Then `A` is of the form:
 // ```

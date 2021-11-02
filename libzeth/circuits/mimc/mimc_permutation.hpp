@@ -12,7 +12,7 @@ namespace libzeth
 
 /// MiMC_permutation_gadget enforces correct computation of the MiMC
 /// permutation, denoted MiMC_r(k, m) in the Zeth specifications
-/// (https://github.com/clearmatics/zeth-specifications), by peforming
+/// (https://github.com/clearmatics/zeth-specifications), by performing
 /// NumRounds MiMC rounds with the given Exponent. An optional `add_to_result`
 /// value can be passed in to be added to the result of the regular MiMC
 /// permutation (without requiring extra constraints).
@@ -23,7 +23,8 @@ private:
     // Round constants only available up to some maximum number of rounds. Note
     // that the instantiations used in this library do not use all 93 round
     // constants, but other instantiations may (in particular, see
-    // instantations for other curves in https://github.com/clearmatics/zecale).
+    // instantiations for other curves in
+    // https://github.com/clearmatics/zecale).
     static const size_t MaxRounds = 93;
     static_assert(
         NumRounds <= MaxRounds, "NumRounds must be less than MaxRounds");

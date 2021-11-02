@@ -142,7 +142,7 @@ srs_mpc_layer_L1<ppT> mpc_compute_linearcombination(
     // n = number of constraints in r1cs, or equivalently, n = deg(t(x))
     // t(x) being the target polynomial of the QAP
     // Note: In the code-base the target polynomial is also denoted Z
-    // as refered to as "the vanishing polynomial", and t is also used
+    // as referred to as "the vanishing polynomial", and t is also used
     // to represent the query point (aka "tau").
     const size_t n = qap.degree();
     const size_t num_variables = qap.num_variables();
