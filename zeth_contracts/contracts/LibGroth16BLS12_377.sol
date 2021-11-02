@@ -90,7 +90,7 @@ library LibGroth16BLS12_377
         //   0x000    accum_x                         --    --
 
         assembly {
-            // Copied from bn implemenation in zeth.
+            // Copied from bn implementation in zeth.
             let g := sub(gas(), 2000)
 
             // Compute starting slot of the vk data and abc data.

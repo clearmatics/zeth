@@ -192,10 +192,11 @@ private:
                      final_transcript_digest,
                      sizeof(mpc_hash_t))) {
             throw std::invalid_argument(
-                "invalid transcript digest in final accumlator");
+                "invalid transcript digest in final accumulator");
         }
         if (final_challenge.accumulator.delta_g1 != final_delta) {
-            throw std::invalid_argument("invalid delta_g1 in final accumlator");
+            throw std::invalid_argument(
+                "invalid delta_g1 in final accumulator");
         }
         if (!srs_mpc_phase2_update_is_consistent(
                 challenge_0.accumulator, final_challenge.accumulator)) {

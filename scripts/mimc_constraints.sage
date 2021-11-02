@@ -44,7 +44,7 @@ def output_valid_config_and_constraints(r, log_2_r, e):
         mults = compute_mults(e)
         rounds = ceil(log_2_r / log(e, 2))
         constraints = mults * rounds + 1
-        print(f"  e={e}, rounds={rounds}, mults={mults}, contraints={constraints}")
+        print(f"  e={e}, rounds={rounds}, mults={mults}, constraints={constraints}")
 
 
 def output_valid_configs_and_constraints(r):

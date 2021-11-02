@@ -76,7 +76,7 @@ def get_constraints(constraints_set, annotation_index):
 
 def get_constraints_from_annotation_pattern(constraints_set, annotation_pattern):
     """
-    Returns a set fo constraints which annotation matches the given pattern.
+    Returns a set of constraints which annotation matches the given pattern.
     The regex is given by the user (which can be quite dangerous but
     the goal of this script is not to be robust anyway)
     """
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     r1cs_variables_nb = r1cs_obj["num_variables"]
     r1cs_constraints_nb = r1cs_obj["num_constraints"]
 
-    print("R1CS succesfully loaded, vars: {}, constraints: {}"
+    print("R1CS successfully loaded, vars: {}, constraints: {}"
             .format(r1cs_variables_nb, r1cs_variables_nb))
 
     variables_annotations_set = r1cs_obj["variables_annotations"]

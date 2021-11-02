@@ -27,7 +27,7 @@ from typing import List
 
 class MiMCBase(ITreeHash):
     """
-    Base class of MiMC implmentations.
+    Base class of MiMC implementations.
     """
     def __init__(
             self,

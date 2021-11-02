@@ -64,7 +64,7 @@ private:
     std::shared_ptr<merkle_path_authenticator<FieldT, HashTreeT>>
         check_membership;
 
-    // Makes sure the a_pk is computed corectly from a_sk
+    // Makes sure the a_pk is computed correctly from a_sk
     std::shared_ptr<PRF_addr_a_pk_gadget<FieldT, HashT>> spend_authority;
     // Makes sure the nullifiers are computed correctly from rho and a_sk
     std::shared_ptr<PRF_nf_gadget<FieldT, HashT>> expose_nullifiers;
