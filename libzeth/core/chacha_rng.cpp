@@ -21,7 +21,7 @@ chacha_rng::chacha_rng(const void *seed, size_t seed_size)
     : data_used(sizeof(block))
 {
     // Copies behaviour of ChaChaRng::from_seed() from the referenced code.
-    // Use the first 8 words of seed(padding with 0 if necessary), as the key.
+    // Use the first 8 words of seed (padding with 0 if necessary) as the key.
     seed_size = std::min(seed_size, sizeof(key));
     memcpy(key, seed, seed_size);
     if (seed_size < sizeof(key)) {
