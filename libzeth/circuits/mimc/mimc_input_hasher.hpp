@@ -6,6 +6,7 @@
 #define __ZETH_CIRCUITS_MIMC_MIMC_INPUT_HASHER_HPP__
 
 #include <libsnark/gadgetlib1/gadget.hpp>
+#include <memory>
 
 namespace libzeth
 {
