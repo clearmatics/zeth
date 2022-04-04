@@ -19,10 +19,10 @@ jobs:
     - name: Cache grpc
       uses: actions/cache@v2
       with:
-        key: grpc-1.32.x-${{ runner.os }}
+        key: grpc-1.44.x-${{ runner.os }}
         path: depends/grpc
     - name: Build grpc
-      run: if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.32.x ; fi
+      run: if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.44.x ; fi
 
   # Extract the commits of submodules for use by cache steps
   onpr-submodules:
@@ -51,7 +51,7 @@ jobs:
     - name: Cache grpc
       uses: actions/cache@v2
       with:
-        key: grpc-1.32.x-${{ runner.os }}
+        key: grpc-1.44.x-${{ runner.os }}
         path: depends/grpc
     - name: Cache pip
       uses: actions/cache@v2
@@ -62,7 +62,7 @@ jobs:
         key: prover-tests-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
-        INSTALL_ONLY=1 scripts/install-grpc /usr v1.32.x
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.44.x
         sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_CURVE=${{ matrix.curve }} CI_PROVER_TESTS=1 scripts/ci build
@@ -81,7 +81,7 @@ jobs:
     - name: Cache grpc
       uses: actions/cache@v2
       with:
-        key: grpc-1.32.x-${{ runner.os }}
+        key: grpc-1.44.x-${{ runner.os }}
         path: depends/grpc
     - name: Cache pip
       uses: actions/cache@v2
@@ -92,7 +92,7 @@ jobs:
         key: integration-tests-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
-        INSTALL_ONLY=1 scripts/install-grpc /usr v1.32.x
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.44.x
         sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_CURVE=${{ matrix.curve }} CI_FULL_TESTS=1 CI_INTEGRATION_TESTS=1 scripts/ci build
