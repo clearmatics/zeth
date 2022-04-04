@@ -31,7 +31,7 @@ RUN apk --update --no-cache add \
         vim \
         curl
 
-RUN git clone -b v1.31.x https://github.com/grpc/grpc /var/local/git/grpc
+RUN git clone -b v1.32.x https://github.com/grpc/grpc /var/local/git/grpc
 RUN cd /var/local/git/grpc && git submodule update --init --recursive
 
 # Build protobuf independently and install libraries in /usr/lib
