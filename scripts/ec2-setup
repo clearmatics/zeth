@@ -31,7 +31,7 @@ sudo sh -c 'echo /usr/local/lib > /etc/ld.so.conf.d/local-x86_64.conf'
 sudo ldconfig
 
 # Install grpc
-scripts/install-grpc /usr/local v1.32.x
+scripts/install-grpc /usr/local v1.44.x
 
 # Install and activate nodejs
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
