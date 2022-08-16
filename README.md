@@ -3,18 +3,19 @@
 ![macOS build](https://github.com/clearmatics/zeth/workflows/zeth-ci-push-build-macos/badge.svg)
 ![ubuntu build](https://github.com/clearmatics/zeth/workflows/zeth-ci-push-build-ubuntu/badge.svg)
 
-:rotating_light: **WARNING** This project is a Proof of Concept. It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
+**WARNING** This project is a Proof of Concept. It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
 
-**Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git).
-It follows and extends the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by [Zcash](https://github.com/zcash/zcash).
+**Disclaimer:** This work is inspired from [babyzoe](https://github.com/zcash-hackworks/babyzoe), [Miximus](https://github.com/barryWhiteHat/miximus.git). It follows and extends the design presented in [zerocash-ethereum](https://github.com/AntoineRondelet/zerocash-ethereum) by adapting some code initially written by [Zcash](https://github.com/zcash/zcash).
 
-:point_right: Check our [paper](https://arxiv.org/pdf/1904.00905.pdf), and the [protocol specifications](https://github.com/clearmatics/zeth-specifications) for more information about Zeth.
+It is not intended for handling real value or for use on public networks. The authors have not created any such deployment, and assume no responsibility for any fork of the code or deployment created by other parties.
 
-:raising_hand: Want to propose a protocol change? Amazing! Please consider writing a [Zeth Protocol Improvement Proposal (ZPIP)](https://github.com/clearmatics/zpips).
+Check our [paper](https://arxiv.org/pdf/1904.00905.pdf), and the [protocol specifications](https://github.com/clearmatics/zeth-specifications) for more information about Zeth.
+
+Collaboration is welcome.  Consider opening an issue or a pull-request targeting this repository, or writing a [Zeth Protocol Improvement Proposal (ZPIP)](https://github.com/clearmatics/zpips).
 
 ## Building and running the project:
 
-:computer: **Warning** This project primarily targets x86_64 Linux and macOS platforms.
+**Warning** This project primarily targets x86_64 Linux and macOS platforms.
 
 ### Environment
 
