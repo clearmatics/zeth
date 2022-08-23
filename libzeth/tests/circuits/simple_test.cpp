@@ -12,6 +12,7 @@
 #include "serialization/r1cs_variable_assignment_serialization.hpp"
 
 #include <boost/filesystem.hpp>
+#include <fstream>
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
