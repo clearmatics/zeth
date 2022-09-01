@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -138,7 +138,7 @@ void BLAKE2s_256_comp<FieldT>::generate_r1cs_witness(
         gadget.generate_r1cs_witness();
     }
 
-    // Retrieve values, swap endiannes of each bit32 and append them to get
+    // Retrieve values, swap endianness of each bit32 and append them to get
     // final output
     std::vector<FieldT> output_conversion;
     for (size_t i = 0; i < 8; i++) {

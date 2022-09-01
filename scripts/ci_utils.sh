@@ -3,7 +3,7 @@
 # All functions expect to be executed the root directory of the repository, and
 # will exit with this as the current directory.
 
-./scripts/build_utils.sh
+. scripts/build_utils.sh
 
 # Launch a server in the background and wait for it to be ready, recording the
 # pid in a file.
@@ -50,20 +50,8 @@ function server_stop() {
 #
 
 function ganache_setup() {
+    # Nothing to do. Just check that the platform vars have been initialized.
     assert_init_platform
-
-    if [ "${platform}" == "Linux" ] ; then
-        if (which apk) ; then
-            apk add --update npm
-        fi
-    fi
-
-    pushd zeth_contracts
-    npm config set python python2.7
-    npm config set engine-strict true
-    npm config set unsafe-perm true
-    npm install --unsafe-perm
-    popd
 }
 
 function ganache_is_active() {
@@ -75,19 +63,15 @@ function ganache_is_active() {
 }
 
 function ganache_start() {
-    pushd zeth_contracts
     server_start \
-        "npm run testrpc" \
+        scripts/ganache-start \
         ganache_is_active \
         ganache.pid \
         ganache.stdout
-    popd
 }
 
 function ganache_stop() {
-    pushd zeth_contracts
     server_stop ganache ganache.pid
-    popd
 }
 
 #

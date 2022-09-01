@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -57,7 +57,7 @@ template<
     void(WriterT)(const MemberT<CollectionT> &, std::ostream &)>
 void collection_write_bytes(const CollectionT &collection, std::ostream &out_s);
 
-/// Read a collection of group elements as bytes, usinng
+/// Read a collection of group elements as bytes, using
 /// group_elements_read_bytes.
 template<
     typename CollectionT,

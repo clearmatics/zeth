@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -28,9 +28,9 @@ setup(
         "pylint==2.9",
         "click==7.0",
         "click-default-group==1.2",
-        "grpcio==1.33.2",
-        "grpcio-tools==1.33.2",
-        "protobuf==3.13.0",
+        "grpcio==1.44",
+        "grpcio-tools==1.44",
+        "protobuf==3.18",
         "py_ecc==1.7.1",
         "py-solc-x==1.1.0",
         "cryptography==3.3.2",

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -515,7 +515,7 @@ class MixerClient:
 
         If for_dispatch_call is set, the parameters are to be passed to the
         Mixer's `dispatch` call in a later operation (in which proof data is
-        not available), hence proof is ommitted from the signature.
+        not available), hence proof is omitted from the signature.
         """
 
         # Encrypt the notes
@@ -559,7 +559,7 @@ class MixerClient:
         Convenience function around creation of MixCallDescription, ProofInputs,
         Proof and MixParameters. If for_dispatch_call is set, the parameters
         are to be passed to the Mixer's `dispatch` call in a later operation
-        (in which proof data is not available), hence proof is ommitted from
+        (in which proof data is not available), hence proof is omitted from
         the signature.
         """
         # Generate prover inputs and signing key
@@ -671,7 +671,7 @@ def joinsplit_sign(
     the hash of the ciphers and inputs for consistency. If for_dispatch_call is
     set, the parameters are to be passed to the Mixer's `dispatch` call in a
     later operation (in which proof data is not available), hence proof is
-    ommitted from the signature.
+    omitted from the signature.
     """
     assert len(ciphertexts) == constants.JS_INPUTS
 

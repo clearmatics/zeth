@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -57,7 +57,7 @@ private:
             "pot-degree",
             po::value<size_t>(),
             "powersoftau degree (assumed equal to lagrange file)")(
-            "verify", "Skip compuation. Load and verify input data");
+            "verify", "Skip computation. Load and verify input data");
         all_options.add(options).add_options()(
             "powersoftau_file", po::value<std::string>(), "powersoftau file")(
             "lagrange_file", po::value<std::string>(), "lagrange file")(

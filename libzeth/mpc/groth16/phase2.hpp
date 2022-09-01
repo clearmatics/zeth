@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -123,7 +123,7 @@ public:
     static srs_mpc_phase2_challenge<ppT> read(std::istream &in);
 };
 
-/// Reponse produced by participant in Phase2 of the SRS generation MPC.
+/// Response produced by participant in Phase2 of the SRS generation MPC.
 /// Implements the interfaces of StructuredT and ReadableT templates.
 template<typename ppT> class srs_mpc_phase2_response
 {
@@ -159,8 +159,8 @@ srs_mpc_phase2_accumulator<ppT> srs_mpc_phase2_begin(
     const srs_mpc_layer_L1<ppT> &layer_L1,
     size_t num_inputs);
 
-/// Outputs the public key (which includes the POK) for our secret. Correponds
-/// to steps 1 and 2 in "Computation", section 7.3 of [BoweGM17]
+/// Outputs the public key (which includes the POK) for our secret.
+/// Corresponds to steps 1 and 2 in "Computation", section 7.3 of [BoweGM17]
 template<typename ppT>
 srs_mpc_phase2_publickey<ppT> srs_mpc_phase2_compute_public_key(
     const mpc_hash_t transcript_digest,
@@ -254,7 +254,7 @@ srs_mpc_phase2_challenge<ppT> srs_mpc_phase2_compute_challenge(
 ///   accumulator, based on the final delta
 ///
 /// This function validates the transcript as a stream of publickey objects,
-/// outputing the encoding of the final delta in G1.
+/// outputting the encoding of the final delta in G1.
 template<typename ppT, bool enable_contribution_check = true>
 bool srs_mpc_phase2_verify_transcript(
     const mpc_hash_t initial_transcript_digest,

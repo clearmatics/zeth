@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -103,7 +103,7 @@ library LibGroth16AltBN128
         //  ready to call bn256Add(in: 0x00, out: 0x00) to update accum_x,
         //  accum_y in place.
 
-        // Memory scratch pad, large enough to accomodate the above layout.
+        // Memory scratch pad, large enough to accommodate the above layout.
         uint256[24] memory pad;
         bool success = true;
         uint256 vk_slot_num;

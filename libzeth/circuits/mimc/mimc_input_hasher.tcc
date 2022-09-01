@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -37,8 +37,8 @@ mimc_input_hasher<FieldT, compFnT>::mimc_input_hasher(
     libsnark::pb_linear_combination<FieldT> iv;
     iv.assign(pb, get_iv());
 
-    // First step: hash_output[0] <- mimc_mp(iv, i[0])
-
+    // First step:
+    //   intermediate[0] <- mimc_mp(iv, inputs[0])
     _compression_functions.emplace_back(new compFnT(
         pb,
         iv,
@@ -48,6 +48,7 @@ mimc_input_hasher<FieldT, compFnT>::mimc_input_hasher(
 
     // Intermediate invocations of the compression function.
     for (size_t i = 1; i < num_inputs; ++i) {
+        // intermediate[i] <- mimc_mp(intermediate[i-1], inputs[i])
         _compression_functions.emplace_back(new compFnT(
             pb,
             _intermediate_values[i - 1],
@@ -57,6 +58,7 @@ mimc_input_hasher<FieldT, compFnT>::mimc_input_hasher(
     }
 
     // Last invocation of compression function to finalize.
+    //   result <- mimc_mp(intermediate[num_inputs - 1], num_inputs)
     libsnark::pb_linear_combination<FieldT> num_inputs_lc;
     num_inputs_lc.assign(pb, FieldT(num_inputs));
     _compression_functions.emplace_back(new compFnT(

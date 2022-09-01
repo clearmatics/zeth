@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -422,7 +422,7 @@ def parse_output(output_str: str) -> Tuple[ZethAddressPub, EtherValue]:
     """
     Parse a string of the form "<receiver_pub_address>,<value>" to an output
     specification. <receiver_pub_address> can be a file name containing the
-    address. "<value>" is interpretted as the <default-address-file>,<value>.
+    address. "<value>" is interpreted as the <default-address-file>,<value>.
     """
     parts = output_str.split(",")
     if len(parts) == 1:

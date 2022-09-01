@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -90,7 +90,7 @@ library LibGroth16BLS12_377
         //   0x000    accum_x                         --    --
 
         assembly {
-            // Copied from bn implemenation in zeth.
+            // Copied from bn implementation in zeth.
             let g := sub(gas(), 2000)
 
             // Compute starting slot of the vk data and abc data.

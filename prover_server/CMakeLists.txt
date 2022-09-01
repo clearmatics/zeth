@@ -54,6 +54,7 @@ target_link_libraries(
   prover-server
 
   zeth
+  tool
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}

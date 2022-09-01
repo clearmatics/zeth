@@ -107,17 +107,7 @@ https://eprint.iacr.org/2016/260).
 #### Terminal 2: Ethereum testnet
 
 ```bash
-# Start the Ethereum test net by running the following commands
-cd zeth_contracts
-
-# If the install below fails with python errors, try running:
-npm config set python python2.7
-
-# Install dependencies
-npm install
-
-# Start a local Ethereum testnet
-npm run testrpc
+scripts/ganache-start
 ```
 
 #### Terminal 3: Python client

@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -866,7 +866,7 @@ TEST(MPCTests, Phase2TranscriptVerification)
         ASSERT_TRUE(contribution_found);
     }
 
-    // Verify and check for non-existant contribution
+    // Verify and check for non-existent contribution
     {
         mpc_hash_t no_such_contribution;
         memset(no_such_contribution, 0, sizeof(mpc_hash_t));

@@ -1,7 +1,8 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libtool/tool_util.hpp"
 #include "libzeth/circuits/circuit_types.hpp"
 #include "libzeth/core/extended_proof.hpp"
 #include "libzeth/core/utils.hpp"
@@ -39,78 +40,6 @@ static void prover_configuration_to_proto(
     prover_config_proto.set_zksnark(snark::name);
     libzeth::pairing_parameters_to_proto<pp>(
         *prover_config_proto.mutable_pairing_parameters());
-}
-
-static snark::keypair load_keypair(const boost::filesystem::path &keypair_file)
-{
-    std::ifstream in_s(
-        keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
-    in_s.exceptions(
-        std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-
-    snark::keypair keypair;
-    snark::keypair_read_bytes(keypair, in_s);
-    return keypair;
-}
-
-static void write_keypair(
-    const typename snark::keypair &keypair,
-    const boost::filesystem::path &keypair_file)
-{
-    std::ofstream out_s(
-        keypair_file.c_str(), std::ios_base::out | std::ios_base::binary);
-    snark::keypair_write_bytes(keypair, out_s);
-}
-
-static void write_proving_key(
-    const typename snark::proving_key &pk,
-    const boost::filesystem::path &pk_file)
-{
-    std::ofstream out_s(
-        pk_file.c_str(), std::ios_base::out | std::ios_base::binary);
-    snark::proving_key_write_bytes(pk, out_s);
-}
-
-static void write_verification_key(
-    const typename snark::verification_key &vk,
-    const boost::filesystem::path &vk_file)
-{
-    std::ofstream out_s(
-        vk_file.c_str(), std::ios_base::out | std::ios_base::binary);
-    snark::verification_key_write_bytes(vk, out_s);
-}
-
-static void write_constraint_system(
-    const circuit_wrapper &prover, const boost::filesystem::path &r1cs_file)
-{
-    std::ofstream r1cs_stream(r1cs_file.c_str());
-    libzeth::r1cs_write_json(prover.get_constraint_system(), r1cs_stream);
-}
-
-static void write_extproof_to_json_file(
-    const libzeth::extended_proof<pp, snark> &ext_proof,
-    const boost::filesystem::path &proof_path)
-{
-    std::ofstream out_s(proof_path.c_str());
-    ext_proof.write_json(out_s);
-}
-
-static void write_proof_to_file(
-    const typename snark::proof &proof,
-    const boost::filesystem::path &proof_path)
-{
-    std::ofstream out_s(
-        proof_path.c_str(), std::ios_base::out | std::ios_base::binary);
-    snark::proof_write_bytes(proof, out_s);
-}
-
-static void write_assignment_to_file(
-    const std::vector<Field> &assignment,
-    const boost::filesystem::path &assignment_path)
-{
-    std::ofstream out_s(
-        assignment_path.c_str(), std::ios_base::out | std::ios_base::binary);
-    libzeth::r1cs_variable_assignment_write_bytes(assignment, out_s);
 }
 
 /// The prover_server class inherits from the Prover service
@@ -281,25 +210,31 @@ public:
             if (!extproof_json_output_file.empty()) {
                 std::cout << "[DEBUG] Writing extended proof (JSON) to "
                           << extproof_json_output_file << "\n";
-                write_extproof_to_json_file(
-                    ext_proof, extproof_json_output_file);
+                std::ofstream out_s(extproof_json_output_file.c_str());
+                ext_proof.write_json(out_s);
             }
             if (!proof_output_file.empty()) {
                 std::cout << "[DEBUG] Writing proof to " << proof_output_file
                           << "\n";
-                write_proof_to_file(ext_proof.get_proof(), proof_output_file);
+                std::ofstream out_s =
+                    libtool::open_binary_output_file(proof_output_file.c_str());
+                snark::proof_write_bytes(ext_proof.get_proof(), out_s);
             }
             if (!primary_output_file.empty()) {
                 std::cout << "[DEBUG] Writing primary input to "
                           << primary_output_file << "\n";
-                write_assignment_to_file(
-                    ext_proof.get_primary_inputs(), primary_output_file);
+                std::ofstream out_s = libtool::open_binary_output_file(
+                    primary_output_file.c_str());
+                libzeth::r1cs_variable_assignment_write_bytes(
+                    ext_proof.get_primary_inputs(), out_s);
             }
             if (!assignment_output_file.empty()) {
                 std::cout << "[DEBUG] WARNING! Writing assignment to "
                           << assignment_output_file << "\n";
-                write_assignment_to_file(
-                    prover.get_last_assignment(), assignment_output_file);
+                std::ofstream out_s = libtool::open_binary_output_file(
+                    assignment_output_file.c_str());
+                libzeth::r1cs_variable_assignment_write_bytes(
+                    prover.get_last_assignment(), out_s);
             }
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
@@ -340,7 +275,7 @@ std::string get_server_version()
 void display_server_start_message()
 {
     std::string copyright =
-        "Copyright (c) 2015-2021 Clearmatics Technologies Ltd";
+        "Copyright (c) 2015-2022 Clearmatics Technologies Ltd";
     std::string license = "SPDX-License-Identifier: LGPL-3.0+";
     std::string project =
         "R&D Department: PoC for Zerocash on Ethereum/Autonity";
@@ -520,25 +455,39 @@ int main(int argc, char **argv)
                               &prover]() {
         if (boost::filesystem::exists(keypair_file)) {
             std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
-            return load_keypair(keypair_file);
+
+            snark::keypair keypair;
+            std::ifstream in_s =
+                libtool::open_binary_input_file(keypair_file.c_str());
+            snark::keypair_read_bytes(keypair, in_s);
+            return keypair;
         }
 
         std::cout << "[INFO] No keypair file " << keypair_file
                   << ". Generating.\n";
         const snark::keypair keypair = prover.generate_trusted_setup();
-        std::cout << "[INFO] Writing new keypair to " << keypair_file << "\n";
-        write_keypair(keypair, keypair_file);
 
         if (!proving_key_output_file.empty()) {
             std::cout << "[DEBUG] Writing separate proving key to "
                       << proving_key_output_file << "\n";
-            write_proving_key(keypair.pk, proving_key_output_file);
+            std::ofstream out_s = libtool::open_binary_output_file(
+                proving_key_output_file.c_str());
+            snark::proving_key_write_bytes(keypair.pk, out_s);
         }
         if (!verification_key_output_file.empty()) {
             std::cout << "[DEBUG] Writing separate verification key to "
                       << verification_key_output_file << "\n";
-            write_verification_key(keypair.vk, verification_key_output_file);
+            std::ofstream out_s = libtool::open_binary_output_file(
+                verification_key_output_file.c_str());
+            snark::verification_key_write_bytes(keypair.vk, out_s);
         }
+
+        // Write the keypair last. If something above fails, this same
+        // code-path will be executed again on the next invocation.
+        std::cout << "[INFO] Writing new keypair to " << keypair_file << "\n";
+        std::ofstream out_s =
+            libtool::open_binary_output_file(keypair_file.c_str());
+        snark::keypair_write_bytes(keypair, out_s);
 
         return keypair;
     }();
@@ -547,7 +496,8 @@ int main(int argc, char **argv)
     // system.
     if (!r1cs_file.empty()) {
         std::cout << "[INFO] Writing R1CS to " << r1cs_file << "\n";
-        write_constraint_system(prover, r1cs_file);
+        std::ofstream r1cs_stream(r1cs_file.c_str());
+        libzeth::r1cs_write_json(prover.get_constraint_system(), r1cs_stream);
     }
 
     std::cout << "[INFO] Setup successful, starting the server..." << std::endl;

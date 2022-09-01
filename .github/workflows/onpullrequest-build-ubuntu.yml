@@ -19,10 +19,10 @@ jobs:
     - name: Cache grpc
       uses: actions/cache@v2
       with:
-        key: grpc-1.31.x-${{ runner.os }}
+        key: grpc-1.44.x-${{ runner.os }}
         path: depends/grpc
     - name: Build grpc
-      run: if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.31.x ; fi
+      run: if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.44.x ; fi
 
   # Extract the commits of submodules for use by cache steps
   onpr-submodules:
@@ -48,19 +48,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - uses: actions/setup-node@v1
-      with:
-        node-version: 10
     - name: Cache grpc
       uses: actions/cache@v2
       with:
-        key: grpc-1.31.x-${{ runner.os }}
+        key: grpc-1.44.x-${{ runner.os }}
         path: depends/grpc
-    # - name: Cache ccache
-    #   uses: actions/cache@v2
-    #   with:
-    #     key: prover-tests-ccache-${{ needs.onpr-submodules.outputs.commits }}-${{ matrix.curve }}-${{ runner.os }}
-    #     path: ~/.ccache
     - name: Cache pip
       uses: actions/cache@v2
       with:
@@ -68,16 +60,9 @@ jobs:
           ~/.cache/pip
           ~/Library/Caches/pip
         key: prover-tests-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
-    - name: Cache npm
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.npm
-          depends/ganache-cli/node_modules
-        key: prover-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
-        INSTALL_ONLY=1 scripts/install-grpc /usr v1.31.x
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.44.x
         sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_CURVE=${{ matrix.curve }} CI_PROVER_TESTS=1 scripts/ci build
@@ -93,21 +78,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - uses: actions/setup-node@v1
-      with:
-        node-version: 10
     - name: Cache grpc
       uses: actions/cache@v2
       with:
-        key: grpc-1.31.x-${{ runner.os }}
+        key: grpc-1.44.x-${{ runner.os }}
         path: depends/grpc
-    # ccache in this job seems to make the tests crash occasionally. Disabling
-    # until the cause is understood.
-    # - name: Cache ccache
-    #   uses: actions/cache@v2
-    #   with:
-    #     key: integration-tests-ccache-${{ needs.onpr-submodules.outputs.commits }}-${{ matrix.curve }}-${{ runner.os }}
-    #     path: ~/.ccache
     - name: Cache pip
       uses: actions/cache@v2
       with:
@@ -115,16 +90,9 @@ jobs:
           ~/.cache/pip
           ~/Library/Caches/pip
         key: integration-tests-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
-    - name: Cache npm
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.npm
-          depends/ganache-cli/node_modules
-        key: integration-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
-        INSTALL_ONLY=1 scripts/install-grpc /usr v1.31.x
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.44.x
         sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_CURVE=${{ matrix.curve }} CI_FULL_TESTS=1 CI_INTEGRATION_TESTS=1 scripts/ci build

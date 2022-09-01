@@ -14,7 +14,7 @@ endif()
 # Sets the env vars PROJECT_SOURCE_DIR, and PROJECT_BINARY_DIR
 project(zeth CXX)
 
-# Versionning of the project
+# Versioning of the project
 set(ZETH_VERSION_MAJOR 0)
 set(ZETH_VERSION_MINOR 8)
 

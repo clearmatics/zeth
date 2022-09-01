@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -158,7 +158,7 @@ TEST(TestG, TestTrue)
     ASSERT_EQ(d2_expected.get_bits(pb), d2.get_bits(pb));
 }
 
-// The test correponds to blake2s(b"hello world")
+// The test corresponds to blake2s(b"hello world")
 // The test vectors were computed with hashlib's blake2s function
 TEST(TestBlake2sComp, TestTrue)
 {
@@ -268,7 +268,7 @@ TEST(TestBlake2sComp, TestTrue)
     ASSERT_EQ(expected.get_bits(pb), output.bits.get_bits(pb));
 }
 
-// The test correponds to blake2s(b"hello world")
+// The test corresponds to blake2s(b"hello world")
 // The test vectors were computed with hashlib's blake2s function
 TEST(TestBlake2s, TestTrue)
 {
@@ -349,7 +349,7 @@ TEST(TestBlake2s, TestTrue)
     ASSERT_EQ(expected.get_bits(pb), output.bits.get_bits(pb));
 }
 
-// The test correponds to blake2s(b"hello world")
+// The test corresponds to blake2s(b"hello world")
 // The test vectors were computed with hashlib's blake2s function
 TEST(TestBlake2s, TestTrue2)
 {

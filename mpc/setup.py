@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+# Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
@@ -33,6 +33,11 @@ setup(
         "ecdsa==0.13.3",
         "click==7.0",
         "requests==2.22.0",
+        # flask constraints on dependencies are too loose. Constrain the
+        # versions here to avoid CI failures.
+        "Jinja2==3.0.3",
+        "itsdangerous==2.0.1",
+        "Werkzeug==2.0.2",
     ],
     scripts=[
         "commands/phase1_server",

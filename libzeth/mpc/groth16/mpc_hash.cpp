@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -9,7 +9,7 @@
 namespace libzeth
 {
 
-// In the text representation, use 16 x 4-byte words, (each representated as 8
+// In the text representation, use 16 x 4-byte words, (each represented as 8
 // digits + separator).
 using hash_repr_word = uint32_t;
 static const size_t HASH_REPR_WORD_SIZE = sizeof(hash_repr_word);

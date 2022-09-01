@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -88,7 +88,7 @@ private:
     // inputs above are allocated first, so only the first
     // get_num_public_elements allocated by this gadget are "public").
 
-    // Total amount transfered in the transaction
+    // Total amount transferred in the transaction
     libsnark::pb_variable_array<FieldT> zk_total_uint64;
     // List of all spending keys
     std::array<std::shared_ptr<libsnark::digest_variable<FieldT>>, NumInputs>
@@ -356,7 +356,7 @@ public:
                 pb, ZERO, a_sks[i]->bits, h_sig->bits, i, h_is[i]));
         }
 
-        // Ouput note gadgets for commitments as well as PRF gadgets for the
+        // Output note gadgets for commitments as well as PRF gadgets for the
         // rho_is
         for (size_t i = 0; i < NumOutputs; i++) {
             rho_i_gadgets[i].reset(new PRF_rho_gadget<FieldT, HashT>(

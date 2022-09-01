@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -49,7 +49,7 @@ void hex_to_bytes(const std::string &hex, void *dest, size_t bytes);
 /// numbers, etc)
 void hex_to_bytes_reversed(const std::string &hex, void *dest, size_t bytes);
 
-/// Decode hexidecimal string to an std::string of bytes.
+/// Decode hexadecimal string to an std::string of bytes.
 std::string hex_to_bytes(const std::string &s);
 
 /// Encode bytes as a hex string. If `prefix` is true, the string is prepended

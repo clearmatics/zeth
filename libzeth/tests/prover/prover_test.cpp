@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 Clearmatics Technologies Ltd
+// Copyright (c) 2015-2022 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
@@ -17,7 +17,7 @@
 
 // Use the default ppT and other options from the circuit code, but force the
 // Merkle tree depth to 4. Parameterize the test code on the snark, so that
-// this code can test all available snark schemes, indepedent of the build
+// this code can test all available snark schemes, independent of the build
 // configuration.
 
 static const size_t TreeDepth = 4;
@@ -436,7 +436,7 @@ void TestValidJS2In2Case3(
     typename snarkT::verification_key vk = keypair.vk;
     bool res = snarkT::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
-    std::cout << "Does the proof verfy? " << res << std::endl;
+    std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify proof", true);
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
