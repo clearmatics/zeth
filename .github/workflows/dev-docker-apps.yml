@@ -21,7 +21,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        app: ['mpc', 'client', 'prover']
+        # Disable mpc for now
+        # app: ['mpc', 'client', 'prover']
+        app: ['client', 'prover']
       max-parallel: 3
 
     steps:
