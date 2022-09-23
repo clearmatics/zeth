@@ -30,7 +30,7 @@ setup(
         "click-default-group==1.2",
         "grpcio==1.44",
         "grpcio-tools==1.44",
-        "protobuf==3.18",
+        "protobuf==3.18.3",
         "py_ecc==1.7.1",
         "py-solc-x==1.1.0",
         "cryptography==3.3.2",
