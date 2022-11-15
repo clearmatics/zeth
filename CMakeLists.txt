@@ -5,7 +5,11 @@ cmake_minimum_required(VERSION 3.13)
 if(APPLE)
   # If custom llvm compilers are available, use them (for openmp
   # support), otherwise disable multicore.
-  if(EXISTS "/usr/local/opt/llvm/bin/clang")
+  find_program(CLANG_CMD "clang")
+  if(CLANG_CMD)
+    set(CMAKE_C_COMPILER "clang")
+    set(CMAKE_CXX_COMPILER "clang++")
+  elseif(EXISTS "/usr/local/opt/llvm/bin/clang")
     set(CMAKE_C_COMPILER "/usr/local/opt/llvm/bin/clang")
     set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
   endif()
