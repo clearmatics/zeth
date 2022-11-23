@@ -5,7 +5,8 @@ on:
   push:
 
 env:
-  MACOS_BREW_PACKAGES: "pkg-config libomp ccache"
+  MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp openssl pkg-config libomp libtool"
+  HOMEBREW_NO_AUTO_UPDATE: 1
 
 jobs:
 
