@@ -163,7 +163,6 @@ function build() {
 
     if [ "${platform}" == "Darwin" ] ; then
         openssl_path=$(brew --prefix openssl)
-        export PATH="/usr/local/opt/llvm/bin:/usr/local/bin:${PATH}"
         export PKG_CONFIG_PATH="${openssl_path}/lib/pkgconfig"
         export LIBRARY_PATH="${openssl_path}/lib"
         export LDFLAGS="-L/usr/local/lib -L${openssl_path}/lib"
@@ -171,6 +170,9 @@ function build() {
 
         cxx_flags="${cxx_flags} -I${openssl_path}/include"
         cxx_flags="${cxx_flags} -Wno-deprecated-declarations"
+
+        which clang
+        which clang++
     fi
 
     cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG} -DZETH_SNARK=${CI_ZKSNARK}"
@@ -186,6 +188,7 @@ function build() {
 
     # Build and run unit tests
     . setup_env.sh
+
     mkdir -p build
     cd build
     cmake                                    \

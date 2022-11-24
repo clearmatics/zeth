@@ -5,7 +5,7 @@ on:
   push:
 
 env:
-  MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp openssl pkg-config libomp libtool"
+  MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp grpc openssl pkg-config protobuf libomp libtool"
   HOMEBREW_NO_AUTO_UPDATE: 1
 
 jobs:
@@ -50,9 +50,15 @@ jobs:
         key: build-macos-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Install Dependencies
       run: |
+        brew install ${MACOS_BREW_PACKAGES}
         brew link llvm@14
         which clang
+        which clang++
         clang --version
-        brew install ${MACOS_BREW_PACKAGES}
+        clang++ --version
+        python3 -V
     - name: Execute
-      run: CI_MPC_TESTS=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
+      env:
+        CXX: clang
+      run: |
+        CI_MPC_TESTS=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
