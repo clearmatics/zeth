@@ -145,11 +145,8 @@ class Server:
             info("_tick: processing. Ignoring tick")
             return
 
-        self.state_lock.acquire()
-        try:
+        with self.state_lock:
             self._update_state(time.time())
-        finally:
-            self.state_lock.release()
 
     def _contributors(self, _req: Request) -> Response:
         return Response(self.contributors.to_json(), 200)
@@ -300,15 +297,13 @@ class Server:
             if self.processing:
                 return Response("Processing contribution. Retry later.", 503)
 
-            self.state_lock.acquire()
-            try:
-                return callback(req)
-            except Exception as ex:
-                warning(f"error in request: {ex}")
-                print(f"error in request: {ex}")
-                return Response("error: {ex}", 400)
-            finally:
-                self.state_lock.release()
+            with self.state_lock:
+                try:
+                    return callback(req)
+                except Exception as ex:
+                    warning(f"error in request: {ex}")
+                    print(f"error in request: {ex}")
+                    return Response("error: {ex}", 400)
 
         @app.route('/contributors', methods=['GET'])
         def contributors() -> Response:  # pylint: disable=unused-variable
@@ -327,11 +322,8 @@ class Server:
             return _with_state_lock(request, self._contribute)
 
         def _tick() -> None:
-            self.state_lock.acquire()
-            try:
+            with self.state_lock:
                 self._update_state(time.time())
-            finally:
-                self.state_lock.release()
 
         interval = Interval(60.0, _tick)
         try:
