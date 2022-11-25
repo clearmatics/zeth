@@ -5,7 +5,8 @@ on:
   push:
 
 env:
-  MACOS_BREW_PACKAGES: "pkg-config libomp ccache"
+  MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp grpc openssl pkg-config protobuf libomp libtool"
+  HOMEBREW_NO_AUTO_UPDATE: 1
 
 jobs:
 
@@ -24,7 +25,7 @@ jobs:
 
   # Main build
   build-macos:
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: submodules
     strategy:
       matrix:
@@ -33,6 +34,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
     - name: Cache ccache
       uses: actions/cache@v2
       with:
@@ -44,6 +49,16 @@ jobs:
         path: ~/Library/Caches/pip
         key: build-macos-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Install Dependencies
-      run: brew install ${MACOS_BREW_PACKAGES}
+      run: |
+        brew install ${MACOS_BREW_PACKAGES}
+        brew link llvm@14
+        which clang
+        which clang++
+        clang --version
+        clang++ --version
+        python3 -V
     - name: Execute
-      run: CI_MPC_TESTS=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
+      env:
+        CXX: clang
+      run: |
+        CI_MPC_TESTS=1 CI_CONFIG=${{ matrix.config }} scripts/ci build

@@ -3,11 +3,14 @@ cmake_minimum_required(VERSION 3.13)
 # Change the compiler BEFORE the first `project()` command to avoid an infinite loop.
 # See: https://public.kitware.com/pipermail/cmake/2009-November/033133.html
 if(APPLE)
-  # If custom llvm compilers are available, use them (for openmp
-  # support), otherwise disable multicore.
-  if(EXISTS "/usr/local/opt/llvm/bin/clang")
-    set(CMAKE_C_COMPILER "/usr/local/opt/llvm/bin/clang")
-    set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
+  if (NOT DEFINED CMAKE_CXX_COMPILER)
+    # If custom llvm compilers are available, use them (for openmp
+    # support), otherwise disable multicore.
+    find_program(CLANG_CMD "clang" HINTS /usr/local/opt/llvm/bin)
+    if(CLANG_CMD)
+      set(CMAKE_C_COMPILER ${CLANG_CMD})
+      set(CMAKE_CXX_COMPILER ${CLANG_CMD}++)
+    endif()
   endif()
 endif()
 
