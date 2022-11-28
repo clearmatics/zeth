@@ -1,0 +1,7 @@
+<map id="test_commands.scenario.bob_deposit" name="test_commands.scenario.bob_deposit">
+<area shape="rect" id="node1" title=" " alt="" coords="5,39,219,80"/>
+<area shape="rect" id="node2" href="$namespacetest__commands_1_1scenario.html#a550f5fab097b3cbfad0d1704d067f74e" title=" " alt="" coords="267,39,484,80"/>
+<area shape="rect" id="node3" href="$namespacetest__commands_1_1scenario.html#a780524fa45a645b22e4e0dd37415114b" title=" " alt="" coords="532,39,757,80"/>
+<area shape="rect" id="node4" href="$namespacezeth_1_1core_1_1mixer__client.html#a8b35210320c24f22a60c1d56dfeeb5a6" title=" " alt="" coords="807,5,1014,47"/>
+<area shape="rect" id="node5" href="$namespacezeth_1_1core_1_1contracts.html#a6b311601ae8a20d8b1e986c7626ee88e" title=" " alt="" coords="805,71,1016,112"/>
+</map>

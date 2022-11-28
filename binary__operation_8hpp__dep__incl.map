@@ -1,0 +1,12 @@
+<map id="/home/runner/work/zeth/zeth/libzeth/circuits/binary_operation.hpp" name="/home/runner/work/zeth/zeth/libzeth/circuits/binary_operation.hpp">
+<area shape="rect" id="node1" title=" " alt="" coords="421,5,598,61"/>
+<area shape="rect" id="node2" href="$blake2s_8hpp.html" title=" " alt="" coords="370,317,547,373"/>
+<area shape="rect" id="node8" href="$blake2s__comp_8hpp.html" title=" " alt="" coords="517,213,718,269"/>
+<area shape="rect" id="node10" href="$g__primitive_8hpp.html" title=" " alt="" coords="547,109,730,165"/>
+<area shape="rect" id="node3" href="$circuit__types_8hpp.html" title=" " alt="" coords="370,421,547,477"/>
+<area shape="rect" id="node4" href="$mpc__client_8cpp.html" title=" " alt="" coords="5,525,216,581"/>
+<area shape="rect" id="node5" href="$mpc__coord_8cpp.html" title=" " alt="" coords="240,525,451,581"/>
+<area shape="rect" id="node6" href="$prover__server_8cpp.html" title=" " alt="" coords="475,525,669,581"/>
+<area shape="rect" id="node7" href="$joinsplit__circuit__cmd_8cpp.html" title=" " alt="" coords="694,525,871,581"/>
+<area shape="rect" id="node9" href="$mpc__linear__combination_8cpp.html" title=" " alt="" coords="572,317,804,373"/>
+</map>

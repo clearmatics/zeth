@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['name_2480',['name',['../classzeth_1_1cli_1_1utils_1_1NetworkConfig.html#ae98411a06febe6370bd57af2ad10a285',1,'zeth.cli.utils.NetworkConfig.name()'],['../classzeth_1_1core_1_1pairing_1_1PairingParameters.html#a6a528890d252cafd3fb25afc7bc42f85',1,'zeth.core.pairing.PairingParameters.name()'],['../classlibzeth_1_1groth16__snark.html#a0057572aefc075a3204d775d9a5106d4',1,'libzeth::groth16_snark::name()'],['../classlibzeth_1_1pghr13__snark.html#a1259edd9304cbb11d8fd8b7dee2a0b06',1,'libzeth::pghr13_snark::name()'],['../namespacesetup.html#ab3a7a0638d76a01367c5bc3cc699447f',1,'setup.name()']]],
+  ['new_5faccumulator_2481',['new_accumulator',['../classlibzeth_1_1srs__mpc__phase2__response.html#aa5c3a548ca83c90eb223f1d769d3e5c3',1,'libzeth::srs_mpc_phase2_response']]],
+  ['new_5fchallenge_5ffile_2482',['NEW_CHALLENGE_FILE',['../namespacecoordinator_1_1powersoftau__command.html#adf517ed013ef0cd83cbb133184b921c1',1,'coordinator::powersoftau_command']]],
+  ['new_5fdelta_5fg1_2483',['new_delta_g1',['../classlibzeth_1_1srs__mpc__phase2__publickey.html#a1005e5eb45b150c9e7af2225a277e733',1,'libzeth::srs_mpc_phase2_publickey']]],
+  ['new_5fmerkle_5froot_2484',['new_merkle_root',['../classzeth_1_1core_1_1mixer__client_1_1MixResult.html#a5b0bfcffc4eee6492d02f78a2179b1c8',1,'zeth::core::mixer_client::MixResult']]],
+  ['next_5faddr_2485',['next_addr',['../classzeth_1_1core_1_1wallet_1_1Wallet.html#a8f265d370190bd2246e8db538d92280a',1,'zeth::core::wallet::Wallet']]],
+  ['next_5fblock_2486',['next_block',['../classzeth_1_1core_1_1wallet_1_1WalletState.html#a29c918353f55fdf97d36ebc1fe676778',1,'zeth::core::wallet::WalletState']]],
+  ['next_5fchallenge_5ffile_2487',['NEXT_CHALLENGE_FILE',['../namespacecoordinator_1_1phase2__contribution__handler.html#add98b46950e8541dfb9b7ca64ce186c1',1,'coordinator::phase2_contribution_handler']]],
+  ['next_5fcontributor_5fdeadline_2488',['next_contributor_deadline',['../classcoordinator_1_1server__state_1_1ServerState.html#a8ee3b4457e525d079ff60b97dbd7c1a1',1,'coordinator::server_state::ServerState']]],
+  ['next_5fcontributor_5findex_2489',['next_contributor_index',['../classcoordinator_1_1server__state_1_1ServerState.html#a61de45f72c122c013a138db023e5c089',1,'coordinator::server_state::ServerState']]],
+  ['next_5fdeadline_2490',['next_deadline',['../classcoordinator_1_1interval_1_1Interval.html#ab35262a3103920eeeae666876120d7c8',1,'coordinator::interval::Interval']]],
+  ['note_2491',['note',['../classzeth_1_1core_1_1wallet_1_1ZethNoteDescription.html#acc629a99ea596cb456b74890ea98d1a0',1,'zeth.core.wallet.ZethNoteDescription.note()'],['../classlibzeth_1_1joinsplit__input.html#af989d9c147b74f10e72793a8e5fc2b41',1,'libzeth::joinsplit_input::note()']]],
+  ['nullifier_2492',['nullifier',['../classlibzeth_1_1joinsplit__input.html#a4f1981b17622acacd0168f0e0b645df6',1,'libzeth::joinsplit_input']]],
+  ['nullifier_5fmap_2493',['nullifier_map',['../classzeth_1_1core_1_1wallet_1_1WalletState.html#a1210cc25600938888760bd80d1316217',1,'zeth::core::wallet::WalletState']]],
+  ['nullifiermap_2494',['NullifierMap',['../namespacezeth_1_1core_1_1wallet.html#a1b5d60a146811de50f958352a64af430',1,'zeth::core::wallet']]],
+  ['nullifiers_2495',['nullifiers',['../classzeth_1_1core_1_1mixer__client_1_1MixResult.html#a4b1d7f04cecfd1a0ccec5004ab0aac12',1,'zeth::core::mixer_client::MixResult']]],
+  ['num_5fnew_5fleaves_2496',['num_new_leaves',['../classzeth_1_1core_1_1merkle__tree_1_1MerkleTree.html#aab9a31da65ffe1c68d469fd2ff841c70',1,'zeth::core::merkle_tree::MerkleTree']]],
+  ['num_5fnotes_2497',['num_notes',['../classzeth_1_1core_1_1wallet_1_1WalletState.html#ae05edf387f1a9b9d549e0e998268e6bd',1,'zeth::core::wallet::WalletState']]],
+  ['num_5fpowers_2498',['num_powers',['../classcoordinator_1_1phase1__contribution__handler_1_1Phase1ServerConfig.html#aebe554eb3e79857d522221a2252de3b8',1,'coordinator.phase1_contribution_handler.Phase1ServerConfig.num_powers()'],['../classcoordinator_1_1powersoftau__command_1_1PowersOfTauCommand.html#a5256003d24fe7d26ff954ef04d3785ad',1,'coordinator.powersoftau_command.PowersOfTauCommand.num_powers()']]],
+  ['num_5fprimary_5finputs_2499',['num_primary_inputs',['../classzethtool_1_1commands_1_1prove__cmd.html#acb84948d1edccdba2d192ef222417981',1,'zethtool::commands::prove_cmd']]],
+  ['num_5frounds_2500',['num_rounds',['../classzeth_1_1core_1_1mimc_1_1MiMCBase.html#a16c476985f7594df4e16fd9d7a9d5f11',1,'zeth::core::mimc::MiMCBase']]],
+  ['num_5fvalid_5fcontributions_2501',['num_valid_contributions',['../classcoordinator_1_1phase1__contribution__handler_1_1__Phase1State.html#a2b97bda78a15d3ba05f77f4d324629e0',1,'coordinator::phase1_contribution_handler::_Phase1State']]]
+];
