@@ -25,23 +25,6 @@ function cpp_build_setup() {
 
     # Extra deps for native builds
 
-    if [ "${platform}" == "Darwin" ] ; then
-        # Some of these commands can fail (if packages are already installed,
-        # etc), hence the `|| echo`.
-        brew update || echo
-        brew install \
-             gmp \
-             grpc \
-             protobuf \
-             boost \
-             openssl \
-             cmake \
-             libtool \
-             autoconf \
-             automake \
-             || echo
-    fi
-
     if [ "${platform}" == "Linux" ] ; then
         if (which apk) ; then
             # Packages already available in Docker build

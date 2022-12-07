@@ -6,12 +6,10 @@ echo platform=${platform}
 set -x
 
 python3 --version
-which python || echo No python
 which python3 || echo No python3
 
 set -e
 set -x
-
 
 cd mpc
 python3 -m venv env
