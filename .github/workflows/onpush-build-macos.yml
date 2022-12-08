@@ -5,7 +5,8 @@ on:
   push:
 
 env:
-  MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp grpc openssl pkg-config protobuf libomp libtool"
+  MACOS_BREW_PACKAGES_FOR_GRPC: "autoconf automake cmake openssl pkg-config"
+  MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp openssl pkg-config libomp libtool"
   HOMEBREW_NO_AUTO_UPDATE: 1
 
 jobs:
@@ -27,7 +28,7 @@ jobs:
         path: depends/grpc
     - name: Build grpc
       run: |
-        brew install ${MACOS_BREW_PACKAGES}
+        brew install ${MACOS_BREW_PACKAGES_FOR_GRPC}
         brew link llvm@14
         if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr/local v1.44.x ; fi
 
