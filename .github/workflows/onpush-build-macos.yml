@@ -29,7 +29,7 @@ jobs:
       run: |
         brew install ${MACOS_BREW_PACKAGES}
         brew link llvm@14
-        if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.44.x ; fi
+        if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr/local v1.44.x ; fi
 
   # Extract the commits of submodules for use by cache steps
   submodules:
@@ -73,7 +73,7 @@ jobs:
       run: |
     - name: Install dependencies
       run: |
-        INSTALL_ONLY=1 scripts/install-grpc /usr v1.44.x
+        INSTALL_ONLY=1 scripts/install-grpc /usr/local v1.44.x
         brew install ${MACOS_BREW_PACKAGES}
         brew link llvm@14
         which clang
