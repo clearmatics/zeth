@@ -27,7 +27,10 @@ fi
 
 
 if [ ${platform} == "Darwin" ] ; then
-    alias nproc='sysctl -n hw.ncpu'
+    # alias nproc='sysctl -n hw.ncpu'
+    function nproc() {
+        sysctl -n hw.ncpu
+    }
 fi
 
 
