@@ -25,6 +25,12 @@ if [ "${INSTALL_ONLY}" != "1" ] ; then
     cpp_build_setup
 fi
 
+
+if [ ${platform} == "Darwin" ] ; then
+    alias nproc='sysctl -n hw.ncpu'
+fi
+
+
 pushd depends
 
     if ! [ -d grpc ] ; then
