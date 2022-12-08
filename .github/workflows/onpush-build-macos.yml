@@ -28,7 +28,7 @@ jobs:
         path: depends/grpc
     - name: Build grpc
       run: |
-        brew install ${MACOS_BREW_PACKAGES_FOR_GRPC}
+        brew install ${MACOS_BREW_PACKAGES}
         brew link llvm@14
         if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr/local v1.44.x ; fi
 
