@@ -56,8 +56,8 @@ pushd depends
         popd # third_party/protobuf
 
         # Install grpc
-        mkdir -p build
-        pushd build
+        mkdir -p build-grpc
+        pushd build-grpc
             if [ "${INSTALL_ONLY}" != "1" ] ; then
                 cmake \
                     -DCMAKE_PREFIX_PATH=${INSTALL_DIR}       \
