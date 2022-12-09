@@ -47,5 +47,15 @@ function cpp_build_setup() {
                  libxslt1-dev \
                  pkg-config
         fi
+
+    elif [ "${platform}" == "Darwin" ] ; then
+
+        openssl_path=$(brew --prefix openssl)
+        export PKG_CONFIG_PATH="${openssl_path}/lib/pkgconfig"
+        export LIBRARY_PATH="${openssl_path}/lib"
+        export LDFLAGS="-L/usr/local/lib -L${openssl_path}/lib"
+        export CPPFLAGS="-I/usr/local/include -I${openssl_path}/include"
+        export CXXFLAGS="-I/usr/local/include -I${openssl_path}/include"
+
     fi
 }

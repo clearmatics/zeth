@@ -37,8 +37,12 @@ fi
 pushd depends
 
     if ! [ -d grpc ] ; then
-        git clone --depth 1 -b ${VERSION} https://github.com/grpc/grpc
-        git -C grpc submodule update --depth 1 --init --recursive
+        git clone \
+            --depth 1 \
+            --shallow-submodules \
+            --recurse-submodules \
+            -b ${VERSION} \
+            https://github.com/grpc/grpc
     else
         echo grpc directory already exists. skipping download.
     fi
