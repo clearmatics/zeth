@@ -5,10 +5,38 @@ on:
   push:
 
 env:
-  MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp grpc openssl pkg-config protobuf libomp libtool"
+  MACOS_BREW_PACKAGES_FOR_GRPC: "autoconf automake cmake openssl pkg-config libtool"
+  MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp openssl pkg-config libomp libtool"
   HOMEBREW_NO_AUTO_UPDATE: 1
+  PKG_CONFIG_PATH: "/usr/local/opt/openssl/lib/LIBRARY_PATH="
+  LIBRARY_PATH: /usr/local/lib:/usr/local/opt/openssl/lib
+  CC: clang
+  CXX: clang
+  CXXFLAGS: "-stdlib=libc++"
+  LDFLAGS: "-stdlib=libc++"
 
 jobs:
+
+  # Job to build and cache the grpc libraries. The grpc build directory is
+  # populated and cached so that all other jobs can mark this job as a
+  # prerequisite and just run `make install`.
+  #
+  # NOTE: the version number here (in `key` and in script arguments) must be
+  # kept in sync with the key used by the jobs.
+  build-grpc:
+    runs-on: macos-11
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache grpc
+      uses: actions/cache@v2
+      with:
+        key: grpc-1.44.x-test-${{ runner.os }}
+        path: depends/grpc
+    - name: Build grpc
+      run: |
+        brew install ${MACOS_BREW_PACKAGES}
+        brew link llvm@14
+        if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr/local v1.44.x ; fi
 
   # Extract the commits of submodules for use by cache steps
   submodules:
@@ -26,7 +54,7 @@ jobs:
   # Main build
   build-macos:
     runs-on: macos-11
-    needs: submodules
+    needs: [build-grpc, submodules]
     strategy:
       matrix:
         config: [ Debug, Release ]
@@ -38,11 +66,11 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.8'
-    - name: Cache ccache
+    - name: Cache grpc
       uses: actions/cache@v2
       with:
-        key: submodules-${{ needs.submodules.outputs.commits }}-${{ runner.os }}-${{ matrix.config }}
-        path: ~/Library/Caches/ccache
+        key: grpc-1.44.x-test-${{ runner.os }}
+        path: depends/grpc
     - name: Cache pip (for mpc tests)
       uses: actions/cache@v2
       with:
@@ -50,6 +78,9 @@ jobs:
         key: build-macos-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Install Dependencies
       run: |
+    - name: Install dependencies
+      run: |
+        INSTALL_ONLY=1 scripts/install-grpc /usr/local v1.44.x
         brew install ${MACOS_BREW_PACKAGES}
         brew link llvm@14
         which clang

@@ -51,7 +51,6 @@ jobs:
     - name: Install dependencies
       run: |
         INSTALL_ONLY=1 scripts/install-grpc /usr v1.44.x
-        sudo apt install -y ccache
     - name: Execute
       run: CI_CHECK_FORMAT=1 CI_MPC_TESTS=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
 
@@ -74,7 +73,6 @@ jobs:
     - name: Install dependencies
       run: |
         INSTALL_ONLY=1 scripts/install-grpc /usr v1.44.x
-        sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_ZKSNARK=PGHR13 scripts/ci build
 
@@ -97,6 +95,5 @@ jobs:
     - name: Install dependencies
       run: |
         INSTALL_ONLY=1 scripts/install-grpc /usr v1.44.x
-        sudo apt install -y ccache
     - name: Execute
       run: CI_CONFIG=Release CI_CURVE=BLS12_377 scripts/ci build
