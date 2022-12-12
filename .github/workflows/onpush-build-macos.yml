@@ -8,6 +8,8 @@ env:
   MACOS_BREW_PACKAGES_FOR_GRPC: "autoconf automake cmake openssl pkg-config"
   MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp openssl pkg-config libomp libtool"
   HOMEBREW_NO_AUTO_UPDATE: 1
+  PKG_CONFIG_PATH: "/usr/local/opt/openssl/lib/LIBRARY_PATH="
+  LIBRARY_PATH: /usr/local/lib:/usr/local/opt/openssl/lib
 
 jobs:
 
