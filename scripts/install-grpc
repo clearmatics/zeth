@@ -55,7 +55,7 @@ pushd depends
                 DIST_LANG=cpp ./configure --prefix ${INSTALL_DIR}
                 make -j $(($(nproc)+1))
             fi
-            make install
+            sudo make install
         popd # third_party/protobuf
 
         # Install grpc
@@ -80,7 +80,7 @@ pushd depends
 
             make -j $(($(nproc)+1))
             # fi
-            make install
+            sudo make install
         popd # build
 
     popd # grpc
