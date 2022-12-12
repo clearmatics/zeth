@@ -55,7 +55,7 @@ pushd depends
                 DIST_LANG=cpp ./configure --prefix ${INSTALL_DIR}
                 make -j $(($(nproc)+1))
             fi
-            sudo make install
+            make install
         popd # third_party/protobuf
 
         # Install grpc
@@ -78,9 +78,9 @@ pushd depends
                 -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF        \
                 ..
 
-            make -j"$(($(nproc)+1))"
+            make -j $(($(nproc)+1))
             # fi
-            sudo make install
+            make install
         popd # build
 
     popd # grpc

@@ -5,11 +5,13 @@ on:
   push:
 
 env:
-  MACOS_BREW_PACKAGES_FOR_GRPC: "autoconf automake cmake openssl pkg-config"
+  MACOS_BREW_PACKAGES_FOR_GRPC: "autoconf automake cmake openssl pkg-config libtool"
   MACOS_BREW_PACKAGES: "autoconf automake boost cmake gmp openssl pkg-config libomp libtool"
   HOMEBREW_NO_AUTO_UPDATE: 1
   PKG_CONFIG_PATH: "/usr/local/opt/openssl/lib/LIBRARY_PATH="
   LIBRARY_PATH: /usr/local/lib:/usr/local/opt/openssl/lib
+  CC: clang
+  CXX: clang
 
 jobs:
 
@@ -26,7 +28,7 @@ jobs:
     - name: Cache grpc
       uses: actions/cache@v2
       with:
-        key: grpc-1.44.x-${{ runner.os }}
+        key: grpc-1.44.x-test-${{ runner.os }}
         path: depends/grpc
     - name: Build grpc
       run: |
@@ -65,7 +67,7 @@ jobs:
     - name: Cache grpc
       uses: actions/cache@v2
       with:
-        key: grpc-1.44.x-${{ runner.os }}
+        key: grpc-1.44.x-test-${{ runner.os }}
         path: depends/grpc
     - name: Cache pip (for mpc tests)
       uses: actions/cache@v2
