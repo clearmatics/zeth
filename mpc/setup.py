@@ -37,7 +37,7 @@ setup(
         # versions here to avoid CI failures.
         "Jinja2==3.0.3",
         "itsdangerous==2.0.1",
-        "Werkzeug==2.0.2",
+        "Werkzeug==2.2.3",
     ],
     scripts=[
         "commands/phase1_server",
