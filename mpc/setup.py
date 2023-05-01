@@ -27,7 +27,7 @@ setup(
         "mypy==0.790",
         "flake8==3.7.8",
         "pylint==2.9",
-        "flask==1.1.1",
+        "flask==2.3.2",
         "cheroot==7.0.0",
         "pycryptodome==3.9.0",
         "ecdsa==0.13.3",
