@@ -28,7 +28,7 @@ setup(
         "pylint==2.9",
         "click==7.0",
         "click-default-group==1.2",
-        "grpcio==1.44",
+        "grpcio==1.53.0",
         "grpcio-tools==1.44",
         "protobuf==3.18.3",
         "py_ecc==1.7.1",
