@@ -33,7 +33,7 @@ setup(
         "protobuf==3.18.3",
         "py_ecc==1.7.1",
         "py-solc-x==1.1.0",
-        "cryptography==3.3.2",
+        "cryptography==41.0.3",
         "web3>=5<6",
     ],
     entry_points={
